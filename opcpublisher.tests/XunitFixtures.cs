@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 namespace OpcPublisher
 {
     using Opc.Ua;
+    using System.Net.Http;
     using static OpcApplicationConfiguration;
     using static Program;
 
@@ -39,7 +40,7 @@ namespace OpcPublisher
             }
 
             // cleanup all PLC containers
-            CleanupContainerAsync();
+            CleanupContainerAsync().Wait();
 
             // pull the latest image
             ImagesCreateParameters createParameters = new ImagesCreateParameters();
@@ -110,7 +111,16 @@ namespace OpcPublisher
         /// </summary>
         void Dispose(bool disposing)
         {
-            CleanupContainerAsync();
+            try
+            {
+                CleanupContainerAsync().Wait();
+            }
+#pragma warning disable RECS0022 // A catch clause that catches System.Exception and has an empty body
+            catch
+#pragma warning restore RECS0022 // A catch clause that catches System.Exception and has an empty body
+            {
+
+            }
             if (disposing)
             {
                 // dispose managed resources
@@ -126,13 +136,13 @@ namespace OpcPublisher
             GC.SuppressFinalize(this);
         }
 
-        private Task CleanupContainerAsync()
+        private async Task CleanupContainerAsync()
         {
-            IList<ContainerListResponse> containers = _dockerClient.Containers.ListContainersAsync(
+            IList<ContainerListResponse> containers = await _dockerClient.Containers.ListContainersAsync(
                 new ContainersListParameters()
                 {
                     Limit = 10,
-                }).Result;
+                });
 
             foreach (var container in containers)
             {
@@ -140,7 +150,7 @@ namespace OpcPublisher
                 {
                     try
                     {
-                        _dockerClient.Containers.StopContainerAsync(container.ID, new ContainerStopParameters()).Wait();
+                        await _dockerClient.Containers.StopContainerAsync(container.ID, new ContainerStopParameters());
                     }
                     catch (Exception)
                     {
@@ -148,7 +158,7 @@ namespace OpcPublisher
                     }
                     try
                     {
-                        _dockerClient.Containers.RemoveContainerAsync(container.ID, new ContainerRemoveParameters()).Wait();
+                        await _dockerClient.Containers.RemoveContainerAsync(container.ID, new ContainerRemoveParameters());
                     }
                     catch (Exception)
                     {
@@ -156,8 +166,6 @@ namespace OpcPublisher
                     }
                 }
             }
-
-            return Task.FromResult(0);
         }
 
         // when testing locally, spin up your own registry and put the image in here
@@ -174,7 +182,14 @@ namespace OpcPublisher
 
         public PlcOpcUaServerFixture()
         {
-            Plc = new PlcOpcUaServer();
+            try
+            {
+                Plc = new PlcOpcUaServer();
+            }
+            catch
+            {
+                Plc = null;
+            }
         }
 
         /// <summary>
@@ -185,7 +200,7 @@ namespace OpcPublisher
             if (disposing)
             {
                 // dispose managed resources
-                Plc.Dispose();
+                Plc?.Dispose();
                 Plc = null;
             }
         }

@@ -15,14 +15,19 @@ namespace OpcPublisher
     [Collection("Need PLC and publisher config")]
     public sealed class TelemetryUnitTests : IDisposable
     {
-        public TelemetryUnitTests(ITestOutputHelper output)
+        public TelemetryUnitTests(ITestOutputHelper output, PlcOpcUaServerFixture server)
         {
             // xunit output
             _output = output;
+            _server = server;
 
             // init static publisher objects
             TelemetryConfiguration = PublisherTelemetryConfiguration.Instance;
             Diag = PublisherDiagnostics.Instance;
+        }
+
+        private void CheckWhetherToSkip() {
+            Skip.If(_server.Plc == null, "Server not reachable - Ensure docker endpoint is properly configured.");
         }
 
         /// <summary>
@@ -49,13 +54,14 @@ namespace OpcPublisher
         /// <summary>
         /// Test telemetry is sent to the hub.
         /// </summary>
-        [Theory]
+        [SkippableTheory]
         [Trait("Telemetry", "All")]
         [Trait("TelemetryFunction", "Basic")]
         [MemberData(nameof(PnPlcCurrentTime))]
         public async Task TelemetryIsSentAsync(string testFilename, int configuredSessions,
             int configuredSubscriptions, int configuredMonitoredItems)
         {
+            CheckWhetherToSkip();
             string methodName = UnitTestHelper.GetMethodName();
             string fqTempFilename = string.Empty;
             string fqTestFilename = $"{Directory.GetCurrentDirectory()}/testdata/telemetry/{testFilename}";
@@ -103,7 +109,7 @@ namespace OpcPublisher
                 _output.WriteLine($"items configured {NodeConfiguration.NumberOfOpcMonitoredItemsConfigured}, monitored {NodeConfiguration.NumberOfOpcMonitoredItemsMonitored}, toRemove {NodeConfiguration.NumberOfOpcMonitoredItemsToRemove}");
                 _output.WriteLine($"waited {seconds} seconds till monitoring started, events generated {eventsReceived}");
                 hubClientMock.VerifySet(m => m.ProductInfo = "OpcPublisher");
-                Assert.True(eventsAfterDelay - eventsAtStart == 3);
+                Assert.Equal(3, eventsAfterDelay - eventsAtStart);
             }
             finally
             {
@@ -118,13 +124,14 @@ namespace OpcPublisher
         /// <summary>
         /// Test telemetry is sent to the hub using node with static value.
         /// </summary>
-        [Theory]
+        [SkippableTheory]
         [Trait("Telemetry", "All")]
         [Trait("TelemetryFunction", "Basic")]
         [MemberData(nameof(PnPlcProductName))]
         public async Task TelemetryIsSentWithStaticNodeValueAsync(string testFilename, int configuredSessions,
             int configuredSubscriptions, int configuredMonitoredItems)
         {
+            CheckWhetherToSkip();
             string methodName = UnitTestHelper.GetMethodName();
             string fqTempFilename = string.Empty;
             string fqTestFilename = $"{Directory.GetCurrentDirectory()}/testdata/telemetry/{testFilename}";
@@ -172,7 +179,7 @@ namespace OpcPublisher
                 _output.WriteLine($"items configured {NodeConfiguration.NumberOfOpcMonitoredItemsConfigured}, monitored {NodeConfiguration.NumberOfOpcMonitoredItemsMonitored}, toRemove {NodeConfiguration.NumberOfOpcMonitoredItemsToRemove}");
                 _output.WriteLine($"waited {seconds} seconds till monitoring started, events generated {eventsReceived}");
                 hubClientMock.VerifySet(m => m.ProductInfo = "OpcPublisher");
-                Assert.True(eventsAfterDelay - eventsAtStart == 1);
+                Assert.Equal(1, eventsAfterDelay - eventsAtStart);
             }
             finally
             {
@@ -187,13 +194,14 @@ namespace OpcPublisher
         /// <summary>
         /// Test first event is skipped.
         /// </summary>
-        [Theory]
+        [SkippableTheory]
         [Trait("Telemetry", "All")]
         [Trait("TelemetryFunction", "SkipFirst")]
         [MemberData(nameof(PnPlcCurrentTime))]
         public async Task FirstTelemetryEventIsSkippedAsync(string testFilename, int configuredSessions,
             int configuredSubscriptions, int configuredMonitoredItems)
         {
+            CheckWhetherToSkip();
             string methodName = UnitTestHelper.GetMethodName();
             string fqTempFilename = string.Empty;
             string fqTestFilename = $"{Directory.GetCurrentDirectory()}/testdata/telemetry/{testFilename}";
@@ -257,13 +265,14 @@ namespace OpcPublisher
         /// <summary>
         /// Test first event is skipped using a node with static value.
         /// </summary>
-        [Theory]
+        [SkippableTheory]
         [Trait("Telemetry", "All")]
         [Trait("TelemetryFunction", "SkipFirst")]
         [MemberData(nameof(PnPlcProductName))]
         public async Task FirstTelemetryEventIsSkippedWithStaticNodeValueAsync(string testFilename, int configuredSessions,
             int configuredSubscriptions, int configuredMonitoredItems)
         {
+            CheckWhetherToSkip();
             string methodName = UnitTestHelper.GetMethodName();
             string fqTempFilename = string.Empty;
             string fqTestFilename = $"{Directory.GetCurrentDirectory()}/testdata/telemetry/{testFilename}";
@@ -327,13 +336,14 @@ namespace OpcPublisher
         /// <summary>
         /// Test heartbeat is working on a node with static value.
         /// </summary>
-        [Theory]
+        [SkippableTheory]
         [Trait("Telemetry", "All")]
         [Trait("TelemetryFunction", "Heartbeat")]
         [MemberData(nameof(PnPlcProductNameHeartbeat2))]
         public async Task HeartbeatOnStaticNodeValueIsWorkingAsync(string testFilename, int configuredSessions,
             int configuredSubscriptions, int configuredMonitoredItems)
         {
+            CheckWhetherToSkip();
             string methodName = UnitTestHelper.GetMethodName();
             string fqTempFilename = string.Empty;
             string fqTestFilename = $"{Directory.GetCurrentDirectory()}/testdata/telemetry/{testFilename}";
@@ -373,7 +383,7 @@ namespace OpcPublisher
                 Assert.True(NodeConfiguration.NumberOfOpcMonitoredItemsConfigured == configuredMonitoredItems, "wrong # of monitored items");
                 int seconds = UnitTestHelper.WaitTilItemsAreMonitored();
                 long eventsAfterConnect = HubCommunicationBase.NumberOfEvents;
-                await Task.Delay(3000).ConfigureAwait(false);
+                await Task.Delay(5000).ConfigureAwait(false);
                 long eventsAfterDelay = HubCommunicationBase.NumberOfEvents;
                 _output.WriteLine($"# of events at start: {eventsAtStart}, # events after connect: {eventsAfterConnect}, # events after delay: {eventsAfterDelay}");
                 _output.WriteLine($"sessions configured {NodeConfiguration.NumberOfOpcSessionsConfigured}, connected {NodeConfiguration.NumberOfOpcSessionsConnected}");
@@ -381,7 +391,7 @@ namespace OpcPublisher
                 _output.WriteLine($"items configured {NodeConfiguration.NumberOfOpcMonitoredItemsConfigured}, monitored {NodeConfiguration.NumberOfOpcMonitoredItemsMonitored}, toRemove {NodeConfiguration.NumberOfOpcMonitoredItemsToRemove}");
                 _output.WriteLine($"waited {seconds} seconds till monitoring started, events generated {eventsReceived}");
                 hubClientMock.VerifySet(m => m.ProductInfo = "OpcPublisher");
-                Assert.True(eventsAfterDelay - eventsAtStart == 2);
+                Assert.Equal(2, eventsAfterDelay - eventsAtStart);
             }
             finally
             {
@@ -396,13 +406,14 @@ namespace OpcPublisher
         /// <summary>
         /// Test heartbeat is working on a node with static value with skip first true.
         /// </summary>
-        [Theory]
+        [SkippableTheory]
         [Trait("Telemetry", "All")]
         [Trait("TelemetryFunction", "Heartbeat")]
         [MemberData(nameof(PnPlcProductNameHeartbeat2SkipFirst))]
         public async Task HeartbeatWithSkipFirstOnStaticNodeValueIsWorkingAsync(string testFilename, int configuredSessions,
             int configuredSubscriptions, int configuredMonitoredItems)
         {
+            CheckWhetherToSkip();
             string methodName = UnitTestHelper.GetMethodName();
             string fqTempFilename = string.Empty;
             string fqTestFilename = $"{Directory.GetCurrentDirectory()}/testdata/telemetry/{testFilename}";
@@ -523,5 +534,6 @@ namespace OpcPublisher
             };
 
         private readonly ITestOutputHelper _output;
+        private readonly PlcOpcUaServerFixture _server;
     }
 }

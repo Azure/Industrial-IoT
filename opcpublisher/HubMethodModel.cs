@@ -1,7 +1,9 @@
 ﻿using Microsoft.Azure.Devices.Client;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Runtime.InteropServices;
 
 namespace OpcPublisher
@@ -167,6 +169,10 @@ namespace OpcPublisher
 
         public string EndpointUrl { get; set; }
         public List<OpcNodeOnEndpointModel> OpcNodes { get; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonConverter(typeof(StringEnumConverter))]
+        public OpcAuthenticationMode? OpcAuthenticationMode { get; set; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public bool UseSecurity { get; set; }

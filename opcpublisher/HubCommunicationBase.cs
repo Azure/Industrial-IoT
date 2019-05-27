@@ -19,6 +19,7 @@ namespace OpcPublisher
     using static OpcApplicationConfiguration;
     using static OpcPublisher.OpcMonitoredItem;
     using static Program;
+    using OpcPublisher.Crypto;
 
     /// <summary>
     /// Class to handle all IoTHub/EdgeHub communication.
@@ -248,6 +249,10 @@ namespace OpcPublisher
             string logPrefix = "HandlePublishNodesMethodAsync:";
             bool useSecurity = true;
             Uri endpointUri = null;
+
+            OpcAuthenticationMode? desiredAuthenticationMode = null;
+            EncryptedNetworkCredential desiredEncryptedCredential = null;
+
             PublishNodesMethodRequestModel publishNodesMethodData = null;
             HttpStatusCode statusCode = HttpStatusCode.OK;
             HttpStatusCode nodeStatusCode = HttpStatusCode.InternalServerError;
@@ -259,6 +264,17 @@ namespace OpcPublisher
                 publishNodesMethodData = JsonConvert.DeserializeObject<PublishNodesMethodRequestModel>(methodRequest.DataAsJson);
                 endpointUri = new Uri(publishNodesMethodData.EndpointUrl);
                 useSecurity = publishNodesMethodData.UseSecurity;
+
+                if (publishNodesMethodData.OpcAuthenticationMode == OpcAuthenticationMode.UsernamePassword)
+                {
+                    if (string.IsNullOrWhiteSpace(publishNodesMethodData.UserName) && string.IsNullOrWhiteSpace(publishNodesMethodData.Password))
+                    {
+                        throw new ArgumentException($"If {nameof(publishNodesMethodData.OpcAuthenticationMode)} is set to '{OpcAuthenticationMode.UsernamePassword}', you have to specify '{nameof(publishNodesMethodData.UserName)}' and/or '{nameof(publishNodesMethodData.Password)}'.");
+                    }
+
+                    desiredAuthenticationMode = OpcAuthenticationMode.UsernamePassword;
+                    desiredEncryptedCredential = await EncryptedNetworkCredential.FromPlainCredential(publishNodesMethodData.UserName, publishNodesMethodData.Password);
+                }
             }
             catch (UriFormatException e)
             {
@@ -299,10 +315,41 @@ namespace OpcPublisher
                         // add a new session.
                         if (opcSession == null)
                         {
+                            // if the no OpcAuthenticationMode is specified, we create the new session with "Anonymous" auth
+                            if (!desiredAuthenticationMode.HasValue)
+                            {
+                                desiredAuthenticationMode = OpcAuthenticationMode.Anonymous;
+                            }
+                            
                             // create new session info.
-                            opcSession = new OpcSession(endpointUri.OriginalString, useSecurity, OpcSessionCreationTimeout);
+                            opcSession = new OpcSession(endpointUri.OriginalString, useSecurity, OpcSessionCreationTimeout, desiredAuthenticationMode.Value, desiredEncryptedCredential);
                             NodeConfiguration.OpcSessions.Add(opcSession);
                             Logger.Information($"{logPrefix} No matching session found for endpoint '{endpointUri.OriginalString}'. Requested to create a new one.");
+                        }
+                        else 
+                        {
+                            // a session already exists, so we check, if we need to change authentication settings. This is only true, if the payload contains an OpcAuthenticationMode-Property
+                            if (desiredAuthenticationMode.HasValue)
+                            {
+                                bool reconnectRequired = false;
+
+                                if (opcSession.OpcAuthenticationMode != desiredAuthenticationMode.Value)
+                                {
+                                    opcSession.OpcAuthenticationMode = desiredAuthenticationMode.Value;
+                                    reconnectRequired = true;
+                                }
+
+                                if (opcSession.EncryptedAuthCredential != desiredEncryptedCredential)
+                                {
+                                    opcSession.EncryptedAuthCredential = desiredEncryptedCredential;
+                                    reconnectRequired = true;
+                                }
+
+                                if (reconnectRequired)
+                                {
+                                    await opcSession.Reconnect();
+                                }
+                            }
                         }
 
                         // process all nodes
@@ -1416,6 +1463,12 @@ namespace OpcPublisher
                     {
                         await _jsonWriter.WritePropertyNameAsync(telemetryConfiguration.NodeId.Name).ConfigureAwait(false);
                         await _jsonWriter.WriteValueAsync(messageData.NodeId).ConfigureAwait(false);
+                    }
+
+                    if (!string.IsNullOrEmpty(messageData.ExpandedNodeId))
+                    {
+                        await _jsonWriter.WritePropertyNameAsync(telemetryConfiguration.ExpandedNodeId.Name).ConfigureAwait(false);
+                        await _jsonWriter.WriteValueAsync(messageData.ExpandedNodeId).ConfigureAwait(false);
                     }
 
                     // process MonitoredItem object properties
