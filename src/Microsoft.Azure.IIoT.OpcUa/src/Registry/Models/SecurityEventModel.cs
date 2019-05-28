@@ -56,11 +56,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models
         /// <summary>
         /// Payload
         /// </summary>
-        public List<SecurityEventPayloadModel> Payload { get; set; }  
-            //new List<SecurityEventPayloadModel>()
-            //{
-            //    new SecurityEventPayloadModel()
-            //};
+        public List<SecurityEventPayloadModel> Payload { get; set; }
 
     }
 }
