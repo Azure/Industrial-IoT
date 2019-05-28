@@ -54,10 +54,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 };
 
                 await SendSecurityMessage(securityInfoModel, model.SupervisorId);
-                Console.WriteLine("{0} > Security message sent", DateTime.Now);
+                _logger.Information("{0} > Security message sent", DateTime.Now);
             }
             else {
-                Console.WriteLine("Endpoint is secured");
+                _logger.Information("Endpoint is secured");
             }
         }
 
