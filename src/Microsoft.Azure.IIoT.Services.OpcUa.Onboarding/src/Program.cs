@@ -3,8 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Services.OpcUa.Onboarding
-{
+namespace Microsoft.Azure.IIoT.Services.OpcUa.Onboarding {
     using Microsoft.Azure.IIoT.Services.OpcUa.Onboarding.Runtime;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Handlers;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Clients;
@@ -31,15 +30,13 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Onboarding
     /// <summary>
     /// IoT Hub device event processor host
     /// </summary>
-    public class Program
-    {
+    public class Program {
 
         /// <summary>
         /// Main entry point for iot hub device event processor host
         /// </summary>
         /// <param name="args"></param>
-        public static void Main(string[] args)
-        {
+        public static void Main(string[] args) {
 
             // Load hosting configuration
             var config = new ConfigurationBuilder()
@@ -59,36 +56,29 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Onboarding
         /// </summary>
         /// <param name="config"></param>
         /// <returns></returns>
-        public static async Task RunAsync(IConfigurationRoot config)
-        {
+        public static async Task RunAsync(IConfigurationRoot config) {
             var exit = false;
-            while (!exit)
-            {
-                using (var container = ConfigureContainer(config).Build())
-                {
+            while (!exit) {
+                using (var container = ConfigureContainer(config).Build()) {
                     var host = container.Resolve<IEventProcessorHost>();
                     var logger = container.Resolve<ILogger>();
                     // Wait until the event processor host unloads or is cancelled
                     var tcs = new TaskCompletionSource<bool>();
                     AssemblyLoadContext.Default.Unloading += _ => tcs.TrySetResult(true);
-                    try
-                    {
+                    try {
                         logger.Information("Starting event processor host...");
                         await host.StartAsync();
                         logger.Information("Event processor host started.");
                         exit = await tcs.Task;
                     }
-                    catch (InvalidConfigurationException e)
-                    {
+                    catch (InvalidConfigurationException e) {
                         logger.Error(e, "Error starting event processor host - exit!");
                         return;
                     }
-                    catch (Exception ex)
-                    {
+                    catch (Exception ex) {
                         logger.Error(ex, "Error running event processor host - restarting!");
                     }
-                    finally
-                    {
+                    finally {
                         await host.StopAsync();
                         logger.Information("Event processor host stopped.");
                     }
@@ -100,8 +90,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Onboarding
         /// Autofac configuration.
         /// </summary>
         public static ContainerBuilder ConfigureContainer(
-            IConfigurationRoot configuration)
-        {
+            IConfigurationRoot configuration) {
 
             var config = new Config(ServiceInfo.ID, configuration);
             var builder = new ContainerBuilder();
