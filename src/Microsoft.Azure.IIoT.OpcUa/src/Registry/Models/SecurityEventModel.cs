@@ -3,16 +3,14 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
+namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
+    using System;
+    using System.Collections.Generic;
 
-namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models
-{
     /// <summary>
     /// Endpoint info
     /// </summary>
-    public class SecurityEventModel
-    {
+    public class SecurityEventModel {
         /// <summary>
         /// Event Type
         /// </summary>
