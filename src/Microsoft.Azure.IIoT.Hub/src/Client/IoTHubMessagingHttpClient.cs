@@ -70,7 +70,8 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                 { SystemProperties.MessageSchema, "iothub-messageschema" },
                 { SystemProperties.CreationTimeUtc, "iothub-creationtimeutc" },
                 { SystemProperties.ContentType, "iothub-contenttype" },
-                { SystemProperties.ContentEncoding, "iothub-contentencoding" }
+                { SystemProperties.ContentEncoding, "iothub-contentencoding" },
+                { SystemProperties.InterfaceId,"iothub-interface-id"}
             };
         private const string kHttpAppPropertyPrefix = "iothub-app-";
     }

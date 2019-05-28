@@ -114,5 +114,10 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// Diagnostics context
         /// </summary>
         public const string DiagCorrelationContext = "diag-correlation-context";
+
+        /// <summary>
+        /// Interface id
+        /// </summary>
+        public const string InterfaceId = "iothub-interface-id";
     }
 }

@@ -39,6 +39,10 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
         public IEnumerable<DeviceJobModel> Jobs =>
             _jobs;
 
+        /// <inheritdoc/>
+        public BlockingCollection<EventMessage> Events =>
+            _events;
+
         /// <summary>
         /// Create iot hub
         /// </summary>
