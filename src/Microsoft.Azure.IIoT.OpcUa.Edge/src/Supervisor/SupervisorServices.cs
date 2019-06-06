@@ -333,9 +333,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
                     }
                     cs = $"HostName={hostName};DeviceId={endpointId};SharedAccessKey={secret}";
                     var edgeName = Environment.GetEnvironmentVariable("IOTEDGE_GATEWAYHOSTNAME");
-                    if (!string.IsNullOrEmpty(edgeName)) {
-                        cs += $";GatewayHostName={edgeName}";
-                    }
                 }
                 else {
                     // Use existing connection string as a master plan
@@ -349,10 +346,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
                             "Missing HostName in connection string");
                     }
                     cs = $"HostName={hostName};DeviceId={endpointId};SharedAccessKey={secret}";
-                    if (lookup.TryGetValue("gatewayhostname", out var edgeName) &&
-                        !string.IsNullOrEmpty(edgeName)) {
-                        cs += $";GatewayHostName={edgeName}";
-                    }
                 }
                 return cs;
             }
