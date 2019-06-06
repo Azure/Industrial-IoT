@@ -46,7 +46,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             var ehubHost = Environment.GetEnvironmentVariable("IOTEDGE_GATEWAYHOSTNAME");
 
             if (string.IsNullOrEmpty(deviceId) ||
-                string.IsNullOrEmpty(moduleId)) {
+                string.IsNullOrEmpty(moduleId) ||
+                !string.IsNullOrEmpty(config.EdgeHubConnectionString))    {
                 try {
                     if (!string.IsNullOrEmpty(config.EdgeHubConnectionString)) {
                         _cs = IotHubConnectionStringBuilder.Create(config.EdgeHubConnectionString);
