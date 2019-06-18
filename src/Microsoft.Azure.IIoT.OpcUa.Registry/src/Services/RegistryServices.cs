@@ -30,11 +30,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// <param name="iothub"></param>
         /// <param name="client"></param>
         /// <param name="activate"></param>
+        /// <param name="endpointListener"></param>
         /// <param name="logger"></param>
         public RegistryServices(IIoTHubTwinServices iothub, IHttpClient client,
-            IActivationServices<EndpointRegistrationModel> activate, ILogger logger) {
+            IActivationServices<EndpointRegistrationModel> activate, IEnumerable<IEndpointListener> endpointListener, ILogger logger) {
             _iothub = iothub ?? throw new ArgumentNullException(nameof(iothub));
             _client = client ?? throw new ArgumentNullException(nameof(client));
+            _endpointListener = endpointListener ?? throw new ArgumentNullException(nameof(endpointListener));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _activator = activate ?? throw new ArgumentNullException(nameof(activate));
         }
@@ -1033,6 +1035,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                     await ApplyActivationFilterAsync(result.DiscoveryConfig?.ActivationFilter,
                         item);
                     await _iothub.CreateOrUpdateAsync(EndpointRegistration.Patch(null, item));
+                    foreach (var el in _endpointListener)
+                    {
+                        await el.OnEndpointAddedAsync(item.ToServiceModel().Registration);
+                    }
                     added++;
                 }
                 catch (Exception ex) {
@@ -1261,6 +1267,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         private readonly IActivationServices<EndpointRegistrationModel> _activator;
         private readonly IIoTHubTwinServices _iothub;
         private readonly IHttpClient _client;
+        private readonly IEnumerable<IEndpointListener> _endpointListener;
         private readonly ILogger _logger;
     }
 }
