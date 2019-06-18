@@ -58,31 +58,42 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// <inheritdoc/>
         public async Task<List<DiscoveredModuleModel>> GetModulesAsync(
             string deviceId) {
+
+
             if (!string.IsNullOrEmpty(_workloaduri)) {
-                var uri = _workloaduri + "/modules?api-version=" + _apiVersion;
-                _logger.Debug("Calling GET on {uri} uri...", uri);
-                var request = _client.NewRequest(uri);
-                var result = await Retry.WithExponentialBackoff(_logger, async () => {
-                    var response = await _client.GetAsync(request);
-                    var payload = response.GetContentAsString();
-                    if (response.StatusCode == System.Net.HttpStatusCode.OK) {
-                        _logger.Debug("... returned {statusCode}.", response.StatusCode);
-                        _logger.Verbose("payload: {payload}.", payload);
-                    }
-                    else {
-                        _logger.Warning("... resulted in {statusCode} with error: {payload}.",
-                            response.StatusCode, payload);
-                    }
-                    response.Validate();
-                    return JsonConvertEx.DeserializeObject<EdgeletModules>(payload);
-                });
-                return result.Modules?.Select(m => new DiscoveredModuleModel {
-                    Id = m.Name,
-                    ImageName = m.Config?.Settings?.Image,
-                    ImageHash = m.Config?.Settings?.ImageHash,
-                    Version = GetVersionFromImageName(m.Config?.Settings?.Image),
-                    Status = m.Status?.RuntimeStatus?.Status
-                }).ToList();
+                try {
+
+                    var uri = _workloaduri + "/modules?api-version=" + _apiVersion;
+                    _logger.Debug("Calling GET on {uri} uri...", uri);
+
+                    var request = _client.NewRequest(uri);
+                    var result = await Retry.WithExponentialBackoff(_logger, async () => {
+                        var response = await _client.GetAsync(request);
+                        var payload = response.GetContentAsString();
+                        if (response.StatusCode == System.Net.HttpStatusCode.OK) {
+                            _logger.Debug("... returned {statusCode}.", response.StatusCode);
+                            _logger.Verbose("payload: {payload}.", payload);
+                        }
+                        else {
+                            _logger.Warning("... resulted in {statusCode} with error: {payload}.",
+                                response.StatusCode, payload);
+                        }
+                        response.Validate();
+                        return JsonConvertEx.DeserializeObject<EdgeletModules>(payload);
+                    });
+                    return result.Modules?.Select(m => new DiscoveredModuleModel {
+                        Id = m.Name,
+                        ImageName = m.Config?.Settings?.Image,
+                        ImageHash = m.Config?.Settings?.ImageHash,
+                        Version = GetVersionFromImageName(m.Config?.Settings?.Image),
+                        Status = m.Status?.RuntimeStatus?.Status
+                    }).ToList();
+                }
+                catch (Exception ex) {
+                    _logger.Error(ex, "Error during GetModulesAsync");
+                }
+                return new List<DiscoveredModuleModel>();
+
             }
             _logger.Warning("Not running in iotedge context - no modules in scope.");
             return new List<DiscoveredModuleModel>();

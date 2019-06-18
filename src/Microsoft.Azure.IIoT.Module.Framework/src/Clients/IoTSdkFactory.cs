@@ -45,29 +45,26 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             var moduleId = Environment.GetEnvironmentVariable("IOTEDGE_MODULEID");
             var ehubHost = Environment.GetEnvironmentVariable("IOTEDGE_GATEWAYHOSTNAME");
 
-            if (string.IsNullOrEmpty(deviceId) ||
-                string.IsNullOrEmpty(moduleId)) {
-                try {
-                    if (!string.IsNullOrEmpty(config.EdgeHubConnectionString)) {
-                        _cs = IotHubConnectionStringBuilder.Create(config.EdgeHubConnectionString);
+            try {
+                if (!string.IsNullOrEmpty(config.EdgeHubConnectionString)) {
+                    _cs = IotHubConnectionStringBuilder.Create(config.EdgeHubConnectionString);
 
-                        if (string.IsNullOrEmpty(_cs.SharedAccessKey)) {
-                            throw new InvalidConfigurationException(
-                                "Connection string is missing shared access key.");
-                        }
-                        if (string.IsNullOrEmpty(_cs.DeviceId)) {
-                            throw new InvalidConfigurationException(
-                                "Connection string is missing device id.");
-                        }
-
-                        deviceId = _cs.DeviceId;
-                        moduleId = _cs.ModuleId;
-                        ehubHost = _cs.GatewayHostName;
+                    if (string.IsNullOrEmpty(_cs.SharedAccessKey)) {
+                        throw new InvalidConfigurationException(
+                            "Connection string is missing shared access key.");
                     }
+                    if (string.IsNullOrEmpty(_cs.DeviceId)) {
+                        throw new InvalidConfigurationException(
+                            "Connection string is missing device id.");
+                    }
+
+                    deviceId = _cs.DeviceId;
+                    moduleId = _cs.ModuleId;
+                    ehubHost = _cs.GatewayHostName;
                 }
-                catch (Exception e) {
-                    _logger.Error(e, "Bad configuration value in EdgeHubConnectionString config.");
-                }
+            }
+            catch (Exception e) {
+                _logger.Error(e, "Bad configuration value in EdgeHubConnectionString config.");
             }
 
             ModuleId = moduleId;
