@@ -15,6 +15,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
     using Newtonsoft.Json.Linq;
     using System.Linq;
     using Microsoft.Azure.IIoT.Hub.Models;
+    using System.Security.Cryptography.X509Certificates;
 
     /// <summary>
     /// Sending security notifications for unsecure endpoints 
@@ -36,29 +37,52 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             Console.WriteLine($"Inside registry service.. endpointId = {model.Id}");
             var mode = model.Endpoint.SecurityMode ?? SecurityMode.None;
             var policy = model.Endpoint.SecurityPolicy ?? "None";
-            if (mode.Equals(SecurityMode.None) || policy.Contains("None")) {
-                var settings = new JsonSerializerSettings {
-                    NullValueHandling = NullValueHandling.Ignore
-                };
-                var securityInfoModel = new EndpointSecurityInfoModel {
-                    Events = new List<SecurityEventModel> {
+
+            var certEncoded = model.Certificate;
+            var cert = new X509Certificate2(certEncoded);
+
+            if (IsCertificateSelfSignedOrExpired(cert) | IsSecurityModeOrPolicyNone(mode, policy)) {
+                if (IsCertificateSelfSignedOrExpired(cert)) {
+                    var message = "Unsecured endpoint with self-signed or expired certificate found.";
+                    await SendMessage(model, message);
+                }
+
+                if (IsSecurityModeOrPolicyNone(mode, policy)) {
+                    var message = "Unsecured endpoint with security policy or security mode none.";
+                    await SendMessage(model, message);
+                }
+            }
+            else {
+                _logger.Information("Endpoint is secured");
+            }
+        }
+
+        private async Task SendMessage(EndpointRegistrationModel model, string message) {
+            var settings = new JsonSerializerSettings {
+                NullValueHandling = NullValueHandling.Ignore
+            };
+            var securityInfoModel = new EndpointSecurityInfoModel {
+                Events = new List<SecurityEventModel> {
                         new SecurityEventModel {
                             Payload = new List<SecurityEventPayloadModel> {
                                 new SecurityEventPayloadModel {
-                                    Message = "Unsecured endpoint found.",
+                                    Message = message,
                                     ExtraDetails = FlattenToDict(JsonConvert.SerializeObject(model, settings))
                                 }
                             }
                         }
                     }
-                };
+            };
 
-                await SendSecurityMessage(securityInfoModel, model.SupervisorId);
-                _logger.Information("{0} > Security message sent", DateTime.Now);
-            }
-            else {
-                _logger.Information("Endpoint is secured");
-            }
+            await SendSecurityMessage(securityInfoModel, model.SupervisorId);
+            _logger.Information("{0} > Security message sent", DateTime.Now);
+        }
+
+        private static bool IsCertificateSelfSignedOrExpired(X509Certificate2 cert) {
+            return cert.SubjectName.RawData.SequenceEqual(cert.IssuerName.RawData) | cert.NotAfter < DateTime.Now | cert.NotBefore > DateTime.Now;
+        }
+        private static bool IsSecurityModeOrPolicyNone(SecurityMode mode, string policy) {
+            return mode.Equals(SecurityMode.None) || policy.Contains("None");
         }
 
         private Dictionary<string, string> FlattenToDict(string jsonString) {
