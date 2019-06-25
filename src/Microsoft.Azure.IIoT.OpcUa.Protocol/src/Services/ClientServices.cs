@@ -129,7 +129,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="maxOpTimeout"></param>
-        public ClientServices(ILogger logger, TimeSpan? maxOpTimeout = null){
+        public ClientServices(ILogger logger, TimeSpan? maxOpTimeout = null) {
 
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _maxOpTimeout = maxOpTimeout;
@@ -151,7 +151,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="maxOpTimeout"></param>
         public ClientServices(ILogger logger,
             IClientServicesConfig configuration,
-            TimeSpan? maxOpTimeout = null){
+            TimeSpan? maxOpTimeout = null) {
 
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration)); ;
@@ -169,14 +169,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// Initialize the OPC UA Application's security configuration
         /// </summary>
         /// <returns></returns>
-        private async Task InitApplicationSecurityAsync(){
+        private async Task InitApplicationSecurityAsync() {
 
             // updatecertificates validator
             _opcApplicationConfig.CertificateValidator.CertificateValidation +=
                 new Opc.Ua.CertificateValidationEventHandler(CertificateValidator_CertificateValidation);
-
             await _opcApplicationConfig.CertificateValidator.Update(_opcApplicationConfig).ConfigureAwait(false);
-
+            
+            // lookup for an existing certificate in the configured store
             var ownCertificate = await _opcApplicationConfig.SecurityConfiguration.ApplicationCertificate.Find(true).ConfigureAwait(false);
 
             if (ownCertificate == null) {
@@ -246,7 +246,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// </summary>
         private void CertificateValidator_CertificateValidation(
             Opc.Ua.CertificateValidator validator, 
-            Opc.Ua.CertificateValidationEventArgs e){
+            Opc.Ua.CertificateValidationEventArgs e) {
 
             if (e.Error.StatusCode == Opc.Ua.StatusCodes.BadCertificateUntrusted){
                 e.Accept = _configuration.AutoAccept;

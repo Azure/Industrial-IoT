@@ -53,7 +53,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             string sessionName = null, TimeSpan? timeout = null,
             TimeSpan? keepAlive = null) {
             _logger = logger ?? Log.Logger;
-            _factory = factory;            
+            _factory = factory;
             _endpoint = endpoint;
             _config = config;
             _timeout = timeout ?? TimeSpan.FromMilliseconds(
