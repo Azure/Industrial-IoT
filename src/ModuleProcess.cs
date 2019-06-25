@@ -16,7 +16,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
     using Microsoft.Azure.IIoT.OpcUa.Edge.Twin;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
-    using Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime;
     using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.Module.Framework.Services;
     using Microsoft.Azure.IIoT.Tasks.Default;
@@ -119,14 +118,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
         private IContainer ConfigureContainer(IConfigurationRoot configuration) {
 
             var config = new Config(configuration);
-            var clientServicesConfiguration = new ClientServicesConfig(configuration);
-
+          
             var builder = new ContainerBuilder();
 
             // Register configuration interfaces
             builder.RegisterInstance(config)
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterInstance(clientServicesConfiguration)
                 .AsImplementedInterfaces().SingleInstance();
 
             builder.RegisterInstance(this)
