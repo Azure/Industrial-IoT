@@ -9,6 +9,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Runtime {
     using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
+    using System.Runtime.InteropServices;
     using System;
 
     /// <summary>
@@ -44,7 +45,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Runtime {
 
         /// <inheritdoc/>
         public string AppCertStoreType =>
-            GetStringOrDefault(kAppCertStoreType, "Directory");
+            GetStringOrDefault(kAppCertStoreType, RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "X509Store" : "Directory");
 
         /// <inheritdoc/>
         public string PkiRootPath =>
