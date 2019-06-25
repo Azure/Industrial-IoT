@@ -117,7 +117,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
         /// <returns></returns>
         private IContainer ConfigureContainer(IConfigurationRoot configuration) {
 
-            var config = new Config(configuration);         
+            var config = new Config(configuration);
             var builder = new ContainerBuilder();
 
             // Register configuration interfaces
