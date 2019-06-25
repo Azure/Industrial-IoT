@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
+    using System.Runtime.InteropServices;
     using System;
     /// <summary>
     /// Client's application configuration implementation
@@ -23,7 +24,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
 
         /// <inheritdoc/>
         public string AppCertStoreType =>
-            GetStringOrDefault(kAppCertStoreType, "Directory");
+             GetStringOrDefault(kAppCertStoreType, RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "X509Store" : "Directory");
 
         /// <inheritdoc/>
         public string PkiRootPath =>
