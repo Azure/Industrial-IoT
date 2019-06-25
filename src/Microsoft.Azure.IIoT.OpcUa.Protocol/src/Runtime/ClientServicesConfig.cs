@@ -12,36 +12,46 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
     /// </summary>
     public class ClientServicesConfig : ConfigBase, IClientServicesConfig {
 
-        private const string kPkiRootFolder = "PkiRootFolder";
-        private const string kApplicationCertificateFolder = "ApplicationCertificateFolder";
-        private const string kTrustedPeerCertificatesFolder = "TrustedPeerCertificatesFolder";
-        private const string kTrustedIssuerCertificatesFolder = "TrustedIssuerCertificatesFolder";
-        private const string kRejectedCertificatesFolder = "RejectedCertificatesFolder";
-        private const string kAutoAcceptUntrustedCertificates = "AutoAcceptUntrustedCertificates";
+        private const string kAppCertStoreType = "AppCertStoreType";
+        private const string kPkiRootPath = "PkiRootPath";
+        private const string kOwnCertPath = "OwnCertPath";
+        private const string kTrustedCertPath = "TrustedCertPath";
+        private const string kIssuerCertPath = "IssuerCertPath";
+        private const string kRejectedCertPath = "RejectedCertPath";
+        private const string kAutoAccept = "AutoAccept";
+        private const string kOwnCertX509StorePathDefault = "OwnCertX509StorePathDefault";
 
         /// <inheritdoc/>
-        public string PkiRootFolder =>
-            GetStringOrDefault(kPkiRootFolder, null);
+        public string AppCertStoreType =>
+            GetStringOrDefault(kAppCertStoreType, "Directory");
 
         /// <inheritdoc/>
-        public string ApplicationCertificateFolder =>
-            GetStringOrDefault(kApplicationCertificateFolder, null);
+        public string PkiRootPath =>
+            GetStringOrDefault(kPkiRootPath, "pki");
 
         /// <inheritdoc/>
-        public string TrustedPeerCertificatesFolder =>
-            GetStringOrDefault(kTrustedPeerCertificatesFolder, null);
+        public string OwnCertPath =>
+            GetStringOrDefault(kOwnCertPath, PkiRootPath + "/own");
 
         /// <inheritdoc/>
-        public string TrustedIssuerCertificatesFolder =>
-            GetStringOrDefault(kTrustedIssuerCertificatesFolder, null);
-        
+        public string TrustedCertPath => 
+            GetStringOrDefault(kTrustedCertPath, PkiRootPath + "/trusted");
+
         /// <inheritdoc/>
-        public string RejectedCertificatesFolder =>
-            GetStringOrDefault(kRejectedCertificatesFolder, null);
-        
+        public string IssuerCertPath =>
+            GetStringOrDefault(kIssuerCertPath, PkiRootPath + "/issuer");
+
         /// <inheritdoc/>
-        public bool AutoAcceptUntrustedCertificates =>
-            GetBoolOrDefault(kAutoAcceptUntrustedCertificates, false);
+        public string RejectedCertPath =>
+            GetStringOrDefault(kRejectedCertPath, PkiRootPath + "/rejected");
+
+        /// <inheritdoc/>
+        public string OwnCertX509StorePathDefault =>
+            GetStringOrDefault(kOwnCertX509StorePathDefault, "CurrentUser\\UA_MachineDefault");
+
+        /// <inheritdoc/>
+        public bool AutoAccept =>
+            GetBoolOrDefault(kAutoAccept, true);
 
         /// <summary>
         /// Configuration constructor
