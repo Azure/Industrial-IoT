@@ -16,10 +16,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     /// </summary>
     public interface IClientSession : IDisposable {
 
-        /// <summary>
-        /// Client certificate
-        /// </summary>
-        X509Certificate2 Certificate { get; set; }
 
         /// <summary>
         /// Whether the session is inactive based on its timeout setting.

@@ -26,11 +26,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     /// </summary>
     internal sealed class ClientSession : IClientSession {
 
-        /// <inheritdoc/>
-        public X509Certificate2 Certificate {
-            get => _cert ?? _factory?.Invoke();
-            set => _cert = value;
-        }
 
         /// <inheritdoc/>
         public bool Inactive => !_persistent && DateTime.UtcNow > _lastActivity + _timeout;
@@ -145,14 +140,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
             // Save identity and certificate to update session if there are changes.
             var identity = _endpoint.User.ToStackModel();
-            var certificate = Certificate;
+            
             try {
                 while (!_cts.Token.IsCancellationRequested) {
-                    if (!certificate.EqualsSafe(Certificate)) {
-                        certificate = Certificate;
-                        _session.Close();
-                        _session = null;
-                    }
+
                     Exception ex = null;
                     if (_session == null) {
                         // Try create session
@@ -160,7 +151,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         reconnect = false;
                         try {
                             _logger.Debug("Creating new session to {Url}...", _url);
-                            _session = await CreateSessionAsync(certificate, identity);
+                            _session = await CreateSessionAsync(identity);
                             _logger.Debug("Session to {Url} created.", _url);
                         }
                         catch (Exception e) {
@@ -507,30 +498,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <summary>
         /// Creates a new session
         /// </summary>
-        /// <param name="cert"></param>
         /// <param name="identity"></param>
         /// <returns></returns>
-        private async Task<Session> CreateSessionAsync(X509Certificate2 cert,
-            IUserIdentity identity) {
+        private async Task<Session> CreateSessionAsync(IUserIdentity identity) {
 
-            await _config.Validate(Opc.Ua.ApplicationType.Client);
-            if (cert != null) {
-                _config.SecurityConfiguration.ApplicationCertificate.Certificate =
-                    cert;
-                _config.ApplicationUri = Utils.GetApplicationUriFromCertificate(
-                    cert);
-                _config.CertificateValidator.CertificateValidation += (v, e) => {
-                    if (e.Error.StatusCode == StatusCodes.BadCertificateUntrusted) {
-                        // TODO: Validate against endpoint model certificate
-                        e.Accept = true;
-                    }
-                };
-            }
-            else if (_endpoint.SecurityMode == SecurityMode.None) {
+            if (_endpoint.SecurityMode == SecurityMode.None) {
                 _logger.Warning("Using unsecure connection.");
-            }
-            else {
-                throw new CertificateInvalidException("Missing client certificate");
             }
 
             if (_urlQueue.TryDequeue(out var next)) {
@@ -544,7 +517,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
             var selectedEndpoint = await DiscoverEndpointsAsync(_config,
                 _endpoint, new Uri(_endpoint.Url), (server, endpoints, channel) =>
-                    SelectServerEndpoint(server, endpoints, channel, cert != null));
+                    SelectServerEndpoint(server, endpoints, channel, true));
             if (selectedEndpoint == null) {
                 throw new ConnectionException(
                     $"Unable to select secure endpoint on {_url} via {_endpoint.Url}");
@@ -820,7 +793,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
 
         private DateTime _lastActivity;
-        private X509Certificate2 _cert;
         private Session _session;
         private EndpointConnectivityState _lastState;
         private readonly bool _persistent;
