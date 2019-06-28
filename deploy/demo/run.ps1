@@ -48,6 +48,7 @@ Function GetEnvironmentVariables() {
     $EVENTHUB_CONNSTRING = $deployment.Outputs["eventhub-connstring"].Value
     $EVENTHUB_NAME = $deployment.Outputs["eventhub-name"].Value
     $AZURE_WEBSITE = $deployment.Outputs["azureWebsite"].Value
+    $WORKSPACE_NAME = $deployment.Outputs["workspace-name"].Value
 
     Write-Output `
         "_HUB_CS=$IOTHUB_CONNSTRING"
@@ -92,6 +93,8 @@ Function GetEnvironmentVariables() {
         "REACT_APP_PCS_TWIN_REGISTRY_URL=$AZURE_WEBSITE/registry"
     Write-Output `
         "REACT_APP_PCS_TWIN_SERVICE_URL=$AZURE_WEBSITE/twin"
+    Write-Output `
+        "PCS_WORKSPACE_NAME=$WORKSPACE_NAME"
 
     if (!$aadConfig) {
     Write-Output `

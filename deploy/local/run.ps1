@@ -47,6 +47,7 @@ Function GetEnvironmentVariables() {
     $DOCUMENTDB_CONNSTRING = $deployment.Outputs["docdb-connstring"].Value
     $EVENTHUB_CONNSTRING = $deployment.Outputs["eventhub-connstring"].Value
     $EVENTHUB_NAME = $deployment.Outputs["eventhub-name"].Value
+    $WORKSPACE_NAME = $deployment.Outputs["workspace-name"].Value
 
     Write-Output `
         "_HUB_CS=$IOTHUB_CONNSTRING"
@@ -82,6 +83,8 @@ Function GetEnvironmentVariables() {
         "PCS_EVENTHUB_CONNSTRING=$EVENTHUB_CONNSTRING"
     Write-Output `
         "PCS_EVENTHUB_NAME=$EVENTHUB_NAME"
+	Write-Output `
+        "PCS_WORKSPACE_NAME=$WORKSPACE_NAME"
 
     if (!$aadConfig) {
     Write-Output `

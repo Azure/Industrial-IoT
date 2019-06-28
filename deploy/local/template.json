@@ -201,6 +201,37 @@
             "metadata": {
                 "description": "The KeyVault SKU to use."
             }
+        },
+        "workspaceName": {
+            "type": "string",
+            "defaultValue": "[concat('workspace-', take(uniqueString(subscription().subscriptionId, resourceGroup().id, parameters('solutionName')), 5))]",
+            "metadata": {
+                "description": "Specifies the name of the workspace."
+            }
+        },
+        "workspaceSku": {
+            "type": "string",
+            "allowedValues": [
+              "Standalone",
+              "PerNode",
+              "PerGB2018"
+            ],
+            "defaultValue": "PerGB2018",
+            "metadata": {
+                "description": "Specifies the service tier of the workspace: Standalone, PerNode, Per-GB"
+            }
+        },
+        "workspaceLocation": {
+            "type": "string",
+            "allowedValues": [
+              "eastus",
+              "westus",
+              "southeastasia"
+            ],
+            "defaultValue": "southeastasia",
+             "metadata": {
+             "description": "Specifies the location in which to create the workspace."
+             }
         }
     },
     "variables": {
@@ -402,7 +433,21 @@
                 "[variables('eventHubNamespaceResourceId')]",
                 "[variables('eventHubResourceId')]"
             ]
+        },
+        {
+             "type": "Microsoft.OperationalInsights/workspaces",
+             "name": "[parameters('workspaceName')]",
+             "apiVersion": "2015-11-01-preview",
+             "location": "[parameters('workspaceLocation')]",
+             "properties": {
+        "sku": {
+            "Name": "[parameters('workspaceSku')]"
+        },
+        "features": {
+            "searchVersion": 1
         }
+        }
+    }
     ],
     "outputs": {
         "iothub-connstring": {
@@ -433,6 +478,10 @@
             "type": "string",
             "value": "[variables('onboardingConsumerGroupName')]"
         },
+        "workspace-name": {
+            "type": "string",
+            "value": "[parameters('workspaceName')]"
+        },
         "azureblob-account": {
             "type": "string",
             "value": "[parameters('storageName')]"
@@ -448,6 +497,6 @@
         "resourceGroup" : {
             "type": "string",
             "value": "[resourceGroup().name]"
-        }       
+        }
     }
 }

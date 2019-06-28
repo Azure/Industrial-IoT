@@ -332,6 +332,37 @@
                 "description": "The certficate that needs to be updated to the VM"
             },
             "defaultValue": ""
+        },
+        "workspaceName": {
+            "type": "string",
+            "defaultValue": "[concat('workspace-', take(uniqueString(subscription().subscriptionId, resourceGroup().id, parameters('solutionName')), 5))]",
+            "metadata": {
+                "description": "Specifies the name of the workspace."
+            }
+        },
+        "workspaceSku": {
+            "type": "string",
+            "allowedValues": [
+              "Standalone",
+              "PerNode",
+              "PerGB2018"
+            ],
+            "defaultValue": "PerGB2018",
+            "metadata": {
+                "description": "Specifies the service tier of the workspace: Standalone, PerNode, Per-GB"
+            }
+        },
+        "workspaceLocation": {
+            "type": "string",
+            "allowedValues": [
+              "eastus",
+              "westus",
+              "southeastasia"
+            ],
+            "defaultValue": "southeastasia",
+             "metadata": {
+             "description": "Specifies the location in which to create the workspace."
+             }
         }
     },
     "variables": {
@@ -844,7 +875,21 @@
                     "commandToExecute": "[concat('sh setup.sh ', ' --unsafe false --admin ', concat('\"', parameters('adminUsername'), '\"'), ' --registry-prefix ', concat('\"', parameters('containerRegistryPrefix'), '\"'), ' --hostname ', concat('\"', variables('vmFQDN'), '\"'), ' --ssl-certificate-key ', concat('\"', parameters('adminPassword'), '\"'), ' --ssl-certificate ', concat('\"', parameters('remoteEndpointCertificate'), '\"'), ' --auth-type aad ', ' --auth-audience ', concat('\"', parameters('authAudience'), '\"'), ' --aad-appid ', concat('\"', parameters('aadClientId'), '\"'), ' --aad-tenant ', concat('\"', parameters('aadTenantId'), '\"'), ' --aad-instance ', concat('\"', parameters('aadInstance'), '\"'), ' --iothub-connstring ', concat('\"', 'HostName=', reference(variables('iotHubResourceId')).hostName, ';SharedAccessKeyName=', variables('iotHubKeyName'), ';SharedAccessKey=', listkeys(variables('iotHubKeyResource'), variables('iotHubApiVersion')).primaryKey, '\"'), ' --docdb-connstring ', concat('\"', 'AccountEndpoint=', reference(variables('documentDBResourceId')).documentEndpoint, ';AccountKey=', listkeys(variables('documentDBResourceId'), variables('documentDBApiVersion')).primaryMasterKey, ';', '\"'), ' --iothub-name ', concat('\"', reference(variables('iotHubResourceId')).eventHubEndpoints.events.path, '\"'), ' --iothub-endpoint ', concat('\"', reference(variables('iotHubResourceId')).eventHubEndpoints.events.endpoint, '\"'), ' --azureblob-account ', concat('\"', parameters('storageName'), '\"'), ' --azureblob-key ', concat('\"', listKeys(variables('storageResourceId'), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, '\"'), ' --azureblob-endpoint-suffix ',  concat('\"', parameters('storageEndpointSuffix'), '\"'), ' --release-version ', concat('\"', variables('servicesBranch'), '\"'), ' --iothub-consumer-group ', concat('\"', variables('onboardingConsumerGroupName'), '\"'), ' --evenhub-connstring ', concat('\"Endpoint=sb://', parameters('eventHubNamespaceName'), '.', parameters('serviceBusEndpointSuffix'), '/;SharedAccessKeyName=', variables('eventHubKeyName'), ';SharedAccessKey=', listkeys(variables('eventHubKeyResourceId'), variables('eventHubApiVersion')).primaryKey, '\"'), ' --eventhub-name ', parameters('eventHubName'))]"
                 }
             }
+        },
+    {
+             "type": "Microsoft.OperationalInsights/workspaces",
+             "name": "[parameters('workspaceName')]",
+             "apiVersion": "2015-11-01-preview",
+             "location": "[parameters('workspaceLocation')]",
+             "properties": {
+        "sku": {
+            "Name": "[parameters('workspaceSku')]"
+        },
+        "features": {
+            "searchVersion": 1
         }
+        }
+    }
     ],
     "outputs": {
         "azureWebsite": {
@@ -886,6 +931,10 @@
         "iothub-consumer-group": {
             "type": "string",
             "value": "[variables('onboardingConsumerGroupName')]"
+        },
+        "workspace-name": {
+            "type": "string",
+            "value": "[parameters('workspaceName')]"
         },
         "azureblob-account": {
             "type": "string",
