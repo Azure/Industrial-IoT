@@ -45,14 +45,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
                 // copy the certificate, public key only, into the trusted certificates list
                 try {
-                    var publicKey = new X509Certificate2(value.RawData);
+
+
+                    var publicKey = new X509Certificate2(value.RawData);                    
                     var trustedStore = _opcApplicationConfig.SecurityConfiguration.TrustedPeerCertificates.OpenStore();
+
                     try {
                         _logger.Information("Adding own certificate in the certificate trusted peer store.");
                         if (oldCertificate != null) {
                             trustedStore.Delete(oldCertificate.Thumbprint);
                         }
-                        trustedStore.Add(value);
+                        trustedStore.Add(publicKey);
                     }
                     catch (Exception ex) {
                         _logger.Warning(ex, "Can not add own certificate to trusted peer store.");
@@ -253,11 +256,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 if (_configuration.AutoAccept) {
                     _logger.Information($"Trusting Peer Certificate Certificate.Subject={e.Certificate.Subject} due to AutoAccept={e.Accept}");                
                     try {
+
+                        var publicKey = new X509Certificate2(e.Certificate.RawData);
                         var trustedStore = _opcApplicationConfig.SecurityConfiguration.TrustedPeerCertificates.OpenStore(); 
+
                         try {
-                            _logger.Information($"Adding peer Certificate.Subject={e.Certificate.Subject} to trusted store.");
-                            trustedStore.Delete(e.Certificate.Thumbprint);
-                            trustedStore.Add(e.Certificate);                          
+                            trustedStore.Delete(publicKey.Thumbprint);
+                            _logger.Information($"Adding peer Certificate.Subject={publicKey.Subject} to trusted store.");
+                            trustedStore.Add(publicKey);                          
                         }
                         catch (Exception ex) {
                             _logger.Warning(ex, $"Failed to add peer Certificate.Subject={e.Certificate.Subject} to trusted  store.");
@@ -529,7 +535,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     NonceLength = 32,
                     AutoAcceptUntrustedCertificates = _configuration.AutoAccept,
                     RejectSHA1SignedCertificates = false,
-                    AddAppCertToTrustedStore = true
+                    AddAppCertToTrustedStore = false
                 },
                 TransportConfigurations = new TransportConfigurationCollection(),
                 TransportQuotas = new TransportQuotas {
