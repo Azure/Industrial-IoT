@@ -5,9 +5,11 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures {
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Sample;
     using Microsoft.Azure.IIoT.Utils;
+    using Microsoft.Extensions.Configuration;
     using Opc.Ua.Server;
     using System;
     using System.IO;
@@ -15,6 +17,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures {
     using Serilog;
     using Serilog.Events;
     using System.Threading;
+    using Opc.Ua;
 
     /// <summary>
     /// Adds sample server as fixture to unit tests
@@ -49,7 +52,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures {
                 throw new ArgumentNullException(nameof(nodes));
             }
             Logger = LogEx.Trace(LogEventLevel.Debug);
-            Client = new ClientServices(Logger);
+
+            Environment.SetEnvironmentVariable("AutoAccept", "true");                      
+            var config = new ClientServicesConfig(
+                new ConfigurationBuilder()
+                    .AddEnvironmentVariables()
+                    .Build()
+             );
+
+            Client = new ClientServices(Logger, config);
+            
             _serverHost = new ServerConsoleHost(
                 new ServerFactory(Logger, nodes) {
                 LogStatus = false
