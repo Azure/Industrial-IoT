@@ -73,7 +73,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Runtime {
 
         /// <inheritdoc/>
         public bool AutoAccept =>
-            GetBoolOrDefault(kAutoAccept, true);
+            GetBoolOrDefault(kAutoAccept, false);
         
         /// <summary>
         /// Configuration constructor
