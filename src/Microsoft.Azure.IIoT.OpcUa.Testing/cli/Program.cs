@@ -13,6 +13,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cli {
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Sample;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Mock;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
@@ -518,7 +519,7 @@ Operations (Mutually exclusive):
         private static async Task TestOpcUaDiscoveryService(string addressRanges,
             bool stress) {
             var logger = StackLogger.Create(LogEx.Console());
-            var client = new ClientServices(logger.Logger);
+            var client = new ClientServices(logger.Logger, new ClientServicesConfigMock());
 
             var discovery = new DiscoveryServices(client, new ConsoleEmitter(),
                 new TaskProcessor(logger.Logger), logger.Logger);
@@ -547,7 +548,7 @@ Operations (Mutually exclusive):
         /// </summary>
         private static async Task TestOpcUaIop() {
             var logger = StackLogger.Create(LogEx.RollingFile("iop_log.txt"));
-            var client = new ClientServices(logger.Logger, TimeSpan.FromSeconds(10));
+            var client = new ClientServices(logger.Logger, new ClientServicesConfigMock(), TimeSpan.FromSeconds(10));
 
             var discovery = new DiscoveryServices(client, new ModelWriter(client, logger.Logger),
                 new TaskProcessor(logger.Logger), logger.Logger);
@@ -643,7 +644,7 @@ Operations (Mutually exclusive):
         /// </summary>
         private static async Task TestOpcUaModelExportService(EndpointModel endpoint) {
             var logger = StackLogger.Create(LogEx.Console());
-            using (var client = new ClientServices(logger.Logger))
+            using (var client = new ClientServices(logger.Logger, new ClientServicesConfigMock()))
             using (var server = new ServerWrapper(endpoint, logger))
             using (var stream = Console.OpenStandardOutput())
             using (var writer = new StreamWriter(stream))
@@ -671,7 +672,7 @@ Operations (Mutually exclusive):
             var storage = new ZipArchiveStorage();
 
             var fileName = "tmp.zip";
-            using (var client = new ClientServices(logger.Logger))
+            using (var client = new ClientServices(logger.Logger, new ClientServicesConfigMock()))
             using (var server = new ServerWrapper(endpoint, logger)) {
                 var sw = Stopwatch.StartNew();
                 using (var archive = await storage.OpenAsync(fileName, FileMode.Create, FileAccess.Write))
@@ -705,7 +706,7 @@ Operations (Mutually exclusive):
                 // ["bin2.gzip"] = ContentEncodings.MimeTypeUaBinary
             };
 
-            using (var client = new ClientServices(logger.Logger))
+            using (var client = new ClientServices(logger.Logger, new ClientServicesConfigMock()))
             using (var server = new ServerWrapper(endpoint, logger)) {
                 foreach (var run in runs) {
                     var zip = Path.GetExtension(run.Key) == ".zip";
@@ -736,7 +737,7 @@ Operations (Mutually exclusive):
             var logger = StackLogger.Create(LogEx.Console());
             var filename = "model.zip";
             using (var server = new ServerWrapper(endpoint, logger)) {
-                using (var client = new ClientServices(logger.Logger)) {
+                using (var client = new ClientServices(logger.Logger, new ClientServicesConfigMock())) {
                     Console.WriteLine($"Reading into {filename}...");
                     using (var stream = new FileStream(filename, FileMode.Create)) {
                         using (var zipped = new DeflateStream(stream, CompressionLevel.Optimal))
@@ -771,7 +772,7 @@ Operations (Mutually exclusive):
         /// </summary>
         private static async Task TestOpcUaServerClient(EndpointModel endpoint) {
             var logger = StackLogger.Create(LogEx.Console());
-            using (var client = new ClientServices(logger.Logger))
+            using (var client = new ClientServices(logger.Logger, new ClientServicesConfigMock()))
             using (var server = new ServerWrapper(endpoint, logger)) {
                 await client.ExecuteServiceAsync(endpoint, null, session => {
                     Console.WriteLine("Browse the OPC UA server namespace.");
@@ -831,7 +832,7 @@ Operations (Mutually exclusive):
             var publisherIdentity = new TestIdentity { DeviceId = deviceId };
             var endpoint = new EndpointModel();
 
-            using (var opc = new ClientServices(logger)) {
+            using (var opc = new ClientServices(logger, new ClientServicesConfigMock())) {
                 var discovery = new PublisherDiscovery(device, publisherIdentity, device, opc, opc, logger);
                 using (var client = new PublisherServices(discovery, opc, logger))
                 using (var server = new ServerWrapper(endpoint, StackLogger.Create(logger))) {
@@ -914,7 +915,7 @@ Operations (Mutually exclusive):
                 ObjectIds.RootFolder.ToString()
             };
 
-            using (var client = new ClientServices(logger.Logger)) {
+            using (var client = new ClientServices(logger.Logger, new ClientServicesConfigMock())) {
                 var service = new AddressSpaceServices(client, new JsonVariantEncoder(), logger.Logger);
                 using (var server = new ServerWrapper(endpoint, logger)) {
                     var visited = new HashSet<string>(StringComparer.OrdinalIgnoreCase);

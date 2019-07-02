@@ -30,97 +30,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         /// <inheritdoc/>
         public X509Certificate2 Certificate {
-
             get {
                 return _opcApplicationConfig.SecurityConfiguration.ApplicationCertificate.Certificate;
             }
             private set {
-                if (value == null || !value.HasPrivateKey /*|| !value.Verify()*/) {
-                    _logger.Warning("Certificate setter called with empty or invalid certificate");
-                    return;
-                }
-
-                //  attempt to replace the old certificate from the various trust lists
-                var oldCertificate = _opcApplicationConfig.SecurityConfiguration.ApplicationCertificate.Certificate;
-
-                // copy the certificate, public key only, into the trusted certificates list
-                try {
-                    var publicKey = new X509Certificate2(value.RawData);
-                    var trustedStore = _opcApplicationConfig.SecurityConfiguration.TrustedPeerCertificates.OpenStore();
-                    try {
-                        _logger.Information("Adding own certificate in the certificate trusted peer store.");
-                        if (oldCertificate != null) {
-                            trustedStore.Delete(oldCertificate.Thumbprint);
-                        }
-                        trustedStore.Add(value);
-                    }
-                    catch (Exception ex) {
-                        _logger.Warning(ex, "Can not add own certificate to trusted peer store.");
-                    }
-                    finally {
-                        trustedStore.Close();
-                    }
-                }
-                catch (Exception ex) {
-                    _logger.Warning(ex, "Certificate Setter failed to open the trusted peer store.");
-                }
-
-                if (!_opcApplicationConfig.SecurityConfiguration.ApplicationCertificate.Certificate.EqualsSafe(value)) {
-                    
-                    // add the certificate to the right store 
-                    try {
-
-                        var appStore = _opcApplicationConfig.SecurityConfiguration.ApplicationCertificate.OpenStore();
-                        try {
-                            _logger.Information("Adding own certificate in the certificate app store.");
-                            if (oldCertificate != null) {
-                                appStore.Delete(oldCertificate.Thumbprint);
-                            }
-                            appStore.Add(value);
-                        }
-                        catch (Exception ex) {
-                            _logger.Warning(ex, "Can not add own certificate in the certificate app store.");
-                        }
-                        finally {
-                            appStore.Close();
-                        }
-                    }
-                    catch (Exception ex) {
-                        _logger.Warning(ex, "Certificate setter failed to open the app store");
-                    }
-                }
-
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) &&
-                    _configuration.AppCertStoreType == CertificateStoreType.Directory) {
-
-                    var applicationCertificate = new CertificateIdentifier {
-                        StoreType = _configuration.AppCertStoreType,
-                        StorePath = _configuration.OwnCertPath,
-                        SubjectName = "Azure IIoT OPC Twin"
-                    };
-                    try {
-                        var applicationCertStore = applicationCertificate.OpenStore();
-                        try {
-                            _logger.Information("Adding own certificate in the certificate app store .");
-                            if (oldCertificate != null) {
-                                applicationCertStore.Delete(oldCertificate.Thumbprint);
-                            }
-                            applicationCertStore.Add(value);
-                        }
-                        catch (Exception ex) {
-                            _logger.Warning(ex, "Can not add own certificate to trusted app store.");
-                        }
-                        finally {
-                            applicationCertStore.Close();
-                        }
-                    }
-                    catch (Exception ex) {
-                        _logger.Warning(ex, "Certificate setter failed to open the app store");
-                    }
-                }
-            
-                _opcApplicationConfig.SecurityConfiguration.ApplicationCertificate.Certificate = value;
-                _opcApplicationConfig.CertificateValidator.UpdateCertificate(_opcApplicationConfig.SecurityConfiguration);               
+                SetOwnCertificate(value);
             }
         }
 
@@ -141,7 +55,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
             _timer = new Timer(_ => OnTimer(), null, kEvictionCheck, Timeout.InfiniteTimeSpan);
         }
-
 
         /// <summary>
         /// Create client host services
@@ -164,18 +77,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             _timer = new Timer(_ => OnTimer(), null, kEvictionCheck, Timeout.InfiniteTimeSpan);
         }
 
-
         /// <summary>
         /// Initialize the OPC UA Application's security configuration
         /// </summary>
         /// <returns></returns>
         private async Task InitApplicationSecurityAsync() {
 
-            // updatecertificates validator
+            // update certificates validator
             _opcApplicationConfig.CertificateValidator.CertificateValidation +=
                 new Opc.Ua.CertificateValidationEventHandler(CertificateValidator_CertificateValidation);
             await _opcApplicationConfig.CertificateValidator.Update(_opcApplicationConfig).ConfigureAwait(false);
-            
+
             // lookup for an existing certificate in the configured store
             var ownCertificate = await _opcApplicationConfig.SecurityConfiguration.ApplicationCertificate.Find(true).ConfigureAwait(false);
 
@@ -187,17 +99,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     var ownCertificateIdentifier = new CertificateIdentifier {
                         StoreType = _configuration.AppCertStoreType,
                         StorePath = _configuration.OwnCertPath,
-                        SubjectName = "Azure IIoT OPC Twin"
+                        SubjectName = _opcApplicationConfig.SecurityConfiguration.ApplicationCertificate.SubjectName
                     };
                     ownCertificate = await ownCertificateIdentifier.Find(true).ConfigureAwait(false);
                     if ((ownCertificate != null) && !ownCertificate.Verify()) {
                         try {
-                            _logger.Information("Found malformed own certificate in the store. About to rdelete it");
+                            _logger.Warning("Found malformed own certificate {Thumbprint}, {Subject} in the store - deleting it", 
+                                ownCertificate.Thumbprint, ownCertificate.Subject);
                             var ownCertificateStore = ownCertificateIdentifier.OpenStore();
                             await ownCertificateStore.Delete(ownCertificate.Thumbprint);
                             ownCertificateStore.Close();
                         }
-                        catch(Exception ex) {
+                        catch (Exception ex) {
                             _logger.Information(ex, "Failed to remove malformed own certificate");
                         }
                         finally {
@@ -207,9 +120,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
             }
 
-            if (ownCertificate == null) { 
+            if (ownCertificate == null) {
 
-                _logger.Information("Application own certificate not found. Create a new self-signed certificate with default settings");
+                _logger.Information("Application own certificate not found. About to create a new self-signed certificate with default settings");
 
                 ownCertificate = CertificateFactory.CreateCertificate(
                     _opcApplicationConfig.SecurityConfiguration.ApplicationCertificate.StoreType,
@@ -227,10 +140,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     null,
                     null);
                 _opcApplicationConfig.SecurityConfiguration.ApplicationCertificate.Certificate = ownCertificate;
-                _logger.Information($"New application certificate with ownCertificate.Thumbprint={ownCertificate.Thumbprint} created.");
+                _logger.Information("New application certificate with {Thumbprint}, {Subject} created",
+                    ownCertificate.Thumbprint, ownCertificate.SubjectName.Name);
             }
             else {
-                _logger.Information($"Application certificate with ownCertificate.Thumbprint={ownCertificate.Thumbprint} found in the certificate store.");
+                _logger.Information("Application certificate with {Thumbprint}, {Subject} found in the certificate store", 
+                    ownCertificate.Thumbprint, ownCertificate.SubjectName.Name);
             }
 
             // Set the Certificate as the newly created certificate
@@ -242,25 +157,129 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         }
 
         /// <summary>
+        /// set a new application instance certificate
+        /// </summary>
+        /// <param name="newCertificate"></param>
+        private void SetOwnCertificate(X509Certificate2 newCertificate) {
+
+            if (newCertificate == null || !newCertificate.HasPrivateKey /*|| !newCertificate.Verify()*/) {
+                _logger.Warning("Set certificate with empty or invalid argument");
+                throw new ArgumentException("Empty or invalid certificate");
+            }
+
+            _logger.Information("About to set new application certificate {Thumbprint}, {Subject}",
+                newCertificate.Thumbprint, newCertificate.SubjectName.Name);
+
+            //  attempt to replace the old certificate from the various trust lists
+            var oldCertificate = _opcApplicationConfig.SecurityConfiguration.ApplicationCertificate.Certificate;
+
+            // copy the certificate, public key only, into the trusted certificates list
+            try {
+                var publicKey = new X509Certificate2(newCertificate.RawData);
+                var trustedStore = _opcApplicationConfig.SecurityConfiguration.TrustedPeerCertificates.OpenStore();
+
+                try {
+                    _logger.Information("Adding own certificate in the certificate trusted peer store");
+                    if (oldCertificate != null) {
+                        trustedStore.Delete(oldCertificate.Thumbprint);
+                    }
+                    trustedStore.Add(publicKey);
+                }
+                catch (Exception ex) {
+                    _logger.Warning(ex, "Can not add own certificate to trusted peer store");
+                }
+                finally {
+                    trustedStore.Close();
+                }
+            }
+            catch (Exception ex) {
+                _logger.Warning(ex, "Can not add own certificate to trusted peer store, store open failure");
+            }
+
+            if (!_opcApplicationConfig.SecurityConfiguration.ApplicationCertificate.Certificate.EqualsSafe(newCertificate)) {
+
+                // add the certificate to the right store 
+                try {
+                    var appStore = _opcApplicationConfig.SecurityConfiguration.ApplicationCertificate.OpenStore();
+                    try {
+                        _logger.Information("Adding own certificate in the certificate app store");
+                        if (oldCertificate != null) {
+                            appStore.Delete(oldCertificate.Thumbprint);
+                        }
+                        appStore.Add(newCertificate);
+                    }
+                    catch (Exception ex) {
+                        _logger.Warning(ex, "Can not add own certificate in the certificate app store");
+                    }
+                    finally {
+                        appStore.Close();
+                    }
+                }
+                catch (Exception ex) {
+                    _logger.Warning(ex, "Can not add own certificate in the certificate app store, store open failure");
+                }
+            }
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) &&
+                _configuration.AppCertStoreType == CertificateStoreType.Directory) {
+
+                var applicationCertificate = new CertificateIdentifier{
+                        StoreType = _configuration.AppCertStoreType,
+                        StorePath = _configuration.OwnCertPath,
+                        SubjectName = newCertificate.SubjectName.Name
+                    };
+
+                try {
+                    var applicationCertStore = applicationCertificate.OpenStore();
+                    try {
+                        _logger.Information("Adding own certificate in the certificate app store");
+                        if (oldCertificate != null) {
+                            applicationCertStore.Delete(oldCertificate.Thumbprint);
+                        }
+                        applicationCertStore.Add(newCertificate);
+                    }
+                    catch (Exception ex) {
+                        _logger.Warning(ex, "Can not add own certificate to trusted app store");
+                    }
+                    finally {
+                        applicationCertStore.Close();
+                    }
+                }
+                catch (Exception ex) {
+                    _logger.Warning(ex, "Can not add own certificate to trusted app store, store open failure");
+                }
+            }
+
+            _opcApplicationConfig.SecurityConfiguration.ApplicationCertificate.Certificate = newCertificate;
+            _opcApplicationConfig.CertificateValidator.UpdateCertificate(_opcApplicationConfig.SecurityConfiguration);
+        }
+
+        /// <summary>
         /// Event handler to validate certificates.
         /// </summary>
         private void CertificateValidator_CertificateValidation(
             Opc.Ua.CertificateValidator validator, 
             Opc.Ua.CertificateValidationEventArgs e) {
 
-            if (e.Error.StatusCode == Opc.Ua.StatusCodes.BadCertificateUntrusted){
-                e.Accept = _configuration.AutoAccept;
-                if (_configuration.AutoAccept) {
-                    _logger.Information($"Trusting Peer Certificate Certificate.Subject={e.Certificate.Subject} due to AutoAccept={e.Accept}");                
+                if (e.Error.StatusCode == Opc.Ua.StatusCodes.BadCertificateUntrusted){
+                e.Accept = _opcApplicationConfig.SecurityConfiguration.AutoAcceptUntrustedCertificates;
+                if (_opcApplicationConfig.SecurityConfiguration.AutoAcceptUntrustedCertificates) {
+                    _logger.Information("Trusting Peer Certificate {Thumbprint}, {Subject} due to AutoAccept(UntrustedCertificates) set to true", 
+                        e.Certificate.Thumbprint, e.Certificate.Subject);
                     try {
+
+                        var publicKey = new X509Certificate2(e.Certificate.RawData);
                         var trustedStore = _opcApplicationConfig.SecurityConfiguration.TrustedPeerCertificates.OpenStore(); 
+
                         try {
-                            _logger.Information($"Adding peer Certificate.Subject={e.Certificate.Subject} to trusted store.");
-                            trustedStore.Delete(e.Certificate.Thumbprint);
-                            trustedStore.Add(e.Certificate);                          
+                            trustedStore.Delete(publicKey.Thumbprint);
+                            _logger.Information("Adding peer Certificate {Thumbprint}, {Subject} to trusted store", 
+                                publicKey.Thumbprint, publicKey.Subject);
+                            trustedStore.Add(publicKey);                          
                         }
                         catch (Exception ex) {
-                            _logger.Warning(ex, $"Failed to add peer Certificate.Subject={e.Certificate.Subject} to trusted  store.");
+                            _logger.Warning(ex, "Failed to add peer Certificate {Thumbprint}, {Subject} to trusted store",
+                                publicKey.Thumbprint, publicKey.Subject);
                         }
                         finally {
                             trustedStore.Close();
@@ -268,12 +287,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         }
                     }
                     catch(Exception ex) {
-                        _logger.Warning(ex, $"Can not open certificate to trusted certificate peer store.");
+                        _logger.Warning(ex, "Can not open certificate to trusted certificate peer store");
                     }
                 }
             }
             else{
-                _logger.Information($"Rejecting preer certificate Certificate.Subject={e.Certificate.Subject} due to AutoAccept={e.Accept}");
+                _logger.Information("Rejecting Untrusted Peer Certificate {Thumbprint}, {Subject}",
+                        e.Certificate.Thumbprint, e.Certificate.Subject);
             }
         }
 
@@ -529,7 +549,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     NonceLength = 32,
                     AutoAcceptUntrustedCertificates = _configuration.AutoAccept,
                     RejectSHA1SignedCertificates = false,
-                    AddAppCertToTrustedStore = true
+                    AddAppCertToTrustedStore = false
                 },
                 TransportConfigurations = new TransportConfigurationCollection(),
                 TransportQuotas = new TransportQuotas {

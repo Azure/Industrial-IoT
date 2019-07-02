@@ -52,7 +52,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
 
         /// <inheritdoc/>
         public bool AutoAccept =>
-            GetBoolOrDefault(kAutoAccept, true);
+            GetBoolOrDefault(kAutoAccept, false);
 
         /// <summary>
         /// Configuration constructor
