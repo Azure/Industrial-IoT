@@ -5,11 +5,10 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures {
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
-    using Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Mock;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Sample;
     using Microsoft.Azure.IIoT.Utils;
-    using Microsoft.Extensions.Configuration;
     using Opc.Ua.Server;
     using System;
     using System.IO;
@@ -17,7 +16,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures {
     using Serilog;
     using Serilog.Events;
     using System.Threading;
-    using Opc.Ua;
 
     /// <summary>
     /// Adds sample server as fixture to unit tests
@@ -52,16 +50,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures {
                 throw new ArgumentNullException(nameof(nodes));
             }
             Logger = LogEx.Trace(LogEventLevel.Debug);
-
-            Environment.SetEnvironmentVariable("AutoAccept", "true");                      
-            var config = new ClientServicesConfig(
-                new ConfigurationBuilder()
-                    .AddEnvironmentVariables()
-                    .Build()
-             );
-
-            Client = new ClientServices(Logger, config);
-            
+            Client = new ClientServices(Logger, new ClientServicesConfigMock());
             _serverHost = new ServerConsoleHost(
                 new ServerFactory(Logger, nodes) {
                 LogStatus = false
@@ -90,6 +79,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures {
             var certFolder = Path.Combine(Directory.GetCurrentDirectory(),
                 "OPC Foundation");
             if (Directory.Exists(certFolder)) {
+                Try.Op(() => Directory.Delete(certFolder, true));
+            }
+            certFolder = Path.Combine(Directory.GetCurrentDirectory(), "pki");
+            if (Directory.Exists(certFolder))
+            {
                 Try.Op(() => Directory.Delete(certFolder, true));
             }
         }
