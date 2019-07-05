@@ -1,5 +1,5 @@
-﻿using Newtonsoft.Json;
-using OpcPublisher.Http;
+﻿using Microsoft.Azure.Devices.Edge.Util;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -43,23 +43,24 @@ namespace OpcPublisher.Crypto
 
         public IotEdgeCryptoProvider()
         {
-            var baseUrl = Environment.GetEnvironmentVariable("IOTEDGE_WORKLOADURI").TrimEnd('/');
+            var baseUrl = new Uri(Environment.GetEnvironmentVariable("IOTEDGE_WORKLOADURI").TrimEnd('/'));
             var moduleName = Environment.GetEnvironmentVariable("IOTEDGE_MODULEID");
             var moduleGenId = Environment.GetEnvironmentVariable("IOTEDGE_MODULEGENERATIONID");
             var apiVersion = "2018-06-28";
 
-            workloadHttpClient = HttpClientHelper.GetHttpClient(new Uri(baseUrl));
+            workloadHttpClient = HttpClientHelper.GetHttpClient(baseUrl);
+            var baseUrlHttp = HttpClientHelper.GetBaseUrl(baseUrl);
 
-            workloadBaseUriPattern = $"{baseUrl}/modules/{moduleName}/genid/{moduleGenId}/{{0}}?api-version={apiVersion}";
+            workloadUrlPattern = $"{baseUrlHttp}/modules/{moduleName}/genid/{moduleGenId}/{{0}}?api-version={apiVersion}";
         }
 
         private readonly HttpClient workloadHttpClient = null;
-        private readonly string workloadBaseUriPattern = null;
+        private readonly string workloadUrlPattern = null;
         private const string InitializationVector = "alKGJdfsgidfasdO";
 
         private async Task<TOut> CallWorkloadApi<TIn, TOut>(string endpoint, TIn payload)
         {
-            var url = string.Format(workloadBaseUriPattern, endpoint);
+            var url = string.Format(workloadUrlPattern, endpoint);
 
             var jsonPayload = JsonConvert.SerializeObject(payload);
             var payloadContent = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
