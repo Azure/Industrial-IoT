@@ -7,6 +7,7 @@ namespace Serilog {
     using Serilog.Events;
     using Microsoft.Extensions.Configuration;
     using Serilog.Core;
+    using System;
 
     /// <summary>
     /// Serilog extensions
@@ -110,11 +111,48 @@ namespace Serilog {
             if (config != null) {
                 configuration = configuration.ReadFrom.Configuration(config);
             }
+
             return configuration
                 .Enrich.WithProperty("SourceContext", null)
                 .Enrich.FromLogContext()
                 .WriteTo.Trace(outputTemplate: kDefaultTemplate)
                 .MinimumLevel.ControlledBy(Level);
+        }
+
+        /// <summary>
+        /// Create application insights logger
+        /// </summary>
+        /// <param name="configuration"></param>
+        /// <param name="config"></param>
+        /// <returns></returns>
+        public static LoggerConfiguration ApplicationInsights(this LoggerConfiguration configuration,
+            IConfiguration config = null) {
+
+            string applicationInsightsInstrumentationKey = "";
+            if (config != null) {
+                applicationInsightsInstrumentationKey = config.GetValue<string>("PCS_APPINSIGHTS_INSTRUMENTATIONKEY", null);
+                configuration = configuration.ReadFrom.Configuration(config);
+            }
+            if (string.IsNullOrEmpty(applicationInsightsInstrumentationKey)) {
+                Log.Information("Application Insights (AI) key was not found. Logs won't be sent to AI for monitoring.");
+            }
+            return configuration
+                .Enrich.WithProperty("SourceContext", null)
+                .Enrich.FromLogContext()
+                .WriteTo.Console(outputTemplate: kDefaultTemplate)
+                .WriteTo.ApplicationInsights(applicationInsightsInstrumentationKey, TelemetryConverter.Traces)
+                .MinimumLevel.ControlledBy(Level);
+        }
+
+        /// <summary>
+        /// Create application insights logger
+        /// </summary>
+         /// <param name="config"></param>
+        /// <param name="level"></param>
+        /// <returns></returns>
+        public static ILogger ApplicationInsights(IConfiguration config, LogEventLevel level = LogEventLevel.Debug) {
+            Level.MinimumLevel = level;
+            return new LoggerConfiguration().ApplicationInsights(config).CreateLogger();
         }
 
         /// <summary>
