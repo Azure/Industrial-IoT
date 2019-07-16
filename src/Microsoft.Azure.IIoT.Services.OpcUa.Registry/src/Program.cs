@@ -39,7 +39,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
                 .UseKestrel(o => o.AddServerHeader = false)
                 .UseIISIntegration()
                 .UseStartup<Startup>()
-                .UseSerilog(SerilogEx.Console)
+                .UseSerilog(SerilogEx.ApplicationInsights)
                 .Build();
 
             // Run endpoint

@@ -48,6 +48,8 @@ Function GetEnvironmentVariables() {
     $EVENTHUB_CONNSTRING = $deployment.Outputs["eventhub-connstring"].Value
     $EVENTHUB_NAME = $deployment.Outputs["eventhub-name"].Value
     $WORKSPACE_NAME = $deployment.Outputs["workspace-name"].Value
+    $APPINSIGHTS_NAME = $deployment.Outputs["appinsights-name"].Value
+    $APPINSIGHTS_INSTRUMENTATIONKEY = $deployment.Outputs["appinsights-instrumentationkey"].Value
 
     Write-Output `
         "_HUB_CS=$IOTHUB_CONNSTRING"
@@ -85,6 +87,10 @@ Function GetEnvironmentVariables() {
         "PCS_EVENTHUB_NAME=$EVENTHUB_NAME"
 	Write-Output `
         "PCS_WORKSPACE_NAME=$WORKSPACE_NAME"
+    Write-Output `
+        "PCS_APPINSIGHTS_NAME=$APPINSIGHTS_NAME"
+    Write-Output `
+        "PCS_APPINSIGHTS_INSTRUMENTATIONKEY=$APPINSIGHTS_INSTRUMENTATIONKEY"
 
     if (!$aadConfig) {
     Write-Output `

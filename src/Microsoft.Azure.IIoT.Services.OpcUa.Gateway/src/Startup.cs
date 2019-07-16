@@ -31,6 +31,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Gateway {
     using AutofacSerilogIntegration;
     using System;
     using ILogger = Serilog.ILogger;
+    using Serilog;
 
     /// <summary>
     /// Webservice startup
@@ -145,7 +146,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Gateway {
                 .AsImplementedInterfaces().SingleInstance();
 
             // Register logger
-            builder.RegisterLogger();
+            builder.RegisterLogger(LogEx.ApplicationInsights(Config.Configuration));
 
             // Diagnostics
             builder.RegisterType<AuditLogFilter>()

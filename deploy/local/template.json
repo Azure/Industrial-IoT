@@ -86,7 +86,7 @@
         },
         "eventHubName": {
             "type": "string",
-            "defaultValue": "[concat('eventhub-', take(uniqueString(subscription().subscriptionId, resourceGroup().id, parameters('solutionName')), 5))]", 
+            "defaultValue": "[concat('eventhub-', take(uniqueString(subscription().subscriptionId, resourceGroup().id, parameters('solutionName')), 5))]",
             "metadata": {
                 "description": "The name of the Event Hub"
             }
@@ -107,7 +107,7 @@
         },
         "eventHubNamespaceName": {
             "type": "string",
-            "defaultValue": "[concat('eventhubnamespace-', take(uniqueString(subscription().subscriptionId, resourceGroup().id, parameters('solutionName')), 5))]", 
+            "defaultValue": "[concat('eventhubnamespace-', take(uniqueString(subscription().subscriptionId, resourceGroup().id, parameters('solutionName')), 5))]",
             "metadata": {
                 "description": "The name of the Event Hub"
             }
@@ -212,9 +212,9 @@
         "workspaceSku": {
             "type": "string",
             "allowedValues": [
-              "Standalone",
-              "PerNode",
-              "PerGB2018"
+                "Standalone",
+                "PerNode",
+                "PerGB2018"
             ],
             "defaultValue": "PerGB2018",
             "metadata": {
@@ -224,14 +224,56 @@
         "workspaceLocation": {
             "type": "string",
             "allowedValues": [
-              "eastus",
-              "westus",
-              "southeastasia"
+                "eastus",
+                "westus",
+                "southeastasia"
             ],
             "defaultValue": "southeastasia",
-             "metadata": {
-             "description": "Specifies the location in which to create the workspace."
-             }
+            "metadata": {
+                "description": "Specifies the location in which to create the workspace."
+            }
+        },
+        "appInsightsName": {
+            "type": "string",
+            "defaultValue": "[concat('appinsights-', take(uniqueString(subscription().subscriptionId, resourceGroup().id, parameters('solutionName')), 5))]",
+            "metadata": {
+                "description": "Specifies the name of application insights."
+            }
+        },
+        "appInsightsPriceCode": {
+            "type": "int",
+            "defaultValue": 1,
+            "allowedValues": [
+                1,
+                2
+            ],
+            "metadata": {
+                "description": "1 = Per GB (Basic), 2 = Per Node (Enterprise)"
+            }
+        },
+        "appInsightsDailyQuota": {
+            "type": "int",
+            "defaultValue": 100,
+            "minValue": 1,
+            "metadata": {
+                "description": "Specifies daily quota in GB."
+            }
+        },
+        "appInsightsDailyQuotaResetTime": {
+            "type": "int",
+            "defaultValue": 24,
+            "metadata": {
+                "description": "Specifies daily quota reset hour in UTC (0 to 23). Values outside the range will get a random reset hour."
+            }
+        },
+        "appInsightsWarningThreshold": {
+            "type": "int",
+            "defaultValue": 90,
+            "minValue": 1,
+            "maxValue": 100,
+            "metadata": {
+                "description": "Specifies the % value of daily quota after which warning mail to be sent. "
+            }
         }
     },
     "variables": {
@@ -254,7 +296,14 @@
         "onboardingConsumerGroupName": "onboarding",
         "storageApiVersion": "2017-06-01",
         "storageResourceId": "[resourceId('Microsoft.Storage/storageAccounts/',  parameters('storageName'))]",
-        "keyVaultVersion": "2015-06-01"
+        "keyVaultVersion": "2015-06-01",
+        "appInsightsPriceArray": [
+            "Basic",
+            "Application Insights Enterprise"
+        ],
+        "appInsightsPricePlan": "[take(variables('appInsightsPriceArray'),parameters('appInsightsPriceCode'))]",
+        "appInsightsBillingPlan": "[concat(parameters('appInsightsName'),'/', variables('appInsightsPricePlan')[0])]",
+        "appInsightsVersion": "2014-04-01"
     },
     "resources": [
         {
@@ -422,7 +471,7 @@
             "comments": "Event Hub Authorization for Iot Hub",
             "type": "Microsoft.EventHub/namespaces/eventhubs/authorizationRules",
             "name": "[concat(parameters('eventHubNamespaceName'), '/', parameters('eventHubName'), '/', parameters('eventHubAuthorizationName'))]",
-            "apiVersion":  "[variables('eventHubApiVersion')]",
+            "apiVersion": "[variables('eventHubApiVersion')]",
             "location": "[variables('location')]",
             "properties": {
                 "rights": [
@@ -435,19 +484,47 @@
             ]
         },
         {
-             "type": "Microsoft.OperationalInsights/workspaces",
-             "name": "[parameters('workspaceName')]",
-             "apiVersion": "2015-11-01-preview",
-             "location": "[parameters('workspaceLocation')]",
-             "properties": {
-        "sku": {
-            "Name": "[parameters('workspaceSku')]"
-        },
-        "features": {
-            "searchVersion": 1
+            "type": "Microsoft.OperationalInsights/workspaces",
+            "name": "[parameters('workspaceName')]",
+            "apiVersion": "2015-11-01-preview",
+            "location": "[parameters('workspaceLocation')]",
+            "properties": {
+                "sku": {
+                    "Name": "[parameters('workspaceSku')]"
+                },
+                "features": {
+                    "searchVersion": 1
+                }
+            }
+        }, 
+        {
+            "type": "microsoft.insights/components",
+            "name": "[parameters('appInsightsName')]",
+            "apiVersion": "2014-04-01",
+            "location": "[variables('location')]",
+            "tags": {},
+            "properties": {
+                "ApplicationId": "[parameters('appInsightsName')]"
+            },
+            "dependsOn": []
+        }, 
+        {
+            "name": "[variables('appInsightsBillingPlan')]",
+            "type": "microsoft.insights/components/CurrentBillingFeatures",
+            "location": "[variables('location')]",
+            "apiVersion": "2015-05-01",
+            "dependsOn": [
+                "[resourceId('microsoft.insights/components', parameters('appInsightsName'))]"
+            ],
+            "properties": {
+                "CurrentBillingFeatures": "[variables('appInsightsPricePlan')]",
+                "DataVolumeCap": {
+                    "Cap": "[parameters('appInsightsDailyQuota')]",
+                    "WarningThreshold": "[parameters('appInsightsWarningThreshold')]",
+                    "ResetTime": "[parameters('appInsightsDailyQuotaResetTime')]"
+                }
+            }
         }
-        }
-    }
     ],
     "outputs": {
         "iothub-connstring": {
@@ -494,9 +571,17 @@
             "type": "string",
             "value": "[parameters('storageEndpointSuffix')]"
         },
-        "resourceGroup" : {
+        "resourceGroup": {
             "type": "string",
             "value": "[resourceGroup().name]"
+        },
+        "appinsights-name": {
+            "type": "string",
+            "value": "[parameters('appInsightsName')]"
+        },
+        "appinsights-instrumentationkey": {
+            "type": "string",
+            "value": "[reference(resourceId('Microsoft.Insights/components', parameters('appInsightsName')), variables('appInsightsVersion')).InstrumentationKey]"
         }
     }
 }

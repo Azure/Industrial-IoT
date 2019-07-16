@@ -101,7 +101,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Graph {
                 .AsImplementedInterfaces().SingleInstance();
 
             // register logger
-            builder.RegisterLogger(LogEx.Console());
+            builder.RegisterLogger(LogEx.ApplicationInsights(configuration));
 
             // Now Monitor model upload notification using ...
             if (!config.UseFileNotificationHost) {

@@ -45,6 +45,8 @@ while [ "$#" -gt 0 ]; do
         --release-version)              PCS_RELEASE_VERSION="$2" ;;
         --evenhub-connstring)           PCS_EVENTHUB_CONNSTRING="$2" ;;
         --eventhub-name)                PCS_EVENTHUB_NAME="$2" ;;
+        --appinsights-name)             PCS_APPINSIGHTS_NAME="$2" ;;
+        --appinsights-ikey)             PCS_APPINSIGHTS_INSTRUMENTATIONKEY="$2" ;;
     esac
     shift
 done
@@ -180,6 +182,8 @@ echo "PCS_EVENTHUB_NAME=${PCS_EVENTHUB_NAME}" >> ${ENVVARS}
 echo "PCS_APPLICATION_SECRET=${PCS_APPLICATION_SECRET}" >> ${ENVVARS}
 echo "PCS_LOG_LEVEL=${PCS_LOG_LEVEL}" >> ${ENVVARS}
 echo "PCS_RELEASE_VERSION=${PCS_RELEASE_VERSION}" >> ${ENVVARS}
+echo "PCS_APPINSIGHTS_NAME=${PCS_APPINSIGHTS_NAME}" >> ${ENVVARS}
+echo "PCS_APPINSIGHTS_INSTRUMENTATIONKEY=${PCS_APPINSIGHTS_INSTRUMENTATIONKEY}" >> ${ENVVARS}
 
 if [ -z "$REGISTRY_PREFIX" ]; then
   echo -e "Deploying from default registry."

@@ -121,7 +121,7 @@
         },
         "eventHubName": {
             "type": "string",
-            "defaultValue": "[concat('eventhub-', take(uniqueString(subscription().subscriptionId, resourceGroup().id, parameters('solutionName')), 5))]", 
+            "defaultValue": "[concat('eventhub-', take(uniqueString(subscription().subscriptionId, resourceGroup().id, parameters('solutionName')), 5))]",
             "metadata": {
                 "description": "The name of the Event Hub"
             }
@@ -142,7 +142,7 @@
         },
         "eventHubNamespaceName": {
             "type": "string",
-            "defaultValue": "[concat('eventhubnamespace-', take(uniqueString(subscription().subscriptionId, resourceGroup().id, parameters('solutionName')), 5))]", 
+            "defaultValue": "[concat('eventhubnamespace-', take(uniqueString(subscription().subscriptionId, resourceGroup().id, parameters('solutionName')), 5))]",
             "metadata": {
                 "description": "The name of the Event Hub"
             }
@@ -343,9 +343,9 @@
         "workspaceSku": {
             "type": "string",
             "allowedValues": [
-              "Standalone",
-              "PerNode",
-              "PerGB2018"
+                "Standalone",
+                "PerNode",
+                "PerGB2018"
             ],
             "defaultValue": "PerGB2018",
             "metadata": {
@@ -355,14 +355,56 @@
         "workspaceLocation": {
             "type": "string",
             "allowedValues": [
-              "eastus",
-              "westus",
-              "southeastasia"
+                "eastus",
+                "westus",
+                "southeastasia"
             ],
             "defaultValue": "southeastasia",
-             "metadata": {
-             "description": "Specifies the location in which to create the workspace."
-             }
+            "metadata": {
+                "description": "Specifies the location in which to create the workspace."
+            }
+        },
+        "appInsightsName": {
+            "type": "string",
+            "defaultValue": "[concat('appInsights-', take(uniqueString(subscription().subscriptionId, resourceGroup().id, parameters('solutionName')), 5))]",
+            "metadata": {
+                "description": "Specifies the name of application insights."
+            }
+        },
+        "appInsightsPriceCode": {
+            "type": "int",
+            "defaultValue": 1,
+            "allowedValues": [
+                1,
+                2
+            ],
+            "metadata": {
+                "description": "1 = Per GB (Basic), 2 = Per Node (Enterprise)"
+            }
+        },
+        "appInsightsDailyQuota": {
+            "type": "int",
+            "defaultValue": 100,
+            "minValue": 1,
+            "metadata": {
+                "description": "Specifies daily quota in GB."
+            }
+        },
+        "appInsightsDailyQuotaResetTime": {
+            "type": "int",
+            "defaultValue": 24,
+            "metadata": {
+                "description": "Specifies daily quota reset hour in UTC (0 to 23). Values outside the range will get a random reset hour."
+            }
+        },
+        "appInsightsWarningThreshold": {
+            "type": "int",
+            "defaultValue": 90,
+            "minValue": 1,
+            "maxValue": 100,
+            "metadata": {
+                "description": "Specifies the % value of daily quota after which warning mail to be sent. "
+            }
         }
     },
     "variables": {
@@ -409,7 +451,14 @@
         "appServiceVersion": "2018-02-01",
         "appServicePlanVersion": "2018-02-01",
         "appServiceSku": "S1",
-        "appServiceWorkerSize": "0"
+        "appServiceWorkerSize": "0",
+        "appInsightsPriceArray": [
+            "Basic",
+            "Application Insights Enterprise"
+        ],
+        "appInsightsPricePlan": "[take(variables('appInsightsPriceArray'),parameters('appInsightsPriceCode'))]",
+        "appInsightsBillingPlan": "[concat(parameters('appInsightsName'),'/', variables('appInsightsPricePlan')[0])]",
+        "appInsightsVersion": "2014-04-01"
     },
     "resources": [
         {
@@ -608,6 +657,48 @@
                 "tenantId": "[parameters('aadTenantId')]",
                 "accessPolicies": []
             }
+        },
+        {
+            "type": "Microsoft.OperationalInsights/workspaces",
+            "name": "[parameters('workspaceName')]",
+            "apiVersion": "2015-11-01-preview",
+            "location": "[parameters('workspaceLocation')]",
+            "properties": {
+                "sku": {
+                    "Name": "[parameters('workspaceSku')]"
+                },
+                "features": {
+                    "searchVersion": 1
+                }
+            }
+        },
+        {
+            "type": "microsoft.insights/components",
+            "name": "[parameters('appInsightsName')]",
+            "apiVersion": "2014-04-01",
+            "location": "[variables('location')]",
+            "tags": {},
+            "properties": {
+                "ApplicationId": "[parameters('appInsightsName')]"
+            },
+            "dependsOn": []
+        },
+        {
+            "name": "[variables('appInsightsBillingPlan')]",
+            "type": "microsoft.insights/components/CurrentBillingFeatures",
+            "location": "[variables('location')]",
+            "apiVersion": "2015-05-01",
+            "dependsOn": [
+                "[resourceId('microsoft.insights/components', parameters('appInsightsName'))]"
+            ],
+            "properties": {
+                    "CurrentBillingFeatures": "[variables('appInsightsPricePlan')]",
+                    "DataVolumeCap": {
+                        "Cap": "[parameters('appInsightsDailyQuota')]",
+                        "WarningThreshold": "[parameters('appInsightsWarningThreshold')]",
+                        "ResetTime": "[parameters('appInsightsDailyQuotaResetTime')]"
+                    }
+           }
         },
         {
             "comments": "AppService plan to host the Application Gateway Web App",
@@ -872,24 +963,10 @@
                     ]
                 },
                 "protectedSettings": {
-                    "commandToExecute": "[concat('sh setup.sh ', ' --unsafe false --admin ', concat('\"', parameters('adminUsername'), '\"'), ' --registry-prefix ', concat('\"', parameters('containerRegistryPrefix'), '\"'), ' --hostname ', concat('\"', variables('vmFQDN'), '\"'), ' --ssl-certificate-key ', concat('\"', parameters('adminPassword'), '\"'), ' --ssl-certificate ', concat('\"', parameters('remoteEndpointCertificate'), '\"'), ' --auth-type aad ', ' --auth-audience ', concat('\"', parameters('authAudience'), '\"'), ' --aad-appid ', concat('\"', parameters('aadClientId'), '\"'), ' --aad-tenant ', concat('\"', parameters('aadTenantId'), '\"'), ' --aad-instance ', concat('\"', parameters('aadInstance'), '\"'), ' --iothub-connstring ', concat('\"', 'HostName=', reference(variables('iotHubResourceId')).hostName, ';SharedAccessKeyName=', variables('iotHubKeyName'), ';SharedAccessKey=', listkeys(variables('iotHubKeyResource'), variables('iotHubApiVersion')).primaryKey, '\"'), ' --docdb-connstring ', concat('\"', 'AccountEndpoint=', reference(variables('documentDBResourceId')).documentEndpoint, ';AccountKey=', listkeys(variables('documentDBResourceId'), variables('documentDBApiVersion')).primaryMasterKey, ';', '\"'), ' --iothub-name ', concat('\"', reference(variables('iotHubResourceId')).eventHubEndpoints.events.path, '\"'), ' --iothub-endpoint ', concat('\"', reference(variables('iotHubResourceId')).eventHubEndpoints.events.endpoint, '\"'), ' --azureblob-account ', concat('\"', parameters('storageName'), '\"'), ' --azureblob-key ', concat('\"', listKeys(variables('storageResourceId'), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, '\"'), ' --azureblob-endpoint-suffix ',  concat('\"', parameters('storageEndpointSuffix'), '\"'), ' --release-version ', concat('\"', variables('servicesBranch'), '\"'), ' --iothub-consumer-group ', concat('\"', variables('onboardingConsumerGroupName'), '\"'), ' --evenhub-connstring ', concat('\"Endpoint=sb://', parameters('eventHubNamespaceName'), '.', parameters('serviceBusEndpointSuffix'), '/;SharedAccessKeyName=', variables('eventHubKeyName'), ';SharedAccessKey=', listkeys(variables('eventHubKeyResourceId'), variables('eventHubApiVersion')).primaryKey, '\"'), ' --eventhub-name ', parameters('eventHubName'))]"
+                    "commandToExecute": "[concat('sh setup.sh ', ' --unsafe false --admin ', concat('\"', parameters('adminUsername'), '\"'), ' --registry-prefix ', concat('\"', parameters('containerRegistryPrefix'), '\"'), ' --hostname ', concat('\"', variables('vmFQDN'), '\"'), ' --ssl-certificate-key ', concat('\"', parameters('adminPassword'), '\"'), ' --ssl-certificate ', concat('\"', parameters('remoteEndpointCertificate'), '\"'), ' --auth-type aad ', ' --auth-audience ', concat('\"', parameters('authAudience'), '\"'), ' --aad-appid ', concat('\"', parameters('aadClientId'), '\"'), ' --aad-tenant ', concat('\"', parameters('aadTenantId'), '\"'), ' --appinsights-name ', concat('\"', parameters('appInsightsName'), '\"'), ' --appinsights-ikey ', concat('\"', reference(resourceId('Microsoft.Insights/components', parameters('appInsightsName')), variables('appInsightsVersion')).InstrumentationKey, '\"'), ' --aad-instance ', concat('\"', parameters('aadInstance'), '\"'), ' --iothub-connstring ', concat('\"', 'HostName=', reference(variables('iotHubResourceId')).hostName, ';SharedAccessKeyName=', variables('iotHubKeyName'), ';SharedAccessKey=', listkeys(variables('iotHubKeyResource'), variables('iotHubApiVersion')).primaryKey, '\"'), ' --docdb-connstring ', concat('\"', 'AccountEndpoint=', reference(variables('documentDBResourceId')).documentEndpoint, ';AccountKey=', listkeys(variables('documentDBResourceId'), variables('documentDBApiVersion')).primaryMasterKey, ';', '\"'), ' --iothub-name ', concat('\"', reference(variables('iotHubResourceId')).eventHubEndpoints.events.path, '\"'), ' --iothub-endpoint ', concat('\"', reference(variables('iotHubResourceId')).eventHubEndpoints.events.endpoint, '\"'), ' --azureblob-account ', concat('\"', parameters('storageName'), '\"'), ' --azureblob-key ', concat('\"', listKeys(variables('storageResourceId'), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, '\"'), ' --azureblob-endpoint-suffix ',  concat('\"', parameters('storageEndpointSuffix'), '\"'), ' --release-version ', concat('\"', variables('servicesBranch'), '\"'), ' --iothub-consumer-group ', concat('\"', variables('onboardingConsumerGroupName'), '\"'), ' --evenhub-connstring ', concat('\"Endpoint=sb://', parameters('eventHubNamespaceName'), '.', parameters('serviceBusEndpointSuffix'), '/;SharedAccessKeyName=', variables('eventHubKeyName'), ';SharedAccessKey=', listkeys(variables('eventHubKeyResourceId'), variables('eventHubApiVersion')).primaryKey, '\"'), ' --eventhub-name ', parameters('eventHubName'))]"
                 }
             }
-        },
-    {
-             "type": "Microsoft.OperationalInsights/workspaces",
-             "name": "[parameters('workspaceName')]",
-             "apiVersion": "2015-11-01-preview",
-             "location": "[parameters('workspaceLocation')]",
-             "properties": {
-        "sku": {
-            "Name": "[parameters('workspaceSku')]"
-        },
-        "features": {
-            "searchVersion": 1
         }
-        }
-    }
     ],
     "outputs": {
         "azureWebsite": {
@@ -948,9 +1025,17 @@
             "type": "string",
             "value": "[parameters('storageEndpointSuffix')]"
         },
-        "resourceGroup" : {
+        "resourceGroup": {
             "type": "string",
             "value": "[resourceGroup().name]"
-        }       
+        },
+        "appinsights-name": {
+            "type": "string",
+            "value": "[parameters('appInsightsName')]"
+        },
+        "appinsights-instrumentationkey": {
+            "type": "string",
+            "value": "[reference(resourceId('Microsoft.Insights/components', parameters('appInsightsName')), variables('appInsightsVersion')).InstrumentationKey]"
+        }
     }
 }
