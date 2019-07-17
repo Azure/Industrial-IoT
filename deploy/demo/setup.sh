@@ -45,6 +45,7 @@ while [ "$#" -gt 0 ]; do
         --release-version)              PCS_RELEASE_VERSION="$2" ;;
         --evenhub-connstring)           PCS_EVENTHUB_CONNSTRING="$2" ;;
         --eventhub-name)                PCS_EVENTHUB_NAME="$2" ;;
+        --workspace-name)               PCS_WORKSPACE_NAME="$2" ;;
         --appinsights-name)             PCS_APPINSIGHTS_NAME="$2" ;;
         --appinsights-ikey)             PCS_APPINSIGHTS_INSTRUMENTATIONKEY="$2" ;;
     esac
@@ -183,6 +184,7 @@ echo "PCS_APPLICATION_SECRET=${PCS_APPLICATION_SECRET}" >> ${ENVVARS}
 echo "PCS_LOG_LEVEL=${PCS_LOG_LEVEL}" >> ${ENVVARS}
 echo "PCS_RELEASE_VERSION=${PCS_RELEASE_VERSION}" >> ${ENVVARS}
 echo "_HUB_CS=${PCS_IOTHUB_CONNSTRING}" >> ${ENVVARS}
+echo "PCS_WORKSPACE_NAME=${PCS_WORKSPACE_NAME}" >> ${ENVVARS}
 echo "PCS_APPINSIGHTS_NAME=${PCS_APPINSIGHTS_NAME}" >> ${ENVVARS}
 echo "PCS_APPINSIGHTS_INSTRUMENTATIONKEY=${PCS_APPINSIGHTS_INSTRUMENTATIONKEY}" >> ${ENVVARS}
 
