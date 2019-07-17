@@ -1,6 +1,6 @@
 # Azure Industrial IoT OPC Twin Module
 
-The OPC Twin module runs on the edge and provides serveral edge services to the [OPC Twin and Registry Services](https://github.com/Azure/azure-iiot-services). 
+The OPC Twin module runs on the edge and provides several edge services to the [OPC Twin and Registry Services](https://github.com/Azure/azure-iiot-services).
 
 Core of the module is the Supervisor identity.  The supervisor manages endpoint "twins", which correspond to OPC UA server endpoints that are activated using the corresponding OPC UA registry API.  These endpoint twins translate OPC UA JSON received from the Twin micro service running in the cloud into OPC UA binary messages which are sent over a stateful secure channel to the managed endpoint.  
 
@@ -16,8 +16,8 @@ A pre-built image exits in Microsoft's container registry and can be obtained by
 
 To use it follow the instructions on how to deploy the module to [IoT Edge][iotedge-docs-url]:
 
-  * Instructions on how to [deploy](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-deploy-modules-portal) a module to one or a set of IoT Edge targets.
-  * Instructions on how to install IoT Edge [on Linux](https://docs.microsoft.com/en-us/azure/iot-edge/quickstart-linux) and [on Windows](https://docs.microsoft.com/en-us/azure/iot-edge/quickstart).
+* Instructions on how to [deploy](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-deploy-modules-portal) a module to one or a set of IoT Edge targets.
+* Instructions on how to install IoT Edge [on Linux](https://docs.microsoft.com/en-us/azure/iot-edge/quickstart-linux) and [on Windows](https://docs.microsoft.com/en-us/azure/iot-edge/quickstart).
 
 > Install one IoT Edge gateway and module per factory network.  Make sure you run one or more OPC UA servers in the same network to utilize the OPC Twin capabilities.
 
@@ -27,11 +27,11 @@ To build and run the module yourself, clone the repository.  Then...
 
 ### Install any tools and dependencies
 
-* [Install .NET Core 2.1+][dotnet-install] if you want to build the services locally.
+* [Install .NET Core 2.2+][dotnet-install] if you want to build the services locally.
 * Install [Docker][docker-url] if you want to build and run the services using docker-compose.
 * Install any recent edition of Visual Studio (Windows/MacOS) or Visual Studio Code (Windows/MacOS/Linux).
-   * If you already have Visual Studio installed, then ensure you have [.NET Core Tools for Visual Studio 2017][dotnetcore-tools-url] installed (Windows only).
-   * If you already have VS Code installed, then ensure you have the [C# for Visual Studio Code (powered by OmniSharp)][omnisharp-url] extension installed. 
+  * If you already have Visual Studio installed, then ensure you have [.NET Core Tools for Visual Studio 2017][dotnetcore-tools-url] installed (Windows only).
+  * If you already have VS Code installed, then ensure you have the [C# for Visual Studio Code (powered by OmniSharp)][omnisharp-url] extension installed.
 
 ### Deploy Azure Services
 
@@ -48,7 +48,7 @@ Follow the instructions [here](https://github.com/Azure/azure-iiot-services) to 
 ### Build, run and deploy the module to IoT Edge (Production)
 
 1. To build your own module container image and deploy it make sure the [Prerequisites](#Install-any-tools-and-depdendencies) are set up.
-1. Change into the repo root and run 
+1. Change into the repo root and run
    `docker build -f docker/linux/amd64/Dockerfile -t azure-iiot-opc-twin-module .`
 1. Then push the module to an accessible registry, e.g. Azure Container Registry, or [dockerhub][dockerhub-url].
 1. Follow the instructions on how to deploy the module to IoT Edge [here][#Using-the-module].
@@ -58,7 +58,7 @@ Follow the instructions [here](https://github.com/Azure/azure-iiot-services) to 
 1. Make sure the [Prerequisites](#Install-any-tools-and-depdendencies) are set up.
 1. Change into the repo root and ensure the .env file containing an entry for `PCS_IOTHUB_CONNSTRING` exists.
 1. Open the `azure-iiot-opc-twin-module.sln` solution file in Visual Studio or VS Code
-1. Configure the `Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Cli` project properties to pass `--host` as command line argument when starting. 
+1. Configure the `Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Cli` project properties to pass `--host` as command line argument when starting.
 1. Set the `Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Cli` as startup project and start debugging (e.g. by pressing F5).
 
 ## Contributing
