@@ -30,7 +30,13 @@ namespace Microsoft.Azure.IIoT.Net {
                     n.OperationalStatus == OperationalStatus.Up &&
                     n.GetIPProperties() != null)
                 .SelectMany(n => n.GetIPProperties().UnicastAddresses
-                    .Select(x => new NetInterface(n.Name, x.Address, x.IPv4Mask)))
+                    .Select(x => new NetInterface(n.Name, 
+                        n.GetPhysicalAddress(), 
+                        x.Address, 
+                        x.IPv4Mask, 
+                        n.GetIPProperties().GatewayAddresses.Count > 0 ? n.GetIPProperties().GatewayAddresses[0].Address : null, 
+                        n.GetIPProperties().DnsSuffix,
+                        n.GetIPProperties().DnsAddresses)))
                 .Where(t =>
                     t.UnicastAddress.AddressFamily == AddressFamily.InterNetwork &&
                     !IPAddress.IsLoopback(t.UnicastAddress))
