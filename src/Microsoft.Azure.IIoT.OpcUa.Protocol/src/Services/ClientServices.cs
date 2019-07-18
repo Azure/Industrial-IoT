@@ -549,7 +549,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     NonceLength = 32,
                     AutoAcceptUntrustedCertificates = _configuration.AutoAccept,
                     RejectSHA1SignedCertificates = false,
-                    AddAppCertToTrustedStore = false
+                    AddAppCertToTrustedStore = false,
+                    MinimumCertificateKeySize = 1024
+                    
                 },
                 TransportConfigurations = new TransportConfigurationCollection(),
                 TransportQuotas = new TransportQuotas {

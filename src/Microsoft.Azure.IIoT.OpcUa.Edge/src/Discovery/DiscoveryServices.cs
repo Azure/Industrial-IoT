@@ -145,6 +145,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                 discovered = await DiscoverServersAsync(request, ct);
                 if (discovered.Count == 0 && request.Mode == DiscoveryMode.Off) {
                     // Optimize
+                    _logger.Debug("Discovery request ended with 0 results");
                     return;
                 }
             }
@@ -160,6 +161,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                 await UploadResultsAsync(request, discovered, DateTime.UtcNow,
                     diagnostics, ct);
             }
+            _logger.Debug("Discovery request ended");
         }
 
         /// <summary>

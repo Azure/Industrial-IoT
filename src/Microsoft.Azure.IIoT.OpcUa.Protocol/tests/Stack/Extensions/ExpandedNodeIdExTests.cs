@@ -40,6 +40,18 @@ namespace Opc.Ua.Extensions {
         }
 
         [Fact]
+        public void DecodeExpandedNodeIdFromStringInvalidUri()
+        {
+            var context = new ServiceMessageContext();
+            var expected = "   space    tests /(%)§;#;;#;()§$\"))\"\")(§";
+            var uri = "invalidUri";
+            var result = (uri + "#s=" + expected).ToExpandedNodeId(context);
+            Assert.Equal(expected, result.Identifier);
+            Assert.Equal(uri, context.NamespaceUris.GetString(1));
+            Assert.Equal(1, result.NamespaceIndex);
+        }
+
+        [Fact]
         public void DecodeExpandedNodeIdFromStringWithNamespaceIndex() {
             var context = new ServiceMessageContext();
             var expected = "   space    tests /(%)§;#;;#;()§$\"))\"\")(§";

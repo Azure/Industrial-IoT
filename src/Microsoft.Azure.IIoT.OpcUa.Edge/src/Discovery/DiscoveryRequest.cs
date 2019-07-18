@@ -94,9 +94,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
 
             if (AddressRanges == null) {
                 if (request.Discovery == DiscoveryMode.Fast) {
-                    AddressRanges = NetworkInformationEx.GetAllNetInterfaces(
-                        NetworkClass.Wired)
-                    .Select(t => new AddressRange(t, false, 24));
+
+                    var interfaces = NetworkInformationEx.GetAllNetInterfaces(NetworkClass.Wired);
+                    AddressRanges = interfaces.Select(t => new AddressRange(t, false, 24));
+                    AddressRanges = AddressRanges.Concat(interfaces
+                                        .Where(t => t.Gateway != null && 
+                                                    !t.Gateway.Equals(System.Net.IPAddress.Any) &&
+                                                    !t.Gateway.Equals(System.Net.IPAddress.None))
+                                        .Select(i => new AddressRange(i.Gateway, 32)));
                 }
             }
 
