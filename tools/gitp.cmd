@@ -13,6 +13,7 @@ set submodules=%submodules% modules\opc-twin
 set submodules=%submodules% modules\opc-publisher
 set submodules=%submodules% components\opc-ua
 set submodules=%submodules% samples\opc-twin-webui
+set submodules=%submodules% samples\opc-vault-webui
 set submodules=%submodules% services
 set submodules=%submodules% common
 set submodules=%submodules% api

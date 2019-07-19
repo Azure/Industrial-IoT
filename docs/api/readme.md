@@ -1,5 +1,10 @@
 # Azure Industrial IoT API Reference
 
+## OPC Vault Service
+
+- [REST API](vault/readme.md)
+
+
 ## OPC Registry Service 
 
 - [REST API](registry/readme.md) 
