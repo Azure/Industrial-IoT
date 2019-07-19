@@ -1,0 +1,9 @@
+{
+    "EndpointUrl": "opc.tcp://localhost:50000",
+    "OpcNodes": [
+        {
+            "Id": "i=2258"
+        }
+    ]
+}
+

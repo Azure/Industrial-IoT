@@ -1,0 +1,16 @@
+[
+    {
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcNodes": [
+            {
+                "Id": "i=2258"
+            },
+            {
+                "Id": "ns=2;s=DipData"
+            },
+            {
+                "Id": "nsu=http://microsoft.com/Opc/OpcPlc/;s=NegativeTrendData"
+            }
+        ]
+    }
+]
