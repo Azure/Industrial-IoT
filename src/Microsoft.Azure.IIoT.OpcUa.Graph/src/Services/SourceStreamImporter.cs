@@ -69,7 +69,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Services {
                 throw new ArgumentException(nameof(contentType));
             }
 
-            var container = await _factory.OpenAsync();
+            var container = await _factory.OpenAsync("graph");
 
             // Bulk load new nodes and vertices for source
             var revision = DateTime.UtcNow.ToBinary();

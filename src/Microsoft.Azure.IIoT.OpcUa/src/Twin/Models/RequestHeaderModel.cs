@@ -11,7 +11,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
     /// Request header model
     /// </summary>
     public class RequestHeaderModel {
-        
+
         /// <summary>
         /// Optional User Elevation
         /// </summary>

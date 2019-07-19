@@ -9,7 +9,7 @@ namespace Opc.Ua.Design {
     public class DesignTests {
 
         [Fact]
-        void DesignLoadTest() {
+        public void DesignLoadTest() {
             Assert.True(true);
         }
     }

@@ -105,7 +105,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Export {
         }
 
         /// <inheritdoc/>
-        public void Dispose() => _encoder.Dispose();
+        public void Dispose() {
+            _encoder.Dispose();
+        }
 
         /// <inheritdoc/>
         public async Task EncodeAsync(CancellationToken ct) {
@@ -362,7 +364,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Export {
                     var encodeable = ExtensionObject.ToEncodeable(
                         response.Results[0].HistoryData);
                     return (continuationToken, encodeable is T ?
-                        (T)encodeable : default(T));
+                        (T)encodeable : default);
                 });
         }
 

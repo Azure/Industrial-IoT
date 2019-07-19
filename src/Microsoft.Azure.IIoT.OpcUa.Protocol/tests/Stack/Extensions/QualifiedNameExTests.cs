@@ -50,6 +50,39 @@ namespace Opc.Ua.Extensions {
         }
 
         [Fact]
+        public void DecodeQnFromStringUrlEncodedBadNamespaceUri() {
+            var context = new ServiceMessageContext();
+            var expected = "   space    tests /(%)§;#;;#;()§$\"))\"\")(§";
+            var uri = "contosos";
+            var result = (uri + "#" + expected.UrlEncode()).ToQualifiedName(context);
+            Assert.Equal(expected, result.Name);
+            Assert.Equal(uri, context.NamespaceUris.GetString(1));
+            Assert.Equal(1, result.NamespaceIndex);
+        }
+
+        [Fact]
+        public void DecodeQnFromStringUrnNamespaceUri() {
+            var context = new ServiceMessageContext();
+            var expected = "   space    tests /(%)§;#;;#;()§$\"))\"\")(§";
+            var uri = "urn:contosos";
+            var result = (uri + "#" + expected).ToQualifiedName(context);
+            Assert.Equal(expected, result.Name);
+            Assert.Equal(uri, context.NamespaceUris.GetString(1));
+            Assert.Equal(1, result.NamespaceIndex);
+        }
+
+        [Fact]
+        public void DecodeQnFromStringUrlEncodedUrnNamespaceUri() {
+            var context = new ServiceMessageContext();
+            var expected = "   space    tests /(%)§;#;;#;()§$\"))\"\")(§";
+            var uri = "urn:contosos";
+            var result = (uri + "#" + expected.UrlEncode()).ToQualifiedName(context);
+            Assert.Equal(expected, result.Name);
+            Assert.Equal(uri, context.NamespaceUris.GetString(1));
+            Assert.Equal(1, result.NamespaceIndex);
+        }
+
+        [Fact]
         public void EncodeDecodeQualifiedName() {
 
             var context = new ServiceMessageContext();

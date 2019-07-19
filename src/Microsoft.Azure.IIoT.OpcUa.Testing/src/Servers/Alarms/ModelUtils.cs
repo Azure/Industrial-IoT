@@ -27,11 +27,11 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System.Text;
-using Opc.Ua;
-using Opc.Ua.Server;
-
 namespace Alarms {
+    using System.Text;
+    using Opc.Ua;
+    using Opc.Ua.Server;
+
     /// <summary>
     /// Defines constants and methods used by all classes in the information model.
     /// </summary>

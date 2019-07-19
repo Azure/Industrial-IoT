@@ -27,11 +27,11 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System;
-using System.Xml;
-using Opc.Ua;
-
 namespace TestData {
+    using System;
+    using System.Xml;
+    using Opc.Ua;
+
     public partial class MethodTestState {
 
         /// <summary>

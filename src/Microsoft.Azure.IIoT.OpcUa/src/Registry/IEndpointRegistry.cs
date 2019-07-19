@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -20,9 +21,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// </param>
         /// <param name="continuation"></param>
         /// <param name="pageSize"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         Task<EndpointInfoListModel> ListEndpointsAsync(string continuation,
-            bool onlyServerState = false, int? pageSize = null);
+            bool onlyServerState = false, int? pageSize = null,
+            CancellationToken ct = default);
 
         /// <summary>
         /// Find registration of the supplied endpoint.
@@ -32,45 +35,59 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// desired endpoint state should be returned.
         /// </param>
         /// <param name="pageSize"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         Task<EndpointInfoListModel> QueryEndpointsAsync(
             EndpointRegistrationQueryModel query,
-            bool onlyServerState = false, int? pageSize = null);
+            bool onlyServerState = false, int? pageSize = null,
+            CancellationToken ct = default);
 
         /// <summary>
         /// Get endpoint registration by identifer.
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="endpointId"></param>
         /// <param name="onlyServerState">Whether only
         /// desired endpoint state should be returned.
         /// </param>
+        /// <param name="ct"></param>
         /// <returns></returns>
-        Task<EndpointInfoModel> GetEndpointAsync(string id,
-            bool onlyServerState = false);
+        Task<EndpointInfoModel> GetEndpointAsync(string endpointId,
+            bool onlyServerState = false,
+            CancellationToken ct = default);
 
         /// <summary>
         /// Set the endpoint state to activated
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="endpointId"></param>
+        /// <param name="context"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
-        Task ActivateEndpointAsync(string id);
+        Task ActivateEndpointAsync(string endpointId,
+            RegistryOperationContextModel context = null,
+            CancellationToken ct = default);
 
         /// <summary>
         /// Update existing server endpoint registration.
         /// Id and url field in request must not be null and
         /// endpoint registration must exist.
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="endpointId"></param>
         /// <param name="request"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
-        Task UpdateEndpointAsync(string id,
-            EndpointRegistrationUpdateModel request);
+        Task UpdateEndpointAsync(string endpointId,
+            EndpointRegistrationUpdateModel request,
+            CancellationToken ct = default);
 
         /// <summary>
         /// Set the endpoint state to deactivated
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="endpointId"></param>
+        /// <param name="context"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
-        Task DeactivateEndpointAsync(string id);
+        Task DeactivateEndpointAsync(string endpointId,
+            RegistryOperationContextModel context = null,
+            CancellationToken ct = default);
     }
 }

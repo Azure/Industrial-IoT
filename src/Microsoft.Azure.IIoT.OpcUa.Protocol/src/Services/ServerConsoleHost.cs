@@ -11,11 +11,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Security.Cryptography.X509Certificates;
 
     /// <summary>
     /// Console host for servers
     /// </summary>
     public class ServerConsoleHost : IServerHost {
+
+        /// <inheritdoc/>
+        public X509Certificate2 Certificate { get; private set; }
 
         /// <inheritdoc/>
         public bool AutoAccept { get; set; }
@@ -33,8 +37,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <inheritdoc/>
         public async Task StopAsync() {
             if (_server != null) {
+                await _lock.WaitAsync();
                 try {
-                    await _lock.WaitAsync();
                     if (_server != null) {
                         _logger.Information("Stopping server.");
                         try {
@@ -53,6 +57,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
                 finally {
                     _server = null;
+                    Certificate = null;
                     _lock.Release();
                 }
             }
@@ -61,8 +66,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <inheritdoc/>
         public async Task StartAsync(IEnumerable<int> ports) {
             if (_server == null) {
+                await _lock.WaitAsync();
                 try {
-                    await _lock.WaitAsync();
                     if (_server == null) {
                         await StartServerInternal(ports);
                         return;
@@ -81,7 +86,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         }
 
         /// <inheritdoc/>
-        public void Dispose() => StopAsync().Wait();
+        public void Dispose() {
+            StopAsync().Wait();
+            _lock.Dispose();
+        }
 
         /// <summary>
         /// Start server
@@ -138,6 +146,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     "Application instance certificate invalid!");
             }
 
+            // Set certificate
+            Certificate = cert;
+
             // start the server.
             await application.Start(_server);
 
@@ -152,7 +163,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// <inheritdoc/>
             public override void Message(string text, bool ask) { }
             /// <inheritdoc/>
-            public override Task<bool> ShowAsync() => Task.FromResult(true);
+            public override Task<bool> ShowAsync() {
+                return Task.FromResult(true);
+            }
         }
 
         private readonly ILogger _logger;

@@ -12,6 +12,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
     using System;
     using System.Threading.Tasks;
     using System.Diagnostics;
+    using System.Threading;
 
     /// <summary>
     /// Client for supervisor diagnostics services
@@ -30,7 +31,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
 
         /// <inheritdoc/>
         public async Task<SupervisorStatusModel> GetSupervisorStatusAsync(
-            string supervisorId) {
+            string supervisorId, CancellationToken ct) {
             if (string.IsNullOrEmpty(supervisorId)) {
                 throw new ArgumentNullException(nameof(supervisorId));
             }
@@ -38,7 +39,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
             var deviceId = SupervisorModelEx.ParseDeviceId(supervisorId,
                 out var moduleId);
             var result = await _client.CallMethodAsync(deviceId, moduleId,
-                "GetStatus_V2", null);
+                "GetStatus_V2", null, null, ct);
             _logger.Debug("Get {deviceId}/{moduleId} status took " +
                 "{elapsed} ms.", deviceId, moduleId, sw.ElapsedMilliseconds);
             return JsonConvertEx.DeserializeObject<SupervisorStatusModel>(
@@ -46,7 +47,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task ResetSupervisorAsync(string supervisorId) {
+        public async Task ResetSupervisorAsync(string supervisorId,
+            CancellationToken ct) {
             if (string.IsNullOrEmpty(supervisorId)) {
                 throw new ArgumentNullException(nameof(supervisorId));
             }
@@ -54,7 +56,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
             var deviceId = SupervisorModelEx.ParseDeviceId(supervisorId,
                 out var moduleId);
             var result = await _client.CallMethodAsync(deviceId, moduleId,
-                "Reset_V2", null);
+                "Reset_V2", null, null, ct);
             _logger.Debug("Reset supervisor {deviceId}/{moduleId} took " +
                 "{elapsed} ms.", deviceId, moduleId, sw.ElapsedMilliseconds);
         }

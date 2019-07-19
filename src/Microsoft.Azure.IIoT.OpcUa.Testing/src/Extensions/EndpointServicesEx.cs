@@ -21,8 +21,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="readNode"></param>
         /// <returns></returns>
         public static Task<JToken> ReadValueAsync(this IEndpointServices client,
-            EndpointModel endpoint, string readNode) =>
-            ReadValueAsync(client, endpoint, null, readNode);
+            EndpointModel endpoint, string readNode) {
+            return ReadValueAsync(client, endpoint, null, readNode);
+        }
 
         /// <summary>
         /// Read value

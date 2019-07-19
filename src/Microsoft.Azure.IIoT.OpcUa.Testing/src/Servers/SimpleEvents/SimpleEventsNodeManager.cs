@@ -27,14 +27,13 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Reflection;
-using Opc.Ua;
-using Opc.Ua.Server;
-
 namespace SimpleEvents {
+    using System;
+    using System.Collections.Generic;
+    using System.Threading;
+    using System.Reflection;
+    using Opc.Ua;
+    using Opc.Ua.Server;
 
     /// <summary>
     /// A node manager for a server that exposes several variables.
@@ -215,7 +214,9 @@ namespace SimpleEvents {
         }
 
         private readonly SimpleEventsServerConfiguration _configuration;
+#pragma warning disable IDE0069 // Disposable fields should be disposed
         private Timer _simulationTimer;
+#pragma warning restore IDE0069 // Disposable fields should be disposed
         private int _cycleId;
 
         private const int kEventInterval = 10000;

@@ -7,7 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     using System.Collections.Generic;
 
     /// <summary>
-    /// Application information
+    /// Application registration request
     /// </summary>
     public class ApplicationRegistrationRequestModel {
 
@@ -27,7 +27,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public string ProductUri { get; set; }
 
         /// <summary>
-        /// Name of application
+        /// Default name of application
         /// </summary>
         public string ApplicationName { get; set; }
 
@@ -35,6 +35,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// Locale of name - defaults to "en"
         /// </summary>
         public string Locale { get; set; }
+
+        /// <summary>
+        /// Localizations
+        /// </summary>
+        public Dictionary<string, string> LocalizedNames { get; set; }
+
+        /// <summary>
+        /// Site of the application
+        /// </summary>
+        public string SiteId { get; set; }
 
         /// <summary>
         /// Application cert
@@ -55,6 +65,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// Discovery profile uri
         /// </summary>
         public string DiscoveryProfileUri { get; set; }
+
+        /// <summary>
+        /// Gateway server uri
+        /// </summary>
+        public string GatewayServerUri { get; set; }
+
+        /// <summary>
+        /// Operation audit context
+        /// </summary>
+        public RegistryOperationContextModel Context { get; set; }
     }
 }
 

@@ -46,7 +46,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             }
             return
                 that.User.IsSameAs(model.User) &&
-                that.ServerThumbprint.SequenceEqualsSafe(model.ServerThumbprint) &&
+                that.Certificate.SequenceEqualsSafe(model.Certificate) &&
                 that.SecurityPolicy == model.SecurityPolicy &&
                 (that.SecurityMode ?? SecurityMode.Best) ==
                     (model.SecurityMode ?? SecurityMode.Best);
@@ -86,7 +86,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 return null;
             }
             return new EndpointModel {
-                ServerThumbprint = model.ServerThumbprint,
+                Certificate = model.Certificate?.ToArray(),
                 AlternativeUrls = model.AlternativeUrls.ToHashSetSafe(),
                 SecurityMode = model.SecurityMode,
                 SecurityPolicy = model.SecurityPolicy,

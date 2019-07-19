@@ -75,7 +75,8 @@ namespace Opc.Ua.Extensions {
         /// <param name="context"></param>
         /// <param name="model"></param>
         public static void SaveAsNodeSet2(this NodeStateCollection collection, Stream ostrm,
-            DateTime? lastModified, ISystemContext context, ModelTableEntry model = null) =>
+            DateTime? lastModified, ISystemContext context, ModelTableEntry model = null) {
             NodeSet2.Create(collection.ToNodeModels(context), model, lastModified, context).Save(ostrm);
+        }
     }
 }

@@ -108,7 +108,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
             }
             return new RolePermissionType {
                 RoleId = model.RoleId.ToNodeId(context),
-                Permissions = /*(uint)*/ model.Permissions.ToStackType()
+                Permissions = (uint)model.Permissions.ToStackType()
             };
         }
 
@@ -329,8 +329,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// </summary>
         /// <param name="identity"></param>
         /// <returns></returns>
-        public static CredentialModel ToServiceModel(this IUserIdentity identity) =>
-            ToServiceModel(identity?.GetIdentityToken());
+        public static CredentialModel ToServiceModel(this IUserIdentity identity) {
+            return ToServiceModel(identity?.GetIdentityToken());
+        }
 
         /// <summary>
         /// Convert user identity token to service model

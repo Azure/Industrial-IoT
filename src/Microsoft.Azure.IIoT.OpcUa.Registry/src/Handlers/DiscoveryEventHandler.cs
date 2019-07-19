@@ -28,7 +28,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
         /// </summary>
         /// <param name="registry"></param>
         /// <param name="logger"></param>
-        public DiscoveryEventHandler(IRegistryMaintenance registry, ILogger logger) {
+        public DiscoveryEventHandler(IDiscoveryProcessor registry, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _registry = registry ?? throw new ArgumentNullException(nameof(registry));
         }
@@ -119,8 +119,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
                 if (queue.Completed) {
                     try {
                         // Process discoveries
-                        await _registry.ProcessDiscoveryAsync(supervisorId,
-                            queue.Result, queue.Events, false);
+                        await _registry.ProcessDiscoveryResultsAsync(supervisorId,
+                            queue.Result, queue.Events);
                     }
                     catch (Exception ex) {
                         _logger.Error(ex,
@@ -218,6 +218,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
         private readonly SemaphoreSlim _queueLock = new SemaphoreSlim(1);
 
         private readonly ILogger _logger;
-        private readonly IRegistryMaintenance _registry;
+        private readonly IDiscoveryProcessor _registry;
     }
 }

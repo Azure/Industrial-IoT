@@ -27,21 +27,19 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System.Runtime.Serialization;
-
 namespace HistoricalAccess {
+    using System.Runtime.Serialization;
+
     /// <summary>
     /// Stores the configuration the data access node manager.
     /// </summary>
     [DataContract(Namespace = Namespaces.HistoricalAccess)]
-    public class HistoricalAccessServerConfiguration
-    {
-        
+    public class HistoricalAccessServerConfiguration {
+
         /// <summary>
         /// The default constructor.
         /// </summary>
-        public HistoricalAccessServerConfiguration()
-        {
+        public HistoricalAccessServerConfiguration() {
             Initialize();
         }
 
@@ -59,8 +57,7 @@ namespace HistoricalAccess {
         /// <summary>
         /// Sets private members to default values.
         /// </summary>
-        private void Initialize()
-        {
+        private void Initialize() {
         }
 
 

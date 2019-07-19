@@ -27,10 +27,9 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System.Collections.Generic;
-using Opc.Ua;
-
 namespace DataAccess {
+    using System.Collections.Generic;
+    using Opc.Ua;
 
     /// <summary>
     /// Browses the children of a segment.
@@ -226,7 +225,7 @@ namespace DataAccess {
 
         private Stage _stage;
         private int _position;
-        private SegmentState _source;
+        private readonly SegmentState _source;
         private IList<UnderlyingSystemSegment> _segments;
         private IList<string> _blocks;
     }

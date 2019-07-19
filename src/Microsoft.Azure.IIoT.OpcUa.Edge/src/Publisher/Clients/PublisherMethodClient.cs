@@ -53,9 +53,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Clients {
         public async Task<(ServiceResultModel, string)> CallMethodAsync(
             string method, string request, DiagnosticsModel diagnostics) {
             try {
+                _logger.Verbose("Calling publisher method {method} with {request}",
+                    method, request);
                 var response = await _client.CallMethodAsync(
                     _deviceId ?? _identity?.DeviceId, _moduleId ?? "publisher",
                     method, request);
+                _logger.Verbose("Calling publisher method {method} returned {response}",
+                    method, response);
                 return (null, response);
             }
             catch (Exception ex) {

@@ -3,9 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-using System.Collections.Generic;
-
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
+    using System.Collections.Generic;
 
     /// <summary>
     /// Endpoint to talk to
@@ -19,7 +18,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
 
         /// <summary>
         /// Alternative endpoints that can be used for accessing
-        /// the server
+        /// the server.
         /// </summary>
         public HashSet<string> AlternativeUrls { get; set; }
 
@@ -39,14 +38,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public SecurityMode? SecurityMode { get; set; }
 
         /// <summary>
-        /// Certificate to validate against - null = trust all
+        /// Certificate that was used to register the endpoint with
         /// </summary>
-        public byte[] ServerThumbprint { get; set; }
-
-        /// <summary>
-        /// Certificate with private key to use to connect to
-        /// endpoint - null = create self signed certificate.
-        /// </summary>
-        public byte[] ClientCertificate { get; set; }
+        public byte[] Certificate { get; set; }
     }
 }

@@ -32,5 +32,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// If discovery failed, result information
         /// </summary>
         public JToken Diagnostics { get; set; }
+
+        /// <summary>
+        /// Operation audit context
+        /// </summary>
+        public RegistryOperationContextModel Context { get; set; }
     }
 }

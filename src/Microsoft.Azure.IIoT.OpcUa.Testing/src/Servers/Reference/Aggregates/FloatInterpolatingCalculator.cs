@@ -27,9 +27,9 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System.Collections.Generic;
-
 namespace Opc.Ua.Aggregates {
+    using System.Collections.Generic;
+
     /// <summary>
     /// Calculates aggreates based on the point values.
     /// </summary>

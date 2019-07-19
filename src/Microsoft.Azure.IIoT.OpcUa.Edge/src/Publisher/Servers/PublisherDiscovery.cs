@@ -69,8 +69,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Servers {
                 var publisherModule = modules
                     .Where(m => m.Status.EqualsIgnoreCase("running"))
                     .FirstOrDefault(m =>
-                        m.ImageName?.Contains("opc-publisher") ?? false ||
-                        m.Id.EqualsIgnoreCase(kPublisherName));
+                        m.ImageName?.Contains("opc-publisher") ?? (false ||
+                        m.Id.EqualsIgnoreCase(kPublisherName)));
 
                 if (publisherModule == null) {
                     _logger.Warning("No publisher module running in edge context.");
@@ -93,70 +93,71 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Servers {
             }
 
             // Try shortcut of finding it on localhost
-            var cts = new CancellationTokenSource();
-            var uri = new Uri($"opc.tcp://{Utils.GetHostName()}:62222");
-            var localEndpoints = await _discovery.FindEndpointsAsync(uri, null, cts.Token);
-            if (localEndpoints.Any()) {
+            using (var cts = new CancellationTokenSource()) {
+                var uri = new Uri($"opc.tcp://{Utils.GetHostName()}:62222");
+                var localEndpoints = await _discovery.FindEndpointsAsync(uri, null, cts.Token);
+                if (localEndpoints.Any()) {
 #if !TEST_PNP_SCAN
-                var publisher = new PublisherServerClient(_client, uri, _logger);
-                var error = await TestConnectivityAsync(publisher);
-                if (error == null) {
-                    _logger.Information("Using publisher server on localhost.");
-                    return publisher;
-                }
+                    var publisher = new PublisherServerClient(_client, uri, _logger);
+                    var error = await TestConnectivityAsync(publisher);
+                    if (error == null) {
+                        _logger.Information("Using publisher server on localhost.");
+                        return publisher;
+                    }
 #endif
-            }
+                }
 
-            // Discover publishers in network - use fast scanning
-            _logger.Information("Try finding publishers in module network...");
-            var addresses = new List<IPAddress>();
-            using (var netscanner = new NetworkScanner(_logger,
-                reply => addresses.Add(reply.Address), false,
-                NetworkInformationEx.GetAllNetInterfaces(NetworkClass.Wired)
-                    .Select(t => new AddressRange(t, false, 24)),
-                NetworkClass.Wired, 1000, // TODO: make configurable - intent is fast.
-                null, cts.Token)) {
-                await netscanner.Completion;
-            }
-            var publishers = new List<IPEndPoint>();
-            var probe = new ServerProbe(_logger);
-            using (var portscan = new PortScanner(_logger,
-                addresses.Select(a => new IPEndPoint(a, kPublisherPort)),
-                found => {
-                    cts.Cancel(); // Cancel on first found publisher.
+                // Discover publishers in network - use fast scanning
+                _logger.Information("Try finding publishers in module network...");
+                var addresses = new List<IPAddress>();
+                using (var netscanner = new NetworkScanner(_logger,
+                    reply => addresses.Add(reply.Address), false,
+                    NetworkInformationEx.GetAllNetInterfaces(NetworkClass.Wired)
+                        .Select(t => new AddressRange(t, false, 24)),
+                    NetworkClass.Wired, 1000, // TODO: make configurable - intent is fast.
+                    null, cts.Token)) {
+                    await netscanner.Completion;
+                }
+                var publishers = new List<IPEndPoint>();
+                var probe = new ServerProbe(_logger);
+                using (var portscan = new PortScanner(_logger,
+                    addresses.Select(a => new IPEndPoint(a, kPublisherPort)),
+                    found => {
+                        cts.Cancel(); // Cancel on first found publisher.
                     publishers.Add(found);
-                }, probe, null, null, null, cts.Token)) {
-                try {
-                    await portscan.Completion;
+                    }, probe, null, null, null, cts.Token)) {
+                    try {
+                        await portscan.Completion;
+                    }
+                    catch (TaskCanceledException) {
+                        // We got a port, and scanning is cancelled.
+                    }
                 }
-                catch (TaskCanceledException) {
-                    // We got a port, and scanning is cancelled.
-                }
-            }
 
-            // We might have found a couple publishers - lets test them...
-            foreach (var ep in publishers) {
-                var remoteEp = await ep.TryResolveAsync();
-                _logger.Information("Test publisher at address {remoteEp} in network.",
-                    remoteEp);
-                uri = new Uri("opc.tcp://" + remoteEp);
-                var endpoints = await _discovery.FindEndpointsAsync(uri, null,
-                    CancellationToken.None);
-                if (!endpoints.Any()) {
-                    continue;
-                }
-                var publisher = new PublisherServerClient(_client, uri, _logger);
-                var error = await TestConnectivityAsync(publisher);
-                if (error == null) {
-                    _logger.Information("Using publisher server at address {remoteEp}.",
+                // We might have found a couple publishers - lets test them...
+                foreach (var ep in publishers) {
+                    var remoteEp = await ep.TryResolveAsync();
+                    _logger.Information("Test publisher at address {remoteEp} in network.",
                         remoteEp);
-                    return publisher;
+                    uri = new Uri("opc.tcp://" + remoteEp);
+                    var endpoints = await _discovery.FindEndpointsAsync(uri, null,
+                        CancellationToken.None);
+                    if (!endpoints.Any()) {
+                        continue;
+                    }
+                    var publisher = new PublisherServerClient(_client, uri, _logger);
+                    var error = await TestConnectivityAsync(publisher);
+                    if (error == null) {
+                        _logger.Information("Using publisher server at address {remoteEp}.",
+                            remoteEp);
+                        return publisher;
+                    }
                 }
-            }
 
-            // TODO: Consider loading publisher as side car service?
-            // No publisher found - will try again later.
-            return null;
+                // TODO: Consider loading publisher as side car service?
+                // No publisher found - will try again later.
+                return null;
+            }
         }
 
         /// <summary>

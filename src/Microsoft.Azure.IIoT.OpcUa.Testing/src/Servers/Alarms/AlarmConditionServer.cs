@@ -27,10 +27,9 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using Opc.Ua;
-using Opc.Ua.Server;
-
 namespace Alarms {
+    using Opc.Ua;
+    using Opc.Ua.Server;
 
     /// <inheritdoc/>
     public class AlarmConditionServer : INodeManagerFactory {

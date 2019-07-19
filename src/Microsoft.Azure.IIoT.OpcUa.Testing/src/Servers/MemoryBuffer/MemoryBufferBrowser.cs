@@ -27,11 +27,10 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System;
-using System.Collections.Generic;
-using Opc.Ua;
-
 namespace MemoryBuffer {
+    using System;
+    using System.Collections.Generic;
+    using Opc.Ua;
 
     /// <summary>
     /// A class to browse the references for a memory buffer.
@@ -179,6 +178,6 @@ namespace MemoryBuffer {
 
         private Stage _stage;
         private uint _position;
-        private MemoryBufferState _buffer;
+        private readonly MemoryBufferState _buffer;
     }
 }

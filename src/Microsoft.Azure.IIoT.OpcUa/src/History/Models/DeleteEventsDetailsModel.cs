@@ -10,7 +10,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.History.Models {
     /// The events to delete
     /// </summary>
     public class DeleteEventsDetailsModel {
-        
+
         /// <summary>
         /// Events to delete
         /// </summary>

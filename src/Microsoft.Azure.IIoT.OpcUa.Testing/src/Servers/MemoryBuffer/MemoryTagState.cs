@@ -27,9 +27,9 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using Opc.Ua;
-
 namespace MemoryBuffer {
+    using Opc.Ua;
+
     public partial class MemoryTagState {
 
         /// <summary>

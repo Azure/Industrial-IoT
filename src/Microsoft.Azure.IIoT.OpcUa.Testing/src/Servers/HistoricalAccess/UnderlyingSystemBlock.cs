@@ -27,11 +27,11 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System;
-using System.Collections.Generic;
-using Opc.Ua;
-
 namespace HistoricalAccess {
+    using System;
+    using System.Collections.Generic;
+    using Opc.Ua;
+
     /// <summary>
     /// This class simulates a block in the system.
     /// </summary>
@@ -278,9 +278,7 @@ namespace HistoricalAccess {
                 }
 
                 // report any tag changes after releasing the lock.
-                if (onTagsChanged != null) {
-                    onTagsChanged(snapshots);
-                }
+                onTagsChanged?.Invoke(snapshots);
             }
             catch (Exception e) {
                 Utils.Trace(e, "Unexpected error running simulation for block {0}", Name);
@@ -458,7 +456,7 @@ namespace HistoricalAccess {
         }
 
         private readonly object _lock = new object();
-        private List<UnderlyingSystemTag> _tags;
+        private readonly List<UnderlyingSystemTag> _tags;
         private TagsChangedEventHandler OnTagsChanged;
     }
 

@@ -38,7 +38,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                     DiscoveryProfileUri = result.Description.Server.DiscoveryProfileUri,
                     HostAddresses = new HashSet<string> { hostAddress },
                     ApplicationName = result.Description.Server.ApplicationName.Text,
-                    Locale = result.Description.Server.ApplicationName.Locale,
+                    LocalizedNames = string.IsNullOrEmpty(result.Description.Server.ApplicationName.Locale) ?
+                        null : new Dictionary<string, string> {
+                            [result.Description.Server.ApplicationName.Locale] =
+                                result.Description.Server.ApplicationName.Text
+                        },
                     NotSeenSince = null,
                     Certificate = result.Description.ServerCertificate,
                     Capabilities = new HashSet<string>(result.Capabilities)
@@ -47,7 +51,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                     new EndpointRegistrationModel {
                         SiteId = siteId,
                         SupervisorId = supervisorId,
-                        Certificate = result.Description.ServerCertificate,
                         SecurityLevel = result.Description.SecurityLevel,
                         AuthenticationMethods = result.Description.UserIdentityTokens.ToServiceModel(),
                         EndpointUrl = result.Description.EndpointUrl, // Reported
@@ -57,6 +60,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                                 result.AccessibleEndpointUrl,
                                 result.Description.EndpointUrl,
                             },
+                            Certificate = result.Description.ServerCertificate,
                             SecurityMode = result.Description.SecurityMode.ToServiceType() ??
                                 SecurityMode.None,
                             SecurityPolicy = result.Description.SecurityPolicyUri

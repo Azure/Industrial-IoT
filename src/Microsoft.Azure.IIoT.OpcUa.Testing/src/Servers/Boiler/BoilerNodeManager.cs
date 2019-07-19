@@ -27,12 +27,11 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System.Collections.Generic;
-using Opc.Ua;
-using Opc.Ua.Sample;
-using System.Reflection;
-
 namespace Boiler {
+    using System.Collections.Generic;
+    using Opc.Ua;
+    using Opc.Ua.Sample;
+    using System.Reflection;
 
     /// <summary>
     /// A node manager the diagnostic information exposed by the server.

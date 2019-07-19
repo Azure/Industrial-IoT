@@ -28,10 +28,9 @@
  * ======================================================================*/
 
 
-using Opc.Ua;
-using Opc.Ua.Server;
-
 namespace MemoryBuffer {
+    using Opc.Ua;
+    using Opc.Ua.Server;
 
     /// <inheritdoc/>
     public class MemoryBufferServer : INodeManagerFactory {

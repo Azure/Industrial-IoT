@@ -27,13 +27,13 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Data;
-using Opc.Ua;
-
 namespace HistoricalEvents {
+    using System;
+    using System.Collections.Generic;
+    using System.Text;
+    using System.Data;
+    using Opc.Ua;
+
     public class ReportGenerator {
         public void Initialize() {
             _dataset = new DataSet();
@@ -70,48 +70,41 @@ namespace HistoricalEvents {
             };
         }
 
-
-        static readonly string[] s_WellNames = {
+        private static readonly string[] s_WellNames = {
             "Area51/Jupiter",
             "Area51/Titan",
             "Area99/Saturn",
             "Area99/Mars"
         };
-
-        static readonly string[] s_WellUIDs = {
+        private static readonly string[] s_WellUIDs = {
             "Well_24412",
             "Well_48306",
             "Well_86234",
             "Well_91423"
         };
-
-        static readonly string[] s_TestReasons = {
+        private static readonly string[] s_TestReasons = {
             "initial",
             "periodic",
             "revision",
             "unknown",
             "other"
         };
-
-        static readonly string[] s_Testers = {
+        private static readonly string[] s_Testers = {
             "Anne",
             "Bob",
             "Charley",
             "Dawn"
         };
-
-        static readonly string[] s_UnitLengths = {
+        private static readonly string[] s_UnitLengths = {
             "m",
             "yd"
         };
-
-        static readonly string[] s_UnitTimes = {
+        private static readonly string[] s_UnitTimes = {
             "s",
             "min",
             "h"
         };
-
-        static readonly string[] s_InjectionFluids = {
+        private static readonly string[] s_InjectionFluids = {
             "oil",
             "gas",
             "non HC gas",
@@ -132,7 +125,7 @@ namespace HistoricalEvents {
 
 
         private int GetRandom(int min, int max) {
-            return (int)(Math.Truncate(_random.NextDouble() * (max - min + 1) + min));
+            return (int)Math.Truncate((_random.NextDouble() * (max - min + 1)) + min);
         }
 
         private string GetRandom(string[] values) {

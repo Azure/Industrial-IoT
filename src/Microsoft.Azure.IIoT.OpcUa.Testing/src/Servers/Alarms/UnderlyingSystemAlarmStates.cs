@@ -27,15 +27,14 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System;
-
 namespace Alarms {
+    using System;
+
     /// <summary>
     /// Defines the possible states for the condition.
     /// </summary>
     [Flags]
-    public enum UnderlyingSystemAlarmStates
-    {
+    public enum UnderlyingSystemAlarmStates {
         /// <summary>
         /// The condition state is unknown.
         /// </summary>

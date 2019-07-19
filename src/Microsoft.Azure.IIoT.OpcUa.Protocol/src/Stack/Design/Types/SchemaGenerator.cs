@@ -40,11 +40,10 @@ namespace Opc.Ua.Design.Schema {
     /// Type schema generator
     /// </summary>
     public class SchemaGenerator {
+        private const string TemplatePath = "Opc.Ua.ModelCompiler.Templates.";
+        private const string DefaultNamespace = "http://opcfoundation.org/UA/";
 
-        const string TemplatePath = "Opc.Ua.ModelCompiler.Templates.";
-        const string DefaultNamespace = "http://opcfoundation.org/UA/";
-
-        private ModelDesign _model;
+        private readonly ModelDesign _model;
         private string[] _excludedCategories;
 
         /// <summary>
@@ -136,7 +135,7 @@ namespace Opc.Ua.Design.Schema {
                 }
 
                 template.WriteNextLine(context.Prefix);
-          //      template.Write("xmlns:{0}=\"{1}\"", GetXmlNamespacePrefix(ns.Value), ns.Value);
+                //      template.Write("xmlns:{0}=\"{1}\"", GetXmlNamespacePrefix(ns.Value), ns.Value);
                 return null;
             }
 
@@ -243,7 +242,7 @@ namespace Opc.Ua.Design.Schema {
                         continue;
                     }
 
-                    fields.Add(new Parameter() {
+                    fields.Add(new Parameter {
                         DataType = field.DataType,
                         DataTypeNode = field.DataTypeNode,
                         Description = field.Description,
@@ -276,7 +275,7 @@ namespace Opc.Ua.Design.Schema {
                         case "UInt64": { lengthInBits = 64; break; }
                     }
 
-                    fields.Insert(0, new Parameter() {
+                    fields.Insert(0, new Parameter {
                         Name = "None",
                         Identifier = 0,
                         IdentifierSpecified = true,
@@ -364,7 +363,7 @@ namespace Opc.Ua.Design.Schema {
                                 prefix = "ua";
                             }
                             else {
-                    //            prefix = GetXmlNamespacePrefix(dataType.SymbolicName.Namespace);
+                                //            prefix = GetXmlNamespacePrefix(dataType.SymbolicName.Namespace);
                             }
                         }
 

@@ -27,12 +27,12 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using Opc.Ua;
-
 namespace DataAccess {
+    using System;
+    using System.Collections.Generic;
+    using System.Threading;
+    using Opc.Ua;
+
     /// <summary>
     /// An object that provides access to the underlying system.
     /// </summary>
@@ -82,7 +82,7 @@ namespace DataAccess {
         /// The same block can have many paths.
         /// Each preceding element is a segment.
         /// </remarks>
-        private string[] s_BlockPathDatabase = {
+        private readonly string[] s_BlockPathDatabase = {
             "Factory/East/Boiler1/Pipe1001",
             "Factory/East/Boiler1/Drum1002",
             "Factory/East/Boiler1/Pipe1002",
@@ -125,7 +125,7 @@ namespace DataAccess {
         /// The name of the block is the first element.
         /// The type of block is the second element.
         /// </remarks>
-        private string[] s_BlockDatabase = {
+        private readonly string[] s_BlockDatabase = {
             "Pipe1001/FlowSensor",
             "Drum1002/LevelSensor",
             "Pipe1002/FlowSensor",
@@ -548,7 +548,7 @@ namespace DataAccess {
         }
 
         private readonly object _lock = new object();
-        private Dictionary<string, UnderlyingSystemBlock> _blocks;
+        private readonly Dictionary<string, UnderlyingSystemBlock> _blocks;
         private Timer _simulationTimer;
         private long _simulationCounter;
         private Opc.Ua.Test.DataGenerator _generator;
@@ -557,10 +557,10 @@ namespace DataAccess {
     /// <summary>
     /// USed to received notifications when a tag value changes.
     /// </summary>
-    delegate void TagValueChangedEventHandler(string tagName, Variant value, DateTime timestamp);
+    internal delegate void TagValueChangedEventHandler(string tagName, Variant value, DateTime timestamp);
 
     /// <summary>
     /// USed to received notifications when the tag metadata changes.
     /// </summary>
-    delegate void TagMetadataChangedEventHandler(UnderlyingSystemTag tag);
+    internal delegate void TagMetadataChangedEventHandler(UnderlyingSystemTag tag);
 }

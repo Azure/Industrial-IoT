@@ -4,28 +4,15 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
-    using System.Threading.Tasks;
 
     /// <summary>
     /// Publisher
     /// </summary>
-    public interface IPublisher {
+    public interface IPublisher : IHost {
 
         /// <summary>
         /// Whether publishing is operational
         /// </summary>
         bool IsRunning { get; }
-
-        /// <summary>
-        /// Start publisher
-        /// </summary>
-        /// <returns></returns>
-        Task StartAsync();
-
-        /// <summary>
-        /// Stop publisher
-        /// </summary>
-        /// <returns></returns>
-        Task StopAsync();
     }
 }

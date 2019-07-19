@@ -27,11 +27,11 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System.Collections.Generic;
-using Opc.Ua;
-using Opc.Ua.Server;
-
 namespace HistoricalAccess {
+    using System.Collections.Generic;
+    using Opc.Ua;
+    using Opc.Ua.Server;
+
     /// <summary>
     /// Stores the metadata for a node representing a folder on a file system.
     /// </summary>
@@ -43,8 +43,7 @@ namespace HistoricalAccess {
         public ArchiveFolderState(ISystemContext context, ArchiveFolder folder, ushort namespaceIndex)
 #pragma warning restore RECS0154 // Parameter is never used
         :
-            base(null)
-        {
+            base(null) {
             ArchiveFolder = folder;
 
             TypeDefinitionId = ObjectTypeIds.FolderType;
@@ -61,8 +60,7 @@ namespace HistoricalAccess {
         /// <summary>
         /// Constructs a node identifier for a folder object.
         /// </summary>
-        public static NodeId ConstructId(string filePath, ushort namespaceIndex)
-        {
+        public static NodeId ConstructId(string filePath, ushort namespaceIndex) {
             var parsedNodeId = new ParsedNodeId {
                 RootId = filePath,
                 NamespaceIndex = namespaceIndex,
@@ -88,8 +86,7 @@ namespace HistoricalAccess {
             BrowseDirection browseDirection,
             QualifiedName browseName,
             IEnumerable<IReference> additionalReferences,
-            bool internalOnly)
-        {
+            bool internalOnly) {
             NodeBrowser browser = new ArchiveFolderBrowser(
                 context,
                 view,

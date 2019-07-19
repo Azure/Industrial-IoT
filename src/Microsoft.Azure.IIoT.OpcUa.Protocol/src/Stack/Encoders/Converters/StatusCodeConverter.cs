@@ -23,7 +23,7 @@ namespace Opc.Ua {
         public override object ReadJson(JsonReader reader, Type objectType,
             object existingValue, JsonSerializer serializer) {
             if (reader.TokenType != JsonToken.Integer) {
-                if (objectType == typeof(StatusCode?)) { 
+                if (objectType == typeof(StatusCode?)) {
                     return null;
                 }
                 return StatusCodes.Good;

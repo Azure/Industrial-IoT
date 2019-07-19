@@ -670,6 +670,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
             }
             ServerError = null;
             base.Dispose(disposing);
+            _requestState.Dispose();
         }
 
         /// <inheritdoc/>
@@ -1736,7 +1737,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
             /// <inheritdoc/>
             public override void Message(string text, bool ask) { }
             /// <inheritdoc/>
-            public override Task<bool> ShowAsync() => Task.FromResult(true);
+            public override Task<bool> ShowAsync() {
+                return Task.FromResult(true);
+            }
         }
 
         /// <inheritdoc/>
@@ -1840,7 +1843,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
             if (string.IsNullOrEmpty(args.Token.PolicyId)) {
                 args.Token.PolicyId = "Anonymous";
             }
-            if (args.Token.PolicyId.StartsWith(kGatewayPolicyPrefix, StringComparison.Ordinal)||
+            if (args.Token.PolicyId.StartsWith(kGatewayPolicyPrefix, StringComparison.Ordinal) ||
                 args.CurrentIdentities.Count == 0) {
                 switch (args.Token) {
                     case AnonymousIdentityToken at:
@@ -1936,7 +1939,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                 }
                 else {
                     var response = batchResponse.Results[0];
-                    var status = (response.ErrorInfo?.StatusCode ?? StatusCodes.Good);
+                    var status = response.ErrorInfo?.StatusCode ?? StatusCodes.Good;
                     if (status == StatusCodes.Good) {
                         // Authentication was also successful using the token.
                         var newIdentities = new List<IUserIdentity> {

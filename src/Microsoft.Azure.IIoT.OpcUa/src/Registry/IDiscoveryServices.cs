@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -16,7 +17,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// Kick of an application discovery
         /// </summary>
         /// <param name="request"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
-        Task DiscoverAsync(DiscoveryRequestModel request);
+        Task DiscoverAsync(DiscoveryRequestModel request,
+            CancellationToken ct = default);
     }
 }

@@ -35,7 +35,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
     public class WebSocketChannelListener : ITcpChannelListener,
         IWebSocketChannelListener, IStartable, IDisposable {
 
-        private const string WssTransport =
+        private const string kWssTransport =
             "http://opcfoundation.org/UA-Profile/Transport/wss-uabinary";
 
         /// <inheritdoc/>
@@ -121,7 +121,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
 
                     // Wrap socket in channel to read and write.
                     var socket = new WebSocketMessageSocket(channel, webSocket,
-                        _bufferManager, _quotas.MaxBufferSize);
+                        _bufferManager, _quotas.MaxBufferSize, _logger);
                     var channelId = (uint)Interlocked.Increment(ref _lastChannelId);
                     channel.Attach(channelId, socket);
 
@@ -190,7 +190,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
                         Server = _controller.ServerDescription,
                         UserIdentityTokens = null,
                         ProxyUrl = null,
-                        TransportProfileUri = WssTransport
+                        TransportProfileUri = kWssTransport
                     },
                     new EndpointDescription {
                         EndpointUrl = url,
@@ -201,7 +201,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
                         Server = _controller.ServerDescription,
                         UserIdentityTokens = null,
                         ProxyUrl = null,
-                        TransportProfileUri = WssTransport
+                        TransportProfileUri = kWssTransport
                     }
                 }));
         }

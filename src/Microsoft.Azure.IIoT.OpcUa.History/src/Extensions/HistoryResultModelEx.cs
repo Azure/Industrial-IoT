@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.History.Models {
     using Newtonsoft.Json.Linq;
-	using System;
+    using System;
 
     /// <summary>
     /// History read results extensions

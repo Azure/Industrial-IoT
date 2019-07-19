@@ -120,9 +120,7 @@ namespace Opc.Ua.Client {
             return Task.Factory.FromAsync(
                 (callback, state) => client.BeginCloseSession(requestHeader,
                     deleteSubscriptions, callback, state),
-                result => {
-                    return client.EndCloseSession(result);
-                }, TaskCreationOptions.DenyChildAttach);
+                client.EndCloseSession, TaskCreationOptions.DenyChildAttach);
 #else
             return Task.Run(() => {
                 return client.CloseSession(requestHeader, deleteSubscriptions);
@@ -851,11 +849,13 @@ namespace Opc.Ua.Client {
         /// <returns></returns>
         private static DeleteSubscriptionsResponse NewDeleteSubscriptionsResponse(
             ResponseHeader response, StatusCodeCollection results,
-            DiagnosticInfoCollection diagnosticInfos) => new DeleteSubscriptionsResponse {
+            DiagnosticInfoCollection diagnosticInfos) {
+            return new DeleteSubscriptionsResponse {
                 DiagnosticInfos = diagnosticInfos,
                 ResponseHeader = response,
                 Results = results
             };
+        }
 
 
         /// <summary>
@@ -867,11 +867,13 @@ namespace Opc.Ua.Client {
         /// <returns></returns>
         private static TransferSubscriptionsResponse NewTransferSubscriptionsResponse(
             ResponseHeader response, TransferResultCollection results,
-            DiagnosticInfoCollection diagnosticInfos) => new TransferSubscriptionsResponse {
+            DiagnosticInfoCollection diagnosticInfos) {
+            return new TransferSubscriptionsResponse {
                 DiagnosticInfos = diagnosticInfos,
                 ResponseHeader = response,
                 Results = results
             };
+        }
 
         /// <summary>
         /// Async subscription modification service
@@ -921,10 +923,12 @@ namespace Opc.Ua.Client {
         /// <param name="notificationMessage"></param>
         /// <returns></returns>
         private static RepublishResponse NewRepublishResponse(ResponseHeader response,
-            NotificationMessage notificationMessage) => new RepublishResponse {
+            NotificationMessage notificationMessage) {
+            return new RepublishResponse {
                 ResponseHeader = response,
                 NotificationMessage = notificationMessage
             };
+        }
 
         /// <summary>
         /// Publish response constructor
@@ -940,7 +944,8 @@ namespace Opc.Ua.Client {
         private static PublishResponse NewPublishResponse(ResponseHeader response,
             uint subscriptionId, UInt32Collection availableSequenceNumbers, bool moreNotifications,
             NotificationMessage notificationMessage, StatusCodeCollection results,
-            DiagnosticInfoCollection diagnosticInfos) => new PublishResponse {
+            DiagnosticInfoCollection diagnosticInfos) {
+            return new PublishResponse {
                 DiagnosticInfos = diagnosticInfos,
                 Results = results,
                 AvailableSequenceNumbers = availableSequenceNumbers,
@@ -949,6 +954,7 @@ namespace Opc.Ua.Client {
                 ResponseHeader = response,
                 SubscriptionId = subscriptionId
             };
+        }
 
         /// <summary>
         /// Set publishing mode response constructor
@@ -959,11 +965,13 @@ namespace Opc.Ua.Client {
         /// <returns></returns>
         private static SetPublishingModeResponse NewSetPublishingModeResponse(
             ResponseHeader response, StatusCodeCollection results,
-            DiagnosticInfoCollection diagnosticInfos) => new SetPublishingModeResponse {
+            DiagnosticInfoCollection diagnosticInfos) {
+            return new SetPublishingModeResponse {
                 DiagnosticInfos = diagnosticInfos,
                 ResponseHeader = response,
                 Results = results
             };
+        }
 
         /// <summary>
         /// Modify Subscription response constructor
@@ -975,13 +983,14 @@ namespace Opc.Ua.Client {
         /// <returns></returns>
         private static ModifySubscriptionResponse NewModifySubscriptionResponse(
             ResponseHeader response, double revisedPublishingInterval,
-            uint revisedLifetimeCount, uint revisedMaxKeepAliveCount) =>
-            new ModifySubscriptionResponse {
+            uint revisedLifetimeCount, uint revisedMaxKeepAliveCount) {
+            return new ModifySubscriptionResponse {
                 ResponseHeader = response,
                 RevisedLifetimeCount = revisedLifetimeCount,
                 RevisedMaxKeepAliveCount = revisedMaxKeepAliveCount,
                 RevisedPublishingInterval = revisedPublishingInterval
             };
+        }
 
         /// <summary>
         /// Create Subscription response constructor
@@ -994,14 +1003,15 @@ namespace Opc.Ua.Client {
         /// <returns></returns>
         private static CreateSubscriptionResponse NewCreateSubscriptionResponse(
             ResponseHeader response, uint subsciptionId, double revisedPublishingInterval,
-            uint revisedLifetimeCount, uint revisedMaxKeepAliveCount) =>
-            new CreateSubscriptionResponse {
+            uint revisedLifetimeCount, uint revisedMaxKeepAliveCount) {
+            return new CreateSubscriptionResponse {
                 ResponseHeader = response,
                 RevisedLifetimeCount = revisedLifetimeCount,
                 RevisedMaxKeepAliveCount = revisedMaxKeepAliveCount,
                 RevisedPublishingInterval = revisedPublishingInterval,
                 SubscriptionId = subsciptionId
             };
+        }
 
         /// <summary>
         /// Delete monitored items response constructor
@@ -1012,11 +1022,13 @@ namespace Opc.Ua.Client {
         /// <returns></returns>
         private static DeleteMonitoredItemsResponse NewDeleteMonitoredItemsResponse(
             ResponseHeader response, StatusCodeCollection results,
-            DiagnosticInfoCollection diagnosticInfos) => new DeleteMonitoredItemsResponse {
+            DiagnosticInfoCollection diagnosticInfos) {
+            return new DeleteMonitoredItemsResponse {
                 DiagnosticInfos = diagnosticInfos,
                 ResponseHeader = response,
                 Results = results
             };
+        }
 
         /// <summary>
         /// Set monitoring mode response constructor
@@ -1027,11 +1039,13 @@ namespace Opc.Ua.Client {
         /// <returns></returns>
         private static SetMonitoringModeResponse NewSetMonitoringModeResponse(
             ResponseHeader response, StatusCodeCollection results,
-            DiagnosticInfoCollection diagnosticInfos) => new SetMonitoringModeResponse {
+            DiagnosticInfoCollection diagnosticInfos) {
+            return new SetMonitoringModeResponse {
                 DiagnosticInfos = diagnosticInfos,
                 ResponseHeader = response,
                 Results = results
             };
+        }
 
         /// <summary>
         /// Modify monitored items response constructor
@@ -1042,11 +1056,13 @@ namespace Opc.Ua.Client {
         /// <returns></returns>
         private static ModifyMonitoredItemsResponse NewModifyMonitoredItemsResponse(
             ResponseHeader response, MonitoredItemModifyResultCollection results,
-            DiagnosticInfoCollection diagnosticInfos) => new ModifyMonitoredItemsResponse {
+            DiagnosticInfoCollection diagnosticInfos) {
+            return new ModifyMonitoredItemsResponse {
                 Results = results,
                 ResponseHeader = response,
                 DiagnosticInfos = diagnosticInfos
             };
+        }
 
         /// <summary>
         /// Create set triggering response constructor
@@ -1059,14 +1075,15 @@ namespace Opc.Ua.Client {
         /// <returns></returns>
         private static SetTriggeringResponse NewSetTriggeringResponse(ResponseHeader response,
             StatusCodeCollection addResults, DiagnosticInfoCollection addDiagnosticInfos,
-            StatusCodeCollection removeResults, DiagnosticInfoCollection removeDiagnosticInfos) =>
-            new SetTriggeringResponse {
+            StatusCodeCollection removeResults, DiagnosticInfoCollection removeDiagnosticInfos) {
+            return new SetTriggeringResponse {
                 ResponseHeader = response,
                 AddDiagnosticInfos = addDiagnosticInfos,
                 AddResults = addResults,
                 RemoveDiagnosticInfos = removeDiagnosticInfos,
                 RemoveResults = removeResults
             };
+        }
 
         /// <summary>
         /// Create monitored items response constructor
@@ -1077,11 +1094,13 @@ namespace Opc.Ua.Client {
         /// <returns></returns>
         private static CreateMonitoredItemsResponse NewCreateMonitoredItemsResponse(
             ResponseHeader response, MonitoredItemCreateResultCollection results,
-            DiagnosticInfoCollection diagnosticInfos) => new CreateMonitoredItemsResponse {
+            DiagnosticInfoCollection diagnosticInfos) {
+            return new CreateMonitoredItemsResponse {
                 DiagnosticInfos = diagnosticInfos,
                 ResponseHeader = response,
                 Results = results
             };
+        }
 
         /// <summary>
         /// History update response constructor
@@ -1092,11 +1111,13 @@ namespace Opc.Ua.Client {
         /// <returns></returns>
         private static HistoryUpdateResponse NewHistoryUpdateResponse(
             ResponseHeader response, HistoryUpdateResultCollection results,
-            DiagnosticInfoCollection diagnosticInfos) => new HistoryUpdateResponse {
+            DiagnosticInfoCollection diagnosticInfos) {
+            return new HistoryUpdateResponse {
                 Results = results,
                 DiagnosticInfos = diagnosticInfos,
                 ResponseHeader = response
             };
+        }
 
         /// <summary>
         /// History read response constructor
@@ -1107,11 +1128,13 @@ namespace Opc.Ua.Client {
         /// <returns></returns>
         private static HistoryReadResponse NewHistoryReadResponse(
             ResponseHeader response, HistoryReadResultCollection results,
-            DiagnosticInfoCollection diagnosticInfos) => new HistoryReadResponse {
+            DiagnosticInfoCollection diagnosticInfos) {
+            return new HistoryReadResponse {
                 DiagnosticInfos = diagnosticInfos,
                 ResponseHeader = response,
                 Results = results
             };
+        }
 
         /// <summary>
         /// Cancel response constructor
@@ -1120,10 +1143,12 @@ namespace Opc.Ua.Client {
         /// <param name="cancelCount"></param>
         /// <returns></returns>
         private static CancelResponse NewCancelResponse(ResponseHeader response,
-            uint cancelCount) => new CancelResponse {
+            uint cancelCount) {
+            return new CancelResponse {
                 CancelCount = cancelCount,
                 ResponseHeader = response
             };
+        }
 
         /// <summary>
         /// Call response constructor
@@ -1133,12 +1158,13 @@ namespace Opc.Ua.Client {
         /// <param name="diagnosticInfos"></param>
         /// <returns></returns>
         private static CallResponse NewCallResponse(ResponseHeader response,
-            CallMethodResultCollection results, DiagnosticInfoCollection diagnosticInfos) =>
-            new CallResponse {
+            CallMethodResultCollection results, DiagnosticInfoCollection diagnosticInfos) {
+            return new CallResponse {
                 Results = results,
                 ResponseHeader = response,
                 DiagnosticInfos = diagnosticInfos
             };
+        }
 
         /// <summary>
         /// Write response constructor
@@ -1148,12 +1174,13 @@ namespace Opc.Ua.Client {
         /// <param name="diagnosticInfos"></param>
         /// <returns></returns>
         private static WriteResponse NewWriteResponse(ResponseHeader response,
-            StatusCodeCollection results, DiagnosticInfoCollection diagnosticInfos) =>
-            new WriteResponse {
+            StatusCodeCollection results, DiagnosticInfoCollection diagnosticInfos) {
+            return new WriteResponse {
                 Results = results,
                 ResponseHeader = response,
                 DiagnosticInfos = diagnosticInfos
             };
+        }
 
         /// <summary>
         /// Translate browse paths to node ids response constructor
@@ -1164,11 +1191,13 @@ namespace Opc.Ua.Client {
         /// <returns></returns>
         private static TranslateBrowsePathsToNodeIdsResponse NewTranslateBrowsePathsToNodeIdsResponse(
             ResponseHeader response, BrowsePathResultCollection results,
-            DiagnosticInfoCollection diagnosticInfos) => new TranslateBrowsePathsToNodeIdsResponse {
+            DiagnosticInfoCollection diagnosticInfos) {
+            return new TranslateBrowsePathsToNodeIdsResponse {
                 DiagnosticInfos = diagnosticInfos,
                 ResponseHeader = response,
                 Results = results
             };
+        }
 
         /// <summary>
         /// Read response constructor
@@ -1178,12 +1207,13 @@ namespace Opc.Ua.Client {
         /// <param name="diagnosticInfos"></param>
         /// <returns></returns>
         private static ReadResponse NewReadResponse(ResponseHeader response,
-            DataValueCollection results, DiagnosticInfoCollection diagnosticInfos) =>
-            new ReadResponse {
+            DataValueCollection results, DiagnosticInfoCollection diagnosticInfos) {
+            return new ReadResponse {
                 DiagnosticInfos = diagnosticInfos,
                 ResponseHeader = response,
                 Results = results
             };
+        }
 
         /// <summary>
         /// Browse response constructor
@@ -1193,12 +1223,13 @@ namespace Opc.Ua.Client {
         /// <param name="diagnosticInfos"></param>
         /// <returns></returns>
         private static BrowseResponse NewBrowseResponse(ResponseHeader response,
-            BrowseResultCollection results, DiagnosticInfoCollection diagnosticInfos) =>
-            new BrowseResponse {
+            BrowseResultCollection results, DiagnosticInfoCollection diagnosticInfos) {
+            return new BrowseResponse {
                 DiagnosticInfos = diagnosticInfos,
                 ResponseHeader = response,
                 Results = results
             };
+        }
 
         /// <summary>
         /// Activate client response constructor
@@ -1210,12 +1241,14 @@ namespace Opc.Ua.Client {
         /// <returns></returns>
         private static ActivateSessionResponse NewActivateSessionResponse(
             ResponseHeader response, byte[] serverNonce, StatusCodeCollection results,
-            DiagnosticInfoCollection diagnosticInfos) => new ActivateSessionResponse {
+            DiagnosticInfoCollection diagnosticInfos) {
+            return new ActivateSessionResponse {
                 ResponseHeader = response,
                 DiagnosticInfos = diagnosticInfos,
                 Results = results,
                 ServerNonce = serverNonce
             };
+        }
 
         /// <summary>
         /// Create client response constructor
@@ -1235,7 +1268,8 @@ namespace Opc.Ua.Client {
             NodeId sessionId, NodeId authenticationToken, double revisedSessionTimeout,
             byte[] serverNonce, byte[] serverCertificate, EndpointDescriptionCollection serverEndpoints,
             SignedSoftwareCertificateCollection serverSoftwareCertificates,
-            SignatureData serverSignature, uint maxRequestMessageSize) => new CreateSessionResponse {
+            SignatureData serverSignature, uint maxRequestMessageSize) {
+            return new CreateSessionResponse {
                 ResponseHeader = response,
                 SessionId = sessionId,
                 AuthenticationToken = authenticationToken,
@@ -1247,5 +1281,6 @@ namespace Opc.Ua.Client {
                 ServerSignature = serverSignature,
                 MaxRequestMessageSize = maxRequestMessageSize
             };
+        }
     }
 }

@@ -35,7 +35,7 @@ namespace Opc.Ua.Design.Schema {
     /// <summary>
     /// A class that stores the model design for a Node.
     /// </summary>
-    public partial class NodeDesign  {
+    public partial class NodeDesign {
 
         /// <summary>
         /// Parent node

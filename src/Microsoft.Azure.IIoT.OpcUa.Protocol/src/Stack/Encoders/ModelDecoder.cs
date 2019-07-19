@@ -42,231 +42,289 @@ namespace Opc.Ua.Encoders {
 
         /// <inheritdoc />
         public void SetMappingTables(NamespaceTable namespaceUris,
-            StringTable serverUris) => _wrapped.SetMappingTables(namespaceUris, serverUris);
+            StringTable serverUris) {
+            _wrapped.SetMappingTables(namespaceUris, serverUris);
+        }
 
         /// <inheritdoc />
-        public void PushNamespace(string namespaceUri) =>
+        public void PushNamespace(string namespaceUri) {
             _wrapped.PushNamespace(namespaceUri);
+        }
 
         /// <inheritdoc />
-        public void PopNamespace() =>
+        public void PopNamespace() {
             _wrapped.PopNamespace();
+        }
 
         /// <inheritdoc />
-        public bool ReadBoolean(string fieldName) =>
-            _wrapped.ReadBoolean(fieldName);
+        public bool ReadBoolean(string fieldName) {
+            return _wrapped.ReadBoolean(fieldName);
+        }
 
         /// <inheritdoc />
-        public sbyte ReadSByte(string fieldName) =>
-            _wrapped.ReadSByte(fieldName);
+        public sbyte ReadSByte(string fieldName) {
+            return _wrapped.ReadSByte(fieldName);
+        }
 
         /// <inheritdoc />
-        public byte ReadByte(string fieldName) =>
-            _wrapped.ReadByte(fieldName);
+        public byte ReadByte(string fieldName) {
+            return _wrapped.ReadByte(fieldName);
+        }
 
         /// <inheritdoc />
-        public short ReadInt16(string fieldName) =>
-            _wrapped.ReadInt16(fieldName);
+        public short ReadInt16(string fieldName) {
+            return _wrapped.ReadInt16(fieldName);
+        }
 
         /// <inheritdoc />
-        public ushort ReadUInt16(string fieldName) =>
-            _wrapped.ReadUInt16(fieldName);
+        public ushort ReadUInt16(string fieldName) {
+            return _wrapped.ReadUInt16(fieldName);
+        }
 
         /// <inheritdoc />
-        public int ReadInt32(string fieldName) =>
-            _wrapped.ReadInt32(fieldName);
+        public int ReadInt32(string fieldName) {
+            return _wrapped.ReadInt32(fieldName);
+        }
 
         /// <inheritdoc />
-        public uint ReadUInt32(string fieldName) =>
-            _wrapped.ReadUInt32(fieldName);
+        public uint ReadUInt32(string fieldName) {
+            return _wrapped.ReadUInt32(fieldName);
+        }
 
         /// <inheritdoc />
-        public long ReadInt64(string fieldName) =>
-            _wrapped.ReadInt64(fieldName);
+        public long ReadInt64(string fieldName) {
+            return _wrapped.ReadInt64(fieldName);
+        }
 
         /// <inheritdoc />
-        public ulong ReadUInt64(string fieldName) =>
-            _wrapped.ReadUInt64(fieldName);
+        public ulong ReadUInt64(string fieldName) {
+            return _wrapped.ReadUInt64(fieldName);
+        }
 
         /// <inheritdoc />
-        public float ReadFloat(string fieldName) =>
-            _wrapped.ReadFloat(fieldName);
+        public float ReadFloat(string fieldName) {
+            return _wrapped.ReadFloat(fieldName);
+        }
 
         /// <inheritdoc />
-        public double ReadDouble(string fieldName) =>
-            _wrapped.ReadDouble(fieldName);
+        public double ReadDouble(string fieldName) {
+            return _wrapped.ReadDouble(fieldName);
+        }
 
         /// <inheritdoc />
-        public string ReadString(string fieldName) =>
-            _wrapped.ReadString(fieldName);
+        public string ReadString(string fieldName) {
+            return _wrapped.ReadString(fieldName);
+        }
 
         /// <inheritdoc />
-        public DateTime ReadDateTime(string fieldName) =>
-            _wrapped.ReadDateTime(fieldName);
+        public DateTime ReadDateTime(string fieldName) {
+            return _wrapped.ReadDateTime(fieldName);
+        }
 
         /// <inheritdoc />
-        public Uuid ReadGuid(string fieldName) =>
-            _wrapped.ReadGuid(fieldName);
+        public Uuid ReadGuid(string fieldName) {
+            return _wrapped.ReadGuid(fieldName);
+        }
 
         /// <inheritdoc />
-        public byte[] ReadByteString(string fieldName) =>
-            _wrapped.ReadByteString(fieldName);
+        public byte[] ReadByteString(string fieldName) {
+            return _wrapped.ReadByteString(fieldName);
+        }
 
         /// <inheritdoc />
-        public XmlElement ReadXmlElement(string fieldName) =>
-            _wrapped.ReadXmlElement(fieldName);
+        public XmlElement ReadXmlElement(string fieldName) {
+            return _wrapped.ReadXmlElement(fieldName);
+        }
 
         /// <inheritdoc />
-        public NodeId ReadNodeId(string fieldName) =>
-            _wrapped.ReadNodeId(fieldName);
+        public NodeId ReadNodeId(string fieldName) {
+            return _wrapped.ReadNodeId(fieldName);
+        }
 
         /// <inheritdoc />
-        public ExpandedNodeId ReadExpandedNodeId(string fieldName) =>
-            _wrapped.ReadExpandedNodeId(fieldName);
+        public ExpandedNodeId ReadExpandedNodeId(string fieldName) {
+            return _wrapped.ReadExpandedNodeId(fieldName);
+        }
 
         /// <inheritdoc />
-        public StatusCode ReadStatusCode(string fieldName) =>
-            _wrapped.ReadStatusCode(fieldName);
+        public StatusCode ReadStatusCode(string fieldName) {
+            return _wrapped.ReadStatusCode(fieldName);
+        }
 
         /// <inheritdoc />
-        public DiagnosticInfo ReadDiagnosticInfo(string fieldName) =>
-            _wrapped.ReadDiagnosticInfo(fieldName);
+        public DiagnosticInfo ReadDiagnosticInfo(string fieldName) {
+            return _wrapped.ReadDiagnosticInfo(fieldName);
+        }
 
         /// <inheritdoc />
-        public QualifiedName ReadQualifiedName(string fieldName) =>
-            _wrapped.ReadQualifiedName(fieldName);
+        public QualifiedName ReadQualifiedName(string fieldName) {
+            return _wrapped.ReadQualifiedName(fieldName);
+        }
 
         /// <inheritdoc />
-        public LocalizedText ReadLocalizedText(string fieldName) =>
-            _wrapped.ReadLocalizedText(fieldName);
+        public LocalizedText ReadLocalizedText(string fieldName) {
+            return _wrapped.ReadLocalizedText(fieldName);
+        }
 
         /// <inheritdoc />
-        public Variant ReadVariant(string fieldName) =>
-            _wrapped.ReadVariant(fieldName);
+        public Variant ReadVariant(string fieldName) {
+            return _wrapped.ReadVariant(fieldName);
+        }
 
         /// <inheritdoc />
-        public DataValue ReadDataValue(string fieldName) =>
-            _wrapped.ReadDataValue(fieldName);
+        public DataValue ReadDataValue(string fieldName) {
+            return _wrapped.ReadDataValue(fieldName);
+        }
 
         /// <inheritdoc />
-        public ExtensionObject ReadExtensionObject(string fieldName) =>
-            _wrapped.ReadExtensionObject(fieldName);
+        public ExtensionObject ReadExtensionObject(string fieldName) {
+            return _wrapped.ReadExtensionObject(fieldName);
+        }
 
         /// <inheritdoc />
-        public IEncodeable ReadEncodeable(string fieldName, Type systemType) =>
-            _wrapped.ReadEncodeable(fieldName, systemType);
+        public IEncodeable ReadEncodeable(string fieldName, Type systemType) {
+            return _wrapped.ReadEncodeable(fieldName, systemType);
+        }
 
         /// <inheritdoc />
-        public Enum ReadEnumerated(string fieldName, Type enumType) =>
-            _wrapped.ReadEnumerated(fieldName, enumType);
+        public Enum ReadEnumerated(string fieldName, Type enumType) {
+            return _wrapped.ReadEnumerated(fieldName, enumType);
+        }
 
         /// <inheritdoc />
-        public BooleanCollection ReadBooleanArray(string fieldName) =>
-            _wrapped.ReadBooleanArray(fieldName);
+        public BooleanCollection ReadBooleanArray(string fieldName) {
+            return _wrapped.ReadBooleanArray(fieldName);
+        }
 
         /// <inheritdoc />
-        public SByteCollection ReadSByteArray(string fieldName) =>
-            _wrapped.ReadSByteArray(fieldName);
+        public SByteCollection ReadSByteArray(string fieldName) {
+            return _wrapped.ReadSByteArray(fieldName);
+        }
 
         /// <inheritdoc />
-        public ByteCollection ReadByteArray(string fieldName) =>
-            _wrapped.ReadByteArray(fieldName);
+        public ByteCollection ReadByteArray(string fieldName) {
+            return _wrapped.ReadByteArray(fieldName);
+        }
 
         /// <inheritdoc />
-        public Int16Collection ReadInt16Array(string fieldName) =>
-            _wrapped.ReadInt16Array(fieldName);
+        public Int16Collection ReadInt16Array(string fieldName) {
+            return _wrapped.ReadInt16Array(fieldName);
+        }
 
         /// <inheritdoc />
-        public UInt16Collection ReadUInt16Array(string fieldName) =>
-            _wrapped.ReadUInt16Array(fieldName);
+        public UInt16Collection ReadUInt16Array(string fieldName) {
+            return _wrapped.ReadUInt16Array(fieldName);
+        }
 
         /// <inheritdoc />
-        public Int32Collection ReadInt32Array(string fieldName) =>
-            _wrapped.ReadInt32Array(fieldName);
+        public Int32Collection ReadInt32Array(string fieldName) {
+            return _wrapped.ReadInt32Array(fieldName);
+        }
 
         /// <inheritdoc />
-        public UInt32Collection ReadUInt32Array(string fieldName) =>
-            _wrapped.ReadUInt32Array(fieldName);
+        public UInt32Collection ReadUInt32Array(string fieldName) {
+            return _wrapped.ReadUInt32Array(fieldName);
+        }
 
         /// <inheritdoc />
-        public Int64Collection ReadInt64Array(string fieldName) =>
-            _wrapped.ReadInt64Array(fieldName);
+        public Int64Collection ReadInt64Array(string fieldName) {
+            return _wrapped.ReadInt64Array(fieldName);
+        }
 
         /// <inheritdoc />
-        public UInt64Collection ReadUInt64Array(string fieldName) =>
-            _wrapped.ReadUInt64Array(fieldName);
+        public UInt64Collection ReadUInt64Array(string fieldName) {
+            return _wrapped.ReadUInt64Array(fieldName);
+        }
 
         /// <inheritdoc />
-        public FloatCollection ReadFloatArray(string fieldName) =>
-            _wrapped.ReadFloatArray(fieldName);
+        public FloatCollection ReadFloatArray(string fieldName) {
+            return _wrapped.ReadFloatArray(fieldName);
+        }
 
         /// <inheritdoc />
-        public DoubleCollection ReadDoubleArray(string fieldName) =>
-            _wrapped.ReadDoubleArray(fieldName);
+        public DoubleCollection ReadDoubleArray(string fieldName) {
+            return _wrapped.ReadDoubleArray(fieldName);
+        }
 
         /// <inheritdoc />
-        public StringCollection ReadStringArray(string fieldName) =>
-            _wrapped.ReadStringArray(fieldName);
+        public StringCollection ReadStringArray(string fieldName) {
+            return _wrapped.ReadStringArray(fieldName);
+        }
 
         /// <inheritdoc />
-        public DateTimeCollection ReadDateTimeArray(string fieldName) =>
-            _wrapped.ReadDateTimeArray(fieldName);
+        public DateTimeCollection ReadDateTimeArray(string fieldName) {
+            return _wrapped.ReadDateTimeArray(fieldName);
+        }
 
         /// <inheritdoc />
-        public UuidCollection ReadGuidArray(string fieldName) =>
-            _wrapped.ReadGuidArray(fieldName);
+        public UuidCollection ReadGuidArray(string fieldName) {
+            return _wrapped.ReadGuidArray(fieldName);
+        }
 
         /// <inheritdoc />
-        public ByteStringCollection ReadByteStringArray(string fieldName) =>
-            _wrapped.ReadByteStringArray(fieldName);
+        public ByteStringCollection ReadByteStringArray(string fieldName) {
+            return _wrapped.ReadByteStringArray(fieldName);
+        }
 
         /// <inheritdoc />
-        public XmlElementCollection ReadXmlElementArray(string fieldName) =>
-            _wrapped.ReadXmlElementArray(fieldName);
+        public XmlElementCollection ReadXmlElementArray(string fieldName) {
+            return _wrapped.ReadXmlElementArray(fieldName);
+        }
 
         /// <inheritdoc />
-        public NodeIdCollection ReadNodeIdArray(string fieldName) =>
-            _wrapped.ReadNodeIdArray(fieldName);
+        public NodeIdCollection ReadNodeIdArray(string fieldName) {
+            return _wrapped.ReadNodeIdArray(fieldName);
+        }
 
         /// <inheritdoc />
-        public ExpandedNodeIdCollection ReadExpandedNodeIdArray(string fieldName) =>
-            _wrapped.ReadExpandedNodeIdArray(fieldName);
+        public ExpandedNodeIdCollection ReadExpandedNodeIdArray(string fieldName) {
+            return _wrapped.ReadExpandedNodeIdArray(fieldName);
+        }
 
         /// <inheritdoc />
-        public StatusCodeCollection ReadStatusCodeArray(string fieldName) =>
-            _wrapped.ReadStatusCodeArray(fieldName);
+        public StatusCodeCollection ReadStatusCodeArray(string fieldName) {
+            return _wrapped.ReadStatusCodeArray(fieldName);
+        }
 
         /// <inheritdoc />
-        public DiagnosticInfoCollection ReadDiagnosticInfoArray(string fieldName) =>
-            _wrapped.ReadDiagnosticInfoArray(fieldName);
+        public DiagnosticInfoCollection ReadDiagnosticInfoArray(string fieldName) {
+            return _wrapped.ReadDiagnosticInfoArray(fieldName);
+        }
 
         /// <inheritdoc />
-        public QualifiedNameCollection ReadQualifiedNameArray(string fieldName) =>
-            _wrapped.ReadQualifiedNameArray(fieldName);
+        public QualifiedNameCollection ReadQualifiedNameArray(string fieldName) {
+            return _wrapped.ReadQualifiedNameArray(fieldName);
+        }
 
         /// <inheritdoc />
-        public LocalizedTextCollection ReadLocalizedTextArray(string fieldName) =>
-            _wrapped.ReadLocalizedTextArray(fieldName);
+        public LocalizedTextCollection ReadLocalizedTextArray(string fieldName) {
+            return _wrapped.ReadLocalizedTextArray(fieldName);
+        }
 
         /// <inheritdoc />
-        public VariantCollection ReadVariantArray(string fieldName) =>
-            _wrapped.ReadVariantArray(fieldName);
+        public VariantCollection ReadVariantArray(string fieldName) {
+            return _wrapped.ReadVariantArray(fieldName);
+        }
 
         /// <inheritdoc />
-        public DataValueCollection ReadDataValueArray(string fieldName) =>
-            _wrapped.ReadDataValueArray(fieldName);
+        public DataValueCollection ReadDataValueArray(string fieldName) {
+            return _wrapped.ReadDataValueArray(fieldName);
+        }
 
         /// <inheritdoc />
-        public ExtensionObjectCollection ReadExtensionObjectArray(string fieldName) =>
-            _wrapped.ReadExtensionObjectArray(fieldName);
+        public ExtensionObjectCollection ReadExtensionObjectArray(string fieldName) {
+            return _wrapped.ReadExtensionObjectArray(fieldName);
+        }
 
         /// <inheritdoc />
-        public Array ReadEncodeableArray(string fieldName, Type systemType) =>
-            _wrapped.ReadEncodeableArray(fieldName, systemType);
+        public Array ReadEncodeableArray(string fieldName, Type systemType) {
+            return _wrapped.ReadEncodeableArray(fieldName, systemType);
+        }
 
         /// <inheritdoc />
-        public Array ReadEnumeratedArray(string fieldName, Type enumType) =>
-            _wrapped.ReadEnumeratedArray(fieldName, enumType);
+        public Array ReadEnumeratedArray(string fieldName, Type enumType) {
+            return _wrapped.ReadEnumeratedArray(fieldName, enumType);
+        }
 
         /// <inheritdoc />
         public void Dispose() {
@@ -295,7 +353,7 @@ namespace Opc.Ua.Encoders {
                     return new BinaryDecoder(stream,
                         context ?? new ServiceMessageContext());
                 case ContentEncodings.MimeTypeUaXml:
-                    return new XmlDecoder((Type)null, XmlReader.Create(stream),
+                    return new XmlDecoder(null, XmlReader.Create(stream),
                         context ?? new ServiceMessageContext());
                 default:
                     throw new ArgumentException(nameof(contentType));
@@ -325,16 +383,19 @@ namespace Opc.Ua.Encoders {
                 _wrapped.XmlEncodingId;
 
             /// <inheritdoc />
-            public void Decode(IDecoder decoder) =>
+            public void Decode(IDecoder decoder) {
                 _wrapped.Decode(_decoder);
+            }
 
             /// <inheritdoc />
-            public void Encode(IEncoder encoder) =>
+            public void Encode(IEncoder encoder) {
                 throw new InvalidOperationException();
+            }
 
             /// <inheritdoc />
-            public bool IsEqual(IEncodeable encodeable) =>
-                _wrapped.IsEqual(encodeable);
+            public bool IsEqual(IEncodeable encodeable) {
+                return _wrapped.IsEqual(encodeable);
+            }
 
             private readonly IDecoder _decoder;
             private readonly IEncodeable _wrapped;

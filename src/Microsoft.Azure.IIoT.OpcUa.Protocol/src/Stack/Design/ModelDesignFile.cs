@@ -160,22 +160,22 @@ namespace Opc.Ua.Design {
                         variable.TypeDefinitionId == VariableTypeIds.DataTypeDictionaryType) {
                         var references = variable.GetMatchingReferences(ReferenceTypeIds.HasComponent, true, context);
 
-                      // // Fill type data type dictionaries - TODO: Generate on the fly
-                      // string file = null;
-                      // if (references.Count > 0 && references[0].TargetId == ObjectIds.XmlSchema_TypeSystem) {
-                      //     file = string.Format(@"{0}\{1}.Types.xsd", filePath, _model.TargetNamespaceInfo.Prefix);
-                      // }
-                      // if (references.Count > 0 && references[0].TargetId == ObjectIds.OPCBinarySchema_TypeSystem) {
-                      //     file = string.Format(@"{0}\{1}.Types.bsd", filePath, _model.TargetNamespaceInfo.Prefix);
-                      // }
-                      // if (file != null) {
-                      //     try {
-                      //         variable.Value = File.ReadAllBytes(file);
-                      //     }
-                      //     catch {
-                      //         variable.Value = null;
-                      //     }
-                      // }
+                        // // Fill type data type dictionaries - TODO: Generate on the fly
+                        // string file = null;
+                        // if (references.Count > 0 && references[0].TargetId == ObjectIds.XmlSchema_TypeSystem) {
+                        //     file = string.Format(@"{0}\{1}.Types.xsd", filePath, _model.TargetNamespaceInfo.Prefix);
+                        // }
+                        // if (references.Count > 0 && references[0].TargetId == ObjectIds.OPCBinarySchema_TypeSystem) {
+                        //     file = string.Format(@"{0}\{1}.Types.bsd", filePath, _model.TargetNamespaceInfo.Prefix);
+                        // }
+                        // if (file != null) {
+                        //     try {
+                        //         variable.Value = File.ReadAllBytes(file);
+                        //     }
+                        //     catch {
+                        //         variable.Value = null;
+                        //     }
+                        // }
                     }
                 }
             }
@@ -595,7 +595,7 @@ namespace Opc.Ua.Design {
                     }
                     if (referenceType.SymbolicName != Constants.References) {
                         referenceType.BaseTypeNode = (TypeDesign)FindNode(referenceType.BaseType,
-                            typeof(ReferenceTypeDesign),referenceType.SymbolicId.Name);
+                            typeof(ReferenceTypeDesign), referenceType.SymbolicId.Name);
                     }
                     break;
             }
@@ -2860,7 +2860,7 @@ namespace Opc.Ua.Design {
             }
         }
 
-        private Dictionary<uint, NodeDesign> _identifiers =
+        private readonly Dictionary<uint, NodeDesign> _identifiers =
             new Dictionary<uint, NodeDesign>();
 
         /// <summary>
@@ -2881,7 +2881,7 @@ namespace Opc.Ua.Design {
                     $"BrowseName {browseName} but expected {node.BrowseName}.");
             }
         }
-        private Dictionary<XmlQualifiedName, string> _browseNames =
+        private readonly Dictionary<XmlQualifiedName, string> _browseNames =
             new Dictionary<XmlQualifiedName, string>();
 
         /// <summary>
@@ -2900,7 +2900,7 @@ namespace Opc.Ua.Design {
                     $"The SymbolicId is already used by another node: {node.SymbolicId.Name}.");
             }
         }
-        private Dictionary<XmlQualifiedName, NodeDesign> _nodes =
+        private readonly Dictionary<XmlQualifiedName, NodeDesign> _nodes =
             new Dictionary<XmlQualifiedName, NodeDesign>();
 
         private readonly INodeResolver _resolver;

@@ -48,7 +48,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
         /// <param name="nodeId"></param>
         /// <returns></returns>
         public static string CreateVertexId(this SourceVertexModel source,
-            string nodeId) => CreateAddressSpaceVertexId(source.Id, nodeId);
+            string nodeId) {
+            return CreateAddressSpaceVertexId(source.Id, nodeId);
+        }
 
         /// <summary>
         /// Create address space vertex identifier
@@ -58,8 +60,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
         /// <param name="inId"></param>
         /// <returns></returns>
         public static string CreateEdgeId(this SourceVertexModel source,
-            string outId, string inId) =>
-            CreateAddressSpaceEdgeId(source.Id, outId, inId);
+            string outId, string inId) {
+            return CreateAddressSpaceEdgeId(source.Id, outId, inId);
+        }
 
         /// <summary>
         /// Create address space reference vertex identifier
@@ -270,9 +273,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
                         ValueRank = (int?)uaProperty.ValueRank,
                         ArrayDimensions = uaProperty.ArrayDimensions,
                         AccessLevelEx = (uint?)uaProperty.AccessLevel,
-                        AccessLevel = uaProperty.AccessLevel == null ? (byte?)null :
+                        AccessLevel = uaProperty.AccessLevel == null ? null :
                             (byte?)((uint)uaProperty.AccessLevel.Value & 0xff),
-                        UserAccessLevel = uaProperty.UserAccessLevel == null ? (byte?)null :
+                        UserAccessLevel = uaProperty.UserAccessLevel == null ? null :
                             (byte?)((uint)uaProperty.UserAccessLevel.Value & 0xff),
                         MinimumSamplingInterval = uaProperty.MinimumSamplingInterval,
                         Historizing = uaProperty.Historizing,
@@ -287,9 +290,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
                         ValueRank = (int?)uaVariable.ValueRank,
                         ArrayDimensions = uaVariable.ArrayDimensions,
                         AccessLevelEx = (uint?)uaVariable.AccessLevel,
-                        AccessLevel = uaVariable.AccessLevel == null ? (byte?)null :
+                        AccessLevel = uaVariable.AccessLevel == null ? null :
                             (byte?)((uint)uaVariable.AccessLevel.Value & 0xFF),
-                        UserAccessLevel = uaVariable.UserAccessLevel == null ? (byte?)null :
+                        UserAccessLevel = uaVariable.UserAccessLevel == null ? null :
                             (byte?)((uint)uaVariable.UserAccessLevel.Value & 0xff),
                         MinimumSamplingInterval = uaVariable.MinimumSamplingInterval,
                         Historizing = uaVariable.Historizing,
@@ -362,13 +365,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
             decoded.UserWriteMask = (AttributeWriteMask)vertex.UserWriteMask;
             decoded.RolePermissions = rolePermissions?
                 .Select(r => new RolePermissionType {
-                    Permissions = (PermissionType)(r.Permissions ?? 0),
+                    Permissions = (uint)(PermissionType)(r.Permissions ?? 0),
                     RoleId = r.RoleId.ToNodeId(context)
                 })
                 .ToList();
             decoded.UserRolePermissions = userRolePermissions?
                 .Select(r => new RolePermissionType {
-                    Permissions = (PermissionType)(r.Permissions ?? 0),
+                    Permissions = (uint)(PermissionType)(r.Permissions ?? 0),
                     RoleId = r.RoleId.ToNodeId(context)
                 })
                 .ToList();
@@ -378,15 +381,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
             // Decode references
             var references = new List<IReference>();
             if (nodeReferences != null) {
-                var instance = decoded as InstanceNodeModel;
-                var type = decoded as TypeNodeModel;
                 foreach (var reference in nodeReferences) {
                     var referenceTypeId = reference.ReferenceTypeId.ToNodeId(context);
                     var isInverse = reference.TargetId == vertex.NodeId;
                     var targetId = isInverse ?
                         reference.OriginId.ToNodeId(context) :
                         reference.TargetId.ToNodeId(context);
-                    if (instance != null) {
+                    if (decoded is InstanceNodeModel instance) {
                         if (referenceTypeId == ReferenceTypeIds.HasModellingRule && !isInverse) {
                             instance.ModellingRuleId = ExpandedNodeId.ToNodeId(
                                 targetId, context.NamespaceUris);
@@ -398,7 +399,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
                             continue;
                         }
                     }
-                    if (type != null) {
+                    if (decoded is TypeNodeModel type) {
                         if (referenceTypeId == ReferenceTypeIds.HasSubtype && isInverse) {
                             type.SuperTypeId = ExpandedNodeId.ToNodeId(targetId,
                                 context.NamespaceUris);

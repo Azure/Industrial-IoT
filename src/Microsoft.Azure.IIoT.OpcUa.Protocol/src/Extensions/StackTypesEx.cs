@@ -195,7 +195,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="mode"></param>
         /// <returns></returns>
         public static SecurityMode? ToServiceType(this UaSecurityMode mode) {
-            switch(mode) {
+            switch (mode) {
                 case UaSecurityMode.None:
                     return SecurityMode.None;
                 case UaSecurityMode.Sign:
@@ -252,7 +252,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 case UaApplicationType.Client:
                     return ApplicationType.Client;
                 case UaApplicationType.DiscoveryServer:
-                    return ApplicationType.Server;
+                    return ApplicationType.DiscoveryServer;
                 case UaApplicationType.Server:
                     return ApplicationType.Server;
                 case UaApplicationType.ClientAndServer:
@@ -273,6 +273,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                     return UaApplicationType.Client;
                 case ApplicationType.ClientAndServer:
                     return UaApplicationType.ClientAndServer;
+                case ApplicationType.DiscoveryServer:
+                    return UaApplicationType.DiscoveryServer;
                 default:
                     return UaApplicationType.Server;
             }

@@ -26,7 +26,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                 () => new AddressSpaceServices(_server.Client,
                     new JsonVariantEncoder(), _server.Logger),
                 new EndpointModel {
-                    Url = $"opc.tcp://{Dns.GetHostName()}:{_server.Port}/UA/SampleServer"
+                    Url = $"opc.tcp://{Dns.GetHostName()}:{_server.Port}/UA/SampleServer",
+                    Certificate = _server.Certificate?.RawData
                 }, _server.Client.ReadValueAsync);
         }
 

@@ -27,10 +27,10 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System.Collections.Generic;
-using Opc.Ua;
-
 namespace DataAccess {
+    using System.Collections.Generic;
+    using Opc.Ua;
+
     /// <summary>
     /// A object which maps a segment to a UA object.
     /// </summary>

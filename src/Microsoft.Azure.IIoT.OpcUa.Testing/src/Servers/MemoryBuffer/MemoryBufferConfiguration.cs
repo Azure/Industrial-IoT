@@ -27,10 +27,9 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System.Runtime.Serialization;
-using System.Collections.Generic;
-
 namespace MemoryBuffer {
+    using System.Runtime.Serialization;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Stores the configuration the test node manager

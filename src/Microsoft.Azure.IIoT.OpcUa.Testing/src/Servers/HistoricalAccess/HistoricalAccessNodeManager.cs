@@ -27,15 +27,14 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Reflection;
-using System.Data;
-using Opc.Ua;
-using Opc.Ua.Server;
-
 namespace HistoricalAccess {
+    using System;
+    using System.Collections.Generic;
+    using System.Threading;
+    using System.Reflection;
+    using System.Data;
+    using Opc.Ua;
+    using Opc.Ua.Server;
 
     /// <summary>
     /// A node manager for a server that exposes several variables.
@@ -581,7 +580,7 @@ namespace HistoricalAccess {
                     }
 
                     // process values until the max is reached.
-                    var data = (details.IsReadModified) ? new HistoryModifiedData() : new HistoryData();
+                    var data = details.IsReadModified ? new HistoryModifiedData() : new HistoryData();
                     var modifiedData = data as HistoryModifiedData;
 
                     while (request.NumValuesPerNode == 0 || data.DataValues.Count < request.NumValuesPerNode) {
@@ -1021,8 +1020,8 @@ namespace HistoricalAccess {
             ReadRawModifiedDetails details,
             NodeHandle handle,
             HistoryReadValueId nodeToRead) {
-            var sizeLimited = (details.StartTime == DateTime.MinValue || details.EndTime == DateTime.MinValue);
-            var applyIndexRangeOrEncoding = (nodeToRead.ParsedIndexRange != NumericRange.Empty || !QualifiedName.IsNull(nodeToRead.DataEncoding));
+            var sizeLimited = details.StartTime == DateTime.MinValue || details.EndTime == DateTime.MinValue;
+            var applyIndexRangeOrEncoding = nodeToRead.ParsedIndexRange != NumericRange.Empty || !QualifiedName.IsNull(nodeToRead.DataEncoding);
             var returnBounds = !details.IsReadModified && details.ReturnBounds;
             var timeFlowsBackward = (details.StartTime == DateTime.MinValue) || (details.EndTime != DateTime.MinValue && details.EndTime < details.StartTime);
 
@@ -1045,7 +1044,7 @@ namespace HistoricalAccess {
 
             var startBound = -1;
             var endBound = -1;
-            var ii = (timeFlowsBackward) ? view.Count - 1 : 0;
+            var ii = timeFlowsBackward ? view.Count - 1 : 0;
 
             while (ii >= 0 && ii < view.Count) {
                 try {
@@ -1179,8 +1178,8 @@ namespace HistoricalAccess {
             NodeHandle handle,
             HistoryReadValueId nodeToRead,
             NodeId aggregateId) {
-            var applyIndexRangeOrEncoding = (nodeToRead.ParsedIndexRange != NumericRange.Empty || !QualifiedName.IsNull(nodeToRead.DataEncoding));
-            var timeFlowsBackward = (details.EndTime < details.StartTime);
+            var applyIndexRangeOrEncoding = nodeToRead.ParsedIndexRange != NumericRange.Empty || !QualifiedName.IsNull(nodeToRead.DataEncoding);
+            var timeFlowsBackward = details.EndTime < details.StartTime;
 
 
             if (!(handle.Node is ArchiveItemState item)) {
@@ -1194,7 +1193,7 @@ namespace HistoricalAccess {
             // read history.
             var view = item.ReadHistory(details.StartTime, details.EndTime, false);
 
-            var ii = (timeFlowsBackward) ? view.Count - 1 : 0;
+            var ii = timeFlowsBackward ? view.Count - 1 : 0;
 
             // choose the aggregate configuration.
             var configuration = (AggregateConfiguration)details.AggregateConfiguration.MemberwiseClone();
@@ -1260,7 +1259,7 @@ namespace HistoricalAccess {
             ReadAtTimeDetails details,
             NodeHandle handle,
             HistoryReadValueId nodeToRead) {
-            var applyIndexRangeOrEncoding = (nodeToRead.ParsedIndexRange != NumericRange.Empty || !QualifiedName.IsNull(nodeToRead.DataEncoding));
+            var applyIndexRangeOrEncoding = nodeToRead.ParsedIndexRange != NumericRange.Empty || !QualifiedName.IsNull(nodeToRead.DataEncoding);
 
 
             if (!(handle.Node is ArchiveItemState item)) {
@@ -1509,7 +1508,7 @@ namespace HistoricalAccess {
             }
         }
 
-        private UnderlyingSystem _system;
+        private readonly UnderlyingSystem _system;
         private readonly HistoricalAccessServerConfiguration _configuration;
         private Timer _simulationTimer;
         private Dictionary<string, ArchiveItemState> _monitoredItems;

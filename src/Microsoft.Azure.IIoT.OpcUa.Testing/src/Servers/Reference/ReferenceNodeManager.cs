@@ -27,15 +27,14 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System;
-using System.Collections.Generic;
-using System.Xml;
-using System.Threading;
-using System.Numerics;
-using Opc.Ua;
-using Opc.Ua.Server;
-
 namespace Reference {
+    using System;
+    using System.Collections.Generic;
+    using System.Xml;
+    using System.Threading;
+    using System.Numerics;
+    using Opc.Ua;
+    using Opc.Ua.Server;
 
     /// <summary>
     /// A node manager for a server that exposes several variables.
@@ -772,8 +771,8 @@ namespace Reference {
 
                     addMethod.InputArguments.Value = new Argument[]
                     {
-                        new Argument() { Name = "Float value", Description = "Float value",  DataType = DataTypeIds.Float, ValueRank = ValueRanks.Scalar },
-                        new Argument() { Name = "UInt32 value", Description = "UInt32 value",  DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
+                        new Argument { Name = "Float value", Description = "Float value",  DataType = DataTypeIds.Float, ValueRank = ValueRanks.Scalar },
+                        new Argument { Name = "UInt32 value", Description = "UInt32 value",  DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
                     };
 
                     // set output arguments
@@ -789,7 +788,7 @@ namespace Reference {
 
                     addMethod.OutputArguments.Value = new Argument[]
                     {
-                        new Argument() { Name = "Add Result", Description = "Add Result",  DataType = DataTypeIds.Float, ValueRank = ValueRanks.Scalar }
+                        new Argument { Name = "Add Result", Description = "Add Result",  DataType = DataTypeIds.Float, ValueRank = ValueRanks.Scalar }
                     };
 
                     addMethod.OnCallMethod = new GenericMethodCalledEventHandler(OnAddCall);
@@ -810,8 +809,8 @@ namespace Reference {
 
                     multiplyMethod.InputArguments.Value = new Argument[]
                     {
-                        new Argument() { Name = "Int16 value", Description = "Int16 value",  DataType = DataTypeIds.Int16, ValueRank = ValueRanks.Scalar },
-                        new Argument() { Name = "UInt16 value", Description = "UInt16 value",  DataType = DataTypeIds.UInt16, ValueRank = ValueRanks.Scalar }
+                        new Argument { Name = "Int16 value", Description = "Int16 value",  DataType = DataTypeIds.Int16, ValueRank = ValueRanks.Scalar },
+                        new Argument { Name = "UInt16 value", Description = "UInt16 value",  DataType = DataTypeIds.UInt16, ValueRank = ValueRanks.Scalar }
                     };
 
                     // set output arguments
@@ -827,7 +826,7 @@ namespace Reference {
 
                     multiplyMethod.OutputArguments.Value = new Argument[]
                     {
-                        new Argument() { Name = "Multiply Result", Description = "Multiply Result",  DataType = DataTypeIds.Int32, ValueRank = ValueRanks.Scalar }
+                        new Argument { Name = "Multiply Result", Description = "Multiply Result",  DataType = DataTypeIds.Int32, ValueRank = ValueRanks.Scalar }
                     };
 
                     multiplyMethod.OnCallMethod = new GenericMethodCalledEventHandler(OnMultiplyCall);
@@ -848,8 +847,8 @@ namespace Reference {
 
                     divideMethod.InputArguments.Value = new Argument[]
                     {
-                        new Argument() { Name = "Int32 value", Description = "Int32 value",  DataType = DataTypeIds.Int32, ValueRank = ValueRanks.Scalar },
-                        new Argument() { Name = "UInt16 value", Description = "UInt16 value",  DataType = DataTypeIds.UInt16, ValueRank = ValueRanks.Scalar }
+                        new Argument { Name = "Int32 value", Description = "Int32 value",  DataType = DataTypeIds.Int32, ValueRank = ValueRanks.Scalar },
+                        new Argument { Name = "UInt16 value", Description = "UInt16 value",  DataType = DataTypeIds.UInt16, ValueRank = ValueRanks.Scalar }
                     };
 
                     // set output arguments
@@ -865,7 +864,7 @@ namespace Reference {
 
                     divideMethod.OutputArguments.Value = new Argument[]
                     {
-                        new Argument() { Name = "Divide Result", Description = "Divide Result",  DataType = DataTypeIds.Float, ValueRank = ValueRanks.Scalar }
+                        new Argument { Name = "Divide Result", Description = "Divide Result",  DataType = DataTypeIds.Float, ValueRank = ValueRanks.Scalar }
                     };
 
                     divideMethod.OnCallMethod = new GenericMethodCalledEventHandler(OnDivideCall);
@@ -886,8 +885,8 @@ namespace Reference {
 
                     substractMethod.InputArguments.Value = new Argument[]
                     {
-                        new Argument() { Name = "Int16 value", Description = "Int16 value",  DataType = DataTypeIds.Int16, ValueRank = ValueRanks.Scalar },
-                        new Argument() { Name = "Byte value", Description = "Byte value",  DataType = DataTypeIds.Byte, ValueRank = ValueRanks.Scalar }
+                        new Argument { Name = "Int16 value", Description = "Int16 value",  DataType = DataTypeIds.Int16, ValueRank = ValueRanks.Scalar },
+                        new Argument { Name = "Byte value", Description = "Byte value",  DataType = DataTypeIds.Byte, ValueRank = ValueRanks.Scalar }
                     };
 
                     // set output arguments
@@ -903,7 +902,7 @@ namespace Reference {
 
                     substractMethod.OutputArguments.Value = new Argument[]
                     {
-                        new Argument() { Name = "Substract Result", Description = "Substract Result",  DataType = DataTypeIds.Int16, ValueRank = ValueRanks.Scalar }
+                        new Argument { Name = "Substract Result", Description = "Substract Result",  DataType = DataTypeIds.Int16, ValueRank = ValueRanks.Scalar }
                     };
 
                     substractMethod.OnCallMethod = new GenericMethodCalledEventHandler(OnSubstractCall);
@@ -924,7 +923,7 @@ namespace Reference {
 
                     helloMethod.InputArguments.Value = new Argument[]
                     {
-                        new Argument() { Name = "String value", Description = "String value",  DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar }
+                        new Argument { Name = "String value", Description = "String value",  DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar }
                     };
 
                     // set output arguments
@@ -940,7 +939,7 @@ namespace Reference {
 
                     helloMethod.OutputArguments.Value = new Argument[]
                     {
-                        new Argument() { Name = "Hello Result", Description = "Hello Result",  DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar }
+                        new Argument { Name = "Hello Result", Description = "Hello Result",  DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar }
                     };
 
                     helloMethod.OnCallMethod = new GenericMethodCalledEventHandler(OnHelloCall);
@@ -961,7 +960,7 @@ namespace Reference {
 
                     inputMethod.InputArguments.Value = new Argument[]
                     {
-                        new Argument() { Name = "String value", Description = "String value",  DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar }
+                        new Argument { Name = "String value", Description = "String value",  DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar }
                     };
 
                     inputMethod.OnCallMethod = new GenericMethodCalledEventHandler(OnInputCall);
@@ -983,7 +982,7 @@ namespace Reference {
 
                     outputMethod.OutputArguments.Value = new Argument[]
                     {
-                        new Argument() { Name = "Output Result", Description = "Output Result",  DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar }
+                        new Argument { Name = "Output Result", Description = "Output Result",  DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar }
                     };
 
                     outputMethod.OnCallMethod = new GenericMethodCalledEventHandler(OnOutputCall);
@@ -1531,7 +1530,7 @@ namespace Reference {
                 var newPath = string.Format("{0}/Mass/{1}", path, newName);
                 itemsCreated.Add(CreateDataItemVariable(parent, newPath, newName, dataType, valueRank));
             }//for i
-            return (itemsCreated.ToArray());
+            return itemsCreated.ToArray();
         }
 
         private ServiceResult OnWriteDataItem(
@@ -1578,11 +1577,11 @@ namespace Reference {
         /// Creates a new variable.
         /// </summary>
         private AnalogItemState CreateAnalogItemVariable(NodeState parent, string path, string name, BuiltInType dataType, int valueRank) {
-            return (CreateAnalogItemVariable(parent, path, name, dataType, valueRank, null));
+            return CreateAnalogItemVariable(parent, path, name, dataType, valueRank, null);
         }
 
         private AnalogItemState CreateAnalogItemVariable(NodeState parent, string path, string name, BuiltInType dataType, int valueRank, object initialValues) {
-            return (CreateAnalogItemVariable(parent, path, name, dataType, valueRank, initialValues, null));
+            return CreateAnalogItemVariable(parent, path, name, dataType, valueRank, initialValues, null);
         }
 
         private AnalogItemState CreateAnalogItemVariable(NodeState parent, string path, string name, BuiltInType dataType, int valueRank, object initialValues, Range customRange) {
@@ -2055,7 +2054,7 @@ namespace Reference {
                 var newPath = string.Format("{0}_{1}", path, newName);
                 itemsCreated.Add(CreateVariable(newParentFolder, newPath, newName, dataType, valueRank));
             }
-            return (itemsCreated.ToArray());
+            return itemsCreated.ToArray();
         }
 
         /// <summary>
@@ -2090,7 +2089,7 @@ namespace Reference {
                 var newPath = string.Format("{0}_{1}", path, newName);
                 itemsCreated.Add(CreateDynamicVariable(newParentFolder, newPath, newName, dataType, valueRank));
             }//for i
-            return (itemsCreated.ToArray());
+            return itemsCreated.ToArray();
         }
 
         /// <summary>
@@ -2498,6 +2497,6 @@ namespace Reference {
         private Timer _simulationTimer;
         private ushort _simulationInterval = 1000;
         private bool _simulationEnabled = true;
-        private List<BaseDataVariableState> _dynamicNodes;
+        private readonly List<BaseDataVariableState> _dynamicNodes;
     }
 }

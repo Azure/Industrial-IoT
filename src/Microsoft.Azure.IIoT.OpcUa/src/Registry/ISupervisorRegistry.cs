@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -18,10 +19,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// <param name="continuation"></param>
         /// <param name="onlyServerState"></param>
         /// <param name="pageSize"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         Task<SupervisorListModel> ListSupervisorsAsync(
             string continuation, bool onlyServerState = false,
-            int? pageSize = null);
+            int? pageSize = null, CancellationToken ct = default);
 
         /// <summary>
         /// Find supervisors using specific criterias.
@@ -29,27 +31,33 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// <param name="query"></param>
         /// <param name="onlyServerState"></param>
         /// <param name="pageSize"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         Task<SupervisorListModel> QuerySupervisorsAsync(
             SupervisorQueryModel query, bool onlyServerState = false,
-            int? pageSize = null);
+            int? pageSize = null,
+            CancellationToken ct = default);
 
         /// <summary>
         /// Get supervisor registration by identifer.
         /// </summary>
         /// <param name="onlyServerState"></param>
+        /// <param name="ct"></param>
         /// <param name="id"></param>
         /// <returns></returns>
         Task<SupervisorModel> GetSupervisorAsync(
-            string id, bool onlyServerState = false);
+            string id, bool onlyServerState = false,
+            CancellationToken ct = default);
 
         /// <summary>
         /// Update supervisor, e.g. set discovery mode
         /// </summary>
         /// <param name="request"></param>
+        /// <param name="ct"></param>
         /// <param name="id"></param>
         /// <returns></returns>
-        Task UpdateSupervisorAsync(
-            string id, SupervisorUpdateModel request);
+        Task UpdateSupervisorAsync(string id,
+            SupervisorUpdateModel request,
+            CancellationToken ct = default);
     }
 }

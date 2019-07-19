@@ -6,38 +6,39 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using System;
-    using System.Security.Cryptography.X509Certificates;
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Client stack services
+    /// Client host services
     /// </summary>
     public interface IClientHost {
 
         /// <summary>
-        /// Returns the client certificate
-        /// </summary>
-        X509Certificate2 Certificate { get; }
-
-        /// <summary>
-        /// Update client certificate
+        /// Add certificate to trust list
         /// </summary>
         /// <param name="certificate"></param>
         /// <returns></returns>
-        Task UpdateClientCertificate(X509Certificate2 certificate);
+        Task AddTrustedPeerAsync(byte[] certificate);
+
+        /// <summary>
+        /// Remove certificate from trust list
+        /// </summary>
+        /// <param name="certificate"></param>
+        /// <returns></returns>
+        Task RemoveTrustedPeerAsync(byte[] certificate);
 
         /// <summary>
         /// Register endpoint state callback
         /// </summary>
         /// <param name="endpoint"></param>
         /// <param name="callback"></param>
-        Task Register(EndpointModel endpoint,
+        Task RegisterAsync(EndpointModel endpoint,
             Func<EndpointConnectivityState, Task> callback);
 
         /// <summary>
         /// Unregister endpoint status callback
         /// </summary>
         /// <param name="endpoint"></param>
-        Task Unregister(EndpointModel endpoint);
+        Task UnregisterAsync(EndpointModel endpoint);
     }
 }

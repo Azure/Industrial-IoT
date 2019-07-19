@@ -22,6 +22,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             return new DiscoveryRequestModel {
                 Configuration = model.Configuration.Clone(),
                 Discovery = model.Discovery,
+                Context = model.Context?.Clone(),
                 Id = model.Id
             };
         }

@@ -26,13 +26,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Export {
     public sealed class DataUploadServices : IUploadServices<EndpointModel>, IDisposable {
 
         /// <summary>
-        /// Create service
+        /// Create upload services
         /// </summary>
+        /// <param name="client"></param>
+        /// <param name="upload"></param>
+        /// <param name="scheduler"></param>
+        /// <param name="logger"></param>
         public DataUploadServices(IEndpointServices client, IBlobUpload upload,
-            IEventEmitter events, ITaskScheduler scheduler, ILogger logger) {
+            ITaskScheduler scheduler, ILogger logger) {
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _upload = upload ?? throw new ArgumentNullException(nameof(upload));
-            _events = events ?? throw new ArgumentNullException(nameof(events));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _scheduler = scheduler ?? throw new ArgumentNullException(nameof(scheduler));
             _tasks = new ConcurrentDictionary<EndpointIdentifier, ModelUploadTask>();
@@ -208,7 +211,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Export {
 
         private readonly IEndpointServices _client;
         private readonly IBlobUpload _upload;
-        private readonly IEventEmitter _events;
         private readonly ITaskScheduler _scheduler;
         private readonly ILogger _logger;
         private readonly ConcurrentDictionary<EndpointIdentifier, ModelUploadTask> _tasks;

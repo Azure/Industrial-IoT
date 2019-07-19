@@ -27,9 +27,8 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System.Runtime.Serialization;
-
 namespace Reference {
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Stores the configuration the data access node manager.

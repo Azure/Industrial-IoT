@@ -21,12 +21,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.History.Clients {
         /// </summary>
         /// <param name="client"></param>
         /// <param name="codec"></param>
-        /// <param name="logger"></param>
-        public HistoricAccessAdapter(IHistoricAccessServices<T> client, IVariantEncoder codec,
-            ILogger logger) {
+        public HistoricAccessAdapter(IHistoricAccessServices<T> client, IVariantEncoder codec) {
             _codec = codec ?? throw new ArgumentNullException(nameof(codec));
             _client = client ?? throw new ArgumentNullException(nameof(client));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <inheritdoc/>
@@ -128,6 +125,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.History.Clients {
 
         private readonly IVariantEncoder _codec;
         private readonly IHistoricAccessServices<T> _client;
-        private readonly ILogger _logger;
     }
 }

@@ -27,11 +27,11 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System.Text;
-using Opc.Ua;
-using Opc.Ua.Server;
-
 namespace DataAccess {
+    using System.Text;
+    using Opc.Ua;
+    using Opc.Ua.Server;
+
     /// <summary>
     /// A class that builds NodeIds used by the DataAccess NodeManager
     /// </summary>

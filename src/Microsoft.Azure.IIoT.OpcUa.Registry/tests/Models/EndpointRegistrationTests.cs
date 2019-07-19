@@ -41,7 +41,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public void TestEqualIsEqualWithServiceModelConversion() {
             var r1 = CreateRegistration();
             var m = r1.ToServiceModel();
-            var r2 = EndpointRegistration.FromServiceModel(m);
+            var r2 = m.ToEndpointRegistration();
 
             Assert.Equal(r1, r2);
             Assert.Equal(r1.GetHashCode(), r2.GetHashCode());
@@ -53,7 +53,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public void TestEqualIsNotEqualWithServiceModelConversionWhenDisabled() {
             var r1 = CreateRegistration();
             var m = r1.ToServiceModel();
-            var r2 = EndpointRegistration.FromServiceModel(m, true);
+            var r2 = m.ToEndpointRegistration(true);
 
             Assert.NotEqual(r1, r2);
             Assert.NotEqual(r1.GetHashCode(), r2.GetHashCode());
@@ -66,7 +66,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             var r1 = CreateRegistration();
             var m = r1.ToServiceModel();
             m.Registration.Endpoint.SecurityPolicy = "";
-            var r2 = EndpointRegistration.FromServiceModel(m);
+            var r2 = m.ToEndpointRegistration();
 
             Assert.NotEqual(r1, r2);
             Assert.NotEqual(r1.GetHashCode(), r2.GetHashCode());
@@ -77,9 +77,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         [Fact]
         public void TestEqualIsNotEqualWithDeviceModel() {
             var r1 = CreateRegistration();
-            var m = EndpointRegistration.Patch(null, r1);
+            var m = r1.ToDeviceTwin();
             m.Properties.Desired["Credential"] = "password";
-            var r2 = BaseRegistration.ToRegistration(m);
+            var r2 = m.ToRegistration();
 
             Assert.NotEqual(r1, r2);
             Assert.NotEqual(r1.GetHashCode(), r2.GetHashCode());
@@ -91,8 +91,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         [Fact]
         public void TestEqualIsEqualWithDeviceModel() {
             var r1 = CreateRegistration();
-            var m = EndpointRegistration.Patch(null, r1);
-            var r2 = BaseRegistration.ToRegistration(m);
+            var m = r1.ToDeviceTwin();
+            var r2 = m.ToRegistration();
 
             Assert.Equal(r1, r2);
             Assert.Equal(r1.GetHashCode(), r2.GetHashCode());
@@ -105,12 +105,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             var fix = new Fixture();
 
             var r1 = CreateRegistration();
-            var r2 = EndpointRegistration.FromServiceModel(
-                r1.ToServiceModel(), true);
-            var m1 = EndpointRegistration.Patch(r1, r2);
-            var r3 = EndpointRegistration.FromServiceModel(
-                r2.ToServiceModel(), false);
-            var m2 = EndpointRegistration.Patch(r2, r3);
+            var r2 = r1.ToServiceModel().ToEndpointRegistration(true);
+            var m1 = r1.Patch(r2);
+            var r3 = r2.ToServiceModel().ToEndpointRegistration(false);
+            var m2 = r2.Patch(r3);
 
             Assert.True((bool?)m1.Tags[nameof(BaseRegistration.IsDisabled)] ?? false);
             Assert.NotNull((DateTime?)m1.Tags[nameof(BaseRegistration.NotSeenSince)]);
@@ -131,7 +129,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             var r1 = fix.Build<EndpointRegistration>()
                 .With(x => x.Certificate, cert.EncodeAsDictionary())
                 .With(x => x.Thumbprint, cert.ToSha1Hash())
-                .With(x => x.ClientCertificate, cert.EncodeAsDictionary())
+                .With(x => x.Certificate, cert.EncodeAsDictionary())
                 .With(x => x.AlternativeUrls,
                     fix.CreateMany<Uri>(4)
                         .Select(u => u.ToString())

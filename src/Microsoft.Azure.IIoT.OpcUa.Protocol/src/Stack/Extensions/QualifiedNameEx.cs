@@ -7,6 +7,7 @@ namespace Opc.Ua.Extensions {
     using Opc.Ua;
     using System;
     using System.Text;
+    using System.Text.RegularExpressions;
 
     /// <summary>
     /// Qualified name extensions
@@ -50,6 +51,7 @@ namespace Opc.Ua.Extensions {
             if (string.IsNullOrEmpty(value)) {
                 return QualifiedName.Null;
             }
+            string nsUri = null;
             if (Uri.TryCreate(value, UriKind.Absolute, out var uri)) {
                 if (string.IsNullOrEmpty(uri.Fragment)) {
                     value = string.Empty;
@@ -57,7 +59,17 @@ namespace Opc.Ua.Extensions {
                 else {
                     value = uri.Fragment.TrimStart('#');
                 }
-                var nsUri = uri.NoQueryAndFragment().AbsoluteUri;
+                nsUri = uri.NoQueryAndFragment().AbsoluteUri;
+            }
+            else {
+                // Not a real namespace uri - split and decode
+                var parts = value.Split('#');
+                if (parts.Length == 2) {
+                    nsUri = parts[0];
+                    value = parts[1];
+                }
+            }
+            if (nsUri != null) {
                 return new QualifiedName(string.IsNullOrEmpty(value) ? null : value.UrlDecode(),
                     context.NamespaceUris.GetIndexOrAppend(nsUri));
             }

@@ -13,15 +13,14 @@ namespace Opc.Ua.Models {
     /// Represents validity and default value map for attributes
     /// </summary>
     public class AttributeMap {
-
-        const int Object = 0;
-        const int Variable = 1;
-        const int Method = 2;
-        const int ObjectType = 3;
-        const int VariableType = 4;
-        const int ReferenceType = 5;
-        const int DataType = 6;
-        const int View = 7;
+        private const int Object = 0;
+        private const int Variable = 1;
+        private const int Method = 2;
+        private const int ObjectType = 3;
+        private const int VariableType = 4;
+        private const int ReferenceType = 5;
+        private const int DataType = 6;
+        private const int View = 7;
 
         /// <summary>
         /// Get built in type of attribute
@@ -659,7 +658,7 @@ namespace Opc.Ua.Models {
             throw new ServiceResultException(StatusCodes.BadNodeClassInvalid);
         }
 
-        class MapEntry {
+        private class MapEntry {
 
             /// <summary>
             /// Attribute map entry

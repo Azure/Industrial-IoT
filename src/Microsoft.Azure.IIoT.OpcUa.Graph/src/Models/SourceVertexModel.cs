@@ -51,6 +51,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
         }
 
         /// <inheritdoc/>
-        public override int GetHashCode() => Id.GetHashSafe();
+        public override int GetHashCode() {
+            return Id.GetHashSafe();
+        }
     }
 }

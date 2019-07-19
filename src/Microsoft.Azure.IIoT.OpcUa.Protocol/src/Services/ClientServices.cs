@@ -5,22 +5,22 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
-    using Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
-    using Serilog;
     using Microsoft.Azure.IIoT.Utils;
     using Opc.Ua;
     using Opc.Ua.Client;
+    using Serilog;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
+    using System.Runtime.InteropServices;
     using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Runtime.InteropServices;
 
     /// <summary>
     /// Opc ua stack based service client
@@ -28,32 +28,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     public class ClientServices : IClientHost, IEndpointServices, IEndpointDiscovery,
         IDisposable {
 
-        /// <inheritdoc/>
-        public X509Certificate2 Certificate {
-            get {
-                return _opcApplicationConfig.SecurityConfiguration.ApplicationCertificate.Certificate;
-            }
-            private set {
-                SetOwnCertificate(value);
-            }
-        }
-
         /// <summary>
         /// Create client host services
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="maxOpTimeout"></param>
-        public ClientServices(ILogger logger, TimeSpan? maxOpTimeout = null) {
-
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _maxOpTimeout = maxOpTimeout;
-            _configuration = new ClientServicesConfig(null);
-
-            // Create discovery config and client certificate
-            _opcApplicationConfig = CreateApplicationConfiguration(TimeSpan.FromMinutes(2), TimeSpan.FromMinutes(2));
-            InitApplicationSecurityAsync().Wait();
-
-            _timer = new Timer(_ => OnTimer(), null, kEvictionCheck, Timeout.InfiniteTimeSpan);
+        public ClientServices(ILogger logger, TimeSpan? maxOpTimeout = null) :
+            this (logger, new ClientServicesConfig(), maxOpTimeout) {
         }
 
         /// <summary>
@@ -62,250 +43,92 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="logger"></param>
         /// <param name="configuration"></param>
         /// <param name="maxOpTimeout"></param>
-        public ClientServices(ILogger logger,
-            IClientServicesConfig configuration,
+        public ClientServices(ILogger logger, IClientServicesConfig configuration,
             TimeSpan? maxOpTimeout = null) {
 
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration)); ;
+            _logger = logger ??
+                throw new ArgumentNullException(nameof(logger));
+            _configuration = configuration ??
+                throw new ArgumentNullException(nameof(configuration)); ;
             _maxOpTimeout = maxOpTimeout;
 
             // Create discovery config and client certificate
-            _opcApplicationConfig = CreateApplicationConfiguration(TimeSpan.FromMinutes(2), TimeSpan.FromMinutes(2));
+            _opcApplicationConfig = CreateApplicationConfiguration(
+                TimeSpan.FromMinutes(2), TimeSpan.FromMinutes(2));
             InitApplicationSecurityAsync().Wait();
 
             _timer = new Timer(_ => OnTimer(), null, kEvictionCheck, Timeout.InfiniteTimeSpan);
         }
 
-        /// <summary>
-        /// Initialize the OPC UA Application's security configuration
-        /// </summary>
-        /// <returns></returns>
-        private async Task InitApplicationSecurityAsync() {
-
-            // update certificates validator
-            _opcApplicationConfig.CertificateValidator.CertificateValidation +=
-                new Opc.Ua.CertificateValidationEventHandler(CertificateValidator_CertificateValidation);
-            await _opcApplicationConfig.CertificateValidator.Update(_opcApplicationConfig).ConfigureAwait(false);
-
-            // lookup for an existing certificate in the configured store
-            var ownCertificate = await _opcApplicationConfig.SecurityConfiguration.ApplicationCertificate.Find(true).ConfigureAwait(false);
-
-            if (ownCertificate == null) {
-
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) &&
-                    _configuration.AppCertStoreType == CertificateStoreType.Directory) {
-
-                    var ownCertificateIdentifier = new CertificateIdentifier {
-                        StoreType = _configuration.AppCertStoreType,
-                        StorePath = _configuration.OwnCertPath,
-                        SubjectName = _opcApplicationConfig.SecurityConfiguration.ApplicationCertificate.SubjectName
-                    };
-                    ownCertificate = await ownCertificateIdentifier.Find(true).ConfigureAwait(false);
-                    if ((ownCertificate != null) && !ownCertificate.Verify()) {
-                        try {
-                            _logger.Warning("Found malformed own certificate {Thumbprint}, {Subject} in the store - deleting it", 
-                                ownCertificate.Thumbprint, ownCertificate.Subject);
-                            var ownCertificateStore = ownCertificateIdentifier.OpenStore();
-                            await ownCertificateStore.Delete(ownCertificate.Thumbprint);
-                            ownCertificateStore.Close();
-                        }
-                        catch (Exception ex) {
-                            _logger.Information(ex, "Failed to remove malformed own certificate");
-                        }
-                        finally {
-                            ownCertificate = null;
-                        }
-                    }
-                }
+        /// <inheritdoc/>
+        public Task AddTrustedPeerAsync(byte[] certificates) {
+            var chain = Utils.ParseCertificateChainBlob(certificates)?
+                .Cast<X509Certificate2>()
+                .Reverse()
+                .ToList();
+            if (chain == null || chain.Count == 0) {
+                return Task.FromException(
+                    new ArgumentNullException(nameof(certificates)));
             }
-
-            if (ownCertificate == null) {
-
-                _logger.Information("Application own certificate not found. About to create a new self-signed certificate with default settings");
-
-                ownCertificate = CertificateFactory.CreateCertificate(
-                    _opcApplicationConfig.SecurityConfiguration.ApplicationCertificate.StoreType,
-                    _opcApplicationConfig.SecurityConfiguration.ApplicationCertificate.StorePath,
-                    null,
-                    _opcApplicationConfig.ApplicationUri,
-                    _opcApplicationConfig.ApplicationName,
-                    _opcApplicationConfig.SecurityConfiguration.ApplicationCertificate.SubjectName,
-                    null,
-                    CertificateFactory.defaultKeySize,
-                    DateTime.UtcNow - TimeSpan.FromDays(1),
-                    CertificateFactory.defaultLifeTime,
-                    CertificateFactory.defaultHashSize,
-                    false,
-                    null,
-                    null);
-                _opcApplicationConfig.SecurityConfiguration.ApplicationCertificate.Certificate = ownCertificate;
-                _logger.Information("New application certificate with {Thumbprint}, {Subject} created",
-                    ownCertificate.Thumbprint, ownCertificate.SubjectName.Name);
-            }
-            else {
-                _logger.Information("Application certificate with {Thumbprint}, {Subject} found in the certificate store", 
-                    ownCertificate.Thumbprint, ownCertificate.SubjectName.Name);
-            }
-
-            // Set the Certificate as the newly created certificate
-            Certificate = ownCertificate;
-
-            if (_opcApplicationConfig.SecurityConfiguration.AutoAcceptUntrustedCertificates) {
-                _logger.Warning("WARNING: Automatically accepting certificates. This is a security risk.");
-            }
-        }
-
-        /// <summary>
-        /// set a new application instance certificate
-        /// </summary>
-        /// <param name="newCertificate"></param>
-        private void SetOwnCertificate(X509Certificate2 newCertificate) {
-
-            if (newCertificate == null || !newCertificate.HasPrivateKey /*|| !newCertificate.Verify()*/) {
-                _logger.Warning("Set certificate with empty or invalid argument");
-                throw new ArgumentException("Empty or invalid certificate");
-            }
-
-            _logger.Information("About to set new application certificate {Thumbprint}, {Subject}",
-                newCertificate.Thumbprint, newCertificate.SubjectName.Name);
-
-            //  attempt to replace the old certificate from the various trust lists
-            var oldCertificate = _opcApplicationConfig.SecurityConfiguration.ApplicationCertificate.Certificate;
-
-            // copy the certificate, public key only, into the trusted certificates list
+            var certificate = chain.First();
             try {
-                var publicKey = new X509Certificate2(newCertificate.RawData);
-                var trustedStore = _opcApplicationConfig.SecurityConfiguration.TrustedPeerCertificates.OpenStore();
-
-                try {
-                    _logger.Information("Adding own certificate in the certificate trusted peer store");
-                    if (oldCertificate != null) {
-                        trustedStore.Delete(oldCertificate.Thumbprint);
-                    }
-                    trustedStore.Add(publicKey);
+                _logger.Information("Adding Certificate {Thumbprint}, " +
+                    "{Subject} to trust list...", certificate.Thumbprint,
+                    certificate.Subject);
+                _opcApplicationConfig.SecurityConfiguration.TrustedPeerCertificates
+                    .Add(certificate.YieldReturn());
+                chain.RemoveAt(0);
+                if (chain.Count > 0) {
+                    _opcApplicationConfig.SecurityConfiguration.TrustedIssuerCertificates
+                        .Add(chain);
                 }
-                catch (Exception ex) {
-                    _logger.Warning(ex, "Can not add own certificate to trusted peer store");
-                }
-                finally {
-                    trustedStore.Close();
-                }
+                return Task.CompletedTask;
             }
             catch (Exception ex) {
-                _logger.Warning(ex, "Can not add own certificate to trusted peer store, store open failure");
+                _logger.Error(ex, "Failed to add Certificate {Thumbprint}, " +
+                    "{Subject} to trust list.", certificate.Thumbprint,
+                    certificate.Subject);
+                return Task.FromException(ex);
             }
-
-            if (!_opcApplicationConfig.SecurityConfiguration.ApplicationCertificate.Certificate.EqualsSafe(newCertificate)) {
-
-                // add the certificate to the right store 
-                try {
-                    var appStore = _opcApplicationConfig.SecurityConfiguration.ApplicationCertificate.OpenStore();
-                    try {
-                        _logger.Information("Adding own certificate in the certificate app store");
-                        if (oldCertificate != null) {
-                            appStore.Delete(oldCertificate.Thumbprint);
-                        }
-                        appStore.Add(newCertificate);
-                    }
-                    catch (Exception ex) {
-                        _logger.Warning(ex, "Can not add own certificate in the certificate app store");
-                    }
-                    finally {
-                        appStore.Close();
-                    }
-                }
-                catch (Exception ex) {
-                    _logger.Warning(ex, "Can not add own certificate in the certificate app store, store open failure");
-                }
-            }
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) &&
-                _configuration.AppCertStoreType == CertificateStoreType.Directory) {
-
-                var applicationCertificate = new CertificateIdentifier{
-                        StoreType = _configuration.AppCertStoreType,
-                        StorePath = _configuration.OwnCertPath,
-                        SubjectName = newCertificate.SubjectName.Name
-                    };
-
-                try {
-                    var applicationCertStore = applicationCertificate.OpenStore();
-                    try {
-                        _logger.Information("Adding own certificate in the certificate app store");
-                        if (oldCertificate != null) {
-                            applicationCertStore.Delete(oldCertificate.Thumbprint);
-                        }
-                        applicationCertStore.Add(newCertificate);
-                    }
-                    catch (Exception ex) {
-                        _logger.Warning(ex, "Can not add own certificate to trusted app store");
-                    }
-                    finally {
-                        applicationCertStore.Close();
-                    }
-                }
-                catch (Exception ex) {
-                    _logger.Warning(ex, "Can not add own certificate to trusted app store, store open failure");
-                }
-            }
-
-            _opcApplicationConfig.SecurityConfiguration.ApplicationCertificate.Certificate = newCertificate;
-            _opcApplicationConfig.CertificateValidator.UpdateCertificate(_opcApplicationConfig.SecurityConfiguration);
-        }
-
-        /// <summary>
-        /// Event handler to validate certificates.
-        /// </summary>
-        private void CertificateValidator_CertificateValidation(
-            Opc.Ua.CertificateValidator validator, 
-            Opc.Ua.CertificateValidationEventArgs e) {
-
-                if (e.Error.StatusCode == Opc.Ua.StatusCodes.BadCertificateUntrusted){
-                e.Accept = _opcApplicationConfig.SecurityConfiguration.AutoAcceptUntrustedCertificates;
-                if (_opcApplicationConfig.SecurityConfiguration.AutoAcceptUntrustedCertificates) {
-                    _logger.Information("Trusting Peer Certificate {Thumbprint}, {Subject} due to AutoAccept(UntrustedCertificates) set to true", 
-                        e.Certificate.Thumbprint, e.Certificate.Subject);
-                    try {
-
-                        var publicKey = new X509Certificate2(e.Certificate.RawData);
-                        var trustedStore = _opcApplicationConfig.SecurityConfiguration.TrustedPeerCertificates.OpenStore(); 
-
-                        try {
-                            trustedStore.Delete(publicKey.Thumbprint);
-                            _logger.Information("Adding peer Certificate {Thumbprint}, {Subject} to trusted store", 
-                                publicKey.Thumbprint, publicKey.Subject);
-                            trustedStore.Add(publicKey);                          
-                        }
-                        catch (Exception ex) {
-                            _logger.Warning(ex, "Failed to add peer Certificate {Thumbprint}, {Subject} to trusted store",
-                                publicKey.Thumbprint, publicKey.Subject);
-                        }
-                        finally {
-                            trustedStore.Close();
-                            validator.Update(_opcApplicationConfig.SecurityConfiguration);
-                        }
-                    }
-                    catch(Exception ex) {
-                        _logger.Warning(ex, "Can not open certificate to trusted certificate peer store");
-                    }
-                }
-            }
-            else{
-                _logger.Information("Rejecting Untrusted Peer Certificate {Thumbprint}, {Subject}",
-                        e.Certificate.Thumbprint, e.Certificate.Subject);
+            finally {
+                chain?.ForEach(c => c?.Dispose());
             }
         }
 
         /// <inheritdoc/>
-        public Task UpdateClientCertificate(X509Certificate2 certificate) {
-            Certificate = certificate ??
-                throw new ArgumentNullException(nameof(certificate));
-            return Task.CompletedTask;
+        public Task RemoveTrustedPeerAsync(byte[] certificates) {
+            var chain = Utils.ParseCertificateChainBlob(certificates)?
+                .Cast<X509Certificate2>()
+                .Reverse()
+                .ToList();
+            if (chain == null || chain.Count == 0) {
+                return Task.FromException(
+                    new ArgumentNullException(nameof(certificates)));
+            }
+            var certificate = chain.First();
+            try {
+                _logger.Information("Removing Certificate {Thumbprint}, " +
+                    "{Subject} from trust list...", certificate.Thumbprint,
+                    certificate.Subject);
+                _opcApplicationConfig.SecurityConfiguration.TrustedPeerCertificates
+                    .Remove(certificate.YieldReturn());
+
+                // Remove only from trusted peers
+                return Task.CompletedTask;
+            }
+            catch (Exception ex) {
+                _logger.Error(ex, "Failed to remove Certificate {Thumbprint}, " +
+                    "{Subject} from trust list.", certificate.Thumbprint,
+                    certificate.Subject);
+                return Task.FromException(ex);
+            }
+            finally {
+                chain?.ForEach(c => c?.Dispose());
+            }
         }
 
         /// <inheritdoc/>
-        public Task Register(EndpointModel endpoint,
+        public async Task RegisterAsync(EndpointModel endpoint,
             Func<EndpointConnectivityState, Task> callback) {
             if (endpoint == null) {
                 throw new ArgumentNullException(nameof(endpoint));
@@ -313,29 +136,46 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             if (callback == null) {
                 throw new ArgumentNullException(nameof(callback));
             }
-
             var id = new EndpointIdentifier(endpoint);
+
             if (!_callbacks.TryAdd(id, callback)) {
                 _callbacks.AddOrUpdate(id, callback, (k, v) => callback);
             }
-            // Create persistent session
-            GetOrCreateSession(id, true);
-            return Task.CompletedTask;
+
+            await _lock.WaitAsync();
+            try {
+                // Add a persistent session
+                if (!_clients.TryGetValue(id, out var _)) {
+                    _clients.Add(id, new ClientSession(
+                        _opcApplicationConfig, id.Endpoint, _logger, NotifyStateChangeAsync,
+                        true, _maxOpTimeout));
+                }
+            }
+            finally {
+                _lock.Release();
+            }
         }
 
         /// <inheritdoc/>
-        public Task Unregister(EndpointModel endpoint) {
+        public async Task UnregisterAsync(EndpointModel endpoint) {
             if (endpoint == null) {
                 throw new ArgumentNullException(nameof(endpoint));
             }
-
             var id = new EndpointIdentifier(endpoint);
+
             _callbacks.TryRemove(id, out _);
-            // Remove persistent session
-            if (_clients.TryRemove(id, out var client)) {
-                return Try.Async(client.CloseAsync);
+
+            await _lock.WaitAsync();
+            try {
+                // Remove any session
+                if (_clients.TryGetValue(id, out var client)) {
+                    await Try.Async(client.CloseAsync);
+                    _clients.Remove(id);
+                }
             }
-            return Task.CompletedTask;
+            finally {
+                _lock.Release();
+            }
         }
 
         /// <inheritdoc/>
@@ -349,6 +189,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
                 _clients.Clear();
             }
+            _cts.Dispose();
         }
 
         /// <inheritdoc/>
@@ -399,7 +240,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             }
             var key = new EndpointIdentifier(endpoint);
             while (!_cts.IsCancellationRequested) {
-                var client = GetOrCreateSession(key, false);
+                var client = GetOrCreateSession(key);
                 if (!client.Inactive) {
                     var scheduled = client.TryScheduleServiceCall(elevation, priority,
                         service, handler, timeout, ct, out var result);
@@ -409,8 +250,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     }
                 }
                 // Create new session next go around
-                _clients.TryRemove(key, out client);
-                client.Dispose();
+                EvictIfInactive(key);
             }
             return Task.FromCanceled<T>(_cts.Token);
         }
@@ -473,7 +313,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
                 catch {
                     // Old lds, just continue...
-                    _logger.Debug("{discoveryUrl} does not support ME extension...", discoveryUrl);
+                    _logger.Debug("{discoveryUrl} does not support ME extension...",
+                        discoveryUrl);
                 }
 
                 //
@@ -499,25 +340,79 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// Create session
         /// </summary>
         /// <param name="id"></param>
-        /// <param name="persistent"></param>
         /// <returns></returns>
-        internal IClientSession GetOrCreateSession(EndpointIdentifier id, bool persistent) {
-            return _clients.GetOrAdd(id, k => new ClientSession(
-                _opcApplicationConfig, k.Endpoint, () => Certificate, _logger, NotifyStateChangeAsync, persistent,
-                    _maxOpTimeout));
+        private IClientSession GetOrCreateSession(EndpointIdentifier id) {
+            _lock.Wait();
+            try {
+                if (!_clients.TryGetValue(id, out var session)) {
+                    session = new ClientSession(
+                        _opcApplicationConfig, id.Endpoint, _logger, NotifyStateChangeAsync,
+                        false, _maxOpTimeout);
+                    _clients.Add(id, session);
+                    _logger.Debug("Add new session to session cache.");
+                }
+                return session;
+            }
+            finally {
+                _lock.Release();
+            }
+        }
+
+        /// <summary>
+        /// Called when timer fired evicting inactive / timedout sessions
+        /// </summary>
+        /// <returns></returns>
+        private void OnTimer() {
+            try {
+                // manage sessions
+                foreach (var client in _clients.ToList()) {
+                    if (client.Value.Inactive) {
+                        EvictIfInactive(client.Key);
+                    }
+                }
+            }
+            catch (Exception ex) {
+                _logger.Error(ex, "Error managing session clients...");
+            }
+            try {
+                // Re-arm
+                _timer.Change((int)kEvictionCheck.TotalMilliseconds, 0);
+            }
+            catch (ObjectDisposedException) {
+                // object disposed
+            }
+        }
+
+        /// <summary>
+        /// Handle inactive
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        private void EvictIfInactive(EndpointIdentifier id) {
+            _lock.Wait();
+            try {
+                if (_clients.TryGetValue(id, out var item)) {
+                    if (item.Inactive && _clients.Remove(id)) {
+                        item.Dispose();
+                        _logger.Debug("Evicted inactive session from session cache.");
+                    }
+                }
+            }
+            finally {
+                _lock.Release();
+            }
         }
 
         /// <summary>
         /// Create application configuration for client
         /// </summary>
         /// <returns></returns>
-        internal ApplicationConfiguration CreateApplicationConfiguration(
+        private ApplicationConfiguration CreateApplicationConfiguration(
             TimeSpan operationTimeout, TimeSpan sessionTimeout) {
 
             // mitigation for bug in .NET Core 2.1
             var effectiveAppCertStoreType = _configuration.AppCertStoreType;
             var effectiveOwnCertPath = _configuration.OwnCertPath;
-           
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
                 effectiveAppCertStoreType = CertificateStoreType.X509Store;
                 effectiveOwnCertPath = _configuration.OwnCertX509StorePathDefault;
@@ -527,7 +422,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 ApplicationName = "Azure IIoT OPC Twin Client Services",
                 ApplicationType = Opc.Ua.ApplicationType.Client,
                 ApplicationUri = "urn:" + Utils.GetHostName() + ":Azure:IIoTOpcTwin",
-                CertificateValidator = new Opc.Ua.CertificateValidator(),
+                CertificateValidator = new CertificateValidator(),
                 SecurityConfiguration = new SecurityConfiguration {
                     ApplicationCertificate = new CertificateIdentifier {
                         StoreType = effectiveAppCertStoreType,
@@ -544,14 +439,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     },
                     RejectedCertificateStore = new CertificateTrustList {
                         StoreType = CertificateStoreType.Directory,
-                        StorePath =_configuration.RejectedCertPath
+                        StorePath = _configuration.RejectedCertPath
                     },
                     NonceLength = 32,
                     AutoAcceptUntrustedCertificates = _configuration.AutoAccept,
                     RejectSHA1SignedCertificates = false,
                     AddAppCertToTrustedStore = false,
                     MinimumCertificateKeySize = 1024
-                    
                 },
                 TransportConfigurations = new TransportConfigurationCollection(),
                 TransportQuotas = new TransportQuotas {
@@ -565,6 +459,193 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     DefaultSessionTimeout = (int)sessionTimeout.TotalMilliseconds
                 }
             };
+        }
+
+        /// <summary>
+        /// Initialize the OPC UA Application's security configuration
+        /// </summary>
+        /// <returns></returns>
+        private async Task InitApplicationSecurityAsync() {
+
+            // update certificates validator
+            _opcApplicationConfig.CertificateValidator.CertificateValidation +=
+                new CertificateValidationEventHandler(VerifyCertificate);
+            await _opcApplicationConfig.CertificateValidator
+                .Update(_opcApplicationConfig).ConfigureAwait(false);
+
+            // lookup for an existing certificate in the configured store
+            var ownCertificate = await _opcApplicationConfig.SecurityConfiguration
+                .ApplicationCertificate.Find(true).ConfigureAwait(false);
+            if (ownCertificate == null) {
+                //
+                // Work around windows issue and lookup application certificate also on
+                // directory if configured.  This is needed for container persistence.
+                //
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) &&
+                    _configuration.AppCertStoreType == CertificateStoreType.Directory) {
+
+                    // Use x509 store instead of directory for private cert.
+                    var ownCertificateIdentifier = new CertificateIdentifier {
+                        StoreType = _configuration.AppCertStoreType,
+                        StorePath = _configuration.OwnCertPath,
+                        SubjectName = _opcApplicationConfig.SecurityConfiguration
+                            .ApplicationCertificate.SubjectName
+                    };
+                    ownCertificate = await ownCertificateIdentifier.Find(true)
+                        .ConfigureAwait(false);
+                    if ((ownCertificate != null) && !ownCertificate.Verify()) {
+                        try {
+                            _logger.Warning("Found malformed own certificate {Thumbprint}, " +
+                                "{Subject} in the store - deleting it...",
+                                ownCertificate.Thumbprint, ownCertificate.Subject);
+                            ownCertificateIdentifier.RemoveFromStore(ownCertificate);
+                        }
+                        catch (Exception ex) {
+                            _logger.Information(ex,
+                                "Failed to remove malformed own certificate");
+                        }
+                        ownCertificate = null;
+                    }
+                }
+            }
+
+            if (ownCertificate == null) {
+
+                _logger.Information("Application own certificate not found. " +
+                    "Creating a new self-signed certificate with default settings...");
+                ownCertificate = CertificateFactory.CreateCertificate(
+                    _opcApplicationConfig.SecurityConfiguration.ApplicationCertificate.StoreType,
+                    _opcApplicationConfig.SecurityConfiguration.ApplicationCertificate.StorePath,
+                    null,
+                    _opcApplicationConfig.ApplicationUri, _opcApplicationConfig.ApplicationName,
+                    _opcApplicationConfig.SecurityConfiguration.ApplicationCertificate.SubjectName,
+                    null, CertificateFactory.defaultKeySize,
+                    DateTime.UtcNow - TimeSpan.FromDays(1),
+                    CertificateFactory.defaultLifeTime, CertificateFactory.defaultHashSize,
+                    false, null, null);
+
+                _opcApplicationConfig.SecurityConfiguration.ApplicationCertificate.Certificate =
+                    ownCertificate;
+                _logger.Information(
+                    "New application certificate with {Thumbprint}, {Subject} created",
+                    ownCertificate.Thumbprint, ownCertificate.SubjectName.Name);
+            }
+            else {
+                _logger.Information("Application certificate with {Thumbprint}, {Subject} " +
+                    "found in the certificate store",
+                    ownCertificate.Thumbprint, ownCertificate.SubjectName.Name);
+            }
+            // Set the Certificate as the newly created certificate
+            await SetOwnCertificateAsync(ownCertificate);
+            if (_opcApplicationConfig.SecurityConfiguration.AutoAcceptUntrustedCertificates) {
+                _logger.Warning(
+                    "WARNING: Automatically accepting certificates. This is a security risk.");
+            }
+        }
+
+        /// <summary>
+        /// set a new application instance certificate
+        /// </summary>
+        /// <param name="newCertificate"></param>
+        private async Task SetOwnCertificateAsync(X509Certificate2 newCertificate) {
+
+            if (newCertificate == null || !newCertificate.HasPrivateKey) {
+                throw new ArgumentException("Empty or invalid certificate");
+            }
+
+            //  attempt to replace the old certificate from the various trust lists
+            var oldCertificate = _opcApplicationConfig.SecurityConfiguration
+                .ApplicationCertificate.Certificate;
+            if (oldCertificate?.Thumbprint != newCertificate.Thumbprint) {
+                return;
+            }
+
+            _logger.Information(
+                "Setting new application certificate {Thumbprint}, {Subject}...",
+                newCertificate.Thumbprint, newCertificate.SubjectName.Name);
+
+            // copy the certificate, public key only into the trusted certificates list
+            using (var publicKey = new X509Certificate2(newCertificate.RawData)) {
+                var trustList =
+                    _opcApplicationConfig.SecurityConfiguration.TrustedPeerCertificates;
+                if (oldCertificate != null) {
+                    trustList.Remove(oldCertificate.YieldReturn());
+                }
+                trustList.Add(newCertificate.YieldReturn());
+            }
+
+            // add the certificate to the own store
+            try {
+                var applicationCertificate = _opcApplicationConfig.SecurityConfiguration
+                    .ApplicationCertificate;
+                _logger.Information(
+                    "Adding own certificate to configured certificate store");
+                // Remove old and add new
+                if (oldCertificate != null) {
+                    applicationCertificate.RemoveFromStore(oldCertificate);
+                }
+                applicationCertificate.AddToStore(newCertificate, true);
+            }
+            catch (Exception ex) {
+                _logger.Warning(ex,
+                    "Failed adding own certificate into configured certificate store.");
+            }
+
+            //
+            // Work around windows issue and persist application certificate also on
+            // directory if configured.  This is needed for container persistence.
+            //
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) &&
+                _configuration.AppCertStoreType == CertificateStoreType.Directory) {
+                var applicationCertificate = new CertificateIdentifier {
+                    StoreType = CertificateStoreType.Directory,
+                    StorePath = _configuration.OwnCertPath,
+                    SubjectName = newCertificate.SubjectName.Name
+                };
+                try {
+                    _logger.Information(
+                        "Persisting own certificate into directory certificate store...");
+                    // Remove old and add new
+                    if (oldCertificate != null) {
+                        applicationCertificate.RemoveFromStore(oldCertificate);
+                    }
+                    applicationCertificate.AddToStore(newCertificate, true);
+                }
+                catch (Exception ex) {
+                    _logger.Warning(ex,
+                        "Failed adding own certificate to directory certificate store.");
+                }
+            }
+
+            _opcApplicationConfig.SecurityConfiguration.ApplicationCertificate
+                .Certificate = newCertificate;
+            await _opcApplicationConfig.CertificateValidator.UpdateCertificate(
+                _opcApplicationConfig.SecurityConfiguration);
+        }
+
+        /// <summary>
+        /// Default event handler to validate certificates and handle auto accept.
+        /// </summary>
+        /// <param name="validator"></param>
+        /// <param name="e"></param>
+        private void VerifyCertificate(CertificateValidator validator,
+            CertificateValidationEventArgs e) {
+            if (e.Accept == true) {
+                return;
+            }
+            if (e.Error.StatusCode == StatusCodes.BadCertificateUntrusted) {
+                e.Accept = _opcApplicationConfig.SecurityConfiguration
+                    .AutoAcceptUntrustedCertificates;
+                if (e.Accept) {
+                    _logger.Warning("Trusting Peer Certificate {Thumbprint}, {Subject} " +
+                        "due to AutoAccept(UntrustedCertificates) set!",
+                        e.Certificate.Thumbprint, e.Certificate.Subject);
+                }
+                return;
+            }
+            _logger.Information("Rejecting peer Certificate {Thumbprint}, {Subject} " +
+                "because of {Status}.", e.Certificate.Thumbprint,
+                e.Certificate.Subject, e.Error.StatusCode);
         }
 
         /// <summary>
@@ -597,32 +678,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             return Task.CompletedTask;
         }
 
-        /// <summary>
-        /// Called when timer fired evicting inactive / timedout sessions
-        /// </summary>
-        /// <returns></returns>
-        private void OnTimer() {
-            try {
-                // manage sessions
-                foreach (var client in _clients.ToList()) {
-                    if (client.Value.Inactive) {
-                        if (_clients.TryRemove(client.Key, out var item)) {
-                            item.Dispose();
-                        }
-                    }
-                }
-            }
-            catch (Exception ex) {
-                _logger.Error(ex, "Error managing session clients...");
-            }
-            try {
-                // Re-arm
-                _timer.Change((int)kEvictionCheck.TotalMilliseconds, 0);
-            }
-            catch (ObjectDisposedException) {
-                // object disposed
-            }
-        }
 
         private static readonly TimeSpan kEvictionCheck = TimeSpan.FromSeconds(10);
         private const int kMaxDiscoveryAttempts = 3;
@@ -630,8 +685,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         private readonly TimeSpan? _maxOpTimeout;
         private readonly IClientServicesConfig _configuration;
         private readonly ApplicationConfiguration _opcApplicationConfig;
-        private readonly ConcurrentDictionary<EndpointIdentifier, IClientSession> _clients =
-            new ConcurrentDictionary<EndpointIdentifier, IClientSession>();
+        private readonly Dictionary<EndpointIdentifier, IClientSession> _clients =
+            new Dictionary<EndpointIdentifier, IClientSession>();
+        private readonly SemaphoreSlim _lock = new SemaphoreSlim(1);
         private readonly ConcurrentDictionary<EndpointIdentifier, Func<EndpointConnectivityState, Task>> _callbacks =
             new ConcurrentDictionary<EndpointIdentifier, Func<EndpointConnectivityState, Task>>();
         private readonly CancellationTokenSource _cts =

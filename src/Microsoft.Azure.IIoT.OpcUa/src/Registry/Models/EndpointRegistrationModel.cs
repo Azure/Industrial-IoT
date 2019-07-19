@@ -44,11 +44,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public int? SecurityLevel { get; set; }
 
         /// <summary>
-        /// Certificate that was registered as belonging to the endpoint.
-        /// </summary>
-        public byte[] Certificate { get; set; }
-
-        /// <summary>
         /// Supported credential configurations that can be selected to
         /// obtain a credential and used to interact with the endpoint.
         /// </summary>

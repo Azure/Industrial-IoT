@@ -45,6 +45,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
                 if (webSocket != null) {
                     // pass to listener to decode secure channel binary stream
                     _listener.OnAccept(context, webSocket);
+                    _logger.Verbose("Accepted new websocket.");
+                }
+                else {
+                    _logger.Debug("Accepted websocket was null.");
                 }
                 return;
             }

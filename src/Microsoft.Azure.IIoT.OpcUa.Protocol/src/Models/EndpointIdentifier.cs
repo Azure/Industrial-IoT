@@ -29,35 +29,46 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
 
         /// <inheritdoc/>
         public override bool Equals(object obj) {
-            return obj is EndpointIdentifier key &&
-                key != null &&
-                Endpoint.Url == key.Endpoint.Url &&
-                (Endpoint.User?.Type ?? CredentialType.None) ==
-                    (key.Endpoint.User?.Type ?? CredentialType.None) &&
-                (Endpoint.SecurityMode ?? SecurityMode.Best) ==
-                    (key.Endpoint.SecurityMode ?? SecurityMode.Best) &&
-                Endpoint.SecurityPolicy == key.Endpoint.SecurityPolicy &&
-                JToken.DeepEquals(Endpoint.User?.Value,
-                    key.Endpoint.User?.Value);
+            if (!(obj is EndpointIdentifier key)) {
+                return false;
+            }
+            if (Endpoint.Url != key.Endpoint.Url) {
+                return false;
+            }
+            if ((Endpoint.User?.Type ?? CredentialType.None) !=
+                    (key.Endpoint.User?.Type ?? CredentialType.None)) {
+                return false;
+            }
+            if ((Endpoint.SecurityMode ?? SecurityMode.Best) !=
+                    (key.Endpoint.SecurityMode ?? SecurityMode.Best)) {
+                return false;
+            }
+            if (Endpoint.SecurityPolicy != key.Endpoint.SecurityPolicy) {
+                return false;
+            }
+            if (!JToken.DeepEquals(Endpoint.User?.Value,
+                    key.Endpoint.User?.Value)) {
+                return false;
+            }
+            return true;
         }
 
         /// <inheritdoc/>
         public override int GetHashCode() {
             var hashCode = -1971667340;
-            hashCode = hashCode * -1521134295 +
+            hashCode = (hashCode * -1521134295) +
                 EqualityComparer<string>.Default.GetHashCode(Endpoint.SecurityPolicy);
-            hashCode = hashCode * -1521134295 +
+            hashCode = (hashCode * -1521134295) +
                 EqualityComparer<string>.Default.GetHashCode(Endpoint.Url);
-            hashCode = hashCode * -1521134295 +
+            hashCode = (hashCode * -1521134295) +
                 EqualityComparer<CredentialType?>.Default.GetHashCode(
                     Endpoint.User?.Type ?? CredentialType.None);
-            hashCode = hashCode * -1521134295 +
+            hashCode = (hashCode * -1521134295) +
                EqualityComparer<SecurityMode?>.Default.GetHashCode(
                    Endpoint.SecurityMode ?? SecurityMode.Best);
-            hashCode = hashCode * -1521134295 +
+            hashCode = (hashCode * -1521134295) +
                 JToken.EqualityComparer.GetHashCode(Endpoint.User?.Value);
             return hashCode;
         }
     }
-
 }

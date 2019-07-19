@@ -4,9 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
-    using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Azure.IIoT.Hub;
-    using Newtonsoft.Json.Linq;
+    using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;
 
@@ -28,9 +27,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <summary>
         /// Etag id
         /// </summary>
+        [JsonProperty(PropertyName = "_etag")]
         public string Etag { get; set; }
-
-        #region Twin Tags
 
         /// <summary>
         /// Registration type
@@ -62,10 +60,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// </summary>
         public string Thumbprint { get; set; }
 
-        #endregion Twin Tags
-
-        #region Twin Tags or properties
-
         /// <summary>
         /// The certificate of the endpoint
         /// </summary>
@@ -82,10 +76,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public string SiteOrSupervisorId =>
             !string.IsNullOrEmpty(SiteId) ? SiteId : SupervisorId;
 
-        #endregion Twin Tags or reported properties
-
-        #region Properties
-
         /// <summary>
         /// Type
         /// </summary>
@@ -95,90 +85,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// Connected
         /// </summary>
         public virtual bool Connected { get; set; }
-
-        #endregion Properties
-
-        /// <summary>
-        /// Create patch twin model to upload
-        /// </summary>
-        /// <param name="existing"></param>
-        /// <param name="update"></param>
-        protected static DeviceTwinModel Patch(
-            BaseRegistration existing, BaseRegistration update) {
-
-            var twin = new DeviceTwinModel {
-                Etag = existing?.Etag,
-                Tags = new Dictionary<string, JToken>(),
-                Properties = new TwinPropertiesModel {
-                    Desired = new Dictionary<string, JToken>()
-                }
-            };
-
-            // Tags
-
-            if (update?.ApplicationId != null &&
-                update.ApplicationId != existing?.ApplicationId) {
-                twin.Tags.Add(nameof(ApplicationId), update.ApplicationId);
-            }
-
-            if (update?.IsDisabled != null &&
-                update.IsDisabled != existing?.IsDisabled) {
-                twin.Tags.Add(nameof(IsDisabled), (update?.IsDisabled ?? false) ?
-                    true : (bool?)null);
-                twin.Tags.Add(nameof(NotSeenSince), (update?.IsDisabled ?? false) ?
-                    DateTime.UtcNow : (DateTime?)null);
-            }
-
-            if (update?.SiteOrSupervisorId != existing?.SiteOrSupervisorId) {
-                twin.Tags.Add(nameof(SiteOrSupervisorId), update?.SiteOrSupervisorId);
-            }
-
-            if (update?.SupervisorId != existing?.SupervisorId) {
-                twin.Tags.Add(nameof(SupervisorId), update?.SupervisorId);
-            }
-
-            if (update?.SiteId != existing?.SiteId) {
-                twin.Tags.Add(nameof(SiteId), update?.SiteId);
-            }
-
-            var certUpdate = update?.Certificate.DecodeAsByteArray().SequenceEqualsSafe(
-                existing?.Certificate.DecodeAsByteArray());
-            if (!(certUpdate ?? true)) {
-                twin.Tags.Add(nameof(Certificate), update?.Certificate == null ?
-                    null : JToken.FromObject(update.Certificate));
-                twin.Tags.Add(nameof(Thumbprint),
-                    update?.Certificate?.DecodeAsByteArray()?.ToSha1Hash());
-            }
-
-            twin.Tags.Add(nameof(DeviceType), update?.DeviceType);
-            return twin;
-        }
-
-        /// <summary>
-        /// Convert twin to registration information.
-        /// </summary>
-        /// <param name="twin"></param>
-        /// <param name="onlyServerState"></param>
-        /// <returns></returns>
-        public static BaseRegistration ToRegistration(DeviceTwinModel twin,
-            bool onlyServerState = false) {
-            if (twin == null) {
-                return null;
-            }
-            var type = twin.Tags.GetValueOrDefault<string>(nameof(DeviceType), null);
-            if (string.IsNullOrEmpty(type) && twin.Properties.Reported != null) {
-                type = twin.Properties.Reported.GetValueOrDefault<string>(TwinProperty.kType, null);
-            }
-            switch (type?.ToLowerInvariant() ?? "") {
-                case "endpoint":
-                    return EndpointRegistration.FromTwin(twin, onlyServerState);
-                case "application":
-                    return ApplicationRegistration.FromTwin(twin);
-                case "supervisor":
-                    return SupervisorRegistration.FromTwin(twin, onlyServerState);
-            }
-            return null;
-        }
 
         /// <inheritdoc/>
         public override bool Equals(object obj) {
@@ -206,21 +112,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <inheritdoc/>
         public override int GetHashCode() {
             var hashCode = 479558466;
-            hashCode = hashCode * -1521134295 +
+            hashCode = (hashCode * -1521134295) +
                 EqualityComparer<string>.Default.GetHashCode(DeviceId);
-            hashCode = hashCode * -1521134295 +
+            hashCode = (hashCode * -1521134295) +
                 EqualityComparer<string>.Default.GetHashCode(DeviceType);
-            hashCode = hashCode * -1521134295 +
+            hashCode = (hashCode * -1521134295) +
                 EqualityComparer<string>.Default.GetHashCode(SupervisorId);
-            hashCode = hashCode * -1521134295 +
+            hashCode = (hashCode * -1521134295) +
                 EqualityComparer<string>.Default.GetHashCode(SiteId);
-            hashCode = hashCode * -1521134295 +
+            hashCode = (hashCode * -1521134295) +
                 EqualityComparer<string>.Default.GetHashCode(ApplicationId);
-            hashCode = hashCode * -1521134295 +
+            hashCode = (hashCode * -1521134295) +
                 EqualityComparer<bool>.Default.GetHashCode(IsDisabled ?? false);
-            hashCode = hashCode * -1521134295 +
+            hashCode = (hashCode * -1521134295) +
                 EqualityComparer<DateTime?>.Default.GetHashCode(NotSeenSince);
-            hashCode = hashCode * -1521134295 +
+            hashCode = (hashCode * -1521134295) +
                 EqualityComparer<string>.Default.GetHashCode(Thumbprint);
             return hashCode;
         }

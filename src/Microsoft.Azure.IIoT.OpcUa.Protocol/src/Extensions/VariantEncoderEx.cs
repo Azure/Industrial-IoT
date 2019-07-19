@@ -19,8 +19,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="encoder"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static JToken Encode(this IVariantEncoder encoder, Variant value) =>
-            encoder.Encode(value, out var tmp);
+        public static JToken Encode(this IVariantEncoder encoder, Variant value) {
+            return encoder.Encode(value, out var tmp);
+        }
 
         /// <summary>
         /// Parse token to variant
@@ -28,8 +29,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="encoder"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static Variant Decode(this IVariantEncoder encoder, JToken value) =>
-            encoder.Decode(value, BuiltInType.Null);
+        public static Variant Decode(this IVariantEncoder encoder, JToken value) {
+            return encoder.Decode(value, BuiltInType.Null);
+        }
 
         /// <summary>
         /// Decode with data type as string
@@ -40,9 +42,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="context"></param>
         /// <returns></returns>
         public static Variant Decode(this IVariantEncoder encoder, JToken value,
-            string type, ServiceMessageContext context) =>
-            encoder.Decode(value,
-                string.IsNullOrEmpty(type) || context == null ? BuiltInType.Null :
-                TypeInfo.GetBuiltInType(type.ToNodeId(context)), context);
+            string type, ServiceMessageContext context) {
+            return encoder.Decode(value,
+string.IsNullOrEmpty(type) || context == null ? BuiltInType.Null :
+TypeInfo.GetBuiltInType(type.ToNodeId(context)), context);
+        }
     }
 }

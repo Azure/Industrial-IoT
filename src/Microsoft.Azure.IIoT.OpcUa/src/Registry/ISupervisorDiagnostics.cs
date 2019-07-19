@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -16,14 +17,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// Get supervisor runtime status
         /// </summary>
         /// <param name="supervisorId"></param>
+        /// <param name="ct"></param>
         /// <returns>Supervisor diagnostics</returns>
         Task<SupervisorStatusModel> GetSupervisorStatusAsync(
-            string supervisorId);
+            string supervisorId, CancellationToken ct = default);
 
         /// <summary>
         /// Reset and restart supervisor
         /// </summary>
         /// <param name="supervisorId"></param>
-        Task ResetSupervisorAsync(string supervisorId);
+        /// <param name="ct"></param>
+        Task ResetSupervisorAsync(string supervisorId,
+            CancellationToken ct = default);
     }
 }

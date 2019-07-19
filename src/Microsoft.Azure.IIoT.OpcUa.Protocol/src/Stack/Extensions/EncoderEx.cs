@@ -22,7 +22,9 @@ namespace Opc.Ua.Extensions {
         /// <param name="enums"></param>
         /// <returns></returns>
         public static void WriteEnumeratedArray<T>(this IEncoder encoder, string field, T[] enums)
-            where T : Enum => encoder.WriteEnumeratedArray(field, enums, typeof(T));
+            where T : Enum {
+            encoder.WriteEnumeratedArray(field, enums, typeof(T));
+        }
 
         /// <summary>
         /// Write encodeables
@@ -33,8 +35,9 @@ namespace Opc.Ua.Extensions {
         /// <param name="values"></param>
         /// <returns></returns>
         public static void WriteEncodeableArray<T>(this IEncoder encoder, string field,
-            IEnumerable<T> values) where T : IEncodeable =>
+            IEnumerable<T> values) where T : IEncodeable {
             encoder.WriteEncodeableArray(field, values.Cast<IEncodeable>().ToArray(), typeof(T));
+        }
 
         /// <summary>
         /// Write encodeable
@@ -45,6 +48,8 @@ namespace Opc.Ua.Extensions {
         /// <param name="value"></param>
         /// <returns></returns>
         public static void WriteEncodeable<T>(this IEncoder encoder, string field, T value)
-            where T : IEncodeable => encoder.WriteEncodeable(field, value, typeof(T));
+            where T : IEncodeable {
+            encoder.WriteEncodeable(field, value, typeof(T));
+        }
     }
 }

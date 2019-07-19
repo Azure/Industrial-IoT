@@ -8,10 +8,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
     using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.Hub;
     using Newtonsoft.Json;
+    using Serilog;
     using System;
     using System.Threading.Tasks;
     using System.Diagnostics;
-    using Serilog;
+    using System.Threading;
 
     /// <summary>
     /// Client for Activation services in supervisor
@@ -30,7 +31,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
 
         /// <inheritdoc/>
         public async Task ActivateEndpointAsync(EndpointRegistrationModel registration,
-            string secret) {
+            string secret, CancellationToken ct) {
             if (registration == null) {
                 throw new ArgumentNullException(nameof(registration));
             }
@@ -49,11 +50,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
             await CallServiceOnSupervisor("ActivateEndpoint_V2", registration.SupervisorId, new {
                 registration.Id,
                 Secret = secret
-            });
+            }, ct);
         }
 
         /// <inheritdoc/>
-        public async Task DeactivateEndpointAsync(EndpointRegistrationModel registration) {
+        public async Task DeactivateEndpointAsync(EndpointRegistrationModel registration,
+            CancellationToken ct) {
             if (registration == null) {
                 throw new ArgumentNullException(nameof(registration));
             }
@@ -64,7 +66,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
                 throw new ArgumentNullException(nameof(registration.Id));
             }
             await CallServiceOnSupervisor("DeactivateEndpoint_V2", registration.SupervisorId,
-                registration.Id);
+                registration.Id, ct);
         }
 
         /// <summary>
@@ -73,14 +75,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
         /// <param name="service"></param>
         /// <param name="supervisorId"></param>
         /// <param name="payload"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         private async Task CallServiceOnSupervisor(string service, string supervisorId,
-            object payload) {
+            object payload, CancellationToken ct) {
             var sw = Stopwatch.StartNew();
             var deviceId = SupervisorModelEx.ParseDeviceId(supervisorId,
                 out var moduleId);
             var result = await _client.CallMethodAsync(deviceId, moduleId, service,
-                JsonConvertEx.SerializeObject(payload));
+                JsonConvertEx.SerializeObject(payload), null, ct);
             _logger.Debug("Calling supervisor service '{service}' on " +
                 "{deviceId}/{moduleId} took {elapsed} ms.", service, deviceId,
                 moduleId, sw.ElapsedMilliseconds);

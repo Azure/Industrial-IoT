@@ -28,10 +28,9 @@
  * ======================================================================*/
 
 
-using Opc.Ua;
-using Opc.Ua.Server;
-
 namespace Views {
+    using Opc.Ua;
+    using Opc.Ua.Server;
 
     /// <inheritdoc/>
     public class ViewsServer : INodeManagerFactory {

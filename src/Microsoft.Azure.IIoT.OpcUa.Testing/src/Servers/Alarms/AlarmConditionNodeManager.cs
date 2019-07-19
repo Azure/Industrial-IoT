@@ -27,13 +27,12 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using Opc.Ua;
-using Opc.Ua.Server;
-
 namespace Alarms {
+    using System;
+    using System.Collections.Generic;
+    using System.Threading;
+    using Opc.Ua;
+    using Opc.Ua.Server;
 
     /// <summary>
     /// A node manager for a simple server that exposes several Areas, Sources and Conditions.
@@ -429,9 +428,9 @@ namespace Alarms {
         }
 
         private UnderlyingSystem _system;
-        private AlarmConditionServerConfiguration _configuration;
-        private Dictionary<string, AreaState> _areas;
-        private Dictionary<string, SourceState> _sources;
+        private readonly AlarmConditionServerConfiguration _configuration;
+        private readonly Dictionary<string, AreaState> _areas;
+        private readonly Dictionary<string, SourceState> _sources;
         private Timer _simulationTimer;
     }
 }

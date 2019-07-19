@@ -68,14 +68,14 @@ namespace Opc.Ua.Nodeset {
         /// <inheritdoc/>
         public override int GetHashCode() {
             var hashCode = base.GetHashCode();
-             hashCode = hashCode *
-                -1521134295 + Value.GetHashSafe();
-            hashCode = hashCode *
-                -1521134295 + DataType.GetHashSafe();
-            hashCode = hashCode *
-                -1521134295 + ValueRank.GetHashSafe();
-            hashCode = hashCode *
-                -1521134295 + ArrayDimensions.GetHashSafe();
+            hashCode = (hashCode *
+               -1521134295) + Value.GetHashSafe();
+            hashCode = (hashCode *
+                -1521134295) + DataType.GetHashSafe();
+            hashCode = (hashCode *
+                -1521134295) + ValueRank.GetHashSafe();
+            hashCode = (hashCode *
+                -1521134295) + ArrayDimensions.GetHashSafe();
             return hashCode;
         }
     }

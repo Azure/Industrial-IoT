@@ -27,24 +27,22 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System;
-using System.Text;
-using System.IO;
-using System.Xml;
-using System.Data;
-using Opc.Ua;
-
 namespace HistoricalAccess {
+    using System;
+    using System.Text;
+    using System.IO;
+    using System.Xml;
+    using System.Data;
+    using Opc.Ua;
+
     /// <summary>
     /// Reads an item history from a file.
     /// </summary>
-    public class DataFileReader
-    {
+    public class DataFileReader {
         /// <summary>
         /// Creates a new data set.
         /// </summary>
-        private DataSet CreateDataSet()
-        {
+        private DataSet CreateDataSet() {
             var dataset = new DataSet();
 
             dataset.Tables.Add("CurrentData");
@@ -90,29 +88,24 @@ namespace HistoricalAccess {
         public bool LoadConfiguration(ISystemContext context, ArchiveItem item)
 #pragma warning restore RECS0154 // Parameter is never used
         {
-            using (var reader = item.OpenArchive())
-            {
-                while (!reader.EndOfStream)
-                {
+            using (var reader = item.OpenArchive()) {
+                while (!reader.EndOfStream) {
                     var line = reader.ReadLine();
 
                     // check for end or error.
-                    if (line == null)
-                    {
+                    if (line == null) {
                         break;
                     }
 
                     // ignore blank lines.
                     line = line.Trim();
 
-                    if (string.IsNullOrEmpty(line))
-                    {
+                    if (string.IsNullOrEmpty(line)) {
                         continue;
                     }
 
                     // ignore commented out lines.
-                    if (line.StartsWith("//", StringComparison.CurrentCulture))
-                    {
+                    if (line.StartsWith("//", StringComparison.CurrentCulture)) {
                         continue;
                     }
 
@@ -125,68 +118,57 @@ namespace HistoricalAccess {
                     }
 
                     // get value rank.
-                    if (!ExtractField(1, ref line, out valueRank))
-                    {
+                    if (!ExtractField(1, ref line, out valueRank)) {
                         return false;
                     }
 
                     // get sampling interval.
-                    if (!ExtractField(1, ref line, out int samplingInterval))
-                    {
+                    if (!ExtractField(1, ref line, out int samplingInterval)) {
                         return false;
                     }
 
                     // get simulation type.
-                    if (!ExtractField(1, ref line, out int simulationType))
-                    {
+                    if (!ExtractField(1, ref line, out int simulationType)) {
                         return false;
                     }
 
                     // get simulation amplitude.
-                    if (!ExtractField(1, ref line, out int amplitude))
-                    {
+                    if (!ExtractField(1, ref line, out int amplitude)) {
                         return false;
                     }
 
                     // get simulation period.
-                    if (!ExtractField(1, ref line, out int period))
-                    {
+                    if (!ExtractField(1, ref line, out int period)) {
                         return false;
                     }
 
                     // get flag indicating whether new data is generated.
-                    if (!ExtractField(1, ref line, out int archiving))
-                    {
+                    if (!ExtractField(1, ref line, out int archiving)) {
                         return false;
                     }
 
                     // get flag indicating whether stepped interpolation is used.
-                    if (!ExtractField(1, ref line, out int stepped))
-                    {
+                    if (!ExtractField(1, ref line, out int stepped)) {
                         return false;
                     }
 
                     // get flag indicating whether sloped interpolation should be used.
-                    if (!ExtractField(1, ref line, out int useSlopedExtrapolation))
-                    {
+                    if (!ExtractField(1, ref line, out int useSlopedExtrapolation)) {
                         return false;
                     }
 
                     // get flag indicating whether sloped interpolation should be used.
-                    if (!ExtractField(1, ref line, out int treatUncertainAsBad))
-                    {
+                    if (!ExtractField(1, ref line, out int treatUncertainAsBad)) {
                         return false;
                     }
 
                     // get the maximum permitted of bad data in an interval.
-                    if (!ExtractField(1, ref line, out int percentDataBad))
-                    {
+                    if (!ExtractField(1, ref line, out int percentDataBad)) {
                         return false;
                     }
 
                     // get the minimum amount of good data in an interval.
-                    if (!ExtractField(1, ref line, out int percentDataGood))
-                    {
+                    if (!ExtractField(1, ref line, out int percentDataGood)) {
                         return false;
                     }
 
@@ -216,13 +198,11 @@ namespace HistoricalAccess {
         /// <summary>
         /// Creates new data.
         /// </summary>
-        public void CreateData(ArchiveItem item)
-        {
+        public void CreateData(ArchiveItem item) {
             // get the data set to use.
             var dataset = item.DataSet;
 
-            if (dataset == null)
-            {
+            if (dataset == null) {
                 dataset = CreateDataSet();
             }
 
@@ -231,18 +211,16 @@ namespace HistoricalAccess {
             startTime = new DateTime(startTime.Year, startTime.Month, startTime.Day, startTime.Hour, 0, 0, DateTimeKind.Utc);
 
             // check for existing data.
-            if (dataset.Tables[0].Rows.Count > 0)
-            {
+            if (dataset.Tables[0].Rows.Count > 0) {
                 var index = dataset.Tables[0].DefaultView.Count;
-                var endTime = (DateTime)dataset.Tables[0].DefaultView[index-1].Row[0];
+                var endTime = (DateTime)dataset.Tables[0].DefaultView[index - 1].Row[0];
                 endTime = startTime.AddMilliseconds(item.SamplingInterval);
             }
 
             var currentTime = startTime;
             var generator = new Opc.Ua.Test.DataGenerator(null);
 
-            while (currentTime < DateTime.UtcNow)
-            {
+            while (currentTime < DateTime.UtcNow) {
                 var dataValue = new DataValue {
                     SourceTimestamp = currentTime,
                     ServerTimestamp = currentTime.AddSeconds(generator.GetRandomByte()),
@@ -250,12 +228,10 @@ namespace HistoricalAccess {
                 };
 
                 // generate random value.
-                if (item.ValueRank < 0)
-                {
+                if (item.ValueRank < 0) {
                     dataValue.Value = generator.GetRandom(item.DataType);
                 }
-                else
-                {
+                else {
                     dataValue.Value = generator.GetRandomArray(item.DataType, false, 10, false);
                 }
 
@@ -281,22 +257,19 @@ namespace HistoricalAccess {
         /// <summary>
         /// Loads the history for the item.
         /// </summary>
-        public void LoadHistoryData(ISystemContext context, ArchiveItem item)
-        {
+        public void LoadHistoryData(ISystemContext context, ArchiveItem item) {
             // use the beginning of the current hour for the baseline.
             var baseline = DateTime.UtcNow;
             baseline = new DateTime(baseline.Year, baseline.Month, baseline.Day, baseline.Hour, 0, 0, DateTimeKind.Utc);
 
-            using (var reader = item.OpenArchive())
-            {
+            using (var reader = item.OpenArchive()) {
                 // skip configuration line.
                 reader.ReadLine();
                 item.DataSet = LoadData(context, baseline, reader);
             }
 
             // create a random dataset if nothing found in the archive,
-            if (item.DataSet == null || item.DataSet.Tables[0].Rows.Count == 0)
-            {
+            if (item.DataSet == null || item.DataSet.Tables[0].Rows.Count == 0) {
                 CreateData(item);
             }
 
@@ -307,20 +280,17 @@ namespace HistoricalAccess {
         /// <summary>
         /// Loads the history data from a stream.
         /// </summary>
-        private DataSet LoadData(ISystemContext context, DateTime baseline, StreamReader reader)
-        {
+        private DataSet LoadData(ISystemContext context, DateTime baseline, StreamReader reader) {
             var dataset = CreateDataSet();
 
             var messageContext = new ServiceMessageContext();
 
-            if (context != null)
-            {
+            if (context != null) {
                 messageContext.NamespaceUris = context.NamespaceUris;
                 messageContext.ServerUris = context.ServerUris;
                 messageContext.Factory = context.EncodeableFactory;
             }
-            else
-            {
+            else {
                 messageContext.NamespaceUris = ServiceMessageContext.GlobalContext.NamespaceUris;
                 messageContext.ServerUris = ServiceMessageContext.GlobalContext.ServerUris;
                 messageContext.Factory = ServiceMessageContext.GlobalContext.Factory;
@@ -339,13 +309,11 @@ namespace HistoricalAccess {
             var annotationMessage = string.Empty;
             var lineCount = 0;
 
-            while (!reader.EndOfStream)
-            {
+            while (!reader.EndOfStream) {
                 var line = reader.ReadLine();
 
                 // check for end or error.
-                if (line == null)
-                {
+                if (line == null) {
                     break;
                 }
 
@@ -353,84 +321,69 @@ namespace HistoricalAccess {
                 line = line.Trim();
                 lineCount++;
 
-                if (string.IsNullOrEmpty(line))
-                {
+                if (string.IsNullOrEmpty(line)) {
                     continue;
                 }
 
                 // ignore commented out lines.
-                if (line.StartsWith("//", StringComparison.CurrentCulture))
-                {
+                if (line.StartsWith("//", StringComparison.CurrentCulture)) {
                     continue;
                 }
 
                 // get source time.
-                if (!ExtractField(lineCount, ref line, out sourceTimeOffset))
-                {
+                if (!ExtractField(lineCount, ref line, out sourceTimeOffset)) {
                     continue;
                 }
 
                 // get server time.
-                if (!ExtractField(lineCount, ref line, out serverTimeOffset))
-                {
+                if (!ExtractField(lineCount, ref line, out serverTimeOffset)) {
                     continue;
                 }
 
                 // get status code.
-                if (!ExtractField(lineCount, ref line, out status))
-                {
+                if (!ExtractField(lineCount, ref line, out status)) {
                     continue;
                 }
 
                 // get modification type.
-                if (!ExtractField(lineCount, ref line, out recordType))
-                {
+                if (!ExtractField(lineCount, ref line, out recordType)) {
                     continue;
                 }
 
                 // get modification time.
-                if (!ExtractField(lineCount, ref line, out modificationTimeOffet))
-                {
+                if (!ExtractField(lineCount, ref line, out modificationTimeOffet)) {
                     continue;
                 }
 
                 // get modification user.
-                if (!ExtractField(lineCount, ref line, out modificationUser))
-                {
+                if (!ExtractField(lineCount, ref line, out modificationUser)) {
                     continue;
                 }
 
-                if (recordType >= 0)
-                {
+                if (recordType >= 0) {
                     // get value type.
-                    if (!ExtractField(lineCount, ref line, out valueType))
-                    {
+                    if (!ExtractField(lineCount, ref line, out valueType)) {
                         continue;
                     }
 
                     // get value.
-                    if (!ExtractField(lineCount, ref line, messageContext, valueType, out value))
-                    {
+                    if (!ExtractField(lineCount, ref line, messageContext, valueType, out value)) {
                         continue;
                     }
                 }
-                else
-                {
+                else {
                     // get annotation time.
-                    if (!ExtractField(lineCount, ref line, out annotationTimeOffet))
-                    {
+                    if (!ExtractField(lineCount, ref line, out annotationTimeOffet)) {
                         continue;
                     }
 
                     // get annotation user.
-                    if (!ExtractField(lineCount, ref line, out annotationUser))
-                    {
+                    if (!ExtractField(lineCount, ref line, out annotationUser)) {
                         continue;
                     }
 
                     // get annotation message.
-                    if (!ExtractField(lineCount, ref line, out annotationMessage))
-                    {
+                    if (!ExtractField(lineCount, ref line, out annotationMessage)) {
                         continue;
                     }
                 }
@@ -445,8 +398,7 @@ namespace HistoricalAccess {
 
                 DataRow row = null;
 
-                if (recordType == 0)
-                {
+                if (recordType == 0) {
                     row = dataset.Tables[0].NewRow();
 
                     row[0] = dataValue.SourceTimestamp;
@@ -458,8 +410,7 @@ namespace HistoricalAccess {
                     dataset.Tables[0].Rows.Add(row);
                 }
 
-                else if (recordType > 0)
-                {
+                else if (recordType > 0) {
                     row = dataset.Tables[1].NewRow();
 
                     row[0] = dataValue.SourceTimestamp;
@@ -479,8 +430,7 @@ namespace HistoricalAccess {
                     dataset.Tables[1].Rows.Add(row);
                 }
 
-                else if (recordType < 0)
-                {
+                else if (recordType < 0) {
                     row = dataset.Tables[2].NewRow();
 
                     var annotation = new Annotation {
@@ -506,25 +456,22 @@ namespace HistoricalAccess {
             return dataset;
         }
 
-        
+
         /// <summary>
         /// Extracts the next comma seperated field from the line.
         /// </summary>
-        private string ExtractField(ref string line)
-        {
+        private string ExtractField(ref string line) {
             var field = line;
             var index = field.IndexOf(',');
 
-            if (index >= 0)
-            {
+            if (index >= 0) {
                 field = field.Substring(0, index);
                 line = line.Substring(index + 1);
             }
 
             field = field.Trim();
 
-            if (string.IsNullOrEmpty(field))
-            {
+            if (string.IsNullOrEmpty(field)) {
                 return null;
             }
 
@@ -541,8 +488,7 @@ namespace HistoricalAccess {
             value = string.Empty;
             var field = ExtractField(ref line);
 
-            if (field == null)
-            {
+            if (field == null) {
                 return true;
             }
 
@@ -553,22 +499,18 @@ namespace HistoricalAccess {
         /// <summary>
         /// Extracts an integer value from the line.
         /// </summary>
-        private bool ExtractField(int lineCount, ref string line, out int value)
-        {
+        private bool ExtractField(int lineCount, ref string line, out int value) {
             value = 0;
             var field = ExtractField(ref line);
 
-            if (field == null)
-            {
+            if (field == null) {
                 return true;
             }
 
-            try
-            {
+            try {
                 value = Convert.ToInt32(field);
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 Utils.Trace("PARSE ERROR [Line:{0}] - '{1}': {2}", lineCount, field, e.Message);
                 return false;
             }
@@ -579,28 +521,23 @@ namespace HistoricalAccess {
         /// <summary>
         /// Extracts a StatusCode value from the line.
         /// </summary>
-        private bool ExtractField(int lineCount, ref string line, out StatusCode value)
-        {
+        private bool ExtractField(int lineCount, ref string line, out StatusCode value) {
             value = 0;
             var field = ExtractField(ref line);
 
-            if (field == null)
-            {
+            if (field == null) {
                 return true;
             }
 
-            if (field.StartsWith("0x", StringComparison.CurrentCulture))
-            {
+            if (field.StartsWith("0x", StringComparison.CurrentCulture)) {
                 field = field.Substring(2);
             }
 
-            try
-            {
+            try {
                 var code = Convert.ToUInt32(field, 16);
                 value = new StatusCode(code);
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 Utils.Trace("PARSE ERROR [Line:{0}] - '{1}': {2}", lineCount, field, e.Message);
                 return false;
             }
@@ -611,22 +548,18 @@ namespace HistoricalAccess {
         /// <summary>
         /// Extracts a BuiltInType value from the line.
         /// </summary>
-        private bool ExtractField(int lineCount, ref string line, out BuiltInType value)
-        {
+        private bool ExtractField(int lineCount, ref string line, out BuiltInType value) {
             value = BuiltInType.String;
             var field = ExtractField(ref line);
 
-            if (field == null)
-            {
+            if (field == null) {
                 return true;
             }
 
-            try
-            {
+            try {
                 value = (BuiltInType)Enum.Parse(typeof(BuiltInType), field);
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 Utils.Trace("PARSE ERROR [Line:{0}] - '{1}': {2}", lineCount, field, e.Message);
                 return false;
             }
@@ -637,18 +570,15 @@ namespace HistoricalAccess {
         /// <summary>
         /// Extracts a BuiltInType value from the line.
         /// </summary>
-        private bool ExtractField(int lineCount, ref string line, ServiceMessageContext context, BuiltInType valueType, out Variant value)
-        {
+        private bool ExtractField(int lineCount, ref string line, ServiceMessageContext context, BuiltInType valueType, out Variant value) {
             value = Variant.Null;
             var field = line;
 
-            if (field == null)
-            {
+            if (field == null) {
                 return true;
             }
 
-            if (valueType == BuiltInType.Null)
-            {
+            if (valueType == BuiltInType.Null) {
                 return true;
             }
 
@@ -663,19 +593,17 @@ namespace HistoricalAccess {
                 InnerXml = builder.ToString()
             };
 
-            try
-            {
+            try {
                 var decoder = new XmlDecoder(document.DocumentElement, context);
                 value = decoder.ReadVariant(null);
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 Utils.Trace("PARSE ERROR [Line:{0}] - '{1}': {2}", lineCount, field, e.Message);
                 return false;
             }
 
             return true;
         }
-        
+
     }
 }

@@ -663,12 +663,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 "{\"Text\":\"白色' 芒果 狗 芒果) 红色 桃子, 桃子; 蛇- 鼠 鼠 草莓 黄色 红色 蓝色* 白色&quot 葡萄%\",\"Locale\":\"zh-CN\"}]");
 
             // Act
-                var result = await browser.NodeValueWriteAsync(_endpoint,
-                new ValueWriteRequestModel {
-                    NodeId = node,
-                    Value = expected,
-                    DataType = "LocalizedText"
-                });
+            var result = await browser.NodeValueWriteAsync(_endpoint,
+            new ValueWriteRequestModel {
+                NodeId = node,
+                Value = expected,
+                DataType = "LocalizedText"
+            });
 
             // Assert
             await AssertResult(node, expected, result);

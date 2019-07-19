@@ -28,10 +28,9 @@
  * ======================================================================*/
 
 
-using Opc.Ua;
-using Opc.Ua.Server;
-
 namespace SimpleEvents {
+    using Opc.Ua;
+    using Opc.Ua.Server;
 
     /// <inheritdoc/>
     public class SimpleEventsServer : INodeManagerFactory {

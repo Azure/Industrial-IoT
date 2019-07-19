@@ -45,6 +45,8 @@ namespace Opc.Ua.Design.Schema {
         /// Clone design
         /// </summary>
         /// <returns></returns>
-        public TypeDesign Copy() => (TypeDesign)MemberwiseClone();
+        public TypeDesign Copy() {
+            return (TypeDesign)MemberwiseClone();
+        }
     }
 }

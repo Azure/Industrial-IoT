@@ -15,6 +15,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
     using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
+    using System.Threading.Tasks;
     using System.Linq;
     using Xunit;
 
@@ -25,8 +26,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             CreateAppFixtures(out var site, out var super, out var apps, out var devices);
 
             using (var mock = AutoMock.GetLoose()) {
-                mock.Provide<IIoTHubTwinServices>(new IoTHubServices(devices));
-                var service = mock.Create<RegistryServices>();
+                mock.Provide<IIoTHubTwinServices>(IoTHubServices.Create(devices));
+                mock.Provide<IApplicationRepository, ApplicationTwins>();
+                IApplicationRegistry service = mock.Create<ApplicationRegistry>();
 
                 // Run
                 var t = service.GetApplicationAsync("test", false);
@@ -44,8 +46,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             var first = apps.First();
 
             using (var mock = AutoMock.GetLoose()) {
-                mock.Provide<IIoTHubTwinServices>(new IoTHubServices(devices));
-                var service = mock.Create<RegistryServices>();
+                mock.Provide<IIoTHubTwinServices>(IoTHubServices.Create(devices));
+                mock.Provide<IApplicationRepository, ApplicationTwins>();
+                IApplicationRegistry service = mock.Create<ApplicationRegistry>();
 
                 // Run
                 var result = service.GetApplicationAsync(
@@ -63,8 +66,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             CreateAppFixtures(out var site, out var super, out var apps, out var devices);
 
             using (var mock = AutoMock.GetLoose()) {
-                mock.Provide<IIoTHubTwinServices>(new IoTHubServices(devices));
-                var service = mock.Create<RegistryServices>();
+                mock.Provide<IIoTHubTwinServices>(IoTHubServices.Create(devices));
+                mock.Provide<IApplicationRepository, ApplicationTwins>();
+                IApplicationRegistry service = mock.Create<ApplicationRegistry>();
 
                 // Run
                 var records = service.ListApplicationsAsync(null, null).Result;
@@ -79,8 +83,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             CreateAppFixtures(out var site, out var super, out var apps, out var devices);
 
             using (var mock = AutoMock.GetLoose()) {
-                mock.Provide<IIoTHubTwinServices>(new IoTHubServices(devices));
-                var service = mock.Create<RegistryServices>();
+                mock.Provide<IIoTHubTwinServices>(IoTHubServices.Create(devices));
+                mock.Provide<IApplicationRepository, ApplicationTwins>();
+                IApplicationRegistry service = mock.Create<ApplicationRegistry>();
 
                 // Run
                 var records = service.QueryApplicationsAsync(null, null).Result;
@@ -91,12 +96,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         }
 
         [Fact]
-        public void QueryApplicationsByClientServerApplicationType() {
+        public void QueryApplicationsByClientAndServerApplicationType() {
             CreateAppFixtures(out var site, out var super, out var apps, out var devices);
 
             using (var mock = AutoMock.GetLoose()) {
-                mock.Provide<IIoTHubTwinServices>(new IoTHubServices(devices));
-                var service = mock.Create<RegistryServices>();
+                mock.Provide<IIoTHubTwinServices>(IoTHubServices.Create(devices));
+                mock.Provide<IApplicationRepository, ApplicationTwins>();
+                IApplicationRegistry service = mock.Create<ApplicationRegistry>();
 
                 // Run
                 var records = service.QueryApplicationsAsync(new ApplicationRegistrationQueryModel {
@@ -104,7 +110,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 }, null).Result;
 
                 // Assert
-                Assert.True(apps.IsSameAs(records.Items));
+                Assert.Equal(apps.Count(x =>
+                    x.ApplicationType == ApplicationType.ClientAndServer), records.Items.Count);
             }
         }
 
@@ -113,8 +120,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             CreateAppFixtures(out var site, out var super, out var apps, out var devices);
 
             using (var mock = AutoMock.GetLoose()) {
-                mock.Provide<IIoTHubTwinServices>(new IoTHubServices(devices));
-                var service = mock.Create<RegistryServices>();
+                mock.Provide<IIoTHubTwinServices>(IoTHubServices.Create(devices));
+                mock.Provide<IApplicationRepository, ApplicationTwins>();
+                IApplicationRegistry service = mock.Create<ApplicationRegistry>();
 
                 // Run
                 var records = service.QueryApplicationsAsync(new ApplicationRegistrationQueryModel {
@@ -122,7 +130,26 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 }, null).Result;
 
                 // Assert
-                Assert.True(records.Items.Count == apps.Count(x => x.ApplicationType != ApplicationType.Client));
+                Assert.Equal(apps.Count(x => x.ApplicationType != ApplicationType.Client), records.Items.Count);
+            }
+        }
+
+        [Fact]
+        public void QueryApplicationsByDiscoveryServerApplicationType() {
+            CreateAppFixtures(out var site, out var super, out var apps, out var devices);
+
+            using (var mock = AutoMock.GetLoose()) {
+                mock.Provide<IIoTHubTwinServices>(IoTHubServices.Create(devices));
+                mock.Provide<IApplicationRepository, ApplicationTwins>();
+                IApplicationRegistry service = mock.Create<ApplicationRegistry>();
+
+                // Run
+                var records = service.QueryApplicationsAsync(new ApplicationRegistrationQueryModel {
+                    ApplicationType = ApplicationType.DiscoveryServer
+                }, null).Result;
+
+                // Assert
+                Assert.Equal(apps.Count(x => x.ApplicationType == ApplicationType.DiscoveryServer), records.Items.Count);
             }
         }
 
@@ -131,8 +158,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             CreateAppFixtures(out var site, out var super, out var apps, out var devices);
 
             using (var mock = AutoMock.GetLoose()) {
-                mock.Provide<IIoTHubTwinServices>(new IoTHubServices(devices));
-                var service = mock.Create<RegistryServices>();
+                mock.Provide<IIoTHubTwinServices>(IoTHubServices.Create(devices));
+                mock.Provide<IApplicationRepository, ApplicationTwins>();
+                IApplicationRegistry service = mock.Create<ApplicationRegistry>();
 
                 // Run
                 var records = service.QueryApplicationsAsync(new ApplicationRegistrationQueryModel {
@@ -149,8 +177,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             CreateAppFixtures(out var site, out var super, out var apps, out var devices, true);
 
             using (var mock = AutoMock.GetLoose()) {
-                mock.Provide<IIoTHubTwinServices>(new IoTHubServices(devices));
-                var service = mock.Create<RegistryServices>();
+                mock.Provide<IIoTHubTwinServices>(IoTHubServices.Create(devices));
+                mock.Provide<IApplicationRepository, ApplicationTwins>();
+                IApplicationRegistry service = mock.Create<ApplicationRegistry>();
 
                 // Run
                 var records = service.QueryApplicationsAsync(new ApplicationRegistrationQueryModel {
@@ -168,8 +197,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             CreateAppFixtures(out var site, out var super, out var apps, out var devices);
 
             using (var mock = AutoMock.GetLoose()) {
-                mock.Provide<IIoTHubTwinServices>(new IoTHubServices(devices));
-                var service = mock.Create<RegistryServices>();
+                mock.Provide<IIoTHubTwinServices>(IoTHubServices.Create(devices));
+                mock.Provide<IApplicationRepository, ApplicationTwins>();
+                IApplicationRegistry service = mock.Create<ApplicationRegistry>();
 
                 // Run
                 var records = service.QueryApplicationsAsync(new ApplicationRegistrationQueryModel {
@@ -177,7 +207,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 }, null).Result;
 
                 // Assert
-                Assert.True(records.Items.Count == apps.Count(x => x.ApplicationType != ApplicationType.Server));
+                Assert.Equal(apps.Count(x =>
+                    x.ApplicationType != ApplicationType.Server &&
+                    x.ApplicationType != ApplicationType.DiscoveryServer), records.Items.Count);
             }
         }
 
@@ -186,8 +218,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             CreateAppFixtures(out var site, out var super, out var apps, out var devices);
 
             using (var mock = AutoMock.GetLoose()) {
-                mock.Provide<IIoTHubTwinServices>(new IoTHubServices(devices));
-                var service = mock.Create<RegistryServices>();
+                mock.Provide<IIoTHubTwinServices>(IoTHubServices.Create(devices));
+                mock.Provide<IApplicationRepository, ApplicationTwins>();
+                IApplicationRegistry service = mock.Create<ApplicationRegistry>();
 
                 // Run
                 var records = service.QueryApplicationsAsync(new ApplicationRegistrationQueryModel {
@@ -205,8 +238,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             CreateAppFixtures(out var site, out var super, out var apps, out var devices);
 
             using (var mock = AutoMock.GetLoose()) {
-                mock.Provide<IIoTHubTwinServices>(new IoTHubServices(devices));
-                var service = mock.Create<RegistryServices>();
+                mock.Provide<IIoTHubTwinServices>(IoTHubServices.Create(devices));
+                mock.Provide<IApplicationRepository, ApplicationTwins>();
+                IApplicationRegistry service = mock.Create<ApplicationRegistry>();
 
                 // Run
                 var records = service.QueryApplicationsAsync(new ApplicationRegistrationQueryModel {
@@ -223,8 +257,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             CreateAppFixtures(out var site, out var super, out var apps, out var devices);
 
             using (var mock = AutoMock.GetLoose()) {
-                mock.Provide<IIoTHubTwinServices>(new IoTHubServices(devices));
-                var service = mock.Create<RegistryServices>();
+                mock.Provide<IIoTHubTwinServices>(IoTHubServices.Create(devices));
+                mock.Provide<IApplicationRepository, ApplicationTwins>();
+                IApplicationRegistry service = mock.Create<ApplicationRegistry>();
 
                 // Run
                 var records = service.QueryApplicationsAsync(new ApplicationRegistrationQueryModel {
@@ -236,6 +271,253 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 Assert.True(records.Items.First().IsSameAs(apps.First()));
             }
         }
+
+        /// <summary>
+        /// Test to register all applications in the test set.
+        /// </summary>
+        [Fact]
+        public void RegisterApplication() {
+            CreateAppFixtures(out var site, out var super, out var apps, out var devices);
+
+            using (var mock = AutoMock.GetLoose()) {
+                var hub = new IoTHubServices();
+                mock.Provide<IIoTHubTwinServices>(hub);
+                mock.Provide<IApplicationRepository, ApplicationTwins>();
+                IApplicationRegistry service = mock.Create<ApplicationRegistry>();
+
+                // Run
+                foreach (var app in apps) {
+                    var record = service.RegisterApplicationAsync(
+                        app.ToRegistrationRequest()).Result;
+                }
+
+                // Assert
+                Assert.Equal(apps.Count, hub.Devices.Count());
+                var records = service.ListApplicationsAsync(null, null).Result;
+
+                // Assert
+                Assert.True(apps.IsSameAs(records.Items));
+            }
+        }
+
+        /// <summary>
+        /// Test to register all applications in the test set.
+        /// </summary>
+        [Fact]
+        public void UnregisterApplications() {
+            CreateAppFixtures(out var site, out var super, out var apps, out var devices);
+
+            using (var mock = AutoMock.GetLoose()) {
+                var hub = IoTHubServices.Create(devices);
+                mock.Provide<IIoTHubTwinServices>(hub);
+                mock.Provide<IApplicationRepository, ApplicationTwins>();
+                IApplicationRegistry service = mock.Create<ApplicationRegistry>();
+
+                // Run
+                foreach (var app in apps) {
+                    service.UnregisterApplicationAsync(app.ApplicationId, null).Wait();
+                }
+
+                // Assert
+                Assert.Empty(hub.Devices);
+            }
+        }
+
+        /// <summary>
+        /// Test to register all applications in the test set.
+        /// </summary>
+        [Fact]
+        public async Task BadArgShouldThrowExceptions() {
+            using (var mock = AutoMock.GetLoose()) {
+                var hub = new IoTHubServices();
+                mock.Provide<IIoTHubTwinServices>(hub);
+                mock.Provide<IApplicationRepository, ApplicationTwins>();
+                IApplicationRegistry service = mock.Create<ApplicationRegistry>();
+
+                await Assert.ThrowsAsync<ArgumentNullException>(
+                    () => service.RegisterApplicationAsync(null));
+                await Assert.ThrowsAsync<ArgumentNullException>(
+                    () => service.RejectApplicationAsync(null, false, null));
+                await Assert.ThrowsAsync<ArgumentNullException>(
+                    () => service.RejectApplicationAsync("", false, null));
+                await Assert.ThrowsAsync<ArgumentNullException>(
+                    () => service.GetApplicationAsync(null, false));
+                await Assert.ThrowsAsync<ArgumentNullException>(
+                    () => service.GetApplicationAsync("", false));
+                await Assert.ThrowsAsync<ResourceNotFoundException>(
+                    () => service.GetApplicationAsync("abc", false));
+                await Assert.ThrowsAsync<ResourceNotFoundException>(
+                    () => service.GetApplicationAsync(Guid.NewGuid().ToString(), false));
+            }
+        }
+
+        /// <summary>
+        /// Test the approve reject state machine.
+        /// </summary>
+        /// <remarks>After this test all applications are in the approved state.</remarks>
+        [Fact]
+        public void ApproveNewApplication() {
+            CreateAppFixtures(out var site, out var super, out var apps, out var devices);
+
+            using (var mock = AutoMock.GetLoose()) {
+                var hub = IoTHubServices.Create(devices);
+                mock.Provide<IIoTHubTwinServices>(hub);
+                mock.Provide<IApplicationRepository, ApplicationTwins>();
+                IApplicationRegistry service = mock.Create<ApplicationRegistry>();
+
+                var app = apps.First();
+                service.ApproveApplicationAsync(app.ApplicationId, false, null).Wait();
+                var registration = service.GetApplicationAsync(app.ApplicationId, false).Result;
+
+                Assert.Equal(ApplicationState.Approved, registration.Application.State);
+
+                // reject approved app should fail
+                Assert.ThrowsAsync<ResourceInvalidStateException>(
+                    () => service.RejectApplicationAsync(app.ApplicationId, false, null)).Wait();
+
+                service.RejectApplicationAsync(app.ApplicationId, true, null).Wait();
+                registration = service.GetApplicationAsync(app.ApplicationId, false).Result;
+
+                Assert.Equal(ApplicationState.Rejected, registration.Application.State);
+            }
+        }
+
+        [Fact]
+        public void RejectNewApplication() {
+            CreateAppFixtures(out var site, out var super, out var apps, out var devices);
+
+            using (var mock = AutoMock.GetLoose()) {
+                var hub = IoTHubServices.Create(devices);
+                mock.Provide<IIoTHubTwinServices>(hub);
+                mock.Provide<IApplicationRepository, ApplicationTwins>();
+                IApplicationRegistry service = mock.Create<ApplicationRegistry>();
+
+                var app = apps.First();
+                service.RejectApplicationAsync(app.ApplicationId, false, null).Wait();
+                var registration = service.GetApplicationAsync(app.ApplicationId, false).Result;
+
+                Assert.Equal(ApplicationState.Rejected, registration.Application.State);
+
+                // reject approved app should fail
+                Assert.ThrowsAsync<ResourceInvalidStateException>(
+                    () => service.ApproveApplicationAsync(app.ApplicationId, false, null)).Wait();
+
+                service.ApproveApplicationAsync(app.ApplicationId, true, null).Wait();
+                registration = service.GetApplicationAsync(app.ApplicationId, false).Result;
+
+                Assert.Equal(ApplicationState.Approved, registration.Application.State);
+            }
+        }
+
+        [Fact]
+        public void RejectApprovedApplicationForce() {
+            CreateAppFixtures(out var site, out var super, out var apps, out var devices);
+
+            using (var mock = AutoMock.GetLoose()) {
+                var hub = IoTHubServices.Create(devices);
+                mock.Provide<IIoTHubTwinServices>(hub);
+                mock.Provide<IApplicationRepository, ApplicationTwins>();
+                IApplicationRegistry service = mock.Create<ApplicationRegistry>();
+
+                var app = apps.First();
+                service.RejectApplicationAsync(app.ApplicationId, false, null).Wait();
+                service.ApproveApplicationAsync(app.ApplicationId, true, null).Wait();
+                var registration = service.GetApplicationAsync(app.ApplicationId, false).Result;
+                Assert.Equal(ApplicationState.Approved, registration.Application.State);
+            }
+        }
+
+        [Fact]
+        public void ApproveRejectedApplicationForce() {
+            CreateAppFixtures(out var site, out var super, out var apps, out var devices);
+
+            using (var mock = AutoMock.GetLoose()) {
+                var hub = IoTHubServices.Create(devices);
+                mock.Provide<IIoTHubTwinServices>(hub);
+                mock.Provide<IApplicationRepository, ApplicationTwins>();
+                IApplicationRegistry service = mock.Create<ApplicationRegistry>();
+
+                var app = apps.First();
+                service.ApproveApplicationAsync(app.ApplicationId, false, null).Wait();
+                service.RejectApplicationAsync(app.ApplicationId, true, null).Wait();
+                var registration = service.GetApplicationAsync(app.ApplicationId, false).Result;
+                Assert.Equal(ApplicationState.Rejected, registration.Application.State);
+            }
+        }
+
+        [Fact]
+        public void DoubleApproveApplicationDoesNothing() {
+            CreateAppFixtures(out var site, out var super, out var apps, out var devices);
+
+            using (var mock = AutoMock.GetLoose()) {
+                var hub = IoTHubServices.Create(devices);
+                mock.Provide<IIoTHubTwinServices>(hub);
+                mock.Provide<IApplicationRepository, ApplicationTwins>();
+                IApplicationRegistry service = mock.Create<ApplicationRegistry>();
+
+                var app = apps.First();
+                service.ApproveApplicationAsync(app.ApplicationId, false, null).Wait();
+                service.ApproveApplicationAsync(app.ApplicationId, false, null).Wait();
+                var registration = service.GetApplicationAsync(app.ApplicationId, false).Result;
+                Assert.Equal(ApplicationState.Approved, registration.Application.State);
+            }
+        }
+
+        [Fact]
+        public void DisableEnableApplication() {
+            CreateAppFixtures(out var site, out var super, out var apps, out var devices);
+
+            using (var mock = AutoMock.GetLoose()) {
+                var hub = IoTHubServices.Create(devices);
+                mock.Provide<IIoTHubTwinServices>(hub);
+                mock.Provide<IApplicationRepository, ApplicationTwins>();
+                IApplicationRegistry service = mock.Create<ApplicationRegistry>();
+
+                var app = apps.First();
+                service.DisableApplicationAsync(app.ApplicationId, null).Wait();
+                var registration = service.GetApplicationAsync(app.ApplicationId, false).Result;
+                Assert.NotNull(registration.Application.NotSeenSince);
+                service.EnableApplicationAsync(app.ApplicationId, null).Wait();
+                registration = service.GetApplicationAsync(app.ApplicationId, false).Result;
+                Assert.Null(registration.Application.NotSeenSince);
+            }
+        }
+
+        [Fact]
+        public void RejectApproveWhenDisabledApplicationShouldAlwaysFail() {
+            CreateAppFixtures(out var site, out var super, out var apps, out var devices);
+
+            using (var mock = AutoMock.GetLoose()) {
+                var hub = IoTHubServices.Create(devices);
+                mock.Provide<IIoTHubTwinServices>(hub);
+                mock.Provide<IApplicationRepository, ApplicationTwins>();
+                IApplicationRegistry service = mock.Create<ApplicationRegistry>();
+
+                var app = apps.First();
+                service.DisableApplicationAsync(app.ApplicationId, null).Wait();
+
+                Assert.ThrowsAsync<ResourceInvalidStateException>(
+                    () => service.ApproveApplicationAsync(app.ApplicationId, false, null)).Wait();
+                Assert.ThrowsAsync<ResourceInvalidStateException>(
+                    () => service.RejectApplicationAsync(app.ApplicationId, false, null)).Wait();
+                Assert.ThrowsAsync<ResourceInvalidStateException>(
+                    () => service.ApproveApplicationAsync(app.ApplicationId, true, null)).Wait();
+                Assert.ThrowsAsync<ResourceInvalidStateException>(
+                    () => service.RejectApplicationAsync(app.ApplicationId, true, null)).Wait();
+            }
+        }
+
+#if FALSE
+        [Fact]
+        public async Task QueryApplicationsByIdInAnyStateReturnsAllApplications() {
+            var response = await ((IApplicationRecordQuery)_registry).QueryApplicationsAsync(
+                new ApplicationRecordQueryModel {
+                    ApplicationState = ApplicationStateMask.Any
+                });
+            Assert.NotNull(response);
+            Assert.Equal(_applicationTestSet.Count, response.Items.Count);
+        }
+#endif
 
         /// <summary>
         /// Helper to create app fixtures
@@ -258,10 +540,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 .With(x => x.SupervisorId, superx)
                 .CreateMany(10)
                 .ToList();
-
+            apps.ForEach(x => x.ApplicationId = ApplicationInfoModelEx.CreateApplicationId(
+                 sitex, x.ApplicationUri, x.ApplicationType));
             devices = apps
-                .Select(a => ApplicationRegistration.FromServiceModel(a))
-                .Select(a => ApplicationRegistration.Patch(null, a))
+                .Select(a => a.ToApplicationRegistration())
+                .Select(a => a.ToDeviceTwin())
                 .Select(t => (t, new DeviceModel { Id = t.Id }))
                 .ToList();
         }

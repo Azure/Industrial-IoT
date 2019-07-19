@@ -22,7 +22,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Services {
     /// Decode nodes from stream and write them to the node collection
     /// and removing the ones that went stale.
     /// </summary>
-    sealed class NodeSetStreamLoader {
+    internal sealed class NodeSetStreamLoader {
 
         /// <summary>
         /// Create node stream decoder

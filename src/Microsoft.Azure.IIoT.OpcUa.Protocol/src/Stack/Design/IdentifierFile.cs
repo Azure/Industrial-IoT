@@ -135,8 +135,8 @@ namespace Opc.Ua.Design {
             return identifiers;
         }
 
-        private Dictionary<string, object> _identifiers =
+        private readonly Dictionary<string, object> _identifiers =
             new Dictionary<string, object>();
-        private HashSet<object> _assigned;
+        private readonly HashSet<object> _assigned;
     }
 }

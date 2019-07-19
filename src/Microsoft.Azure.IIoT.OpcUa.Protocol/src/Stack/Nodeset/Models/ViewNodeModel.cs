@@ -49,10 +49,10 @@ namespace Opc.Ua.Nodeset {
         /// <inheritdoc/>
         public override int GetHashCode() {
             var hashCode = base.GetHashCode();
-            hashCode = hashCode *
-                -1521134295 + EventNotifier.GetHashSafe();
-            hashCode = hashCode *
-                -1521134295 + ContainsNoLoops.GetHashSafe();
+            hashCode = (hashCode *
+                -1521134295) + EventNotifier.GetHashSafe();
+            hashCode = (hashCode *
+                -1521134295) + ContainsNoLoops.GetHashSafe();
             return hashCode;
         }
     }

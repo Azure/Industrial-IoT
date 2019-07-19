@@ -27,10 +27,9 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System;
-using System.Collections.Generic;
-
 namespace Opc.Ua.Aggregates {
+    using System;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Coordinates aggregation over a time series of raw data points to yield a time series of processed data points.
@@ -206,12 +205,12 @@ namespace Opc.Ua.Aggregates {
         protected virtual StatusCode ComputeStatus(IAggregationContext context, int numGood, int numBad, TimeSlice bucket) {
             var total = numGood + numBad;
             if (total > 0) {
-                double pbad = (numBad * 100) / total;
+                double pbad = numBad * 100 / total;
                 if (pbad > context.PercentDataBad) {
                     return StatusCodes.Bad;
                 }
 
-                double pgood = (numGood * 100) / total;
+                double pgood = numGood * 100 / total;
                 if (pgood >= context.PercentDataGood) {
                     return StatusCodes.Good;
                 }

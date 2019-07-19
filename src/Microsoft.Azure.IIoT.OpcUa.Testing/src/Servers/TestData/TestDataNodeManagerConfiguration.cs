@@ -27,9 +27,9 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System.Runtime.Serialization;
-
 namespace TestData {
+    using System.Runtime.Serialization;
+
     /// <summary>
     /// Stores the configuration the test node manager
     /// </summary>

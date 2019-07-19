@@ -87,7 +87,7 @@ namespace Opc.Ua.Nodeset {
                             break;
                         case DataTypeNodeModel dataType:
                             state = new DataTypeState {
-                              //  Definition = dataType.Definition.ToDataTypeDefinition()
+                                //  Definition = dataType.Definition.ToDataTypeDefinition()
                             };
                             break;
                         default:
@@ -230,7 +230,7 @@ namespace Opc.Ua.Nodeset {
                             break;
                         case DataTypeState dataType:
                             nodeModel = new DataTypeNodeModel {
-                              //  Definition = dataType.Definition.ToDataTypeDefinition(),
+                                //  Definition = dataType.Definition.ToDataTypeDefinition(),
                                 Purpose = Schema.DataTypePurpose.Normal
                             };
                             break;

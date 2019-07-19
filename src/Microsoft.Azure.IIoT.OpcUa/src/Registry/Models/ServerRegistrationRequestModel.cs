@@ -7,7 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     using System.Collections.Generic;
 
     /// <summary>
-    /// Server onboarding request
+    /// Server registration request
     /// </summary>
     public class ServerRegistrationRequestModel {
 
@@ -35,5 +35,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// Upon discovery, activate all endpoints with this filter.
         /// </summary>
         public EndpointActivationFilterModel ActivationFilter { get; set; }
+
+        /// <summary>
+        /// Operation audit context
+        /// </summary>
+        public RegistryOperationContextModel Context { get; set; }
     }
 }

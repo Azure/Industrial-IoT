@@ -27,10 +27,10 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System;
-using System.Collections.Generic;
-
 namespace Opc.Ua.Aggregates {
+    using System;
+    using System.Collections.Generic;
+
     /// <summary>
     /// A snapshot of a structured window over a stream of data to be aggregated
     /// </summary>
@@ -103,19 +103,19 @@ namespace Opc.Ua.Aggregates {
         /// <summary>
         /// Provides contextual details of the aggregation
         /// </summary>
-        private IAggregationContext AggregationContext;
+        private readonly IAggregationContext _aggregationContext;
 
         /// <summary>
         /// Something to call back on when we are ready to produce processed data points
         /// </summary>
-        private IAggregationActor AggregationActor;
+        private readonly IAggregationActor _aggregationActor;
 
         /// <summary>
         /// Creates a new instance.
         /// </summary>>
         public AggregateState(IAggregationContext context, IAggregationActor actor) {
-            AggregationContext = context;
-            AggregationActor = actor;
+            _aggregationContext = context;
+            _aggregationActor = actor;
             CurrentBadPoints = new List<DataValue>();
             PriorBadPoints = new List<DataValue>();
         }
@@ -127,7 +127,7 @@ namespace Opc.Ua.Aggregates {
         /// <param name="value"></param>
         /// <returns></returns>
         public bool RawValueIsGood(DataValue value) {
-            if (AggregationContext.TreatUncertainAsBad) {
+            if (_aggregationContext.TreatUncertainAsBad) {
                 return StatusCode.IsGood(value.StatusCode);
             }
             else {
@@ -144,21 +144,21 @@ namespace Opc.Ua.Aggregates {
         /// <returns></returns>
         private int RawValueInWindow(DataValue value) {
             var retval = -1;
-            if (AggregationContext.IsReverseAggregation) {
-                if (value.SourceTimestamp <= AggregationContext.EndTime) {
+            if (_aggregationContext.IsReverseAggregation) {
+                if (value.SourceTimestamp <= _aggregationContext.EndTime) {
                     retval = 0;
                 }
 
-                if (value.SourceTimestamp <= AggregationContext.StartTime) {
+                if (value.SourceTimestamp <= _aggregationContext.StartTime) {
                     retval = 1;
                 }
             }
             else {
-                if (value.SourceTimestamp >= AggregationContext.StartTime) {
+                if (value.SourceTimestamp >= _aggregationContext.StartTime) {
                     retval = 0;
                 }
 
-                if (value.SourceTimestamp >= AggregationContext.EndTime) {
+                if (value.SourceTimestamp >= _aggregationContext.EndTime) {
                     retval = 1;
                 }
             }
@@ -190,11 +190,11 @@ namespace Opc.Ua.Aggregates {
                             PriorBadPoints = CurrentBadPoints;
                             EarlyPoint = rawData;
                             CurrentBadPoints = new List<DataValue>();
-                            AggregationActor.UpdateProcessedData(rawData, this);
+                            _aggregationActor.UpdateProcessedData(rawData, this);
                         }
                         else {
                             LatePoint = rawData;
-                            AggregationActor.UpdateProcessedData(rawData, this);
+                            _aggregationActor.UpdateProcessedData(rawData, this);
                             PriorPoint = EarlyPoint;
                             PriorBadPoints = CurrentBadPoints;
                             EarlyPoint = rawData;
@@ -207,7 +207,7 @@ namespace Opc.Ua.Aggregates {
                             LatePoint = rawData;
                         }
 
-                        AggregationActor.UpdateProcessedData(rawData, this);
+                        _aggregationActor.UpdateProcessedData(rawData, this);
                         break;
                     default:
                         break;
@@ -217,7 +217,7 @@ namespace Opc.Ua.Aggregates {
                 if (LatePoint == null) {
                     CurrentBadPoints.Add(rawData);
                     if (relevance >= 0) {
-                        AggregationActor.UpdateProcessedData(rawData, this);
+                        _aggregationActor.UpdateProcessedData(rawData, this);
                     }
                 }
             }
@@ -231,7 +231,7 @@ namespace Opc.Ua.Aggregates {
             HasTerminated = true;
             LatestTimestamp = DateTime.MaxValue;
             LatestStatus = StatusCodes.GoodNoData;
-            AggregationActor.UpdateProcessedData(null, this);
+            _aggregationActor.UpdateProcessedData(null, this);
         }
     }
 }

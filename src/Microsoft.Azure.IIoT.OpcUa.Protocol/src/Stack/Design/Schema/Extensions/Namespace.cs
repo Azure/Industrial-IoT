@@ -49,23 +49,19 @@ namespace Opc.Ua.Design.Schema {
         /// <inheritdoc/>
         public override int GetHashCode() {
             var hashCode = 834833178;
-            hashCode = hashCode * -1521134295 +
+            hashCode = (hashCode * -1521134295) +
                 EqualityComparer<string>.Default.GetHashCode(Version);
-            hashCode = hashCode * -1521134295 +
+            hashCode = (hashCode * -1521134295) +
                 EqualityComparer<string>.Default.GetHashCode(PublicationDate);
-            hashCode = hashCode * -1521134295 +
+            hashCode = (hashCode * -1521134295) +
                 EqualityComparer<string>.Default.GetHashCode(Value);
             return hashCode;
         }
 
         /// <inheritdoc/>
-        public static bool operator ==(Namespace ns1, Namespace ns2) {
-            return EqualityComparer<Namespace>.Default.Equals(ns1, ns2);
-        }
+        public static bool operator ==(Namespace ns1, Namespace ns2) => EqualityComparer<Namespace>.Default.Equals(ns1, ns2);
 
         /// <inheritdoc/>
-        public static bool operator !=(Namespace ns1, Namespace ns2) {
-            return !(ns1 == ns2);
-        }
+        public static bool operator !=(Namespace ns1, Namespace ns2) => !(ns1 == ns2);
     }
 }

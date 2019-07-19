@@ -27,21 +27,19 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System.Runtime.Serialization;
-
 namespace PerfTest {
+    using System.Runtime.Serialization;
+
     /// <summary>
     /// Stores the configuration the data access node manager.
     /// </summary>
-    [DataContract(Namespace=Namespaces.PerfTest)]
-    public class PerfTestServerConfiguration
-    {
-        
+    [DataContract(Namespace = Namespaces.PerfTest)]
+    public class PerfTestServerConfiguration {
+
         /// <summary>
         /// The default constructor.
         /// </summary>
-        public PerfTestServerConfiguration()
-        {
+        public PerfTestServerConfiguration() {
             Initialize();
         }
 
@@ -59,15 +57,14 @@ namespace PerfTest {
         /// <summary>
         /// Sets private members to default values.
         /// </summary>
-        private void Initialize()
-        {
+        private void Initialize() {
         }
-        
 
-        
-        
 
-        
-        
+
+
+
+
+
     }
 }

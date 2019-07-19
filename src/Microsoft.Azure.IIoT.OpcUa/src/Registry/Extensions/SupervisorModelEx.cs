@@ -19,8 +19,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <param name="deviceId"></param>
         /// <param name="moduleId"></param>
         /// <returns></returns>
-        public static string CreateSupervisorId(string deviceId, string moduleId) =>
-            string.IsNullOrEmpty(moduleId) ? deviceId : $"{deviceId}_module_{moduleId}";
+        public static string CreateSupervisorId(string deviceId, string moduleId) {
+            return string.IsNullOrEmpty(moduleId) ? deviceId : $"{deviceId}_module_{moduleId}";
+        }
 
         /// <summary>
         /// Returns device id and optional module from supervisor id.

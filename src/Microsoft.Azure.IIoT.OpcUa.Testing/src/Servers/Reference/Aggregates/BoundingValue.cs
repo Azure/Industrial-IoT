@@ -27,10 +27,9 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System;
-using System.Globalization;
-
 namespace Opc.Ua.Aggregates {
+    using System;
+    using System.Globalization;
 
     /// <summary>
     /// The bounding value for a timeslice.

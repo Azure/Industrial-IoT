@@ -27,9 +27,9 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System.Collections.Generic;
-
 namespace Opc.Ua.Aggregates {
+    using System.Collections.Generic;
+
     /// <summary>
     /// An interface that allows new processed data points to be generated as a response to
     /// new raw data

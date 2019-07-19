@@ -27,12 +27,12 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System;
-using System.Collections.Generic;
-using System.Xml;
-using Opc.Ua;
-
 namespace TestData {
+    using System;
+    using System.Collections.Generic;
+    using System.Xml;
+    using Opc.Ua;
+
     #region GenerateValuesMethodState Class
 #if (!OPCUA_EXCLUDE_GenerateValuesMethodState)
     /// <summary>
@@ -40,14 +40,12 @@ namespace TestData {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public partial class GenerateValuesMethodState : MethodState
-    {
+    public partial class GenerateValuesMethodState : MethodState {
         #region Constructors
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
-        public GenerateValuesMethodState(NodeState parent) : base(parent)
-        {
+        public GenerateValuesMethodState(NodeState parent) : base(parent) {
         }
 
         /// <summary>
@@ -55,17 +53,15 @@ namespace TestData {
         /// </summary>
         /// <param name="parent">The parent.</param>
         /// <returns>The new node.</returns>
-        public new static NodeState Construct(NodeState parent)
-        {
+        public new static NodeState Construct(NodeState parent) {
             return new GenerateValuesMethodState(parent);
         }
 
-        #if (!OPCUA_EXCLUDE_InitializationStrings)
+#if (!OPCUA_EXCLUDE_InitializationStrings)
         /// <summary>
         /// Initializes the instance.
         /// </summary>
-        protected override void Initialize(ISystemContext context)
-        {
+        protected override void Initialize(ISystemContext context) {
             Initialize(context, InitializationString);
             InitializeOptionalChildren(context);
         }
@@ -73,8 +69,7 @@ namespace TestData {
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
-        protected override void InitializeOptionalChildren(ISystemContext context)
-        {
+        protected override void InitializeOptionalChildren(ISystemContext context) {
             base.InitializeOptionalChildren(context);
         }
 
@@ -85,7 +80,7 @@ namespace TestData {
            "dW1lbnRzAQGaJAAuAESaJAAAlgEAAAABACoBAUYAAAAKAAAASXRlcmF0aW9ucwAH/////wAAAAADAAAA" +
            "ACUAAABUaGUgbnVtYmVyIG9mIG5ldyB2YWx1ZXMgdG8gZ2VuZXJhdGUuAQAoAQEAAAABAf////8AAAAA";
         #endregion
-        #endif
+#endif
         #endregion
 
         #region Event Callbacks
@@ -111,10 +106,8 @@ namespace TestData {
             ISystemContext context,
             NodeId objectId,
             IList<object> inputArguments,
-            IList<object> outputArguments)
-        {
-            if (OnCall == null)
-            {
+            IList<object> outputArguments) {
+            if (OnCall == null) {
                 return base.Call(context, objectId, inputArguments, outputArguments);
             }
 
@@ -122,8 +115,7 @@ namespace TestData {
 
             uint iterations = (uint)inputArguments[0];
 
-            if (OnCall != null)
-            {
+            if (OnCall != null) {
                 result = OnCall(
                     context,
                     this,
@@ -148,40 +140,36 @@ namespace TestData {
         MethodState method,
         NodeId objectId,
         uint iterations);
-    #endif
+#endif
     #endregion
 
     #region GenerateValuesEventState Class
-    #if (!OPCUA_EXCLUDE_GenerateValuesEventState)
+#if (!OPCUA_EXCLUDE_GenerateValuesEventState)
     /// <summary>
     /// Stores an instance of the GenerateValuesEventType ObjectType.
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public partial class GenerateValuesEventState : BaseEventState
-    {
+    public partial class GenerateValuesEventState : BaseEventState {
         #region Constructors
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
-        public GenerateValuesEventState(NodeState parent) : base(parent)
-        {
+        public GenerateValuesEventState(NodeState parent) : base(parent) {
         }
 
         /// <summary>
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
-        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
-        {
+        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris) {
             return Opc.Ua.NodeId.Create(TestData.ObjectTypes.GenerateValuesEventType, TestData.Namespaces.TestData, namespaceUris);
         }
 
-        #if (!OPCUA_EXCLUDE_InitializationStrings)
+#if (!OPCUA_EXCLUDE_InitializationStrings)
         /// <summary>
         /// Initializes the instance.
         /// </summary>
-        protected override void Initialize(ISystemContext context)
-        {
+        protected override void Initialize(ISystemContext context) {
             Initialize(context, InitializationString);
             InitializeOptionalChildren(context);
         }
@@ -189,8 +177,7 @@ namespace TestData {
         /// <summary>
         /// Initializes the instance with a node.
         /// </summary>
-        protected override void Initialize(ISystemContext context, NodeState source)
-        {
+        protected override void Initialize(ISystemContext context, NodeState source) {
             InitializeOptionalChildren(context);
             base.Initialize(context, source);
         }
@@ -198,8 +185,7 @@ namespace TestData {
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
-        protected override void InitializeOptionalChildren(ISystemContext context)
-        {
+        protected override void InitializeOptionalChildren(ISystemContext context) {
             base.InitializeOptionalChildren(context);
         }
 
@@ -223,24 +209,20 @@ namespace TestData {
            "JAAuAESlJAAAAAf/////AQH/////AAAAABVgiQoCAAAAAQANAAAATmV3VmFsdWVDb3VudAEBpiQALgBE" +
            "piQAAAAH/////wEB/////wAAAAA=";
         #endregion
-        #endif
+#endif
         #endregion
 
         #region Public Properties
         /// <summary>
         /// A description for the Iterations Property.
         /// </summary>
-        public PropertyState<uint> Iterations
-        {
-            get
-            {
+        public PropertyState<uint> Iterations {
+            get {
                 return m_iterations;
             }
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_iterations, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_iterations, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -251,17 +233,13 @@ namespace TestData {
         /// <summary>
         /// A description for the NewValueCount Property.
         /// </summary>
-        public PropertyState<uint> NewValueCount
-        {
-            get
-            {
+        public PropertyState<uint> NewValueCount {
+            get {
                 return m_newValueCount;
             }
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_newValueCount, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_newValueCount, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -278,15 +256,12 @@ namespace TestData {
         /// <param name="children">The list of children to populate.</param>
         public override void GetChildren(
             ISystemContext context,
-            IList<BaseInstanceState> children)
-        {
-            if (m_iterations != null)
-            {
+            IList<BaseInstanceState> children) {
+            if (m_iterations != null) {
                 children.Add(m_iterations);
             }
 
-            if (m_newValueCount != null)
-            {
+            if (m_newValueCount != null) {
                 children.Add(m_newValueCount);
             }
 
@@ -300,62 +275,48 @@ namespace TestData {
             ISystemContext context,
             QualifiedName browseName,
             bool createOrReplace,
-            BaseInstanceState replacement)
-        {
-            if (QualifiedName.IsNull(browseName))
-            {
+            BaseInstanceState replacement) {
+            if (QualifiedName.IsNull(browseName)) {
                 return null;
             }
 
             BaseInstanceState instance = null;
 
-            switch (browseName.Name)
-            {
-                case TestData.BrowseNames.Iterations:
-                {
-                    if (createOrReplace)
-                    {
-                        if (Iterations == null)
-                        {
-                            if (replacement == null)
-                            {
-                                Iterations = new PropertyState<uint>(this);
-                            }
-                            else
-                            {
-                                Iterations = (PropertyState<uint>)replacement;
+            switch (browseName.Name) {
+                case TestData.BrowseNames.Iterations: {
+                        if (createOrReplace) {
+                            if (Iterations == null) {
+                                if (replacement == null) {
+                                    Iterations = new PropertyState<uint>(this);
+                                }
+                                else {
+                                    Iterations = (PropertyState<uint>)replacement;
+                                }
                             }
                         }
+
+                        instance = Iterations;
+                        break;
                     }
 
-                    instance = Iterations;
-                    break;
-                }
-
-                case TestData.BrowseNames.NewValueCount:
-                {
-                    if (createOrReplace)
-                    {
-                        if (NewValueCount == null)
-                        {
-                            if (replacement == null)
-                            {
-                                NewValueCount = new PropertyState<uint>(this);
-                            }
-                            else
-                            {
-                                NewValueCount = (PropertyState<uint>)replacement;
+                case TestData.BrowseNames.NewValueCount: {
+                        if (createOrReplace) {
+                            if (NewValueCount == null) {
+                                if (replacement == null) {
+                                    NewValueCount = new PropertyState<uint>(this);
+                                }
+                                else {
+                                    NewValueCount = (PropertyState<uint>)replacement;
+                                }
                             }
                         }
-                    }
 
-                    instance = NewValueCount;
-                    break;
-                }
+                        instance = NewValueCount;
+                        break;
+                    }
             }
 
-            if (instance != null)
-            {
+            if (instance != null) {
                 return instance;
             }
 
@@ -368,40 +329,36 @@ namespace TestData {
         private PropertyState<uint> m_newValueCount;
         #endregion
     }
-    #endif
+#endif
     #endregion
 
     #region TestDataObjectState Class
-    #if (!OPCUA_EXCLUDE_TestDataObjectState)
+#if !OPCUA_EXCLUDE_TestDataObjectState
     /// <summary>
     /// Stores an instance of the TestDataObjectType ObjectType.
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCode("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public partial class TestDataObjectState : BaseObjectState
-    {
+    public partial class TestDataObjectState : BaseObjectState {
         #region Constructors
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
-        public TestDataObjectState(NodeState parent) : base(parent)
-        {
+        public TestDataObjectState(NodeState parent) : base(parent) {
         }
 
         /// <summary>
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
-        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
-        {
+        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris) {
             return Opc.Ua.NodeId.Create(TestData.ObjectTypes.TestDataObjectType, TestData.Namespaces.TestData, namespaceUris);
         }
 
-        #if (!OPCUA_EXCLUDE_InitializationStrings)
+#if !OPCUA_EXCLUDE_InitializationStrings
         /// <summary>
         /// Initializes the instance.
         /// </summary>
-        protected override void Initialize(ISystemContext context)
-        {
+        protected override void Initialize(ISystemContext context) {
             Initialize(context, InitializationString);
             InitializeOptionalChildren(context);
         }
@@ -409,8 +366,7 @@ namespace TestData {
         /// <summary>
         /// Initializes the instance with a node.
         /// </summary>
-        protected override void Initialize(ISystemContext context, NodeState source)
-        {
+        protected override void Initialize(ISystemContext context, NodeState source) {
             InitializeOptionalChildren(context);
             base.Initialize(context, source);
         }
@@ -418,8 +374,7 @@ namespace TestData {
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
-        protected override void InitializeOptionalChildren(ISystemContext context)
-        {
+        protected override void InitializeOptionalChildren(ISystemContext context) {
             base.InitializeOptionalChildren(context);
         }
 
@@ -473,24 +428,18 @@ namespace TestData {
            "dG8gY29tbWVudC4BACoBAUIAAAAHAAAAQ29tbWVudAAV/////wAAAAADAAAAACQAAABUaGUgY29tbWVu" +
            "dCB0byBhZGQgdG8gdGhlIGNvbmRpdGlvbi4BACgBAQAAAAEB/////wAAAAA=";
         #endregion
-        #endif
+#endif
         #endregion
 
         #region Public Properties
         /// <summary>
         /// If true the server will produce new values for each monitored variable.
         /// </summary>
-        public PropertyState<bool> SimulationActive
-        {
-            get
-            {
-                return m_simulationActive;
-            }
+        public PropertyState<bool> SimulationActive {
+            get => m_simulationActive;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_simulationActive, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_simulationActive, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -501,17 +450,11 @@ namespace TestData {
         /// <summary>
         /// A description for the GenerateValuesMethodType Method.
         /// </summary>
-        public GenerateValuesMethodState GenerateValues
-        {
-            get
-            {
-                return m_generateValuesMethod;
-            }
+        public GenerateValuesMethodState GenerateValues {
+            get => m_generateValuesMethod;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_generateValuesMethod, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_generateValuesMethod, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -522,17 +465,11 @@ namespace TestData {
         /// <summary>
         /// A description for the CycleComplete Object.
         /// </summary>
-        public AcknowledgeableConditionState CycleComplete
-        {
-            get
-            {
-                return m_cycleComplete;
-            }
+        public AcknowledgeableConditionState CycleComplete {
+            get => m_cycleComplete;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_cycleComplete, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_cycleComplete, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -549,20 +486,16 @@ namespace TestData {
         /// <param name="children">The list of children to populate.</param>
         public override void GetChildren(
             ISystemContext context,
-            IList<BaseInstanceState> children)
-        {
-            if (m_simulationActive != null)
-            {
+            IList<BaseInstanceState> children) {
+            if (m_simulationActive != null) {
                 children.Add(m_simulationActive);
             }
 
-            if (m_generateValuesMethod != null)
-            {
+            if (m_generateValuesMethod != null) {
                 children.Add(m_generateValuesMethod);
             }
 
-            if (m_cycleComplete != null)
-            {
+            if (m_cycleComplete != null) {
                 children.Add(m_cycleComplete);
             }
 
@@ -576,83 +509,64 @@ namespace TestData {
             ISystemContext context,
             QualifiedName browseName,
             bool createOrReplace,
-            BaseInstanceState replacement)
-        {
-            if (QualifiedName.IsNull(browseName))
-            {
+            BaseInstanceState replacement) {
+            if (QualifiedName.IsNull(browseName)) {
                 return null;
             }
 
             BaseInstanceState instance = null;
 
-            switch (browseName.Name)
-            {
-                case TestData.BrowseNames.SimulationActive:
-                {
-                    if (createOrReplace)
-                    {
-                        if (SimulationActive == null)
-                        {
-                            if (replacement == null)
-                            {
-                                SimulationActive = new PropertyState<bool>(this);
-                            }
-                            else
-                            {
-                                SimulationActive = (PropertyState<bool>)replacement;
+            switch (browseName.Name) {
+                case TestData.BrowseNames.SimulationActive: {
+                        if (createOrReplace) {
+                            if (SimulationActive == null) {
+                                if (replacement == null) {
+                                    SimulationActive = new PropertyState<bool>(this);
+                                }
+                                else {
+                                    SimulationActive = (PropertyState<bool>)replacement;
+                                }
                             }
                         }
+
+                        instance = SimulationActive;
+                        break;
                     }
 
-                    instance = SimulationActive;
-                    break;
-                }
-
-                case TestData.BrowseNames.GenerateValues:
-                {
-                    if (createOrReplace)
-                    {
-                        if (GenerateValues == null)
-                        {
-                            if (replacement == null)
-                            {
-                                GenerateValues = new GenerateValuesMethodState(this);
-                            }
-                            else
-                            {
-                                GenerateValues = (GenerateValuesMethodState)replacement;
+                case TestData.BrowseNames.GenerateValues: {
+                        if (createOrReplace) {
+                            if (GenerateValues == null) {
+                                if (replacement == null) {
+                                    GenerateValues = new GenerateValuesMethodState(this);
+                                }
+                                else {
+                                    GenerateValues = (GenerateValuesMethodState)replacement;
+                                }
                             }
                         }
+
+                        instance = GenerateValues;
+                        break;
                     }
 
-                    instance = GenerateValues;
-                    break;
-                }
-
-                case TestData.BrowseNames.CycleComplete:
-                {
-                    if (createOrReplace)
-                    {
-                        if (CycleComplete == null)
-                        {
-                            if (replacement == null)
-                            {
-                                CycleComplete = new AcknowledgeableConditionState(this);
-                            }
-                            else
-                            {
-                                CycleComplete = (AcknowledgeableConditionState)replacement;
+                case TestData.BrowseNames.CycleComplete: {
+                        if (createOrReplace) {
+                            if (CycleComplete == null) {
+                                if (replacement == null) {
+                                    CycleComplete = new AcknowledgeableConditionState(this);
+                                }
+                                else {
+                                    CycleComplete = (AcknowledgeableConditionState)replacement;
+                                }
                             }
                         }
-                    }
 
-                    instance = CycleComplete;
-                    break;
-                }
+                        instance = CycleComplete;
+                        break;
+                    }
             }
 
-            if (instance != null)
-            {
+            if (instance != null) {
                 return instance;
             }
 
@@ -666,24 +580,22 @@ namespace TestData {
         private AcknowledgeableConditionState m_cycleComplete;
         #endregion
     }
-    #endif
+#endif
     #endregion
 
     #region ScalarValue1MethodState Class
-    #if (!OPCUA_EXCLUDE_ScalarValue1MethodState)
+#if (!OPCUA_EXCLUDE_ScalarValue1MethodState)
     /// <summary>
     /// Stores an instance of the ScalarValue1MethodType Method.
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public partial class ScalarValue1MethodState : MethodState
-    {
+    public partial class ScalarValue1MethodState : MethodState {
         #region Constructors
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
-        public ScalarValue1MethodState(NodeState parent) : base(parent)
-        {
+        public ScalarValue1MethodState(NodeState parent) : base(parent) {
         }
 
         /// <summary>
@@ -691,17 +603,15 @@ namespace TestData {
         /// </summary>
         /// <param name="parent">The parent.</param>
         /// <returns>The new node.</returns>
-        public new static NodeState Construct(NodeState parent)
-        {
+        public new static NodeState Construct(NodeState parent) {
             return new ScalarValue1MethodState(parent);
         }
 
-        #if (!OPCUA_EXCLUDE_InitializationStrings)
+#if (!OPCUA_EXCLUDE_InitializationStrings)
         /// <summary>
         /// Initializes the instance.
         /// </summary>
-        protected override void Initialize(ISystemContext context)
-        {
+        protected override void Initialize(ISystemContext context) {
             Initialize(context, InitializationString);
             InitializeOptionalChildren(context);
         }
@@ -709,8 +619,7 @@ namespace TestData {
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
-        protected override void InitializeOptionalChildren(ISystemContext context)
-        {
+        protected override void InitializeOptionalChildren(ISystemContext context) {
             base.InitializeOptionalChildren(context);
         }
 
@@ -733,7 +642,7 @@ namespace TestData {
            "AAAAAQAqAQEXAAAACAAAAEZsb2F0T3V0AAr/////AAAAAAABACoBARgAAAAJAAAARG91YmxlT3V0AAv/" +
            "////AAAAAAABACgBAQAAAAEB/////wAAAAA=";
         #endregion
-        #endif
+#endif
         #endregion
 
         #region Event Callbacks
@@ -759,10 +668,8 @@ namespace TestData {
             ISystemContext context,
             NodeId objectId,
             IList<object> inputArguments,
-            IList<object> outputArguments)
-        {
-            if (OnCall == null)
-            {
+            IList<object> outputArguments) {
+            if (OnCall == null) {
                 return base.Call(context, objectId, inputArguments, outputArguments);
             }
 
@@ -792,8 +699,7 @@ namespace TestData {
             float floatOut = (float)outputArguments[9];
             double doubleOut = (double)outputArguments[10];
 
-            if (OnCall != null)
-            {
+            if (OnCall != null) {
                 result = OnCall(
                     context,
                     this,
@@ -872,24 +778,22 @@ namespace TestData {
         ref ulong uInt64Out,
         ref float floatOut,
         ref double doubleOut);
-    #endif
+#endif
     #endregion
 
     #region ScalarValue2MethodState Class
-    #if (!OPCUA_EXCLUDE_ScalarValue2MethodState)
+#if (!OPCUA_EXCLUDE_ScalarValue2MethodState)
     /// <summary>
     /// Stores an instance of the ScalarValue2MethodType Method.
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public partial class ScalarValue2MethodState : MethodState
-    {
+    public partial class ScalarValue2MethodState : MethodState {
         #region Constructors
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
-        public ScalarValue2MethodState(NodeState parent) : base(parent)
-        {
+        public ScalarValue2MethodState(NodeState parent) : base(parent) {
         }
 
         /// <summary>
@@ -897,17 +801,15 @@ namespace TestData {
         /// </summary>
         /// <param name="parent">The parent.</param>
         /// <returns>The new node.</returns>
-        public new static NodeState Construct(NodeState parent)
-        {
+        public new static NodeState Construct(NodeState parent) {
             return new ScalarValue2MethodState(parent);
         }
 
-        #if (!OPCUA_EXCLUDE_InitializationStrings)
+#if (!OPCUA_EXCLUDE_InitializationStrings)
         /// <summary>
         /// Initializes the instance.
         /// </summary>
-        protected override void Initialize(ISystemContext context)
-        {
+        protected override void Initialize(ISystemContext context) {
             Initialize(context, InitializationString);
             InitializeOptionalChildren(context);
         }
@@ -915,8 +817,7 @@ namespace TestData {
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
-        protected override void InitializeOptionalChildren(ISystemContext context)
-        {
+        protected override void InitializeOptionalChildren(ISystemContext context) {
             base.InitializeOptionalChildren(context);
         }
 
@@ -939,7 +840,7 @@ namespace TestData {
            "/wAAAAAAAQAqAQEfAAAAEAAAAExvY2FsaXplZFRleHRPdXQAFf////8AAAAAAAEAKgEBHAAAAA0AAABT" +
            "dGF0dXNDb2RlT3V0ABP/////AAAAAAABACgBAQAAAAEB/////wAAAAA=";
         #endregion
-        #endif
+#endif
         #endregion
 
         #region Event Callbacks
@@ -965,10 +866,8 @@ namespace TestData {
             ISystemContext context,
             NodeId objectId,
             IList<object> inputArguments,
-            IList<object> outputArguments)
-        {
-            if (OnCall == null)
-            {
+            IList<object> outputArguments) {
+            if (OnCall == null) {
                 return base.Call(context, objectId, inputArguments, outputArguments);
             }
 
@@ -996,8 +895,7 @@ namespace TestData {
             LocalizedText localizedTextOut = (LocalizedText)outputArguments[8];
             StatusCode statusCodeOut = (StatusCode)outputArguments[9];
 
-            if (OnCall != null)
-            {
+            if (OnCall != null) {
                 result = OnCall(
                     context,
                     this,
@@ -1071,24 +969,22 @@ namespace TestData {
         ref QualifiedName qualifiedNameOut,
         ref LocalizedText localizedTextOut,
         ref StatusCode statusCodeOut);
-    #endif
+#endif
     #endregion
 
     #region ScalarValue3MethodState Class
-    #if (!OPCUA_EXCLUDE_ScalarValue3MethodState)
+#if (!OPCUA_EXCLUDE_ScalarValue3MethodState)
     /// <summary>
     /// Stores an instance of the ScalarValue3MethodType Method.
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public partial class ScalarValue3MethodState : MethodState
-    {
+    public partial class ScalarValue3MethodState : MethodState {
         #region Constructors
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
-        public ScalarValue3MethodState(NodeState parent) : base(parent)
-        {
+        public ScalarValue3MethodState(NodeState parent) : base(parent) {
         }
 
         /// <summary>
@@ -1096,17 +992,15 @@ namespace TestData {
         /// </summary>
         /// <param name="parent">The parent.</param>
         /// <returns>The new node.</returns>
-        public new static NodeState Construct(NodeState parent)
-        {
+        public new static NodeState Construct(NodeState parent) {
             return new ScalarValue3MethodState(parent);
         }
 
-        #if (!OPCUA_EXCLUDE_InitializationStrings)
+#if (!OPCUA_EXCLUDE_InitializationStrings)
         /// <summary>
         /// Initializes the instance.
         /// </summary>
-        protected override void Initialize(ISystemContext context)
-        {
+        protected override void Initialize(ISystemContext context) {
             Initialize(context, InitializationString);
             InitializeOptionalChildren(context);
         }
@@ -1114,8 +1008,7 @@ namespace TestData {
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
-        protected override void InitializeOptionalChildren(ISystemContext context)
-        {
+        protected override void InitializeOptionalChildren(ISystemContext context) {
             base.InitializeOptionalChildren(context);
         }
 
@@ -1130,7 +1023,7 @@ namespace TestData {
            "bWVyYXRpb25PdXQAHf////8AAAAAAAEAKgEBGwAAAAwAAABTdHJ1Y3R1cmVPdXQAFv////8AAAAAAAEA" +
            "KAEBAAAAAQH/////AAAAAA==";
         #endregion
-        #endif
+#endif
         #endregion
 
         #region Event Callbacks
@@ -1156,10 +1049,8 @@ namespace TestData {
             ISystemContext context,
             NodeId objectId,
             IList<object> inputArguments,
-            IList<object> outputArguments)
-        {
-            if (OnCall == null)
-            {
+            IList<object> outputArguments) {
+            if (OnCall == null) {
                 return base.Call(context, objectId, inputArguments, outputArguments);
             }
 
@@ -1173,8 +1064,7 @@ namespace TestData {
             int enumerationOut = (int)outputArguments[1];
             ExtensionObject structureOut = (ExtensionObject)outputArguments[2];
 
-            if (OnCall != null)
-            {
+            if (OnCall != null) {
                 result = OnCall(
                     context,
                     this,
@@ -1213,40 +1103,36 @@ namespace TestData {
         ref object variantOut,
         ref int enumerationOut,
         ref ExtensionObject structureOut);
-    #endif
+#endif
     #endregion
 
     #region ScalarValueObjectState Class
-    #if (!OPCUA_EXCLUDE_ScalarValueObjectState)
+#if !OPCUA_EXCLUDE_ScalarValueObjectState
     /// <summary>
     /// Stores an instance of the ScalarValueObjectType ObjectType.
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCode("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public partial class ScalarValueObjectState : TestDataObjectState
-    {
+    public partial class ScalarValueObjectState : TestDataObjectState {
         #region Constructors
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
-        public ScalarValueObjectState(NodeState parent) : base(parent)
-        {
+        public ScalarValueObjectState(NodeState parent) : base(parent) {
         }
 
         /// <summary>
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
-        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
-        {
+        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris) {
             return Opc.Ua.NodeId.Create(TestData.ObjectTypes.ScalarValueObjectType, TestData.Namespaces.TestData, namespaceUris);
         }
 
-        #if (!OPCUA_EXCLUDE_InitializationStrings)
+#if !OPCUA_EXCLUDE_InitializationStrings
         /// <summary>
         /// Initializes the instance.
         /// </summary>
-        protected override void Initialize(ISystemContext context)
-        {
+        protected override void Initialize(ISystemContext context) {
             Initialize(context, InitializationString);
             InitializeOptionalChildren(context);
         }
@@ -1254,8 +1140,7 @@ namespace TestData {
         /// <summary>
         /// Initializes the instance with a node.
         /// </summary>
-        protected override void Initialize(ISystemContext context, NodeState source)
-        {
+        protected override void Initialize(ISystemContext context, NodeState source) {
             InitializeOptionalChildren(context);
             base.Initialize(context, source);
         }
@@ -1263,8 +1148,7 @@ namespace TestData {
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
-        protected override void InitializeOptionalChildren(ISystemContext context)
-        {
+        protected override void InitializeOptionalChildren(ISystemContext context) {
             base.InitializeOptionalChildren(context);
         }
 
@@ -1343,24 +1227,18 @@ namespace TestData {
            "LwA/PCUAAAAb/////wEB/////wAAAAAVYIkKAgAAAAEADQAAAFVJbnRlZ2VyVmFsdWUBAT0lAC8APz0l" +
            "AAAAHP////8BAf////8AAAAA";
         #endregion
-        #endif
+#endif
         #endregion
 
         #region Public Properties
         /// <summary>
         /// A description for the BooleanValue Variable.
         /// </summary>
-        public BaseDataVariableState<bool> BooleanValue
-        {
-            get
-            {
-                return m_booleanValue;
-            }
+        public BaseDataVariableState<bool> BooleanValue {
+            get => m_booleanValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_booleanValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_booleanValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1371,17 +1249,11 @@ namespace TestData {
         /// <summary>
         /// A description for the SByteValue Variable.
         /// </summary>
-        public BaseDataVariableState<sbyte> SByteValue
-        {
-            get
-            {
-                return m_sByteValue;
-            }
+        public BaseDataVariableState<sbyte> SByteValue {
+            get => m_sByteValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_sByteValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_sByteValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1392,17 +1264,11 @@ namespace TestData {
         /// <summary>
         /// A description for the ByteValue Variable.
         /// </summary>
-        public BaseDataVariableState<byte> ByteValue
-        {
-            get
-            {
-                return m_byteValue;
-            }
+        public BaseDataVariableState<byte> ByteValue {
+            get => m_byteValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_byteValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_byteValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1413,17 +1279,11 @@ namespace TestData {
         /// <summary>
         /// A description for the Int16Value Variable.
         /// </summary>
-        public BaseDataVariableState<short> Int16Value
-        {
-            get
-            {
-                return m_int16Value;
-            }
+        public BaseDataVariableState<short> Int16Value {
+            get => m_int16Value;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_int16Value, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_int16Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1434,17 +1294,11 @@ namespace TestData {
         /// <summary>
         /// A description for the UInt16Value Variable.
         /// </summary>
-        public BaseDataVariableState<ushort> UInt16Value
-        {
-            get
-            {
-                return m_uInt16Value;
-            }
+        public BaseDataVariableState<ushort> UInt16Value {
+            get => m_uInt16Value;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_uInt16Value, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_uInt16Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1455,17 +1309,11 @@ namespace TestData {
         /// <summary>
         /// A description for the Int32Value Variable.
         /// </summary>
-        public BaseDataVariableState<int> Int32Value
-        {
-            get
-            {
-                return m_int32Value;
-            }
+        public BaseDataVariableState<int> Int32Value {
+            get => m_int32Value;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_int32Value, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_int32Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1476,17 +1324,11 @@ namespace TestData {
         /// <summary>
         /// A description for the UInt32Value Variable.
         /// </summary>
-        public BaseDataVariableState<uint> UInt32Value
-        {
-            get
-            {
-                return m_uInt32Value;
-            }
+        public BaseDataVariableState<uint> UInt32Value {
+            get => m_uInt32Value;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_uInt32Value, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_uInt32Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1497,17 +1339,11 @@ namespace TestData {
         /// <summary>
         /// A description for the Int64Value Variable.
         /// </summary>
-        public BaseDataVariableState<long> Int64Value
-        {
-            get
-            {
-                return m_int64Value;
-            }
+        public BaseDataVariableState<long> Int64Value {
+            get => m_int64Value;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_int64Value, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_int64Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1518,17 +1354,11 @@ namespace TestData {
         /// <summary>
         /// A description for the UInt64Value Variable.
         /// </summary>
-        public BaseDataVariableState<ulong> UInt64Value
-        {
-            get
-            {
-                return m_uInt64Value;
-            }
+        public BaseDataVariableState<ulong> UInt64Value {
+            get => m_uInt64Value;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_uInt64Value, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_uInt64Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1539,17 +1369,11 @@ namespace TestData {
         /// <summary>
         /// A description for the FloatValue Variable.
         /// </summary>
-        public BaseDataVariableState<float> FloatValue
-        {
-            get
-            {
-                return m_floatValue;
-            }
+        public BaseDataVariableState<float> FloatValue {
+            get => m_floatValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_floatValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_floatValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1560,17 +1384,11 @@ namespace TestData {
         /// <summary>
         /// A description for the DoubleValue Variable.
         /// </summary>
-        public BaseDataVariableState<double> DoubleValue
-        {
-            get
-            {
-                return m_doubleValue;
-            }
+        public BaseDataVariableState<double> DoubleValue {
+            get => m_doubleValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_doubleValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_doubleValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1581,17 +1399,11 @@ namespace TestData {
         /// <summary>
         /// A description for the StringValue Variable.
         /// </summary>
-        public BaseDataVariableState<string> StringValue
-        {
-            get
-            {
-                return m_stringValue;
-            }
+        public BaseDataVariableState<string> StringValue {
+            get => m_stringValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_stringValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_stringValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1602,17 +1414,11 @@ namespace TestData {
         /// <summary>
         /// A description for the DateTimeValue Variable.
         /// </summary>
-        public BaseDataVariableState<DateTime> DateTimeValue
-        {
-            get
-            {
-                return m_dateTimeValue;
-            }
+        public BaseDataVariableState<DateTime> DateTimeValue {
+            get => m_dateTimeValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_dateTimeValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_dateTimeValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1623,17 +1429,11 @@ namespace TestData {
         /// <summary>
         /// A description for the GuidValue Variable.
         /// </summary>
-        public BaseDataVariableState<Guid> GuidValue
-        {
-            get
-            {
-                return m_guidValue;
-            }
+        public BaseDataVariableState<Guid> GuidValue {
+            get => m_guidValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_guidValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_guidValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1644,17 +1444,11 @@ namespace TestData {
         /// <summary>
         /// A description for the ByteStringValue Variable.
         /// </summary>
-        public BaseDataVariableState<byte[]> ByteStringValue
-        {
-            get
-            {
-                return m_byteStringValue;
-            }
+        public BaseDataVariableState<byte[]> ByteStringValue {
+            get => m_byteStringValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_byteStringValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_byteStringValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1665,17 +1459,11 @@ namespace TestData {
         /// <summary>
         /// A description for the XmlElementValue Variable.
         /// </summary>
-        public BaseDataVariableState<XmlElement> XmlElementValue
-        {
-            get
-            {
-                return m_xmlElementValue;
-            }
+        public BaseDataVariableState<XmlElement> XmlElementValue {
+            get => m_xmlElementValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_xmlElementValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_xmlElementValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1686,17 +1474,11 @@ namespace TestData {
         /// <summary>
         /// A description for the NodeIdValue Variable.
         /// </summary>
-        public BaseDataVariableState<NodeId> NodeIdValue
-        {
-            get
-            {
-                return m_nodeIdValue;
-            }
+        public BaseDataVariableState<NodeId> NodeIdValue {
+            get => m_nodeIdValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_nodeIdValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_nodeIdValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1707,17 +1489,11 @@ namespace TestData {
         /// <summary>
         /// A description for the ExpandedNodeIdValue Variable.
         /// </summary>
-        public BaseDataVariableState<ExpandedNodeId> ExpandedNodeIdValue
-        {
-            get
-            {
-                return m_expandedNodeIdValue;
-            }
+        public BaseDataVariableState<ExpandedNodeId> ExpandedNodeIdValue {
+            get => m_expandedNodeIdValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_expandedNodeIdValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_expandedNodeIdValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1728,17 +1504,11 @@ namespace TestData {
         /// <summary>
         /// A description for the QualifiedNameValue Variable.
         /// </summary>
-        public BaseDataVariableState<QualifiedName> QualifiedNameValue
-        {
-            get
-            {
-                return m_qualifiedNameValue;
-            }
+        public BaseDataVariableState<QualifiedName> QualifiedNameValue {
+            get => m_qualifiedNameValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_qualifiedNameValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_qualifiedNameValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1749,17 +1519,11 @@ namespace TestData {
         /// <summary>
         /// A description for the LocalizedTextValue Variable.
         /// </summary>
-        public BaseDataVariableState<LocalizedText> LocalizedTextValue
-        {
-            get
-            {
-                return m_localizedTextValue;
-            }
+        public BaseDataVariableState<LocalizedText> LocalizedTextValue {
+            get => m_localizedTextValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_localizedTextValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_localizedTextValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1770,17 +1534,11 @@ namespace TestData {
         /// <summary>
         /// A description for the StatusCodeValue Variable.
         /// </summary>
-        public BaseDataVariableState<StatusCode> StatusCodeValue
-        {
-            get
-            {
-                return m_statusCodeValue;
-            }
+        public BaseDataVariableState<StatusCode> StatusCodeValue {
+            get => m_statusCodeValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_statusCodeValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_statusCodeValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1791,17 +1549,11 @@ namespace TestData {
         /// <summary>
         /// A description for the VariantValue Variable.
         /// </summary>
-        public BaseDataVariableState VariantValue
-        {
-            get
-            {
-                return m_variantValue;
-            }
+        public BaseDataVariableState VariantValue {
+            get => m_variantValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_variantValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_variantValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1812,17 +1564,11 @@ namespace TestData {
         /// <summary>
         /// A description for the EnumerationValue Variable.
         /// </summary>
-        public BaseDataVariableState<int> EnumerationValue
-        {
-            get
-            {
-                return m_enumerationValue;
-            }
+        public BaseDataVariableState<int> EnumerationValue {
+            get => m_enumerationValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_enumerationValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_enumerationValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1833,17 +1579,11 @@ namespace TestData {
         /// <summary>
         /// A description for the StructureValue Variable.
         /// </summary>
-        public BaseDataVariableState<ExtensionObject> StructureValue
-        {
-            get
-            {
-                return m_structureValue;
-            }
+        public BaseDataVariableState<ExtensionObject> StructureValue {
+            get => m_structureValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_structureValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_structureValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1854,17 +1594,11 @@ namespace TestData {
         /// <summary>
         /// A description for the NumberValue Variable.
         /// </summary>
-        public BaseDataVariableState NumberValue
-        {
-            get
-            {
-                return m_numberValue;
-            }
+        public BaseDataVariableState NumberValue {
+            get => m_numberValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_numberValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_numberValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1875,17 +1609,11 @@ namespace TestData {
         /// <summary>
         /// A description for the IntegerValue Variable.
         /// </summary>
-        public BaseDataVariableState IntegerValue
-        {
-            get
-            {
-                return m_integerValue;
-            }
+        public BaseDataVariableState IntegerValue {
+            get => m_integerValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_integerValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_integerValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1896,17 +1624,11 @@ namespace TestData {
         /// <summary>
         /// A description for the UIntegerValue Variable.
         /// </summary>
-        public BaseDataVariableState UIntegerValue
-        {
-            get
-            {
-                return m_uIntegerValue;
-            }
+        public BaseDataVariableState UIntegerValue {
+            get => m_uIntegerValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_uIntegerValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_uIntegerValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1923,140 +1645,112 @@ namespace TestData {
         /// <param name="children">The list of children to populate.</param>
         public override void GetChildren(
             ISystemContext context,
-            IList<BaseInstanceState> children)
-        {
-            if (m_booleanValue != null)
-            {
+            IList<BaseInstanceState> children) {
+            if (m_booleanValue != null) {
                 children.Add(m_booleanValue);
             }
 
-            if (m_sByteValue != null)
-            {
+            if (m_sByteValue != null) {
                 children.Add(m_sByteValue);
             }
 
-            if (m_byteValue != null)
-            {
+            if (m_byteValue != null) {
                 children.Add(m_byteValue);
             }
 
-            if (m_int16Value != null)
-            {
+            if (m_int16Value != null) {
                 children.Add(m_int16Value);
             }
 
-            if (m_uInt16Value != null)
-            {
+            if (m_uInt16Value != null) {
                 children.Add(m_uInt16Value);
             }
 
-            if (m_int32Value != null)
-            {
+            if (m_int32Value != null) {
                 children.Add(m_int32Value);
             }
 
-            if (m_uInt32Value != null)
-            {
+            if (m_uInt32Value != null) {
                 children.Add(m_uInt32Value);
             }
 
-            if (m_int64Value != null)
-            {
+            if (m_int64Value != null) {
                 children.Add(m_int64Value);
             }
 
-            if (m_uInt64Value != null)
-            {
+            if (m_uInt64Value != null) {
                 children.Add(m_uInt64Value);
             }
 
-            if (m_floatValue != null)
-            {
+            if (m_floatValue != null) {
                 children.Add(m_floatValue);
             }
 
-            if (m_doubleValue != null)
-            {
+            if (m_doubleValue != null) {
                 children.Add(m_doubleValue);
             }
 
-            if (m_stringValue != null)
-            {
+            if (m_stringValue != null) {
                 children.Add(m_stringValue);
             }
 
-            if (m_dateTimeValue != null)
-            {
+            if (m_dateTimeValue != null) {
                 children.Add(m_dateTimeValue);
             }
 
-            if (m_guidValue != null)
-            {
+            if (m_guidValue != null) {
                 children.Add(m_guidValue);
             }
 
-            if (m_byteStringValue != null)
-            {
+            if (m_byteStringValue != null) {
                 children.Add(m_byteStringValue);
             }
 
-            if (m_xmlElementValue != null)
-            {
+            if (m_xmlElementValue != null) {
                 children.Add(m_xmlElementValue);
             }
 
-            if (m_nodeIdValue != null)
-            {
+            if (m_nodeIdValue != null) {
                 children.Add(m_nodeIdValue);
             }
 
-            if (m_expandedNodeIdValue != null)
-            {
+            if (m_expandedNodeIdValue != null) {
                 children.Add(m_expandedNodeIdValue);
             }
 
-            if (m_qualifiedNameValue != null)
-            {
+            if (m_qualifiedNameValue != null) {
                 children.Add(m_qualifiedNameValue);
             }
 
-            if (m_localizedTextValue != null)
-            {
+            if (m_localizedTextValue != null) {
                 children.Add(m_localizedTextValue);
             }
 
-            if (m_statusCodeValue != null)
-            {
+            if (m_statusCodeValue != null) {
                 children.Add(m_statusCodeValue);
             }
 
-            if (m_variantValue != null)
-            {
+            if (m_variantValue != null) {
                 children.Add(m_variantValue);
             }
 
-            if (m_enumerationValue != null)
-            {
+            if (m_enumerationValue != null) {
                 children.Add(m_enumerationValue);
             }
 
-            if (m_structureValue != null)
-            {
+            if (m_structureValue != null) {
                 children.Add(m_structureValue);
             }
 
-            if (m_numberValue != null)
-            {
+            if (m_numberValue != null) {
                 children.Add(m_numberValue);
             }
 
-            if (m_integerValue != null)
-            {
+            if (m_integerValue != null) {
                 children.Add(m_integerValue);
             }
 
-            if (m_uIntegerValue != null)
-            {
+            if (m_uIntegerValue != null) {
                 children.Add(m_uIntegerValue);
             }
 
@@ -2070,587 +1764,448 @@ namespace TestData {
             ISystemContext context,
             QualifiedName browseName,
             bool createOrReplace,
-            BaseInstanceState replacement)
-        {
-            if (QualifiedName.IsNull(browseName))
-            {
+            BaseInstanceState replacement) {
+            if (QualifiedName.IsNull(browseName)) {
                 return null;
             }
 
             BaseInstanceState instance = null;
 
-            switch (browseName.Name)
-            {
-                case TestData.BrowseNames.BooleanValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (BooleanValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                BooleanValue = new BaseDataVariableState<bool>(this);
-                            }
-                            else
-                            {
-                                BooleanValue = (BaseDataVariableState<bool>)replacement;
+            switch (browseName.Name) {
+                case TestData.BrowseNames.BooleanValue: {
+                        if (createOrReplace) {
+                            if (BooleanValue == null) {
+                                if (replacement == null) {
+                                    BooleanValue = new BaseDataVariableState<bool>(this);
+                                }
+                                else {
+                                    BooleanValue = (BaseDataVariableState<bool>)replacement;
+                                }
                             }
                         }
+
+                        instance = BooleanValue;
+                        break;
                     }
 
-                    instance = BooleanValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.SByteValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (SByteValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                SByteValue = new BaseDataVariableState<sbyte>(this);
-                            }
-                            else
-                            {
-                                SByteValue = (BaseDataVariableState<sbyte>)replacement;
+                case TestData.BrowseNames.SByteValue: {
+                        if (createOrReplace) {
+                            if (SByteValue == null) {
+                                if (replacement == null) {
+                                    SByteValue = new BaseDataVariableState<sbyte>(this);
+                                }
+                                else {
+                                    SByteValue = (BaseDataVariableState<sbyte>)replacement;
+                                }
                             }
                         }
+
+                        instance = SByteValue;
+                        break;
                     }
 
-                    instance = SByteValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.ByteValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (ByteValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                ByteValue = new BaseDataVariableState<byte>(this);
-                            }
-                            else
-                            {
-                                ByteValue = (BaseDataVariableState<byte>)replacement;
+                case TestData.BrowseNames.ByteValue: {
+                        if (createOrReplace) {
+                            if (ByteValue == null) {
+                                if (replacement == null) {
+                                    ByteValue = new BaseDataVariableState<byte>(this);
+                                }
+                                else {
+                                    ByteValue = (BaseDataVariableState<byte>)replacement;
+                                }
                             }
                         }
+
+                        instance = ByteValue;
+                        break;
                     }
 
-                    instance = ByteValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.Int16Value:
-                {
-                    if (createOrReplace)
-                    {
-                        if (Int16Value == null)
-                        {
-                            if (replacement == null)
-                            {
-                                Int16Value = new BaseDataVariableState<short>(this);
-                            }
-                            else
-                            {
-                                Int16Value = (BaseDataVariableState<short>)replacement;
+                case TestData.BrowseNames.Int16Value: {
+                        if (createOrReplace) {
+                            if (Int16Value == null) {
+                                if (replacement == null) {
+                                    Int16Value = new BaseDataVariableState<short>(this);
+                                }
+                                else {
+                                    Int16Value = (BaseDataVariableState<short>)replacement;
+                                }
                             }
                         }
+
+                        instance = Int16Value;
+                        break;
                     }
 
-                    instance = Int16Value;
-                    break;
-                }
-
-                case TestData.BrowseNames.UInt16Value:
-                {
-                    if (createOrReplace)
-                    {
-                        if (UInt16Value == null)
-                        {
-                            if (replacement == null)
-                            {
-                                UInt16Value = new BaseDataVariableState<ushort>(this);
-                            }
-                            else
-                            {
-                                UInt16Value = (BaseDataVariableState<ushort>)replacement;
+                case TestData.BrowseNames.UInt16Value: {
+                        if (createOrReplace) {
+                            if (UInt16Value == null) {
+                                if (replacement == null) {
+                                    UInt16Value = new BaseDataVariableState<ushort>(this);
+                                }
+                                else {
+                                    UInt16Value = (BaseDataVariableState<ushort>)replacement;
+                                }
                             }
                         }
+
+                        instance = UInt16Value;
+                        break;
                     }
 
-                    instance = UInt16Value;
-                    break;
-                }
-
-                case TestData.BrowseNames.Int32Value:
-                {
-                    if (createOrReplace)
-                    {
-                        if (Int32Value == null)
-                        {
-                            if (replacement == null)
-                            {
-                                Int32Value = new BaseDataVariableState<int>(this);
-                            }
-                            else
-                            {
-                                Int32Value = (BaseDataVariableState<int>)replacement;
+                case TestData.BrowseNames.Int32Value: {
+                        if (createOrReplace) {
+                            if (Int32Value == null) {
+                                if (replacement == null) {
+                                    Int32Value = new BaseDataVariableState<int>(this);
+                                }
+                                else {
+                                    Int32Value = (BaseDataVariableState<int>)replacement;
+                                }
                             }
                         }
+
+                        instance = Int32Value;
+                        break;
                     }
 
-                    instance = Int32Value;
-                    break;
-                }
-
-                case TestData.BrowseNames.UInt32Value:
-                {
-                    if (createOrReplace)
-                    {
-                        if (UInt32Value == null)
-                        {
-                            if (replacement == null)
-                            {
-                                UInt32Value = new BaseDataVariableState<uint>(this);
-                            }
-                            else
-                            {
-                                UInt32Value = (BaseDataVariableState<uint>)replacement;
+                case TestData.BrowseNames.UInt32Value: {
+                        if (createOrReplace) {
+                            if (UInt32Value == null) {
+                                if (replacement == null) {
+                                    UInt32Value = new BaseDataVariableState<uint>(this);
+                                }
+                                else {
+                                    UInt32Value = (BaseDataVariableState<uint>)replacement;
+                                }
                             }
                         }
+
+                        instance = UInt32Value;
+                        break;
                     }
 
-                    instance = UInt32Value;
-                    break;
-                }
-
-                case TestData.BrowseNames.Int64Value:
-                {
-                    if (createOrReplace)
-                    {
-                        if (Int64Value == null)
-                        {
-                            if (replacement == null)
-                            {
-                                Int64Value = new BaseDataVariableState<long>(this);
-                            }
-                            else
-                            {
-                                Int64Value = (BaseDataVariableState<long>)replacement;
+                case TestData.BrowseNames.Int64Value: {
+                        if (createOrReplace) {
+                            if (Int64Value == null) {
+                                if (replacement == null) {
+                                    Int64Value = new BaseDataVariableState<long>(this);
+                                }
+                                else {
+                                    Int64Value = (BaseDataVariableState<long>)replacement;
+                                }
                             }
                         }
+
+                        instance = Int64Value;
+                        break;
                     }
 
-                    instance = Int64Value;
-                    break;
-                }
-
-                case TestData.BrowseNames.UInt64Value:
-                {
-                    if (createOrReplace)
-                    {
-                        if (UInt64Value == null)
-                        {
-                            if (replacement == null)
-                            {
-                                UInt64Value = new BaseDataVariableState<ulong>(this);
-                            }
-                            else
-                            {
-                                UInt64Value = (BaseDataVariableState<ulong>)replacement;
+                case TestData.BrowseNames.UInt64Value: {
+                        if (createOrReplace) {
+                            if (UInt64Value == null) {
+                                if (replacement == null) {
+                                    UInt64Value = new BaseDataVariableState<ulong>(this);
+                                }
+                                else {
+                                    UInt64Value = (BaseDataVariableState<ulong>)replacement;
+                                }
                             }
                         }
+
+                        instance = UInt64Value;
+                        break;
                     }
 
-                    instance = UInt64Value;
-                    break;
-                }
-
-                case TestData.BrowseNames.FloatValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (FloatValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                FloatValue = new BaseDataVariableState<float>(this);
-                            }
-                            else
-                            {
-                                FloatValue = (BaseDataVariableState<float>)replacement;
+                case TestData.BrowseNames.FloatValue: {
+                        if (createOrReplace) {
+                            if (FloatValue == null) {
+                                if (replacement == null) {
+                                    FloatValue = new BaseDataVariableState<float>(this);
+                                }
+                                else {
+                                    FloatValue = (BaseDataVariableState<float>)replacement;
+                                }
                             }
                         }
+
+                        instance = FloatValue;
+                        break;
                     }
 
-                    instance = FloatValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.DoubleValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (DoubleValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                DoubleValue = new BaseDataVariableState<double>(this);
-                            }
-                            else
-                            {
-                                DoubleValue = (BaseDataVariableState<double>)replacement;
+                case TestData.BrowseNames.DoubleValue: {
+                        if (createOrReplace) {
+                            if (DoubleValue == null) {
+                                if (replacement == null) {
+                                    DoubleValue = new BaseDataVariableState<double>(this);
+                                }
+                                else {
+                                    DoubleValue = (BaseDataVariableState<double>)replacement;
+                                }
                             }
                         }
+
+                        instance = DoubleValue;
+                        break;
                     }
 
-                    instance = DoubleValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.StringValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (StringValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                StringValue = new BaseDataVariableState<string>(this);
-                            }
-                            else
-                            {
-                                StringValue = (BaseDataVariableState<string>)replacement;
+                case TestData.BrowseNames.StringValue: {
+                        if (createOrReplace) {
+                            if (StringValue == null) {
+                                if (replacement == null) {
+                                    StringValue = new BaseDataVariableState<string>(this);
+                                }
+                                else {
+                                    StringValue = (BaseDataVariableState<string>)replacement;
+                                }
                             }
                         }
+
+                        instance = StringValue;
+                        break;
                     }
 
-                    instance = StringValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.DateTimeValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (DateTimeValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                DateTimeValue = new BaseDataVariableState<DateTime>(this);
-                            }
-                            else
-                            {
-                                DateTimeValue = (BaseDataVariableState<DateTime>)replacement;
+                case TestData.BrowseNames.DateTimeValue: {
+                        if (createOrReplace) {
+                            if (DateTimeValue == null) {
+                                if (replacement == null) {
+                                    DateTimeValue = new BaseDataVariableState<DateTime>(this);
+                                }
+                                else {
+                                    DateTimeValue = (BaseDataVariableState<DateTime>)replacement;
+                                }
                             }
                         }
+
+                        instance = DateTimeValue;
+                        break;
                     }
 
-                    instance = DateTimeValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.GuidValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (GuidValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                GuidValue = new BaseDataVariableState<Guid>(this);
-                            }
-                            else
-                            {
-                                GuidValue = (BaseDataVariableState<Guid>)replacement;
+                case TestData.BrowseNames.GuidValue: {
+                        if (createOrReplace) {
+                            if (GuidValue == null) {
+                                if (replacement == null) {
+                                    GuidValue = new BaseDataVariableState<Guid>(this);
+                                }
+                                else {
+                                    GuidValue = (BaseDataVariableState<Guid>)replacement;
+                                }
                             }
                         }
+
+                        instance = GuidValue;
+                        break;
                     }
 
-                    instance = GuidValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.ByteStringValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (ByteStringValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                ByteStringValue = new BaseDataVariableState<byte[]>(this);
-                            }
-                            else
-                            {
-                                ByteStringValue = (BaseDataVariableState<byte[]>)replacement;
+                case TestData.BrowseNames.ByteStringValue: {
+                        if (createOrReplace) {
+                            if (ByteStringValue == null) {
+                                if (replacement == null) {
+                                    ByteStringValue = new BaseDataVariableState<byte[]>(this);
+                                }
+                                else {
+                                    ByteStringValue = (BaseDataVariableState<byte[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = ByteStringValue;
+                        break;
                     }
 
-                    instance = ByteStringValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.XmlElementValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (XmlElementValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                XmlElementValue = new BaseDataVariableState<XmlElement>(this);
-                            }
-                            else
-                            {
-                                XmlElementValue = (BaseDataVariableState<XmlElement>)replacement;
+                case TestData.BrowseNames.XmlElementValue: {
+                        if (createOrReplace) {
+                            if (XmlElementValue == null) {
+                                if (replacement == null) {
+                                    XmlElementValue = new BaseDataVariableState<XmlElement>(this);
+                                }
+                                else {
+                                    XmlElementValue = (BaseDataVariableState<XmlElement>)replacement;
+                                }
                             }
                         }
+
+                        instance = XmlElementValue;
+                        break;
                     }
 
-                    instance = XmlElementValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.NodeIdValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (NodeIdValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                NodeIdValue = new BaseDataVariableState<NodeId>(this);
-                            }
-                            else
-                            {
-                                NodeIdValue = (BaseDataVariableState<NodeId>)replacement;
+                case TestData.BrowseNames.NodeIdValue: {
+                        if (createOrReplace) {
+                            if (NodeIdValue == null) {
+                                if (replacement == null) {
+                                    NodeIdValue = new BaseDataVariableState<NodeId>(this);
+                                }
+                                else {
+                                    NodeIdValue = (BaseDataVariableState<NodeId>)replacement;
+                                }
                             }
                         }
+
+                        instance = NodeIdValue;
+                        break;
                     }
 
-                    instance = NodeIdValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.ExpandedNodeIdValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (ExpandedNodeIdValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                ExpandedNodeIdValue = new BaseDataVariableState<ExpandedNodeId>(this);
-                            }
-                            else
-                            {
-                                ExpandedNodeIdValue = (BaseDataVariableState<ExpandedNodeId>)replacement;
+                case TestData.BrowseNames.ExpandedNodeIdValue: {
+                        if (createOrReplace) {
+                            if (ExpandedNodeIdValue == null) {
+                                if (replacement == null) {
+                                    ExpandedNodeIdValue = new BaseDataVariableState<ExpandedNodeId>(this);
+                                }
+                                else {
+                                    ExpandedNodeIdValue = (BaseDataVariableState<ExpandedNodeId>)replacement;
+                                }
                             }
                         }
+
+                        instance = ExpandedNodeIdValue;
+                        break;
                     }
 
-                    instance = ExpandedNodeIdValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.QualifiedNameValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (QualifiedNameValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                QualifiedNameValue = new BaseDataVariableState<QualifiedName>(this);
-                            }
-                            else
-                            {
-                                QualifiedNameValue = (BaseDataVariableState<QualifiedName>)replacement;
+                case TestData.BrowseNames.QualifiedNameValue: {
+                        if (createOrReplace) {
+                            if (QualifiedNameValue == null) {
+                                if (replacement == null) {
+                                    QualifiedNameValue = new BaseDataVariableState<QualifiedName>(this);
+                                }
+                                else {
+                                    QualifiedNameValue = (BaseDataVariableState<QualifiedName>)replacement;
+                                }
                             }
                         }
+
+                        instance = QualifiedNameValue;
+                        break;
                     }
 
-                    instance = QualifiedNameValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.LocalizedTextValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (LocalizedTextValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                LocalizedTextValue = new BaseDataVariableState<LocalizedText>(this);
-                            }
-                            else
-                            {
-                                LocalizedTextValue = (BaseDataVariableState<LocalizedText>)replacement;
+                case TestData.BrowseNames.LocalizedTextValue: {
+                        if (createOrReplace) {
+                            if (LocalizedTextValue == null) {
+                                if (replacement == null) {
+                                    LocalizedTextValue = new BaseDataVariableState<LocalizedText>(this);
+                                }
+                                else {
+                                    LocalizedTextValue = (BaseDataVariableState<LocalizedText>)replacement;
+                                }
                             }
                         }
+
+                        instance = LocalizedTextValue;
+                        break;
                     }
 
-                    instance = LocalizedTextValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.StatusCodeValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (StatusCodeValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                StatusCodeValue = new BaseDataVariableState<StatusCode>(this);
-                            }
-                            else
-                            {
-                                StatusCodeValue = (BaseDataVariableState<StatusCode>)replacement;
+                case TestData.BrowseNames.StatusCodeValue: {
+                        if (createOrReplace) {
+                            if (StatusCodeValue == null) {
+                                if (replacement == null) {
+                                    StatusCodeValue = new BaseDataVariableState<StatusCode>(this);
+                                }
+                                else {
+                                    StatusCodeValue = (BaseDataVariableState<StatusCode>)replacement;
+                                }
                             }
                         }
+
+                        instance = StatusCodeValue;
+                        break;
                     }
 
-                    instance = StatusCodeValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.VariantValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (VariantValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                VariantValue = new BaseDataVariableState(this);
-                            }
-                            else
-                            {
-                                VariantValue = (BaseDataVariableState)replacement;
+                case TestData.BrowseNames.VariantValue: {
+                        if (createOrReplace) {
+                            if (VariantValue == null) {
+                                if (replacement == null) {
+                                    VariantValue = new BaseDataVariableState(this);
+                                }
+                                else {
+                                    VariantValue = (BaseDataVariableState)replacement;
+                                }
                             }
                         }
+
+                        instance = VariantValue;
+                        break;
                     }
 
-                    instance = VariantValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.EnumerationValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (EnumerationValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                EnumerationValue = new BaseDataVariableState<int>(this);
-                            }
-                            else
-                            {
-                                EnumerationValue = (BaseDataVariableState<int>)replacement;
+                case TestData.BrowseNames.EnumerationValue: {
+                        if (createOrReplace) {
+                            if (EnumerationValue == null) {
+                                if (replacement == null) {
+                                    EnumerationValue = new BaseDataVariableState<int>(this);
+                                }
+                                else {
+                                    EnumerationValue = (BaseDataVariableState<int>)replacement;
+                                }
                             }
                         }
+
+                        instance = EnumerationValue;
+                        break;
                     }
 
-                    instance = EnumerationValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.StructureValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (StructureValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                StructureValue = new BaseDataVariableState<ExtensionObject>(this);
-                            }
-                            else
-                            {
-                                StructureValue = (BaseDataVariableState<ExtensionObject>)replacement;
+                case TestData.BrowseNames.StructureValue: {
+                        if (createOrReplace) {
+                            if (StructureValue == null) {
+                                if (replacement == null) {
+                                    StructureValue = new BaseDataVariableState<ExtensionObject>(this);
+                                }
+                                else {
+                                    StructureValue = (BaseDataVariableState<ExtensionObject>)replacement;
+                                }
                             }
                         }
+
+                        instance = StructureValue;
+                        break;
                     }
 
-                    instance = StructureValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.NumberValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (NumberValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                NumberValue = new BaseDataVariableState(this);
-                            }
-                            else
-                            {
-                                NumberValue = (BaseDataVariableState)replacement;
+                case TestData.BrowseNames.NumberValue: {
+                        if (createOrReplace) {
+                            if (NumberValue == null) {
+                                if (replacement == null) {
+                                    NumberValue = new BaseDataVariableState(this);
+                                }
+                                else {
+                                    NumberValue = (BaseDataVariableState)replacement;
+                                }
                             }
                         }
+
+                        instance = NumberValue;
+                        break;
                     }
 
-                    instance = NumberValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.IntegerValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (IntegerValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                IntegerValue = new BaseDataVariableState(this);
-                            }
-                            else
-                            {
-                                IntegerValue = (BaseDataVariableState)replacement;
+                case TestData.BrowseNames.IntegerValue: {
+                        if (createOrReplace) {
+                            if (IntegerValue == null) {
+                                if (replacement == null) {
+                                    IntegerValue = new BaseDataVariableState(this);
+                                }
+                                else {
+                                    IntegerValue = (BaseDataVariableState)replacement;
+                                }
                             }
                         }
+
+                        instance = IntegerValue;
+                        break;
                     }
 
-                    instance = IntegerValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.UIntegerValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (UIntegerValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                UIntegerValue = new BaseDataVariableState(this);
-                            }
-                            else
-                            {
-                                UIntegerValue = (BaseDataVariableState)replacement;
+                case TestData.BrowseNames.UIntegerValue: {
+                        if (createOrReplace) {
+                            if (UIntegerValue == null) {
+                                if (replacement == null) {
+                                    UIntegerValue = new BaseDataVariableState(this);
+                                }
+                                else {
+                                    UIntegerValue = (BaseDataVariableState)replacement;
+                                }
                             }
                         }
-                    }
 
-                    instance = UIntegerValue;
-                    break;
-                }
+                        instance = UIntegerValue;
+                        break;
+                    }
             }
 
-            if (instance != null)
-            {
+            if (instance != null) {
                 return instance;
             }
 
@@ -2688,40 +2243,36 @@ namespace TestData {
         private BaseDataVariableState m_uIntegerValue;
         #endregion
     }
-    #endif
+#endif
     #endregion
 
     #region AnalogScalarValueObjectState Class
-    #if (!OPCUA_EXCLUDE_AnalogScalarValueObjectState)
+#if !OPCUA_EXCLUDE_AnalogScalarValueObjectState
     /// <summary>
     /// Stores an instance of the AnalogScalarValueObjectType ObjectType.
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCode("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public partial class AnalogScalarValueObjectState : TestDataObjectState
-    {
+    public partial class AnalogScalarValueObjectState : TestDataObjectState {
         #region Constructors
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
-        public AnalogScalarValueObjectState(NodeState parent) : base(parent)
-        {
+        public AnalogScalarValueObjectState(NodeState parent) : base(parent) {
         }
 
         /// <summary>
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
-        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
-        {
+        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris) {
             return Opc.Ua.NodeId.Create(TestData.ObjectTypes.AnalogScalarValueObjectType, TestData.Namespaces.TestData, namespaceUris);
         }
 
-        #if (!OPCUA_EXCLUDE_InitializationStrings)
+#if !OPCUA_EXCLUDE_InitializationStrings
         /// <summary>
         /// Initializes the instance.
         /// </summary>
-        protected override void Initialize(ISystemContext context)
-        {
+        protected override void Initialize(ISystemContext context) {
             Initialize(context, InitializationString);
             InitializeOptionalChildren(context);
         }
@@ -2729,8 +2280,7 @@ namespace TestData {
         /// <summary>
         /// Initializes the instance with a node.
         /// </summary>
-        protected override void Initialize(ISystemContext context, NodeState source)
-        {
+        protected override void Initialize(ISystemContext context, NodeState source) {
             InitializeOptionalChildren(context);
             base.Initialize(context, source);
         }
@@ -2738,8 +2288,7 @@ namespace TestData {
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
-        protected override void InitializeOptionalChildren(ISystemContext context)
-        {
+        protected override void InitializeOptionalChildren(ISystemContext context) {
             base.InitializeOptionalChildren(context);
         }
 
@@ -2816,24 +2365,18 @@ namespace TestData {
            "YIkKAgAAAAEADQAAAFVJbnRlZ2VyVmFsdWUBAb8lAC8BAEAJvyUAAAAc/////wEB/////wEAAAAVYIkK" +
            "AgAAAAAABwAAAEVVUmFuZ2UBAcIlAC4ARMIlAAABAHQD/////wEB/////wAAAAA=";
         #endregion
-        #endif
+#endif
         #endregion
 
         #region Public Properties
         /// <summary>
         /// A description for the SByteValue Variable.
         /// </summary>
-        public AnalogItemState<sbyte> SByteValue
-        {
-            get
-            {
-                return m_sByteValue;
-            }
+        public AnalogItemState<sbyte> SByteValue {
+            get => m_sByteValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_sByteValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_sByteValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -2844,17 +2387,11 @@ namespace TestData {
         /// <summary>
         /// A description for the ByteValue Variable.
         /// </summary>
-        public AnalogItemState<byte> ByteValue
-        {
-            get
-            {
-                return m_byteValue;
-            }
+        public AnalogItemState<byte> ByteValue {
+            get => m_byteValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_byteValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_byteValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -2865,17 +2402,11 @@ namespace TestData {
         /// <summary>
         /// A description for the Int16Value Variable.
         /// </summary>
-        public AnalogItemState<short> Int16Value
-        {
-            get
-            {
-                return m_int16Value;
-            }
+        public AnalogItemState<short> Int16Value {
+            get => m_int16Value;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_int16Value, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_int16Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -2886,17 +2417,11 @@ namespace TestData {
         /// <summary>
         /// A description for the UInt16Value Variable.
         /// </summary>
-        public AnalogItemState<ushort> UInt16Value
-        {
-            get
-            {
-                return m_uInt16Value;
-            }
+        public AnalogItemState<ushort> UInt16Value {
+            get => m_uInt16Value;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_uInt16Value, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_uInt16Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -2907,17 +2432,11 @@ namespace TestData {
         /// <summary>
         /// A description for the Int32Value Variable.
         /// </summary>
-        public AnalogItemState<int> Int32Value
-        {
-            get
-            {
-                return m_int32Value;
-            }
+        public AnalogItemState<int> Int32Value {
+            get => m_int32Value;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_int32Value, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_int32Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -2928,17 +2447,11 @@ namespace TestData {
         /// <summary>
         /// A description for the UInt32Value Variable.
         /// </summary>
-        public AnalogItemState<uint> UInt32Value
-        {
-            get
-            {
-                return m_uInt32Value;
-            }
+        public AnalogItemState<uint> UInt32Value {
+            get => m_uInt32Value;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_uInt32Value, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_uInt32Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -2949,17 +2462,11 @@ namespace TestData {
         /// <summary>
         /// A description for the Int64Value Variable.
         /// </summary>
-        public AnalogItemState<long> Int64Value
-        {
-            get
-            {
-                return m_int64Value;
-            }
+        public AnalogItemState<long> Int64Value {
+            get => m_int64Value;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_int64Value, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_int64Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -2970,17 +2477,11 @@ namespace TestData {
         /// <summary>
         /// A description for the UInt64Value Variable.
         /// </summary>
-        public AnalogItemState<ulong> UInt64Value
-        {
-            get
-            {
-                return m_uInt64Value;
-            }
+        public AnalogItemState<ulong> UInt64Value {
+            get => m_uInt64Value;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_uInt64Value, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_uInt64Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -2991,17 +2492,11 @@ namespace TestData {
         /// <summary>
         /// A description for the FloatValue Variable.
         /// </summary>
-        public AnalogItemState<float> FloatValue
-        {
-            get
-            {
-                return m_floatValue;
-            }
+        public AnalogItemState<float> FloatValue {
+            get => m_floatValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_floatValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_floatValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3012,17 +2507,11 @@ namespace TestData {
         /// <summary>
         /// A description for the DoubleValue Variable.
         /// </summary>
-        public AnalogItemState<double> DoubleValue
-        {
-            get
-            {
-                return m_doubleValue;
-            }
+        public AnalogItemState<double> DoubleValue {
+            get => m_doubleValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_doubleValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_doubleValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3033,17 +2522,11 @@ namespace TestData {
         /// <summary>
         /// A description for the NumberValue Variable.
         /// </summary>
-        public AnalogItemState NumberValue
-        {
-            get
-            {
-                return m_numberValue;
-            }
+        public AnalogItemState NumberValue {
+            get => m_numberValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_numberValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_numberValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3054,17 +2537,11 @@ namespace TestData {
         /// <summary>
         /// A description for the IntegerValue Variable.
         /// </summary>
-        public AnalogItemState IntegerValue
-        {
-            get
-            {
-                return m_integerValue;
-            }
+        public AnalogItemState IntegerValue {
+            get => m_integerValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_integerValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_integerValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3075,17 +2552,11 @@ namespace TestData {
         /// <summary>
         /// A description for the UIntegerValue Variable.
         /// </summary>
-        public AnalogItemState UIntegerValue
-        {
-            get
-            {
-                return m_uIntegerValue;
-            }
+        public AnalogItemState UIntegerValue {
+            get => m_uIntegerValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_uIntegerValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_uIntegerValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3102,70 +2573,56 @@ namespace TestData {
         /// <param name="children">The list of children to populate.</param>
         public override void GetChildren(
             ISystemContext context,
-            IList<BaseInstanceState> children)
-        {
-            if (m_sByteValue != null)
-            {
+            IList<BaseInstanceState> children) {
+            if (m_sByteValue != null) {
                 children.Add(m_sByteValue);
             }
 
-            if (m_byteValue != null)
-            {
+            if (m_byteValue != null) {
                 children.Add(m_byteValue);
             }
 
-            if (m_int16Value != null)
-            {
+            if (m_int16Value != null) {
                 children.Add(m_int16Value);
             }
 
-            if (m_uInt16Value != null)
-            {
+            if (m_uInt16Value != null) {
                 children.Add(m_uInt16Value);
             }
 
-            if (m_int32Value != null)
-            {
+            if (m_int32Value != null) {
                 children.Add(m_int32Value);
             }
 
-            if (m_uInt32Value != null)
-            {
+            if (m_uInt32Value != null) {
                 children.Add(m_uInt32Value);
             }
 
-            if (m_int64Value != null)
-            {
+            if (m_int64Value != null) {
                 children.Add(m_int64Value);
             }
 
-            if (m_uInt64Value != null)
-            {
+            if (m_uInt64Value != null) {
                 children.Add(m_uInt64Value);
             }
 
-            if (m_floatValue != null)
-            {
+            if (m_floatValue != null) {
                 children.Add(m_floatValue);
             }
 
-            if (m_doubleValue != null)
-            {
+            if (m_doubleValue != null) {
                 children.Add(m_doubleValue);
             }
 
-            if (m_numberValue != null)
-            {
+            if (m_numberValue != null) {
                 children.Add(m_numberValue);
             }
 
-            if (m_integerValue != null)
-            {
+            if (m_integerValue != null) {
                 children.Add(m_integerValue);
             }
 
-            if (m_uIntegerValue != null)
-            {
+            if (m_uIntegerValue != null) {
                 children.Add(m_uIntegerValue);
             }
 
@@ -3179,293 +2636,224 @@ namespace TestData {
             ISystemContext context,
             QualifiedName browseName,
             bool createOrReplace,
-            BaseInstanceState replacement)
-        {
-            if (QualifiedName.IsNull(browseName))
-            {
+            BaseInstanceState replacement) {
+            if (QualifiedName.IsNull(browseName)) {
                 return null;
             }
 
             BaseInstanceState instance = null;
 
-            switch (browseName.Name)
-            {
-                case TestData.BrowseNames.SByteValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (SByteValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                SByteValue = new AnalogItemState<sbyte>(this);
-                            }
-                            else
-                            {
-                                SByteValue = (AnalogItemState<sbyte>)replacement;
+            switch (browseName.Name) {
+                case TestData.BrowseNames.SByteValue: {
+                        if (createOrReplace) {
+                            if (SByteValue == null) {
+                                if (replacement == null) {
+                                    SByteValue = new AnalogItemState<sbyte>(this);
+                                }
+                                else {
+                                    SByteValue = (AnalogItemState<sbyte>)replacement;
+                                }
                             }
                         }
+
+                        instance = SByteValue;
+                        break;
                     }
 
-                    instance = SByteValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.ByteValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (ByteValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                ByteValue = new AnalogItemState<byte>(this);
-                            }
-                            else
-                            {
-                                ByteValue = (AnalogItemState<byte>)replacement;
+                case TestData.BrowseNames.ByteValue: {
+                        if (createOrReplace) {
+                            if (ByteValue == null) {
+                                if (replacement == null) {
+                                    ByteValue = new AnalogItemState<byte>(this);
+                                }
+                                else {
+                                    ByteValue = (AnalogItemState<byte>)replacement;
+                                }
                             }
                         }
+
+                        instance = ByteValue;
+                        break;
                     }
 
-                    instance = ByteValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.Int16Value:
-                {
-                    if (createOrReplace)
-                    {
-                        if (Int16Value == null)
-                        {
-                            if (replacement == null)
-                            {
-                                Int16Value = new AnalogItemState<short>(this);
-                            }
-                            else
-                            {
-                                Int16Value = (AnalogItemState<short>)replacement;
+                case TestData.BrowseNames.Int16Value: {
+                        if (createOrReplace) {
+                            if (Int16Value == null) {
+                                if (replacement == null) {
+                                    Int16Value = new AnalogItemState<short>(this);
+                                }
+                                else {
+                                    Int16Value = (AnalogItemState<short>)replacement;
+                                }
                             }
                         }
+
+                        instance = Int16Value;
+                        break;
                     }
 
-                    instance = Int16Value;
-                    break;
-                }
-
-                case TestData.BrowseNames.UInt16Value:
-                {
-                    if (createOrReplace)
-                    {
-                        if (UInt16Value == null)
-                        {
-                            if (replacement == null)
-                            {
-                                UInt16Value = new AnalogItemState<ushort>(this);
-                            }
-                            else
-                            {
-                                UInt16Value = (AnalogItemState<ushort>)replacement;
+                case TestData.BrowseNames.UInt16Value: {
+                        if (createOrReplace) {
+                            if (UInt16Value == null) {
+                                if (replacement == null) {
+                                    UInt16Value = new AnalogItemState<ushort>(this);
+                                }
+                                else {
+                                    UInt16Value = (AnalogItemState<ushort>)replacement;
+                                }
                             }
                         }
+
+                        instance = UInt16Value;
+                        break;
                     }
 
-                    instance = UInt16Value;
-                    break;
-                }
-
-                case TestData.BrowseNames.Int32Value:
-                {
-                    if (createOrReplace)
-                    {
-                        if (Int32Value == null)
-                        {
-                            if (replacement == null)
-                            {
-                                Int32Value = new AnalogItemState<int>(this);
-                            }
-                            else
-                            {
-                                Int32Value = (AnalogItemState<int>)replacement;
+                case TestData.BrowseNames.Int32Value: {
+                        if (createOrReplace) {
+                            if (Int32Value == null) {
+                                if (replacement == null) {
+                                    Int32Value = new AnalogItemState<int>(this);
+                                }
+                                else {
+                                    Int32Value = (AnalogItemState<int>)replacement;
+                                }
                             }
                         }
+
+                        instance = Int32Value;
+                        break;
                     }
 
-                    instance = Int32Value;
-                    break;
-                }
-
-                case TestData.BrowseNames.UInt32Value:
-                {
-                    if (createOrReplace)
-                    {
-                        if (UInt32Value == null)
-                        {
-                            if (replacement == null)
-                            {
-                                UInt32Value = new AnalogItemState<uint>(this);
-                            }
-                            else
-                            {
-                                UInt32Value = (AnalogItemState<uint>)replacement;
+                case TestData.BrowseNames.UInt32Value: {
+                        if (createOrReplace) {
+                            if (UInt32Value == null) {
+                                if (replacement == null) {
+                                    UInt32Value = new AnalogItemState<uint>(this);
+                                }
+                                else {
+                                    UInt32Value = (AnalogItemState<uint>)replacement;
+                                }
                             }
                         }
+
+                        instance = UInt32Value;
+                        break;
                     }
 
-                    instance = UInt32Value;
-                    break;
-                }
-
-                case TestData.BrowseNames.Int64Value:
-                {
-                    if (createOrReplace)
-                    {
-                        if (Int64Value == null)
-                        {
-                            if (replacement == null)
-                            {
-                                Int64Value = new AnalogItemState<long>(this);
-                            }
-                            else
-                            {
-                                Int64Value = (AnalogItemState<long>)replacement;
+                case TestData.BrowseNames.Int64Value: {
+                        if (createOrReplace) {
+                            if (Int64Value == null) {
+                                if (replacement == null) {
+                                    Int64Value = new AnalogItemState<long>(this);
+                                }
+                                else {
+                                    Int64Value = (AnalogItemState<long>)replacement;
+                                }
                             }
                         }
+
+                        instance = Int64Value;
+                        break;
                     }
 
-                    instance = Int64Value;
-                    break;
-                }
-
-                case TestData.BrowseNames.UInt64Value:
-                {
-                    if (createOrReplace)
-                    {
-                        if (UInt64Value == null)
-                        {
-                            if (replacement == null)
-                            {
-                                UInt64Value = new AnalogItemState<ulong>(this);
-                            }
-                            else
-                            {
-                                UInt64Value = (AnalogItemState<ulong>)replacement;
+                case TestData.BrowseNames.UInt64Value: {
+                        if (createOrReplace) {
+                            if (UInt64Value == null) {
+                                if (replacement == null) {
+                                    UInt64Value = new AnalogItemState<ulong>(this);
+                                }
+                                else {
+                                    UInt64Value = (AnalogItemState<ulong>)replacement;
+                                }
                             }
                         }
+
+                        instance = UInt64Value;
+                        break;
                     }
 
-                    instance = UInt64Value;
-                    break;
-                }
-
-                case TestData.BrowseNames.FloatValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (FloatValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                FloatValue = new AnalogItemState<float>(this);
-                            }
-                            else
-                            {
-                                FloatValue = (AnalogItemState<float>)replacement;
+                case TestData.BrowseNames.FloatValue: {
+                        if (createOrReplace) {
+                            if (FloatValue == null) {
+                                if (replacement == null) {
+                                    FloatValue = new AnalogItemState<float>(this);
+                                }
+                                else {
+                                    FloatValue = (AnalogItemState<float>)replacement;
+                                }
                             }
                         }
+
+                        instance = FloatValue;
+                        break;
                     }
 
-                    instance = FloatValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.DoubleValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (DoubleValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                DoubleValue = new AnalogItemState<double>(this);
-                            }
-                            else
-                            {
-                                DoubleValue = (AnalogItemState<double>)replacement;
+                case TestData.BrowseNames.DoubleValue: {
+                        if (createOrReplace) {
+                            if (DoubleValue == null) {
+                                if (replacement == null) {
+                                    DoubleValue = new AnalogItemState<double>(this);
+                                }
+                                else {
+                                    DoubleValue = (AnalogItemState<double>)replacement;
+                                }
                             }
                         }
+
+                        instance = DoubleValue;
+                        break;
                     }
 
-                    instance = DoubleValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.NumberValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (NumberValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                NumberValue = new AnalogItemState(this);
-                            }
-                            else
-                            {
-                                NumberValue = (AnalogItemState)replacement;
+                case TestData.BrowseNames.NumberValue: {
+                        if (createOrReplace) {
+                            if (NumberValue == null) {
+                                if (replacement == null) {
+                                    NumberValue = new AnalogItemState(this);
+                                }
+                                else {
+                                    NumberValue = (AnalogItemState)replacement;
+                                }
                             }
                         }
+
+                        instance = NumberValue;
+                        break;
                     }
 
-                    instance = NumberValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.IntegerValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (IntegerValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                IntegerValue = new AnalogItemState(this);
-                            }
-                            else
-                            {
-                                IntegerValue = (AnalogItemState)replacement;
+                case TestData.BrowseNames.IntegerValue: {
+                        if (createOrReplace) {
+                            if (IntegerValue == null) {
+                                if (replacement == null) {
+                                    IntegerValue = new AnalogItemState(this);
+                                }
+                                else {
+                                    IntegerValue = (AnalogItemState)replacement;
+                                }
                             }
                         }
+
+                        instance = IntegerValue;
+                        break;
                     }
 
-                    instance = IntegerValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.UIntegerValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (UIntegerValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                UIntegerValue = new AnalogItemState(this);
-                            }
-                            else
-                            {
-                                UIntegerValue = (AnalogItemState)replacement;
+                case TestData.BrowseNames.UIntegerValue: {
+                        if (createOrReplace) {
+                            if (UIntegerValue == null) {
+                                if (replacement == null) {
+                                    UIntegerValue = new AnalogItemState(this);
+                                }
+                                else {
+                                    UIntegerValue = (AnalogItemState)replacement;
+                                }
                             }
                         }
-                    }
 
-                    instance = UIntegerValue;
-                    break;
-                }
+                        instance = UIntegerValue;
+                        break;
+                    }
             }
 
-            if (instance != null)
-            {
+            if (instance != null) {
                 return instance;
             }
 
@@ -3489,24 +2877,22 @@ namespace TestData {
         private AnalogItemState m_uIntegerValue;
         #endregion
     }
-    #endif
+#endif
     #endregion
 
     #region ArrayValue1MethodState Class
-    #if (!OPCUA_EXCLUDE_ArrayValue1MethodState)
+#if (!OPCUA_EXCLUDE_ArrayValue1MethodState)
     /// <summary>
     /// Stores an instance of the ArrayValue1MethodType Method.
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public partial class ArrayValue1MethodState : MethodState
-    {
+    public partial class ArrayValue1MethodState : MethodState {
         #region Constructors
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
-        public ArrayValue1MethodState(NodeState parent) : base(parent)
-        {
+        public ArrayValue1MethodState(NodeState parent) : base(parent) {
         }
 
         /// <summary>
@@ -3514,17 +2900,15 @@ namespace TestData {
         /// </summary>
         /// <param name="parent">The parent.</param>
         /// <returns>The new node.</returns>
-        public new static NodeState Construct(NodeState parent)
-        {
+        public new static NodeState Construct(NodeState parent) {
             return new ArrayValue1MethodState(parent);
         }
 
-        #if (!OPCUA_EXCLUDE_InitializationStrings)
+#if (!OPCUA_EXCLUDE_InitializationStrings)
         /// <summary>
         /// Initializes the instance.
         /// </summary>
-        protected override void Initialize(ISystemContext context)
-        {
+        protected override void Initialize(ISystemContext context) {
             Initialize(context, InitializationString);
             InitializeOptionalChildren(context);
         }
@@ -3532,8 +2916,7 @@ namespace TestData {
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
-        protected override void InitializeOptionalChildren(ISystemContext context)
-        {
+        protected override void InitializeOptionalChildren(ISystemContext context) {
             base.InitializeOptionalChildren(context);
         }
 
@@ -3556,7 +2939,7 @@ namespace TestData {
            "AAABACoBARcAAAAIAAAARmxvYXRPdXQACgEAAAAAAAAAAAEAKgEBGAAAAAkAAABEb3VibGVPdXQACwEA" +
            "AAAAAAAAAAEAKAEBAAAAAQH/////AAAAAA==";
         #endregion
-        #endif
+#endif
         #endregion
 
         #region Event Callbacks
@@ -3582,10 +2965,8 @@ namespace TestData {
             ISystemContext context,
             NodeId objectId,
             IList<object> inputArguments,
-            IList<object> outputArguments)
-        {
-            if (OnCall == null)
-            {
+            IList<object> outputArguments) {
+            if (OnCall == null) {
                 return base.Call(context, objectId, inputArguments, outputArguments);
             }
 
@@ -3615,8 +2996,7 @@ namespace TestData {
             float[] floatOut = (float[])outputArguments[9];
             double[] doubleOut = (double[])outputArguments[10];
 
-            if (OnCall != null)
-            {
+            if (OnCall != null) {
                 result = OnCall(
                     context,
                     this,
@@ -3695,24 +3075,22 @@ namespace TestData {
         ref ulong[] uInt64Out,
         ref float[] floatOut,
         ref double[] doubleOut);
-    #endif
+#endif
     #endregion
 
     #region ArrayValue2MethodState Class
-    #if (!OPCUA_EXCLUDE_ArrayValue2MethodState)
+#if (!OPCUA_EXCLUDE_ArrayValue2MethodState)
     /// <summary>
     /// Stores an instance of the ArrayValue2MethodType Method.
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public partial class ArrayValue2MethodState : MethodState
-    {
+    public partial class ArrayValue2MethodState : MethodState {
         #region Constructors
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
-        public ArrayValue2MethodState(NodeState parent) : base(parent)
-        {
+        public ArrayValue2MethodState(NodeState parent) : base(parent) {
         }
 
         /// <summary>
@@ -3720,17 +3098,15 @@ namespace TestData {
         /// </summary>
         /// <param name="parent">The parent.</param>
         /// <returns>The new node.</returns>
-        public new static NodeState Construct(NodeState parent)
-        {
+        public new static NodeState Construct(NodeState parent) {
             return new ArrayValue2MethodState(parent);
         }
 
-        #if (!OPCUA_EXCLUDE_InitializationStrings)
+#if (!OPCUA_EXCLUDE_InitializationStrings)
         /// <summary>
         /// Initializes the instance.
         /// </summary>
-        protected override void Initialize(ISystemContext context)
-        {
+        protected override void Initialize(ISystemContext context) {
             Initialize(context, InitializationString);
             InitializeOptionalChildren(context);
         }
@@ -3738,8 +3114,7 @@ namespace TestData {
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
-        protected override void InitializeOptionalChildren(ISystemContext context)
-        {
+        protected override void InitializeOptionalChildren(ISystemContext context) {
             base.InitializeOptionalChildren(context);
         }
 
@@ -3762,7 +3137,7 @@ namespace TestData {
            "AAAAAAABACoBAR8AAAAQAAAATG9jYWxpemVkVGV4dE91dAAVAQAAAAAAAAAAAQAqAQEcAAAADQAAAFN0" +
            "YXR1c0NvZGVPdXQAEwEAAAAAAAAAAAEAKAEBAAAAAQH/////AAAAAA==";
         #endregion
-        #endif
+#endif
         #endregion
 
         #region Event Callbacks
@@ -3788,10 +3163,8 @@ namespace TestData {
             ISystemContext context,
             NodeId objectId,
             IList<object> inputArguments,
-            IList<object> outputArguments)
-        {
-            if (OnCall == null)
-            {
+            IList<object> outputArguments) {
+            if (OnCall == null) {
                 return base.Call(context, objectId, inputArguments, outputArguments);
             }
 
@@ -3819,8 +3192,7 @@ namespace TestData {
             LocalizedText[] localizedTextOut = (LocalizedText[])outputArguments[8];
             StatusCode[] statusCodeOut = (StatusCode[])outputArguments[9];
 
-            if (OnCall != null)
-            {
+            if (OnCall != null) {
                 result = OnCall(
                     context,
                     this,
@@ -3894,24 +3266,22 @@ namespace TestData {
         ref QualifiedName[] qualifiedNameOut,
         ref LocalizedText[] localizedTextOut,
         ref StatusCode[] statusCodeOut);
-    #endif
+#endif
     #endregion
 
     #region ArrayValue3MethodState Class
-    #if (!OPCUA_EXCLUDE_ArrayValue3MethodState)
+#if (!OPCUA_EXCLUDE_ArrayValue3MethodState)
     /// <summary>
     /// Stores an instance of the ArrayValue3MethodType Method.
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public partial class ArrayValue3MethodState : MethodState
-    {
+    public partial class ArrayValue3MethodState : MethodState {
         #region Constructors
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
-        public ArrayValue3MethodState(NodeState parent) : base(parent)
-        {
+        public ArrayValue3MethodState(NodeState parent) : base(parent) {
         }
 
         /// <summary>
@@ -3919,17 +3289,15 @@ namespace TestData {
         /// </summary>
         /// <param name="parent">The parent.</param>
         /// <returns>The new node.</returns>
-        public new static NodeState Construct(NodeState parent)
-        {
+        public new static NodeState Construct(NodeState parent) {
             return new ArrayValue3MethodState(parent);
         }
 
-        #if (!OPCUA_EXCLUDE_InitializationStrings)
+#if (!OPCUA_EXCLUDE_InitializationStrings)
         /// <summary>
         /// Initializes the instance.
         /// </summary>
-        protected override void Initialize(ISystemContext context)
-        {
+        protected override void Initialize(ISystemContext context) {
             Initialize(context, InitializationString);
             InitializeOptionalChildren(context);
         }
@@ -3937,8 +3305,7 @@ namespace TestData {
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
-        protected override void InitializeOptionalChildren(ISystemContext context)
-        {
+        protected override void InitializeOptionalChildren(ISystemContext context) {
             base.InitializeOptionalChildren(context);
         }
 
@@ -3953,7 +3320,7 @@ namespace TestData {
            "ZXJhdGlvbk91dAAdAQAAAAAAAAAAAQAqAQEbAAAADAAAAFN0cnVjdHVyZU91dAAWAQAAAAAAAAAAAQAo" +
            "AQEAAAABAf////8AAAAA";
         #endregion
-        #endif
+#endif
         #endregion
 
         #region Event Callbacks
@@ -3979,10 +3346,8 @@ namespace TestData {
             ISystemContext context,
             NodeId objectId,
             IList<object> inputArguments,
-            IList<object> outputArguments)
-        {
-            if (OnCall == null)
-            {
+            IList<object> outputArguments) {
+            if (OnCall == null) {
                 return base.Call(context, objectId, inputArguments, outputArguments);
             }
 
@@ -3996,8 +3361,7 @@ namespace TestData {
             int[] enumerationOut = (int[])outputArguments[1];
             ExtensionObject[] structureOut = (ExtensionObject[])outputArguments[2];
 
-            if (OnCall != null)
-            {
+            if (OnCall != null) {
                 result = OnCall(
                     context,
                     this,
@@ -4036,40 +3400,36 @@ namespace TestData {
         ref Variant[] variantOut,
         ref int[] enumerationOut,
         ref ExtensionObject[] structureOut);
-    #endif
+#endif
     #endregion
 
     #region ArrayValueObjectState Class
-    #if (!OPCUA_EXCLUDE_ArrayValueObjectState)
+#if !OPCUA_EXCLUDE_ArrayValueObjectState
     /// <summary>
     /// Stores an instance of the ArrayValueObjectType ObjectType.
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCode("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public partial class ArrayValueObjectState : TestDataObjectState
-    {
+    public partial class ArrayValueObjectState : TestDataObjectState {
         #region Constructors
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
-        public ArrayValueObjectState(NodeState parent) : base(parent)
-        {
+        public ArrayValueObjectState(NodeState parent) : base(parent) {
         }
 
         /// <summary>
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
-        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
-        {
+        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris) {
             return Opc.Ua.NodeId.Create(TestData.ObjectTypes.ArrayValueObjectType, TestData.Namespaces.TestData, namespaceUris);
         }
 
-        #if (!OPCUA_EXCLUDE_InitializationStrings)
+#if !OPCUA_EXCLUDE_InitializationStrings
         /// <summary>
         /// Initializes the instance.
         /// </summary>
-        protected override void Initialize(ISystemContext context)
-        {
+        protected override void Initialize(ISystemContext context) {
             Initialize(context, InitializationString);
             InitializeOptionalChildren(context);
         }
@@ -4077,8 +3437,7 @@ namespace TestData {
         /// <summary>
         /// Initializes the instance with a node.
         /// </summary>
-        protected override void Initialize(ISystemContext context, NodeState source)
-        {
+        protected override void Initialize(ISystemContext context, NodeState source) {
             InitializeOptionalChildren(context);
             base.Initialize(context, source);
         }
@@ -4086,8 +3445,7 @@ namespace TestData {
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
-        protected override void InitializeOptionalChildren(ISystemContext context)
-        {
+        protected override void InitializeOptionalChildren(ISystemContext context) {
             base.InitializeOptionalChildren(context);
         }
 
@@ -4166,24 +3524,18 @@ namespace TestData {
            "AD8hJgAAABsBAAAAAQH/////AAAAABVgiQoCAAAAAQANAAAAVUludGVnZXJWYWx1ZQEBIiYALwA/IiYA" +
            "AAAcAQAAAAEB/////wAAAAA=";
         #endregion
-        #endif
+#endif
         #endregion
 
         #region Public Properties
         /// <summary>
         /// A description for the BooleanValue Variable.
         /// </summary>
-        public BaseDataVariableState<bool[]> BooleanValue
-        {
-            get
-            {
-                return m_booleanValue;
-            }
+        public BaseDataVariableState<bool[]> BooleanValue {
+            get => m_booleanValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_booleanValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_booleanValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -4194,17 +3546,11 @@ namespace TestData {
         /// <summary>
         /// A description for the SByteValue Variable.
         /// </summary>
-        public BaseDataVariableState<sbyte[]> SByteValue
-        {
-            get
-            {
-                return m_sByteValue;
-            }
+        public BaseDataVariableState<sbyte[]> SByteValue {
+            get => m_sByteValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_sByteValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_sByteValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -4215,17 +3561,11 @@ namespace TestData {
         /// <summary>
         /// A description for the ByteValue Variable.
         /// </summary>
-        public BaseDataVariableState<byte[]> ByteValue
-        {
-            get
-            {
-                return m_byteValue;
-            }
+        public BaseDataVariableState<byte[]> ByteValue {
+            get => m_byteValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_byteValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_byteValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -4236,17 +3576,11 @@ namespace TestData {
         /// <summary>
         /// A description for the Int16Value Variable.
         /// </summary>
-        public BaseDataVariableState<short[]> Int16Value
-        {
-            get
-            {
-                return m_int16Value;
-            }
+        public BaseDataVariableState<short[]> Int16Value {
+            get => m_int16Value;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_int16Value, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_int16Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -4257,17 +3591,11 @@ namespace TestData {
         /// <summary>
         /// A description for the UInt16Value Variable.
         /// </summary>
-        public BaseDataVariableState<ushort[]> UInt16Value
-        {
-            get
-            {
-                return m_uInt16Value;
-            }
+        public BaseDataVariableState<ushort[]> UInt16Value {
+            get => m_uInt16Value;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_uInt16Value, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_uInt16Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -4278,17 +3606,11 @@ namespace TestData {
         /// <summary>
         /// A description for the Int32Value Variable.
         /// </summary>
-        public BaseDataVariableState<int[]> Int32Value
-        {
-            get
-            {
-                return m_int32Value;
-            }
+        public BaseDataVariableState<int[]> Int32Value {
+            get => m_int32Value;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_int32Value, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_int32Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -4299,17 +3621,11 @@ namespace TestData {
         /// <summary>
         /// A description for the UInt32Value Variable.
         /// </summary>
-        public BaseDataVariableState<uint[]> UInt32Value
-        {
-            get
-            {
-                return m_uInt32Value;
-            }
+        public BaseDataVariableState<uint[]> UInt32Value {
+            get => m_uInt32Value;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_uInt32Value, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_uInt32Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -4320,17 +3636,11 @@ namespace TestData {
         /// <summary>
         /// A description for the Int64Value Variable.
         /// </summary>
-        public BaseDataVariableState<long[]> Int64Value
-        {
-            get
-            {
-                return m_int64Value;
-            }
+        public BaseDataVariableState<long[]> Int64Value {
+            get => m_int64Value;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_int64Value, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_int64Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -4341,17 +3651,11 @@ namespace TestData {
         /// <summary>
         /// A description for the UInt64Value Variable.
         /// </summary>
-        public BaseDataVariableState<ulong[]> UInt64Value
-        {
-            get
-            {
-                return m_uInt64Value;
-            }
+        public BaseDataVariableState<ulong[]> UInt64Value {
+            get => m_uInt64Value;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_uInt64Value, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_uInt64Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -4362,17 +3666,11 @@ namespace TestData {
         /// <summary>
         /// A description for the FloatValue Variable.
         /// </summary>
-        public BaseDataVariableState<float[]> FloatValue
-        {
-            get
-            {
-                return m_floatValue;
-            }
+        public BaseDataVariableState<float[]> FloatValue {
+            get => m_floatValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_floatValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_floatValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -4383,17 +3681,11 @@ namespace TestData {
         /// <summary>
         /// A description for the DoubleValue Variable.
         /// </summary>
-        public BaseDataVariableState<double[]> DoubleValue
-        {
-            get
-            {
-                return m_doubleValue;
-            }
+        public BaseDataVariableState<double[]> DoubleValue {
+            get => m_doubleValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_doubleValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_doubleValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -4404,17 +3696,11 @@ namespace TestData {
         /// <summary>
         /// A description for the StringValue Variable.
         /// </summary>
-        public BaseDataVariableState<string[]> StringValue
-        {
-            get
-            {
-                return m_stringValue;
-            }
+        public BaseDataVariableState<string[]> StringValue {
+            get => m_stringValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_stringValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_stringValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -4425,17 +3711,11 @@ namespace TestData {
         /// <summary>
         /// A description for the DateTimeValue Variable.
         /// </summary>
-        public BaseDataVariableState<DateTime[]> DateTimeValue
-        {
-            get
-            {
-                return m_dateTimeValue;
-            }
+        public BaseDataVariableState<DateTime[]> DateTimeValue {
+            get => m_dateTimeValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_dateTimeValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_dateTimeValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -4446,17 +3726,11 @@ namespace TestData {
         /// <summary>
         /// A description for the GuidValue Variable.
         /// </summary>
-        public BaseDataVariableState<Guid[]> GuidValue
-        {
-            get
-            {
-                return m_guidValue;
-            }
+        public BaseDataVariableState<Guid[]> GuidValue {
+            get => m_guidValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_guidValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_guidValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -4467,17 +3741,11 @@ namespace TestData {
         /// <summary>
         /// A description for the ByteStringValue Variable.
         /// </summary>
-        public BaseDataVariableState<byte[][]> ByteStringValue
-        {
-            get
-            {
-                return m_byteStringValue;
-            }
+        public BaseDataVariableState<byte[][]> ByteStringValue {
+            get => m_byteStringValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_byteStringValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_byteStringValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -4488,17 +3756,11 @@ namespace TestData {
         /// <summary>
         /// A description for the XmlElementValue Variable.
         /// </summary>
-        public BaseDataVariableState<XmlElement[]> XmlElementValue
-        {
-            get
-            {
-                return m_xmlElementValue;
-            }
+        public BaseDataVariableState<XmlElement[]> XmlElementValue {
+            get => m_xmlElementValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_xmlElementValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_xmlElementValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -4509,17 +3771,11 @@ namespace TestData {
         /// <summary>
         /// A description for the NodeIdValue Variable.
         /// </summary>
-        public BaseDataVariableState<NodeId[]> NodeIdValue
-        {
-            get
-            {
-                return m_nodeIdValue;
-            }
+        public BaseDataVariableState<NodeId[]> NodeIdValue {
+            get => m_nodeIdValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_nodeIdValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_nodeIdValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -4530,17 +3786,11 @@ namespace TestData {
         /// <summary>
         /// A description for the ExpandedNodeIdValue Variable.
         /// </summary>
-        public BaseDataVariableState<ExpandedNodeId[]> ExpandedNodeIdValue
-        {
-            get
-            {
-                return m_expandedNodeIdValue;
-            }
+        public BaseDataVariableState<ExpandedNodeId[]> ExpandedNodeIdValue {
+            get => m_expandedNodeIdValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_expandedNodeIdValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_expandedNodeIdValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -4551,17 +3801,11 @@ namespace TestData {
         /// <summary>
         /// A description for the QualifiedNameValue Variable.
         /// </summary>
-        public BaseDataVariableState<QualifiedName[]> QualifiedNameValue
-        {
-            get
-            {
-                return m_qualifiedNameValue;
-            }
+        public BaseDataVariableState<QualifiedName[]> QualifiedNameValue {
+            get => m_qualifiedNameValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_qualifiedNameValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_qualifiedNameValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -4572,17 +3816,11 @@ namespace TestData {
         /// <summary>
         /// A description for the LocalizedTextValue Variable.
         /// </summary>
-        public BaseDataVariableState<LocalizedText[]> LocalizedTextValue
-        {
-            get
-            {
-                return m_localizedTextValue;
-            }
+        public BaseDataVariableState<LocalizedText[]> LocalizedTextValue {
+            get => m_localizedTextValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_localizedTextValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_localizedTextValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -4593,17 +3831,11 @@ namespace TestData {
         /// <summary>
         /// A description for the StatusCodeValue Variable.
         /// </summary>
-        public BaseDataVariableState<StatusCode[]> StatusCodeValue
-        {
-            get
-            {
-                return m_statusCodeValue;
-            }
+        public BaseDataVariableState<StatusCode[]> StatusCodeValue {
+            get => m_statusCodeValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_statusCodeValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_statusCodeValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -4614,17 +3846,11 @@ namespace TestData {
         /// <summary>
         /// A description for the VariantValue Variable.
         /// </summary>
-        public BaseDataVariableState<object[]> VariantValue
-        {
-            get
-            {
-                return m_variantValue;
-            }
+        public BaseDataVariableState<object[]> VariantValue {
+            get => m_variantValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_variantValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_variantValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -4635,17 +3861,11 @@ namespace TestData {
         /// <summary>
         /// A description for the EnumerationValue Variable.
         /// </summary>
-        public BaseDataVariableState<int[]> EnumerationValue
-        {
-            get
-            {
-                return m_enumerationValue;
-            }
+        public BaseDataVariableState<int[]> EnumerationValue {
+            get => m_enumerationValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_enumerationValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_enumerationValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -4656,17 +3876,11 @@ namespace TestData {
         /// <summary>
         /// A description for the StructureValue Variable.
         /// </summary>
-        public BaseDataVariableState<ExtensionObject[]> StructureValue
-        {
-            get
-            {
-                return m_structureValue;
-            }
+        public BaseDataVariableState<ExtensionObject[]> StructureValue {
+            get => m_structureValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_structureValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_structureValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -4677,17 +3891,11 @@ namespace TestData {
         /// <summary>
         /// A description for the NumberValue Variable.
         /// </summary>
-        public BaseDataVariableState<object[]> NumberValue
-        {
-            get
-            {
-                return m_numberValue;
-            }
+        public BaseDataVariableState<object[]> NumberValue {
+            get => m_numberValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_numberValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_numberValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -4698,17 +3906,11 @@ namespace TestData {
         /// <summary>
         /// A description for the IntegerValue Variable.
         /// </summary>
-        public BaseDataVariableState<object[]> IntegerValue
-        {
-            get
-            {
-                return m_integerValue;
-            }
+        public BaseDataVariableState<object[]> IntegerValue {
+            get => m_integerValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_integerValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_integerValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -4719,17 +3921,11 @@ namespace TestData {
         /// <summary>
         /// A description for the UIntegerValue Variable.
         /// </summary>
-        public BaseDataVariableState<object[]> UIntegerValue
-        {
-            get
-            {
-                return m_uIntegerValue;
-            }
+        public BaseDataVariableState<object[]> UIntegerValue {
+            get => m_uIntegerValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_uIntegerValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_uIntegerValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -4746,140 +3942,112 @@ namespace TestData {
         /// <param name="children">The list of children to populate.</param>
         public override void GetChildren(
             ISystemContext context,
-            IList<BaseInstanceState> children)
-        {
-            if (m_booleanValue != null)
-            {
+            IList<BaseInstanceState> children) {
+            if (m_booleanValue != null) {
                 children.Add(m_booleanValue);
             }
 
-            if (m_sByteValue != null)
-            {
+            if (m_sByteValue != null) {
                 children.Add(m_sByteValue);
             }
 
-            if (m_byteValue != null)
-            {
+            if (m_byteValue != null) {
                 children.Add(m_byteValue);
             }
 
-            if (m_int16Value != null)
-            {
+            if (m_int16Value != null) {
                 children.Add(m_int16Value);
             }
 
-            if (m_uInt16Value != null)
-            {
+            if (m_uInt16Value != null) {
                 children.Add(m_uInt16Value);
             }
 
-            if (m_int32Value != null)
-            {
+            if (m_int32Value != null) {
                 children.Add(m_int32Value);
             }
 
-            if (m_uInt32Value != null)
-            {
+            if (m_uInt32Value != null) {
                 children.Add(m_uInt32Value);
             }
 
-            if (m_int64Value != null)
-            {
+            if (m_int64Value != null) {
                 children.Add(m_int64Value);
             }
 
-            if (m_uInt64Value != null)
-            {
+            if (m_uInt64Value != null) {
                 children.Add(m_uInt64Value);
             }
 
-            if (m_floatValue != null)
-            {
+            if (m_floatValue != null) {
                 children.Add(m_floatValue);
             }
 
-            if (m_doubleValue != null)
-            {
+            if (m_doubleValue != null) {
                 children.Add(m_doubleValue);
             }
 
-            if (m_stringValue != null)
-            {
+            if (m_stringValue != null) {
                 children.Add(m_stringValue);
             }
 
-            if (m_dateTimeValue != null)
-            {
+            if (m_dateTimeValue != null) {
                 children.Add(m_dateTimeValue);
             }
 
-            if (m_guidValue != null)
-            {
+            if (m_guidValue != null) {
                 children.Add(m_guidValue);
             }
 
-            if (m_byteStringValue != null)
-            {
+            if (m_byteStringValue != null) {
                 children.Add(m_byteStringValue);
             }
 
-            if (m_xmlElementValue != null)
-            {
+            if (m_xmlElementValue != null) {
                 children.Add(m_xmlElementValue);
             }
 
-            if (m_nodeIdValue != null)
-            {
+            if (m_nodeIdValue != null) {
                 children.Add(m_nodeIdValue);
             }
 
-            if (m_expandedNodeIdValue != null)
-            {
+            if (m_expandedNodeIdValue != null) {
                 children.Add(m_expandedNodeIdValue);
             }
 
-            if (m_qualifiedNameValue != null)
-            {
+            if (m_qualifiedNameValue != null) {
                 children.Add(m_qualifiedNameValue);
             }
 
-            if (m_localizedTextValue != null)
-            {
+            if (m_localizedTextValue != null) {
                 children.Add(m_localizedTextValue);
             }
 
-            if (m_statusCodeValue != null)
-            {
+            if (m_statusCodeValue != null) {
                 children.Add(m_statusCodeValue);
             }
 
-            if (m_variantValue != null)
-            {
+            if (m_variantValue != null) {
                 children.Add(m_variantValue);
             }
 
-            if (m_enumerationValue != null)
-            {
+            if (m_enumerationValue != null) {
                 children.Add(m_enumerationValue);
             }
 
-            if (m_structureValue != null)
-            {
+            if (m_structureValue != null) {
                 children.Add(m_structureValue);
             }
 
-            if (m_numberValue != null)
-            {
+            if (m_numberValue != null) {
                 children.Add(m_numberValue);
             }
 
-            if (m_integerValue != null)
-            {
+            if (m_integerValue != null) {
                 children.Add(m_integerValue);
             }
 
-            if (m_uIntegerValue != null)
-            {
+            if (m_uIntegerValue != null) {
                 children.Add(m_uIntegerValue);
             }
 
@@ -4893,587 +4061,448 @@ namespace TestData {
             ISystemContext context,
             QualifiedName browseName,
             bool createOrReplace,
-            BaseInstanceState replacement)
-        {
-            if (QualifiedName.IsNull(browseName))
-            {
+            BaseInstanceState replacement) {
+            if (QualifiedName.IsNull(browseName)) {
                 return null;
             }
 
             BaseInstanceState instance = null;
 
-            switch (browseName.Name)
-            {
-                case TestData.BrowseNames.BooleanValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (BooleanValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                BooleanValue = new BaseDataVariableState<bool[]>(this);
-                            }
-                            else
-                            {
-                                BooleanValue = (BaseDataVariableState<bool[]>)replacement;
+            switch (browseName.Name) {
+                case TestData.BrowseNames.BooleanValue: {
+                        if (createOrReplace) {
+                            if (BooleanValue == null) {
+                                if (replacement == null) {
+                                    BooleanValue = new BaseDataVariableState<bool[]>(this);
+                                }
+                                else {
+                                    BooleanValue = (BaseDataVariableState<bool[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = BooleanValue;
+                        break;
                     }
 
-                    instance = BooleanValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.SByteValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (SByteValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                SByteValue = new BaseDataVariableState<sbyte[]>(this);
-                            }
-                            else
-                            {
-                                SByteValue = (BaseDataVariableState<sbyte[]>)replacement;
+                case TestData.BrowseNames.SByteValue: {
+                        if (createOrReplace) {
+                            if (SByteValue == null) {
+                                if (replacement == null) {
+                                    SByteValue = new BaseDataVariableState<sbyte[]>(this);
+                                }
+                                else {
+                                    SByteValue = (BaseDataVariableState<sbyte[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = SByteValue;
+                        break;
                     }
 
-                    instance = SByteValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.ByteValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (ByteValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                ByteValue = new BaseDataVariableState<byte[]>(this);
-                            }
-                            else
-                            {
-                                ByteValue = (BaseDataVariableState<byte[]>)replacement;
+                case TestData.BrowseNames.ByteValue: {
+                        if (createOrReplace) {
+                            if (ByteValue == null) {
+                                if (replacement == null) {
+                                    ByteValue = new BaseDataVariableState<byte[]>(this);
+                                }
+                                else {
+                                    ByteValue = (BaseDataVariableState<byte[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = ByteValue;
+                        break;
                     }
 
-                    instance = ByteValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.Int16Value:
-                {
-                    if (createOrReplace)
-                    {
-                        if (Int16Value == null)
-                        {
-                            if (replacement == null)
-                            {
-                                Int16Value = new BaseDataVariableState<short[]>(this);
-                            }
-                            else
-                            {
-                                Int16Value = (BaseDataVariableState<short[]>)replacement;
+                case TestData.BrowseNames.Int16Value: {
+                        if (createOrReplace) {
+                            if (Int16Value == null) {
+                                if (replacement == null) {
+                                    Int16Value = new BaseDataVariableState<short[]>(this);
+                                }
+                                else {
+                                    Int16Value = (BaseDataVariableState<short[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = Int16Value;
+                        break;
                     }
 
-                    instance = Int16Value;
-                    break;
-                }
-
-                case TestData.BrowseNames.UInt16Value:
-                {
-                    if (createOrReplace)
-                    {
-                        if (UInt16Value == null)
-                        {
-                            if (replacement == null)
-                            {
-                                UInt16Value = new BaseDataVariableState<ushort[]>(this);
-                            }
-                            else
-                            {
-                                UInt16Value = (BaseDataVariableState<ushort[]>)replacement;
+                case TestData.BrowseNames.UInt16Value: {
+                        if (createOrReplace) {
+                            if (UInt16Value == null) {
+                                if (replacement == null) {
+                                    UInt16Value = new BaseDataVariableState<ushort[]>(this);
+                                }
+                                else {
+                                    UInt16Value = (BaseDataVariableState<ushort[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = UInt16Value;
+                        break;
                     }
 
-                    instance = UInt16Value;
-                    break;
-                }
-
-                case TestData.BrowseNames.Int32Value:
-                {
-                    if (createOrReplace)
-                    {
-                        if (Int32Value == null)
-                        {
-                            if (replacement == null)
-                            {
-                                Int32Value = new BaseDataVariableState<int[]>(this);
-                            }
-                            else
-                            {
-                                Int32Value = (BaseDataVariableState<int[]>)replacement;
+                case TestData.BrowseNames.Int32Value: {
+                        if (createOrReplace) {
+                            if (Int32Value == null) {
+                                if (replacement == null) {
+                                    Int32Value = new BaseDataVariableState<int[]>(this);
+                                }
+                                else {
+                                    Int32Value = (BaseDataVariableState<int[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = Int32Value;
+                        break;
                     }
 
-                    instance = Int32Value;
-                    break;
-                }
-
-                case TestData.BrowseNames.UInt32Value:
-                {
-                    if (createOrReplace)
-                    {
-                        if (UInt32Value == null)
-                        {
-                            if (replacement == null)
-                            {
-                                UInt32Value = new BaseDataVariableState<uint[]>(this);
-                            }
-                            else
-                            {
-                                UInt32Value = (BaseDataVariableState<uint[]>)replacement;
+                case TestData.BrowseNames.UInt32Value: {
+                        if (createOrReplace) {
+                            if (UInt32Value == null) {
+                                if (replacement == null) {
+                                    UInt32Value = new BaseDataVariableState<uint[]>(this);
+                                }
+                                else {
+                                    UInt32Value = (BaseDataVariableState<uint[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = UInt32Value;
+                        break;
                     }
 
-                    instance = UInt32Value;
-                    break;
-                }
-
-                case TestData.BrowseNames.Int64Value:
-                {
-                    if (createOrReplace)
-                    {
-                        if (Int64Value == null)
-                        {
-                            if (replacement == null)
-                            {
-                                Int64Value = new BaseDataVariableState<long[]>(this);
-                            }
-                            else
-                            {
-                                Int64Value = (BaseDataVariableState<long[]>)replacement;
+                case TestData.BrowseNames.Int64Value: {
+                        if (createOrReplace) {
+                            if (Int64Value == null) {
+                                if (replacement == null) {
+                                    Int64Value = new BaseDataVariableState<long[]>(this);
+                                }
+                                else {
+                                    Int64Value = (BaseDataVariableState<long[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = Int64Value;
+                        break;
                     }
 
-                    instance = Int64Value;
-                    break;
-                }
-
-                case TestData.BrowseNames.UInt64Value:
-                {
-                    if (createOrReplace)
-                    {
-                        if (UInt64Value == null)
-                        {
-                            if (replacement == null)
-                            {
-                                UInt64Value = new BaseDataVariableState<ulong[]>(this);
-                            }
-                            else
-                            {
-                                UInt64Value = (BaseDataVariableState<ulong[]>)replacement;
+                case TestData.BrowseNames.UInt64Value: {
+                        if (createOrReplace) {
+                            if (UInt64Value == null) {
+                                if (replacement == null) {
+                                    UInt64Value = new BaseDataVariableState<ulong[]>(this);
+                                }
+                                else {
+                                    UInt64Value = (BaseDataVariableState<ulong[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = UInt64Value;
+                        break;
                     }
 
-                    instance = UInt64Value;
-                    break;
-                }
-
-                case TestData.BrowseNames.FloatValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (FloatValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                FloatValue = new BaseDataVariableState<float[]>(this);
-                            }
-                            else
-                            {
-                                FloatValue = (BaseDataVariableState<float[]>)replacement;
+                case TestData.BrowseNames.FloatValue: {
+                        if (createOrReplace) {
+                            if (FloatValue == null) {
+                                if (replacement == null) {
+                                    FloatValue = new BaseDataVariableState<float[]>(this);
+                                }
+                                else {
+                                    FloatValue = (BaseDataVariableState<float[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = FloatValue;
+                        break;
                     }
 
-                    instance = FloatValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.DoubleValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (DoubleValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                DoubleValue = new BaseDataVariableState<double[]>(this);
-                            }
-                            else
-                            {
-                                DoubleValue = (BaseDataVariableState<double[]>)replacement;
+                case TestData.BrowseNames.DoubleValue: {
+                        if (createOrReplace) {
+                            if (DoubleValue == null) {
+                                if (replacement == null) {
+                                    DoubleValue = new BaseDataVariableState<double[]>(this);
+                                }
+                                else {
+                                    DoubleValue = (BaseDataVariableState<double[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = DoubleValue;
+                        break;
                     }
 
-                    instance = DoubleValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.StringValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (StringValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                StringValue = new BaseDataVariableState<string[]>(this);
-                            }
-                            else
-                            {
-                                StringValue = (BaseDataVariableState<string[]>)replacement;
+                case TestData.BrowseNames.StringValue: {
+                        if (createOrReplace) {
+                            if (StringValue == null) {
+                                if (replacement == null) {
+                                    StringValue = new BaseDataVariableState<string[]>(this);
+                                }
+                                else {
+                                    StringValue = (BaseDataVariableState<string[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = StringValue;
+                        break;
                     }
 
-                    instance = StringValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.DateTimeValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (DateTimeValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                DateTimeValue = new BaseDataVariableState<DateTime[]>(this);
-                            }
-                            else
-                            {
-                                DateTimeValue = (BaseDataVariableState<DateTime[]>)replacement;
+                case TestData.BrowseNames.DateTimeValue: {
+                        if (createOrReplace) {
+                            if (DateTimeValue == null) {
+                                if (replacement == null) {
+                                    DateTimeValue = new BaseDataVariableState<DateTime[]>(this);
+                                }
+                                else {
+                                    DateTimeValue = (BaseDataVariableState<DateTime[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = DateTimeValue;
+                        break;
                     }
 
-                    instance = DateTimeValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.GuidValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (GuidValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                GuidValue = new BaseDataVariableState<Guid[]>(this);
-                            }
-                            else
-                            {
-                                GuidValue = (BaseDataVariableState<Guid[]>)replacement;
+                case TestData.BrowseNames.GuidValue: {
+                        if (createOrReplace) {
+                            if (GuidValue == null) {
+                                if (replacement == null) {
+                                    GuidValue = new BaseDataVariableState<Guid[]>(this);
+                                }
+                                else {
+                                    GuidValue = (BaseDataVariableState<Guid[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = GuidValue;
+                        break;
                     }
 
-                    instance = GuidValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.ByteStringValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (ByteStringValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                ByteStringValue = new BaseDataVariableState<byte[][]>(this);
-                            }
-                            else
-                            {
-                                ByteStringValue = (BaseDataVariableState<byte[][]>)replacement;
+                case TestData.BrowseNames.ByteStringValue: {
+                        if (createOrReplace) {
+                            if (ByteStringValue == null) {
+                                if (replacement == null) {
+                                    ByteStringValue = new BaseDataVariableState<byte[][]>(this);
+                                }
+                                else {
+                                    ByteStringValue = (BaseDataVariableState<byte[][]>)replacement;
+                                }
                             }
                         }
+
+                        instance = ByteStringValue;
+                        break;
                     }
 
-                    instance = ByteStringValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.XmlElementValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (XmlElementValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                XmlElementValue = new BaseDataVariableState<XmlElement[]>(this);
-                            }
-                            else
-                            {
-                                XmlElementValue = (BaseDataVariableState<XmlElement[]>)replacement;
+                case TestData.BrowseNames.XmlElementValue: {
+                        if (createOrReplace) {
+                            if (XmlElementValue == null) {
+                                if (replacement == null) {
+                                    XmlElementValue = new BaseDataVariableState<XmlElement[]>(this);
+                                }
+                                else {
+                                    XmlElementValue = (BaseDataVariableState<XmlElement[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = XmlElementValue;
+                        break;
                     }
 
-                    instance = XmlElementValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.NodeIdValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (NodeIdValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                NodeIdValue = new BaseDataVariableState<NodeId[]>(this);
-                            }
-                            else
-                            {
-                                NodeIdValue = (BaseDataVariableState<NodeId[]>)replacement;
+                case TestData.BrowseNames.NodeIdValue: {
+                        if (createOrReplace) {
+                            if (NodeIdValue == null) {
+                                if (replacement == null) {
+                                    NodeIdValue = new BaseDataVariableState<NodeId[]>(this);
+                                }
+                                else {
+                                    NodeIdValue = (BaseDataVariableState<NodeId[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = NodeIdValue;
+                        break;
                     }
 
-                    instance = NodeIdValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.ExpandedNodeIdValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (ExpandedNodeIdValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                ExpandedNodeIdValue = new BaseDataVariableState<ExpandedNodeId[]>(this);
-                            }
-                            else
-                            {
-                                ExpandedNodeIdValue = (BaseDataVariableState<ExpandedNodeId[]>)replacement;
+                case TestData.BrowseNames.ExpandedNodeIdValue: {
+                        if (createOrReplace) {
+                            if (ExpandedNodeIdValue == null) {
+                                if (replacement == null) {
+                                    ExpandedNodeIdValue = new BaseDataVariableState<ExpandedNodeId[]>(this);
+                                }
+                                else {
+                                    ExpandedNodeIdValue = (BaseDataVariableState<ExpandedNodeId[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = ExpandedNodeIdValue;
+                        break;
                     }
 
-                    instance = ExpandedNodeIdValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.QualifiedNameValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (QualifiedNameValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                QualifiedNameValue = new BaseDataVariableState<QualifiedName[]>(this);
-                            }
-                            else
-                            {
-                                QualifiedNameValue = (BaseDataVariableState<QualifiedName[]>)replacement;
+                case TestData.BrowseNames.QualifiedNameValue: {
+                        if (createOrReplace) {
+                            if (QualifiedNameValue == null) {
+                                if (replacement == null) {
+                                    QualifiedNameValue = new BaseDataVariableState<QualifiedName[]>(this);
+                                }
+                                else {
+                                    QualifiedNameValue = (BaseDataVariableState<QualifiedName[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = QualifiedNameValue;
+                        break;
                     }
 
-                    instance = QualifiedNameValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.LocalizedTextValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (LocalizedTextValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                LocalizedTextValue = new BaseDataVariableState<LocalizedText[]>(this);
-                            }
-                            else
-                            {
-                                LocalizedTextValue = (BaseDataVariableState<LocalizedText[]>)replacement;
+                case TestData.BrowseNames.LocalizedTextValue: {
+                        if (createOrReplace) {
+                            if (LocalizedTextValue == null) {
+                                if (replacement == null) {
+                                    LocalizedTextValue = new BaseDataVariableState<LocalizedText[]>(this);
+                                }
+                                else {
+                                    LocalizedTextValue = (BaseDataVariableState<LocalizedText[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = LocalizedTextValue;
+                        break;
                     }
 
-                    instance = LocalizedTextValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.StatusCodeValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (StatusCodeValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                StatusCodeValue = new BaseDataVariableState<StatusCode[]>(this);
-                            }
-                            else
-                            {
-                                StatusCodeValue = (BaseDataVariableState<StatusCode[]>)replacement;
+                case TestData.BrowseNames.StatusCodeValue: {
+                        if (createOrReplace) {
+                            if (StatusCodeValue == null) {
+                                if (replacement == null) {
+                                    StatusCodeValue = new BaseDataVariableState<StatusCode[]>(this);
+                                }
+                                else {
+                                    StatusCodeValue = (BaseDataVariableState<StatusCode[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = StatusCodeValue;
+                        break;
                     }
 
-                    instance = StatusCodeValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.VariantValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (VariantValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                VariantValue = new BaseDataVariableState<object[]>(this);
-                            }
-                            else
-                            {
-                                VariantValue = (BaseDataVariableState<object[]>)replacement;
+                case TestData.BrowseNames.VariantValue: {
+                        if (createOrReplace) {
+                            if (VariantValue == null) {
+                                if (replacement == null) {
+                                    VariantValue = new BaseDataVariableState<object[]>(this);
+                                }
+                                else {
+                                    VariantValue = (BaseDataVariableState<object[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = VariantValue;
+                        break;
                     }
 
-                    instance = VariantValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.EnumerationValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (EnumerationValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                EnumerationValue = new BaseDataVariableState<int[]>(this);
-                            }
-                            else
-                            {
-                                EnumerationValue = (BaseDataVariableState<int[]>)replacement;
+                case TestData.BrowseNames.EnumerationValue: {
+                        if (createOrReplace) {
+                            if (EnumerationValue == null) {
+                                if (replacement == null) {
+                                    EnumerationValue = new BaseDataVariableState<int[]>(this);
+                                }
+                                else {
+                                    EnumerationValue = (BaseDataVariableState<int[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = EnumerationValue;
+                        break;
                     }
 
-                    instance = EnumerationValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.StructureValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (StructureValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                StructureValue = new BaseDataVariableState<ExtensionObject[]>(this);
-                            }
-                            else
-                            {
-                                StructureValue = (BaseDataVariableState<ExtensionObject[]>)replacement;
+                case TestData.BrowseNames.StructureValue: {
+                        if (createOrReplace) {
+                            if (StructureValue == null) {
+                                if (replacement == null) {
+                                    StructureValue = new BaseDataVariableState<ExtensionObject[]>(this);
+                                }
+                                else {
+                                    StructureValue = (BaseDataVariableState<ExtensionObject[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = StructureValue;
+                        break;
                     }
 
-                    instance = StructureValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.NumberValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (NumberValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                NumberValue = new BaseDataVariableState<object[]>(this);
-                            }
-                            else
-                            {
-                                NumberValue = (BaseDataVariableState<object[]>)replacement;
+                case TestData.BrowseNames.NumberValue: {
+                        if (createOrReplace) {
+                            if (NumberValue == null) {
+                                if (replacement == null) {
+                                    NumberValue = new BaseDataVariableState<object[]>(this);
+                                }
+                                else {
+                                    NumberValue = (BaseDataVariableState<object[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = NumberValue;
+                        break;
                     }
 
-                    instance = NumberValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.IntegerValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (IntegerValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                IntegerValue = new BaseDataVariableState<object[]>(this);
-                            }
-                            else
-                            {
-                                IntegerValue = (BaseDataVariableState<object[]>)replacement;
+                case TestData.BrowseNames.IntegerValue: {
+                        if (createOrReplace) {
+                            if (IntegerValue == null) {
+                                if (replacement == null) {
+                                    IntegerValue = new BaseDataVariableState<object[]>(this);
+                                }
+                                else {
+                                    IntegerValue = (BaseDataVariableState<object[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = IntegerValue;
+                        break;
                     }
 
-                    instance = IntegerValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.UIntegerValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (UIntegerValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                UIntegerValue = new BaseDataVariableState<object[]>(this);
-                            }
-                            else
-                            {
-                                UIntegerValue = (BaseDataVariableState<object[]>)replacement;
+                case TestData.BrowseNames.UIntegerValue: {
+                        if (createOrReplace) {
+                            if (UIntegerValue == null) {
+                                if (replacement == null) {
+                                    UIntegerValue = new BaseDataVariableState<object[]>(this);
+                                }
+                                else {
+                                    UIntegerValue = (BaseDataVariableState<object[]>)replacement;
+                                }
                             }
                         }
-                    }
 
-                    instance = UIntegerValue;
-                    break;
-                }
+                        instance = UIntegerValue;
+                        break;
+                    }
             }
 
-            if (instance != null)
-            {
+            if (instance != null) {
                 return instance;
             }
 
@@ -5511,40 +4540,36 @@ namespace TestData {
         private BaseDataVariableState<object[]> m_uIntegerValue;
         #endregion
     }
-    #endif
+#endif
     #endregion
 
     #region AnalogArrayValueObjectState Class
-    #if (!OPCUA_EXCLUDE_AnalogArrayValueObjectState)
+#if !OPCUA_EXCLUDE_AnalogArrayValueObjectState
     /// <summary>
     /// Stores an instance of the AnalogArrayValueObjectType ObjectType.
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCode("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public partial class AnalogArrayValueObjectState : TestDataObjectState
-    {
+    public partial class AnalogArrayValueObjectState : TestDataObjectState {
         #region Constructors
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
-        public AnalogArrayValueObjectState(NodeState parent) : base(parent)
-        {
+        public AnalogArrayValueObjectState(NodeState parent) : base(parent) {
         }
 
         /// <summary>
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
-        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
-        {
+        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris) {
             return Opc.Ua.NodeId.Create(TestData.ObjectTypes.AnalogArrayValueObjectType, TestData.Namespaces.TestData, namespaceUris);
         }
 
-        #if (!OPCUA_EXCLUDE_InitializationStrings)
+#if !OPCUA_EXCLUDE_InitializationStrings
         /// <summary>
         /// Initializes the instance.
         /// </summary>
-        protected override void Initialize(ISystemContext context)
-        {
+        protected override void Initialize(ISystemContext context) {
             Initialize(context, InitializationString);
             InitializeOptionalChildren(context);
         }
@@ -5552,8 +4577,7 @@ namespace TestData {
         /// <summary>
         /// Initializes the instance with a node.
         /// </summary>
-        protected override void Initialize(ISystemContext context, NodeState source)
-        {
+        protected override void Initialize(ISystemContext context, NodeState source) {
             InitializeOptionalChildren(context);
             base.Initialize(context, source);
         }
@@ -5561,8 +4585,7 @@ namespace TestData {
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
-        protected override void InitializeOptionalChildren(ISystemContext context)
-        {
+        protected override void InitializeOptionalChildren(ISystemContext context) {
             base.InitializeOptionalChildren(context);
         }
 
@@ -5639,24 +4662,18 @@ namespace TestData {
            "iQoCAAAAAQANAAAAVUludGVnZXJWYWx1ZQEBpCYALwEAQAmkJgAAABwBAAAAAQH/////AQAAABVgiQoC" +
            "AAAAAAAHAAAARVVSYW5nZQEBpyYALgBEpyYAAAEAdAP/////AQH/////AAAAAA==";
         #endregion
-        #endif
+#endif
         #endregion
 
         #region Public Properties
         /// <summary>
         /// A description for the SByteValue Variable.
         /// </summary>
-        public AnalogItemState<sbyte[]> SByteValue
-        {
-            get
-            {
-                return m_sByteValue;
-            }
+        public AnalogItemState<sbyte[]> SByteValue {
+            get => m_sByteValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_sByteValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_sByteValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5667,17 +4684,11 @@ namespace TestData {
         /// <summary>
         /// A description for the ByteValue Variable.
         /// </summary>
-        public AnalogItemState<byte[]> ByteValue
-        {
-            get
-            {
-                return m_byteValue;
-            }
+        public AnalogItemState<byte[]> ByteValue {
+            get => m_byteValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_byteValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_byteValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5688,17 +4699,11 @@ namespace TestData {
         /// <summary>
         /// A description for the Int16Value Variable.
         /// </summary>
-        public AnalogItemState<short[]> Int16Value
-        {
-            get
-            {
-                return m_int16Value;
-            }
+        public AnalogItemState<short[]> Int16Value {
+            get => m_int16Value;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_int16Value, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_int16Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5709,17 +4714,11 @@ namespace TestData {
         /// <summary>
         /// A description for the UInt16Value Variable.
         /// </summary>
-        public AnalogItemState<ushort[]> UInt16Value
-        {
-            get
-            {
-                return m_uInt16Value;
-            }
+        public AnalogItemState<ushort[]> UInt16Value {
+            get => m_uInt16Value;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_uInt16Value, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_uInt16Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5730,17 +4729,11 @@ namespace TestData {
         /// <summary>
         /// A description for the Int32Value Variable.
         /// </summary>
-        public AnalogItemState<int[]> Int32Value
-        {
-            get
-            {
-                return m_int32Value;
-            }
+        public AnalogItemState<int[]> Int32Value {
+            get => m_int32Value;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_int32Value, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_int32Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5751,17 +4744,11 @@ namespace TestData {
         /// <summary>
         /// A description for the UInt32Value Variable.
         /// </summary>
-        public AnalogItemState<uint[]> UInt32Value
-        {
-            get
-            {
-                return m_uInt32Value;
-            }
+        public AnalogItemState<uint[]> UInt32Value {
+            get => m_uInt32Value;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_uInt32Value, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_uInt32Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5772,17 +4759,11 @@ namespace TestData {
         /// <summary>
         /// A description for the Int64Value Variable.
         /// </summary>
-        public AnalogItemState<long[]> Int64Value
-        {
-            get
-            {
-                return m_int64Value;
-            }
+        public AnalogItemState<long[]> Int64Value {
+            get => m_int64Value;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_int64Value, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_int64Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5793,17 +4774,11 @@ namespace TestData {
         /// <summary>
         /// A description for the UInt64Value Variable.
         /// </summary>
-        public AnalogItemState<ulong[]> UInt64Value
-        {
-            get
-            {
-                return m_uInt64Value;
-            }
+        public AnalogItemState<ulong[]> UInt64Value {
+            get => m_uInt64Value;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_uInt64Value, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_uInt64Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5814,17 +4789,11 @@ namespace TestData {
         /// <summary>
         /// A description for the FloatValue Variable.
         /// </summary>
-        public AnalogItemState<float[]> FloatValue
-        {
-            get
-            {
-                return m_floatValue;
-            }
+        public AnalogItemState<float[]> FloatValue {
+            get => m_floatValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_floatValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_floatValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5835,17 +4804,11 @@ namespace TestData {
         /// <summary>
         /// A description for the DoubleValue Variable.
         /// </summary>
-        public AnalogItemState<double[]> DoubleValue
-        {
-            get
-            {
-                return m_doubleValue;
-            }
+        public AnalogItemState<double[]> DoubleValue {
+            get => m_doubleValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_doubleValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_doubleValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5856,17 +4819,11 @@ namespace TestData {
         /// <summary>
         /// A description for the NumberValue Variable.
         /// </summary>
-        public AnalogItemState<object[]> NumberValue
-        {
-            get
-            {
-                return m_numberValue;
-            }
+        public AnalogItemState<object[]> NumberValue {
+            get => m_numberValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_numberValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_numberValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5877,17 +4834,11 @@ namespace TestData {
         /// <summary>
         /// A description for the IntegerValue Variable.
         /// </summary>
-        public AnalogItemState<object[]> IntegerValue
-        {
-            get
-            {
-                return m_integerValue;
-            }
+        public AnalogItemState<object[]> IntegerValue {
+            get => m_integerValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_integerValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_integerValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5898,17 +4849,11 @@ namespace TestData {
         /// <summary>
         /// A description for the UIntegerValue Variable.
         /// </summary>
-        public AnalogItemState<object[]> UIntegerValue
-        {
-            get
-            {
-                return m_uIntegerValue;
-            }
+        public AnalogItemState<object[]> UIntegerValue {
+            get => m_uIntegerValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_uIntegerValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_uIntegerValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5925,70 +4870,56 @@ namespace TestData {
         /// <param name="children">The list of children to populate.</param>
         public override void GetChildren(
             ISystemContext context,
-            IList<BaseInstanceState> children)
-        {
-            if (m_sByteValue != null)
-            {
+            IList<BaseInstanceState> children) {
+            if (m_sByteValue != null) {
                 children.Add(m_sByteValue);
             }
 
-            if (m_byteValue != null)
-            {
+            if (m_byteValue != null) {
                 children.Add(m_byteValue);
             }
 
-            if (m_int16Value != null)
-            {
+            if (m_int16Value != null) {
                 children.Add(m_int16Value);
             }
 
-            if (m_uInt16Value != null)
-            {
+            if (m_uInt16Value != null) {
                 children.Add(m_uInt16Value);
             }
 
-            if (m_int32Value != null)
-            {
+            if (m_int32Value != null) {
                 children.Add(m_int32Value);
             }
 
-            if (m_uInt32Value != null)
-            {
+            if (m_uInt32Value != null) {
                 children.Add(m_uInt32Value);
             }
 
-            if (m_int64Value != null)
-            {
+            if (m_int64Value != null) {
                 children.Add(m_int64Value);
             }
 
-            if (m_uInt64Value != null)
-            {
+            if (m_uInt64Value != null) {
                 children.Add(m_uInt64Value);
             }
 
-            if (m_floatValue != null)
-            {
+            if (m_floatValue != null) {
                 children.Add(m_floatValue);
             }
 
-            if (m_doubleValue != null)
-            {
+            if (m_doubleValue != null) {
                 children.Add(m_doubleValue);
             }
 
-            if (m_numberValue != null)
-            {
+            if (m_numberValue != null) {
                 children.Add(m_numberValue);
             }
 
-            if (m_integerValue != null)
-            {
+            if (m_integerValue != null) {
                 children.Add(m_integerValue);
             }
 
-            if (m_uIntegerValue != null)
-            {
+            if (m_uIntegerValue != null) {
                 children.Add(m_uIntegerValue);
             }
 
@@ -6002,293 +4933,224 @@ namespace TestData {
             ISystemContext context,
             QualifiedName browseName,
             bool createOrReplace,
-            BaseInstanceState replacement)
-        {
-            if (QualifiedName.IsNull(browseName))
-            {
+            BaseInstanceState replacement) {
+            if (QualifiedName.IsNull(browseName)) {
                 return null;
             }
 
             BaseInstanceState instance = null;
 
-            switch (browseName.Name)
-            {
-                case TestData.BrowseNames.SByteValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (SByteValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                SByteValue = new AnalogItemState<sbyte[]>(this);
-                            }
-                            else
-                            {
-                                SByteValue = (AnalogItemState<sbyte[]>)replacement;
+            switch (browseName.Name) {
+                case TestData.BrowseNames.SByteValue: {
+                        if (createOrReplace) {
+                            if (SByteValue == null) {
+                                if (replacement == null) {
+                                    SByteValue = new AnalogItemState<sbyte[]>(this);
+                                }
+                                else {
+                                    SByteValue = (AnalogItemState<sbyte[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = SByteValue;
+                        break;
                     }
 
-                    instance = SByteValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.ByteValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (ByteValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                ByteValue = new AnalogItemState<byte[]>(this);
-                            }
-                            else
-                            {
-                                ByteValue = (AnalogItemState<byte[]>)replacement;
+                case TestData.BrowseNames.ByteValue: {
+                        if (createOrReplace) {
+                            if (ByteValue == null) {
+                                if (replacement == null) {
+                                    ByteValue = new AnalogItemState<byte[]>(this);
+                                }
+                                else {
+                                    ByteValue = (AnalogItemState<byte[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = ByteValue;
+                        break;
                     }
 
-                    instance = ByteValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.Int16Value:
-                {
-                    if (createOrReplace)
-                    {
-                        if (Int16Value == null)
-                        {
-                            if (replacement == null)
-                            {
-                                Int16Value = new AnalogItemState<short[]>(this);
-                            }
-                            else
-                            {
-                                Int16Value = (AnalogItemState<short[]>)replacement;
+                case TestData.BrowseNames.Int16Value: {
+                        if (createOrReplace) {
+                            if (Int16Value == null) {
+                                if (replacement == null) {
+                                    Int16Value = new AnalogItemState<short[]>(this);
+                                }
+                                else {
+                                    Int16Value = (AnalogItemState<short[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = Int16Value;
+                        break;
                     }
 
-                    instance = Int16Value;
-                    break;
-                }
-
-                case TestData.BrowseNames.UInt16Value:
-                {
-                    if (createOrReplace)
-                    {
-                        if (UInt16Value == null)
-                        {
-                            if (replacement == null)
-                            {
-                                UInt16Value = new AnalogItemState<ushort[]>(this);
-                            }
-                            else
-                            {
-                                UInt16Value = (AnalogItemState<ushort[]>)replacement;
+                case TestData.BrowseNames.UInt16Value: {
+                        if (createOrReplace) {
+                            if (UInt16Value == null) {
+                                if (replacement == null) {
+                                    UInt16Value = new AnalogItemState<ushort[]>(this);
+                                }
+                                else {
+                                    UInt16Value = (AnalogItemState<ushort[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = UInt16Value;
+                        break;
                     }
 
-                    instance = UInt16Value;
-                    break;
-                }
-
-                case TestData.BrowseNames.Int32Value:
-                {
-                    if (createOrReplace)
-                    {
-                        if (Int32Value == null)
-                        {
-                            if (replacement == null)
-                            {
-                                Int32Value = new AnalogItemState<int[]>(this);
-                            }
-                            else
-                            {
-                                Int32Value = (AnalogItemState<int[]>)replacement;
+                case TestData.BrowseNames.Int32Value: {
+                        if (createOrReplace) {
+                            if (Int32Value == null) {
+                                if (replacement == null) {
+                                    Int32Value = new AnalogItemState<int[]>(this);
+                                }
+                                else {
+                                    Int32Value = (AnalogItemState<int[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = Int32Value;
+                        break;
                     }
 
-                    instance = Int32Value;
-                    break;
-                }
-
-                case TestData.BrowseNames.UInt32Value:
-                {
-                    if (createOrReplace)
-                    {
-                        if (UInt32Value == null)
-                        {
-                            if (replacement == null)
-                            {
-                                UInt32Value = new AnalogItemState<uint[]>(this);
-                            }
-                            else
-                            {
-                                UInt32Value = (AnalogItemState<uint[]>)replacement;
+                case TestData.BrowseNames.UInt32Value: {
+                        if (createOrReplace) {
+                            if (UInt32Value == null) {
+                                if (replacement == null) {
+                                    UInt32Value = new AnalogItemState<uint[]>(this);
+                                }
+                                else {
+                                    UInt32Value = (AnalogItemState<uint[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = UInt32Value;
+                        break;
                     }
 
-                    instance = UInt32Value;
-                    break;
-                }
-
-                case TestData.BrowseNames.Int64Value:
-                {
-                    if (createOrReplace)
-                    {
-                        if (Int64Value == null)
-                        {
-                            if (replacement == null)
-                            {
-                                Int64Value = new AnalogItemState<long[]>(this);
-                            }
-                            else
-                            {
-                                Int64Value = (AnalogItemState<long[]>)replacement;
+                case TestData.BrowseNames.Int64Value: {
+                        if (createOrReplace) {
+                            if (Int64Value == null) {
+                                if (replacement == null) {
+                                    Int64Value = new AnalogItemState<long[]>(this);
+                                }
+                                else {
+                                    Int64Value = (AnalogItemState<long[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = Int64Value;
+                        break;
                     }
 
-                    instance = Int64Value;
-                    break;
-                }
-
-                case TestData.BrowseNames.UInt64Value:
-                {
-                    if (createOrReplace)
-                    {
-                        if (UInt64Value == null)
-                        {
-                            if (replacement == null)
-                            {
-                                UInt64Value = new AnalogItemState<ulong[]>(this);
-                            }
-                            else
-                            {
-                                UInt64Value = (AnalogItemState<ulong[]>)replacement;
+                case TestData.BrowseNames.UInt64Value: {
+                        if (createOrReplace) {
+                            if (UInt64Value == null) {
+                                if (replacement == null) {
+                                    UInt64Value = new AnalogItemState<ulong[]>(this);
+                                }
+                                else {
+                                    UInt64Value = (AnalogItemState<ulong[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = UInt64Value;
+                        break;
                     }
 
-                    instance = UInt64Value;
-                    break;
-                }
-
-                case TestData.BrowseNames.FloatValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (FloatValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                FloatValue = new AnalogItemState<float[]>(this);
-                            }
-                            else
-                            {
-                                FloatValue = (AnalogItemState<float[]>)replacement;
+                case TestData.BrowseNames.FloatValue: {
+                        if (createOrReplace) {
+                            if (FloatValue == null) {
+                                if (replacement == null) {
+                                    FloatValue = new AnalogItemState<float[]>(this);
+                                }
+                                else {
+                                    FloatValue = (AnalogItemState<float[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = FloatValue;
+                        break;
                     }
 
-                    instance = FloatValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.DoubleValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (DoubleValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                DoubleValue = new AnalogItemState<double[]>(this);
-                            }
-                            else
-                            {
-                                DoubleValue = (AnalogItemState<double[]>)replacement;
+                case TestData.BrowseNames.DoubleValue: {
+                        if (createOrReplace) {
+                            if (DoubleValue == null) {
+                                if (replacement == null) {
+                                    DoubleValue = new AnalogItemState<double[]>(this);
+                                }
+                                else {
+                                    DoubleValue = (AnalogItemState<double[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = DoubleValue;
+                        break;
                     }
 
-                    instance = DoubleValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.NumberValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (NumberValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                NumberValue = new AnalogItemState<object[]>(this);
-                            }
-                            else
-                            {
-                                NumberValue = (AnalogItemState<object[]>)replacement;
+                case TestData.BrowseNames.NumberValue: {
+                        if (createOrReplace) {
+                            if (NumberValue == null) {
+                                if (replacement == null) {
+                                    NumberValue = new AnalogItemState<object[]>(this);
+                                }
+                                else {
+                                    NumberValue = (AnalogItemState<object[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = NumberValue;
+                        break;
                     }
 
-                    instance = NumberValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.IntegerValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (IntegerValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                IntegerValue = new AnalogItemState<object[]>(this);
-                            }
-                            else
-                            {
-                                IntegerValue = (AnalogItemState<object[]>)replacement;
+                case TestData.BrowseNames.IntegerValue: {
+                        if (createOrReplace) {
+                            if (IntegerValue == null) {
+                                if (replacement == null) {
+                                    IntegerValue = new AnalogItemState<object[]>(this);
+                                }
+                                else {
+                                    IntegerValue = (AnalogItemState<object[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = IntegerValue;
+                        break;
                     }
 
-                    instance = IntegerValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.UIntegerValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (UIntegerValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                UIntegerValue = new AnalogItemState<object[]>(this);
-                            }
-                            else
-                            {
-                                UIntegerValue = (AnalogItemState<object[]>)replacement;
+                case TestData.BrowseNames.UIntegerValue: {
+                        if (createOrReplace) {
+                            if (UIntegerValue == null) {
+                                if (replacement == null) {
+                                    UIntegerValue = new AnalogItemState<object[]>(this);
+                                }
+                                else {
+                                    UIntegerValue = (AnalogItemState<object[]>)replacement;
+                                }
                             }
                         }
-                    }
 
-                    instance = UIntegerValue;
-                    break;
-                }
+                        instance = UIntegerValue;
+                        break;
+                    }
             }
 
-            if (instance != null)
-            {
+            if (instance != null) {
                 return instance;
             }
 
@@ -6312,40 +5174,36 @@ namespace TestData {
         private AnalogItemState<object[]> m_uIntegerValue;
         #endregion
     }
-    #endif
+#endif
     #endregion
 
     #region UserScalarValueObjectState Class
-    #if (!OPCUA_EXCLUDE_UserScalarValueObjectState)
+#if !OPCUA_EXCLUDE_UserScalarValueObjectState
     /// <summary>
     /// Stores an instance of the UserScalarValueObjectType ObjectType.
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCode("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public partial class UserScalarValueObjectState : TestDataObjectState
-    {
+    public partial class UserScalarValueObjectState : TestDataObjectState {
         #region Constructors
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
-        public UserScalarValueObjectState(NodeState parent) : base(parent)
-        {
+        public UserScalarValueObjectState(NodeState parent) : base(parent) {
         }
 
         /// <summary>
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
-        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
-        {
+        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris) {
             return Opc.Ua.NodeId.Create(TestData.ObjectTypes.UserScalarValueObjectType, TestData.Namespaces.TestData, namespaceUris);
         }
 
-        #if (!OPCUA_EXCLUDE_InitializationStrings)
+#if !OPCUA_EXCLUDE_InitializationStrings
         /// <summary>
         /// Initializes the instance.
         /// </summary>
-        protected override void Initialize(ISystemContext context)
-        {
+        protected override void Initialize(ISystemContext context) {
             Initialize(context, InitializationString);
             InitializeOptionalChildren(context);
         }
@@ -6353,8 +5211,7 @@ namespace TestData {
         /// <summary>
         /// Initializes the instance with a node.
         /// </summary>
-        protected override void Initialize(ISystemContext context, NodeState source)
-        {
+        protected override void Initialize(ISystemContext context, NodeState source) {
             InitializeOptionalChildren(context);
             base.Initialize(context, source);
         }
@@ -6362,8 +5219,7 @@ namespace TestData {
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
-        protected override void InitializeOptionalChildren(ISystemContext context)
-        {
+        protected override void InitializeOptionalChildren(ISystemContext context) {
             base.InitializeOptionalChildren(context);
         }
 
@@ -6438,24 +5294,18 @@ namespace TestData {
            "YWx1ZQEBDicALwA/DicAAAEBvib/////AQH/////AAAAABVgiQoCAAAAAQAMAAAAVmFyaWFudFZhbHVl" +
            "AQEPJwAvAD8PJwAAAQG/Jv////8BAf////8AAAAA";
         #endregion
-        #endif
+#endif
         #endregion
 
         #region Public Properties
         /// <summary>
         /// A description for the BooleanValue Variable.
         /// </summary>
-        public BaseDataVariableState<bool> BooleanValue
-        {
-            get
-            {
-                return m_booleanValue;
-            }
+        public BaseDataVariableState<bool> BooleanValue {
+            get => m_booleanValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_booleanValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_booleanValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6466,17 +5316,11 @@ namespace TestData {
         /// <summary>
         /// A description for the SByteValue Variable.
         /// </summary>
-        public BaseDataVariableState<sbyte> SByteValue
-        {
-            get
-            {
-                return m_sByteValue;
-            }
+        public BaseDataVariableState<sbyte> SByteValue {
+            get => m_sByteValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_sByteValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_sByteValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6487,17 +5331,11 @@ namespace TestData {
         /// <summary>
         /// A description for the ByteValue Variable.
         /// </summary>
-        public BaseDataVariableState<byte> ByteValue
-        {
-            get
-            {
-                return m_byteValue;
-            }
+        public BaseDataVariableState<byte> ByteValue {
+            get => m_byteValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_byteValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_byteValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6508,17 +5346,11 @@ namespace TestData {
         /// <summary>
         /// A description for the Int16Value Variable.
         /// </summary>
-        public BaseDataVariableState<short> Int16Value
-        {
-            get
-            {
-                return m_int16Value;
-            }
+        public BaseDataVariableState<short> Int16Value {
+            get => m_int16Value;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_int16Value, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_int16Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6529,17 +5361,11 @@ namespace TestData {
         /// <summary>
         /// A description for the UInt16Value Variable.
         /// </summary>
-        public BaseDataVariableState<ushort> UInt16Value
-        {
-            get
-            {
-                return m_uInt16Value;
-            }
+        public BaseDataVariableState<ushort> UInt16Value {
+            get => m_uInt16Value;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_uInt16Value, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_uInt16Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6550,17 +5376,11 @@ namespace TestData {
         /// <summary>
         /// A description for the Int32Value Variable.
         /// </summary>
-        public BaseDataVariableState<int> Int32Value
-        {
-            get
-            {
-                return m_int32Value;
-            }
+        public BaseDataVariableState<int> Int32Value {
+            get => m_int32Value;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_int32Value, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_int32Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6571,17 +5391,11 @@ namespace TestData {
         /// <summary>
         /// A description for the UInt32Value Variable.
         /// </summary>
-        public BaseDataVariableState<uint> UInt32Value
-        {
-            get
-            {
-                return m_uInt32Value;
-            }
+        public BaseDataVariableState<uint> UInt32Value {
+            get => m_uInt32Value;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_uInt32Value, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_uInt32Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6592,17 +5406,11 @@ namespace TestData {
         /// <summary>
         /// A description for the Int64Value Variable.
         /// </summary>
-        public BaseDataVariableState<long> Int64Value
-        {
-            get
-            {
-                return m_int64Value;
-            }
+        public BaseDataVariableState<long> Int64Value {
+            get => m_int64Value;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_int64Value, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_int64Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6613,17 +5421,11 @@ namespace TestData {
         /// <summary>
         /// A description for the UInt64Value Variable.
         /// </summary>
-        public BaseDataVariableState<ulong> UInt64Value
-        {
-            get
-            {
-                return m_uInt64Value;
-            }
+        public BaseDataVariableState<ulong> UInt64Value {
+            get => m_uInt64Value;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_uInt64Value, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_uInt64Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6634,17 +5436,11 @@ namespace TestData {
         /// <summary>
         /// A description for the FloatValue Variable.
         /// </summary>
-        public BaseDataVariableState<float> FloatValue
-        {
-            get
-            {
-                return m_floatValue;
-            }
+        public BaseDataVariableState<float> FloatValue {
+            get => m_floatValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_floatValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_floatValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6655,17 +5451,11 @@ namespace TestData {
         /// <summary>
         /// A description for the DoubleValue Variable.
         /// </summary>
-        public BaseDataVariableState<double> DoubleValue
-        {
-            get
-            {
-                return m_doubleValue;
-            }
+        public BaseDataVariableState<double> DoubleValue {
+            get => m_doubleValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_doubleValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_doubleValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6676,17 +5466,11 @@ namespace TestData {
         /// <summary>
         /// A description for the StringValue Variable.
         /// </summary>
-        public BaseDataVariableState<string> StringValue
-        {
-            get
-            {
-                return m_stringValue;
-            }
+        public BaseDataVariableState<string> StringValue {
+            get => m_stringValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_stringValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_stringValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6697,17 +5481,11 @@ namespace TestData {
         /// <summary>
         /// A description for the DateTimeValue Variable.
         /// </summary>
-        public BaseDataVariableState<DateTime> DateTimeValue
-        {
-            get
-            {
-                return m_dateTimeValue;
-            }
+        public BaseDataVariableState<DateTime> DateTimeValue {
+            get => m_dateTimeValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_dateTimeValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_dateTimeValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6718,17 +5496,11 @@ namespace TestData {
         /// <summary>
         /// A description for the GuidValue Variable.
         /// </summary>
-        public BaseDataVariableState<Guid> GuidValue
-        {
-            get
-            {
-                return m_guidValue;
-            }
+        public BaseDataVariableState<Guid> GuidValue {
+            get => m_guidValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_guidValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_guidValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6739,17 +5511,11 @@ namespace TestData {
         /// <summary>
         /// A description for the ByteStringValue Variable.
         /// </summary>
-        public BaseDataVariableState<byte[]> ByteStringValue
-        {
-            get
-            {
-                return m_byteStringValue;
-            }
+        public BaseDataVariableState<byte[]> ByteStringValue {
+            get => m_byteStringValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_byteStringValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_byteStringValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6760,17 +5526,11 @@ namespace TestData {
         /// <summary>
         /// A description for the XmlElementValue Variable.
         /// </summary>
-        public BaseDataVariableState<XmlElement> XmlElementValue
-        {
-            get
-            {
-                return m_xmlElementValue;
-            }
+        public BaseDataVariableState<XmlElement> XmlElementValue {
+            get => m_xmlElementValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_xmlElementValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_xmlElementValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6781,17 +5541,11 @@ namespace TestData {
         /// <summary>
         /// A description for the NodeIdValue Variable.
         /// </summary>
-        public BaseDataVariableState<NodeId> NodeIdValue
-        {
-            get
-            {
-                return m_nodeIdValue;
-            }
+        public BaseDataVariableState<NodeId> NodeIdValue {
+            get => m_nodeIdValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_nodeIdValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_nodeIdValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6802,17 +5556,11 @@ namespace TestData {
         /// <summary>
         /// A description for the ExpandedNodeIdValue Variable.
         /// </summary>
-        public BaseDataVariableState<ExpandedNodeId> ExpandedNodeIdValue
-        {
-            get
-            {
-                return m_expandedNodeIdValue;
-            }
+        public BaseDataVariableState<ExpandedNodeId> ExpandedNodeIdValue {
+            get => m_expandedNodeIdValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_expandedNodeIdValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_expandedNodeIdValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6823,17 +5571,11 @@ namespace TestData {
         /// <summary>
         /// A description for the QualifiedNameValue Variable.
         /// </summary>
-        public BaseDataVariableState<QualifiedName> QualifiedNameValue
-        {
-            get
-            {
-                return m_qualifiedNameValue;
-            }
+        public BaseDataVariableState<QualifiedName> QualifiedNameValue {
+            get => m_qualifiedNameValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_qualifiedNameValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_qualifiedNameValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6844,17 +5586,11 @@ namespace TestData {
         /// <summary>
         /// A description for the LocalizedTextValue Variable.
         /// </summary>
-        public BaseDataVariableState<LocalizedText> LocalizedTextValue
-        {
-            get
-            {
-                return m_localizedTextValue;
-            }
+        public BaseDataVariableState<LocalizedText> LocalizedTextValue {
+            get => m_localizedTextValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_localizedTextValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_localizedTextValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6865,17 +5601,11 @@ namespace TestData {
         /// <summary>
         /// A description for the StatusCodeValue Variable.
         /// </summary>
-        public BaseDataVariableState<StatusCode> StatusCodeValue
-        {
-            get
-            {
-                return m_statusCodeValue;
-            }
+        public BaseDataVariableState<StatusCode> StatusCodeValue {
+            get => m_statusCodeValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_statusCodeValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_statusCodeValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6886,17 +5616,11 @@ namespace TestData {
         /// <summary>
         /// A description for the VariantValue Variable.
         /// </summary>
-        public BaseDataVariableState VariantValue
-        {
-            get
-            {
-                return m_variantValue;
-            }
+        public BaseDataVariableState VariantValue {
+            get => m_variantValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_variantValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_variantValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6913,115 +5637,92 @@ namespace TestData {
         /// <param name="children">The list of children to populate.</param>
         public override void GetChildren(
             ISystemContext context,
-            IList<BaseInstanceState> children)
-        {
-            if (m_booleanValue != null)
-            {
+            IList<BaseInstanceState> children) {
+            if (m_booleanValue != null) {
                 children.Add(m_booleanValue);
             }
 
-            if (m_sByteValue != null)
-            {
+            if (m_sByteValue != null) {
                 children.Add(m_sByteValue);
             }
 
-            if (m_byteValue != null)
-            {
+            if (m_byteValue != null) {
                 children.Add(m_byteValue);
             }
 
-            if (m_int16Value != null)
-            {
+            if (m_int16Value != null) {
                 children.Add(m_int16Value);
             }
 
-            if (m_uInt16Value != null)
-            {
+            if (m_uInt16Value != null) {
                 children.Add(m_uInt16Value);
             }
 
-            if (m_int32Value != null)
-            {
+            if (m_int32Value != null) {
                 children.Add(m_int32Value);
             }
 
-            if (m_uInt32Value != null)
-            {
+            if (m_uInt32Value != null) {
                 children.Add(m_uInt32Value);
             }
 
-            if (m_int64Value != null)
-            {
+            if (m_int64Value != null) {
                 children.Add(m_int64Value);
             }
 
-            if (m_uInt64Value != null)
-            {
+            if (m_uInt64Value != null) {
                 children.Add(m_uInt64Value);
             }
 
-            if (m_floatValue != null)
-            {
+            if (m_floatValue != null) {
                 children.Add(m_floatValue);
             }
 
-            if (m_doubleValue != null)
-            {
+            if (m_doubleValue != null) {
                 children.Add(m_doubleValue);
             }
 
-            if (m_stringValue != null)
-            {
+            if (m_stringValue != null) {
                 children.Add(m_stringValue);
             }
 
-            if (m_dateTimeValue != null)
-            {
+            if (m_dateTimeValue != null) {
                 children.Add(m_dateTimeValue);
             }
 
-            if (m_guidValue != null)
-            {
+            if (m_guidValue != null) {
                 children.Add(m_guidValue);
             }
 
-            if (m_byteStringValue != null)
-            {
+            if (m_byteStringValue != null) {
                 children.Add(m_byteStringValue);
             }
 
-            if (m_xmlElementValue != null)
-            {
+            if (m_xmlElementValue != null) {
                 children.Add(m_xmlElementValue);
             }
 
-            if (m_nodeIdValue != null)
-            {
+            if (m_nodeIdValue != null) {
                 children.Add(m_nodeIdValue);
             }
 
-            if (m_expandedNodeIdValue != null)
-            {
+            if (m_expandedNodeIdValue != null) {
                 children.Add(m_expandedNodeIdValue);
             }
 
-            if (m_qualifiedNameValue != null)
-            {
+            if (m_qualifiedNameValue != null) {
                 children.Add(m_qualifiedNameValue);
             }
 
-            if (m_localizedTextValue != null)
-            {
+            if (m_localizedTextValue != null) {
                 children.Add(m_localizedTextValue);
             }
 
-            if (m_statusCodeValue != null)
-            {
+            if (m_statusCodeValue != null) {
                 children.Add(m_statusCodeValue);
             }
 
-            if (m_variantValue != null)
-            {
+            if (m_variantValue != null) {
                 children.Add(m_variantValue);
             }
 
@@ -7035,482 +5736,368 @@ namespace TestData {
             ISystemContext context,
             QualifiedName browseName,
             bool createOrReplace,
-            BaseInstanceState replacement)
-        {
-            if (QualifiedName.IsNull(browseName))
-            {
+            BaseInstanceState replacement) {
+            if (QualifiedName.IsNull(browseName)) {
                 return null;
             }
 
             BaseInstanceState instance = null;
 
-            switch (browseName.Name)
-            {
-                case TestData.BrowseNames.BooleanValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (BooleanValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                BooleanValue = new BaseDataVariableState<bool>(this);
-                            }
-                            else
-                            {
-                                BooleanValue = (BaseDataVariableState<bool>)replacement;
+            switch (browseName.Name) {
+                case TestData.BrowseNames.BooleanValue: {
+                        if (createOrReplace) {
+                            if (BooleanValue == null) {
+                                if (replacement == null) {
+                                    BooleanValue = new BaseDataVariableState<bool>(this);
+                                }
+                                else {
+                                    BooleanValue = (BaseDataVariableState<bool>)replacement;
+                                }
                             }
                         }
+
+                        instance = BooleanValue;
+                        break;
                     }
 
-                    instance = BooleanValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.SByteValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (SByteValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                SByteValue = new BaseDataVariableState<sbyte>(this);
-                            }
-                            else
-                            {
-                                SByteValue = (BaseDataVariableState<sbyte>)replacement;
+                case TestData.BrowseNames.SByteValue: {
+                        if (createOrReplace) {
+                            if (SByteValue == null) {
+                                if (replacement == null) {
+                                    SByteValue = new BaseDataVariableState<sbyte>(this);
+                                }
+                                else {
+                                    SByteValue = (BaseDataVariableState<sbyte>)replacement;
+                                }
                             }
                         }
+
+                        instance = SByteValue;
+                        break;
                     }
 
-                    instance = SByteValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.ByteValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (ByteValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                ByteValue = new BaseDataVariableState<byte>(this);
-                            }
-                            else
-                            {
-                                ByteValue = (BaseDataVariableState<byte>)replacement;
+                case TestData.BrowseNames.ByteValue: {
+                        if (createOrReplace) {
+                            if (ByteValue == null) {
+                                if (replacement == null) {
+                                    ByteValue = new BaseDataVariableState<byte>(this);
+                                }
+                                else {
+                                    ByteValue = (BaseDataVariableState<byte>)replacement;
+                                }
                             }
                         }
+
+                        instance = ByteValue;
+                        break;
                     }
 
-                    instance = ByteValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.Int16Value:
-                {
-                    if (createOrReplace)
-                    {
-                        if (Int16Value == null)
-                        {
-                            if (replacement == null)
-                            {
-                                Int16Value = new BaseDataVariableState<short>(this);
-                            }
-                            else
-                            {
-                                Int16Value = (BaseDataVariableState<short>)replacement;
+                case TestData.BrowseNames.Int16Value: {
+                        if (createOrReplace) {
+                            if (Int16Value == null) {
+                                if (replacement == null) {
+                                    Int16Value = new BaseDataVariableState<short>(this);
+                                }
+                                else {
+                                    Int16Value = (BaseDataVariableState<short>)replacement;
+                                }
                             }
                         }
+
+                        instance = Int16Value;
+                        break;
                     }
 
-                    instance = Int16Value;
-                    break;
-                }
-
-                case TestData.BrowseNames.UInt16Value:
-                {
-                    if (createOrReplace)
-                    {
-                        if (UInt16Value == null)
-                        {
-                            if (replacement == null)
-                            {
-                                UInt16Value = new BaseDataVariableState<ushort>(this);
-                            }
-                            else
-                            {
-                                UInt16Value = (BaseDataVariableState<ushort>)replacement;
+                case TestData.BrowseNames.UInt16Value: {
+                        if (createOrReplace) {
+                            if (UInt16Value == null) {
+                                if (replacement == null) {
+                                    UInt16Value = new BaseDataVariableState<ushort>(this);
+                                }
+                                else {
+                                    UInt16Value = (BaseDataVariableState<ushort>)replacement;
+                                }
                             }
                         }
+
+                        instance = UInt16Value;
+                        break;
                     }
 
-                    instance = UInt16Value;
-                    break;
-                }
-
-                case TestData.BrowseNames.Int32Value:
-                {
-                    if (createOrReplace)
-                    {
-                        if (Int32Value == null)
-                        {
-                            if (replacement == null)
-                            {
-                                Int32Value = new BaseDataVariableState<int>(this);
-                            }
-                            else
-                            {
-                                Int32Value = (BaseDataVariableState<int>)replacement;
+                case TestData.BrowseNames.Int32Value: {
+                        if (createOrReplace) {
+                            if (Int32Value == null) {
+                                if (replacement == null) {
+                                    Int32Value = new BaseDataVariableState<int>(this);
+                                }
+                                else {
+                                    Int32Value = (BaseDataVariableState<int>)replacement;
+                                }
                             }
                         }
+
+                        instance = Int32Value;
+                        break;
                     }
 
-                    instance = Int32Value;
-                    break;
-                }
-
-                case TestData.BrowseNames.UInt32Value:
-                {
-                    if (createOrReplace)
-                    {
-                        if (UInt32Value == null)
-                        {
-                            if (replacement == null)
-                            {
-                                UInt32Value = new BaseDataVariableState<uint>(this);
-                            }
-                            else
-                            {
-                                UInt32Value = (BaseDataVariableState<uint>)replacement;
+                case TestData.BrowseNames.UInt32Value: {
+                        if (createOrReplace) {
+                            if (UInt32Value == null) {
+                                if (replacement == null) {
+                                    UInt32Value = new BaseDataVariableState<uint>(this);
+                                }
+                                else {
+                                    UInt32Value = (BaseDataVariableState<uint>)replacement;
+                                }
                             }
                         }
+
+                        instance = UInt32Value;
+                        break;
                     }
 
-                    instance = UInt32Value;
-                    break;
-                }
-
-                case TestData.BrowseNames.Int64Value:
-                {
-                    if (createOrReplace)
-                    {
-                        if (Int64Value == null)
-                        {
-                            if (replacement == null)
-                            {
-                                Int64Value = new BaseDataVariableState<long>(this);
-                            }
-                            else
-                            {
-                                Int64Value = (BaseDataVariableState<long>)replacement;
+                case TestData.BrowseNames.Int64Value: {
+                        if (createOrReplace) {
+                            if (Int64Value == null) {
+                                if (replacement == null) {
+                                    Int64Value = new BaseDataVariableState<long>(this);
+                                }
+                                else {
+                                    Int64Value = (BaseDataVariableState<long>)replacement;
+                                }
                             }
                         }
+
+                        instance = Int64Value;
+                        break;
                     }
 
-                    instance = Int64Value;
-                    break;
-                }
-
-                case TestData.BrowseNames.UInt64Value:
-                {
-                    if (createOrReplace)
-                    {
-                        if (UInt64Value == null)
-                        {
-                            if (replacement == null)
-                            {
-                                UInt64Value = new BaseDataVariableState<ulong>(this);
-                            }
-                            else
-                            {
-                                UInt64Value = (BaseDataVariableState<ulong>)replacement;
+                case TestData.BrowseNames.UInt64Value: {
+                        if (createOrReplace) {
+                            if (UInt64Value == null) {
+                                if (replacement == null) {
+                                    UInt64Value = new BaseDataVariableState<ulong>(this);
+                                }
+                                else {
+                                    UInt64Value = (BaseDataVariableState<ulong>)replacement;
+                                }
                             }
                         }
+
+                        instance = UInt64Value;
+                        break;
                     }
 
-                    instance = UInt64Value;
-                    break;
-                }
-
-                case TestData.BrowseNames.FloatValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (FloatValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                FloatValue = new BaseDataVariableState<float>(this);
-                            }
-                            else
-                            {
-                                FloatValue = (BaseDataVariableState<float>)replacement;
+                case TestData.BrowseNames.FloatValue: {
+                        if (createOrReplace) {
+                            if (FloatValue == null) {
+                                if (replacement == null) {
+                                    FloatValue = new BaseDataVariableState<float>(this);
+                                }
+                                else {
+                                    FloatValue = (BaseDataVariableState<float>)replacement;
+                                }
                             }
                         }
+
+                        instance = FloatValue;
+                        break;
                     }
 
-                    instance = FloatValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.DoubleValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (DoubleValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                DoubleValue = new BaseDataVariableState<double>(this);
-                            }
-                            else
-                            {
-                                DoubleValue = (BaseDataVariableState<double>)replacement;
+                case TestData.BrowseNames.DoubleValue: {
+                        if (createOrReplace) {
+                            if (DoubleValue == null) {
+                                if (replacement == null) {
+                                    DoubleValue = new BaseDataVariableState<double>(this);
+                                }
+                                else {
+                                    DoubleValue = (BaseDataVariableState<double>)replacement;
+                                }
                             }
                         }
+
+                        instance = DoubleValue;
+                        break;
                     }
 
-                    instance = DoubleValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.StringValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (StringValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                StringValue = new BaseDataVariableState<string>(this);
-                            }
-                            else
-                            {
-                                StringValue = (BaseDataVariableState<string>)replacement;
+                case TestData.BrowseNames.StringValue: {
+                        if (createOrReplace) {
+                            if (StringValue == null) {
+                                if (replacement == null) {
+                                    StringValue = new BaseDataVariableState<string>(this);
+                                }
+                                else {
+                                    StringValue = (BaseDataVariableState<string>)replacement;
+                                }
                             }
                         }
+
+                        instance = StringValue;
+                        break;
                     }
 
-                    instance = StringValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.DateTimeValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (DateTimeValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                DateTimeValue = new BaseDataVariableState<DateTime>(this);
-                            }
-                            else
-                            {
-                                DateTimeValue = (BaseDataVariableState<DateTime>)replacement;
+                case TestData.BrowseNames.DateTimeValue: {
+                        if (createOrReplace) {
+                            if (DateTimeValue == null) {
+                                if (replacement == null) {
+                                    DateTimeValue = new BaseDataVariableState<DateTime>(this);
+                                }
+                                else {
+                                    DateTimeValue = (BaseDataVariableState<DateTime>)replacement;
+                                }
                             }
                         }
+
+                        instance = DateTimeValue;
+                        break;
                     }
 
-                    instance = DateTimeValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.GuidValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (GuidValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                GuidValue = new BaseDataVariableState<Guid>(this);
-                            }
-                            else
-                            {
-                                GuidValue = (BaseDataVariableState<Guid>)replacement;
+                case TestData.BrowseNames.GuidValue: {
+                        if (createOrReplace) {
+                            if (GuidValue == null) {
+                                if (replacement == null) {
+                                    GuidValue = new BaseDataVariableState<Guid>(this);
+                                }
+                                else {
+                                    GuidValue = (BaseDataVariableState<Guid>)replacement;
+                                }
                             }
                         }
+
+                        instance = GuidValue;
+                        break;
                     }
 
-                    instance = GuidValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.ByteStringValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (ByteStringValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                ByteStringValue = new BaseDataVariableState<byte[]>(this);
-                            }
-                            else
-                            {
-                                ByteStringValue = (BaseDataVariableState<byte[]>)replacement;
+                case TestData.BrowseNames.ByteStringValue: {
+                        if (createOrReplace) {
+                            if (ByteStringValue == null) {
+                                if (replacement == null) {
+                                    ByteStringValue = new BaseDataVariableState<byte[]>(this);
+                                }
+                                else {
+                                    ByteStringValue = (BaseDataVariableState<byte[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = ByteStringValue;
+                        break;
                     }
 
-                    instance = ByteStringValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.XmlElementValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (XmlElementValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                XmlElementValue = new BaseDataVariableState<XmlElement>(this);
-                            }
-                            else
-                            {
-                                XmlElementValue = (BaseDataVariableState<XmlElement>)replacement;
+                case TestData.BrowseNames.XmlElementValue: {
+                        if (createOrReplace) {
+                            if (XmlElementValue == null) {
+                                if (replacement == null) {
+                                    XmlElementValue = new BaseDataVariableState<XmlElement>(this);
+                                }
+                                else {
+                                    XmlElementValue = (BaseDataVariableState<XmlElement>)replacement;
+                                }
                             }
                         }
+
+                        instance = XmlElementValue;
+                        break;
                     }
 
-                    instance = XmlElementValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.NodeIdValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (NodeIdValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                NodeIdValue = new BaseDataVariableState<NodeId>(this);
-                            }
-                            else
-                            {
-                                NodeIdValue = (BaseDataVariableState<NodeId>)replacement;
+                case TestData.BrowseNames.NodeIdValue: {
+                        if (createOrReplace) {
+                            if (NodeIdValue == null) {
+                                if (replacement == null) {
+                                    NodeIdValue = new BaseDataVariableState<NodeId>(this);
+                                }
+                                else {
+                                    NodeIdValue = (BaseDataVariableState<NodeId>)replacement;
+                                }
                             }
                         }
+
+                        instance = NodeIdValue;
+                        break;
                     }
 
-                    instance = NodeIdValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.ExpandedNodeIdValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (ExpandedNodeIdValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                ExpandedNodeIdValue = new BaseDataVariableState<ExpandedNodeId>(this);
-                            }
-                            else
-                            {
-                                ExpandedNodeIdValue = (BaseDataVariableState<ExpandedNodeId>)replacement;
+                case TestData.BrowseNames.ExpandedNodeIdValue: {
+                        if (createOrReplace) {
+                            if (ExpandedNodeIdValue == null) {
+                                if (replacement == null) {
+                                    ExpandedNodeIdValue = new BaseDataVariableState<ExpandedNodeId>(this);
+                                }
+                                else {
+                                    ExpandedNodeIdValue = (BaseDataVariableState<ExpandedNodeId>)replacement;
+                                }
                             }
                         }
+
+                        instance = ExpandedNodeIdValue;
+                        break;
                     }
 
-                    instance = ExpandedNodeIdValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.QualifiedNameValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (QualifiedNameValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                QualifiedNameValue = new BaseDataVariableState<QualifiedName>(this);
-                            }
-                            else
-                            {
-                                QualifiedNameValue = (BaseDataVariableState<QualifiedName>)replacement;
+                case TestData.BrowseNames.QualifiedNameValue: {
+                        if (createOrReplace) {
+                            if (QualifiedNameValue == null) {
+                                if (replacement == null) {
+                                    QualifiedNameValue = new BaseDataVariableState<QualifiedName>(this);
+                                }
+                                else {
+                                    QualifiedNameValue = (BaseDataVariableState<QualifiedName>)replacement;
+                                }
                             }
                         }
+
+                        instance = QualifiedNameValue;
+                        break;
                     }
 
-                    instance = QualifiedNameValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.LocalizedTextValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (LocalizedTextValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                LocalizedTextValue = new BaseDataVariableState<LocalizedText>(this);
-                            }
-                            else
-                            {
-                                LocalizedTextValue = (BaseDataVariableState<LocalizedText>)replacement;
+                case TestData.BrowseNames.LocalizedTextValue: {
+                        if (createOrReplace) {
+                            if (LocalizedTextValue == null) {
+                                if (replacement == null) {
+                                    LocalizedTextValue = new BaseDataVariableState<LocalizedText>(this);
+                                }
+                                else {
+                                    LocalizedTextValue = (BaseDataVariableState<LocalizedText>)replacement;
+                                }
                             }
                         }
+
+                        instance = LocalizedTextValue;
+                        break;
                     }
 
-                    instance = LocalizedTextValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.StatusCodeValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (StatusCodeValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                StatusCodeValue = new BaseDataVariableState<StatusCode>(this);
-                            }
-                            else
-                            {
-                                StatusCodeValue = (BaseDataVariableState<StatusCode>)replacement;
+                case TestData.BrowseNames.StatusCodeValue: {
+                        if (createOrReplace) {
+                            if (StatusCodeValue == null) {
+                                if (replacement == null) {
+                                    StatusCodeValue = new BaseDataVariableState<StatusCode>(this);
+                                }
+                                else {
+                                    StatusCodeValue = (BaseDataVariableState<StatusCode>)replacement;
+                                }
                             }
                         }
+
+                        instance = StatusCodeValue;
+                        break;
                     }
 
-                    instance = StatusCodeValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.VariantValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (VariantValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                VariantValue = new BaseDataVariableState(this);
-                            }
-                            else
-                            {
-                                VariantValue = (BaseDataVariableState)replacement;
+                case TestData.BrowseNames.VariantValue: {
+                        if (createOrReplace) {
+                            if (VariantValue == null) {
+                                if (replacement == null) {
+                                    VariantValue = new BaseDataVariableState(this);
+                                }
+                                else {
+                                    VariantValue = (BaseDataVariableState)replacement;
+                                }
                             }
                         }
-                    }
 
-                    instance = VariantValue;
-                    break;
-                }
+                        instance = VariantValue;
+                        break;
+                    }
             }
 
-            if (instance != null)
-            {
+            if (instance != null) {
                 return instance;
             }
 
@@ -7543,24 +6130,22 @@ namespace TestData {
         private BaseDataVariableState m_variantValue;
         #endregion
     }
-    #endif
+#endif
     #endregion
 
     #region UserScalarValue1MethodState Class
-    #if (!OPCUA_EXCLUDE_UserScalarValue1MethodState)
+#if (!OPCUA_EXCLUDE_UserScalarValue1MethodState)
     /// <summary>
     /// Stores an instance of the UserScalarValue1MethodType Method.
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public partial class UserScalarValue1MethodState : MethodState
-    {
+    public partial class UserScalarValue1MethodState : MethodState {
         #region Constructors
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
-        public UserScalarValue1MethodState(NodeState parent) : base(parent)
-        {
+        public UserScalarValue1MethodState(NodeState parent) : base(parent) {
         }
 
         /// <summary>
@@ -7568,17 +6153,15 @@ namespace TestData {
         /// </summary>
         /// <param name="parent">The parent.</param>
         /// <returns>The new node.</returns>
-        public new static NodeState Construct(NodeState parent)
-        {
+        public new static NodeState Construct(NodeState parent) {
             return new UserScalarValue1MethodState(parent);
         }
 
-        #if (!OPCUA_EXCLUDE_InitializationStrings)
+#if (!OPCUA_EXCLUDE_InitializationStrings)
         /// <summary>
         /// Initializes the instance.
         /// </summary>
-        protected override void Initialize(ISystemContext context)
-        {
+        protected override void Initialize(ISystemContext context) {
             Initialize(context, InitializationString);
             InitializeOptionalChildren(context);
         }
@@ -7586,8 +6169,7 @@ namespace TestData {
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
-        protected override void InitializeOptionalChildren(ISystemContext context)
-        {
+        protected override void InitializeOptionalChildren(ISystemContext context) {
             base.InitializeOptionalChildren(context);
         }
 
@@ -7612,7 +6194,7 @@ namespace TestData {
            "GgAAAAkAAABEb3VibGVPdXQBAbQm/////wAAAAAAAQAqAQEaAAAACQAAAFN0cmluZ091dAEBtSb/////" +
            "AAAAAAABACgBAQAAAAEB/////wAAAAA=";
         #endregion
-        #endif
+#endif
         #endregion
 
         #region Event Callbacks
@@ -7638,10 +6220,8 @@ namespace TestData {
             ISystemContext context,
             NodeId objectId,
             IList<object> inputArguments,
-            IList<object> outputArguments)
-        {
-            if (OnCall == null)
-            {
+            IList<object> outputArguments) {
+            if (OnCall == null) {
                 return base.Call(context, objectId, inputArguments, outputArguments);
             }
 
@@ -7673,8 +6253,7 @@ namespace TestData {
             double doubleOut = (double)outputArguments[10];
             string stringOut = (string)outputArguments[11];
 
-            if (OnCall != null)
-            {
+            if (OnCall != null) {
                 result = OnCall(
                     context,
                     this,
@@ -7758,24 +6337,22 @@ namespace TestData {
         ref float floatOut,
         ref double doubleOut,
         ref string stringOut);
-    #endif
+#endif
     #endregion
 
     #region UserScalarValue2MethodState Class
-    #if (!OPCUA_EXCLUDE_UserScalarValue2MethodState)
+#if (!OPCUA_EXCLUDE_UserScalarValue2MethodState)
     /// <summary>
     /// Stores an instance of the UserScalarValue2MethodType Method.
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public partial class UserScalarValue2MethodState : MethodState
-    {
+    public partial class UserScalarValue2MethodState : MethodState {
         #region Constructors
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
-        public UserScalarValue2MethodState(NodeState parent) : base(parent)
-        {
+        public UserScalarValue2MethodState(NodeState parent) : base(parent) {
         }
 
         /// <summary>
@@ -7783,17 +6360,15 @@ namespace TestData {
         /// </summary>
         /// <param name="parent">The parent.</param>
         /// <returns>The new node.</returns>
-        public new static NodeState Construct(NodeState parent)
-        {
+        public new static NodeState Construct(NodeState parent) {
             return new UserScalarValue2MethodState(parent);
         }
 
-        #if (!OPCUA_EXCLUDE_InitializationStrings)
+#if (!OPCUA_EXCLUDE_InitializationStrings)
         /// <summary>
         /// Initializes the instance.
         /// </summary>
-        protected override void Initialize(ISystemContext context)
-        {
+        protected override void Initialize(ISystemContext context) {
             Initialize(context, InitializationString);
             InitializeOptionalChildren(context);
         }
@@ -7801,8 +6376,7 @@ namespace TestData {
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
-        protected override void InitializeOptionalChildren(ISystemContext context)
-        {
+        protected override void InitializeOptionalChildren(ISystemContext context) {
             base.InitializeOptionalChildren(context);
         }
 
@@ -7826,7 +6400,7 @@ namespace TestData {
            "AAAADQAAAFN0YXR1c0NvZGVPdXQBAb4m/////wAAAAAAAQAqAQEbAAAACgAAAFZhcmlhbnRPdXQBAb8m" +
            "/////wAAAAAAAQAoAQEAAAABAf////8AAAAA";
         #endregion
-        #endif
+#endif
         #endregion
 
         #region Event Callbacks
@@ -7852,10 +6426,8 @@ namespace TestData {
             ISystemContext context,
             NodeId objectId,
             IList<object> inputArguments,
-            IList<object> outputArguments)
-        {
-            if (OnCall == null)
-            {
+            IList<object> outputArguments) {
+            if (OnCall == null) {
                 return base.Call(context, objectId, inputArguments, outputArguments);
             }
 
@@ -7883,8 +6455,7 @@ namespace TestData {
             StatusCode statusCodeOut = (StatusCode)outputArguments[8];
             object variantOut = (object)outputArguments[9];
 
-            if (OnCall != null)
-            {
+            if (OnCall != null) {
                 result = OnCall(
                     context,
                     this,
@@ -7958,40 +6529,36 @@ namespace TestData {
         ref LocalizedText localizedTextOut,
         ref StatusCode statusCodeOut,
         ref object variantOut);
-    #endif
+#endif
     #endregion
 
     #region UserArrayValueObjectState Class
-    #if (!OPCUA_EXCLUDE_UserArrayValueObjectState)
+#if !OPCUA_EXCLUDE_UserArrayValueObjectState
     /// <summary>
     /// Stores an instance of the UserArrayValueObjectType ObjectType.
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCode("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public partial class UserArrayValueObjectState : TestDataObjectState
-    {
+    public partial class UserArrayValueObjectState : TestDataObjectState {
         #region Constructors
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
-        public UserArrayValueObjectState(NodeState parent) : base(parent)
-        {
+        public UserArrayValueObjectState(NodeState parent) : base(parent) {
         }
 
         /// <summary>
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
-        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
-        {
+        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris) {
             return Opc.Ua.NodeId.Create(TestData.ObjectTypes.UserArrayValueObjectType, TestData.Namespaces.TestData, namespaceUris);
         }
 
-        #if (!OPCUA_EXCLUDE_InitializationStrings)
+#if !OPCUA_EXCLUDE_InitializationStrings
         /// <summary>
         /// Initializes the instance.
         /// </summary>
-        protected override void Initialize(ISystemContext context)
-        {
+        protected override void Initialize(ISystemContext context) {
             Initialize(context, InitializationString);
             InitializeOptionalChildren(context);
         }
@@ -7999,8 +6566,7 @@ namespace TestData {
         /// <summary>
         /// Initializes the instance with a node.
         /// </summary>
-        protected override void Initialize(ISystemContext context, NodeState source)
-        {
+        protected override void Initialize(ISystemContext context, NodeState source) {
             InitializeOptionalChildren(context);
             base.Initialize(context, source);
         }
@@ -8008,8 +6574,7 @@ namespace TestData {
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
-        protected override void InitializeOptionalChildren(ISystemContext context)
-        {
+        protected override void InitializeOptionalChildren(ISystemContext context) {
             base.InitializeOptionalChildren(context);
         }
 
@@ -8084,24 +6649,18 @@ namespace TestData {
            "bHVlAQFkJwAvAD9kJwAAAQG+JgEAAAABAf////8AAAAAFWCJCgIAAAABAAwAAABWYXJpYW50VmFsdWUB" +
            "AWUnAC8AP2UnAAABAb8mAQAAAAEB/////wAAAAA=";
         #endregion
-        #endif
+#endif
         #endregion
 
         #region Public Properties
         /// <summary>
         /// A description for the BooleanValue Variable.
         /// </summary>
-        public BaseDataVariableState<bool[]> BooleanValue
-        {
-            get
-            {
-                return m_booleanValue;
-            }
+        public BaseDataVariableState<bool[]> BooleanValue {
+            get => m_booleanValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_booleanValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_booleanValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -8112,17 +6671,11 @@ namespace TestData {
         /// <summary>
         /// A description for the SByteValue Variable.
         /// </summary>
-        public BaseDataVariableState<sbyte[]> SByteValue
-        {
-            get
-            {
-                return m_sByteValue;
-            }
+        public BaseDataVariableState<sbyte[]> SByteValue {
+            get => m_sByteValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_sByteValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_sByteValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -8133,17 +6686,11 @@ namespace TestData {
         /// <summary>
         /// A description for the ByteValue Variable.
         /// </summary>
-        public BaseDataVariableState<byte[]> ByteValue
-        {
-            get
-            {
-                return m_byteValue;
-            }
+        public BaseDataVariableState<byte[]> ByteValue {
+            get => m_byteValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_byteValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_byteValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -8154,17 +6701,11 @@ namespace TestData {
         /// <summary>
         /// A description for the Int16Value Variable.
         /// </summary>
-        public BaseDataVariableState<short[]> Int16Value
-        {
-            get
-            {
-                return m_int16Value;
-            }
+        public BaseDataVariableState<short[]> Int16Value {
+            get => m_int16Value;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_int16Value, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_int16Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -8175,17 +6716,11 @@ namespace TestData {
         /// <summary>
         /// A description for the UInt16Value Variable.
         /// </summary>
-        public BaseDataVariableState<ushort[]> UInt16Value
-        {
-            get
-            {
-                return m_uInt16Value;
-            }
+        public BaseDataVariableState<ushort[]> UInt16Value {
+            get => m_uInt16Value;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_uInt16Value, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_uInt16Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -8196,17 +6731,11 @@ namespace TestData {
         /// <summary>
         /// A description for the Int32Value Variable.
         /// </summary>
-        public BaseDataVariableState<int[]> Int32Value
-        {
-            get
-            {
-                return m_int32Value;
-            }
+        public BaseDataVariableState<int[]> Int32Value {
+            get => m_int32Value;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_int32Value, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_int32Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -8217,17 +6746,11 @@ namespace TestData {
         /// <summary>
         /// A description for the UInt32Value Variable.
         /// </summary>
-        public BaseDataVariableState<uint[]> UInt32Value
-        {
-            get
-            {
-                return m_uInt32Value;
-            }
+        public BaseDataVariableState<uint[]> UInt32Value {
+            get => m_uInt32Value;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_uInt32Value, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_uInt32Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -8238,17 +6761,11 @@ namespace TestData {
         /// <summary>
         /// A description for the Int64Value Variable.
         /// </summary>
-        public BaseDataVariableState<long[]> Int64Value
-        {
-            get
-            {
-                return m_int64Value;
-            }
+        public BaseDataVariableState<long[]> Int64Value {
+            get => m_int64Value;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_int64Value, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_int64Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -8259,17 +6776,11 @@ namespace TestData {
         /// <summary>
         /// A description for the UInt64Value Variable.
         /// </summary>
-        public BaseDataVariableState<ulong[]> UInt64Value
-        {
-            get
-            {
-                return m_uInt64Value;
-            }
+        public BaseDataVariableState<ulong[]> UInt64Value {
+            get => m_uInt64Value;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_uInt64Value, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_uInt64Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -8280,17 +6791,11 @@ namespace TestData {
         /// <summary>
         /// A description for the FloatValue Variable.
         /// </summary>
-        public BaseDataVariableState<float[]> FloatValue
-        {
-            get
-            {
-                return m_floatValue;
-            }
+        public BaseDataVariableState<float[]> FloatValue {
+            get => m_floatValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_floatValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_floatValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -8301,17 +6806,11 @@ namespace TestData {
         /// <summary>
         /// A description for the DoubleValue Variable.
         /// </summary>
-        public BaseDataVariableState<double[]> DoubleValue
-        {
-            get
-            {
-                return m_doubleValue;
-            }
+        public BaseDataVariableState<double[]> DoubleValue {
+            get => m_doubleValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_doubleValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_doubleValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -8322,17 +6821,11 @@ namespace TestData {
         /// <summary>
         /// A description for the StringValue Variable.
         /// </summary>
-        public BaseDataVariableState<string[]> StringValue
-        {
-            get
-            {
-                return m_stringValue;
-            }
+        public BaseDataVariableState<string[]> StringValue {
+            get => m_stringValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_stringValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_stringValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -8343,17 +6836,11 @@ namespace TestData {
         /// <summary>
         /// A description for the DateTimeValue Variable.
         /// </summary>
-        public BaseDataVariableState<DateTime[]> DateTimeValue
-        {
-            get
-            {
-                return m_dateTimeValue;
-            }
+        public BaseDataVariableState<DateTime[]> DateTimeValue {
+            get => m_dateTimeValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_dateTimeValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_dateTimeValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -8364,17 +6851,11 @@ namespace TestData {
         /// <summary>
         /// A description for the GuidValue Variable.
         /// </summary>
-        public BaseDataVariableState<Guid[]> GuidValue
-        {
-            get
-            {
-                return m_guidValue;
-            }
+        public BaseDataVariableState<Guid[]> GuidValue {
+            get => m_guidValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_guidValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_guidValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -8385,17 +6866,11 @@ namespace TestData {
         /// <summary>
         /// A description for the ByteStringValue Variable.
         /// </summary>
-        public BaseDataVariableState<byte[][]> ByteStringValue
-        {
-            get
-            {
-                return m_byteStringValue;
-            }
+        public BaseDataVariableState<byte[][]> ByteStringValue {
+            get => m_byteStringValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_byteStringValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_byteStringValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -8406,17 +6881,11 @@ namespace TestData {
         /// <summary>
         /// A description for the XmlElementValue Variable.
         /// </summary>
-        public BaseDataVariableState<XmlElement[]> XmlElementValue
-        {
-            get
-            {
-                return m_xmlElementValue;
-            }
+        public BaseDataVariableState<XmlElement[]> XmlElementValue {
+            get => m_xmlElementValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_xmlElementValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_xmlElementValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -8427,17 +6896,11 @@ namespace TestData {
         /// <summary>
         /// A description for the NodeIdValue Variable.
         /// </summary>
-        public BaseDataVariableState<NodeId[]> NodeIdValue
-        {
-            get
-            {
-                return m_nodeIdValue;
-            }
+        public BaseDataVariableState<NodeId[]> NodeIdValue {
+            get => m_nodeIdValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_nodeIdValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_nodeIdValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -8448,17 +6911,11 @@ namespace TestData {
         /// <summary>
         /// A description for the ExpandedNodeIdValue Variable.
         /// </summary>
-        public BaseDataVariableState<ExpandedNodeId[]> ExpandedNodeIdValue
-        {
-            get
-            {
-                return m_expandedNodeIdValue;
-            }
+        public BaseDataVariableState<ExpandedNodeId[]> ExpandedNodeIdValue {
+            get => m_expandedNodeIdValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_expandedNodeIdValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_expandedNodeIdValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -8469,17 +6926,11 @@ namespace TestData {
         /// <summary>
         /// A description for the QualifiedNameValue Variable.
         /// </summary>
-        public BaseDataVariableState<QualifiedName[]> QualifiedNameValue
-        {
-            get
-            {
-                return m_qualifiedNameValue;
-            }
+        public BaseDataVariableState<QualifiedName[]> QualifiedNameValue {
+            get => m_qualifiedNameValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_qualifiedNameValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_qualifiedNameValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -8490,17 +6941,11 @@ namespace TestData {
         /// <summary>
         /// A description for the LocalizedTextValue Variable.
         /// </summary>
-        public BaseDataVariableState<LocalizedText[]> LocalizedTextValue
-        {
-            get
-            {
-                return m_localizedTextValue;
-            }
+        public BaseDataVariableState<LocalizedText[]> LocalizedTextValue {
+            get => m_localizedTextValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_localizedTextValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_localizedTextValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -8511,17 +6956,11 @@ namespace TestData {
         /// <summary>
         /// A description for the StatusCodeValue Variable.
         /// </summary>
-        public BaseDataVariableState<StatusCode[]> StatusCodeValue
-        {
-            get
-            {
-                return m_statusCodeValue;
-            }
+        public BaseDataVariableState<StatusCode[]> StatusCodeValue {
+            get => m_statusCodeValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_statusCodeValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_statusCodeValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -8532,17 +6971,11 @@ namespace TestData {
         /// <summary>
         /// A description for the VariantValue Variable.
         /// </summary>
-        public BaseDataVariableState<object[]> VariantValue
-        {
-            get
-            {
-                return m_variantValue;
-            }
+        public BaseDataVariableState<object[]> VariantValue {
+            get => m_variantValue;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_variantValue, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_variantValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -8559,115 +6992,92 @@ namespace TestData {
         /// <param name="children">The list of children to populate.</param>
         public override void GetChildren(
             ISystemContext context,
-            IList<BaseInstanceState> children)
-        {
-            if (m_booleanValue != null)
-            {
+            IList<BaseInstanceState> children) {
+            if (m_booleanValue != null) {
                 children.Add(m_booleanValue);
             }
 
-            if (m_sByteValue != null)
-            {
+            if (m_sByteValue != null) {
                 children.Add(m_sByteValue);
             }
 
-            if (m_byteValue != null)
-            {
+            if (m_byteValue != null) {
                 children.Add(m_byteValue);
             }
 
-            if (m_int16Value != null)
-            {
+            if (m_int16Value != null) {
                 children.Add(m_int16Value);
             }
 
-            if (m_uInt16Value != null)
-            {
+            if (m_uInt16Value != null) {
                 children.Add(m_uInt16Value);
             }
 
-            if (m_int32Value != null)
-            {
+            if (m_int32Value != null) {
                 children.Add(m_int32Value);
             }
 
-            if (m_uInt32Value != null)
-            {
+            if (m_uInt32Value != null) {
                 children.Add(m_uInt32Value);
             }
 
-            if (m_int64Value != null)
-            {
+            if (m_int64Value != null) {
                 children.Add(m_int64Value);
             }
 
-            if (m_uInt64Value != null)
-            {
+            if (m_uInt64Value != null) {
                 children.Add(m_uInt64Value);
             }
 
-            if (m_floatValue != null)
-            {
+            if (m_floatValue != null) {
                 children.Add(m_floatValue);
             }
 
-            if (m_doubleValue != null)
-            {
+            if (m_doubleValue != null) {
                 children.Add(m_doubleValue);
             }
 
-            if (m_stringValue != null)
-            {
+            if (m_stringValue != null) {
                 children.Add(m_stringValue);
             }
 
-            if (m_dateTimeValue != null)
-            {
+            if (m_dateTimeValue != null) {
                 children.Add(m_dateTimeValue);
             }
 
-            if (m_guidValue != null)
-            {
+            if (m_guidValue != null) {
                 children.Add(m_guidValue);
             }
 
-            if (m_byteStringValue != null)
-            {
+            if (m_byteStringValue != null) {
                 children.Add(m_byteStringValue);
             }
 
-            if (m_xmlElementValue != null)
-            {
+            if (m_xmlElementValue != null) {
                 children.Add(m_xmlElementValue);
             }
 
-            if (m_nodeIdValue != null)
-            {
+            if (m_nodeIdValue != null) {
                 children.Add(m_nodeIdValue);
             }
 
-            if (m_expandedNodeIdValue != null)
-            {
+            if (m_expandedNodeIdValue != null) {
                 children.Add(m_expandedNodeIdValue);
             }
 
-            if (m_qualifiedNameValue != null)
-            {
+            if (m_qualifiedNameValue != null) {
                 children.Add(m_qualifiedNameValue);
             }
 
-            if (m_localizedTextValue != null)
-            {
+            if (m_localizedTextValue != null) {
                 children.Add(m_localizedTextValue);
             }
 
-            if (m_statusCodeValue != null)
-            {
+            if (m_statusCodeValue != null) {
                 children.Add(m_statusCodeValue);
             }
 
-            if (m_variantValue != null)
-            {
+            if (m_variantValue != null) {
                 children.Add(m_variantValue);
             }
 
@@ -8681,482 +7091,368 @@ namespace TestData {
             ISystemContext context,
             QualifiedName browseName,
             bool createOrReplace,
-            BaseInstanceState replacement)
-        {
-            if (QualifiedName.IsNull(browseName))
-            {
+            BaseInstanceState replacement) {
+            if (QualifiedName.IsNull(browseName)) {
                 return null;
             }
 
             BaseInstanceState instance = null;
 
-            switch (browseName.Name)
-            {
-                case TestData.BrowseNames.BooleanValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (BooleanValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                BooleanValue = new BaseDataVariableState<bool[]>(this);
-                            }
-                            else
-                            {
-                                BooleanValue = (BaseDataVariableState<bool[]>)replacement;
+            switch (browseName.Name) {
+                case TestData.BrowseNames.BooleanValue: {
+                        if (createOrReplace) {
+                            if (BooleanValue == null) {
+                                if (replacement == null) {
+                                    BooleanValue = new BaseDataVariableState<bool[]>(this);
+                                }
+                                else {
+                                    BooleanValue = (BaseDataVariableState<bool[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = BooleanValue;
+                        break;
                     }
 
-                    instance = BooleanValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.SByteValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (SByteValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                SByteValue = new BaseDataVariableState<sbyte[]>(this);
-                            }
-                            else
-                            {
-                                SByteValue = (BaseDataVariableState<sbyte[]>)replacement;
+                case TestData.BrowseNames.SByteValue: {
+                        if (createOrReplace) {
+                            if (SByteValue == null) {
+                                if (replacement == null) {
+                                    SByteValue = new BaseDataVariableState<sbyte[]>(this);
+                                }
+                                else {
+                                    SByteValue = (BaseDataVariableState<sbyte[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = SByteValue;
+                        break;
                     }
 
-                    instance = SByteValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.ByteValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (ByteValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                ByteValue = new BaseDataVariableState<byte[]>(this);
-                            }
-                            else
-                            {
-                                ByteValue = (BaseDataVariableState<byte[]>)replacement;
+                case TestData.BrowseNames.ByteValue: {
+                        if (createOrReplace) {
+                            if (ByteValue == null) {
+                                if (replacement == null) {
+                                    ByteValue = new BaseDataVariableState<byte[]>(this);
+                                }
+                                else {
+                                    ByteValue = (BaseDataVariableState<byte[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = ByteValue;
+                        break;
                     }
 
-                    instance = ByteValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.Int16Value:
-                {
-                    if (createOrReplace)
-                    {
-                        if (Int16Value == null)
-                        {
-                            if (replacement == null)
-                            {
-                                Int16Value = new BaseDataVariableState<short[]>(this);
-                            }
-                            else
-                            {
-                                Int16Value = (BaseDataVariableState<short[]>)replacement;
+                case TestData.BrowseNames.Int16Value: {
+                        if (createOrReplace) {
+                            if (Int16Value == null) {
+                                if (replacement == null) {
+                                    Int16Value = new BaseDataVariableState<short[]>(this);
+                                }
+                                else {
+                                    Int16Value = (BaseDataVariableState<short[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = Int16Value;
+                        break;
                     }
 
-                    instance = Int16Value;
-                    break;
-                }
-
-                case TestData.BrowseNames.UInt16Value:
-                {
-                    if (createOrReplace)
-                    {
-                        if (UInt16Value == null)
-                        {
-                            if (replacement == null)
-                            {
-                                UInt16Value = new BaseDataVariableState<ushort[]>(this);
-                            }
-                            else
-                            {
-                                UInt16Value = (BaseDataVariableState<ushort[]>)replacement;
+                case TestData.BrowseNames.UInt16Value: {
+                        if (createOrReplace) {
+                            if (UInt16Value == null) {
+                                if (replacement == null) {
+                                    UInt16Value = new BaseDataVariableState<ushort[]>(this);
+                                }
+                                else {
+                                    UInt16Value = (BaseDataVariableState<ushort[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = UInt16Value;
+                        break;
                     }
 
-                    instance = UInt16Value;
-                    break;
-                }
-
-                case TestData.BrowseNames.Int32Value:
-                {
-                    if (createOrReplace)
-                    {
-                        if (Int32Value == null)
-                        {
-                            if (replacement == null)
-                            {
-                                Int32Value = new BaseDataVariableState<int[]>(this);
-                            }
-                            else
-                            {
-                                Int32Value = (BaseDataVariableState<int[]>)replacement;
+                case TestData.BrowseNames.Int32Value: {
+                        if (createOrReplace) {
+                            if (Int32Value == null) {
+                                if (replacement == null) {
+                                    Int32Value = new BaseDataVariableState<int[]>(this);
+                                }
+                                else {
+                                    Int32Value = (BaseDataVariableState<int[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = Int32Value;
+                        break;
                     }
 
-                    instance = Int32Value;
-                    break;
-                }
-
-                case TestData.BrowseNames.UInt32Value:
-                {
-                    if (createOrReplace)
-                    {
-                        if (UInt32Value == null)
-                        {
-                            if (replacement == null)
-                            {
-                                UInt32Value = new BaseDataVariableState<uint[]>(this);
-                            }
-                            else
-                            {
-                                UInt32Value = (BaseDataVariableState<uint[]>)replacement;
+                case TestData.BrowseNames.UInt32Value: {
+                        if (createOrReplace) {
+                            if (UInt32Value == null) {
+                                if (replacement == null) {
+                                    UInt32Value = new BaseDataVariableState<uint[]>(this);
+                                }
+                                else {
+                                    UInt32Value = (BaseDataVariableState<uint[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = UInt32Value;
+                        break;
                     }
 
-                    instance = UInt32Value;
-                    break;
-                }
-
-                case TestData.BrowseNames.Int64Value:
-                {
-                    if (createOrReplace)
-                    {
-                        if (Int64Value == null)
-                        {
-                            if (replacement == null)
-                            {
-                                Int64Value = new BaseDataVariableState<long[]>(this);
-                            }
-                            else
-                            {
-                                Int64Value = (BaseDataVariableState<long[]>)replacement;
+                case TestData.BrowseNames.Int64Value: {
+                        if (createOrReplace) {
+                            if (Int64Value == null) {
+                                if (replacement == null) {
+                                    Int64Value = new BaseDataVariableState<long[]>(this);
+                                }
+                                else {
+                                    Int64Value = (BaseDataVariableState<long[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = Int64Value;
+                        break;
                     }
 
-                    instance = Int64Value;
-                    break;
-                }
-
-                case TestData.BrowseNames.UInt64Value:
-                {
-                    if (createOrReplace)
-                    {
-                        if (UInt64Value == null)
-                        {
-                            if (replacement == null)
-                            {
-                                UInt64Value = new BaseDataVariableState<ulong[]>(this);
-                            }
-                            else
-                            {
-                                UInt64Value = (BaseDataVariableState<ulong[]>)replacement;
+                case TestData.BrowseNames.UInt64Value: {
+                        if (createOrReplace) {
+                            if (UInt64Value == null) {
+                                if (replacement == null) {
+                                    UInt64Value = new BaseDataVariableState<ulong[]>(this);
+                                }
+                                else {
+                                    UInt64Value = (BaseDataVariableState<ulong[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = UInt64Value;
+                        break;
                     }
 
-                    instance = UInt64Value;
-                    break;
-                }
-
-                case TestData.BrowseNames.FloatValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (FloatValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                FloatValue = new BaseDataVariableState<float[]>(this);
-                            }
-                            else
-                            {
-                                FloatValue = (BaseDataVariableState<float[]>)replacement;
+                case TestData.BrowseNames.FloatValue: {
+                        if (createOrReplace) {
+                            if (FloatValue == null) {
+                                if (replacement == null) {
+                                    FloatValue = new BaseDataVariableState<float[]>(this);
+                                }
+                                else {
+                                    FloatValue = (BaseDataVariableState<float[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = FloatValue;
+                        break;
                     }
 
-                    instance = FloatValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.DoubleValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (DoubleValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                DoubleValue = new BaseDataVariableState<double[]>(this);
-                            }
-                            else
-                            {
-                                DoubleValue = (BaseDataVariableState<double[]>)replacement;
+                case TestData.BrowseNames.DoubleValue: {
+                        if (createOrReplace) {
+                            if (DoubleValue == null) {
+                                if (replacement == null) {
+                                    DoubleValue = new BaseDataVariableState<double[]>(this);
+                                }
+                                else {
+                                    DoubleValue = (BaseDataVariableState<double[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = DoubleValue;
+                        break;
                     }
 
-                    instance = DoubleValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.StringValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (StringValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                StringValue = new BaseDataVariableState<string[]>(this);
-                            }
-                            else
-                            {
-                                StringValue = (BaseDataVariableState<string[]>)replacement;
+                case TestData.BrowseNames.StringValue: {
+                        if (createOrReplace) {
+                            if (StringValue == null) {
+                                if (replacement == null) {
+                                    StringValue = new BaseDataVariableState<string[]>(this);
+                                }
+                                else {
+                                    StringValue = (BaseDataVariableState<string[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = StringValue;
+                        break;
                     }
 
-                    instance = StringValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.DateTimeValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (DateTimeValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                DateTimeValue = new BaseDataVariableState<DateTime[]>(this);
-                            }
-                            else
-                            {
-                                DateTimeValue = (BaseDataVariableState<DateTime[]>)replacement;
+                case TestData.BrowseNames.DateTimeValue: {
+                        if (createOrReplace) {
+                            if (DateTimeValue == null) {
+                                if (replacement == null) {
+                                    DateTimeValue = new BaseDataVariableState<DateTime[]>(this);
+                                }
+                                else {
+                                    DateTimeValue = (BaseDataVariableState<DateTime[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = DateTimeValue;
+                        break;
                     }
 
-                    instance = DateTimeValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.GuidValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (GuidValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                GuidValue = new BaseDataVariableState<Guid[]>(this);
-                            }
-                            else
-                            {
-                                GuidValue = (BaseDataVariableState<Guid[]>)replacement;
+                case TestData.BrowseNames.GuidValue: {
+                        if (createOrReplace) {
+                            if (GuidValue == null) {
+                                if (replacement == null) {
+                                    GuidValue = new BaseDataVariableState<Guid[]>(this);
+                                }
+                                else {
+                                    GuidValue = (BaseDataVariableState<Guid[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = GuidValue;
+                        break;
                     }
 
-                    instance = GuidValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.ByteStringValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (ByteStringValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                ByteStringValue = new BaseDataVariableState<byte[][]>(this);
-                            }
-                            else
-                            {
-                                ByteStringValue = (BaseDataVariableState<byte[][]>)replacement;
+                case TestData.BrowseNames.ByteStringValue: {
+                        if (createOrReplace) {
+                            if (ByteStringValue == null) {
+                                if (replacement == null) {
+                                    ByteStringValue = new BaseDataVariableState<byte[][]>(this);
+                                }
+                                else {
+                                    ByteStringValue = (BaseDataVariableState<byte[][]>)replacement;
+                                }
                             }
                         }
+
+                        instance = ByteStringValue;
+                        break;
                     }
 
-                    instance = ByteStringValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.XmlElementValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (XmlElementValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                XmlElementValue = new BaseDataVariableState<XmlElement[]>(this);
-                            }
-                            else
-                            {
-                                XmlElementValue = (BaseDataVariableState<XmlElement[]>)replacement;
+                case TestData.BrowseNames.XmlElementValue: {
+                        if (createOrReplace) {
+                            if (XmlElementValue == null) {
+                                if (replacement == null) {
+                                    XmlElementValue = new BaseDataVariableState<XmlElement[]>(this);
+                                }
+                                else {
+                                    XmlElementValue = (BaseDataVariableState<XmlElement[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = XmlElementValue;
+                        break;
                     }
 
-                    instance = XmlElementValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.NodeIdValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (NodeIdValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                NodeIdValue = new BaseDataVariableState<NodeId[]>(this);
-                            }
-                            else
-                            {
-                                NodeIdValue = (BaseDataVariableState<NodeId[]>)replacement;
+                case TestData.BrowseNames.NodeIdValue: {
+                        if (createOrReplace) {
+                            if (NodeIdValue == null) {
+                                if (replacement == null) {
+                                    NodeIdValue = new BaseDataVariableState<NodeId[]>(this);
+                                }
+                                else {
+                                    NodeIdValue = (BaseDataVariableState<NodeId[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = NodeIdValue;
+                        break;
                     }
 
-                    instance = NodeIdValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.ExpandedNodeIdValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (ExpandedNodeIdValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                ExpandedNodeIdValue = new BaseDataVariableState<ExpandedNodeId[]>(this);
-                            }
-                            else
-                            {
-                                ExpandedNodeIdValue = (BaseDataVariableState<ExpandedNodeId[]>)replacement;
+                case TestData.BrowseNames.ExpandedNodeIdValue: {
+                        if (createOrReplace) {
+                            if (ExpandedNodeIdValue == null) {
+                                if (replacement == null) {
+                                    ExpandedNodeIdValue = new BaseDataVariableState<ExpandedNodeId[]>(this);
+                                }
+                                else {
+                                    ExpandedNodeIdValue = (BaseDataVariableState<ExpandedNodeId[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = ExpandedNodeIdValue;
+                        break;
                     }
 
-                    instance = ExpandedNodeIdValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.QualifiedNameValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (QualifiedNameValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                QualifiedNameValue = new BaseDataVariableState<QualifiedName[]>(this);
-                            }
-                            else
-                            {
-                                QualifiedNameValue = (BaseDataVariableState<QualifiedName[]>)replacement;
+                case TestData.BrowseNames.QualifiedNameValue: {
+                        if (createOrReplace) {
+                            if (QualifiedNameValue == null) {
+                                if (replacement == null) {
+                                    QualifiedNameValue = new BaseDataVariableState<QualifiedName[]>(this);
+                                }
+                                else {
+                                    QualifiedNameValue = (BaseDataVariableState<QualifiedName[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = QualifiedNameValue;
+                        break;
                     }
 
-                    instance = QualifiedNameValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.LocalizedTextValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (LocalizedTextValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                LocalizedTextValue = new BaseDataVariableState<LocalizedText[]>(this);
-                            }
-                            else
-                            {
-                                LocalizedTextValue = (BaseDataVariableState<LocalizedText[]>)replacement;
+                case TestData.BrowseNames.LocalizedTextValue: {
+                        if (createOrReplace) {
+                            if (LocalizedTextValue == null) {
+                                if (replacement == null) {
+                                    LocalizedTextValue = new BaseDataVariableState<LocalizedText[]>(this);
+                                }
+                                else {
+                                    LocalizedTextValue = (BaseDataVariableState<LocalizedText[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = LocalizedTextValue;
+                        break;
                     }
 
-                    instance = LocalizedTextValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.StatusCodeValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (StatusCodeValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                StatusCodeValue = new BaseDataVariableState<StatusCode[]>(this);
-                            }
-                            else
-                            {
-                                StatusCodeValue = (BaseDataVariableState<StatusCode[]>)replacement;
+                case TestData.BrowseNames.StatusCodeValue: {
+                        if (createOrReplace) {
+                            if (StatusCodeValue == null) {
+                                if (replacement == null) {
+                                    StatusCodeValue = new BaseDataVariableState<StatusCode[]>(this);
+                                }
+                                else {
+                                    StatusCodeValue = (BaseDataVariableState<StatusCode[]>)replacement;
+                                }
                             }
                         }
+
+                        instance = StatusCodeValue;
+                        break;
                     }
 
-                    instance = StatusCodeValue;
-                    break;
-                }
-
-                case TestData.BrowseNames.VariantValue:
-                {
-                    if (createOrReplace)
-                    {
-                        if (VariantValue == null)
-                        {
-                            if (replacement == null)
-                            {
-                                VariantValue = new BaseDataVariableState<object[]>(this);
-                            }
-                            else
-                            {
-                                VariantValue = (BaseDataVariableState<object[]>)replacement;
+                case TestData.BrowseNames.VariantValue: {
+                        if (createOrReplace) {
+                            if (VariantValue == null) {
+                                if (replacement == null) {
+                                    VariantValue = new BaseDataVariableState<object[]>(this);
+                                }
+                                else {
+                                    VariantValue = (BaseDataVariableState<object[]>)replacement;
+                                }
                             }
                         }
-                    }
 
-                    instance = VariantValue;
-                    break;
-                }
+                        instance = VariantValue;
+                        break;
+                    }
             }
 
-            if (instance != null)
-            {
+            if (instance != null) {
                 return instance;
             }
 
@@ -9189,24 +7485,22 @@ namespace TestData {
         private BaseDataVariableState<object[]> m_variantValue;
         #endregion
     }
-    #endif
+#endif
     #endregion
 
     #region UserArrayValue1MethodState Class
-    #if (!OPCUA_EXCLUDE_UserArrayValue1MethodState)
+#if (!OPCUA_EXCLUDE_UserArrayValue1MethodState)
     /// <summary>
     /// Stores an instance of the UserArrayValue1MethodType Method.
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public partial class UserArrayValue1MethodState : MethodState
-    {
+    public partial class UserArrayValue1MethodState : MethodState {
         #region Constructors
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
-        public UserArrayValue1MethodState(NodeState parent) : base(parent)
-        {
+        public UserArrayValue1MethodState(NodeState parent) : base(parent) {
         }
 
         /// <summary>
@@ -9214,17 +7508,15 @@ namespace TestData {
         /// </summary>
         /// <param name="parent">The parent.</param>
         /// <returns>The new node.</returns>
-        public new static NodeState Construct(NodeState parent)
-        {
+        public new static NodeState Construct(NodeState parent) {
             return new UserArrayValue1MethodState(parent);
         }
 
-        #if (!OPCUA_EXCLUDE_InitializationStrings)
+#if (!OPCUA_EXCLUDE_InitializationStrings)
         /// <summary>
         /// Initializes the instance.
         /// </summary>
-        protected override void Initialize(ISystemContext context)
-        {
+        protected override void Initialize(ISystemContext context) {
             Initialize(context, InitializationString);
             InitializeOptionalChildren(context);
         }
@@ -9232,8 +7524,7 @@ namespace TestData {
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
-        protected override void InitializeOptionalChildren(ISystemContext context)
-        {
+        protected override void InitializeOptionalChildren(ISystemContext context) {
             base.InitializeOptionalChildren(context);
         }
 
@@ -9258,7 +7549,7 @@ namespace TestData {
            "AAAACQAAAERvdWJsZU91dAEBtCYBAAAAAAAAAAABACoBARoAAAAJAAAAU3RyaW5nT3V0AQG1JgEAAAAA" +
            "AAAAAAEAKAEBAAAAAQH/////AAAAAA==";
         #endregion
-        #endif
+#endif
         #endregion
 
         #region Event Callbacks
@@ -9284,10 +7575,8 @@ namespace TestData {
             ISystemContext context,
             NodeId objectId,
             IList<object> inputArguments,
-            IList<object> outputArguments)
-        {
-            if (OnCall == null)
-            {
+            IList<object> outputArguments) {
+            if (OnCall == null) {
                 return base.Call(context, objectId, inputArguments, outputArguments);
             }
 
@@ -9319,8 +7608,7 @@ namespace TestData {
             double[] doubleOut = (double[])outputArguments[10];
             string[] stringOut = (string[])outputArguments[11];
 
-            if (OnCall != null)
-            {
+            if (OnCall != null) {
                 result = OnCall(
                     context,
                     this,
@@ -9404,24 +7692,22 @@ namespace TestData {
         ref float[] floatOut,
         ref double[] doubleOut,
         ref string[] stringOut);
-    #endif
+#endif
     #endregion
 
     #region UserArrayValue2MethodState Class
-    #if (!OPCUA_EXCLUDE_UserArrayValue2MethodState)
+#if (!OPCUA_EXCLUDE_UserArrayValue2MethodState)
     /// <summary>
     /// Stores an instance of the UserArrayValue2MethodType Method.
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public partial class UserArrayValue2MethodState : MethodState
-    {
+    public partial class UserArrayValue2MethodState : MethodState {
         #region Constructors
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
-        public UserArrayValue2MethodState(NodeState parent) : base(parent)
-        {
+        public UserArrayValue2MethodState(NodeState parent) : base(parent) {
         }
 
         /// <summary>
@@ -9429,17 +7715,15 @@ namespace TestData {
         /// </summary>
         /// <param name="parent">The parent.</param>
         /// <returns>The new node.</returns>
-        public new static NodeState Construct(NodeState parent)
-        {
+        public new static NodeState Construct(NodeState parent) {
             return new UserArrayValue2MethodState(parent);
         }
 
-        #if (!OPCUA_EXCLUDE_InitializationStrings)
+#if (!OPCUA_EXCLUDE_InitializationStrings)
         /// <summary>
         /// Initializes the instance.
         /// </summary>
-        protected override void Initialize(ISystemContext context)
-        {
+        protected override void Initialize(ISystemContext context) {
             Initialize(context, InitializationString);
             InitializeOptionalChildren(context);
         }
@@ -9447,8 +7731,7 @@ namespace TestData {
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
-        protected override void InitializeOptionalChildren(ISystemContext context)
-        {
+        protected override void InitializeOptionalChildren(ISystemContext context) {
             base.InitializeOptionalChildren(context);
         }
 
@@ -9472,7 +7755,7 @@ namespace TestData {
            "AAANAAAAU3RhdHVzQ29kZU91dAEBviYBAAAAAAAAAAABACoBARsAAAAKAAAAVmFyaWFudE91dAEBvyYB" +
            "AAAAAAAAAAABACgBAQAAAAEB/////wAAAAA=";
         #endregion
-        #endif
+#endif
         #endregion
 
         #region Event Callbacks
@@ -9498,10 +7781,8 @@ namespace TestData {
             ISystemContext context,
             NodeId objectId,
             IList<object> inputArguments,
-            IList<object> outputArguments)
-        {
-            if (OnCall == null)
-            {
+            IList<object> outputArguments) {
+            if (OnCall == null) {
                 return base.Call(context, objectId, inputArguments, outputArguments);
             }
 
@@ -9529,8 +7810,7 @@ namespace TestData {
             StatusCode[] statusCodeOut = (StatusCode[])outputArguments[8];
             Variant[] variantOut = (Variant[])outputArguments[9];
 
-            if (OnCall != null)
-            {
+            if (OnCall != null) {
                 result = OnCall(
                     context,
                     this,
@@ -9604,40 +7884,36 @@ namespace TestData {
         ref LocalizedText[] localizedTextOut,
         ref StatusCode[] statusCodeOut,
         ref Variant[] variantOut);
-    #endif
+#endif
     #endregion
 
     #region MethodTestState Class
-    #if (!OPCUA_EXCLUDE_MethodTestState)
+#if !OPCUA_EXCLUDE_MethodTestState
     /// <summary>
     /// Stores an instance of the MethodTestType ObjectType.
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCode("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public partial class MethodTestState : FolderState
-    {
+    public partial class MethodTestState : FolderState {
         #region Constructors
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
-        public MethodTestState(NodeState parent) : base(parent)
-        {
+        public MethodTestState(NodeState parent) : base(parent) {
         }
 
         /// <summary>
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
-        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
-        {
+        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris) {
             return Opc.Ua.NodeId.Create(TestData.ObjectTypes.MethodTestType, TestData.Namespaces.TestData, namespaceUris);
         }
 
-        #if (!OPCUA_EXCLUDE_InitializationStrings)
+#if !OPCUA_EXCLUDE_InitializationStrings
         /// <summary>
         /// Initializes the instance.
         /// </summary>
-        protected override void Initialize(ISystemContext context)
-        {
+        protected override void Initialize(ISystemContext context) {
             Initialize(context, InitializationString);
             InitializeOptionalChildren(context);
         }
@@ -9645,8 +7921,7 @@ namespace TestData {
         /// <summary>
         /// Initializes the instance with a node.
         /// </summary>
-        protected override void Initialize(ISystemContext context, NodeState source)
-        {
+        protected override void Initialize(ISystemContext context, NodeState source) {
             InitializeOptionalChildren(context);
             base.Initialize(context, source);
         }
@@ -9654,8 +7929,7 @@ namespace TestData {
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
-        protected override void InitializeOptionalChildren(ISystemContext context)
-        {
+        protected override void InitializeOptionalChildren(ISystemContext context) {
             base.InitializeOptionalChildren(context);
         }
 
@@ -9801,24 +8075,18 @@ namespace TestData {
            "dGF0dXNDb2RlT3V0AQG+JgEAAAAAAAAAAAEAKgEBGwAAAAoAAABWYXJpYW50T3V0AQG/JgEAAAAAAAAA" +
            "AAEAKAEBAAAAAQH/////AAAAAA==";
         #endregion
-        #endif
+#endif
         #endregion
 
         #region Public Properties
         /// <summary>
         /// A description for the ScalarValue1MethodType Method.
         /// </summary>
-        public ScalarValue1MethodState ScalarMethod1
-        {
-            get
-            {
-                return m_scalarMethod1Method;
-            }
+        public ScalarValue1MethodState ScalarMethod1 {
+            get => m_scalarMethod1Method;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_scalarMethod1Method, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_scalarMethod1Method, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -9829,17 +8097,11 @@ namespace TestData {
         /// <summary>
         /// A description for the ScalarValue2MethodType Method.
         /// </summary>
-        public ScalarValue2MethodState ScalarMethod2
-        {
-            get
-            {
-                return m_scalarMethod2Method;
-            }
+        public ScalarValue2MethodState ScalarMethod2 {
+            get => m_scalarMethod2Method;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_scalarMethod2Method, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_scalarMethod2Method, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -9850,17 +8112,11 @@ namespace TestData {
         /// <summary>
         /// A description for the ScalarValue3MethodType Method.
         /// </summary>
-        public ScalarValue3MethodState ScalarMethod3
-        {
-            get
-            {
-                return m_scalarMethod3Method;
-            }
+        public ScalarValue3MethodState ScalarMethod3 {
+            get => m_scalarMethod3Method;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_scalarMethod3Method, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_scalarMethod3Method, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -9871,17 +8127,11 @@ namespace TestData {
         /// <summary>
         /// A description for the ArrayValue1MethodType Method.
         /// </summary>
-        public ArrayValue1MethodState ArrayMethod1
-        {
-            get
-            {
-                return m_arrayMethod1Method;
-            }
+        public ArrayValue1MethodState ArrayMethod1 {
+            get => m_arrayMethod1Method;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_arrayMethod1Method, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_arrayMethod1Method, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -9892,17 +8142,11 @@ namespace TestData {
         /// <summary>
         /// A description for the ArrayValue2MethodType Method.
         /// </summary>
-        public ArrayValue2MethodState ArrayMethod2
-        {
-            get
-            {
-                return m_arrayMethod2Method;
-            }
+        public ArrayValue2MethodState ArrayMethod2 {
+            get => m_arrayMethod2Method;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_arrayMethod2Method, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_arrayMethod2Method, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -9913,17 +8157,11 @@ namespace TestData {
         /// <summary>
         /// A description for the ArrayValue3MethodType Method.
         /// </summary>
-        public ArrayValue3MethodState ArrayMethod3
-        {
-            get
-            {
-                return m_arrayMethod3Method;
-            }
+        public ArrayValue3MethodState ArrayMethod3 {
+            get => m_arrayMethod3Method;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_arrayMethod3Method, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_arrayMethod3Method, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -9934,17 +8172,11 @@ namespace TestData {
         /// <summary>
         /// A description for the UserScalarValue1MethodType Method.
         /// </summary>
-        public UserScalarValue1MethodState UserScalarMethod1
-        {
-            get
-            {
-                return m_userScalarMethod1Method;
-            }
+        public UserScalarValue1MethodState UserScalarMethod1 {
+            get => m_userScalarMethod1Method;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_userScalarMethod1Method, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_userScalarMethod1Method, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -9955,17 +8187,11 @@ namespace TestData {
         /// <summary>
         /// A description for the UserScalarValue2MethodType Method.
         /// </summary>
-        public UserScalarValue2MethodState UserScalarMethod2
-        {
-            get
-            {
-                return m_userScalarMethod2Method;
-            }
+        public UserScalarValue2MethodState UserScalarMethod2 {
+            get => m_userScalarMethod2Method;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_userScalarMethod2Method, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_userScalarMethod2Method, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -9976,17 +8202,11 @@ namespace TestData {
         /// <summary>
         /// A description for the UserArrayValue1MethodType Method.
         /// </summary>
-        public UserArrayValue1MethodState UserArrayMethod1
-        {
-            get
-            {
-                return m_userArrayMethod1Method;
-            }
+        public UserArrayValue1MethodState UserArrayMethod1 {
+            get => m_userArrayMethod1Method;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_userArrayMethod1Method, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_userArrayMethod1Method, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -9997,17 +8217,11 @@ namespace TestData {
         /// <summary>
         /// A description for the UserArrayValue2MethodType Method.
         /// </summary>
-        public UserArrayValue2MethodState UserArrayMethod2
-        {
-            get
-            {
-                return m_userArrayMethod2Method;
-            }
+        public UserArrayValue2MethodState UserArrayMethod2 {
+            get => m_userArrayMethod2Method;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_userArrayMethod2Method, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_userArrayMethod2Method, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -10024,55 +8238,44 @@ namespace TestData {
         /// <param name="children">The list of children to populate.</param>
         public override void GetChildren(
             ISystemContext context,
-            IList<BaseInstanceState> children)
-        {
-            if (m_scalarMethod1Method != null)
-            {
+            IList<BaseInstanceState> children) {
+            if (m_scalarMethod1Method != null) {
                 children.Add(m_scalarMethod1Method);
             }
 
-            if (m_scalarMethod2Method != null)
-            {
+            if (m_scalarMethod2Method != null) {
                 children.Add(m_scalarMethod2Method);
             }
 
-            if (m_scalarMethod3Method != null)
-            {
+            if (m_scalarMethod3Method != null) {
                 children.Add(m_scalarMethod3Method);
             }
 
-            if (m_arrayMethod1Method != null)
-            {
+            if (m_arrayMethod1Method != null) {
                 children.Add(m_arrayMethod1Method);
             }
 
-            if (m_arrayMethod2Method != null)
-            {
+            if (m_arrayMethod2Method != null) {
                 children.Add(m_arrayMethod2Method);
             }
 
-            if (m_arrayMethod3Method != null)
-            {
+            if (m_arrayMethod3Method != null) {
                 children.Add(m_arrayMethod3Method);
             }
 
-            if (m_userScalarMethod1Method != null)
-            {
+            if (m_userScalarMethod1Method != null) {
                 children.Add(m_userScalarMethod1Method);
             }
 
-            if (m_userScalarMethod2Method != null)
-            {
+            if (m_userScalarMethod2Method != null) {
                 children.Add(m_userScalarMethod2Method);
             }
 
-            if (m_userArrayMethod1Method != null)
-            {
+            if (m_userArrayMethod1Method != null) {
                 children.Add(m_userArrayMethod1Method);
             }
 
-            if (m_userArrayMethod2Method != null)
-            {
+            if (m_userArrayMethod2Method != null) {
                 children.Add(m_userArrayMethod2Method);
             }
 
@@ -10086,230 +8289,176 @@ namespace TestData {
             ISystemContext context,
             QualifiedName browseName,
             bool createOrReplace,
-            BaseInstanceState replacement)
-        {
-            if (QualifiedName.IsNull(browseName))
-            {
+            BaseInstanceState replacement) {
+            if (QualifiedName.IsNull(browseName)) {
                 return null;
             }
 
             BaseInstanceState instance = null;
 
-            switch (browseName.Name)
-            {
-                case TestData.BrowseNames.ScalarMethod1:
-                {
-                    if (createOrReplace)
-                    {
-                        if (ScalarMethod1 == null)
-                        {
-                            if (replacement == null)
-                            {
-                                ScalarMethod1 = new ScalarValue1MethodState(this);
-                            }
-                            else
-                            {
-                                ScalarMethod1 = (ScalarValue1MethodState)replacement;
+            switch (browseName.Name) {
+                case TestData.BrowseNames.ScalarMethod1: {
+                        if (createOrReplace) {
+                            if (ScalarMethod1 == null) {
+                                if (replacement == null) {
+                                    ScalarMethod1 = new ScalarValue1MethodState(this);
+                                }
+                                else {
+                                    ScalarMethod1 = (ScalarValue1MethodState)replacement;
+                                }
                             }
                         }
+
+                        instance = ScalarMethod1;
+                        break;
                     }
 
-                    instance = ScalarMethod1;
-                    break;
-                }
-
-                case TestData.BrowseNames.ScalarMethod2:
-                {
-                    if (createOrReplace)
-                    {
-                        if (ScalarMethod2 == null)
-                        {
-                            if (replacement == null)
-                            {
-                                ScalarMethod2 = new ScalarValue2MethodState(this);
-                            }
-                            else
-                            {
-                                ScalarMethod2 = (ScalarValue2MethodState)replacement;
+                case TestData.BrowseNames.ScalarMethod2: {
+                        if (createOrReplace) {
+                            if (ScalarMethod2 == null) {
+                                if (replacement == null) {
+                                    ScalarMethod2 = new ScalarValue2MethodState(this);
+                                }
+                                else {
+                                    ScalarMethod2 = (ScalarValue2MethodState)replacement;
+                                }
                             }
                         }
+
+                        instance = ScalarMethod2;
+                        break;
                     }
 
-                    instance = ScalarMethod2;
-                    break;
-                }
-
-                case TestData.BrowseNames.ScalarMethod3:
-                {
-                    if (createOrReplace)
-                    {
-                        if (ScalarMethod3 == null)
-                        {
-                            if (replacement == null)
-                            {
-                                ScalarMethod3 = new ScalarValue3MethodState(this);
-                            }
-                            else
-                            {
-                                ScalarMethod3 = (ScalarValue3MethodState)replacement;
+                case TestData.BrowseNames.ScalarMethod3: {
+                        if (createOrReplace) {
+                            if (ScalarMethod3 == null) {
+                                if (replacement == null) {
+                                    ScalarMethod3 = new ScalarValue3MethodState(this);
+                                }
+                                else {
+                                    ScalarMethod3 = (ScalarValue3MethodState)replacement;
+                                }
                             }
                         }
+
+                        instance = ScalarMethod3;
+                        break;
                     }
 
-                    instance = ScalarMethod3;
-                    break;
-                }
-
-                case TestData.BrowseNames.ArrayMethod1:
-                {
-                    if (createOrReplace)
-                    {
-                        if (ArrayMethod1 == null)
-                        {
-                            if (replacement == null)
-                            {
-                                ArrayMethod1 = new ArrayValue1MethodState(this);
-                            }
-                            else
-                            {
-                                ArrayMethod1 = (ArrayValue1MethodState)replacement;
+                case TestData.BrowseNames.ArrayMethod1: {
+                        if (createOrReplace) {
+                            if (ArrayMethod1 == null) {
+                                if (replacement == null) {
+                                    ArrayMethod1 = new ArrayValue1MethodState(this);
+                                }
+                                else {
+                                    ArrayMethod1 = (ArrayValue1MethodState)replacement;
+                                }
                             }
                         }
+
+                        instance = ArrayMethod1;
+                        break;
                     }
 
-                    instance = ArrayMethod1;
-                    break;
-                }
-
-                case TestData.BrowseNames.ArrayMethod2:
-                {
-                    if (createOrReplace)
-                    {
-                        if (ArrayMethod2 == null)
-                        {
-                            if (replacement == null)
-                            {
-                                ArrayMethod2 = new ArrayValue2MethodState(this);
-                            }
-                            else
-                            {
-                                ArrayMethod2 = (ArrayValue2MethodState)replacement;
+                case TestData.BrowseNames.ArrayMethod2: {
+                        if (createOrReplace) {
+                            if (ArrayMethod2 == null) {
+                                if (replacement == null) {
+                                    ArrayMethod2 = new ArrayValue2MethodState(this);
+                                }
+                                else {
+                                    ArrayMethod2 = (ArrayValue2MethodState)replacement;
+                                }
                             }
                         }
+
+                        instance = ArrayMethod2;
+                        break;
                     }
 
-                    instance = ArrayMethod2;
-                    break;
-                }
-
-                case TestData.BrowseNames.ArrayMethod3:
-                {
-                    if (createOrReplace)
-                    {
-                        if (ArrayMethod3 == null)
-                        {
-                            if (replacement == null)
-                            {
-                                ArrayMethod3 = new ArrayValue3MethodState(this);
-                            }
-                            else
-                            {
-                                ArrayMethod3 = (ArrayValue3MethodState)replacement;
+                case TestData.BrowseNames.ArrayMethod3: {
+                        if (createOrReplace) {
+                            if (ArrayMethod3 == null) {
+                                if (replacement == null) {
+                                    ArrayMethod3 = new ArrayValue3MethodState(this);
+                                }
+                                else {
+                                    ArrayMethod3 = (ArrayValue3MethodState)replacement;
+                                }
                             }
                         }
+
+                        instance = ArrayMethod3;
+                        break;
                     }
 
-                    instance = ArrayMethod3;
-                    break;
-                }
-
-                case TestData.BrowseNames.UserScalarMethod1:
-                {
-                    if (createOrReplace)
-                    {
-                        if (UserScalarMethod1 == null)
-                        {
-                            if (replacement == null)
-                            {
-                                UserScalarMethod1 = new UserScalarValue1MethodState(this);
-                            }
-                            else
-                            {
-                                UserScalarMethod1 = (UserScalarValue1MethodState)replacement;
+                case TestData.BrowseNames.UserScalarMethod1: {
+                        if (createOrReplace) {
+                            if (UserScalarMethod1 == null) {
+                                if (replacement == null) {
+                                    UserScalarMethod1 = new UserScalarValue1MethodState(this);
+                                }
+                                else {
+                                    UserScalarMethod1 = (UserScalarValue1MethodState)replacement;
+                                }
                             }
                         }
+
+                        instance = UserScalarMethod1;
+                        break;
                     }
 
-                    instance = UserScalarMethod1;
-                    break;
-                }
-
-                case TestData.BrowseNames.UserScalarMethod2:
-                {
-                    if (createOrReplace)
-                    {
-                        if (UserScalarMethod2 == null)
-                        {
-                            if (replacement == null)
-                            {
-                                UserScalarMethod2 = new UserScalarValue2MethodState(this);
-                            }
-                            else
-                            {
-                                UserScalarMethod2 = (UserScalarValue2MethodState)replacement;
+                case TestData.BrowseNames.UserScalarMethod2: {
+                        if (createOrReplace) {
+                            if (UserScalarMethod2 == null) {
+                                if (replacement == null) {
+                                    UserScalarMethod2 = new UserScalarValue2MethodState(this);
+                                }
+                                else {
+                                    UserScalarMethod2 = (UserScalarValue2MethodState)replacement;
+                                }
                             }
                         }
+
+                        instance = UserScalarMethod2;
+                        break;
                     }
 
-                    instance = UserScalarMethod2;
-                    break;
-                }
-
-                case TestData.BrowseNames.UserArrayMethod1:
-                {
-                    if (createOrReplace)
-                    {
-                        if (UserArrayMethod1 == null)
-                        {
-                            if (replacement == null)
-                            {
-                                UserArrayMethod1 = new UserArrayValue1MethodState(this);
-                            }
-                            else
-                            {
-                                UserArrayMethod1 = (UserArrayValue1MethodState)replacement;
+                case TestData.BrowseNames.UserArrayMethod1: {
+                        if (createOrReplace) {
+                            if (UserArrayMethod1 == null) {
+                                if (replacement == null) {
+                                    UserArrayMethod1 = new UserArrayValue1MethodState(this);
+                                }
+                                else {
+                                    UserArrayMethod1 = (UserArrayValue1MethodState)replacement;
+                                }
                             }
                         }
+
+                        instance = UserArrayMethod1;
+                        break;
                     }
 
-                    instance = UserArrayMethod1;
-                    break;
-                }
-
-                case TestData.BrowseNames.UserArrayMethod2:
-                {
-                    if (createOrReplace)
-                    {
-                        if (UserArrayMethod2 == null)
-                        {
-                            if (replacement == null)
-                            {
-                                UserArrayMethod2 = new UserArrayValue2MethodState(this);
-                            }
-                            else
-                            {
-                                UserArrayMethod2 = (UserArrayValue2MethodState)replacement;
+                case TestData.BrowseNames.UserArrayMethod2: {
+                        if (createOrReplace) {
+                            if (UserArrayMethod2 == null) {
+                                if (replacement == null) {
+                                    UserArrayMethod2 = new UserArrayValue2MethodState(this);
+                                }
+                                else {
+                                    UserArrayMethod2 = (UserArrayValue2MethodState)replacement;
+                                }
                             }
                         }
-                    }
 
-                    instance = UserArrayMethod2;
-                    break;
-                }
+                        instance = UserArrayMethod2;
+                        break;
+                    }
             }
 
-            if (instance != null)
-            {
+            if (instance != null) {
                 return instance;
             }
 
@@ -10330,40 +8479,36 @@ namespace TestData {
         private UserArrayValue2MethodState m_userArrayMethod2Method;
         #endregion
     }
-    #endif
+#endif
     #endregion
 
     #region TestSystemConditionState Class
-    #if (!OPCUA_EXCLUDE_TestSystemConditionState)
+#if !OPCUA_EXCLUDE_TestSystemConditionState
     /// <summary>
     /// Stores an instance of the TestSystemConditionType ObjectType.
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCode("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public partial class TestSystemConditionState : ConditionState
-    {
+    public partial class TestSystemConditionState : ConditionState {
         #region Constructors
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
-        public TestSystemConditionState(NodeState parent) : base(parent)
-        {
+        public TestSystemConditionState(NodeState parent) : base(parent) {
         }
 
         /// <summary>
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
-        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
-        {
+        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris) {
             return Opc.Ua.NodeId.Create(TestData.ObjectTypes.TestSystemConditionType, TestData.Namespaces.TestData, namespaceUris);
         }
 
-        #if (!OPCUA_EXCLUDE_InitializationStrings)
+#if !OPCUA_EXCLUDE_InitializationStrings
         /// <summary>
         /// Initializes the instance.
         /// </summary>
-        protected override void Initialize(ISystemContext context)
-        {
+        protected override void Initialize(ISystemContext context) {
             Initialize(context, InitializationString);
             InitializeOptionalChildren(context);
         }
@@ -10371,8 +8516,7 @@ namespace TestData {
         /// <summary>
         /// Initializes the instance with a node.
         /// </summary>
-        protected override void Initialize(ISystemContext context, NodeState source)
-        {
+        protected override void Initialize(ISystemContext context, NodeState source) {
             InitializeOptionalChildren(context);
             base.Initialize(context, source);
         }
@@ -10380,8 +8524,7 @@ namespace TestData {
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
-        protected override void InitializeOptionalChildren(ISystemContext context)
-        {
+        protected override void InitializeOptionalChildren(ISystemContext context) {
             base.InitializeOptionalChildren(context);
         }
 
@@ -10423,24 +8566,18 @@ namespace TestData {
            "byB0aGUgY29uZGl0aW9uLgEAKAEBAAAAAQH/////AAAAABVgiQoCAAAAAQASAAAATW9uaXRvcmVkTm9k" +
            "ZUNvdW50AQGsJwAuAESsJwAAAAb/////AQH/////AAAAAA==";
         #endregion
-        #endif
+#endif
         #endregion
 
         #region Public Properties
         /// <summary>
         /// A description for the MonitoredNodeCount Property.
         /// </summary>
-        public PropertyState<int> MonitoredNodeCount
-        {
-            get
-            {
-                return m_monitoredNodeCount;
-            }
+        public PropertyState<int> MonitoredNodeCount {
+            get => m_monitoredNodeCount;
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_monitoredNodeCount, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_monitoredNodeCount, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -10457,10 +8594,8 @@ namespace TestData {
         /// <param name="children">The list of children to populate.</param>
         public override void GetChildren(
             ISystemContext context,
-            IList<BaseInstanceState> children)
-        {
-            if (m_monitoredNodeCount != null)
-            {
+            IList<BaseInstanceState> children) {
+            if (m_monitoredNodeCount != null) {
                 children.Add(m_monitoredNodeCount);
             }
 
@@ -10474,41 +8609,32 @@ namespace TestData {
             ISystemContext context,
             QualifiedName browseName,
             bool createOrReplace,
-            BaseInstanceState replacement)
-        {
-            if (QualifiedName.IsNull(browseName))
-            {
+            BaseInstanceState replacement) {
+            if (QualifiedName.IsNull(browseName)) {
                 return null;
             }
 
             BaseInstanceState instance = null;
 
-            switch (browseName.Name)
-            {
-                case TestData.BrowseNames.MonitoredNodeCount:
-                {
-                    if (createOrReplace)
-                    {
-                        if (MonitoredNodeCount == null)
-                        {
-                            if (replacement == null)
-                            {
-                                MonitoredNodeCount = new PropertyState<int>(this);
-                            }
-                            else
-                            {
-                                MonitoredNodeCount = (PropertyState<int>)replacement;
+            switch (browseName.Name) {
+                case TestData.BrowseNames.MonitoredNodeCount: {
+                        if (createOrReplace) {
+                            if (MonitoredNodeCount == null) {
+                                if (replacement == null) {
+                                    MonitoredNodeCount = new PropertyState<int>(this);
+                                }
+                                else {
+                                    MonitoredNodeCount = (PropertyState<int>)replacement;
+                                }
                             }
                         }
-                    }
 
-                    instance = MonitoredNodeCount;
-                    break;
-                }
+                        instance = MonitoredNodeCount;
+                        break;
+                    }
             }
 
-            if (instance != null)
-            {
+            if (instance != null) {
                 return instance;
             }
 
@@ -10520,6 +8646,6 @@ namespace TestData {
         private PropertyState<int> m_monitoredNodeCount;
         #endregion
     }
-    #endif
+#endif
     #endregion
 }

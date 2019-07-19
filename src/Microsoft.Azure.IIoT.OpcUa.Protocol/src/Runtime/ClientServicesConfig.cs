@@ -7,7 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
     using System.Runtime.InteropServices;
-    using System;
+
     /// <summary>
     /// Client's application configuration implementation
     /// </summary>
@@ -35,7 +35,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
             GetStringOrDefault(kOwnCertPath, PkiRootPath + "/own");
 
         /// <inheritdoc/>
-        public string TrustedCertPath => 
+        public string TrustedCertPath =>
             GetStringOrDefault(kTrustedCertPath, PkiRootPath + "/trusted");
 
         /// <inheritdoc/>
@@ -58,7 +58,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
         /// Configuration constructor
         /// </summary>
         /// <param name="configuration"></param>
-        public ClientServicesConfig(IConfigurationRoot configuration) :
+        public ClientServicesConfig(IConfigurationRoot configuration = null) :
             base(configuration) {
         }
     }

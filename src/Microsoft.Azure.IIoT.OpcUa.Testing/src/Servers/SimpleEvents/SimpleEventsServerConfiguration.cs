@@ -27,9 +27,9 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System.Runtime.Serialization;
-
 namespace SimpleEvents {
+    using System.Runtime.Serialization;
+
     /// <summary>
     /// Stores the configuration the data access node manager.
     /// </summary>

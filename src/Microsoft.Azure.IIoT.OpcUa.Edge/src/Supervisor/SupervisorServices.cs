@@ -45,7 +45,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
         }
 
         /// <inheritdoc/>
-        public async Task ActivateEndpointAsync(string id, string secret) {
+        public async Task ActivateEndpointAsync(string id, string secret, CancellationToken ct) {
             try {
                 await _lock.WaitAsync();
                 if (_twinHosts.TryGetValue(id, out var twin) && twin.Running) {
@@ -65,7 +65,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
         }
 
         /// <inheritdoc/>
-        public async Task DeactivateEndpointAsync(string id) {
+        public async Task DeactivateEndpointAsync(string id, CancellationToken ct) {
             TwinHost twin;
             try {
                 await _lock.WaitAsync();
@@ -82,7 +82,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
         }
 
         /// <inheritdoc/>
-        public async Task<SupervisorStatusModel> GetStatusAsync() {
+        public async Task<SupervisorStatusModel> GetStatusAsync(CancellationToken ct) {
             try {
                 await _lock.WaitAsync();
                 var endpoints = _twinHosts
@@ -103,7 +103,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
         }
 
         /// <inheritdoc/>
-        public Task ResetAsync() {
+        public Task ResetAsync(CancellationToken ct) {
             _process.Reset();
             return Task.CompletedTask;
         }
@@ -112,6 +112,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
         public void Dispose() {
             try {
                 StopAllTwinsAsync().Wait();
+                _lock.Dispose();
             }
             catch (Exception e) {
                 _logger.Error(e, "Failure in supervisor disposing.");
@@ -219,13 +220,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
             }
 
             /// <inheritdoc/>
-            public void Dispose() => StopAsync().Wait();
+            public void Dispose() {
+                StopAsync().Wait();
+                _cts.Dispose();
+            }
 
             /// <inheritdoc/>
-            public void Reset() => _reset?.TrySetResult(true);
+            public void Reset() {
+                _reset?.TrySetResult(true);
+            }
 
             /// <inheritdoc/>
-            public void Exit(int exitCode) => _cts.Cancel();
+            public void Exit(int exitCode) {
+                _cts.Cancel();
+            }
 
             /// <summary>
             /// Shutdown twin host
@@ -367,8 +375,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
         private readonly IProcessControl _process;
         private readonly IContainerFactory _factory;
 
-        private readonly SemaphoreSlim _lock =
-            new SemaphoreSlim(1);
+        private readonly SemaphoreSlim _lock = new SemaphoreSlim(1);
         private readonly Dictionary<string, TwinHost> _twinHosts =
             new Dictionary<string, TwinHost>();
     }

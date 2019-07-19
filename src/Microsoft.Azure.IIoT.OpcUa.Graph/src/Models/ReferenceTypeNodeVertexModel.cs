@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
     using Gremlin.Net.CosmosDb.Structure;
     using Newtonsoft.Json;
-    using Opc.Ua;
 
     /// <summary>
     /// Node vertex

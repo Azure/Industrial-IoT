@@ -27,15 +27,14 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Reflection;
-using System.Data;
-using Opc.Ua;
-using Opc.Ua.Server;
-
 namespace HistoricalEvents {
+    using System;
+    using System.Collections.Generic;
+    using System.Threading;
+    using System.Reflection;
+    using System.Data;
+    using Opc.Ua;
+    using Opc.Ua.Server;
 
     /// <summary>
     /// A node manager for a server that exposes several variables.
@@ -465,7 +464,7 @@ namespace HistoricalEvents {
                 }
 
                 var pos = events.First;
-                var sizeLimited = (details.StartTime == DateTime.MinValue || details.EndTime == DateTime.MinValue);
+                var sizeLimited = details.StartTime == DateTime.MinValue || details.EndTime == DateTime.MinValue;
 
                 foreach (DataRowView row in view) {
                     // check if reached max results.
@@ -622,7 +621,9 @@ namespace HistoricalEvents {
         }
 
         private readonly HistoricalEventsServerConfiguration _configuration;
+#pragma warning disable IDE0069 // Disposable fields should be disposed
         private Timer _simulationTimer;
-        private ReportGenerator _generator;
+#pragma warning restore IDE0069 // Disposable fields should be disposed
+        private readonly ReportGenerator _generator;
     }
 }

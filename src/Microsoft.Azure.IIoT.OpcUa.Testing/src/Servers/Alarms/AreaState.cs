@@ -27,9 +27,8 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using Opc.Ua;
-
 namespace Alarms {
+    using Opc.Ua;
 
     /// <summary>
     /// Maps an alarm area to a UA object node.

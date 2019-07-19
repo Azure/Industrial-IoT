@@ -27,13 +27,12 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Reflection;
-using Opc.Ua.Server;
-
 namespace Opc.Ua.Sample {
+    using System;
+    using System.Collections.Generic;
+    using System.Threading;
+    using System.Reflection;
+    using Opc.Ua.Server;
 
     /// <summary>
     /// A node manager for a variety of test data.
@@ -480,7 +479,7 @@ namespace Opc.Ua.Sample {
                 // assign a default value to any variable value.
 
                 if (source is BaseVariableState variable && variable.Value == null) {
-                    variable.Value = TypeInfo.GetDefaultValue(variable.DataType, variable.ValueRank, Server.TypeTree);
+                    variable.Value = Ua.TypeInfo.GetDefaultValue(variable.DataType, variable.ValueRank, Server.TypeTree);
                 }
 
                 // add reference from supertype for type nodes.
@@ -2049,9 +2048,9 @@ namespace Opc.Ua.Sample {
 
             // check the datatype.
             if (filter.DeadbandType != (uint)DeadbandType.None) {
-                var builtInType = TypeInfo.GetBuiltInType(variable.DataType, Server.TypeTree);
+                var builtInType = Ua.TypeInfo.GetBuiltInType(variable.DataType, Server.TypeTree);
 
-                if (!TypeInfo.IsNumericType(builtInType)) {
+                if (!Ua.TypeInfo.IsNumericType(builtInType)) {
                     return StatusCodes.BadMonitoredItemFilterUnsupported;
                 }
             }
@@ -2216,7 +2215,7 @@ namespace Opc.Ua.Sample {
                 samplingInterval = variable.MinimumSamplingInterval;
             }
 
-            if (Math.Abs((samplingInterval % _minimumSamplingInterval)) > 0.0) {
+            if (Math.Abs(samplingInterval % _minimumSamplingInterval) > 0.0) {
                 samplingInterval = Math.Truncate(samplingInterval / _minimumSamplingInterval);
                 samplingInterval += 1;
                 samplingInterval *= _minimumSamplingInterval;
@@ -2608,8 +2607,10 @@ namespace Opc.Ua.Sample {
 
         private IList<string> _namespaceUris;
         private ushort[] _namespaceIndexes;
+#pragma warning disable IDE0069 // Disposable fields should be disposed
         private Timer _samplingTimer;
-        private List<DataChangeMonitoredItem> _sampledItems;
+#pragma warning restore IDE0069 // Disposable fields should be disposed
+        private readonly List<DataChangeMonitoredItem> _sampledItems;
         private readonly double _minimumSamplingInterval;
     }
 }

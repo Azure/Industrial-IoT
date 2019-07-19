@@ -27,11 +27,11 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System;
-using System.Collections.Generic;
-using Opc.Ua.Server;
-
 namespace Opc.Ua.Sample {
+    using System;
+    using System.Collections.Generic;
+    using Opc.Ua.Server;
+
     /// <summary>
     /// Provides a basic monitored item implementation which does not support queuing.
     /// </summary>
@@ -650,7 +650,7 @@ namespace Opc.Ua.Sample {
         }
 
         private readonly object _lock = new object();
-        private MonitoredNode _source;
+        private readonly MonitoredNode _source;
         private DataValue _lastValue;
         private ServiceResult _lastError;
         private TimestampsToReturn _timestampsToReturn;

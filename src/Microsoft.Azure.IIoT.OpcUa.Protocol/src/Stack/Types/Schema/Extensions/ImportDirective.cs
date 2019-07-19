@@ -55,9 +55,9 @@ namespace Opc.Ua.Types.Schema {
         /// <inheritdoc/>
         public override int GetHashCode() {
             var hashCode = 834833178;
-            hashCode = hashCode * -1521134295 +
+            hashCode = (hashCode * -1521134295) +
                 EqualityComparer<string>.Default.GetHashCode(TargetVersion);
-            hashCode = hashCode * -1521134295 +
+            hashCode = (hashCode * -1521134295) +
                 EqualityComparer<string>.Default.GetHashCode(Namespace);
             return hashCode;
         }
@@ -68,13 +68,9 @@ namespace Opc.Ua.Types.Schema {
         }
 
         /// <inheritdoc/>
-        public static bool operator ==(ImportDirective imp1, ImportDirective imp2) {
-            return EqualityComparer<ImportDirective>.Default.Equals(imp1, imp2);
-        }
+        public static bool operator ==(ImportDirective imp1, ImportDirective imp2) => EqualityComparer<ImportDirective>.Default.Equals(imp1, imp2);
 
         /// <inheritdoc/>
-        public static bool operator !=(ImportDirective imp1, ImportDirective imp2) {
-            return !(imp1 == imp2);
-        }
+        public static bool operator !=(ImportDirective imp1, ImportDirective imp2) => !(imp1 == imp2);
     }
 }

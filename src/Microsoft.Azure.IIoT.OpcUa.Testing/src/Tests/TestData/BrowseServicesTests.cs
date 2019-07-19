@@ -312,7 +312,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.Scalar, reference.Target.ValueRank);
-                     Assert.False(reference.Target.Children);
+                    Assert.False(reference.Target.Children);
                 },
                 reference => {
                     Assert.Equal("http://test.org/UA/Data/#i=10220",
@@ -1481,7 +1481,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                         }
                     },
                     NodeId = nodeId,
-                    BrowsePaths = new List<string[]>{ pathElements }
+                    BrowsePaths = new List<string[]> { pathElements }
                 });
 
             // Assert

@@ -6,11 +6,11 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Twin {
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
-    using Serilog;
     using Microsoft.Azure.IIoT.Module;
+    using Microsoft.Azure.IIoT.Utils;
     using System;
     using System.Threading.Tasks;
-    using System.Collections.Generic;
+    using Serilog;
 
     /// <summary>
     /// Manages the endpoint identity information in the twin and reports
@@ -25,26 +25,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Twin {
         /// Create twin services
         /// </summary>
         /// <param name="client"></param>
-        /// <param name="services"></param>
         /// <param name="events"></param>
         /// <param name="logger"></param>
-        public TwinServices(IClientHost client, IEndpointServices services,
-            IEventEmitter events, ILogger logger) {
+        public TwinServices(IClientHost client, IEventEmitter events, ILogger logger) {
             _client = client ?? throw new ArgumentNullException(nameof(client));
-            _services = services ?? throw new ArgumentNullException(nameof(services));
-            _events = events ?? throw new ArgumentNullException(nameof(events));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _events = events ?? throw new ArgumentNullException(nameof(events));
         }
 
         /// <inheritdoc/>
-        public Task SetEndpointAsync(EndpointModel endpoint) {
+        public async Task SetEndpointAsync(EndpointModel endpoint) {
             if (endpoint.IsSameAs(Endpoint)) {
-                return Task.CompletedTask;
+                return;
             }
 
             // Unregister old endpoint
             if (Endpoint != null) {
-                _client.Unregister(Endpoint);
+                await _client.UnregisterAsync(Endpoint);
+                _logger.Information("Endpoint {@endpoint} unregistered.", Endpoint);
             }
 
             // Set new endpoint
@@ -52,22 +50,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Twin {
 
             // Register callback to report endpoint state property
             if (Endpoint != null) {
-                _client.Register(Endpoint,
-                   state => _events?.SendAsync("State", state));
+                await _client.RegisterAsync(Endpoint,
+                    state => _events?.SendAsync("State", state));
+                _logger.Information("Endpoint {@endpoint} registered.", Endpoint);
             }
-            return Task.CompletedTask;
         }
 
         /// <inheritdoc/>
         public void Dispose() {
             if (Endpoint != null) {
-                _client.Unregister(Endpoint);
+                Try.Op(() => SetEndpointAsync(null).Wait());
             }
         }
 
         private readonly IClientHost _client;
-        private readonly IEndpointServices _services;
-        private readonly IEventEmitter _events;
         private readonly ILogger _logger;
+        private readonly IEventEmitter _events;
     }
 }

@@ -7,6 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
     using Microsoft.Azure.IIoT.Utils;
     using Opc.Ua;
     using Opc.Ua.Bindings;
+    using Serilog;
     using System;
     using System.Net.WebSockets;
     using System.Threading;
@@ -21,11 +22,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
         /// Attaches the object to an existing socket.
         /// </summary>
         public WebSocketMessageSocket(IMessageSink sink, WebSocket socket,
-            BufferManager bufferManager, int receiveBufferSize) {
+            BufferManager bufferManager, int receiveBufferSize, ILogger logger) {
             _socket = socket ??
                 throw new ArgumentNullException(nameof(socket));
             _bufferManager = bufferManager ??
                 throw new ArgumentNullException(nameof(bufferManager));
+            _logger = logger ??
+                throw new ArgumentNullException(nameof(logger));
             _sink = sink;
             _receiveBufferSize = receiveBufferSize;
             _incomingMessageSize = -1;
@@ -33,7 +36,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
         }
 
         /// <inheritdoc/>
-        public void Dispose() => Close();
+        public void Dispose() {
+            Close();
+            _open.Dispose();
+        }
 
         /// <inheritdoc/>
         public int Handle => _socket.GetHashCode();
@@ -65,13 +71,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
         }
 
         /// <inheritdoc/>
-        public IMessageSocketAsyncEventArgs MessageSocketEventArgs() =>
-            new WebSocketAsyncEventArgs();
+        public IMessageSocketAsyncEventArgs MessageSocketEventArgs() {
+            return new WebSocketAsyncEventArgs();
+        }
 
         /// <inheritdoc/>
         public Task<bool> BeginConnect(Uri endpointUrl,
-            EventHandler<IMessageSocketAsyncEventArgs> callback, object state) =>
+            EventHandler<IMessageSocketAsyncEventArgs> callback, object state) {
             throw new NotSupportedException("Only server accepted sockets are supported");
+        }
 
         /// <inheritdoc/>
         public bool SendAsync(IMessageSocketAsyncEventArgs args) {
@@ -135,6 +143,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
                     StatusCodes.BadTcpInternalError, ex.Message);
             }
             if (ServiceResult.IsBad(error)) {
+                _logger.Error("Bad service result {error} received", error);
                 if (_receiveBuffer != null) {
                     _bufferManager.ReturnBuffer(_receiveBuffer,
                         nameof(EndReceive));
@@ -278,7 +287,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
             }
 
             /// <inheritdoc/>
-            public void Dispose() {}
+            public void Dispose() { }
 
             /// <summary>
             /// Complete event
@@ -312,6 +321,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
 
         private IMessageSink _sink;
         private readonly BufferManager _bufferManager;
+        private readonly ILogger _logger;
         private readonly int _receiveBufferSize;
 
         private readonly WebSocket _socket;

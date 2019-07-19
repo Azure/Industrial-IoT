@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
+namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services.Models {
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.Hub;
     using AutoFixture;
     using System;
@@ -46,7 +47,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
 
             var r1 = CreateRegistration();
             var m = r1.ToServiceModel();
-            var r2 = SupervisorRegistration.FromServiceModel(m);
+            var r2 = m.ToSupervisorRegistration();
 
             Assert.Equal(r1, r2);
             Assert.Equal(r1.GetHashCode(), r2.GetHashCode());
@@ -60,7 +61,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
 
             var r1 = CreateRegistration();
             var m = r1.ToServiceModel();
-            var r2 = SupervisorRegistration.FromServiceModel(m, true);
+            var r2 = m.ToSupervisorRegistration(true);
 
             Assert.NotEqual(r1, r2);
             Assert.NotEqual(r1.GetHashCode(), r2.GetHashCode());
@@ -73,7 +74,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             var r1 = CreateRegistration();
             var m = r1.ToServiceModel();
             m.DiscoveryConfig.AddressRangesToScan = "";
-            var r2 = SupervisorRegistration.FromServiceModel(m);
+            var r2 = m.ToSupervisorRegistration();
 
             Assert.NotEqual(r1, r2);
             Assert.NotEqual(r1.GetHashCode(), r2.GetHashCode());
@@ -84,9 +85,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         [Fact]
         public void TestEqualIsNotEqualWithDeviceModel() {
             var r1 = CreateRegistration();
-            var m = SupervisorRegistration.Patch(null, r1);
+            var m = r1.ToDeviceTwin();
             m.Properties.Desired["AddressRangesToScan"] = null;
-            var r2 = BaseRegistration.ToRegistration(m);
+            var r2 = m.ToRegistration();
 
             Assert.NotEqual(r1, r2);
             Assert.NotEqual(r1.GetHashCode(), r2.GetHashCode());
@@ -97,8 +98,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         [Fact]
         public void TestEqualIsEqualWithDeviceModel() {
             var r1 = CreateRegistration();
-            var m = SupervisorRegistration.Patch(null, r1);
-            var r2 = BaseRegistration.ToRegistration(m);
+            var m = r1.ToDeviceTwin();
+            var r2 = m.ToRegistration();
 
             Assert.Equal(r1, r2);
             Assert.Equal(r1.GetHashCode(), r2.GetHashCode());
@@ -111,12 +112,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             var fix = new Fixture();
 
             var r1 = CreateRegistration();
-            var r2 = SupervisorRegistration.FromServiceModel(
-                r1.ToServiceModel(), true);
-            var m1 = SupervisorRegistration.Patch(r1, r2);
-            var r3 = SupervisorRegistration.FromServiceModel(
-                r2.ToServiceModel(), false);
-            var m2 = SupervisorRegistration.Patch(r2, r3);
+            var r2 = r1.ToServiceModel().ToSupervisorRegistration(true);
+            var m1 = r1.Patch(r2);
+            var r3 = r2.ToServiceModel().ToSupervisorRegistration(false);
+            var m2 = r2.Patch(r3);
 
             Assert.True((bool)m1.Tags[nameof(BaseRegistration.IsDisabled)]);
             Assert.NotNull((DateTime?)m1.Tags[nameof(BaseRegistration.NotSeenSince)]);

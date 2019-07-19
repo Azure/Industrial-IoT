@@ -27,9 +27,9 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System;
-
 namespace Opc.Ua.Aggregates {
+    using System;
+
     /// <summary>
     /// An interface that allows the basic information about an aggregate query to be
     /// communicated

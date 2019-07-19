@@ -1210,47 +1210,47 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 });
 
             // Assert
-           Assert.Collection(result.Results,
-                arg => {
-                    Assert.Equal(JTokenType.Null, arg.Value.Type);
-                    Assert.Equal(types[0], arg.DataType);
-                },
-                arg => {
-                    Assert.Equal(JTokenType.Null, arg.Value.Type);
-                    Assert.Equal(types[1], arg.DataType);
-                },
-                arg => {
-                    Assert.Equal(JTokenType.Null, arg.Value.Type);
-                    Assert.Equal(types[2], arg.DataType);
-                },
-                arg => {
-                    Assert.Equal(JTokenType.Null, arg.Value.Type);
-                    Assert.Equal(types[3], arg.DataType);
-                },
-                arg => {
-                    Assert.Equal(JTokenType.Null, arg.Value.Type);
-                    Assert.Equal(types[4], arg.DataType);
-                },
-                arg => {
-                    Assert.Equal(JTokenType.Null, arg.Value.Type);
-                    Assert.Equal(types[5], arg.DataType);
-                },
-                arg => {
-                    Assert.Equal(JTokenType.Null, arg.Value.Type);
-                    Assert.Equal(types[6], arg.DataType);
-                },
-                arg => {
-                    Assert.Equal(JTokenType.Null, arg.Value.Type);
-                    Assert.Equal(types[7], arg.DataType);
-                },
-                arg => {
-                    Assert.Equal(JTokenType.Null, arg.Value.Type);
-                    Assert.Equal(types[8], arg.DataType);
-                },
-                arg => {
-                    Assert.Equal(JTokenType.Null, arg.Value.Type);
-                    Assert.Equal(types[9], arg.DataType);
-                });
+            Assert.Collection(result.Results,
+                 arg => {
+                     Assert.Equal(JTokenType.Null, arg.Value.Type);
+                     Assert.Equal(types[0], arg.DataType);
+                 },
+                 arg => {
+                     Assert.Equal(JTokenType.Null, arg.Value.Type);
+                     Assert.Equal(types[1], arg.DataType);
+                 },
+                 arg => {
+                     Assert.Equal(JTokenType.Null, arg.Value.Type);
+                     Assert.Equal(types[2], arg.DataType);
+                 },
+                 arg => {
+                     Assert.Equal(JTokenType.Null, arg.Value.Type);
+                     Assert.Equal(types[3], arg.DataType);
+                 },
+                 arg => {
+                     Assert.Equal(JTokenType.Null, arg.Value.Type);
+                     Assert.Equal(types[4], arg.DataType);
+                 },
+                 arg => {
+                     Assert.Equal(JTokenType.Null, arg.Value.Type);
+                     Assert.Equal(types[5], arg.DataType);
+                 },
+                 arg => {
+                     Assert.Equal(JTokenType.Null, arg.Value.Type);
+                     Assert.Equal(types[6], arg.DataType);
+                 },
+                 arg => {
+                     Assert.Equal(JTokenType.Null, arg.Value.Type);
+                     Assert.Equal(types[7], arg.DataType);
+                 },
+                 arg => {
+                     Assert.Equal(JTokenType.Null, arg.Value.Type);
+                     Assert.Equal(types[8], arg.DataType);
+                 },
+                 arg => {
+                     Assert.Equal(JTokenType.Null, arg.Value.Type);
+                     Assert.Equal(types[9], arg.DataType);
+                 });
         }
 
 

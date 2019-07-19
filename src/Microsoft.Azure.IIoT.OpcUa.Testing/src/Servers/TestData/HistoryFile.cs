@@ -27,15 +27,15 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System;
-using System.Collections.Generic;
-using Opc.Ua;
-
 namespace TestData {
+    using System;
+    using System.Collections.Generic;
+    using Opc.Ua;
+
     /// <summary>
     /// Wraps a file which contains a list of historical values.
     /// </summary>
-    sealed class HistoryFile : IHistoryDataSource {
+    internal sealed class HistoryFile : IHistoryDataSource {
 
         /// <summary>
         /// Creates a new file.
@@ -121,6 +121,6 @@ namespace TestData {
         }
 
         private readonly object _lock = new object();
-        private List<HistoryEntry> _entries;
+        private readonly List<HistoryEntry> _entries;
     }
 }

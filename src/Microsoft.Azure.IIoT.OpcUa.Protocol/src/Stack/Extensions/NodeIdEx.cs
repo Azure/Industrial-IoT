@@ -123,6 +123,9 @@ namespace Opc.Ua.Extensions {
                     srvUri = null;
                 }
             }
+            if (nsUri != null && !Uri.IsWellFormedUriString(nsUri, UriKind.Absolute)) {
+                return nodeId.ToString();  // Fall back to nsu= format
+            }
             return FormatNodeIdUri(nsUri, srvUri, nodeId.IdType, nodeId.Identifier);
         }
 
@@ -260,12 +263,11 @@ namespace Opc.Ua.Extensions {
                 // Not a absolute uri, try to mitigate a potentially nonstandard namespace string
                 var sepPattern = @"(.+)#([isgb]{1}\=.*)";
                 var match = Regex.Match(value, sepPattern);
-                if (match.Success){
+                if (match.Success) {
                     nsUri = match.Groups[1].Value;
                     value = match.Groups[2].Value;
                 }
-                else{
-                    //	must be default namesapce
+                else {
                     nsUri = Namespaces.OpcUa;
                 }
             }

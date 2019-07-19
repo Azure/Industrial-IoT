@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures {
+    using Microsoft.Azure.IIoT.OpcUa.Testing.Runtime;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
-    using Microsoft.Azure.IIoT.OpcUa.Protocol.Mock;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Sample;
     using Microsoft.Azure.IIoT.Utils;
@@ -16,6 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures {
     using Serilog;
     using Serilog.Events;
     using System.Threading;
+    using System.Security.Cryptography.X509Certificates;
 
     /// <summary>
     /// Adds sample server as fixture to unit tests
@@ -28,6 +29,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures {
         public int Port { get; }
 
         /// <summary>
+        /// Certificate of the server
+        /// </summary>
+        public X509Certificate2 Certificate => _serverHost.Certificate;
+
+        /// <summary>
         /// Logger
         /// </summary>
         public ILogger Logger { get; }
@@ -35,7 +41,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures {
         /// <summary>
         /// Client
         /// </summary>
-        public ClientServices Client { get; }
+        public ClientServices Client => _client.Value;
 
         /// <summary>
         /// Start port
@@ -50,11 +56,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures {
                 throw new ArgumentNullException(nameof(nodes));
             }
             Logger = LogEx.Trace(LogEventLevel.Debug);
-            Client = new ClientServices(Logger, new ClientServicesConfigMock());
+            _config = new TestClientServicesConfig();
+            _client = new Lazy<ClientServices>(() => {
+                return new ClientServices(Logger, _config);
+            }, false);
             _serverHost = new ServerConsoleHost(
                 new ServerFactory(Logger, nodes) {
-                LogStatus = false
-            }, Logger) {
+                    LogStatus = false
+                }, Logger) {
                 AutoAccept = true
             };
             var port = Interlocked.Increment(ref _nextPort);
@@ -74,22 +83,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures {
         /// <inheritdoc/>
         public void Dispose() {
             _serverHost.Dispose();
-
             // Clean up all created certificates
-            var certFolder = Path.Combine(Directory.GetCurrentDirectory(),
-                "OPC Foundation");
+            var certFolder = Path.Combine(Directory.GetCurrentDirectory(), "OPC Foundation");
             if (Directory.Exists(certFolder)) {
                 Try.Op(() => Directory.Delete(certFolder, true));
             }
-            certFolder = Path.Combine(Directory.GetCurrentDirectory(), "pki");
-            if (Directory.Exists(certFolder))
-            {
-                Try.Op(() => Directory.Delete(certFolder, true));
+            if (_client.IsValueCreated) {
+                _client.Value.Dispose();
+                _config?.Dispose();
             }
         }
 
-        private static Random _rand = new Random();
-        private static volatile int _nextPort = _rand.Next(53000, 58000);
+        private static readonly Random kRand = new Random();
+        private static volatile int _nextPort = kRand.Next(53000, 58000);
         private readonly IServerHost _serverHost;
+        private readonly TestClientServicesConfig _config;
+        private readonly Lazy<ClientServices> _client;
     }
 }

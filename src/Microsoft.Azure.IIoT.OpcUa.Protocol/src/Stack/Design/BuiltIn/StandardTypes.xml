@@ -3396,8 +3396,8 @@
 
   <opc:Method SymbolicName="UpdateCertificateMethodType">
     <opc:InputArguments>
-      <opc:Argument Name="CertificateGroupId" DataType="ua:NodeId" />
-      <opc:Argument Name="CertificateTypeId" DataType="ua:NodeId" />
+      <opc:Argument Name="GroupId" DataType="ua:NodeId" />
+      <opc:Argument Name="CertificateType" DataType="ua:NodeId" />
       <opc:Argument Name="Certificate" DataType="ua:ByteString"></opc:Argument>
       <opc:Argument Name="IssuerCertificates" DataType="ua:ByteString" ValueRank="Array"></opc:Argument>
       <opc:Argument Name="PrivateKeyFormat" DataType="ua:String"></opc:Argument>
@@ -3410,8 +3410,8 @@
 
   <opc:Method SymbolicName="CreateSigningRequestMethodType">
     <opc:InputArguments>
-      <opc:Argument Name="CertificateGroupId" DataType="ua:NodeId" />
-      <opc:Argument Name="CertificateTypeId" DataType="ua:NodeId" />
+      <opc:Argument Name="GroupId" DataType="ua:NodeId" />
+      <opc:Argument Name="CertificateType" DataType="ua:NodeId" />
       <opc:Argument Name="SubjectName" DataType="ua:String"></opc:Argument>
       <opc:Argument Name="RegeneratePrivateKey" DataType="ua:Boolean"></opc:Argument>
       <opc:Argument Name="Nonce" DataType="ua:ByteString"></opc:Argument>

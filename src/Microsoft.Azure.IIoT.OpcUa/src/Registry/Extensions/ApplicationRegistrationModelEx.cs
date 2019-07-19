@@ -133,7 +133,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <param name="model"></param>
         public static ApplicationRegistrationModel SetSecurityAssessment(
             this ApplicationRegistrationModel model) {
-            if (!model.Endpoints.Any()) {
+            if (model.Endpoints == null || !model.Endpoints.Any()) {
                 return model;
             }
             model.SecurityAssessment = (SecurityAssessment)

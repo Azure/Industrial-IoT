@@ -114,10 +114,12 @@ namespace Opc.Ua.Client {
         /// <param name="endpoints"></param>
         /// <returns></returns>
         private static GetEndpointsResponse NewGetEndpointsResponse(ResponseHeader response,
-            EndpointDescriptionCollection endpoints) => new GetEndpointsResponse {
+            EndpointDescriptionCollection endpoints) {
+            return new GetEndpointsResponse {
                 Endpoints = endpoints,
                 ResponseHeader = response
             };
+        }
 
         /// <summary>
         /// Find servers on network response constructor
@@ -128,11 +130,13 @@ namespace Opc.Ua.Client {
         /// <returns></returns>
         private static FindServersOnNetworkResponse NewFindServersOnNetworkResponse(
             ResponseHeader response, DateTime lastCounterResetTime,
-            ServerOnNetworkCollection servers) => new FindServersOnNetworkResponse {
+            ServerOnNetworkCollection servers) {
+            return new FindServersOnNetworkResponse {
                 ResponseHeader = response,
                 Servers = servers,
                 LastCounterResetTime = lastCounterResetTime
             };
+        }
 
         /// <summary>
         /// Find servers response constructor
@@ -141,9 +145,11 @@ namespace Opc.Ua.Client {
         /// <param name="results"></param>
         /// <returns></returns>
         private static FindServersResponse NewFindServersResponse(ResponseHeader response,
-            ApplicationDescriptionCollection results) => new FindServersResponse {
+            ApplicationDescriptionCollection results) {
+            return new FindServersResponse {
                 ResponseHeader = response,
                 Servers = results
             };
+        }
     }
 }

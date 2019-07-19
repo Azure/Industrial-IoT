@@ -234,30 +234,30 @@ namespace Opc.Ua.Nodeset {
         /// <inheritdoc/>
         public override int GetHashCode() {
             var hashCode = 2038336081;
-            hashCode = hashCode *
-                -1521134295 + Handle.GetHashSafe();
-            hashCode = hashCode *
-                -1521134295 + SymbolicName.GetHashSafe();
-            hashCode = hashCode *
-                -1521134295 + NodeId.GetHashSafe();
-            hashCode = hashCode *
-                -1521134295 + NodeClass.GetHashCode();
-            hashCode = hashCode *
-                -1521134295 + BrowseName.GetHashSafe();
-            hashCode = hashCode *
-                -1521134295 + DisplayName.GetHashSafe();
-            hashCode = hashCode *
-                -1521134295 + Description.GetHashSafe();
-            hashCode = hashCode *
-                -1521134295 + WriteMask.GetHashSafe();
-            hashCode = hashCode *
-                -1521134295 + UserWriteMask.GetHashSafe();
-            hashCode = hashCode *
-                -1521134295 + AccessRestrictions.GetHashSafe();
-            hashCode = hashCode *
-                -1521134295 + RolePermissions.GetHashSafe();
-            hashCode = hashCode *
-                -1521134295 + UserRolePermissions.GetHashSafe();
+            hashCode = (hashCode *
+                -1521134295) + Handle.GetHashSafe();
+            hashCode = (hashCode *
+                -1521134295) + SymbolicName.GetHashSafe();
+            hashCode = (hashCode *
+                -1521134295) + NodeId.GetHashSafe();
+            hashCode = (hashCode *
+                -1521134295) + NodeClass.GetHashCode();
+            hashCode = (hashCode *
+                -1521134295) + BrowseName.GetHashSafe();
+            hashCode = (hashCode *
+                -1521134295) + DisplayName.GetHashSafe();
+            hashCode = (hashCode *
+                -1521134295) + Description.GetHashSafe();
+            hashCode = (hashCode *
+                -1521134295) + WriteMask.GetHashSafe();
+            hashCode = (hashCode *
+                -1521134295) + UserWriteMask.GetHashSafe();
+            hashCode = (hashCode *
+                -1521134295) + AccessRestrictions.GetHashSafe();
+            hashCode = (hashCode *
+                -1521134295) + RolePermissions.GetHashSafe();
+            hashCode = (hashCode *
+                -1521134295) + UserRolePermissions.GetHashSafe();
             return hashCode;
         }
 

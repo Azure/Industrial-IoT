@@ -27,10 +27,10 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System;
-using Opc.Ua;
-
 namespace TestData {
+    using System;
+    using Opc.Ua;
+
     /// <summary>
     /// An interface to an object which can access historical data for a variable.
     /// </summary>

@@ -15,7 +15,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Diagnostics.Contracts;
-    using System.Security.Cryptography.X509Certificates;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -25,7 +24,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     /// user identity management.
     /// </summary>
     internal sealed class ClientSession : IClientSession {
-
 
         /// <inheritdoc/>
         public bool Inactive => !_persistent && DateTime.UtcNow > _lastActivity + _timeout;
@@ -37,7 +35,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// Create client session
         /// </summary>
         /// <param name="config">Application configuration</param>
-        /// <param name="factory">Certificate factory</param>
         /// <param name="endpoint">Endpoint to connect to</param>
         /// <param name="timeout">Session timeout</param>
         /// <param name="statusCb">Status callback for reporting</param>
@@ -47,17 +44,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="sessionName">Optional session name</param>
         /// <param name="keepAlive">Keep alive interval</param>
         public ClientSession(ApplicationConfiguration config, EndpointModel endpoint,
-            Func<X509Certificate2> factory, ILogger logger,
-            Func<EndpointModel, EndpointConnectivityState, Task> statusCb,
+            ILogger logger, Func<EndpointModel, EndpointConnectivityState, Task> statusCb,
             bool persistent, TimeSpan? maxOpTimeout = null,
             string sessionName = null, TimeSpan? timeout = null,
             TimeSpan? keepAlive = null) {
             _logger = logger ?? Log.Logger;
-            _factory = factory;
             _endpoint = endpoint;
             _config = config;
+            _config.CertificateValidator.CertificateValidation += OnValidate;
             _timeout = timeout ?? TimeSpan.FromMilliseconds(
-                config.ClientConfiguration.DefaultSessionTimeout);
+                _config.ClientConfiguration.DefaultSessionTimeout);
             _statusCb = statusCb;
             _cts = new CancellationTokenSource();
             _lastState = EndpointConnectivityState.Connecting;
@@ -66,7 +62,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             _persistent = persistent;
             _sessionName = sessionName ?? Guid.NewGuid().ToString();
             _opTimeout = maxOpTimeout ?? TimeSpan.FromMilliseconds(
-                config.TransportQuotas.OperationTimeout * 4);
+                _config.TransportQuotas.OperationTimeout * 4);
 
             _url = _endpoint.Url;
             _urlQueue = new ConcurrentQueue<string>(_endpoint.Url.YieldReturn()
@@ -80,7 +76,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         }
 
         /// <inhjeritdoc/>
-        public void Dispose() => CloseAsync().Wait();
+        public void Dispose() {
+            CloseAsync().Wait();
+            _cts.Dispose();
+            _config.CertificateValidator.CertificateValidation -= OnValidate;
+        }
 
         /// <inheritdoc/>
         public async Task CloseAsync() {
@@ -140,7 +140,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
             // Save identity and certificate to update session if there are changes.
             var identity = _endpoint.User.ToStackModel();
-            
+
             try {
                 while (!_cts.Token.IsCancellationRequested) {
 
@@ -540,6 +540,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         }
 
         /// <summary>
+        /// Validate session certificate against the endpoint certificate
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void OnValidate(CertificateValidator sender, CertificateValidationEventArgs e) {
+            if (!e.Accept && e.Error.StatusCode == StatusCodes.BadCertificateUntrusted &&
+                e.Certificate.RawData != null && _endpoint.Certificate != null) {
+                e.Accept = e.Certificate.RawData.SequenceEqual(_endpoint.Certificate);
+            }
+        }
+
+        /// <summary>
         /// Select the endpoint based on the model
         /// </summary>
         /// <param name="server"></param>
@@ -574,8 +586,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
             var bestEndpoint = filtered.FirstOrDefault();
             foreach (var endpoint in filtered) {
-                if (haveCert && (endpoint.SecurityLevel > bestEndpoint.SecurityLevel) ||
-                    !haveCert && (endpoint.SecurityLevel < bestEndpoint.SecurityLevel)) {
+                if ((haveCert && (endpoint.SecurityLevel > bestEndpoint.SecurityLevel)) ||
+                    (!haveCert && (endpoint.SecurityLevel < bestEndpoint.SecurityLevel))) {
                     bestEndpoint = endpoint;
                 }
             }
@@ -653,13 +665,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// <summary>
             /// Whether the operation is completed
             /// </summary>
-            public virtual bool IsCompleted() => false;
+            public virtual bool IsCompleted() {
+                return false;
+            }
 
             /// <summary>
             /// Whether to retry
             /// </summary>
             /// <param name="ex"></param>
-            public virtual bool ShouldRetry(Exception ex) => true;
+            public virtual bool ShouldRetry(Exception ex) {
+                return true;
+            }
 
             /// <inheritdoc/>
             public virtual void Dispose() { }
@@ -676,7 +692,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             }
 
             /// <inheritdoc/>
-            public override bool ShouldRetry(Exception ex) => _failures % 2 == 0;
+            public override bool ShouldRetry(Exception ex) {
+                return _failures % 2 == 0;
+            }
 
             /// <inheritdoc/>
             public override async Task Complete(Session session) {
@@ -701,7 +719,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             }
 
             /// <inheritdoc/>
-            public override string ToString() => "KEEP ALIVE";
+            public override string ToString() {
+                return "KEEP ALIVE";
+            }
 
             private readonly TimeSpan _timeout;
             private long _failures;
@@ -739,12 +759,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             public Task<T> Completed => _tcs.Task;
 
             /// <inheritdoc/>
-            public override void Dispose() =>
+            public override void Dispose() {
                 _tcs.TrySetCanceled();
-
+                _cts.Dispose();
+            }
 
             /// <inheritdoc/>
-            public override bool IsCompleted() => _tcs.Task.IsCompleted;
+            public override bool IsCompleted() {
+                return _tcs.Task.IsCompleted;
+            }
 
             /// <inheritdoc/>
             public override async Task Complete(Session session) {
@@ -754,15 +777,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 _tcs.TrySetResult(result);
             }
             /// <inheritdoc/>
-            public override void Fail(Exception ex) =>
+            public override void Fail(Exception ex) {
                 _tcs.TrySetException(ex);
+            }
 
             /// <inheritdoc/>
-            public override bool ShouldRetry(Exception ex) =>
-                _handler?.Invoke(ex) ?? false;
+            public override bool ShouldRetry(Exception ex) {
+                return _handler?.Invoke(ex) ?? false;
+            }
 
             /// <inheritdoc/>
-            public override string ToString() => _operation.ToString();
+            public override string ToString() {
+                return _operation.ToString();
+            }
 
             /// <summary>
             /// Cancellation token expired or operation was cancelled.
@@ -791,7 +818,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         private const int kMaxRetries = 15;
         private const int kMaxReconnectDelay = 5000;
 
-
         private DateTime _lastActivity;
         private Session _session;
         private EndpointConnectivityState _lastState;
@@ -800,7 +826,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         private readonly string _url;
         private readonly string _sessionName;
         private readonly ILogger _logger;
-        private readonly Func<X509Certificate2> _factory;
         private readonly TimeSpan _timeout;
         private readonly TimeSpan _keepAlive;
         private readonly ApplicationConfiguration _config;

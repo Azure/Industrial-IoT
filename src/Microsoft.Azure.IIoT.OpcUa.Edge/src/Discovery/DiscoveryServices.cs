@@ -86,12 +86,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
         }
 
         /// <inheritdoc/>
-        public Task DiscoverAsync(DiscoveryRequestModel request) {
+        public Task DiscoverAsync(DiscoveryRequestModel request, CancellationToken ct) {
             if (request == null) {
                 return Task.FromException(new ArgumentNullException(nameof(request)));
             }
             var scheduled = _processor.TrySchedule(() =>
-                RunOnceAsync(new DiscoveryRequest(request), CancellationToken.None));
+                RunOnceAsync(new DiscoveryRequest(request), ct));
             if (scheduled) {
                 return Task.CompletedTask;
             }
@@ -107,7 +107,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                 StopAsync().Wait();
             }
             finally {
+                _discovery?.Dispose();
                 _lock.Release();
+                _lock.Dispose();
             }
         }
 
@@ -121,8 +123,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
             }
             var completed = _completed;
             _discovery.Cancel();
-            _completed = null;
+            _discovery.Dispose();
             _discovery = null;
+            _completed = null;
             _discovered.Clear();
             await completed;
         }
@@ -443,6 +446,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                     Result = new DiscoveryResultModel {
                         DiscoveryConfig = request.Configuration,
                         Id = request.Request.Id,
+                        Context = request.Request.Context,
                         RegisterOnly = request.Mode == DiscoveryMode.Off,
                         Diagnostics = diagnostics == null ? null :
                             JToken.FromObject(diagnostics)

@@ -27,13 +27,12 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System;
-using System.Collections.Generic;
-using System.Reflection;
-using Opc.Ua;
-using Opc.Ua.Server;
-
 namespace Vehicles {
+    using System;
+    using System.Collections.Generic;
+    using System.Reflection;
+    using Opc.Ua;
+    using Opc.Ua.Server;
 
     /// <summary>
     /// A node manager for a server that exposes several variables.

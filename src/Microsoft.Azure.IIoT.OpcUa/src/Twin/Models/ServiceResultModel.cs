@@ -24,6 +24,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
         /// <summary>
         /// Additional diagnostics information
         /// </summary>
-        public JToken Diagnostics{ get; set; }
+        public JToken Diagnostics { get; set; }
     }
 }

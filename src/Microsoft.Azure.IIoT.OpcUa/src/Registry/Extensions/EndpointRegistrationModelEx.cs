@@ -53,8 +53,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 model.AuthenticationMethods.IsSameAs(that.AuthenticationMethods) &&
                 model.SiteId == that.SiteId &&
                 model.SupervisorId == that.SupervisorId &&
-                model.SecurityLevel == that.SecurityLevel &&
-                model.Certificate?.ToSha1Hash() == that.Certificate?.ToSha1Hash();
+                model.SecurityLevel == that.SecurityLevel;
         }
 
         /// <summary>
@@ -67,7 +66,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 return null;
             }
             return new EndpointRegistrationModel {
-                Certificate = model.Certificate,
                 Endpoint = model.Endpoint.Clone(),
                 EndpointUrl = model.EndpointUrl,
                 Id = model.Id,
@@ -89,25 +87,35 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 return SecurityAssessment.Low;
             }
 
-            // TODO
-
-            var cert = new X509Certificate2(model.Certificate);
-            var securityProfile = model.Endpoint.SecurityPolicy.Remove(0,
-                model.Endpoint.SecurityPolicy.IndexOf('#') + 1);
-
-            var expiryDate = cert.NotAfter;
-            var issuer = cert.Issuer.Extract("CN=", ",");
-
-            if ((securityProfile == "None") ||
-                (securityProfile == "sha1") ||
-                (cert.PublicKey.Key.KeySize == 1024)) {
+            if (model.Endpoint.Certificate == null) {
                 return SecurityAssessment.Low;
             }
-            if ((cert.IssuerName.Name == cert.SubjectName.Name) &&
-                (securityProfile != "None")) {
-                return SecurityAssessment.High;
+
+            try {
+                using (var cert = new X509Certificate2(model.Endpoint.Certificate)) {
+                    var securityProfile = model.Endpoint.SecurityPolicy.Remove(0,
+                        model.Endpoint.SecurityPolicy.IndexOf('#') + 1);
+
+                    // TODO
+
+                    var expiryDate = cert.NotAfter;
+                    var issuer = cert.Issuer.Extract("CN=", ",");
+
+                    if ((securityProfile == "None") ||
+                        (securityProfile == "sha1") ||
+                        (cert.PublicKey.Key.KeySize == 1024)) {
+                        return SecurityAssessment.Low;
+                    }
+                    if ((cert.IssuerName.Name == cert.SubjectName.Name) &&
+                        (securityProfile != "None")) {
+                        return SecurityAssessment.High;
+                    }
+                    return SecurityAssessment.Medium;
+                }
             }
-            return SecurityAssessment.Medium;
+            catch {
+                return SecurityAssessment.Low;
+            }
         }
     }
 }

@@ -27,10 +27,10 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System;
-using System.Collections.Generic;
-
 namespace Opc.Ua.Sample {
+    using System;
+    using System.Collections.Generic;
+
     /// <summary>
     /// Provides a queue for data changes.
     /// </summary>

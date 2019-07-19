@@ -35,17 +35,6 @@ namespace Opc.Ua.Encoders {
         /// <summary>
         /// Create decoder
         /// </summary>
-        /// <param name="json"></param>
-        /// <param name="context"></param>
-        public JsonDecoderEx(string json, ServiceMessageContext context = null) :
-            this(new JsonTextReader(new StringReader(json)) {
-                FloatParseHandling = FloatParseHandling.Double
-            }, context) {
-        }
-
-        /// <summary>
-        /// Create decoder
-        /// </summary>
         /// <param name="stream"></param>
         /// <param name="context"></param>
         public JsonDecoderEx(Stream stream, ServiceMessageContext context = null) :
@@ -60,7 +49,7 @@ namespace Opc.Ua.Encoders {
         /// <param name="reader"></param>
         /// <param name="context"></param>
         public JsonDecoderEx(JsonReader reader, ServiceMessageContext context = null) :
-            this (reader, context, false) {
+            this(reader, context, false) {
         }
 
         /// <summary>
@@ -106,66 +95,79 @@ namespace Opc.Ua.Encoders {
 
         /// <inheritdoc/>
         public void SetMappingTables(NamespaceTable namespaceUris, StringTable serverUris) {
-            _namespaceMappings = null;
-
-            if (namespaceUris != null && Context.NamespaceUris != null) {
-                _namespaceMappings = Context.NamespaceUris.CreateMapping(namespaceUris, false);
-            }
-
-            _serverMappings = null;
-
-            if (serverUris != null && Context.ServerUris != null) {
-                _serverMappings = Context.ServerUris.CreateMapping(serverUris, false);
-            }
+            // No op
         }
 
         /// <inheritdoc/>
-        public bool ReadBoolean(string property) =>
-            TryGetToken(property, out var value) && (bool)value;
+        public bool ReadBoolean(string property) {
+            return TryGetToken(property, out var value) && (bool)value;
+        }
 
         /// <inheritdoc/>
-        public sbyte ReadSByte(string property) => ReadValue<sbyte>(property,
-            v => v < sbyte.MinValue || v > sbyte.MaxValue ? (sbyte)0 : v);
+        public sbyte ReadSByte(string property) {
+            return ReadValue<sbyte>(property,
+                v => v < sbyte.MinValue || v > sbyte.MaxValue ? (sbyte)0 : v);
+        }
 
         /// <inheritdoc/>
-        public byte ReadByte(string property) => ReadValue<byte>(property,
-            v => (byte) (v < byte.MinValue || v > byte.MaxValue ? 0 : v));
+        public byte ReadByte(string property) {
+            return ReadValue<byte>(property,
+            v => (byte)(v < byte.MinValue || v > byte.MaxValue ? 0 : v));
+        }
 
         /// <inheritdoc/>
-        public short ReadInt16(string property) => ReadValue<short>(property,
-            v => (short) (v < short.MinValue || v > short.MaxValue ? 0 : v));
+        public short ReadInt16(string property) {
+            return ReadValue<short>(property,
+                v => (short)(v < short.MinValue || v > short.MaxValue ? 0 : v));
+        }
 
         /// <inheritdoc/>
-        public ushort ReadUInt16(string property) => ReadValue<ushort>(property,
-            v => (ushort) (v < ushort.MinValue || v > ushort.MaxValue ? 0 : v));
+        public ushort ReadUInt16(string property) {
+            return ReadValue<ushort>(property,
+                v => (ushort)(v < ushort.MinValue || v > ushort.MaxValue ? 0 : v));
+        }
 
         /// <inheritdoc/>
-        public int ReadInt32(string property) => ReadValue<int>(property,
-            v => v < int.MinValue || v > int.MaxValue ? 0 : v);
+        public int ReadInt32(string property) {
+            return ReadValue<int>(property,
+                v => v < int.MinValue || v > int.MaxValue ? 0 : v);
+        }
 
         /// <inheritdoc/>
-        public uint ReadUInt32(string property) => ReadValue<uint>(property,
-            v => v < uint.MinValue || v > uint.MaxValue ? 0 : v);
+        public uint ReadUInt32(string property) {
+            return ReadValue<uint>(property,
+                v => v < uint.MinValue || v > uint.MaxValue ? 0 : v);
+        }
 
         /// <inheritdoc/>
-        public long ReadInt64(string property) => ReadValue<long>(property,
-            v => v);
+        public long ReadInt64(string property) {
+            return ReadValue<long>(property,
+                v => v);
+        }
 
         /// <inheritdoc/>
-        public ulong ReadUInt64(string property) => ReadValue<ulong>(property,
-            v => v);
+        public ulong ReadUInt64(string property) {
+            return ReadValue<ulong>(property,
+                v => v);
+        }
 
         /// <inheritdoc/>
-        public float ReadFloat(string property) => ReadValue<float>(property,
-            v => v < float.MinValue || v > float.MaxValue ? 0 : v);
+        public float ReadFloat(string property) {
+            return ReadValue<float>(property,
+                v => v < float.MinValue || v > float.MaxValue ? 0 : v);
+        }
 
         /// <inheritdoc/>
-        public double ReadDouble(string property) => ReadValue<double>(property,
-            v => v);
+        public double ReadDouble(string property) {
+            return ReadValue<double>(property,
+                v => v);
+        }
 
         /// <inheritdoc/>
-        public byte[] ReadByteString(string property) => TryReadValue(property,
-            t => ((string)t).DecodeAsBase64());
+        public byte[] ReadByteString(string property) {
+            return TryReadValue(property,
+                t => ((string)t).DecodeAsBase64());
+        }
 
         /// <inheritdoc/>
         public string ReadString(string property) {
@@ -507,96 +509,119 @@ namespace Opc.Ua.Encoders {
         }
 
         /// <inheritdoc/>
-        public BooleanCollection ReadBooleanArray(string property) =>
-            ReadArray(property, () => ReadBoolean(null));
+        public BooleanCollection ReadBooleanArray(string property) {
+            return ReadArray(property, () => ReadBoolean(null));
+        }
 
         /// <inheritdoc/>
-        public Int16Collection ReadInt16Array(string property) =>
-            ReadArray(property, () => ReadInt16(null));
+        public Int16Collection ReadInt16Array(string property) {
+            return ReadArray(property, () => ReadInt16(null));
+        }
 
         /// <inheritdoc/>
-        public UInt16Collection ReadUInt16Array(string property) =>
-            ReadArray(property, () => ReadUInt16(null));
+        public UInt16Collection ReadUInt16Array(string property) {
+            return ReadArray(property, () => ReadUInt16(null));
+        }
 
         /// <inheritdoc/>
-        public Int32Collection ReadInt32Array(string property) =>
-            ReadArray(property, () => ReadInt32(null));
+        public Int32Collection ReadInt32Array(string property) {
+            return ReadArray(property, () => ReadInt32(null));
+        }
 
         /// <inheritdoc/>
-        public UInt32Collection ReadUInt32Array(string property) =>
-            ReadArray(property, () => ReadUInt32(null));
+        public UInt32Collection ReadUInt32Array(string property) {
+            return ReadArray(property, () => ReadUInt32(null));
+        }
 
         /// <inheritdoc/>
-        public Int64Collection ReadInt64Array(string property) =>
-            ReadArray(property, () => ReadInt64(null));
+        public Int64Collection ReadInt64Array(string property) {
+            return ReadArray(property, () => ReadInt64(null));
+        }
 
         /// <inheritdoc/>
-        public UInt64Collection ReadUInt64Array(string property) =>
-            ReadArray(property, () => ReadUInt64(null));
+        public UInt64Collection ReadUInt64Array(string property) {
+            return ReadArray(property, () => ReadUInt64(null));
+        }
 
         /// <inheritdoc/>
-        public FloatCollection ReadFloatArray(string property) =>
-            ReadArray(property, () => ReadFloat(null));
+        public FloatCollection ReadFloatArray(string property) {
+            return ReadArray(property, () => ReadFloat(null));
+        }
 
         /// <inheritdoc/>
-        public DoubleCollection ReadDoubleArray(string property) =>
-            ReadArray(property, () => ReadDouble(null));
+        public DoubleCollection ReadDoubleArray(string property) {
+            return ReadArray(property, () => ReadDouble(null));
+        }
 
         /// <inheritdoc/>
-        public StringCollection ReadStringArray(string property) =>
-            ReadArray(property, () => ReadString(null));
+        public StringCollection ReadStringArray(string property) {
+            return ReadArray(property, () => ReadString(null));
+        }
 
         /// <inheritdoc/>
-        public DateTimeCollection ReadDateTimeArray(string property) =>
-            ReadArray(property, () => ReadDateTime(null));
+        public DateTimeCollection ReadDateTimeArray(string property) {
+            return ReadArray(property, () => ReadDateTime(null));
+        }
 
         /// <inheritdoc/>
-        public UuidCollection ReadGuidArray(string property) =>
-            ReadArray(property, () => ReadGuid(null));
+        public UuidCollection ReadGuidArray(string property) {
+            return ReadArray(property, () => ReadGuid(null));
+        }
 
         /// <inheritdoc/>
-        public ByteStringCollection ReadByteStringArray(string property) =>
-            ReadArray(property, () => ReadByteString(null));
+        public ByteStringCollection ReadByteStringArray(string property) {
+            return ReadArray(property, () => ReadByteString(null));
+        }
 
         /// <inheritdoc/>
-        public XmlElementCollection ReadXmlElementArray(string property) =>
-            ReadArray(property, () => ReadXmlElement(null));
+        public XmlElementCollection ReadXmlElementArray(string property) {
+            return ReadArray(property, () => ReadXmlElement(null));
+        }
 
         /// <inheritdoc/>
-        public NodeIdCollection ReadNodeIdArray(string property) =>
-            ReadArray(property, () => ReadNodeId(null));
+        public NodeIdCollection ReadNodeIdArray(string property) {
+            return ReadArray(property, () => ReadNodeId(null));
+        }
 
         /// <inheritdoc/>
-        public ExpandedNodeIdCollection ReadExpandedNodeIdArray(string property) =>
-            ReadArray(property, () => ReadExpandedNodeId(null));
+        public ExpandedNodeIdCollection ReadExpandedNodeIdArray(string property) {
+            return ReadArray(property, () => ReadExpandedNodeId(null));
+        }
 
         /// <inheritdoc/>
-        public StatusCodeCollection ReadStatusCodeArray(string property) =>
-            ReadArray(property, () => ReadStatusCode(null));
+        public StatusCodeCollection ReadStatusCodeArray(string property) {
+            return ReadArray(property, () => ReadStatusCode(null));
+        }
 
         /// <inheritdoc/>
-        public DiagnosticInfoCollection ReadDiagnosticInfoArray(string property) =>
-            ReadArray(property, () => ReadDiagnosticInfo(null));
+        public DiagnosticInfoCollection ReadDiagnosticInfoArray(string property) {
+            return ReadArray(property, () => ReadDiagnosticInfo(null));
+        }
 
         /// <inheritdoc/>
-        public QualifiedNameCollection ReadQualifiedNameArray(string property) =>
-            ReadArray(property, () => ReadQualifiedName(null));
+        public QualifiedNameCollection ReadQualifiedNameArray(string property) {
+            return ReadArray(property, () => ReadQualifiedName(null));
+        }
 
         /// <inheritdoc/>
-        public LocalizedTextCollection ReadLocalizedTextArray(string property) =>
-            ReadArray(property, () => ReadLocalizedText(null));
+        public LocalizedTextCollection ReadLocalizedTextArray(string property) {
+            return ReadArray(property, () => ReadLocalizedText(null));
+        }
 
         /// <inheritdoc/>
-        public VariantCollection ReadVariantArray(string property) =>
-            ReadArray(property, () => ReadVariant(null));
+        public VariantCollection ReadVariantArray(string property) {
+            return ReadArray(property, () => ReadVariant(null));
+        }
 
         /// <inheritdoc/>
-        public DataValueCollection ReadDataValueArray(string property) =>
-            ReadArray(property, () => ReadDataValue(null));
+        public DataValueCollection ReadDataValueArray(string property) {
+            return ReadArray(property, () => ReadDataValue(null));
+        }
 
         /// <inheritdoc/>
-        public ExtensionObjectCollection ReadExtensionObjectArray(string property) =>
-            ReadArray(property, () => ReadExtensionObject(null));
+        public ExtensionObjectCollection ReadExtensionObjectArray(string property) {
+            return ReadArray(property, () => ReadExtensionObject(null));
+        }
 
         /// <inheritdoc/>
         public ByteCollection ReadByteArray(string property) {
@@ -664,8 +689,9 @@ namespace Opc.Ua.Encoders {
         /// </summary>
         /// <param name="property"></param>
         /// <returns></returns>
-        public VariantCollection ReadIntegerArray(string property) =>
-            ReadArray(property, () => ReadInteger(null));
+        public VariantCollection ReadIntegerArray(string property) {
+            return ReadArray(property, () => ReadInteger(null));
+        }
 
         /// <summary>
         /// Read integer variant value
@@ -700,8 +726,9 @@ namespace Opc.Ua.Encoders {
         /// </summary>
         /// <param name="property"></param>
         /// <returns></returns>
-        public VariantCollection ReadUIntegerArray(string property) =>
-            ReadArray(property, () => ReadUInteger(null));
+        public VariantCollection ReadUIntegerArray(string property) {
+            return ReadArray(property, () => ReadUInteger(null));
+        }
 
         /// <summary>
         /// Read unsigned integer variant value
@@ -736,8 +763,9 @@ namespace Opc.Ua.Encoders {
         /// </summary>
         /// <param name="property"></param>
         /// <returns></returns>
-        public VariantCollection ReadNumberArray(string property) =>
-            ReadArray(property, () => ReadNumber(null));
+        public VariantCollection ReadNumberArray(string property) {
+            return ReadArray(property, () => ReadNumber(null));
+        }
 
         /// <summary>
         /// Read numeric variant value
@@ -815,7 +843,7 @@ namespace Opc.Ua.Encoders {
                         if (body.Type != JTokenType.Object) {
                             break;
                         }
-                        XmlElement xml = null;
+                        XmlElement xml;
                         try {
                             xml = body.ToObject<XmlElement>();
                             if (xml == null) {
@@ -1031,18 +1059,6 @@ namespace Opc.Ua.Encoders {
             }
             _stack.Pop();
             return variant;
-        }
-
-        private static int[] GetDimensions(JArray array) {
-            var dimensions = new List<int>();
-            while (true) {
-                if (array == null || array.Count == 0) {
-                    break;
-                }
-                dimensions.Add(array.Count);
-                array = array[0] as JArray;
-            }
-            return dimensions.ToArray();
         }
 
         /// <summary>
@@ -1657,12 +1673,16 @@ namespace Opc.Ua.Encoders {
             }
 
             /// <inheritdoc/>
-            public void Dispose() => _reader.Close();
+            public void Dispose() {
+                _reader.Close();
+            }
 
             /// <summary>
             /// Reset loader
             /// </summary>
-            public void Reset() => _reset = true;
+            public void Reset() {
+                _reset = true;
+            }
 
             private readonly JsonReader _reader;
             private int _eofDepth;
@@ -1671,8 +1691,6 @@ namespace Opc.Ua.Encoders {
             private bool _eos;
         }
 
-        private ushort[] _namespaceMappings;
-        private ushort[] _serverMappings;
         private readonly JsonReader _reader;
         private readonly Stack<JToken> _stack = new Stack<JToken>();
     }

@@ -27,13 +27,13 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Xml;
-using Opc.Ua;
-
 namespace TestData {
+    using System;
+    using System.Collections.Generic;
+    using System.Threading;
+    using System.Xml;
+    using Opc.Ua;
+
     public interface ITestDataSystemCallback {
         void OnDataChange(
             BaseVariableState variable,
@@ -58,6 +58,10 @@ namespace TestData {
             if (_historyArchive != null) {
                 _historyArchive.Dispose();
                 _historyArchive = null;
+            }
+            if (_timer != null) {
+                _timer.Dispose();
+                _timer = null;
             }
         }
 
@@ -650,7 +654,7 @@ namespace TestData {
             }
         }
 
-        void DoSample(object state) {
+        private void DoSample(object state) {
             Utils.Trace("DoSample HiRes={0:ss.ffff} Now={1:ss.ffff}", HiResClock.UtcNow, DateTime.UtcNow);
 
             var samples = new Queue<Sample>();
@@ -706,8 +710,8 @@ namespace TestData {
 
 
         private readonly object _lock = new object();
-        private ITestDataSystemCallback _callback;
-        private Opc.Ua.Test.DataGenerator _generator;
+        private readonly ITestDataSystemCallback _callback;
+        private readonly Opc.Ua.Test.DataGenerator _generator;
         private int _minimumSamplingInterval;
         private Dictionary<uint, BaseVariableState> _monitoredNodes;
         private Timer _timer;

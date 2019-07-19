@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry {
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -16,14 +17,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// </summary>
         /// <param name="id"></param>
         /// <param name="secret"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
-        Task ActivateEndpointAsync(T id, string secret);
+        Task ActivateEndpointAsync(T id, string secret,
+            CancellationToken ct = default);
 
         /// <summary>
         /// Deactivate endpoint
         /// </summary>
         /// <param name="id"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
-        Task DeactivateEndpointAsync(T id);
+        Task DeactivateEndpointAsync(T id,
+            CancellationToken ct = default);
     }
 }

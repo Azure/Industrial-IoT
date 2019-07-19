@@ -6,10 +6,10 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
-    using Serilog;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Models;
+    using Serilog;
     using Newtonsoft.Json;
     using System;
     using System.Threading;
@@ -33,12 +33,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task DiscoverAsync(DiscoveryRequestModel request) {
+        public async Task DiscoverAsync(DiscoveryRequestModel request,
+            CancellationToken ct) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
             await CallServiceOnAllSupervisors("Discover_V2",
-                request, kDiscoveryTimeout);
+                request, kDiscoveryTimeout, ct);
         }
 
         /// <summary>
@@ -49,9 +50,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
         /// <param name="service"></param>
         /// <param name="request"></param>
         /// <param name="timeout"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         private async Task CallServiceOnAllSupervisors<T>(
-            string service, T request, TimeSpan timeout) {
+            string service, T request, TimeSpan timeout, CancellationToken ct) {
 
             // Create job to all supervisors
             var jobId = Guid.NewGuid().ToString();
@@ -65,28 +67,30 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
                     Name = service,
                     JsonPayload = JsonConvertEx.SerializeObject(request)
                 }
-            });
+            }, ct);
             _logger.Information("Job {jobId} created ({status})...", jobId,
                 job.Status);
-            var cts = new CancellationTokenSource(timeout + timeout);
-            while (true) {
-                if (!string.IsNullOrEmpty(job.FailureReason)) {
-                    throw new MethodCallException(job.FailureReason);
+            using (var cts = new CancellationTokenSource(timeout + timeout)) {
+                ct.Register(cts.Cancel);
+                while (true) {
+                    if (!string.IsNullOrEmpty(job.FailureReason)) {
+                        throw new MethodCallException(job.FailureReason);
+                    }
+                    if (job.Status == JobStatus.Completed ||
+                        job.Status == JobStatus.Running ||
+                        job.Status == JobStatus.Failed ||
+                        job.Status == JobStatus.Cancelled) {
+                        return;
+                    }
+                    await Task.Delay(TimeSpan.FromSeconds(30), cts.Token);
+                    job = await _jobs.RefreshAsync(jobId, ct);
+                    _logger.Information("Job {jobId} polled ({status} - {msg})...",
+                        jobId, job.Status, job.StatusMessage);
+                    // Poll to completion
                 }
-                if (job.Status == JobStatus.Completed ||
-                    job.Status == JobStatus.Running ||
-                    job.Status == JobStatus.Failed ||
-                    job.Status == JobStatus.Cancelled) {
-                    return;
-                }
-                await Task.Delay(TimeSpan.FromSeconds(30), cts.Token);
-                job = await _jobs.RefreshAsync(jobId);
-                _logger.Information("Job {jobId} polled ({status} - {msg})...",
-                    jobId, job.Status, job.StatusMessage);
-                // Poll to completion
+                throw new TimeoutException(
+                    $"No response received for job {jobId}.  Failing.");
             }
-            throw new TimeoutException(
-                $"No response received for job {jobId}.  Failing.");
         }
 
         private readonly IIoTHubJobServices _jobs;

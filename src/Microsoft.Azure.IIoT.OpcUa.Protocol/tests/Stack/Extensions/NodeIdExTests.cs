@@ -51,13 +51,23 @@ namespace Opc.Ua.Extensions {
             Assert.Equal(1, result.NamespaceIndex);
         }
 
+        [Fact]
+        public void DecodeNodeIdFromStringUrnUri() {
+            var context = new ServiceMessageContext();
+            var expected = "   space    tests /(%)§;#;;#;()§$\"))\"\")(§";
+            var uri = "urn:contosos";
+            var result = (uri + "#s=" + expected).ToNodeId(context);
+            Assert.Equal(expected, result.Identifier);
+            Assert.Equal(uri, context.NamespaceUris.GetString(1));
+            Assert.Equal(1, result.NamespaceIndex);
+        }
 
         [Fact]
         public void DecodeNodeIdFromStringWithNamespaceIndex() {
             var context = new ServiceMessageContext();
             var expected = "   space    tests /(%)§;#;;#;()§$\"))\"\")(§";
             var uri = "http://contosos.com/UA";
-            var result =("ns=" + context.NamespaceUris.GetIndexOrAppend(uri) + ";s=" + expected)
+            var result = ("ns=" + context.NamespaceUris.GetIndexOrAppend(uri) + ";s=" + expected)
                 .ToNodeId(context);
             Assert.Equal(expected, result.Identifier);
             Assert.Equal(uri, context.NamespaceUris.GetString(1));

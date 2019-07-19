@@ -43,7 +43,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Sample {
         /// </summary>
         /// <param name="logger"></param>
         public ServerFactory(ILogger logger) :
-            this (logger, new List<INodeManagerFactory> {
+            this(logger, new List<INodeManagerFactory> {
                 new TestData.TestDataServer(),
                 new MemoryBuffer.MemoryBufferServer(),
                 new Boiler.BoilerServer(),
@@ -67,7 +67,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Sample {
         }
 
         /// <inheritdoc/>
-        class Server : StandardServer {
+        private class Server : StandardServer {
 
             /// <summary>
             /// Create server
@@ -303,6 +303,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Sample {
             /// <inheritdoc/>
             protected override void Dispose(bool disposing) {
                 base.Dispose(disposing);
+                _cts.Dispose();
             }
 
 #if USER_AUTHENTICATION

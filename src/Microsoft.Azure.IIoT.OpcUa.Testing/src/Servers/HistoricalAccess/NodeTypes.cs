@@ -27,15 +27,14 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System.Text;
-using Opc.Ua;
-
 namespace HistoricalAccess {
+    using System.Text;
+    using Opc.Ua;
+
     /// <summary>
     /// Defines the types of nodes exposed by the HistoricalAccessServer NodeManager.
     /// </summary>
-    public static class NodeTypes
-    {
+    public static class NodeTypes {
         /// <summary>
         /// A node representing a Folder.
         /// </summary>
@@ -52,10 +51,8 @@ namespace HistoricalAccess {
         /// <param name="component">The component.</param>
         /// <param name="namespaceIndex">Index of the namespace.</param>
         /// <returns>The node identifier for a component.</returns>
-        public static NodeId ConstructIdForComponent(NodeState component, ushort namespaceIndex)
-        {
-            if (component == null)
-            {
+        public static NodeId ConstructIdForComponent(NodeState component, ushort namespaceIndex) {
+            if (component == null) {
                 return null;
             }
 
@@ -77,12 +74,10 @@ namespace HistoricalAccess {
             // check if the parent is another component.
             var index = parentId.IndexOf('?');
 
-            if (index < 0)
-            {
+            if (index < 0) {
                 buffer.Append('?');
             }
-            else
-            {
+            else {
                 buffer.Append('/');
             }
 

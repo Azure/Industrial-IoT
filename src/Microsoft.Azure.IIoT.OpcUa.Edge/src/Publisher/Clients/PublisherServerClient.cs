@@ -27,7 +27,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Clients {
         /// <param name="client"></param>
         /// <param name="logger"></param>
         public PublisherServerClient(IEndpointServices client, ILogger logger) :
-            this(client, new Uri($"opc.tcp://{Utils.GetHostName()}:62222/UA/Publisher"), 
+            this(client, new Uri($"opc.tcp://{Utils.GetHostName()}:62222/UA/Publisher"),
                 logger) {
         }
 
@@ -62,8 +62,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Clients {
             }
             return await _client.ExecuteServiceAsync(_endpoint,
                 null, async session => {
-                var results = new List<OperationResultModel>();
-                var methodCalls = new CallMethodRequestCollection {
+                    var results = new List<OperationResultModel>();
+                    var methodCalls = new CallMethodRequestCollection {
                     new CallMethodRequest {
                         ObjectId = new NodeId(kMethodCallObject, 2),
                         MethodId = new NodeId(kMethodCallMethod, 2),
@@ -73,24 +73,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Clients {
                         }
                     }
                 };
-                var result = await session.CallAsync(diagnostics.ToStackModel(),
-                    methodCalls);
-                OperationResultEx.Validate("CallMethod", results,
-                    result.Results.Select(r => r.StatusCode), result.DiagnosticInfos,
-                    methodCalls, false);
-                var diagResult = results.ToServiceModel(diagnostics,
-                    session.MessageContext);
-                if (!StatusCode.IsGood(result.Results[0].StatusCode)) {
-                    _logger.Error("Call returned with error {status}",
-                        result.Results[0].StatusCode);
+                    var result = await session.CallAsync(diagnostics.ToStackModel(),
+                        methodCalls);
+                    OperationResultEx.Validate("CallMethod", results,
+                        result.Results.Select(r => r.StatusCode), result.DiagnosticInfos,
+                        methodCalls, false);
+                    var diagResult = results.ToServiceModel(diagnostics,
+                        session.MessageContext);
+                    if (!StatusCode.IsGood(result.Results[0].StatusCode)) {
+                        _logger.Error("Call returned with error {status}",
+                            result.Results[0].StatusCode);
+                        return (diagResult, null);
+                    }
+                    if (result.Results[0].OutputArguments?.Count == 1) {
+                        var response = result.Results[0].OutputArguments[0].ToString();
+                        return (diagResult, response);
+                    }
                     return (diagResult, null);
-                }
-                if (result.Results[0].OutputArguments?.Count == 1) {
-                    var response = result.Results[0].OutputArguments[0].ToString();
-                    return (diagResult, response);
-                }
-                return (diagResult, null);
-            });
+                });
         }
 
         private readonly IEndpointServices _client;

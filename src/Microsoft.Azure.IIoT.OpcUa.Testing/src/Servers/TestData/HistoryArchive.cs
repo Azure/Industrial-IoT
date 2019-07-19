@@ -27,12 +27,11 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using Opc.Ua;
-
 namespace TestData {
+    using System;
+    using System.Collections.Generic;
+    using System.Threading;
+    using Opc.Ua;
 
     /// <summary>
     /// A class that provides access to archived data.
@@ -169,7 +168,7 @@ namespace TestData {
     /// <summary>
     /// A single entry in the archive.
     /// </summary>
-    sealed class HistoryEntry {
+    internal sealed class HistoryEntry {
         public DataValue Value;
         public bool IsModified;
     }
@@ -177,7 +176,7 @@ namespace TestData {
     /// <summary>
     /// A record in the archive.
     /// </summary>
-    sealed class HistoryRecord {
+    internal sealed class HistoryRecord {
         public List<HistoryEntry> RawData;
         public bool Historizing;
         public BuiltInType DataType;

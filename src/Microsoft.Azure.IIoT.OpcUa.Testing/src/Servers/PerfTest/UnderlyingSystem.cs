@@ -27,13 +27,12 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using Opc.Ua;
-using Opc.Ua.Server;
-
 namespace PerfTest {
+    using System;
+    using System.Collections.Generic;
+    using System.Threading;
+    using Opc.Ua;
+    using Opc.Ua.Server;
 
     public class UnderlyingSystem {
         public void Initialize() {
@@ -148,7 +147,7 @@ namespace PerfTest {
                     };
 
                     for (var ii = _start; ii < delta + _start && ii < _values.Length; ii++) {
-                        _values[ii] += (ii + 1);
+                        _values[ii] += ii + 1;
 
                         var monitoredItems = _monitoredItems[ii];
 

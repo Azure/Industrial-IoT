@@ -36,8 +36,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
         /// Create probe
         /// </summary>
         /// <returns></returns>
-        public IAsyncProbe Create() =>
-            new ServerHelloAsyncProbe(_logger, (int)Timeout.TotalMilliseconds);
+        public IAsyncProbe Create() {
+            return new ServerHelloAsyncProbe(_logger, (int)Timeout.TotalMilliseconds);
+        }
 
         /// <summary>
         /// Async probe that sends a hello and validates the returned ack.

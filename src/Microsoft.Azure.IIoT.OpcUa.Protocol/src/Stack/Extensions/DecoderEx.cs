@@ -20,7 +20,9 @@ namespace Opc.Ua.Extensions {
         /// <param name="field"></param>
         /// <returns></returns>
         public static T ReadEnumerated<T>(this IDecoder decoder, string field)
-            where T : Enum => (T)decoder.ReadEnumerated(field, typeof(T));
+            where T : Enum {
+            return (T)decoder.ReadEnumerated(field, typeof(T));
+        }
 
         /// <summary>
         /// Read typed enumerated
@@ -30,7 +32,9 @@ namespace Opc.Ua.Extensions {
         /// <param name="field"></param>
         /// <returns></returns>
         public static T[] ReadEnumeratedArray<T>(this IDecoder decoder, string field)
-            where T : Enum => (T[])decoder.ReadEnumeratedArray(field, typeof(T));
+            where T : Enum {
+            return (T[])decoder.ReadEnumeratedArray(field, typeof(T));
+        }
 
         /// <summary>
         /// Read encodeables
@@ -40,7 +44,9 @@ namespace Opc.Ua.Extensions {
         /// <param name="field"></param>
         /// <returns></returns>
         public static IEnumerable<T> ReadEncodeableArray<T>(this IDecoder decoder, string field)
-            where T : IEncodeable => (IEnumerable<T>)decoder.ReadEncodeableArray(field, typeof(T));
+            where T : IEncodeable {
+            return (IEnumerable<T>)decoder.ReadEncodeableArray(field, typeof(T));
+        }
 
         /// <summary>
         /// Read encodeable
@@ -50,6 +56,8 @@ namespace Opc.Ua.Extensions {
         /// <param name="field"></param>
         /// <returns></returns>
         public static T ReadEncodeable<T>(this IDecoder decoder, string field)
-            where T : IEncodeable => (T)decoder.ReadEncodeable(field, typeof(T));
+            where T : IEncodeable {
+            return (T)decoder.ReadEncodeable(field, typeof(T));
+        }
     }
 }

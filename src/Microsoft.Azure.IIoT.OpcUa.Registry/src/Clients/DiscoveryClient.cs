@@ -12,6 +12,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
     using System;
     using System.Threading.Tasks;
     using System.Diagnostics;
+    using System.Threading;
 
     /// <summary>
     /// Implements discovery through twin supervisor
@@ -28,18 +29,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        /// <summary>
-        /// Kick off discovery
-        /// </summary>
-        /// <param name="supervisorId"></param>
-        /// <param name="request"></param>
-        /// <returns></returns>
+        /// <inhertitdoc/>
         public async Task DiscoverAsync(string supervisorId,
-            DiscoveryRequestModel request) {
+            DiscoveryRequestModel request, CancellationToken ct) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            await CallServiceOnSupervisor(supervisorId, "Discover_V2", request);
+            await CallServiceOnSupervisor(supervisorId, "Discover_V2", request, ct);
         }
 
         /// <summary>
@@ -49,9 +45,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
         /// <param name="supervisorId"></param>
         /// <param name="service"></param>
         /// <param name="request"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         private async Task CallServiceOnSupervisor<T>(string supervisorId,
-            string service, T request) {
+            string service, T request, CancellationToken ct) {
             if (string.IsNullOrEmpty(supervisorId)) {
                 throw new ArgumentNullException(nameof(supervisorId));
             }
@@ -59,7 +56,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
             var deviceId = SupervisorModelEx.ParseDeviceId(supervisorId,
                 out var moduleId);
             var result = await _client.CallMethodAsync(deviceId, moduleId, service,
-                JsonConvertEx.SerializeObject(request));
+                JsonConvertEx.SerializeObject(request), null, ct);
             _logger.Debug("Calling supervisor service '{service}' on " +
                 "{deviceId}/{moduleId} took {elapsed} ms.", service,
                 deviceId, moduleId, sw.ElapsedMilliseconds);

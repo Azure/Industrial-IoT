@@ -28,10 +28,9 @@
  * ======================================================================*/
 
 
-using Opc.Ua;
-using Opc.Ua.Server;
-
-namespace HistoricalEvents{
+namespace HistoricalEvents {
+    using Opc.Ua;
+    using Opc.Ua.Server;
 
     /// <inheritdoc/>
     public class HistoricalEventsServer : INodeManagerFactory {

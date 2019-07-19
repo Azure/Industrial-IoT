@@ -27,17 +27,16 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using Opc.Ua;
-
 namespace MemoryBuffer {
+    using Opc.Ua;
+
     #region Object Identifiers
     /// <summary>
     /// A class that declares constants for all Objects in the Model Design.
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class Objects
-    {
+    public static partial class Objects {
         /// <summary>
         /// The identifier for the MemoryBuffers Object.
         /// </summary>
@@ -51,8 +50,7 @@ namespace MemoryBuffer {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class ObjectTypes
-    {
+    public static partial class ObjectTypes {
         /// <summary>
         /// The identifier for the MemoryBufferType ObjectType.
         /// </summary>
@@ -66,8 +64,7 @@ namespace MemoryBuffer {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class Variables
-    {
+    public static partial class Variables {
         /// <summary>
         /// The identifier for the MemoryBufferType_StartAddress Variable.
         /// </summary>
@@ -86,8 +83,7 @@ namespace MemoryBuffer {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class VariableTypes
-    {
+    public static partial class VariableTypes {
         /// <summary>
         /// The identifier for the MemoryTagType VariableType.
         /// </summary>
@@ -101,8 +97,7 @@ namespace MemoryBuffer {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class ObjectIds
-    {
+    public static partial class ObjectIds {
         /// <summary>
         /// The identifier for the MemoryBuffers Object.
         /// </summary>
@@ -116,8 +111,7 @@ namespace MemoryBuffer {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class ObjectTypeIds
-    {
+    public static partial class ObjectTypeIds {
         /// <summary>
         /// The identifier for the MemoryBufferType ObjectType.
         /// </summary>
@@ -131,8 +125,7 @@ namespace MemoryBuffer {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class VariableIds
-    {
+    public static partial class VariableIds {
         /// <summary>
         /// The identifier for the MemoryBufferType_StartAddress Variable.
         /// </summary>
@@ -151,8 +144,7 @@ namespace MemoryBuffer {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class VariableTypeIds
-    {
+    public static partial class VariableTypeIds {
         /// <summary>
         /// The identifier for the MemoryTagType VariableType.
         /// </summary>
@@ -165,8 +157,7 @@ namespace MemoryBuffer {
     /// Declares all of the BrowseNames used in the Model Design.
     /// </summary>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class BrowseNames
-    {
+    public static partial class BrowseNames {
         /// <summary>
         /// The BrowseName for the MemoryBuffers component.
         /// </summary>
@@ -199,8 +190,7 @@ namespace MemoryBuffer {
     /// Defines constants for all namespaces referenced by the model design.
     /// </summary>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class Namespaces
-    {
+    public static partial class Namespaces {
         /// <summary>
         /// The URI for the OpcUa namespace (.NET code namespace is 'Opc.Ua').
         /// </summary>

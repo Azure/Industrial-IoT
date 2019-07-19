@@ -62,7 +62,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Export {
         }
 
         /// <inheritdoc/>
-        public void Dispose() => _archive.Dispose();
+        public void Dispose() {
+            _archive.Dispose();
+        }
 
         /// <inheritdoc/>
         public async Task ArchiveAsync(CancellationToken ct) {

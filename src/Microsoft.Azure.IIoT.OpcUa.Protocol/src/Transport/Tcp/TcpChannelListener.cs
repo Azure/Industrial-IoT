@@ -34,7 +34,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
             ILogger logger) {
             _logger = logger ??
                 throw new ArgumentNullException(nameof(logger));
-            _callback = controller?.Callback??
+            _controller = controller ??
                 throw new ArgumentNullException(nameof(controller));
             if (config == null) {
                 throw new ArgumentNullException(nameof(config));
@@ -56,7 +56,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
             _serverCertificateChain = config.TcpListenerCertificateChain;
             _bufferManager = new BufferManager("Server", int.MaxValue,
                 _quotas.MaxBufferSize);
-            _controller = controller;
 
             // Create and bind sockets for listening.
             var port = config.Port == 0 ? Utils.UaTcpDefaultPort : config.Port;
@@ -144,6 +143,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
             SecureChannel channel = null;
             while (true) {
                 var error = e.SocketError;
+                var token = e.UserToken;
+
                 // check if the accept socket has been created.
                 if (e.AcceptSocket != null && e.SocketError == SocketError.Success) {
                     try {
@@ -168,10 +169,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
                         _logger.Error(ex, "Unexpected error accepting a new connection.");
                     }
                 }
-                var listeningSocket = e.UserToken as Socket;
-                e.Dispose();
 
-                if (error != SocketError.OperationAborted && listeningSocket != null) {
+                e.Dispose();
+                if (error != SocketError.OperationAborted && token is Socket listeningSocket) {
                     // Schedule new accept
                     try {
                         e = new SocketAsyncEventArgs(); // Should cache it
@@ -265,9 +265,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
         private readonly ChannelQuotas _quotas;
         private readonly X509Certificate2 _serverCertificate;
         private readonly X509Certificate2Collection _serverCertificateChain;
+#pragma warning disable IDE0069 // Disposable fields should be disposed
         private readonly Socket _listeningSocket;
         private readonly Socket _listeningSocketIPv6;
-        private readonly ITransportListenerCallback _callback;
+#pragma warning restore IDE0069 // Disposable fields should be disposed
         private readonly ILogger _logger;
         private readonly ConcurrentDictionary<uint, SecureChannel> _channels =
             new ConcurrentDictionary<uint, SecureChannel>();

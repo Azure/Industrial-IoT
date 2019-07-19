@@ -24,5 +24,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// Scan configuration to use
         /// </summary>
         public DiscoveryConfigModel Configuration { get; set; }
+
+        /// <summary>
+        /// Operation audit context
+        /// </summary>
+        public RegistryOperationContextModel Context { get; set; }
     }
 }

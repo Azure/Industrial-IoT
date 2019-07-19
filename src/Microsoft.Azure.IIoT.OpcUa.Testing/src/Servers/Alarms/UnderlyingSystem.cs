@@ -27,12 +27,12 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using Opc.Ua;
-
 namespace Alarms {
+    using System;
+    using System.Collections.Generic;
+    using System.Threading;
+    using Opc.Ua;
+
     /// <summary>
     /// An object that provides access to the underlying system.
     /// </summary>
@@ -196,7 +196,7 @@ namespace Alarms {
         }
 
         private readonly object _lock = new object();
-        private Dictionary<string, UnderlyingSystemSource> _sources;
+        private readonly Dictionary<string, UnderlyingSystemSource> _sources;
         private Timer _simulationTimer;
         private long _simulationCounter;
     }

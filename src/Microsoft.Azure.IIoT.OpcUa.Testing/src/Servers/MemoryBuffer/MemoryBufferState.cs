@@ -27,14 +27,13 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using Opc.Ua;
-using Opc.Ua.Server;
-using System.Diagnostics;
-
 namespace MemoryBuffer {
+    using System;
+    using System.Collections.Generic;
+    using System.Threading;
+    using Opc.Ua;
+    using Opc.Ua.Server;
+    using System.Diagnostics;
 
     public partial class MemoryBufferState {
 
@@ -389,8 +388,7 @@ namespace MemoryBuffer {
             TimestampsToReturn timestampsToReturn,
             MonitoringMode monitoringMode,
             uint clientHandle,
-            double samplingInterval)
-        {
+            double samplingInterval) {
             lock (_dataLock) {
                 var monitoredItem = new MemoryBufferMonitoredItem(
                     Server,
@@ -448,7 +446,7 @@ namespace MemoryBuffer {
         /// <summary>
         /// Scans the buffer and updates every other element.
         /// </summary>
-        void DoScan(object state) {
+        private void DoScan(object state) {
             var start1 = DateTime.UtcNow;
 
             lock (_dataLock) {
@@ -543,11 +541,11 @@ namespace MemoryBuffer {
             }
         }
 
-        void ScanTimer_Tick(object sender, EventArgs e) {
+        private void ScanTimer_Tick(object sender, EventArgs e) {
             DoScan(null);
         }
 
-        void PublishTimer_Tick(object sender, EventArgs e) {
+        private void PublishTimer_Tick(object sender, EventArgs e) {
             var start1 = DateTime.UtcNow;
 
             lock (_dataLock) {
@@ -567,7 +565,7 @@ namespace MemoryBuffer {
             }
         }
 
-        private object _dataLock = new object();
+        private readonly object _dataLock = new object();
         private MemoryBufferMonitoredItem[][] _monitoringTable;
         private Dictionary<uint, MemoryBufferMonitoredItem> _nonValueMonitoredItems;
         private int _elementSize;

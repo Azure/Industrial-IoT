@@ -27,14 +27,13 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using Opc.Ua;
-using Opc.Ua.Server;
-using System.Reflection;
-
 namespace TestData {
+    using System;
+    using System.Collections.Generic;
+    using System.Threading;
+    using Opc.Ua;
+    using Opc.Ua.Server;
+    using System.Reflection;
 
     /// <summary>
     /// A node manager for a variety of test data.
@@ -637,13 +636,15 @@ namespace TestData {
         }
 #endif
 
-        private TestDataNodeManagerConfiguration _configuration;
+        private readonly TestDataNodeManagerConfiguration _configuration;
         private ushort _namespaceIndex;
         private ushort _typeNamespaceIndex;
         private TestDataSystem _system;
         private long _lastUsedId;
         private Timer _systemStatusTimer;
+#pragma warning disable IDE0069 // Disposable fields should be disposed
         private TestSystemConditionState _systemStatusCondition;
+#pragma warning restore IDE0069 // Disposable fields should be disposed
 
 #if CONDITION_SAMPLES
         private DialogConditionState _dialog;

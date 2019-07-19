@@ -199,7 +199,7 @@ namespace Opc.Ua.Encoders {
 
         [Fact]
         public void ReadWriteArgumentArray() {
-            var expected = new [] {
+            var expected = new[] {
                 new Argument("something1",
                     new NodeId(2354), -1, "somedesciroeioi") { ArrayDimensions = new uint[0] },
                 new Argument("something2",
@@ -279,7 +279,7 @@ namespace Opc.Ua.Encoders {
 
         [Fact]
         public void ReadWriteMatrixVariant2() {
-            var expected = new Variant(new [,,] {
+            var expected = new Variant(new[, ,] {
                 { { "1", "1", "1" }, { "2", "2", "2" }, { "3", "3", "3" } },
                 { { "1", "1", "1" }, { "2", "2", "2" }, { "3", "3", "3" } },
                 { { "1", "1", "1" }, { "2", "2", "2" }, { "3", "3", "3" } },
@@ -311,7 +311,7 @@ namespace Opc.Ua.Encoders {
 
         [Fact]
         public void ReadWriteVariantArray() {
-            var expected = new [] {
+            var expected = new[] {
                 new Variant(4L),
                 new Variant("test"),
                 new Variant(new long[] {1, 2, 3, 4, 5 }),

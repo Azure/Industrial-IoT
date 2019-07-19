@@ -27,10 +27,10 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System.Collections.Generic;
-using Opc.Ua.Server;
-
 namespace Opc.Ua.Sample {
+    using System.Collections.Generic;
+    using Opc.Ua.Server;
+
     /// <summary>
     /// Keeps track of the monitored items for a single node.
     /// </summary>

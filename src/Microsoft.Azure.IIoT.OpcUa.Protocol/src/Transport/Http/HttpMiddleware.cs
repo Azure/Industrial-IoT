@@ -18,11 +18,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
     public class HttpMiddleware {
 
         /// <summary>
-        /// Get default endpoints supported.
-        /// </summary>
-        private EndpointDescriptionCollection Endpoints { get; }
-
-        /// <summary>
         /// Creates middleware to forward requests to controller
         /// </summary>
         /// <param name="next"></param>
@@ -65,9 +60,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
             var message = _encoder.Decode(context.Request.ContentType,
                 context.Request.Body);
             if (!(message is IServiceRequest request)) {
+                _logger.Debug("Bad UA service request.");
                 return false;
             }
             try {
+                _logger.Verbose("Processing UA request...");
                 var response = await _listener.ProcessAsync(context, request);
                 // Encode content as per encoding requested
                 context.Response.ContentType = context.Request.ContentType;
@@ -77,6 +74,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
                     _encoder.Encode(context.Request.ContentType,
                         context.Response.Body, response);
                 }
+                _logger.Verbose("Processed UA request.");
             }
             catch {
                 context.Response.ContentType = context.Request.ContentType;

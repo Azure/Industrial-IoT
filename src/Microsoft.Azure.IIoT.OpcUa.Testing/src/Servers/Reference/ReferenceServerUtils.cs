@@ -27,13 +27,13 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using Opc.Ua;
-using Opc.Ua.Server;
-using System;
-using System.Collections.Generic;
-using System.Data;
-
 namespace Reference {
+    using Opc.Ua;
+    using Opc.Ua.Server;
+    using System;
+    using System.Collections.Generic;
+    using System.Data;
+
     /// <summary>
     /// The interface that a server exposes to objects that it contains.
     /// </summary>
@@ -59,7 +59,7 @@ namespace Reference {
             public MonitoringMode MonitoringMode;
         }
 
-        private static Queue<Event> _events = new Queue<Event>();
+        private static readonly Queue<Event> _events = new Queue<Event>();
         private static bool _eventsEnabled;
 
         /// <summary>
@@ -472,8 +472,7 @@ namespace Reference {
 
             var translatedError = error;
 
-            if ((context.DiagnosticsMask & DiagnosticsMasks.LocalizedText) != 0)
-            {
+            if ((context.DiagnosticsMask & DiagnosticsMasks.LocalizedText) != 0) {
                 translatedError = server.ResourceManager.Translate(context.PreferredLocales, error);
             }
 

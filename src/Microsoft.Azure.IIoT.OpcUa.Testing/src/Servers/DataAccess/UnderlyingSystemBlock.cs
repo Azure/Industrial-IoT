@@ -27,11 +27,11 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System;
-using System.Collections.Generic;
-using Opc.Ua;
-
 namespace DataAccess {
+    using System;
+    using System.Collections.Generic;
+    using Opc.Ua;
+
     /// <summary>
     /// This class simulates a block in the system.
     /// </summary>
@@ -161,7 +161,7 @@ namespace DataAccess {
         /// <param name="callback">The callback to use when reporting changes.</param>
         public void StartMonitoring(TagsChangedEventHandler callback) {
             lock (_tags) {
-                OnTagsChanged = callback;
+                _onTagsChanged = callback;
             }
         }
 
@@ -176,7 +176,7 @@ namespace DataAccess {
             TagsChangedEventHandler onTagsChanged = null;
 
             lock (_tags) {
-                onTagsChanged = OnTagsChanged;
+                onTagsChanged = _onTagsChanged;
 
                 // find the tag.
                 tag = FindTag(tagName);
@@ -235,7 +235,7 @@ namespace DataAccess {
         /// </summary>
         public void StopMonitoring() {
             lock (_tags) {
-                OnTagsChanged = null;
+                _onTagsChanged = null;
             }
         }
 
@@ -252,7 +252,7 @@ namespace DataAccess {
 
                 // update the tags.
                 lock (_tags) {
-                    onTagsChanged = OnTagsChanged;
+                    onTagsChanged = _onTagsChanged;
 
                     // do nothing if not monitored.
                     if (onTagsChanged == null) {
@@ -278,9 +278,7 @@ namespace DataAccess {
                 }
 
                 // report any tag changes after releasing the lock.
-                if (onTagsChanged != null) {
-                    onTagsChanged(snapshots);
-                }
+                onTagsChanged?.Invoke(snapshots);
             }
             catch (Exception e) {
                 Utils.Trace(e, "Unexpected error running simulation for block {0}", Name);
@@ -456,8 +454,8 @@ namespace DataAccess {
         }
 
         private readonly object _lock = new object();
-        private List<UnderlyingSystemTag> _tags;
-        private TagsChangedEventHandler OnTagsChanged;
+        private readonly List<UnderlyingSystemTag> _tags;
+        private TagsChangedEventHandler _onTagsChanged;
     }
 
     /// <summary>

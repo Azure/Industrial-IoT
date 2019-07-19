@@ -27,10 +27,9 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System;
-using Opc.Ua;
-
 namespace Boiler {
+    using System;
+    using Opc.Ua;
 
     /// <summary>
     /// A object representing a generic controller.

@@ -5,34 +5,23 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using Microsoft.Azure.IIoT.Messaging;
     using Serilog;
-    using Microsoft.Azure.IIoT.Hub;
-    using Microsoft.Azure.IIoT.Hub.Models;
-    using Microsoft.Azure.IIoT;
-    using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Onboarding client triggers registry onboarding in the onboarding agent.
+    /// Onboarding client triggers registry onboarding in the jobs agent.
     /// </summary>
     public sealed class OnboardingClient : IOnboardingServices {
 
         /// <summary>
         /// Create onboarding client
         /// </summary>
-        /// <param name="iothub"></param>
         /// <param name="events"></param>
-        /// <param name="logger"></param>
-        public OnboardingClient(IIoTHubTwinServices iothub,
-            IIoTHubTelemetryServices events, ILogger logger) {
-
-            _iothub = iothub ?? throw new ArgumentNullException(nameof(iothub));
+        public OnboardingClient(IEventBus events) {
             _events = events ?? throw new ArgumentNullException(nameof(events));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-
-            OnboardingHelper.EnsureOnboarderIdExists(_iothub).Wait();
         }
 
         /// <inheritdoc/>
@@ -50,11 +39,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
                 Configuration = new DiscoveryConfigModel {
                     ActivationFilter = request.ActivationFilter,
                     Callbacks = request.Callback == null ? null :
-                        new List <CallbackModel> { request.Callback },
+                        new List<CallbackModel> { request.Callback },
                     DiscoveryUrls = new List<string> { request.DiscoveryUrl },
                     Locales = request.Locales
                 },
                 Id = request.RegistrationId,
+                Context = request.Context
             });
         }
 
@@ -63,19 +53,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            await _events.SendAsync(OnboardingHelper.kId, new EventModel {
-                Properties = new Dictionary<string, string> {
-                    ["ContentType"] = ContentTypes.DiscoveryRequest,
-                    ["ContentEncoding"] = ContentEncodings.MimeTypeJson,
-                    [SystemProperties.ContentType] = ContentTypes.DiscoveryRequest,
-                    [SystemProperties.ContentEncoding] = ContentEncodings.MimeTypeJson
-                },
-                Payload = JToken.FromObject(request)
-            });
+            await _events.PublishAsync(request);
         }
 
-        private readonly IIoTHubTwinServices _iothub;
-        private readonly IIoTHubTelemetryServices _events;
-        private readonly ILogger _logger;
+        private readonly IEventBus _events;
     }
 }

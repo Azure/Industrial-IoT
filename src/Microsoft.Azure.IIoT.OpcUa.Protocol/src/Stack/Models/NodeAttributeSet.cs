@@ -78,12 +78,14 @@ namespace Opc.Ua.Models {
         }
 
         /// <inheritdoc/>
-        public IEnumerator<KeyValuePair<uint, DataValue>> GetEnumerator() =>
-            _attributes.GetEnumerator();
+        public IEnumerator<KeyValuePair<uint, DataValue>> GetEnumerator() {
+            return _attributes.GetEnumerator();
+        }
 
         /// <inheritdoc/>
-        IEnumerator IEnumerable.GetEnumerator() =>
-            _attributes.GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() {
+            return _attributes.GetEnumerator();
+        }
 
         /// <inheritdoc/>
         public ExpandedNodeId TypeId =>
@@ -122,12 +124,12 @@ namespace Opc.Ua.Models {
         /// Whether this is a historic node
         /// </summary>
         public bool IsHistorizedNode =>
-            ((EventNotifier.HasValue &&
+            (EventNotifier.HasValue &&
                 (EventNotifier.Value &
                     EventNotifiers.HistoryRead) != 0) ||
             (AccessLevel.HasValue &&
                 ((AccessLevelType)AccessLevel.Value &
-                    AccessLevelType.HistoryRead) != 0));
+                    AccessLevelType.HistoryRead) != 0);
 
         /// <inheritdoc/>
         public QualifiedName BrowseName {
@@ -316,7 +318,7 @@ namespace Opc.Ua.Models {
         /// <inheritdoc/>
         public IEnumerable<RolePermissionType> UserRolePermissions {
             get => this.GetAttribute<ExtensionObject[]>(
-                Attributes.UserRolePermissions, null)?.Select(ex => ex.Body).OfType<RolePermissionType>() ;
+                Attributes.UserRolePermissions, null)?.Select(ex => ex.Body).OfType<RolePermissionType>();
             set => SetAttribute(Attributes.UserRolePermissions,
                 value?.Select(r => new ExtensionObject(r)).ToArray() ?? new ExtensionObject[0]);
         }
@@ -489,18 +491,20 @@ namespace Opc.Ua.Models {
         }
 
         /// <inheritdoc/>
-        public override int GetHashCode() =>
-            NodeId.ToString().GetHashCode();
+        public override int GetHashCode() {
+            return NodeId.ToString().GetHashCode();
+        }
 
         /// <inheritdoc/>
-        public override string ToString() =>
-            $"{NodeId} ({BrowseName})";
+        public override string ToString() {
+            return $"{NodeId} ({BrowseName})";
+        }
 
 
         /// <summary>Namespaces to use in derived classes</summary>
         protected readonly NamespaceTable _namespaces;
         /// <summary>Attributes to use in derived classes</summary>
         protected SortedDictionary<uint, DataValue> _attributes;
-        private static AttributeMap _attributeMap = new AttributeMap();
+        private static readonly AttributeMap _attributeMap = new AttributeMap();
     }
 }

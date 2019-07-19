@@ -27,7 +27,7 @@ namespace Opc.Ua.Encoders {
             CreateSerializers(out var encoder, out var decoder);
 
             var buffer = encoder.Encode(encoderType, e => e.WriteInt32Array("test", expected));
-            var result = decoder.Decode(decoderType,buffer, d => d.ReadInt32Array("test"));
+            var result = decoder.Decode(decoderType, buffer, d => d.ReadInt32Array("test"));
 
             Assert.Equal(expected, result);
         }
@@ -46,7 +46,7 @@ namespace Opc.Ua.Encoders {
             CreateSerializers(out var encoder, out var decoder);
 
             var buffer = encoder.Encode(encoderType, e => e.WriteInt32Array("test", expected));
-            var result = decoder.Decode(decoderType,buffer, d => d.ReadInt32Array("test"));
+            var result = decoder.Decode(decoderType, buffer, d => d.ReadInt32Array("test"));
 
             Assert.Equal(expected, result);
         }
@@ -65,7 +65,7 @@ namespace Opc.Ua.Encoders {
             CreateSerializers(out var encoder, out var decoder);
 
             var buffer = encoder.Encode(encoderType, e => e.WriteDateTime("test", expected));
-            var result = decoder.Decode(decoderType,buffer, d => d.ReadDateTime("test"));
+            var result = decoder.Decode(decoderType, buffer, d => d.ReadDateTime("test"));
 
             Assert.Equal(expected, result);
         }
@@ -89,7 +89,7 @@ namespace Opc.Ua.Encoders {
             CreateSerializers(out var encoder, out var decoder);
 
             var buffer = encoder.Encode(encoderType, e => e.WriteDateTimeArray("test", expected));
-            var result = decoder.Decode(decoderType,buffer, d => d.ReadDateTimeArray("test"));
+            var result = decoder.Decode(decoderType, buffer, d => d.ReadDateTimeArray("test"));
 
             Assert.Equal(expected, result);
         }
@@ -108,7 +108,7 @@ namespace Opc.Ua.Encoders {
             CreateSerializers(out var encoder, out var decoder);
 
             var buffer = encoder.Encode(encoderType, e => e.WriteQualifiedName("test", expected));
-            var result = decoder.Decode(decoderType,buffer, d => d.ReadQualifiedName("test"));
+            var result = decoder.Decode(decoderType, buffer, d => d.ReadQualifiedName("test"));
 
             Assert.Equal(expected, result);
         }
@@ -132,7 +132,7 @@ namespace Opc.Ua.Encoders {
             CreateSerializers(out var encoder, out var decoder);
 
             var buffer = encoder.Encode(encoderType, e => e.WriteQualifiedNameArray("test", expected));
-            var result = decoder.Decode(decoderType,buffer, d => d.ReadQualifiedNameArray("test"));
+            var result = decoder.Decode(decoderType, buffer, d => d.ReadQualifiedNameArray("test"));
 
             Assert.Equal(expected, result);
         }
@@ -170,7 +170,7 @@ namespace Opc.Ua.Encoders {
             CreateSerializers(out var encoder, out var decoder);
 
             var buffer = encoder.Encode(encoderType, e => e.WriteLocalizedText("test", expected));
-            var result = decoder.Decode(decoderType,buffer, d => d.ReadLocalizedText("test"));
+            var result = decoder.Decode(decoderType, buffer, d => d.ReadLocalizedText("test"));
 
             Assert.Equal(expected, result);
         }
@@ -188,7 +188,7 @@ namespace Opc.Ua.Encoders {
             CreateSerializers(out var encoder, out var decoder);
 
             var buffer = encoder.Encode(encoderType, e => e.WriteLocalizedText("test", expected));
-            var result = decoder.Decode(decoderType,buffer, d => d.ReadLocalizedText("test"));
+            var result = decoder.Decode(decoderType, buffer, d => d.ReadLocalizedText("test"));
 
             Assert.Equal(expected, result);
         }
@@ -212,7 +212,7 @@ namespace Opc.Ua.Encoders {
             CreateSerializers(out var encoder, out var decoder);
 
             var buffer = encoder.Encode(encoderType, e => e.WriteLocalizedTextArray("test", expected));
-            var result = decoder.Decode(decoderType,buffer, d => d.ReadLocalizedTextArray("test"));
+            var result = decoder.Decode(decoderType, buffer, d => d.ReadLocalizedTextArray("test"));
 
             Assert.Equal(expected, result);
         }
@@ -235,7 +235,7 @@ namespace Opc.Ua.Encoders {
             CreateSerializers(out var encoder, out var decoder);
 
             var buffer = encoder.Encode(encoderType, e => e.WriteLocalizedTextArray("test", expected));
-            var result = decoder.Decode(decoderType,buffer, d => d.ReadLocalizedTextArray("test"));
+            var result = decoder.Decode(decoderType, buffer, d => d.ReadLocalizedTextArray("test"));
 
             Assert.Equal(expected, result);
         }
@@ -254,7 +254,7 @@ namespace Opc.Ua.Encoders {
             CreateSerializers(out var encoder, out var decoder);
 
             var buffer = encoder.Encode(encoderType, e => e.WriteStatusCode("test", expected));
-            var result = decoder.Decode(decoderType,buffer, d => d.ReadStatusCode("test"));
+            var result = decoder.Decode(decoderType, buffer, d => d.ReadStatusCode("test"));
 
             Assert.Equal(expected, result);
         }
@@ -277,7 +277,7 @@ namespace Opc.Ua.Encoders {
 
             // read back
             var buffer = encoder.Encode(encoderType, e => e.WriteEncodeable("test", expected, typeof(Argument)));
-            var result = decoder.Decode(decoderType,buffer, d => d.ReadEncodeable("test", typeof(Argument)));
+            var result = decoder.Decode(decoderType, buffer, d => d.ReadEncodeable("test", typeof(Argument)));
 
             Assert.True(result.IsEqual(expected));
         }
@@ -292,7 +292,7 @@ namespace Opc.Ua.Encoders {
         [InlineData(ContentEncodings.MimeTypeUaBinary, ContentEncodings.MimeTypeUaBinary)]
         [InlineData(ContentEncodings.MimeTypeUaXml, ContentEncodings.MimeTypeUaXml)]
         public void ReadWriteArgumentArray(string encoderType, string decoderType) {
-            var expected = new [] {
+            var expected = new[] {
                 new Argument("something1",
                     new NodeId(2354), -1, "somedesciroeioi") { ArrayDimensions = new uint[0] },
                 new Argument("something2",
@@ -306,7 +306,7 @@ namespace Opc.Ua.Encoders {
 
             var buffer = encoder.Encode(encoderType, e => e.WriteEncodeableArray("test", expected, typeof(Argument)));
             var test = System.Text.Encoding.UTF8.GetString(buffer);
-            var result = (ArgumentCollection)decoder.Decode(decoderType,buffer, d => d.ReadEncodeableArray("test", typeof(Argument)));
+            var result = (ArgumentCollection)decoder.Decode(decoderType, buffer, d => d.ReadEncodeableArray("test", typeof(Argument)));
 
             for (var i = 0; i < result.Count; i++) {
                 Assert.True(result[i].IsEqual(expected[i]));
@@ -327,7 +327,7 @@ namespace Opc.Ua.Encoders {
             CreateSerializers(out var encoder, out var decoder);
 
             var buffer = encoder.Encode(encoderType, e => e.WriteStringArray("test", expected));
-            var result = decoder.Decode(decoderType,buffer, d => d.ReadStringArray("test"));
+            var result = decoder.Decode(decoderType, buffer, d => d.ReadStringArray("test"));
 
             Assert.Equal(expected, result);
         }
@@ -346,7 +346,7 @@ namespace Opc.Ua.Encoders {
             CreateSerializers(out var encoder, out var decoder);
 
             var buffer = encoder.Encode(encoderType, e => e.WriteStringArray("test", expected));
-            var result = decoder.Decode(decoderType,buffer, d => d.ReadStringArray("test"));
+            var result = decoder.Decode(decoderType, buffer, d => d.ReadStringArray("test"));
 
             Assert.Equal(expected, result);
         }
@@ -365,7 +365,7 @@ namespace Opc.Ua.Encoders {
             CreateSerializers(out var encoder, out var decoder);
 
             var buffer = encoder.Encode(encoderType, e => e.WriteVariant("test", expected));
-            var result = decoder.Decode(decoderType,buffer, d => d.ReadVariant("test"));
+            var result = decoder.Decode(decoderType, buffer, d => d.ReadVariant("test"));
 
             Assert.Equal(expected, result);
         }
@@ -485,7 +485,7 @@ namespace Opc.Ua.Encoders {
             CreateSerializers(out var encoder, out var decoder);
 
             var buffer = encoder.Encode(encoderType, e => e.WriteVariant("test", expected));
-            var result = decoder.Decode(decoderType,buffer, d => d.ReadVariant("test"));
+            var result = decoder.Decode(decoderType, buffer, d => d.ReadVariant("test"));
 
             Assert.Equal(expected, result);
         }
@@ -504,7 +504,7 @@ namespace Opc.Ua.Encoders {
             CreateSerializers(out var encoder, out var decoder);
 
             var buffer = encoder.Encode(encoderType, e => e.WriteUInt64("test", expected));
-            var result = decoder.Decode(decoderType,buffer, d => d.ReadUInt16("test"));
+            var result = decoder.Decode(decoderType, buffer, d => d.ReadUInt16("test"));
 
             Assert.Equal(expected, result);
         }
@@ -525,7 +525,7 @@ namespace Opc.Ua.Encoders {
             CreateSerializers(out var encoder, out var decoder);
 
             var buffer = encoder.Encode(encoderType, e => e.WriteString("test", "99"));
-            var result = decoder.Decode(decoderType,buffer, d => d.ReadUInt64("test"));
+            var result = decoder.Decode(decoderType, buffer, d => d.ReadUInt64("test"));
 
             Assert.Equal(expected, result);
         }
@@ -544,7 +544,7 @@ namespace Opc.Ua.Encoders {
             CreateSerializers(out var encoder, out var decoder);
 
             var buffer = encoder.Encode(encoderType, e => e.WriteVariant("test", expected));
-            var result = decoder.Decode(decoderType,buffer, d => d.ReadVariant("test"));
+            var result = decoder.Decode(decoderType, buffer, d => d.ReadVariant("test"));
 
             Assert.Equal(expected, result);
         }
@@ -569,7 +569,7 @@ namespace Opc.Ua.Encoders {
 
             var buffer = encoder.Encode(encoderType, e => e.WriteVariantArray("test", expected));
             var test = System.Text.Encoding.UTF8.GetString(buffer);
-            var result = decoder.Decode(decoderType,buffer, d => d.ReadVariantArray("test"));
+            var result = decoder.Decode(decoderType, buffer, d => d.ReadVariantArray("test"));
 
             Assert.Equal(expected, result);
         }
@@ -661,7 +661,7 @@ namespace Opc.Ua.Encoders {
             CreateSerializers(out var encoder, out var decoder);
 
             var buffer = encoder.Encode(encoderType, e => e.WriteEncodeable("test", expected, typeof(ProgramDiagnostic2DataType)));
-            var result = decoder.Decode(decoderType,buffer, d => d.ReadEncodeable("test", typeof(ProgramDiagnostic2DataType)));
+            var result = decoder.Decode(decoderType, buffer, d => d.ReadEncodeable("test", typeof(ProgramDiagnostic2DataType)));
             Assert.True(result.IsEqual(expected));
         }
 

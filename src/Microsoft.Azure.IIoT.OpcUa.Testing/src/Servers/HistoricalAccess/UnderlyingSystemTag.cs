@@ -27,9 +27,8 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System;
-
 namespace HistoricalAccess {
+    using System;
 
     /// <summary>
     /// This class stores the state of a tag known to the system.

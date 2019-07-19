@@ -14,5 +14,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// User authentication to change on the endpoint.
         /// </summary>
         public CredentialModel User { get; set; }
+
+        /// <summary>
+        /// Registry operation context
+        /// </summary>
+        public RegistryOperationContextModel Context { get; set; }
     }
 }

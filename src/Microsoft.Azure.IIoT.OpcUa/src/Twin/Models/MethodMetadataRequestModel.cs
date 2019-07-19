@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
+
     /// <summary>
     /// Requests method metadata
     /// </summary>
@@ -17,7 +18,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
 
         /// <summary>
         /// An optional component path from the node identified by
-        /// MethodId to the actual method node.  
+        /// MethodId to the actual method node.
         /// </summary>
         public string[] MethodBrowsePath { get; set; }
 

@@ -27,12 +27,12 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System;
-using System.Collections.Generic;
-using System.Runtime.Serialization;
-using Opc.Ua;
-
 namespace SimpleEvents {
+    using System;
+    using System.Collections.Generic;
+    using System.Runtime.Serialization;
+    using Opc.Ua;
+
     #region CycleStepDataType Class
 #if (!OPCUA_EXCLUDE_CycleStepDataType)
     /// <summary>
@@ -41,14 +41,12 @@ namespace SimpleEvents {
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
     [DataContract(Namespace = SimpleEvents.Namespaces.SimpleEvents)]
-    public partial class CycleStepDataType : IEncodeable
-    {
+    public partial class CycleStepDataType : IEncodeable {
         #region Constructors
         /// <summary>
         /// The default constructor.
         /// </summary>
-        public CycleStepDataType()
-        {
+        public CycleStepDataType() {
             Initialize();
         }
 
@@ -56,16 +54,14 @@ namespace SimpleEvents {
         /// Called by the .NET framework during deserialization.
         /// </summary>
         [OnDeserializing]
-        private void Initialize(StreamingContext context)
-        {
+        private void Initialize(StreamingContext context) {
             Initialize();
         }
 
         /// <summary>
         /// Sets private members to default values.
         /// </summary>
-        private void Initialize()
-        {
+        private void Initialize() {
             m_name = null;
             m_duration = (double)0;
         }
@@ -76,9 +72,8 @@ namespace SimpleEvents {
         /// A description for the Name field.
         /// </summary>
         [DataMember(Name = "Name", IsRequired = false, Order = 1)]
-        public string Name
-        {
-            get { return m_name;  }
+        public string Name {
+            get { return m_name; }
             set { m_name = value; }
         }
 
@@ -86,35 +81,30 @@ namespace SimpleEvents {
         /// A description for the Duration field.
         /// </summary>
         [DataMember(Name = "Duration", IsRequired = false, Order = 2)]
-        public double Duration
-        {
-            get { return m_duration;  }
+        public double Duration {
+            get { return m_duration; }
             set { m_duration = value; }
         }
         #endregion
 
         #region IEncodeable Members
         /// <summary cref="IEncodeable.TypeId" />
-        public virtual ExpandedNodeId TypeId
-        {
+        public virtual ExpandedNodeId TypeId {
             get { return DataTypeIds.CycleStepDataType; }
         }
 
         /// <summary cref="IEncodeable.BinaryEncodingId" />
-        public virtual ExpandedNodeId BinaryEncodingId
-        {
+        public virtual ExpandedNodeId BinaryEncodingId {
             get { return ObjectIds.CycleStepDataType_Encoding_DefaultBinary; }
         }
 
         /// <summary cref="IEncodeable.XmlEncodingId" />
-        public virtual ExpandedNodeId XmlEncodingId
-        {
+        public virtual ExpandedNodeId XmlEncodingId {
             get { return ObjectIds.CycleStepDataType_Encoding_DefaultXml; }
         }
 
         /// <summary cref="IEncodeable.Encode(IEncoder)" />
-        public virtual void Encode(IEncoder encoder)
-        {
+        public virtual void Encode(IEncoder encoder) {
             encoder.PushNamespace(SimpleEvents.Namespaces.SimpleEvents);
 
             encoder.WriteString("Name", Name);
@@ -124,8 +114,7 @@ namespace SimpleEvents {
         }
 
         /// <summary cref="IEncodeable.Decode(IDecoder)" />
-        public virtual void Decode(IDecoder decoder)
-        {
+        public virtual void Decode(IDecoder decoder) {
             decoder.PushNamespace(SimpleEvents.Namespaces.SimpleEvents);
 
             Name = decoder.ReadString("Name");
@@ -135,17 +124,14 @@ namespace SimpleEvents {
         }
 
         /// <summary cref="IEncodeable.IsEqual(IEncodeable)" />
-        public virtual bool IsEqual(IEncodeable encodeable)
-        {
-            if (Object.ReferenceEquals(this, encodeable))
-            {
+        public virtual bool IsEqual(IEncodeable encodeable) {
+            if (Object.ReferenceEquals(this, encodeable)) {
                 return true;
             }
 
             CycleStepDataType value = encodeable as CycleStepDataType;
 
-            if (value == null)
-            {
+            if (value == null) {
                 return false;
             }
 
@@ -155,17 +141,15 @@ namespace SimpleEvents {
             return true;
         }
 
-        #if !NET_STANDARD
+#if !NET_STANDARD
         /// <summary cref="ICloneable.Clone" />
-        public virtual object Clone()
-        {
+        public virtual object Clone() {
             return (CycleStepDataType)this.MemberwiseClone();
         }
-        #endif
+#endif
 
         /// <summary cref="Object.MemberwiseClone" />
-        public new object MemberwiseClone()
-        {
+        public new object MemberwiseClone() {
             CycleStepDataType clone = (CycleStepDataType)base.MemberwiseClone();
 
             clone.m_name = (string)Utils.Clone(this.m_name);
@@ -188,37 +172,35 @@ namespace SimpleEvents {
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
     [CollectionDataContract(Name = "ListOfCycleStepDataType", Namespace = SimpleEvents.Namespaces.SimpleEvents, ItemName = "CycleStepDataType")]
-    #if !NET_STANDARD
+#if !NET_STANDARD
     public partial class CycleStepDataTypeCollection : List<CycleStepDataType>, ICloneable
-    #else
+#else
     public partial class CycleStepDataTypeCollection : List<CycleStepDataType>
-    #endif
+#endif
     {
         #region Constructors
         /// <summary>
         /// Initializes the collection with default values.
         /// </summary>
-        public CycleStepDataTypeCollection() {}
+        public CycleStepDataTypeCollection() { }
 
         /// <summary>
         /// Initializes the collection with an initial capacity.
         /// </summary>
-        public CycleStepDataTypeCollection(int capacity) : base(capacity) {}
+        public CycleStepDataTypeCollection(int capacity) : base(capacity) { }
 
         /// <summary>
         /// Initializes the collection with another collection.
         /// </summary>
-        public CycleStepDataTypeCollection(IEnumerable<CycleStepDataType> collection) : base(collection) {}
+        public CycleStepDataTypeCollection(IEnumerable<CycleStepDataType> collection) : base(collection) { }
         #endregion
 
         #region Static Operators
         /// <summary>
         /// Converts an array to a collection.
         /// </summary>
-        public static implicit operator CycleStepDataTypeCollection(CycleStepDataType[] values)
-        {
-            if (values != null)
-            {
+        public static implicit operator CycleStepDataTypeCollection(CycleStepDataType[] values) {
+            if (values != null) {
                 return new CycleStepDataTypeCollection(values);
             }
 
@@ -228,10 +210,8 @@ namespace SimpleEvents {
         /// <summary>
         /// Converts a collection to an array.
         /// </summary>
-        public static explicit operator CycleStepDataType[](CycleStepDataTypeCollection values)
-        {
-            if (values != null)
-            {
+        public static explicit operator CycleStepDataType[](CycleStepDataTypeCollection values) {
+            if (values != null) {
                 return values.ToArray();
             }
 
@@ -239,25 +219,22 @@ namespace SimpleEvents {
         }
         #endregion
 
-        #if !NET_STANDARD
+#if !NET_STANDARD
         #region ICloneable Methods
         /// <summary>
         /// Creates a deep copy of the collection.
         /// </summary>
-        public object Clone()
-        {
+        public object Clone() {
             return (CycleStepDataTypeCollection)this.MemberwiseClone();
         }
         #endregion
-        #endif
+#endif
 
         /// <summary cref="Object.MemberwiseClone" />
-        public new object MemberwiseClone()
-        {
+        public new object MemberwiseClone() {
             CycleStepDataTypeCollection clone = new CycleStepDataTypeCollection(this.Count);
 
-            for (int ii = 0; ii < this.Count; ii++)
-            {
+            for (int ii = 0; ii < this.Count; ii++) {
                 clone.Add((CycleStepDataType)Utils.Clone(this[ii]));
             }
 
@@ -265,6 +242,6 @@ namespace SimpleEvents {
         }
     }
     #endregion
-    #endif
+#endif
     #endregion
 }

@@ -25,9 +25,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.History {
             var codec = new JsonVariantEncoder();
             return new HistoryReadValuesTests<EndpointModel>(
                 () => new HistoricAccessAdapter<EndpointModel>(new AddressSpaceServices(_server.Client,
-                    codec, _server.Logger), codec, _server.Logger),
+                    codec, _server.Logger), codec),
                 new EndpointModel {
-                    Url = $"opc.tcp://{Dns.GetHostName()}:{_server.Port}/UA/SampleServer"
+                    Url = $"opc.tcp://{Dns.GetHostName()}:{_server.Port}/UA/SampleServer",
+                    Certificate = _server.Certificate?.RawData
                 });
         }
 

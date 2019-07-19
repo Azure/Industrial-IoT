@@ -5,8 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
     using Gremlin.Net.CosmosDb.Structure;
-    using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
-    using Newtonsoft.Json;
 
     /// <summary>
     /// Variable node vertex - note that isabstract is always null

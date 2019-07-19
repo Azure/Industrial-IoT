@@ -141,30 +141,30 @@ namespace Opc.Ua.Nodeset {
         /// <inheritdoc/>
         public override int GetHashCode() {
             var hashCode = base.GetHashCode();
-            hashCode = hashCode *
-                -1521134295 + IsValueType.GetHashCode();
-            hashCode = hashCode *
-                -1521134295 + Value.GetHashSafe();
-            hashCode = hashCode *
-                -1521134295 + Timestamp.GetHashSafe();
-            hashCode = hashCode *
-                -1521134295 + StatusCode.GetHashSafe();
-            hashCode = hashCode *
-                -1521134295 + DataType.GetHashSafe();
-            hashCode = hashCode *
-                -1521134295 + ValueRank.GetHashSafe();
-            hashCode = hashCode *
-                -1521134295 + ArrayDimensions.GetHashSafe();
-            hashCode = hashCode *
-                -1521134295 + AccessLevelEx.GetHashSafe();
-            hashCode = hashCode *
-                -1521134295 + AccessLevel.GetHashSafe();
-            hashCode = hashCode *
-                -1521134295 + UserAccessLevel.GetHashSafe();
-            hashCode = hashCode *
-                -1521134295 + MinimumSamplingInterval.GetHashSafe();
-            hashCode = hashCode *
-                -1521134295 + Historizing.GetHashSafe();
+            hashCode = (hashCode *
+                -1521134295) + IsValueType.GetHashCode();
+            hashCode = (hashCode *
+                -1521134295) + Value.GetHashSafe();
+            hashCode = (hashCode *
+                -1521134295) + Timestamp.GetHashSafe();
+            hashCode = (hashCode *
+                -1521134295) + StatusCode.GetHashSafe();
+            hashCode = (hashCode *
+                -1521134295) + DataType.GetHashSafe();
+            hashCode = (hashCode *
+                -1521134295) + ValueRank.GetHashSafe();
+            hashCode = (hashCode *
+                -1521134295) + ArrayDimensions.GetHashSafe();
+            hashCode = (hashCode *
+                -1521134295) + AccessLevelEx.GetHashSafe();
+            hashCode = (hashCode *
+                -1521134295) + AccessLevel.GetHashSafe();
+            hashCode = (hashCode *
+                -1521134295) + UserAccessLevel.GetHashSafe();
+            hashCode = (hashCode *
+                -1521134295) + MinimumSamplingInterval.GetHashSafe();
+            hashCode = (hashCode *
+                -1521134295) + Historizing.GetHashSafe();
             return hashCode;
         }
     }

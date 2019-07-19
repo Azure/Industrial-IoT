@@ -27,12 +27,11 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System;
-using System.Collections.Generic;
-using Opc.Ua;
-using Opc.Ua.Server;
-
 namespace Alarms {
+    using System;
+    using System.Collections.Generic;
+    using Opc.Ua;
+    using Opc.Ua.Server;
 
     /// <summary>
     /// Maps an alarm source to a UA object node.
@@ -77,8 +76,6 @@ namespace Alarms {
             // request an updated for all alarms.
             _source.Refresh();
         }
-
-
 
         /// <summary>
         /// Returns the last event produced for any conditions belonging to the node or its chilren.
@@ -139,8 +136,10 @@ namespace Alarms {
                 events.Add(e);
             }
         }
-
-
+        protected override void Dispose(bool disposing) {
+            base.Dispose(disposing);
+            _dialog?.Dispose();
+        }
 
         /// <summary>
         /// Called when the state of an alarm for the source has changed.
@@ -220,7 +219,10 @@ namespace Alarms {
             node.ConditionName.Value = node.SymbolicName;
             node.Time.Value = DateTime.UtcNow;
             node.ReceiveTime.Value = node.Time.Value;
-            node.LocalTime.Value = Utils.GetTimeZoneInfo();
+            if (node.LocalTime != null) {
+                node.LocalTime.Value = Utils.GetTimeZoneInfo();
+            }
+
             node.Message.Value = "The dialog was activated";
             node.Retain.Value = true;
 
@@ -363,7 +365,9 @@ namespace Alarms {
             node.ConditionName.Value = node.SymbolicName;
             node.Time.Value = DateTime.UtcNow;
             node.ReceiveTime.Value = node.Time.Value;
-            node.LocalTime.Value = Utils.GetTimeZoneInfo();
+            if (node.LocalTime != null) {
+                node.LocalTime.Value = Utils.GetTimeZoneInfo();
+            }
             node.BranchId.Value = branchId;
 
             // set up method handlers.
@@ -670,11 +674,11 @@ namespace Alarms {
             return null;
         }
 
-        private CustomNodeManager2 _nodeManager;
-        private UnderlyingSystemSource _source;
-        private Dictionary<string, AlarmConditionState> _alarms;
-        private Dictionary<string, AlarmConditionState> _events;
-        private Dictionary<NodeId, AlarmConditionState> _branches;
-        private DialogConditionState _dialog;
+        private readonly CustomNodeManager2 _nodeManager;
+        private readonly UnderlyingSystemSource _source;
+        private readonly Dictionary<string, AlarmConditionState> _alarms;
+        private readonly Dictionary<string, AlarmConditionState> _events;
+        private readonly Dictionary<NodeId, AlarmConditionState> _branches;
+        private readonly DialogConditionState _dialog;
     }
 }

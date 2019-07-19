@@ -140,7 +140,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
             OperationResultEx.Validate("Read_" + LocalId, operations,
                 readResponse.Results
                     .Select(v => skipAttributeIdInvalid &&
-                        v.StatusCode == StatusCodes.BadAttributeIdInvalid  ?
+                        v.StatusCode == StatusCodes.BadAttributeIdInvalid ?
                             StatusCodes.Good : v.StatusCode),
                 readResponse.DiagnosticInfos, readValueCollection
                     .Select(v => AttributeMap.GetBrowseName(v.AttributeId)), traceOnly);

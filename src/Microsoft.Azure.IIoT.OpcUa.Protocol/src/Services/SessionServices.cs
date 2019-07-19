@@ -101,6 +101,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
                 CloseSession(id); // Removes session from session list
             }
+            _shutdownEvent.Dispose();
         }
 
         /// <inheritdoc/>
@@ -308,7 +309,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <summary>
         /// Represents the session
         /// </summary>
-        class GatewaySession : IServerSession, IDisposable {
+        private class GatewaySession : IServerSession, IDisposable {
 
             /// <inheritdoc/>
             public NodeId Id { get; }
@@ -381,7 +382,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// <inheritdoc/>
             public void Dispose() {
                 _cts.Cancel();
-                Utils.SilentDispose(_timeoutTimer);
+                _timeoutTimer?.Dispose();
+                _cts.Dispose();
+                _serverCertificate.Dispose();
             }
 
             /// <inheritdoc/>
@@ -721,7 +724,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         private const int kDefaultNonceLength = 32;
 
-        private readonly object _eventLock = new object();
         private readonly object _lock = new object();
         private readonly ConcurrentDictionary<NodeId, GatewaySession> _sessions =
             new ConcurrentDictionary<NodeId, GatewaySession>();
@@ -729,10 +731,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             new ManualResetEvent(true);
         private readonly ISessionServicesConfig _configuration;
         private readonly ILogger _logger;
+#pragma warning disable IDE1006 // Naming Styles
         private event EventHandler _sessionCreated;
         private event EventHandler _sessionActivated;
         private event EventHandler _sessionTimeout;
         private event EventHandler _sessionClosing;
         private event UserIdentityHandler _validateUser;
+#pragma warning restore IDE1006 // Naming Styles
     }
 }

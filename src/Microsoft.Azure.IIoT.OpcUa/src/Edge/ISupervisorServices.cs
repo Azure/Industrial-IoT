@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -15,13 +16,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge {
         /// <summary>
         /// Get supervisor status
         /// </summary>
+        /// <param name="ct"></param>
         /// <returns></returns>
-        Task<SupervisorStatusModel> GetStatusAsync();
+        Task<SupervisorStatusModel> GetStatusAsync(
+            CancellationToken ct = default);
 
         /// <summary>
         /// Reset supervisor
         /// </summary>
+        /// <param name="ct"></param>
         /// <returns></returns>
-        Task ResetAsync();
+        Task ResetAsync(CancellationToken ct = default);
     }
 }

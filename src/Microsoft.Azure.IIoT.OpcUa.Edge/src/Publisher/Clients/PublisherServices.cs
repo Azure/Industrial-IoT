@@ -27,7 +27,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Clients {
     /// Provides publishing services using publisher client.
     /// </summary>
     public sealed class PublisherServices : IPublishServices<EndpointModel>,
-        IPublisher, IDisposable {
+        IPublisher, IHost, IDisposable {
 
         /// <inheritdoc/>
         public bool IsRunning => _client != null;
@@ -45,7 +45,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Clients {
             }
             //
             // Give it 10 seconds in which we are expecting StartAsync to be
-            // called. If it is not called within 10 seconds start is called 
+            // called. If it is not called within 10 seconds start is called
             // from timer thread. This allows startup to await publisher
             // finding without module processing begins and publish calls
             // initially fail.
@@ -109,6 +109,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Clients {
         public void Dispose() {
             StopAsync().Wait();
             _pnp?.Dispose();
+            _lock.Dispose();
         }
 
         /// <inheritdoc/>
@@ -259,7 +260,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Clients {
         private async Task ReconnectAsync() {
             await _lock.WaitAsync();
             try {
-                if (_client != null && _client != _publishUnsupported) {
+                if (_client != null && _client != kPublishUnsupported) {
                     _logger.Error("Publish services started.");
                     return;
                 }
@@ -274,7 +275,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Clients {
                 }
                 if (client == null) {
                     _retries++;
-                    client = _publishUnsupported;
+                    client = kPublishUnsupported;
                     if (_retries > kMaxRetries) {
                         _logger.Information("No publisher found - Publish services not supported.");
                     }
@@ -421,7 +422,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Clients {
             }
         }
 
-        private static readonly PublishUnsupported _publishUnsupported =
+        private static readonly PublishUnsupported kPublishUnsupported =
             new PublishUnsupported();
         private const int kMaxRetries = 6;
 

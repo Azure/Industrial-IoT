@@ -27,11 +27,11 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System.Collections.Generic;
-using Opc.Ua;
-using Opc.Ua.Server;
-
 namespace DataAccess {
+    using System.Collections.Generic;
+    using Opc.Ua;
+    using Opc.Ua.Server;
+
     /// <summary>
     /// A node manager for a server that exposes several variables.
     /// </summary>
@@ -331,8 +331,8 @@ namespace DataAccess {
             }
         }
 
-        private UnderlyingSystem _system;
+        private readonly UnderlyingSystem _system;
         private readonly DataAccessServerConfiguration _configuration;
-        private Dictionary<NodeId, BlockState> _blocks;
+        private readonly Dictionary<NodeId, BlockState> _blocks;
     }
 }

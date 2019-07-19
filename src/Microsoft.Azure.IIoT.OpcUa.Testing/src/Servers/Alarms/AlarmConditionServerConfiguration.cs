@@ -27,11 +27,11 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System.Collections.Generic;
-using System.Runtime.Serialization;
-using Opc.Ua;
-
 namespace Alarms {
+    using System.Collections.Generic;
+    using System.Runtime.Serialization;
+    using Opc.Ua;
+
     /// <summary>
     /// Stores the configuration the Alarm Condition server.
     /// </summary>

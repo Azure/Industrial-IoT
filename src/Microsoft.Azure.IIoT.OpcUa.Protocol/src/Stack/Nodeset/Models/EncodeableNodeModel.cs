@@ -273,7 +273,9 @@ namespace Opc.Ua.Nodeset {
         }
 
         /// <inheritdoc/>
-        public override int GetHashCode() => Node.GetHashCode();
+        public override int GetHashCode() {
+            return Node.GetHashCode();
+        }
 
         /// <summary>
         /// Create node model

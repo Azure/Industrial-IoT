@@ -27,22 +27,20 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System.Text;
-using System.IO;
-using Opc.Ua;
-using Opc.Ua.Server;
-
 namespace HistoricalAccess {
+    using System.Text;
+    using System.IO;
+    using Opc.Ua;
+    using Opc.Ua.Server;
+
     /// <summary>
     /// Provides access to the system which stores the data.
     /// </summary>
-    public class UnderlyingSystem
-    {
+    public class UnderlyingSystem {
         /// <summary>
         /// Constructs a new system.
         /// </summary>
-        public UnderlyingSystem(HistoricalAccessServerConfiguration configuration, ushort namespaceIndex)
-        {
+        public UnderlyingSystem(HistoricalAccessServerConfiguration configuration, ushort namespaceIndex) {
             _configuration = configuration;
             _namespaceIndex = namespaceIndex;
         }
@@ -50,8 +48,7 @@ namespace HistoricalAccess {
         /// <summary>
         /// Returns a folder object for the specified node.
         /// </summary>
-        public ArchiveFolderState GetFolderState(ISystemContext context, string rootId)
-        {
+        public ArchiveFolderState GetFolderState(ISystemContext context, string rootId) {
             var path = new StringBuilder();
             path.Append(_configuration.ArchiveRoot);
             path.Append('/');
@@ -64,10 +61,8 @@ namespace HistoricalAccess {
         /// <summary>
         /// Returns a item object for the specified node.
         /// </summary>
-        public ArchiveItemState GetItemState(ISystemContext context, ParsedNodeId parsedNodeId)
-        {
-            if (parsedNodeId.RootType != NodeTypes.Item)
-            {
+        public ArchiveItemState GetItemState(ISystemContext context, ParsedNodeId parsedNodeId) {
+            if (parsedNodeId.RootType != NodeTypes.Item) {
                 return null;
             }
 
@@ -82,6 +77,6 @@ namespace HistoricalAccess {
         }
 
         private readonly ushort _namespaceIndex;
-        private HistoricalAccessServerConfiguration _configuration;
+        private readonly HistoricalAccessServerConfiguration _configuration;
     }
 }

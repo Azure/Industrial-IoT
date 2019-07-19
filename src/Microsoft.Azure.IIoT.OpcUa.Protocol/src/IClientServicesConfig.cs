@@ -4,22 +4,19 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
-    using System;
-
 
     /// <summary>
     /// Client Services configuration
     /// </summary>
-
     public interface IClientServicesConfig {
 
         /// <summary>
-        /// application's certificate store type: Directory or X509Store 
+        /// application's certificate store type: Directory or X509Store
         /// </summary>
         string AppCertStoreType { get; }
-        
+
         /// <summary>
-        /// root path of the pki security folder 
+        /// root path of the pki security folder
         /// </summary>
         string PkiRootPath { get; }
 
@@ -27,7 +24,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// Path to the folder storing the application's certificate
         /// </summary>
         string OwnCertPath { get; }
-        
+
         /// <summary>
         /// Path to the folder storing the application's trusted certificates
         /// </summary>
@@ -41,7 +38,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <summary>
         /// Path of the folder to store the rejected certificates
         /// </summary>
-        /// 
+        ///
         string RejectedCertPath { get; }
 
         /// <summary>
@@ -50,10 +47,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         bool AutoAccept { get; }
 
         /// <summary>
-        /// the default store path for the windows X509 certificates store in case 
+        /// the default store path for the windows X509 certificates store in case
         /// X509Store store type is used
         /// </summary>
         string OwnCertX509StorePathDefault { get; }
-
     }
 }

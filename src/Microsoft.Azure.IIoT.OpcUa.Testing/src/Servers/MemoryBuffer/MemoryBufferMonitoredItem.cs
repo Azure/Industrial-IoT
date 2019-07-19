@@ -27,39 +27,37 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using Opc.Ua;
-using Opc.Ua.Server;
+namespace MemoryBuffer {
+    using Opc.Ua;
+    using Opc.Ua.Server;
 
-namespace MemoryBuffer
-{
     /// <summary>
     /// Provides a basic monitored item implementation which does not support queuing.
     /// </summary>
-    public class MemoryBufferMonitoredItem : MonitoredItem
-    {
-		/// <summary>
-		/// Initializes the object with its node type.
-		/// </summary>
+    public class MemoryBufferMonitoredItem : MonitoredItem {
+        /// <summary>
+        /// Initializes the object with its node type.
+        /// </summary>
         public MemoryBufferMonitoredItem(
-            IServerInternal     server,
-            INodeManager        nodeManager,
-            object              mangerHandle,
-            uint                offset,
-            uint                subscriptionId,
-            uint                id,
-            Session             session,
-            ReadValueId         itemToMonitor,
-            DiagnosticsMasks    diagnosticsMasks,
-            TimestampsToReturn  timestampsToReturn,
-            MonitoringMode      monitoringMode,
-            uint                clientHandle,
-            MonitoringFilter    originalFilter,
-            MonitoringFilter    filterToUse,
-            Range               range,
-            double              samplingInterval,
-            uint                queueSize,
-            bool                discardOldest,
-            double              minimumSamplingInterval)
+            IServerInternal server,
+            INodeManager nodeManager,
+            object mangerHandle,
+            uint offset,
+            uint subscriptionId,
+            uint id,
+            Session session,
+            ReadValueId itemToMonitor,
+            DiagnosticsMasks diagnosticsMasks,
+            TimestampsToReturn timestampsToReturn,
+            MonitoringMode monitoringMode,
+            uint clientHandle,
+            MonitoringFilter originalFilter,
+            MonitoringFilter filterToUse,
+            Range range,
+            double samplingInterval,
+            uint queueSize,
+            bool discardOldest,
+            double minimumSamplingInterval)
         :
             base(
                 server,
@@ -79,8 +77,7 @@ namespace MemoryBuffer
                 samplingInterval,
                 queueSize,
                 discardOldest,
-                minimumSamplingInterval)
-		{
+                minimumSamplingInterval) {
             Offset = offset;
         }
 
@@ -91,8 +88,7 @@ namespace MemoryBuffer
             DiagnosticsMasks diagnosticsMasks,
             TimestampsToReturn timestampsToReturn,
             uint clientHandle,
-            double samplingInterval)
-        {
+            double samplingInterval) {
             return ModifyAttributes(diagnosticsMasks,
                 timestampsToReturn,
                 clientHandle,

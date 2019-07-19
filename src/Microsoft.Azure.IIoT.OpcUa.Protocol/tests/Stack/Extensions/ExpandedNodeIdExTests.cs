@@ -40,8 +40,18 @@ namespace Opc.Ua.Extensions {
         }
 
         [Fact]
-        public void DecodeExpandedNodeIdFromStringInvalidUri()
-        {
+        public void DecodeExpandedNodeIdFromStringUrnNamespace() {
+            var context = new ServiceMessageContext();
+            var expected = "   space    tests /(%)§;#;;#;()§$\"))\"\")(§";
+            var uri = "urn:contosos";
+            var result = (uri + "#s=" + expected).ToExpandedNodeId(context);
+            Assert.Equal(expected, result.Identifier);
+            Assert.Equal(uri, context.NamespaceUris.GetString(1));
+            Assert.Equal(1, result.NamespaceIndex);
+        }
+
+        [Fact]
+        public void DecodeExpandedNodeIdFromStringInvalidUri() {
             var context = new ServiceMessageContext();
             var expected = "   space    tests /(%)§;#;;#;()§$\"))\"\")(§";
             var uri = "invalidUri";
@@ -56,7 +66,7 @@ namespace Opc.Ua.Extensions {
             var context = new ServiceMessageContext();
             var expected = "   space    tests /(%)§;#;;#;()§$\"))\"\")(§";
             var uri = "http://contosos.com/UA";
-            var result =("ns=" + context.NamespaceUris.GetIndexOrAppend(uri) + ";s=" + expected)
+            var result = ("ns=" + context.NamespaceUris.GetIndexOrAppend(uri) + ";s=" + expected)
                 .ToExpandedNodeId(context);
             Assert.Equal(expected, result.Identifier);
             Assert.Equal(uri, context.NamespaceUris.GetString(1));
@@ -68,6 +78,36 @@ namespace Opc.Ua.Extensions {
             var context = new ServiceMessageContext();
             var expected = "   space    tests /(%)§;#;;#;()§$\"))\"\")(§";
             var uri = "http://contosos.com/UA";
+            var index = context.NamespaceUris.GetIndexOrAppend(uri);
+            var result = ("nsu=" + uri + ";s=" + expected)
+                .ToExpandedNodeId(context);
+            Assert.Equal(expected, result.Identifier);
+            Assert.Equal(uri, context.NamespaceUris.GetString(1));
+            Assert.Equal(uri, result.NamespaceUri);
+            Assert.Equal(0, result.NamespaceIndex);
+            Assert.Equal(1, index);
+        }
+
+        [Fact]
+        public void DecodeExpandedNodeIdFromStringWithNsuBadNamespace() {
+            var context = new ServiceMessageContext();
+            var expected = "   space    tests /(%)§;#;;#;()§$\"))\"\")(§";
+            var uri = "contosos";
+            var index = context.NamespaceUris.GetIndexOrAppend(uri);
+            var result = ("nsu=" + uri + ";s=" + expected)
+                .ToExpandedNodeId(context);
+            Assert.Equal(expected, result.Identifier);
+            Assert.Equal(uri, context.NamespaceUris.GetString(1));
+            Assert.Equal(uri, result.NamespaceUri);
+            Assert.Equal(0, result.NamespaceIndex);
+            Assert.Equal(1, index);
+        }
+
+        [Fact]
+        public void DecodeExpandedNodeIdFromStringWithNsuUrnNamespace() {
+            var context = new ServiceMessageContext();
+            var expected = "   space    tests /(%)§;#;;#;()§$\"))\"\")(§";
+            var uri = "urn:contosos";
             var index = context.NamespaceUris.GetIndexOrAppend(uri);
             var result = ("nsu=" + uri + ";s=" + expected)
                 .ToExpandedNodeId(context);
@@ -390,7 +430,7 @@ namespace Opc.Ua.Extensions {
             var context = new ServiceMessageContext();
             var uri = "http://contoso.com/UA";
             var idx = context.NamespaceUris.GetIndexOrAppend(uri);
-            var expected = new ExpandedNodeId((string)null, idx, uri, 0);
+            var expected = new ExpandedNodeId(null, idx, uri, 0);
 
             var s1 = expected.AsString(context);
             var s2 = expected.AsString(context, true);

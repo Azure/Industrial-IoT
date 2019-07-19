@@ -94,7 +94,7 @@ $@"                reference => {{
             var args = $@"
             Assert.Collection(result.InputArguments, ";
             foreach (var arg in results.InputArguments) {
-                args +=$@"
+                args += $@"
                 arg => {{
                     Assert.Equal(""{arg.Name}"", arg.Name);
                     Assert.Equal(NodeValueRank.{arg.ValueRank}, arg.ValueRank);

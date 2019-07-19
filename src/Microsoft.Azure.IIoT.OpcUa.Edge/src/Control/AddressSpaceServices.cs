@@ -557,31 +557,31 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
             }
             return _client.ExecuteServiceAsync(endpoint, request.Header?.Elevation,
                 async session => {
-                var requests = new ReadValueIdCollection(request.Attributes
-                    .Select(a => new ReadValueId {
-                        AttributeId = (uint)a.Attribute,
-                        NodeId = a.NodeId.ToNodeId(session.MessageContext)
-                    }));
-                var response = await session.ReadAsync(
-                    (request.Header?.Diagnostics).ToStackModel(), 0, TimestampsToReturn.Both,
-                    requests);
-                SessionClientEx.Validate(response.Results, response.DiagnosticInfos, requests);
-                return new ReadResultModel {
-                    Results = response.Results
-                        .Select((value, index) => {
-                            var diagnostics = response.DiagnosticInfos == null ||
-                                        response.DiagnosticInfos.Count == 0 ? null :
-                                response.DiagnosticInfos[index];
-                            return new AttributeReadResultModel {
-                                Value = _codec.Encode(value.WrappedValue, out var wellKnown,
-                                    session.MessageContext),
-                                ErrorInfo = diagnostics.ToServiceModel(
-                                    value.StatusCode, "NodeRead", request.Header?.Diagnostics,
-                                    session.MessageContext)
-                            };
-                        }).ToList()
-                };
-            });
+                    var requests = new ReadValueIdCollection(request.Attributes
+                        .Select(a => new ReadValueId {
+                            AttributeId = (uint)a.Attribute,
+                            NodeId = a.NodeId.ToNodeId(session.MessageContext)
+                        }));
+                    var response = await session.ReadAsync(
+                        (request.Header?.Diagnostics).ToStackModel(), 0, TimestampsToReturn.Both,
+                        requests);
+                    SessionClientEx.Validate(response.Results, response.DiagnosticInfos, requests);
+                    return new ReadResultModel {
+                        Results = response.Results
+                            .Select((value, index) => {
+                                var diagnostics = response.DiagnosticInfos == null ||
+                                            response.DiagnosticInfos.Count == 0 ? null :
+                                    response.DiagnosticInfos[index];
+                                return new AttributeReadResultModel {
+                                    Value = _codec.Encode(value.WrappedValue, out var wellKnown,
+                                        session.MessageContext),
+                                    ErrorInfo = diagnostics.ToServiceModel(
+                                        value.StatusCode, "NodeRead", request.Header?.Diagnostics,
+                                        session.MessageContext)
+                                };
+                            }).ToList()
+                    };
+                });
         }
 
         /// <inheritdoc/>
@@ -598,31 +598,31 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
             }
             return _client.ExecuteServiceAsync(endpoint, request.Header?.Elevation,
                 async session => {
-                var requests = new WriteValueCollection(request.Attributes
-                    .Select(a => new WriteValue {
-                        AttributeId = (uint)a.Attribute,
-                        NodeId = a.NodeId.ToNodeId(session.MessageContext),
-                        Value = new DataValue(_codec.Decode(a.Value,
-                            AttributeMap.GetBuiltInType((uint)a.Attribute),
-                            session.MessageContext))
-                    }));
-                var response = await session.WriteAsync(
-                    (request.Header?.Diagnostics).ToStackModel(), requests);
-                SessionClientEx.Validate(response.Results, response.DiagnosticInfos, requests);
-                return new WriteResultModel {
-                    Results = response.Results
-                        .Select((value, index) => {
-                            var diagnostics = response.DiagnosticInfos == null ||
-                                        response.DiagnosticInfos.Count == 0 ? null :
-                                response.DiagnosticInfos[index];
-                            return new AttributeWriteResultModel {
-                                ErrorInfo = diagnostics.ToServiceModel(
-                                    value, "NodeWrite", request.Header?.Diagnostics,
-                                    session.MessageContext)
-                            };
-                        }).ToList()
-                };
-            });
+                    var requests = new WriteValueCollection(request.Attributes
+                        .Select(a => new WriteValue {
+                            AttributeId = (uint)a.Attribute,
+                            NodeId = a.NodeId.ToNodeId(session.MessageContext),
+                            Value = new DataValue(_codec.Decode(a.Value,
+                                AttributeMap.GetBuiltInType((uint)a.Attribute),
+                                session.MessageContext))
+                        }));
+                    var response = await session.WriteAsync(
+                        (request.Header?.Diagnostics).ToStackModel(), requests);
+                    SessionClientEx.Validate(response.Results, response.DiagnosticInfos, requests);
+                    return new WriteResultModel {
+                        Results = response.Results
+                            .Select((value, index) => {
+                                var diagnostics = response.DiagnosticInfos == null ||
+                                            response.DiagnosticInfos.Count == 0 ? null :
+                                    response.DiagnosticInfos[index];
+                                return new AttributeWriteResultModel {
+                                    ErrorInfo = diagnostics.ToServiceModel(
+                                        value, "NodeWrite", request.Header?.Diagnostics,
+                                        session.MessageContext)
+                                };
+                            }).ToList()
+                    };
+                });
         }
 
         /// <inheritdoc/>
@@ -689,27 +689,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
             }
             return _client.ExecuteServiceAsync(endpoint, request.Header?.Elevation,
                 async session => {
-                var diagnostics = new List<OperationResultModel>();
-                var response = await session.HistoryReadAsync(
-                    (request.Header?.Diagnostics).ToStackModel(), null, TimestampsToReturn.Both,
-                    request.Abort ?? false, new HistoryReadValueIdCollection {
+                    var diagnostics = new List<OperationResultModel>();
+                    var response = await session.HistoryReadAsync(
+                        (request.Header?.Diagnostics).ToStackModel(), null, TimestampsToReturn.Both,
+                        request.Abort ?? false, new HistoryReadValueIdCollection {
                         new HistoryReadValueId {
                             ContinuationPoint = request.ContinuationToken.DecodeAsBase64(),
                             DataEncoding = null // TODO
                         }
-                    });
-                OperationResultEx.Validate("HistoryReadNext_" + request.ContinuationToken,
-                    diagnostics, response.Results.Select(r => r.StatusCode),
-                    response.DiagnosticInfos, false);
-                SessionClientEx.Validate(response.Results, response.DiagnosticInfos);
-                return new HistoryReadNextResultModel<JToken> {
-                    ContinuationToken = response.Results[0].ContinuationPoint.ToBase64String(),
-                    History = _codec.Encode(new Variant(response.Results[0].HistoryData),
-                        out var tmp, session.MessageContext),
-                    ErrorInfo = diagnostics.ToServiceModel(request.Header?.Diagnostics,
-                        session.MessageContext)
-                };
-            });
+                        });
+                    OperationResultEx.Validate("HistoryReadNext_" + request.ContinuationToken,
+                        diagnostics, response.Results.Select(r => r.StatusCode),
+                        response.DiagnosticInfos, false);
+                    SessionClientEx.Validate(response.Results, response.DiagnosticInfos);
+                    return new HistoryReadNextResultModel<JToken> {
+                        ContinuationToken = response.Results[0].ContinuationPoint.ToBase64String(),
+                        History = _codec.Encode(new Variant(response.Results[0].HistoryData),
+                            out var tmp, session.MessageContext),
+                        ErrorInfo = diagnostics.ToServiceModel(request.Header?.Diagnostics,
+                            session.MessageContext)
+                    };
+                });
         }
 
         /// <inheritdoc/>

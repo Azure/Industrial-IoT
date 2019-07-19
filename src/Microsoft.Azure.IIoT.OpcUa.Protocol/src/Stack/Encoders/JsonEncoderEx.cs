@@ -158,7 +158,9 @@ namespace Opc.Ua.Encoders {
         }
 
         /// <inheritdoc/>
-        public void Dispose() => Close();
+        public void Dispose() {
+            Close();
+        }
 
         /// <inheritdoc/>
         public void SetMappingTables(NamespaceTable namespaceUris,
@@ -176,12 +178,14 @@ namespace Opc.Ua.Encoders {
         }
 
         /// <inheritdoc/>
-        public void PushNamespace(string namespaceUri) =>
+        public void PushNamespace(string namespaceUri) {
             _namespaces.Push(namespaceUri);
+        }
 
         /// <inheritdoc/>
-        public void PopNamespace() =>
+        public void PopNamespace() {
             _namespaces.Pop();
+        }
 
         /// <inheritdoc/>
         public void WriteSByte(string property, sbyte value) {
@@ -644,7 +648,7 @@ namespace Opc.Ua.Encoders {
                         WriteEncoding("Encoding", encoding);
                         if (body is EncodeableJToken jt) {
                             // Write encodeable token as json raw
-                            body = jt.JToken; 
+                            body = jt.JToken;
                         }
                         else if (body is IEncodeable o) {
                             PushObject("Body");
@@ -713,96 +717,119 @@ namespace Opc.Ua.Encoders {
         }
 
         /// <inheritdoc/>
-        public void WriteBooleanArray(string property, IList<bool> values) =>
+        public void WriteBooleanArray(string property, IList<bool> values) {
             WriteArray(property, values, _writer.WriteValue);
+        }
 
         /// <inheritdoc/>
-        public void WriteSByteArray(string property, IList<sbyte> values) =>
+        public void WriteSByteArray(string property, IList<sbyte> values) {
             WriteArray(property, values, _writer.WriteValue);
+        }
 
         /// <inheritdoc/>
-        public void WriteByteArray(string property, IList<byte> values) =>
+        public void WriteByteArray(string property, IList<byte> values) {
             WriteArray(property, values, _writer.WriteValue);
+        }
 
         /// <inheritdoc/>
-        public void WriteInt16Array(string property, IList<short> values) =>
+        public void WriteInt16Array(string property, IList<short> values) {
             WriteArray(property, values, _writer.WriteValue);
+        }
 
         /// <inheritdoc/>
-        public void WriteUInt16Array(string property, IList<ushort> values) =>
+        public void WriteUInt16Array(string property, IList<ushort> values) {
             WriteArray(property, values, _writer.WriteValue);
+        }
 
         /// <inheritdoc/>
-        public void WriteInt32Array(string property, IList<int> values) =>
+        public void WriteInt32Array(string property, IList<int> values) {
             WriteArray(property, values, _writer.WriteValue);
+        }
 
         /// <inheritdoc/>
-        public void WriteUInt32Array(string property, IList<uint> values) =>
+        public void WriteUInt32Array(string property, IList<uint> values) {
             WriteArray(property, values, _writer.WriteValue);
+        }
 
         /// <inheritdoc/>
-        public void WriteInt64Array(string property, IList<long> values) =>
+        public void WriteInt64Array(string property, IList<long> values) {
             WriteArray(property, values, _writer.WriteValue);
+        }
 
         /// <inheritdoc/>
-        public void WriteUInt64Array(string property, IList<ulong> values) =>
+        public void WriteUInt64Array(string property, IList<ulong> values) {
             WriteArray(property, values, _writer.WriteValue);
+        }
 
         /// <inheritdoc/>
-        public void WriteFloatArray(string property, IList<float> values) =>
+        public void WriteFloatArray(string property, IList<float> values) {
             WriteArray(property, values, _writer.WriteValue);
+        }
 
         /// <inheritdoc/>
-        public void WriteDoubleArray(string property, IList<double> values) =>
+        public void WriteDoubleArray(string property, IList<double> values) {
             WriteArray(property, values, _writer.WriteValue);
+        }
 
         /// <inheritdoc/>
-        public void WriteStringArray(string property, IList<string> values) =>
+        public void WriteStringArray(string property, IList<string> values) {
             WriteArray(property, values, _writer.WriteValue);
+        }
 
         /// <inheritdoc/>
-        public void WriteDateTimeArray(string property, IList<DateTime> values) =>
+        public void WriteDateTimeArray(string property, IList<DateTime> values) {
             WriteArray(property, values, v => WriteDateTime(null, v));
+        }
 
         /// <inheritdoc/>
-        public void WriteGuidArray(string property, IList<Uuid> values) =>
+        public void WriteGuidArray(string property, IList<Uuid> values) {
             WriteArray(property, values, v => WriteGuid(null, v));
+        }
 
         /// <inheritdoc/>
-        public void WriteGuidArray(string property, IList<Guid> values) =>
+        public void WriteGuidArray(string property, IList<Guid> values) {
             WriteArray(property, values, v => WriteGuid(null, v));
+        }
 
         /// <inheritdoc/>
-        public void WriteByteStringArray(string property, IList<byte[]> values) =>
+        public void WriteByteStringArray(string property, IList<byte[]> values) {
             WriteArray(property, values, v => WriteByteString(null, v));
+        }
 
         /// <inheritdoc/>
-        public void WriteXmlElementArray(string property, IList<XmlElement> values) =>
+        public void WriteXmlElementArray(string property, IList<XmlElement> values) {
             WriteArray(property, values, v => WriteXmlElement(null, v));
+        }
 
         /// <inheritdoc/>
-        public void WriteNodeIdArray(string property, IList<NodeId> values) =>
+        public void WriteNodeIdArray(string property, IList<NodeId> values) {
             WriteArray(property, values, v => WriteNodeId(null, v));
+        }
 
         /// <inheritdoc/>
-        public void WriteExpandedNodeIdArray(string property, IList<ExpandedNodeId> values) =>
+        public void WriteExpandedNodeIdArray(string property, IList<ExpandedNodeId> values) {
             WriteArray(property, values, v => WriteExpandedNodeId(null, v));
+        }
 
         /// <inheritdoc/>
-        public void WriteStatusCodeArray(string property, IList<StatusCode> values) =>
+        public void WriteStatusCodeArray(string property, IList<StatusCode> values) {
             WriteArray(property, values, v => WriteStatusCode(null, v));
+        }
 
         /// <inheritdoc/>
-        public void WriteDiagnosticInfoArray(string property, IList<DiagnosticInfo> values) =>
+        public void WriteDiagnosticInfoArray(string property, IList<DiagnosticInfo> values) {
             WriteArray(property, values, v => WriteDiagnosticInfo(null, v));
+        }
 
         /// <inheritdoc/>
-        public void WriteQualifiedNameArray(string property, IList<QualifiedName> values) =>
+        public void WriteQualifiedNameArray(string property, IList<QualifiedName> values) {
             WriteArray(property, values, v => WriteQualifiedName(null, v));
+        }
 
         /// <inheritdoc/>
-        public void WriteLocalizedTextArray(string property, IList<LocalizedText> values) =>
+        public void WriteLocalizedTextArray(string property, IList<LocalizedText> values) {
             WriteArray(property, values, v => WriteLocalizedText(null, v));
+        }
 
         /// <inheritdoc/>
         public void WriteVariantArray(string property, IList<Variant> values) {
@@ -810,17 +837,20 @@ namespace Opc.Ua.Encoders {
         }
 
         /// <inheritdoc/>
-        public void WriteDataValueArray(string property, IList<DataValue> values) =>
+        public void WriteDataValueArray(string property, IList<DataValue> values) {
             WriteArray(property, values, v => WriteDataValue(null, v));
+        }
 
         /// <inheritdoc/>
-        public void WriteExtensionObjectArray(string property, IList<ExtensionObject> values) =>
+        public void WriteExtensionObjectArray(string property, IList<ExtensionObject> values) {
             WriteArray(property, values, v => WriteExtensionObject(null, v));
+        }
 
         /// <inheritdoc/>
         public void WriteEncodeableArray(string property, IList<IEncodeable> values,
-            Type systemType) =>
+            Type systemType) {
             WriteArray(property, values, v => WriteEncodeable(null, v, systemType));
+        }
 
         /// <inheritdoc/>
         public void WriteObjectArray(string property, IList<object> values) {
