@@ -34,13 +34,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
         /// <param name="nodes"></param>
         /// <param name="historian"></param>
         /// <param name="publisher"></param>
-        /// <param name="logger"></param>
         public SupervisorMethodsController(ISupervisorServices supervisor,
             IDiscoveryServices discover, IActivationServices<string> activator,
             INodeServices<EndpointModel> nodes, IHistoricAccessServices<EndpointModel> historian,
-            IBrowseServices<EndpointModel> browse, IPublishServices<EndpointModel> publisher,
-            ILogger logger) {
-
+            IBrowseServices<EndpointModel> browse, IPublishServices<EndpointModel> publisher) {
             _supervisor = supervisor ?? throw new ArgumentNullException(nameof(supervisor));
             _browse = browse ?? throw new ArgumentNullException(nameof(browse));
             _historian = historian ?? throw new ArgumentNullException(nameof(historian));
@@ -48,7 +45,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
             _publisher = publisher ?? throw new ArgumentNullException(nameof(publisher));
             _discover = discover ?? throw new ArgumentNullException(nameof(discover));
             _activator = activator ?? throw new ArgumentNullException(nameof(activator));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <summary>
@@ -376,7 +372,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
             return true;
         }
 
-        private readonly ILogger _logger;
         private readonly IActivationServices<string> _activator;
         private readonly ISupervisorServices _supervisor;
         private readonly IBrowseServices<EndpointModel> _browse;

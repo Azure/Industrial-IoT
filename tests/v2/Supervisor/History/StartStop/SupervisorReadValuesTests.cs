@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.History.StartSto
     using System;
 
     [Collection(ReadHistoryCollection.Name)]
-    public class SupervisorReadValuesTests{
+    public class SupervisorReadValuesTests {
 
         public SupervisorReadValuesTests(HistoryServerFixture server) {
             _server = server;
@@ -28,7 +28,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.History.StartSto
                 () => services.Resolve<IHistorianServices<EndpointRegistrationModel>>(),
                 new EndpointRegistrationModel {
                     Endpoint = new EndpointModel {
-                        Url = $"opc.tcp://{Dns.GetHostName()}:{_server.Port}/UA/SampleServer"
+                        Url = $"opc.tcp://{Dns.GetHostName()}:{_server.Port}/UA/SampleServer",
+                        Certificate = _server.Certificate?.RawData
                     },
                     Id = "testid",
                     SupervisorId = SupervisorModelEx.CreateSupervisorId(deviceId, moduleId)

@@ -1,7 +1,7 @@
-FROM microsoft/dotnet:2.1-runtime-nanoserver-1809 AS base
+FROM microsoft/dotnet:2.2-runtime-nanoserver-1809 AS base
 WORKDIR /app
 
-FROM microsoft/dotnet:2.1-sdk-nanoserver-1809 AS build
+FROM microsoft/dotnet:2.2-sdk-nanoserver-1809 AS build
 WORKDIR /src
 COPY src/Microsoft.Azure.IIoT.Modules.OpcUa.Twin.csproj src/
 COPY cli/Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Cli.csproj cli/

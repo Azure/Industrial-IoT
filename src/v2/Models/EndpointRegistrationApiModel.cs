@@ -35,7 +35,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Models {
             AuthenticationMethods = model.AuthenticationMethods?
                 .Select(p => p == null ? null : new AuthenticationMethodApiModel(p))
                 .ToList();
-            Certificate = model.Certificate;
             SiteId = model.SiteId;
             SecurityLevel = model.SecurityLevel;
         }
@@ -52,8 +51,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Models {
                 AuthenticationMethods = AuthenticationMethods?
                     .Select(p => p?.ToServiceModel()).ToList(),
                 SecurityLevel = SecurityLevel,
-                SiteId = SiteId,
-                Certificate = Certificate
+                SiteId = SiteId
             };
         }
 
@@ -89,13 +87,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Models {
         [JsonProperty(PropertyName = "SecurityLevel",
             NullValueHandling = NullValueHandling.Ignore)]
         public int? SecurityLevel { get; set; }
-
-        /// <summary>
-        /// Endpoint cert that was registered.
-        /// </summary>
-        [JsonProperty(PropertyName = "Certificate",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public byte[] Certificate { get; set; }
 
         /// <summary>
         /// Supported authentication methods that can be selected to

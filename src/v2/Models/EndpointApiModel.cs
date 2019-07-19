@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Models {
         /// <summary>
         /// Default constructor
         /// </summary>
-        public EndpointApiModel() {}
+        public EndpointApiModel() { }
 
         /// <summary>
         /// Create api model from service model
@@ -31,7 +31,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Models {
             AlternativeUrls = model.AlternativeUrls;
             User = model.User == null ? null :
                 new CredentialApiModel(model.User);
-            ServerThumbprint = model.ServerThumbprint;
+            Certificate = model.Certificate;
             SecurityMode = model.SecurityMode;
             SecurityPolicy = model.SecurityPolicy;
         }
@@ -44,7 +44,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Models {
                 Url = Url,
                 AlternativeUrls = AlternativeUrls,
                 User = User?.ToServiceModel(),
-                ServerThumbprint = ServerThumbprint,
+                Certificate = Certificate,
                 SecurityMode = SecurityMode,
                 SecurityPolicy = SecurityPolicy,
             };
@@ -88,10 +88,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Models {
         public string SecurityPolicy { get; set; }
 
         /// <summary>
-        /// Thumbprint to validate against or null to trust any.
+        /// Certificate to validate against or null to trust none.
         /// </summary>
-        [JsonProperty(PropertyName = "ServerThumbprint",
+        [JsonProperty(PropertyName = "Certificate",
             NullValueHandling = NullValueHandling.Ignore)]
-        public byte[] ServerThumbprint { get; set; }
+        public byte[] Certificate { get; set; }
     }
 }

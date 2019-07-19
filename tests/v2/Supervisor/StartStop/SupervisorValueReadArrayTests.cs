@@ -29,7 +29,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.StartStop {
                 () => services.Resolve<INodeServices<EndpointRegistrationModel>>(),
                 new EndpointRegistrationModel {
                     Endpoint = new EndpointModel {
-                        Url = $"opc.tcp://{Dns.GetHostName()}:{_server.Port}/UA/SampleServer"
+                        Url = $"opc.tcp://{Dns.GetHostName()}:{_server.Port}/UA/SampleServer",
+                        Certificate = _server.Certificate?.RawData
                     },
                     Id = "testid",
                     SupervisorId = SupervisorModelEx.CreateSupervisorId(deviceId, moduleId)
@@ -93,7 +94,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.StartStop {
         public async Task NodeReadStaticArraySByteValueVariableTest() {
             // Skip.IfNot(_runAll);
             using (var harness = new TwinModuleFixture()) {
-            await harness.RunTestAsync(async (device, module, services) => {
+                await harness.RunTestAsync(async (device, module, services) => {
                     await GetTests(device, module, services).NodeReadStaticArraySByteValueVariableTest();
                 });
             }

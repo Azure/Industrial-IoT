@@ -73,17 +73,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
         /// <summary>
         /// Endpoint certificate thumbprint to validate
         /// </summary>
-        public Dictionary<string, string> ServerThumbprint {
-            get => _serverThumbprint.EncodeAsDictionary();
-            set => _serverThumbprint = value.DecodeAsByteArray();
-        }
-
-        /// <summary>
-        /// Full client certificate to use when connecting to endpoint
-        /// </summary>
-        public Dictionary<string, string> ClientCertificate {
-            get => _clientCertificate.EncodeAsDictionary();
-            set => _clientCertificate = value.DecodeAsByteArray();
+        public Dictionary<string, string> Certificate {
+            get => _certificate.EncodeAsDictionary();
+            set => _certificate = value.DecodeAsByteArray();
         }
 
         /// <summary>
@@ -95,10 +87,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
         /// Create controller with service
         /// </summary>
         /// <param name="twin"></param>
-        /// <param name="logger"></param>
-        public EndpointSettingsController(ITwinServices twin, ILogger logger) {
+        public EndpointSettingsController(ITwinServices twin) {
             _twin = twin ?? throw new ArgumentNullException(nameof(twin));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <summary>
@@ -117,22 +107,20 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
                                 Type = _credentialType,
                             },
                     Url = _endpointUrl,
-                    AlternativeUrls = _alternativeUrls == null ? null :
-                        _alternativeUrls.DecodeAsList().ToHashSetSafe(),
-                    ServerThumbprint = _serverThumbprint,
-                    ClientCertificate = _clientCertificate
+                    AlternativeUrls = _alternativeUrls?.DecodeAsList().ToHashSetSafe(),
+                    Certificate = _certificate
                 });
         }
 
         private CredentialType? _credentialType;
-        private JToken _credential;
         private string _endpointUrl;
         private string _securityPolicy;
         private SecurityMode? _securityMode;
-        private byte[] _serverThumbprint;
-        private byte[] _clientCertificate;
+        private byte[] _certificate;
+#pragma warning disable IDE0032 // Use auto property
+        private JToken _credential;
         private Dictionary<string, string> _alternativeUrls;
+#pragma warning restore IDE0032 // Use auto property
         private readonly ITwinServices _twin;
-        private readonly ILogger _logger;
     }
 }

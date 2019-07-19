@@ -15,14 +15,14 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Cli {
     using System;
     using System.Linq;
     using System.Net;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
     /// Simple registry tool
     /// </summary>
     public class Program {
-
-        enum Op {
+        private enum Op {
             None,
             Host,
             Add,
@@ -209,7 +209,7 @@ Options:
             }
 
             try {
-                switch(op) {
+                switch (op) {
                     case Op.Host:
                         HostAsync(config, deviceId, moduleId).Wait();
                         break;
@@ -287,7 +287,8 @@ Options:
             var logger = LogEx.Console(LogEventLevel.Error);
             var registry = new IoTHubServiceHttpClient(new HttpClient(logger),
                 config, logger);
-            await ResetAsync(registry, await registry.GetAsync(deviceId, moduleId));
+            await ResetAsync(registry, await registry.GetAsync(deviceId, moduleId,
+                CancellationToken.None));
         }
 
         /// <summary>
@@ -298,7 +299,7 @@ Options:
             var logger = LogEx.Console(LogEventLevel.Error);
             var registry = new IoTHubServiceHttpClient(new HttpClient(logger),
                 config, logger);
-            await registry.DeleteAsync(deviceId, moduleId);
+            await registry.DeleteAsync(deviceId, moduleId, null, CancellationToken.None);
         }
 
         /// <summary>
@@ -311,7 +312,7 @@ Options:
 
             var query = "SELECT * FROM devices.modules WHERE " +
                 $"properties.reported.{TwinProperty.kType} = 'supervisor'";
-            var supers = await registry.QueryDeviceTwinsAsync(query);
+            var supers = await registry.QueryAllDeviceTwinsAsync(query);
             foreach (var item in supers) {
                 Console.WriteLine($"{item.Id} {item.ModuleId}");
             }
@@ -327,7 +328,7 @@ Options:
 
             var query = "SELECT * FROM devices.modules WHERE " +
                 $"properties.reported.{TwinProperty.kType} = 'supervisor'";
-            var supers = await registry.QueryDeviceTwinsAsync(query);
+            var supers = await registry.QueryAllDeviceTwinsAsync(query);
             foreach (var item in supers) {
                 Console.WriteLine($"Resetting {item.Id} {item.ModuleId ?? ""}");
                 await ResetAsync(registry, item);
@@ -342,21 +343,23 @@ Options:
             var logger = LogEx.Console(LogEventLevel.Error);
             var registry = new IoTHubServiceHttpClient(new HttpClient(logger),
                 config, logger);
-            var result = await registry.QueryDeviceTwinsAsync(
+            var result = await registry.QueryAllDeviceTwinsAsync(
                 "SELECT * from devices where IS_DEFINED(tags.DeviceType)");
             foreach (var item in result) {
                 Console.WriteLine($"Deleting {item.Id} {item.ModuleId ?? ""}");
-                await registry.DeleteAsync(item.Id, item.ModuleId);
+                await registry.DeleteAsync(item.Id, item.ModuleId, null,
+                    CancellationToken.None);
             }
             if (!includeSupervisors) {
                 return;
             }
             var query = "SELECT * FROM devices.modules WHERE " +
              $"properties.reported.{TwinProperty.kType} = 'supervisor'";
-            var supers = await registry.QueryDeviceTwinsAsync(query);
+            var supers = await registry.QueryAllDeviceTwinsAsync(query);
             foreach (var item in supers) {
                 Console.WriteLine($"Deleting {item.Id} {item.ModuleId ?? ""}");
-                await registry.DeleteAsync(item.Id, item.ModuleId);
+                await registry.DeleteAsync(item.Id, item.ModuleId, null,
+                    CancellationToken.None);
             }
         }
 
@@ -388,7 +391,7 @@ Options:
                     }
                 }
             }
-            await registry.CreateOrUpdateAsync(item);
+            await registry.CreateAsync(item, true, CancellationToken.None);
         }
 
         /// <summary>
@@ -399,13 +402,13 @@ Options:
             var logger = LogEx.Console(LogEventLevel.Error);
             var registry = new IoTHubServiceHttpClient(new HttpClient(logger),
                 config, logger);
-            await registry.CreateOrUpdateAsync(new DeviceTwinModel {
+            await registry.CreateAsync(new DeviceTwinModel {
                 Id = deviceId,
                 ModuleId = moduleId,
                 Capabilities = new DeviceCapabilitiesModel {
                     IotEdge = true
                 }
-            });
+            }, true, CancellationToken.None);
             var cs = await registry.GetConnectionStringAsync(deviceId, moduleId);
             return cs;
         }

@@ -33,20 +33,16 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
         /// <param name="publisher"></param>
         /// <param name="export"></param>
         /// <param name="twin"></param>
-        /// <param name="events"></param>
-        /// <param name="logger"></param>
         public EndpointMethodsController(IBrowseServices<EndpointModel> browse,
             INodeServices<EndpointModel> nodes, IHistoricAccessServices<EndpointModel> historian,
             IPublishServices<EndpointModel> publisher, IUploadServices<EndpointModel> export,
-            ITwinServices twin, IEventEmitter events, ILogger logger) {
+            ITwinServices twin) {
             _browse = browse ?? throw new ArgumentNullException(nameof(browse));
             _historian = historian ?? throw new ArgumentNullException(nameof(historian));
             _nodes = nodes ?? throw new ArgumentNullException(nameof(nodes));
             _twin = twin ?? throw new ArgumentNullException(nameof(twin));
             _publisher = publisher ?? throw new ArgumentNullException(nameof(publisher));
             _export = export ?? throw new ArgumentNullException(nameof(export));
-            _events = events ?? throw new ArgumentNullException(nameof(events));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <summary>
@@ -302,7 +298,5 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
         private readonly ITwinServices _twin;
         private readonly IPublishServices<EndpointModel> _publisher;
         private readonly IUploadServices<EndpointModel> _export;
-        private readonly IEventEmitter _events;
-        private readonly ILogger _logger;
     }
 }

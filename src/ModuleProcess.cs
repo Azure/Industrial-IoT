@@ -60,7 +60,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
         }
 
         /// <inheritdoc/>
-        public void Reset() => _reset.TrySetResult(true);
+        public void Reset() {
+            _reset.TrySetResult(true);
+        }
 
         /// <inheritdoc/>
         public void Exit(int exitCode) {
@@ -70,8 +72,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
             _exit.TrySetResult(true);
 
             // Set timer to kill the entire process after a minute.
+#pragma warning disable IDE0067 // Dispose objects before losing scope
             var _ = new Timer(o => Process.GetCurrentProcess().Kill(), null,
                 TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1));
+#pragma warning restore IDE0067 // Dispose objects before losing scope
         }
 
         /// <summary>

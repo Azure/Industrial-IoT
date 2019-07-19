@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Models {
         /// <summary>
         /// Default constructor
         /// </summary>
-        public BrowseRequestApiModel() {}
+        public BrowseRequestApiModel() { }
 
         /// <summary>
         /// Create from service model
@@ -139,8 +139,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Models {
         /// <summary>
         /// Optional header
         /// </summary>
-       [JsonProperty(PropertyName = "Header",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [JsonProperty(PropertyName = "Header",
+             NullValueHandling = NullValueHandling.Ignore)]
         public RequestHeaderApiModel Header { get; set; }
     }
 }

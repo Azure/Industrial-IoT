@@ -30,6 +30,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Models {
             Discovery = model.Discovery;
             Configuration = model.Configuration == null ? null :
                 new DiscoveryConfigApiModel(model.Configuration);
+            Context = model.Context == null ? null :
+                new RegistryOperationContextApiModel(model.Context);
         }
 
         /// <summary>
@@ -40,7 +42,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Models {
             return new DiscoveryRequestModel {
                 Id = Id,
                 Configuration = Configuration?.ToServiceModel(),
-                Discovery = Discovery
+                Discovery = Discovery,
+                Context = Context?.ToServiceModel()
             };
         }
 
@@ -64,5 +67,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Models {
         [JsonProperty(PropertyName = "Configuration",
             NullValueHandling = NullValueHandling.Ignore)]
         public DiscoveryConfigApiModel Configuration { get; set; }
+
+        /// <summary>
+        /// Operation audit context
+        /// </summary>
+        [JsonProperty(PropertyName = "context",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public RegistryOperationContextApiModel Context { get; set; }
     }
 }

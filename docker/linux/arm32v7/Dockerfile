@@ -1,7 +1,7 @@
-FROM microsoft/dotnet:2.1-runtime-bionic-arm32v7 AS base
+FROM microsoft/dotnet:2.2-runtime-stretch-slim-arm32v7 AS base
 WORKDIR /app
 
-FROM microsoft/dotnet:2.1-sdk-bionic-arm32v7 AS build
+FROM microsoft/dotnet:2.2-sdk AS build
 WORKDIR /src
 COPY src/Microsoft.Azure.IIoT.Modules.OpcUa.Twin.csproj src/
 COPY NuGet.Config NuGet.Config

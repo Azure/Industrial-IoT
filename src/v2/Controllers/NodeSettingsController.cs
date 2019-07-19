@@ -52,14 +52,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
         /// <param name="nodes"></param>
         /// <param name="publisher"></param>
         /// <param name="twin"></param>
-        /// <param name="logger"></param>
         public NodeSettingsController(
             INodeServices<EndpointModel> nodes, IPublishServices<EndpointModel> publisher,
-            ITwinServices twin, ILogger logger) {
+            ITwinServices twin) {
             _nodes = nodes ?? throw new ArgumentNullException(nameof(nodes));
             _twin = twin ?? throw new ArgumentNullException(nameof(twin));
             _publisher = publisher ?? throw new ArgumentNullException(nameof(publisher));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _action = new Dictionary<string, JToken>();
         }
 
@@ -128,6 +126,5 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
         private readonly ITwinServices _twin;
         private readonly IPublishServices<EndpointModel> _publisher;
         private readonly INodeServices<EndpointModel> _nodes;
-        private readonly ILogger _logger;
     }
 }

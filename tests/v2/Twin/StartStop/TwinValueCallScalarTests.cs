@@ -23,7 +23,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Twin.StartStop {
         }
 
         private EndpointModel Endpoint => new EndpointModel {
-            Url = $"opc.tcp://{Dns.GetHostName()}:{_server.Port}/UA/SampleServer"
+            Url = $"opc.tcp://{Dns.GetHostName()}:{_server.Port}/UA/SampleServer",
+            Certificate = _server.Certificate?.RawData
         };
 
         private CallScalarMethodTests<string> GetTests(EndpointRegistrationModel endpoint, IContainer services) {

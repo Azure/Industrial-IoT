@@ -10,7 +10,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
     using System.Diagnostics;
     using System.Threading;
     using System.Linq;
-    using System.Collections.Generic;
 
     /// <summary>
     /// Main entry point
@@ -32,12 +31,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
                 .Build();
 
 #if DEBUG
-            if (args.Any(a => a.ToLowerInvariant().Contains("wfd") || a.ToLowerInvariant().Contains("waitfordebugger")))
-            {
+            if (args.Any(a => a.ToLowerInvariant().Contains("wfd") || a.ToLowerInvariant().Contains("waitfordebugger"))) {
                 Console.WriteLine("Waiting for debugger being attached...");
 
-                while (!Debugger.IsAttached)
-                {
+                while (!Debugger.IsAttached) {
                     Thread.Sleep(1000);
                 }
 

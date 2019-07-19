@@ -7,7 +7,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
     using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.OpcUa.Edge;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
-    using Serilog;
     using Newtonsoft.Json.Linq;
     using System;
     using System.Threading.Tasks;
@@ -126,19 +125,18 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
         /// Create controller with service
         /// </summary>
         /// <param name="discovery"></param>
-        /// <param name="logger"></param>
-        public DiscoverySettingsController(IScannerServices discovery, ILogger logger) {
+        public DiscoverySettingsController(IScannerServices discovery) {
             _discovery = discovery ?? throw new ArgumentNullException(nameof(discovery));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <summary>
         /// Called to update discovery configuration
         /// </summary>
         /// <returns></returns>
-        public Task ApplyAsync() => _discovery.ScanAsync();
+        public Task ApplyAsync() {
+            return _discovery.ScanAsync();
+        }
 
         private readonly IScannerServices _discovery;
-        private readonly ILogger _logger;
     }
 }

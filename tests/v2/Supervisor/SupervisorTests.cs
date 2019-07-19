@@ -20,19 +20,19 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(async (device, module, services) => {
 
-                // Setup
-                var registry = services.Resolve<ISupervisorRegistry>();
+                    // Setup
+                    var registry = services.Resolve<ISupervisorRegistry>();
 
-                // Act
-                var supervisors = await registry.ListAllSupervisorsAsync();
+                    // Act
+                    var supervisors = await registry.ListAllSupervisorsAsync();
 
-                // Assert
-                Assert.Single(supervisors);
-                Assert.True(supervisors.Single().Connected.Value);
-                Assert.True(supervisors.Single().OutOfSync.Value);
-                Assert.Equal(device, SupervisorModelEx.ParseDeviceId(supervisors.Single().Id, out var moduleId));
-                Assert.Equal(module, moduleId);
-            });
+                    // Assert
+                    Assert.Single(supervisors);
+                    Assert.True(supervisors.Single().Connected.Value);
+                    Assert.True(supervisors.Single().OutOfSync.Value);
+                    Assert.Equal(device, SupervisorModelEx.ParseDeviceId(supervisors.Single().Id, out var moduleId));
+                    Assert.Equal(module, moduleId);
+                });
             }
         }
 
@@ -41,16 +41,16 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(async (device, module, services) => {
 
-                // Setup
-                var registry = services.Resolve<ISupervisorRegistry>();
+                    // Setup
+                    var registry = services.Resolve<ISupervisorRegistry>();
 
-                // Act
-                var supervisor = await registry.GetSupervisorAsync(SupervisorModelEx.CreateSupervisorId(device, module));
+                    // Act
+                    var supervisor = await registry.GetSupervisorAsync(SupervisorModelEx.CreateSupervisorId(device, module));
 
-                // Assert
-                Assert.True(supervisor.Connected.Value);
-                Assert.True(supervisor.OutOfSync.Value);
-            });
+                    // Assert
+                    Assert.True(supervisor.Connected.Value);
+                    Assert.True(supervisor.OutOfSync.Value);
+                });
             }
         }
 
@@ -59,18 +59,18 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(async (device, module, services) => {
 
-                // Setup
-                var diagnostics = services.Resolve<ISupervisorDiagnostics>();
+                    // Setup
+                    var diagnostics = services.Resolve<ISupervisorDiagnostics>();
 
-                // Act
-                var status = await diagnostics.GetSupervisorStatusAsync(SupervisorModelEx.CreateSupervisorId(device, module));
+                    // Act
+                    var status = await diagnostics.GetSupervisorStatusAsync(SupervisorModelEx.CreateSupervisorId(device, module));
 
-                // Assert
-                Assert.Equal(status.DeviceId, device);
-                Assert.Equal(status.ModuleId, module);
-                Assert.Null(status.SiteId);
-                Assert.Empty(status.Endpoints);
-            });
+                    // Assert
+                    Assert.Equal(status.DeviceId, device);
+                    Assert.Equal(status.ModuleId, module);
+                    Assert.Null(status.SiteId);
+                    Assert.Empty(status.Endpoints);
+                });
             }
         }
 
@@ -79,44 +79,44 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(async (device, module, services) => {
 
-                // Setup
-                var supervisorId = SupervisorModelEx.CreateSupervisorId(device, module);
-                var activation = services.Resolve<IActivationServices<EndpointRegistrationModel>>();
-                var hub = services.Resolve<IIoTHubTwinServices>();
-                var twin = EndpointRegistration.Patch(null, EndpointRegistration.FromServiceModel(new EndpointInfoModel {
-                    Registration = new EndpointRegistrationModel {
-                        Endpoint = new EndpointModel {
-                            Url = "opc.tcp://test"
+                    // Setup
+                    var supervisorId = SupervisorModelEx.CreateSupervisorId(device, module);
+                    var activation = services.Resolve<IActivationServices<EndpointRegistrationModel>>();
+                    var hub = services.Resolve<IIoTHubTwinServices>();
+                    var twin = new EndpointInfoModel {
+                        Registration = new EndpointRegistrationModel {
+                            Endpoint = new EndpointModel {
+                                Url = "opc.tcp://test"
+                            },
+                            SupervisorId = supervisorId
                         },
-                        SupervisorId = supervisorId
-                    },
-                    ApplicationId = "ua326029342304923"
-                }));
-                await hub.CreateOrUpdateAsync(twin);
-                var registry = services.Resolve<IEndpointRegistry>();
-                var endpoints = await registry.ListAllEndpointsAsync();
-                var ep1 = endpoints.FirstOrDefault();
-                Assert.NotNull(ep1);
+                        ApplicationId = "ua326029342304923"
+                    }.ToEndpointRegistration().ToDeviceTwin();
+                    await hub.CreateAsync(twin);
+                    var registry = services.Resolve<IEndpointRegistry>();
+                    var endpoints = await registry.ListAllEndpointsAsync();
+                    var ep1 = endpoints.FirstOrDefault();
+                    Assert.NotNull(ep1);
 
-                // Act
-                await registry.ActivateEndpointAsync(ep1.Registration.Id);
-                endpoints = await registry.ListAllEndpointsAsync();
-                var ep2 = endpoints.FirstOrDefault();
-                var diagnostics = services.Resolve<ISupervisorDiagnostics>();
-                var status = await diagnostics.GetSupervisorStatusAsync(supervisorId);
+                    // Act
+                    await registry.ActivateEndpointAsync(ep1.Registration.Id);
+                    endpoints = await registry.ListAllEndpointsAsync();
+                    var ep2 = endpoints.FirstOrDefault();
+                    var diagnostics = services.Resolve<ISupervisorDiagnostics>();
+                    var status = await diagnostics.GetSupervisorStatusAsync(supervisorId);
 
-                // Assert
-                Assert.Equal(device, status.DeviceId);
-                Assert.Equal(module, status.ModuleId);
-                Assert.Null(status.SiteId);
-                Assert.Single(status.Endpoints);
-                Assert.Equal(ep1.Registration.Id, status.Endpoints.Single().Id);
-                Assert.Equal(EndpointActivationState.ActivatedAndConnected, status.Endpoints.Single().ActivationState);
-                Assert.Equal(EndpointActivationState.ActivatedAndConnected, ep2.ActivationState);
-                Assert.True(
-                    ep2.EndpointState == EndpointConnectivityState.Connecting ||
-                    ep2.EndpointState == EndpointConnectivityState.NotReachable);
-            });
+                    // Assert
+                    Assert.Equal(device, status.DeviceId);
+                    Assert.Equal(module, status.ModuleId);
+                    Assert.Null(status.SiteId);
+                    Assert.Single(status.Endpoints);
+                    Assert.Equal(ep1.Registration.Id, status.Endpoints.Single().Id);
+                    Assert.Equal(EndpointActivationState.ActivatedAndConnected, status.Endpoints.Single().ActivationState);
+                    Assert.Equal(EndpointActivationState.ActivatedAndConnected, ep2.ActivationState);
+                    Assert.True(
+                        ep2.EndpointState == EndpointConnectivityState.Connecting ||
+                        ep2.EndpointState == EndpointConnectivityState.NotReachable);
+                });
             }
         }
 
@@ -125,44 +125,44 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(async (device, module, services) => {
 
-                // Setup
-                var supervisorId = SupervisorModelEx.CreateSupervisorId(device, module);
-                var activation = services.Resolve<IActivationServices<EndpointRegistrationModel>>();
-                var hub = services.Resolve<IIoTHubTwinServices>();
-                var twin = EndpointRegistration.Patch(null, EndpointRegistration.FromServiceModel(new EndpointInfoModel {
-                    Registration = new EndpointRegistrationModel {
-                        Endpoint = new EndpointModel {
-                            Url = "opc.tcp://test"
+                    // Setup
+                    var supervisorId = SupervisorModelEx.CreateSupervisorId(device, module);
+                    var activation = services.Resolve<IActivationServices<EndpointRegistrationModel>>();
+                    var hub = services.Resolve<IIoTHubTwinServices>();
+                    var twin = new EndpointInfoModel {
+                        Registration = new EndpointRegistrationModel {
+                            Endpoint = new EndpointModel {
+                                Url = "opc.tcp://test"
+                            },
+                            SupervisorId = supervisorId
                         },
-                        SupervisorId = supervisorId
-                    },
-                    ApplicationId = "ua326029342304923"
-                }));
+                        ApplicationId = "ua326029342304923"
+                    }.ToEndpointRegistration().ToDeviceTwin();
 
-                await hub.CreateOrUpdateAsync(twin);
-                var registry = services.Resolve<IEndpointRegistry>();
-                var endpoints = await registry.ListAllEndpointsAsync();
-                var ep1 = endpoints.FirstOrDefault();
-                Assert.NotNull(ep1);
+                    await hub.CreateAsync(twin);
+                    var registry = services.Resolve<IEndpointRegistry>();
+                    var endpoints = await registry.ListAllEndpointsAsync();
+                    var ep1 = endpoints.FirstOrDefault();
+                    Assert.NotNull(ep1);
 
-                // Act
-                await registry.ActivateEndpointAsync(ep1.Registration.Id);
-                endpoints = await registry.ListAllEndpointsAsync();
-                var ep2 = endpoints.FirstOrDefault();
-                await registry.DeactivateEndpointAsync(ep2.Registration.Id);
-                var diagnostics = services.Resolve<ISupervisorDiagnostics>();
-                endpoints = await registry.ListAllEndpointsAsync();
-                var ep3 = endpoints.FirstOrDefault();
-                var status = await diagnostics.GetSupervisorStatusAsync(supervisorId);
+                    // Act
+                    await registry.ActivateEndpointAsync(ep1.Registration.Id);
+                    endpoints = await registry.ListAllEndpointsAsync();
+                    var ep2 = endpoints.FirstOrDefault();
+                    await registry.DeactivateEndpointAsync(ep2.Registration.Id);
+                    var diagnostics = services.Resolve<ISupervisorDiagnostics>();
+                    endpoints = await registry.ListAllEndpointsAsync();
+                    var ep3 = endpoints.FirstOrDefault();
+                    var status = await diagnostics.GetSupervisorStatusAsync(supervisorId);
 
-                // Assert
-                Assert.Equal(device, status.DeviceId);
-                Assert.Equal(module, status.ModuleId);
-                Assert.Null(status.SiteId);
-                Assert.Empty(status.Endpoints);
-                Assert.Equal(EndpointActivationState.Deactivated, ep3.ActivationState);
-                Assert.Null(ep3.EndpointState);
-            });
+                    // Assert
+                    Assert.Equal(device, status.DeviceId);
+                    Assert.Equal(module, status.ModuleId);
+                    Assert.Null(status.SiteId);
+                    Assert.Empty(status.Endpoints);
+                    Assert.Equal(EndpointActivationState.Deactivated, ep3.ActivationState);
+                    Assert.Null(ep3.EndpointState);
+                });
             }
         }
 
@@ -171,45 +171,45 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(async (device, module, services) => {
 
-                // Setup
-                var supervisorId = SupervisorModelEx.CreateSupervisorId(device, module);
-                var activation = services.Resolve<IActivationServices<EndpointRegistrationModel>>();
-                var hub = services.Resolve<IIoTHubTwinServices>();
-                var twin = EndpointRegistration.Patch(null, EndpointRegistration.FromServiceModel(new EndpointInfoModel {
-                    Registration = new EndpointRegistrationModel {
-                        Endpoint = new EndpointModel {
-                            Url = "opc.tcp://test"
+                    // Setup
+                    var supervisorId = SupervisorModelEx.CreateSupervisorId(device, module);
+                    var activation = services.Resolve<IActivationServices<EndpointRegistrationModel>>();
+                    var hub = services.Resolve<IIoTHubTwinServices>();
+                    var twin = new EndpointInfoModel {
+                        Registration = new EndpointRegistrationModel {
+                            Endpoint = new EndpointModel {
+                                Url = "opc.tcp://test"
+                            },
+                            SupervisorId = supervisorId
                         },
-                        SupervisorId = supervisorId
-                    },
-                    ApplicationId = "ua326029342304923"
-                }));
+                        ApplicationId = "ua326029342304923"
+                    }.ToEndpointRegistration().ToDeviceTwin();
 
-                await hub.CreateOrUpdateAsync(twin);
-                var registry = services.Resolve<IEndpointRegistry>();
-                var endpoints = await registry.ListAllEndpointsAsync();
-                var ep1 = endpoints.FirstOrDefault();
-                Assert.NotNull(ep1);
+                    await hub.CreateAsync(twin);
+                    var registry = services.Resolve<IEndpointRegistry>();
+                    var endpoints = await registry.ListAllEndpointsAsync();
+                    var ep1 = endpoints.FirstOrDefault();
+                    Assert.NotNull(ep1);
 
-                for (var i = 0; i < 20; i++) {
-                    // Act
-                    await registry.ActivateEndpointAsync(ep1.Registration.Id);
-                    await registry.DeactivateEndpointAsync(ep1.Registration.Id);
-                }
+                    for (var i = 0; i < 20; i++) {
+                        // Act
+                        await registry.ActivateEndpointAsync(ep1.Registration.Id);
+                        await registry.DeactivateEndpointAsync(ep1.Registration.Id);
+                    }
 
-                var diagnostics = services.Resolve<ISupervisorDiagnostics>();
-                endpoints = await registry.ListAllEndpointsAsync();
-                var ep3 = endpoints.FirstOrDefault();
-                var status = await diagnostics.GetSupervisorStatusAsync(supervisorId);
+                    var diagnostics = services.Resolve<ISupervisorDiagnostics>();
+                    endpoints = await registry.ListAllEndpointsAsync();
+                    var ep3 = endpoints.FirstOrDefault();
+                    var status = await diagnostics.GetSupervisorStatusAsync(supervisorId);
 
-                // Assert
-                Assert.Equal(device, status.DeviceId);
-                Assert.Equal(module, status.ModuleId);
-                Assert.Null(status.SiteId);
-                Assert.Empty(status.Endpoints);
-                Assert.Equal(EndpointActivationState.Deactivated, ep3.ActivationState);
-                Assert.Null(ep3.EndpointState);
-            });
+                    // Assert
+                    Assert.Equal(device, status.DeviceId);
+                    Assert.Equal(module, status.ModuleId);
+                    Assert.Null(status.SiteId);
+                    Assert.Empty(status.Endpoints);
+                    Assert.Equal(EndpointActivationState.Deactivated, ep3.ActivationState);
+                    Assert.Null(ep3.EndpointState);
+                });
             }
         }
 
@@ -218,44 +218,44 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(async (device, module, services) => {
 
-                // Setup
-                var supervisorId = SupervisorModelEx.CreateSupervisorId(device, module);
-                var activation = services.Resolve<IActivationServices<EndpointRegistrationModel>>();
-                var hub = services.Resolve<IIoTHubTwinServices>();
+                    // Setup
+                    var supervisorId = SupervisorModelEx.CreateSupervisorId(device, module);
+                    var activation = services.Resolve<IActivationServices<EndpointRegistrationModel>>();
+                    var hub = services.Resolve<IIoTHubTwinServices>();
 
-                for (var i = 0; i < 20; i++) {
-                    var twin = EndpointRegistration.Patch(null, EndpointRegistration.FromServiceModel(new EndpointInfoModel {
-                        Registration = new EndpointRegistrationModel {
-                            Endpoint = new EndpointModel {
-                                Url = "opc.tcp://test"
+                    for (var i = 0; i < 20; i++) {
+                        var twin = new EndpointInfoModel {
+                            Registration = new EndpointRegistrationModel {
+                                Endpoint = new EndpointModel {
+                                    Url = "opc.tcp://test"
+                                },
+                                SupervisorId = supervisorId
                             },
-                            SupervisorId = supervisorId
-                        },
-                        ApplicationId = "uas" + i
-                    }));
-                    await hub.CreateOrUpdateAsync(twin);
-                }
+                            ApplicationId = "uas" + i
+                        }.ToEndpointRegistration().ToDeviceTwin();
+                        await hub.CreateAsync(twin);
+                    }
 
-                var registry = services.Resolve<IEndpointRegistry>();
-                var endpoints = await registry.ListAllEndpointsAsync();
+                    var registry = services.Resolve<IEndpointRegistry>();
+                    var endpoints = await registry.ListAllEndpointsAsync();
 
-                for (var i = 0; i < 5; i++) {
-                    await Task.WhenAll(endpoints.Select(ep => registry.ActivateEndpointAsync(ep.Registration.Id)));
-                    await Task.WhenAll(endpoints.Select(ep => registry.DeactivateEndpointAsync(ep.Registration.Id)));
-                }
+                    for (var i = 0; i < 5; i++) {
+                        await Task.WhenAll(endpoints.Select(ep => registry.ActivateEndpointAsync(ep.Registration.Id)));
+                        await Task.WhenAll(endpoints.Select(ep => registry.DeactivateEndpointAsync(ep.Registration.Id)));
+                    }
 
-                var diagnostics = services.Resolve<ISupervisorDiagnostics>();
-                endpoints = await registry.ListAllEndpointsAsync();
-                var status = await diagnostics.GetSupervisorStatusAsync(supervisorId);
+                    var diagnostics = services.Resolve<ISupervisorDiagnostics>();
+                    endpoints = await registry.ListAllEndpointsAsync();
+                    var status = await diagnostics.GetSupervisorStatusAsync(supervisorId);
 
-                // Assert
-                Assert.Equal(device, status.DeviceId);
-                Assert.Equal(module, status.ModuleId);
-                Assert.Null(status.SiteId);
-                Assert.Empty(status.Endpoints);
-                Assert.True(endpoints.All(ep => ep.ActivationState == EndpointActivationState.Deactivated));
-                Assert.True(endpoints.All(ep => ep.EndpointState == null));
-            });
+                    // Assert
+                    Assert.Equal(device, status.DeviceId);
+                    Assert.Equal(module, status.ModuleId);
+                    Assert.Null(status.SiteId);
+                    Assert.Empty(status.Endpoints);
+                    Assert.True(endpoints.All(ep => ep.ActivationState == EndpointActivationState.Deactivated));
+                    Assert.True(endpoints.All(ep => ep.EndpointState == null));
+                });
             }
         }
     }

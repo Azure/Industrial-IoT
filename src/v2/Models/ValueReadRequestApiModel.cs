@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Models {
         /// <summary>
         /// Default constructor
         /// </summary>
-        public ValueReadRequestApiModel() {}
+        public ValueReadRequestApiModel() { }
 
         /// <summary>
         /// Create from service model

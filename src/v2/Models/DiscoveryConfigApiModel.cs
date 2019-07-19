@@ -42,7 +42,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Models {
             DiscoveryUrls = model.DiscoveryUrls;
             Locales = model.Locales;
             ActivationFilter = model.ActivationFilter == null ? null :
-               new EndpointActivationFilterApiModel(model.ActivationFilter);
+                new EndpointActivationFilterApiModel(model.ActivationFilter);
         }
 
         /// <summary>
@@ -65,7 +65,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Models {
                     .Select(c => c.ToServiceModel())
                     .ToList(),
                 Locales = Locales,
-                DiscoveryUrls = DiscoveryUrls
+                DiscoveryUrls = DiscoveryUrls,
             };
         }
 

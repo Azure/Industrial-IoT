@@ -40,6 +40,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Filters {
                 case ResourceNotFoundException re:
                     status = (int)HttpStatusCode.NotFound;
                     break;
+                case ResourceInvalidStateException ri:
+                    status = (int)HttpStatusCode.Forbidden;
+                    break;
                 case ConflictingResourceException ce:
                     status = (int)HttpStatusCode.Conflict;
                     break;
