@@ -1,0 +1,15 @@
+<opc:TypeDictionary
+  xmlns:s1="http://opcfoundation.org/UA/Engineering"
+  xmlns:s2="http://opcfoundation.org/UA/Operations"
+  xmlns:opc="http://opcfoundation.org/BinarySchema/"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:ua="http://opcfoundation.org/UA/"
+  xmlns:tns="http://opcfoundation.org/UA/Views"
+  DefaultByteOrder="LittleEndian"
+  TargetNamespace="http://opcfoundation.org/UA/Views"
+>
+  <opc:Import Namespace="http://opcfoundation.org/UA/" Location="Opc.Ua.BinarySchema.bsd"/>
+  <opc:Import Namespace="http://opcfoundation.org/UA/Engineering" Location="Engineering.BinarySchema.bsd"/>
+  <opc:Import Namespace="http://opcfoundation.org/UA/Operations" Location="Operations.BinarySchema.bsd"/>
+
+</opc:TypeDictionary>
