@@ -4,9 +4,13 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
+    using Microsoft.Azure.IIoT.OpcUa.Api.Runtime;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Vault.Clients;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Vault;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin;
@@ -43,6 +47,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
             // Register configuration interfaces and logger
             builder.RegisterInstance(new ApiConfig(configuration))
                 .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterInstance(new ClientConfig(configuration))
+                .AsImplementedInterfaces().SingleInstance();
 
             // Register logger
             builder.RegisterLogger(LogEx.Trace());
@@ -57,10 +63,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
             builder.RegisterType<DeviceCodeTokenProvider>()
                 .AsImplementedInterfaces().SingleInstance();
 
-            // Register twin and registry services clients
+            // Register twin, vault, and registry services clients
             builder.RegisterType<TwinServiceClient>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<RegistryServiceClient>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<VaultServiceClient>()
                 .AsImplementedInterfaces().SingleInstance();
 
             return builder.Build();
@@ -91,8 +99,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// Run client
         /// </summary>
         public static async Task RunAsync(string[] args, IComponentContext context) {
-            var service = context.Resolve<ITwinServiceApi>();
+            var twin = context.Resolve<ITwinServiceApi>();
             var registry = context.Resolve<IRegistryServiceApi>();
+            var vault = context.Resolve<IVaultServiceApi>();
             var interactive = false;
             do {
                 if (interactive) {
@@ -115,7 +124,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                             break;
                         case "status":
                             options = new CliOptions(args);
-                            await GetStatusAsync(context, service, registry, options);
+                            await GetStatusAsync(context, twin, registry, vault, options);
                             break;
                         case "apps":
                             if (args.Length < 2) {
@@ -138,6 +147,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                                     break;
                                 case "update":
                                     await UpdateApplicationAsync(registry, options);
+                                    break;
+                                case "approve":
+                                    await ApproveApplicationAsync(registry, options);
+                                    break;
+                                case "reject":
+                                    await RejectApplicationAsync(registry, options);
+                                    break;
+                                case "disable":
+                                    await DisableApplicationAsync(registry, options);
+                                    break;
+                                case "enable":
+                                    await EnableApplicationAsync(registry, options);
                                     break;
                                 case "unregister":
                                     await UnregisterApplicationAsync(registry, options);
@@ -199,6 +220,114 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                                     throw new ArgumentException($"Unknown command {command}.");
                             }
                             break;
+                        case "groups":
+                            if (args.Length < 2) {
+                                throw new ArgumentException("Need a command!");
+                            }
+                            command = args[1].ToLowerInvariant();
+                            options = new CliOptions(args, 2);
+                            switch (command) {
+                                case "root":
+                                    await CreateRootAsync(vault, options);
+                                    break;
+                                case "child":
+                                    await CreateGroupAsync(vault, options);
+                                    break;
+                                case "update":
+                                    await UpdateGroupAsync(vault, options);
+                                    break;
+                                case "delete":
+                                    await DeleteGroupAsync(vault, options);
+                                    break;
+                                case "list":
+                                    await ListGroupsAsync(vault, options);
+                                    break;
+                                case "get":
+                                    await GetGroupAsync(vault, options);
+                                    break;
+                                case "renew":
+                                    await RenewIssuerCertAsync(vault, options);
+                                    break;
+                                case "-?":
+                                case "-h":
+                                case "--help":
+                                case "help":
+                                    PrintGroupsHelp();
+                                    break;
+                                default:
+                                    throw new ArgumentException($"Unknown command {command}.");
+                            }
+                            break;
+                        case "requests":
+                            if (args.Length < 2) {
+                                throw new ArgumentException("Need a command!");
+                            }
+                            command = args[1].ToLowerInvariant();
+                            options = new CliOptions(args, 2);
+                            switch (command) {
+                                case "sign":
+                                    await SigningRequestAsync(vault, options);
+                                    break;
+                                case "keypair":
+                                    await KeyPairRequestAsync(vault, options);
+                                    break;
+                                case "approve":
+                                    await ApproveRequestAsync(vault, options);
+                                    break;
+                                case "reject":
+                                    await RejectRequestAsync(vault, options);
+                                    break;
+                                case "accept":
+                                    await AcceptRequestAsync(vault, options);
+                                    break;
+                                case "delete":
+                                    await DeleteRequestAsync(vault, options);
+                                    break;
+                                case "list":
+                                    await ListRequestsAsync(vault, options);
+                                    break;
+                                case "get":
+                                    await GetRequestAsync(vault, options);
+                                    break;
+                                case "query":
+                                    await QueryRequestsAsync(vault, options);
+                                    break;
+                                case "-?":
+                                case "-h":
+                                case "--help":
+                                case "help":
+                                    PrintRequestsHelp();
+                                    break;
+                                default:
+                                    throw new ArgumentException($"Unknown command {command}.");
+                            }
+                            break;
+                        case "trust":
+                            if (args.Length < 2) {
+                                throw new ArgumentException("Need a command!");
+                            }
+                            command = args[1].ToLowerInvariant();
+                            options = new CliOptions(args, 2);
+                            switch (command) {
+                                case "create":
+                                    await AddTrustRelationshipAsync(vault, options);
+                                    break;
+                                case "get":
+                                    await GetTrustedCertificatesAsync(vault, options);
+                                    break;
+                                case "delete":
+                                    await RemoveTrustRelationshipAsync(vault, options);
+                                    break;
+                                case "-?":
+                                case "-h":
+                                case "--help":
+                                case "help":
+                                    PrintTrustHelp();
+                                    break;
+                                default:
+                                    throw new ArgumentException($"Unknown command {command}.");
+                            }
+                            break;
                         case "supervisors":
                             if (args.Length < 2) {
                                 throw new ArgumentException("Need a command!");
@@ -242,28 +371,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                             options = new CliOptions(args, 2);
                             switch (command) {
                                 case "browse":
-                                    await BrowseAsync(service, options);
+                                    await BrowseAsync(twin, options);
                                     break;
                                 case "publish":
-                                    await PublishAsync(service, options);
+                                    await PublishAsync(twin, options);
                                     break;
                                 case "unpublish":
-                                    await UnpublishAsync(service, options);
+                                    await UnpublishAsync(twin, options);
                                     break;
                                 case "nodes":
-                                    await ListNodesAsync(service, options);
+                                    await ListNodesAsync(twin, options);
                                     break;
                                 case "read":
-                                    await ReadAsync(service, options);
+                                    await ReadAsync(twin, options);
                                     break;
                                 case "write":
-                                    await WriteAsync(service, options);
+                                    await WriteAsync(twin, options);
                                     break;
                                 case "metadata":
-                                    await MethodMetadataAsync(service, options);
+                                    await MethodMetadataAsync(twin, options);
                                     break;
                                 case "call":
-                                    await MethodCallAsync(service, options);
+                                    await MethodCallAsync(twin, options);
                                     break;
                                 case "-?":
                                 case "-h":
@@ -457,7 +586,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                         }
                     }
                 }
-                catch(Exception e) {
+                catch (Exception e) {
                     Console.WriteLine($"Browse {request.NodeId} resulted in {e}");
                     errors++;
                 }
@@ -483,6 +612,100 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                     options.GetValue<string>("-i", "--id"));
                 PrintResult(options, result);
             }
+        }
+
+        /// <summary>
+        /// List groups
+        /// </summary>
+        private static async Task ListGroupsAsync(IVaultServiceApi service, CliOptions options) {
+            if (options.IsSet("-A", "--all")) {
+                var result = await service.ListAllGroupsAsync();
+                PrintResult(options, result);
+                Console.WriteLine($"{result.Count()} item(s) found...");
+            }
+            else {
+                var result = await service.ListGroupsAsync(
+                    options.GetValueOrDefault<string>("-C", "--continuation", null),
+                    options.GetValueOrDefault<int>("-P", "--page-size", null));
+                PrintResult(options, result);
+            }
+        }
+
+        /// <summary>
+        /// Get root group
+        /// </summary>
+        private static async Task CreateRootAsync(IVaultServiceApi service,
+            CliOptions options) {
+            var result = await service.CreateRootAsync(new TrustGroupRootCreateRequestApiModel {
+                IssuedKeySize = options.GetValueOrDefault<ushort>("-s", "--keysize", null),
+                IssuedLifetime = options.GetValueOrDefault<TimeSpan>("-l", "--lifetime", null),
+                IssuedSignatureAlgorithm = options.GetValueOrDefault<SignatureAlgorithm>(
+                        "-a", "--algorithm", null),
+                Name = options.GetValue<string>("-n", "--name"),
+                SubjectName = options.GetValue <string>("-s", "--subject")
+            });
+            PrintResult(options, result);
+        }
+
+        /// <summary>
+        /// Create group
+        /// </summary>
+        private static async Task CreateGroupAsync(IVaultServiceApi service,
+            CliOptions options) {
+            var result = await service.CreateGroupAsync(new TrustGroupRegistrationRequestApiModel {
+                IssuedKeySize = options.GetValueOrDefault<ushort>("-s", "--keysize", null),
+                IssuedLifetime = options.GetValueOrDefault<TimeSpan>("-l", "--lifetime", null),
+                IssuedSignatureAlgorithm = options.GetValueOrDefault<SignatureAlgorithm>(
+                        "-a", "--algorithm", null),
+                Name = options.GetValueOrDefault<string>("-n", "--name", null),
+                ParentId = options.GetValue<string>("-p", "--parent"),
+                SubjectName = options.GetValue<string>("-s", "--subject")
+            });
+            PrintResult(options, result);
+        }
+
+        /// <summary>
+        /// Get group
+        /// </summary>
+        private static async Task GetGroupAsync(IVaultServiceApi service,
+            CliOptions options) {
+            var result = await service.GetGroupAsync(
+                options.GetValue<string>("-i", "--id"));
+            PrintResult(options, result);
+        }
+
+        /// <summary>
+        /// Delete group
+        /// </summary>
+        private static async Task DeleteGroupAsync(IVaultServiceApi service,
+            CliOptions options) {
+            await service.DeleteGroupAsync(
+                options.GetValue<string>("-i", "--id"));
+        }
+
+        /// <summary>
+        /// Renew issuer cert
+        /// </summary>
+        private static async Task RenewIssuerCertAsync(IVaultServiceApi service,
+            CliOptions options) {
+            var result = await service.RenewIssuerCertificateAsync(
+                options.GetValue<string>("-i", "--id"));
+            PrintResult(options, result);
+        }
+
+        /// <summary>
+        /// Update group
+        /// </summary>
+        private static async Task UpdateGroupAsync(IVaultServiceApi service,
+            CliOptions options) {
+            await service.UpdateGroupAsync(options.GetValue<string>("-i", "--id"),
+                new TrustGroupUpdateRequestApiModel {
+                    IssuedKeySize = options.GetValueOrDefault<ushort>("-s", "--keysize", null),
+                    IssuedLifetime = options.GetValueOrDefault<TimeSpan>("-l", "--lifetime", null),
+                    IssuedSignatureAlgorithm = options.GetValueOrDefault<SignatureAlgorithm>(
+                        "-a", "--algorithm", null),
+                    Name = options.GetValueOrDefault<string>("-n", "--name", null)
+                });
         }
 
         /// <summary>
@@ -620,7 +843,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                 new ApplicationRegistrationRequestApiModel {
                     ApplicationUri = options.GetValue<string>("-u", "--url"),
                     ApplicationName = options.GetValueOrDefault<string>("-n", "--name", null),
-                    Locale = options.GetValueOrDefault<string>("-l", "--locale", null),
+                    GatewayServerUri = options.GetValueOrDefault<string>("-g", "--gwuri", null),
                     ApplicationType = options.GetValueOrDefault<ApplicationType>("-t", "--type", null),
                     ProductUri = options.GetValueOrDefault<string>("-p", "--product", null),
                     DiscoveryUrls = new HashSet<string> {
@@ -671,10 +894,46 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
             CliOptions options) {
             await service.UpdateApplicationAsync(options.GetValue<string>("-i", "--id"),
                 new ApplicationRegistrationUpdateApiModel {
-                    // ...
                     ApplicationName = options.GetValueOrDefault<string>("-n", "--name", null),
-                    Locale = options.GetValueOrDefault<string>("-l", "--locale", null)
+                    GatewayServerUri = options.GetValueOrDefault<string>("-g", "--gwuri", null),
+                    ProductUri = options.GetValueOrDefault<string>("-p", "--product", null),
+                    DiscoveryProfileUri = options.GetValueOrDefault<string>("-d", "--dpuri", null)
+                    // ...
                 });
+        }
+
+        /// <summary>
+        /// Approve application
+        /// </summary>
+        private static async Task ApproveApplicationAsync(IRegistryServiceApi service,
+            CliOptions options) {
+            await service.ApproveApplicationAsync(options.GetValue<string>("-i", "--id"),
+                options.GetValueOrDefault("-f", "--force", false));
+        }
+
+        /// <summary>
+        /// Reject application
+        /// </summary>
+        private static async Task RejectApplicationAsync(IRegistryServiceApi service,
+            CliOptions options) {
+            await service.RejectApplicationAsync(options.GetValue<string>("-i", "--id"),
+                options.GetValueOrDefault("-f", "--force", false));
+        }
+
+        /// <summary>
+        /// Disable application
+        /// </summary>
+        private static async Task DisableApplicationAsync(IRegistryServiceApi service,
+            CliOptions options) {
+            await service.DisableApplicationAsync(options.GetValue<string>("-i", "--id"));
+        }
+
+        /// <summary>
+        /// Enable application
+        /// </summary>
+        private static async Task EnableApplicationAsync(IRegistryServiceApi service,
+            CliOptions options) {
+            await service.EnableApplicationAsync(options.GetValue<string>("-i", "--id"));
         }
 
         /// <summary>
@@ -691,10 +950,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
 
             var query = new ApplicationRegistrationQueryApiModel {
                 ApplicationUri = options.GetValueOrDefault<string>("-u", "--uri", null),
-                ProductUri = options.GetValueOrDefault<string>("-p", "--product", null),
                 ApplicationType = options.GetValueOrDefault<ApplicationType>("-t", "--type", null),
                 ApplicationName = options.GetValueOrDefault<string>("-n", "--name", null),
-                Locale = options.GetValueOrDefault<string>("-l", "--locale", null)
+                ProductUri = options.GetValueOrDefault<string>("-p", "--product", null),
+                GatewayServerUri = options.GetValueOrDefault<string>("-g", "--gwuri", null),
+                DiscoveryProfileUri = options.GetValueOrDefault<string>("-d", "--dpuri", null),
+                Locale = options.GetValueOrDefault<string>("-l", "--locale", null),
+                State = options.GetValueOrDefault<ApplicationState>("-s", "--state", null)
             };
 
             // Unregister all applications
@@ -762,9 +1024,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
             var query = new ApplicationRegistrationQueryApiModel {
                 ApplicationUri = options.GetValueOrDefault<string>("-u", "--uri", null),
                 ProductUri = options.GetValueOrDefault<string>("-p", "--product", null),
+                GatewayServerUri = options.GetValueOrDefault<string>("-g", "--gwuri", null),
+                DiscoveryProfileUri = options.GetValueOrDefault<string>("-d", "--dpuri", null),
                 ApplicationType = options.GetValueOrDefault<ApplicationType>("-t", "--type", null),
                 ApplicationName = options.GetValueOrDefault<string>("-n", "--name", null),
                 Locale = options.GetValueOrDefault<string>("-l", "--locale", null),
+                State = options.GetValueOrDefault<ApplicationState>("-s", "--state", null),
                 IncludeNotSeenSince = options.IsProvidedOrNull("-d", "--deleted")
             };
             if (options.IsSet("-A", "--all")) {
@@ -943,10 +1208,178 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         }
 
         /// <summary>
+        /// Query requests
+        /// </summary>
+        private static async Task QueryRequestsAsync(IVaultServiceApi service,
+            CliOptions options) {
+            var query = new CertificateRequestQueryRequestApiModel {
+                EntityId = options.GetValueOrDefault<string>("-e", "--entityid", null),
+                State = options.GetValueOrDefault<CertificateRequestState>("-s", "--state", null)
+            };
+            if (options.IsSet("-A", "--all")) {
+                var result = await service.QueryAllRequestsAsync(query);
+                PrintResult(options, result);
+                Console.WriteLine($"{result.Count()} item(s) found...");
+            }
+            else {
+                var result = await service.QueryRequestsAsync(query,
+                    options.GetValueOrDefault<int>("-P", "--page-size", null));
+                PrintResult(options, result);
+            }
+        }
+
+        /// <summary>
+        /// List requests
+        /// </summary>
+        private static async Task ListRequestsAsync(IVaultServiceApi service,
+            CliOptions options) {
+            if (options.IsSet("-A", "--all")) {
+                var result = await service.ListAllRequestsAsync();
+                PrintResult(options, result);
+                Console.WriteLine($"{result.Count()} item(s) found...");
+            }
+            else {
+                var result = await service.ListRequestsAsync(
+                    options.GetValueOrDefault<string>("-C", "--continuation", null),
+                    options.GetValueOrDefault<int>("-P", "--page-size", null));
+                PrintResult(options, result);
+            }
+        }
+
+        /// <summary>
+        /// Get request
+        /// </summary>
+        private static async Task GetRequestAsync(IVaultServiceApi service,
+            CliOptions options) {
+            var result = await service.GetRequestAsync(
+                options.GetValue<string>("-i", "--id"));
+            PrintResult(options, result);
+        }
+
+        /// <summary>
+        /// Delete request
+        /// </summary>
+        private static async Task DeleteRequestAsync(IVaultServiceApi service,
+            CliOptions options) {
+            await service.DeleteRequestAsync(
+                options.GetValue<string>("-i", "--id"));
+        }
+
+        /// <summary>
+        /// Accept request
+        /// </summary>
+        private static async Task AcceptRequestAsync(IVaultServiceApi service,
+            CliOptions options) {
+            await service.AcceptRequestAsync(
+                options.GetValue<string>("-i", "--id"));
+        }
+
+        /// <summary>
+        /// Reject request
+        /// </summary>
+        private static async Task RejectRequestAsync(IVaultServiceApi service,
+            CliOptions options) {
+            await service.RejectRequestAsync(
+                options.GetValue<string>("-i", "--id"));
+        }
+
+        /// <summary>
+        /// Approve request
+        /// </summary>
+        private static async Task ApproveRequestAsync(IVaultServiceApi service,
+            CliOptions options) {
+            await service.ApproveRequestAsync(
+                options.GetValue<string>("-i", "--id"));
+        }
+
+        /// <summary>
+        /// Start and finish keypair request
+        /// </summary>
+        private static async Task KeyPairRequestAsync(IVaultServiceApi service,
+            CliOptions options) {
+            if (options.IsProvidedOrNull("-f", "--finish") == true) {
+                var result = await service.FinishKeyPairRequestAsync(
+                    options.GetValue<string>("-i", "--id"));
+                PrintResult(options, result);
+            }
+            else {
+                var result = await service.StartNewKeyPairRequestAsync(new StartNewKeyPairRequestApiModel {
+                    CertificateType = options.GetValue<TrustGroupType>("-t", "--type"),
+                    EntityId = options.GetValue<string>("-e", "--entityId"),
+                    GroupId = options.GetValue<string>("-g", "--groupId"),
+                    SubjectName = options.GetValueOrDefault<string>("-s", "--subject", null),
+                    DomainNames = options.GetValueOrDefault<string>("-d", "--domain", null)?
+                        .YieldReturn().ToList()
+                });
+                PrintResult(options, result);
+            }
+        }
+
+        /// <summary>
+        /// Start and finish signing request
+        /// </summary>
+        private static async Task SigningRequestAsync(IVaultServiceApi service,
+            CliOptions options) {
+            if (options.IsProvidedOrNull("-f", "--finish") == true) {
+                var result = await service.FinishSigningRequestAsync(
+                    options.GetValue<string>("-i", "--id"));
+                PrintResult(options, result);
+            }
+            else {
+                var result = await service.StartSigningRequestAsync(new StartSigningRequestApiModel {
+                    CertificateRequest = options.GetValue<byte[]>("-c", "--csr"),
+                    EntityId = options.GetValue<string>("-e", "--entityId"),
+                    GroupId = options.GetValue<string>("-g", "--groupId")
+                });
+                PrintResult(options, result);
+            }
+        }
+
+        /// <summary>
+        /// Remove trust relationship
+        /// </summary>
+        private static async Task RemoveTrustRelationshipAsync(IVaultServiceApi service,
+            CliOptions options) {
+            await service.RemoveTrustRelationshipAsync(
+                options.GetValue<string>("-i", "--id"),
+                options.GetValue<string>("-t", "--trustedId"));
+        }
+
+        /// <summary>
+        /// Get trusted certificates
+        /// </summary>
+        private static async Task GetTrustedCertificatesAsync(IVaultServiceApi service,
+            CliOptions options) {
+            if (options.IsSet("-A", "--all")) {
+                var result = await service.ListAllTrustedCertificatesAsync(
+                    options.GetValue<string>("-i", "--id"));
+                PrintResult(options, result);
+                Console.WriteLine($"{result.Count()} item(s) found...");
+            }
+            else {
+                var result = await service.ListTrustedCertificatesAsync(
+                    options.GetValue<string>("-i", "--id"),
+                    options.GetValueOrDefault<string>("-C", "--continuation", null),
+                    options.GetValueOrDefault<int>("-P", "--page-size", null));
+                PrintResult(options, result);
+            }
+        }
+
+        /// <summary>
+        /// Add trust relationship
+        /// </summary>
+        private static async Task AddTrustRelationshipAsync(IVaultServiceApi service,
+            CliOptions options) {
+            await service.AddTrustRelationshipAsync(
+                options.GetValue<string>("-i", "--id"),
+                options.GetValue<string>("-t", "--trustedId"));
+        }
+
+        /// <summary>
         /// Get status
         /// </summary>
         private static async Task GetStatusAsync(IComponentContext context,
-            ITwinServiceApi twin, IRegistryServiceApi registry,
+            ITwinServiceApi twin, IRegistryServiceApi registry, IVaultServiceApi vault,
             CliOptions options) {
             try {
                 var cfg = context.Resolve<ITwinConfig>();
@@ -966,6 +1399,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
             catch (Exception ex) {
                 PrintResult(options, ex);
             }
+            try {
+                var cfg = context.Resolve<IVaultConfig>();
+                Console.WriteLine($"Connecting to {cfg.OpcUaVaultServiceUrl}...");
+                var result = await vault.GetServiceStatusAsync();
+                PrintResult(options, result);
+            }
+            catch (Exception ex) {
+                PrintResult(options, ex);
+            }
         }
 
         /// <summary>
@@ -978,44 +1420,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
             Console.WriteLine("==================");
         }
 
-        /// <summary>
-        /// Configuration - wraps a configuration root
-        /// </summary>
-        private class ApiConfig : ClientConfig, ITwinConfig, IRegistryConfig {
-
-            /// <summary>
-            /// Service configuration
-            /// </summary>
-            private const string kOpcUaTwinServiceUrlKey = "OpcTwinServiceUrl";
-            private const string kOpcUaRegistryServiceUrlKey = "OpcRegistryServiceUrl";
-            private const string kOpcUaTwinServiceIdKey = "OpcTwinServiceResourceId";
-            private const string kOpcUaRegistryServiceIdKey = "OpcRegistryServiceResourceId";
-
-            /// <summary>OPC twin endpoint url</summary>
-            public string OpcUaTwinServiceUrl => GetStringOrDefault(
-                kOpcUaTwinServiceUrlKey, GetStringOrDefault(
-                     "PCS_TWIN_SERVICE_URL", $"http://{_hostName}:9041"));
-            /// <summary>OPC registry endpoint url</summary>
-            public string OpcUaRegistryServiceUrl => GetStringOrDefault(
-                kOpcUaRegistryServiceUrlKey, GetStringOrDefault(
-                    "PCS_TWIN_REGISTRY_URL", $"http://{_hostName}:9042"));
-            /// <summary>OPC twin service audience</summary>
-            public string OpcUaTwinServiceResourceId => GetStringOrDefault(
-                kOpcUaTwinServiceIdKey, GetStringOrDefault(
-                    "OPC_TWIN_APP_ID", Audience));
-            /// <summary>OPC registry audience</summary>
-            public string OpcUaRegistryServiceResourceId => GetStringOrDefault(
-                kOpcUaRegistryServiceIdKey, GetStringOrDefault(
-                    "OPC_REGISTRY_APP_ID", Audience));
-
-            /// <inheritdoc/>
-            public ApiConfig(IConfigurationRoot configuration, string serviceId = "") :
-                base(configuration, serviceId) {
-                _hostName = GetStringOrDefault("_HOST", System.Net.Dns.GetHostName());
-            }
-
-            private readonly string _hostName;
-        }
 
         /// <summary>
         /// Print help
@@ -1030,10 +1434,13 @@ Commands and Options
 
      console     Run in interactive mode. Enter commands after the >
      exit        Exit interactive mode and thus the cli.
+     groups      Manage trust groups
      apps        Manage applications
      endpoints   Manage endpoints
      supervisors Manage supervisors
+     trust       Manage trust between above entities
      nodes       Call nodes services on endpoint
+     requests    Manage certificate requests
      status      Print service status
      help, -h, -? --help
                  Prints out this help.
@@ -1084,6 +1491,8 @@ Commands and Options
         -t, --type      Application type (default to Server)
         -p, --product   Product uri of the application
         -d, --discovery Url of the discovery endpoint
+        -d, --dpuri     Discovery profile uri
+        -g, --gwuri     Gateway uri
         -F, --format    Json format for result
 
      query       Find applications
@@ -1091,8 +1500,12 @@ Commands and Options
         -P, --page-size Size of page
         -A, --all       Return all application infos (unpaged)
         -u, --uri       Application uri of the application.
+        -i, --dpuri     Discovery profile uri
+        -g, --gwuri     Gateway uri
+        -u, --uri       Application uri of the application.
         -n  --name      Application name of the application
         -t, --type      Application type (default to all)
+        -s, --state     Application state (default to all)
         -p, --product   Product uri of the application
         -d, --deleted   Include soft deleted applications.
         -F, --format    Json format for result
@@ -1102,19 +1515,43 @@ Commands and Options
         -i, --id        Id of application to get (mandatory)
         -F, --format    Json format for result
 
+     approve     Approve application
+        with ...
+        -i, --id        Id of application to get (mandatory)
+        -f, --force     Force approve
+
+     reject      Reject application
+        with ...
+        -i, --id        Id of application to get (mandatory)
+        -f, --force     Force reject
+
+     disable     Disable application
+        with ...
+        -i, --id        Id of application to get (mandatory)
+
+     enable      Enable application
+        with ...
+        -i, --id        Id of application to get (mandatory)
+
      update      Update application
         with ...
         -i, --id        Id of application to update (mandatory)
         -n, --name      Application name
+        -d, --dpuri     Discovery profile uri
+        -g, --gwuri     Gateway uri
+        -p, --product   Product uri of the application
 
      unregister  Unregister application
         with ...
-        -i, --id        Id of application to unregister 
+        -i, --id        Id of application to unregister
                         -or- all matching
         -u, --uri       Application uri and/or
         -n  --name      Application name and/or
         -t, --type      Application type and/or
         -p, --product   Product uri and/or
+        -i, --dpuri     Discovery profile uri
+        -g, --gwuri     Gateway uri
+        -s, --state     Application state (default to all)
 
      purge       Purge applications not seen ...
         with ...
@@ -1125,7 +1562,6 @@ Commands and Options
 "
                 );
         }
-
 
         /// <summary>
         /// Print help
@@ -1193,7 +1629,7 @@ Commands and Options
         private static void PrintNodesHelp() {
             Console.WriteLine(
                 @"
-Access address space on server endpoint.
+Access address space through configured server endpoint.
 
 Commands and Options
 
@@ -1270,7 +1706,7 @@ Commands and Options
         private static void PrintSupervisorsHelp() {
             Console.WriteLine(
                 @"
-Manage and configure endpoint supervisors (gateways)
+Manage and configure Twin modules (endpoint supervisors)
 
 Commands and Options
 
@@ -1329,5 +1765,168 @@ Commands and Options
                 );
         }
 
+        /// <summary>
+        /// Print help
+        /// </summary>
+        private static void PrintGroupsHelp() {
+            Console.WriteLine(
+                @"
+Manage entity trust groups
+
+Commands and Options
+
+     list        List groups
+        with ...
+        -C, --continuation
+                        Continuation from previous result.
+        -A, --all       Return all items (unpaged)
+        -F, --format    Json format for result
+
+     root        Create new root group
+        with ...
+        -n, --name      Name of the group (mandatory)
+        -s, --subject   Subject distinguished name (mandatory)
+        -a, --algorithm Signature algorithm
+        -l, --lifetime  Issued certificate life times
+        -s, --keysize   Issued Key size
+        -F, --format    Json format for result
+
+     child       Create new sub group
+        with ...
+        -p, --parent    Parent id for the group (mandatory)
+        -n, --name      Name of the group (mandatory)
+        -s, --subject   Subject distinguished name (mandatory)
+        -a, --algorithm Signature algorithm
+        -l, --lifetime  Issued certificate life times
+        -s, --keysize   Issued Key size
+        -F, --format    Json format for result
+
+     delete      Delete group
+        with ...
+        -i, --id        Id of group to delete (mandatory)
+
+     delete      Renew group issuer certificate
+        with ...
+        -i, --id        Id of group for renewal (mandatory)
+
+     update      Update group information
+        with ...
+        -i, --id        Id of the group to update (mandatory)
+        -n, --name      Name of the group (mandatory)
+        -s, --subject   Subject distinguished name (mandatory)
+        -a, --algorithm Signature algorithm
+        -l, --lifetime  Issued certificate life times
+
+     help, -h, -? --help
+                 Prints out this help.
+"
+                );
+        }
+
+        /// <summary>
+        /// Print help
+        /// </summary>
+        private static void PrintRequestsHelp() {
+            Console.WriteLine(
+                @"
+Submit and manage Certificate requests
+
+Commands and Options
+
+     sign        Submit certificate signing request
+        with ...
+        -g, --groupId   Group to submit request to (mandatory)
+        -e, --entityId  Entity id to create key for (mandatory)
+        or ...
+        -f, --finish    Retrieve finished signing result, then
+        -i, --id        Id of request to finish (mandatory)
+
+     list        List requests
+        with ...
+        -C, --continuation
+                        Continuation from previous result.
+        -P, --page-size Size of page
+        -A, --all       Return all requests (unpaged)
+        -F, --format    Json format for result
+
+     query       Find requests
+        -s, --state     State of request
+        -e, --entityId  Entity id for which request was submitted
+        -P, --page-size Size of page
+        -A, --all       Return all endpoints (unpaged)
+        -F, --format    Json format for result
+
+     get         Get request
+        with ...
+        -i, --id        Id of request to retrieve (mandatory)
+        -F, --format    Json format for result
+
+     approve     Approve request
+        with ...
+        -i, --id        Id of request to approve (mandatory)
+
+     reject      Reject request
+        with ...
+        -i, --id        Id of request to reject (mandatory)
+
+     accept      Accept request
+        with ...
+        -i, --id        Id of request to retrieve (mandatory)
+
+     delete      Delete request
+        with ...
+        -i, --id        Id of request to retrieve (mandatory)
+
+     keypair     Submit key pair generation request
+        with ...
+        -g, --groupId   Group to submit request to (mandatory)
+        -e, --entityId  Entity id to create key for (mandatory)
+        -t, --type      Type of certificate to generate (mandatory)
+        -a, --subjct    Subject name (mandatory)
+        -d, --domain    Domain name (mandatory)
+        or ...
+        -f, --finish    Retrieve finished signing result, then
+        -i, --id        Id of request to finish (mandatory)
+
+     help, -h, -? --help
+                 Prints out this help.
+"
+                );
+        }
+
+        /// <summary>
+        /// Print help
+        /// </summary>
+        private static void PrintTrustHelp() {
+            Console.WriteLine(
+                @"
+Manage trust between entities
+
+Commands and Options
+
+     create      Add trust relationship
+        with ...
+        -i, --id        Id of entity (mandatory)
+        -t, --trusted   Id of trusted entity (mandatory)
+
+     get         Get certificates the entity trusts.
+        with ...
+        -i, --id        Id of entity (mandatory)
+        -C, --continuation
+                        Continuation from previous result.
+        -P, --page-size Size of page
+        -A, --all       Return all items (unpaged)
+        -F, --format    Json format for result
+
+     delete      Remove trust relationship
+        with ...
+        -i, --id        Id of entity (mandatory)
+        -t, --trusted   Id of entity not to trust (mandatory)
+
+     help, -h, -? --help
+                 Prints out this help.
+"
+                );
+        }
     }
 }

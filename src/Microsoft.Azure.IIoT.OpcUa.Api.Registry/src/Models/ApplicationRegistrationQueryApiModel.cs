@@ -54,6 +54,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         public string Capability { get; set; }
 
         /// <summary>
+        /// Discovery profile uri
+        /// </summary>
+        [JsonProperty(PropertyName = "discoveryProfileUri",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public string DiscoveryProfileUri { get; set; }
+
+        /// <summary>
+        /// Gateway server uri
+        /// </summary>
+        [JsonProperty(PropertyName = "gatewayServerUri",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public string GatewayServerUri { get; set; }
+
+        /// <summary>
+        /// State of application
+        /// </summary>
+        [JsonProperty(PropertyName = "state",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public ApplicationState? State { get; set; }
+
+        /// <summary>
         /// Supervisor or site the application belongs to.
         /// </summary>
         [JsonProperty(PropertyName = "siteOrSupervisorId",

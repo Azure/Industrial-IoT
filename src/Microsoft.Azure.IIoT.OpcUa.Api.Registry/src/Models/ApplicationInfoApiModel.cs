@@ -28,7 +28,44 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// <summary>
         /// Client and server
         /// </summary>
-        ClientAndServer
+        ClientAndServer,
+
+        /// <summary>
+        /// Discovery server
+        /// </summary>
+        DiscoveryServer
+    }
+
+    /// <summary>
+    /// State of the application
+    /// </summary>
+    [JsonConverter(typeof(StringEnumConverter))]
+    public enum ApplicationState {
+
+        /// <summary>
+        /// New
+        /// </summary>
+        New,
+
+        /// <summary>
+        /// Activated
+        /// </summary>
+        Approved,
+
+        /// <summary>
+        /// Rejected
+        /// </summary>
+        Rejected,
+
+        /// <summary>
+        /// Unregistered
+        /// </summary>
+        Unregistered,
+
+        /// <summary>
+        /// Deleted
+        /// </summary>
+        Deleted
     }
 
     /// <summary>
@@ -37,24 +74,37 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
     public class ApplicationInfoApiModel {
 
         /// <summary>
+        /// State
+        /// </summary>
+        [JsonProperty(PropertyName = "state")]
+        public ApplicationState State { get; set; }
+
+        /// <summary>
         /// Unique application id
         /// </summary>
         [JsonProperty(PropertyName = "applicationId")]
         public string ApplicationId { get; set; }
 
         /// <summary>
-        /// Name of application
+        /// Default name of application
         /// </summary>
         [JsonProperty(PropertyName = "applicationName",
             NullValueHandling = NullValueHandling.Ignore)]
         public string ApplicationName { get; set; }
 
         /// <summary>
-        /// Locale of name - defaults to "en"
+        /// Locale of default name - defaults to "en"
         /// </summary>
         [JsonProperty(PropertyName = "locale",
             NullValueHandling = NullValueHandling.Ignore)]
         public string Locale { get; set; }
+
+        /// <summary>
+        /// Localized names of application keyed on locale.
+        /// </summary>
+        [JsonProperty(PropertyName = "localizedNames",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public Dictionary<string, string> LocalizedNames { get; set; }
 
         /// <summary>
         /// Last time application was seen
@@ -125,10 +175,45 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         public string DiscoveryProfileUri { get; set; }
 
         /// <summary>
+        /// Gateway server uri
+        /// </summary>
+        [JsonProperty(PropertyName = "gatewayServerUri",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public string GatewayServerUri { get; set; }
+
+        /// <summary>
         /// Application public cert
         /// </summary>
         [JsonProperty(PropertyName = "certificate",
             NullValueHandling = NullValueHandling.Ignore)]
         public byte[] Certificate { get; set; }
+
+        /// <summary>
+        /// Created
+        /// </summary>
+        [JsonProperty(PropertyName = "created",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public RegistryOperationApiModel Created { get; set; }
+
+        /// <summary>
+        /// Approved
+        /// </summary>
+        [JsonProperty(PropertyName = "approved",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public RegistryOperationApiModel Approved { get; set; }
+
+        /// <summary>
+        /// Updated
+        /// </summary>
+        [JsonProperty(PropertyName = "updated",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public RegistryOperationApiModel Updated { get; set; }
+
+        /// <summary>
+        /// Deleted
+        /// </summary>
+        [JsonProperty(PropertyName = "deleted",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public RegistryOperationApiModel Deleted { get; set; }
     }
 }

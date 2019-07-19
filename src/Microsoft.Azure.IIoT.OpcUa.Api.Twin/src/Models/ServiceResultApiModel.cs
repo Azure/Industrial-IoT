@@ -31,6 +31,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// </summary>
         [JsonProperty(PropertyName = "diagnostics",
             NullValueHandling = NullValueHandling.Ignore)]
-        public JToken Diagnostics{ get; set; }
+        public JToken Diagnostics { get; set; }
     }
 }

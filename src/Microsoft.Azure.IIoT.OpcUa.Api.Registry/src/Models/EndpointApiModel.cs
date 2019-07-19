@@ -78,10 +78,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         public string SecurityPolicy { get; set; }
 
         /// <summary>
-        /// Thumbprint to validate against or null to trust any.
+        /// Endpoint certificate that was registered.
         /// </summary>
-        [JsonProperty(PropertyName = "serverThumbprint",
+        [JsonProperty(PropertyName = "certificate",
             NullValueHandling = NullValueHandling.Ignore)]
-        public byte[] ServerThumbprint { get; set; }
+        public byte[] Certificate { get; set; }
     }
 }

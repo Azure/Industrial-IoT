@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin {
-    using Serilog;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models;
     using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
@@ -22,10 +21,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin {
         /// Create service
         /// </summary>
         /// <param name="client"></param>
-        /// <param name="logger"></param>
-        public TwinAdapter(ITwinServiceApi client, ILogger logger) {
+        public TwinAdapter(ITwinServiceApi client) {
             _client = client ?? throw new ArgumentNullException(nameof(client));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <inheritdoc/>
@@ -136,6 +133,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin {
         }
 
         private readonly ITwinServiceApi _client;
-        private readonly ILogger _logger;
     }
 }

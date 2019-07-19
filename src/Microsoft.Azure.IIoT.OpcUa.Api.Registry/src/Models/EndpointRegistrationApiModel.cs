@@ -46,13 +46,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         public int? SecurityLevel { get; set; }
 
         /// <summary>
-        /// Endpoint certificate that was registered.
-        /// </summary>
-        [JsonProperty(PropertyName = "certificate",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public byte[] Certificate { get; set; }
-
-        /// <summary>
         /// Supported authentication methods for the endpoint.
         /// </summary>
         [JsonProperty(PropertyName = "authenticationMethods",

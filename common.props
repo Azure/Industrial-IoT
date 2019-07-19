@@ -12,5 +12,6 @@
     <HighEntropyVA>true</HighEntropyVA>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <NeutralLanguage>en-US</NeutralLanguage>
+    <LangVersion>7.3</LangVersion>
   </PropertyGroup>
 </Project>

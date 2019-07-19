@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Api.History {
     using Microsoft.Azure.IIoT.OpcUa.Api.History.Models;
     using Newtonsoft.Json.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -18,26 +19,32 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History {
         /// </summary>
         /// <param name="endpointId"></param>
         /// <param name="request"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         Task<HistoryReadResponseApiModel<JToken>> HistoryReadRawAsync(
-            string endpointId, HistoryReadRequestApiModel<JToken> request);
+            string endpointId, HistoryReadRequestApiModel<JToken> request,
+            CancellationToken ct = default);
 
         /// <summary>
         /// Read history call with custom encoded extension object details
         /// </summary>
         /// <param name="endpointId"></param>
         /// <param name="request"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         Task<HistoryReadNextResponseApiModel<JToken>> HistoryReadRawNextAsync(
-            string endpointId, HistoryReadNextRequestApiModel request);
+            string endpointId, HistoryReadNextRequestApiModel request,
+            CancellationToken ct = default);
 
         /// <summary>
         /// Update using raw extension object details
         /// </summary>
         /// <param name="endpointId"></param>
         /// <param name="request"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         Task<HistoryUpdateResponseApiModel> HistoryUpdateRawAsync(
-            string endpointId, HistoryUpdateRequestApiModel<JToken> request);
+            string endpointId, HistoryUpdateRequestApiModel<JToken> request,
+            CancellationToken ct = default);
     }
 }

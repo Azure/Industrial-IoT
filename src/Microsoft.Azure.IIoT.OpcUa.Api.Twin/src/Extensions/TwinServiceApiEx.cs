@@ -40,9 +40,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin {
         /// <param name="continuation"></param>
         /// <returns></returns>
         public static Task<PublishedItemListResponseApiModel> NodePublishListAsync(
-            this ITwinServiceApi service, string endpointId, string continuation = null) =>
-            service.NodePublishListAsync(endpointId, new PublishedItemListRequestApiModel {
+            this ITwinServiceApi service, string endpointId, string continuation = null) {
+            return service.NodePublishListAsync(endpointId, new PublishedItemListRequestApiModel {
                 ContinuationToken = continuation
             });
+        }
     }
 }

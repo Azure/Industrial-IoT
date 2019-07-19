@@ -9,7 +9,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History {
     using Microsoft.Azure.IIoT.OpcUa.History;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
-    using Serilog;
     using System;
     using System.Threading.Tasks;
 
@@ -22,10 +21,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History {
         /// Create service
         /// </summary>
         /// <param name="client"></param>
-        /// <param name="logger"></param>
-        public HistoryRawAdapter(IHistoryServiceRawApi client, ILogger logger) {
+        public HistoryRawAdapter(IHistoryServiceRawApi client) {
             _client = client ?? throw new ArgumentNullException(nameof(client));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <inheritdoc/>
@@ -64,6 +61,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History {
         }
 
         private readonly IHistoryServiceRawApi _client;
-        private readonly ILogger _logger;
     }
 }
