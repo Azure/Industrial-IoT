@@ -22,6 +22,7 @@ startall() {
     sleep 3
     ISUP=$(curl -ks https://localhost/registry/v2/status | grep -i "Alive and well" | wc -l)
   done
+
     echo "Waiting for twin service to start..."
   ISUP=$(curl -ks https://localhost/twin/v2/status | grep -i "Alive and well" | wc -l)
   while [[ "$ISUP" == "0" ]]; do
@@ -29,6 +30,15 @@ startall() {
     sleep 3
     ISUP=$(curl -ks https://localhost/twin/v2/status | grep -i "Alive and well" | wc -l)
   done
+
+    echo "Waiting for vault service to start..."
+  ISUP=$(curl -ks https://localhost/vault/v2/status | grep -i "Alive and well" | wc -l)
+  while [[ "$ISUP" == "0" ]]; do
+    echo "Waiting for vault service to start..."
+    sleep 3
+    ISUP=$(curl -ks https://localhost/vault/v2/status | grep -i "Alive and well" | wc -l)
+  done
+
     echo "Waiting for web site to start..."
   ISUP=$(curl -ks https://localhost/ | grep -i "html" | wc -l)
   while [[ "$ISUP" == "0" ]]; do
@@ -36,6 +46,7 @@ startall() {
     sleep 3
     ISUP=$(curl -ks https://localhost/ | grep -i "html" | wc -l)
   done
+
   echo "Web site started!"
 }
 

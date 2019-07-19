@@ -7,10 +7,14 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Gateway.Runtime {
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Transport;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Runtime;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
     using Microsoft.Azure.IIoT.Services.Cors;
     using Microsoft.Azure.IIoT.Services.Cors.Runtime;
-    using Microsoft.Azure.IIoT.Hub;
-    using Microsoft.Azure.IIoT.Hub.Runtime;
+    using Microsoft.Azure.IIoT.Hub.Client;
+    using Microsoft.Azure.IIoT.Hub.Client.Runtime;
+    using Microsoft.Azure.IIoT.Messaging.EventHub.Runtime;
+    using Microsoft.Azure.IIoT.Messaging.EventHub;
     using Microsoft.Azure.IIoT.Auth.Server;
     using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Auth.Clients;
@@ -25,7 +29,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Gateway.Runtime {
     /// </summary>
     public class Config : ConfigBase, IAuthConfig, IIoTHubConfig,
         ICorsConfig, IClientConfig, IEventHubConfig, ITcpListenerConfig,
-        IWebListenerConfig, ISessionServicesConfig {
+        IWebListenerConfig, ISessionServicesConfig, IRegistryConfig {
 
         /// <inheritdoc/>
         public string IoTHubConnString => _hub.IoTHubConnString;
@@ -83,20 +87,24 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Gateway.Runtime {
         public TimeSpan MaxSessionTimeout => _sessions.MaxSessionTimeout;
         /// <inheritdoc/>
         public TimeSpan MinSessionTimeout => _sessions.MinSessionTimeout;
+        /// <inheritdoc/>
+        public string OpcUaRegistryServiceUrl => _api.OpcUaRegistryServiceUrl;
+        /// <inheritdoc/>
+        public string OpcUaRegistryServiceResourceId => _api.OpcUaRegistryServiceResourceId;
 
         /// <summary>
         /// Configuration constructor
         /// </summary>
-        /// <param name="serviceId"></param>
         /// <param name="configuration"></param>
-        public Config(string serviceId, IConfigurationRoot configuration) :
+        public Config(IConfigurationRoot configuration) :
             base(configuration) {
 
-            _auth = new AuthConfig(configuration, serviceId);
-            _hub = new IoTHubConfig(configuration, serviceId);
+            _auth = new AuthConfig(configuration);
+            _hub = new IoTHubConfig(configuration);
             _cors = new CorsConfig(configuration);
-            _eh = new EventHubConfig(configuration, serviceId);
+            _eh = new EventHubConfig(configuration);
             _sessions = new SessionServicesConfig(configuration);
+            _api = new ApiConfig(configuration);
         }
 
         private readonly AuthConfig _auth;
@@ -104,5 +112,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Gateway.Runtime {
         private readonly EventHubConfig _eh;
         private readonly IoTHubConfig _hub;
         private readonly SessionServicesConfig _sessions;
+        private readonly ApiConfig _api;
     }
 }

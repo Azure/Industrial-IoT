@@ -17,6 +17,9 @@
  .PARAMETER subscriptionId
     Optional, the subscription id where resources will be deployed.
 
+ .PARAMETER accountName
+    The account name to use if not to use default.
+
  .PARAMETER subscriptionName
     Or alternatively the subscription name.
 
@@ -34,6 +37,10 @@
 
  .PARAMETER credentials
     To support non interactive usage of script. (TODO)
+
+ .PARAMETER development
+    Whether to deploy for development or production - defaults to $false (production).
+
 #>
 
 param(
@@ -48,6 +55,7 @@ param(
     $credentials,
     [string] $tenantId,
     [string] $aadApplicationName,
+    [bool] $development = $false,
     [ValidateSet("AzureCloud")] [string] $environmentName = "AzureCloud"
 )
 
@@ -74,7 +82,7 @@ Function SelectEnvironment() {
                     -ResourceManagerUrl https://management.azure.com/ `
                     -ManagementPortalUrl http://go.microsoft.com/fwlink/?LinkId=254433
             }
-            $script:locations = @("West US", "North Europe", "West Europe")
+            $script:locations = @("East US", "West US 2", "North Europe", "West Europe", "Canada Central", "Central India", "Southeast Asia")
         }
         default {
             throw ("'{0}' is not a supported Azure Cloud environment" -f $script:environmentName)
@@ -718,6 +726,12 @@ Function GetAzureADApplicationConfig() {
             -RequiredResourceAccess $requiredResourcesAccess -ReplyUrls $replyUrls `
             -Oauth2AllowImplicitFlow $True -Oauth2AllowUrlPathMatching $True
 
+
+        $serviceSecret = New-AzureADApplicationPasswordCredential -ObjectId $serviceAadApplication.ObjectId `
+            -CustomKeyIdentifier "Service Key" -EndDate (get-date).AddYears(2)
+        $clientSecret = New-AzureADApplicationPasswordCredential -ObjectId $clientAadApplication.ObjectId `
+            -CustomKeyIdentifier "Client Key" -EndDate (get-date).AddYears(2)
+
         #
         # Grant permissions to app
         #
@@ -736,8 +750,17 @@ Function GetAzureADApplicationConfig() {
             AppId = $serviceAadApplication.AppId
             AppObjectId = $serviceAadApplication.ObjectId
             AppDisplayName = $serviceDisplayName
+            ServiceName = $aadApplicationName
+            ServiceId = $serviceAadApplication.AppId
+            ServiceObjectId = $serviceAadApplication.ObjectId
+            ServicePrincipalId = $serviceServicePrincipal.ObjectId
+            ServiceSecret = $serviceSecret.Value
+            ServiceDisplayName = $serviceDisplayName
+            ClientDisplayName = $clientDisplayName
             ClientId = $clientAadApplication.AppId
             ClientObjectId = $clientAadApplication.ObjectId
+            ClientSecret = $clientSecret.Value
+            UserPrincipalId = $user.ObjectId
         }
     }
     catch {
@@ -813,7 +836,7 @@ Function GetOrCreateResourceGroup() {
     # Registering default resource providers
     Register-AzureRmResourceProvider -ProviderNamespace "microsoft.devices" | Out-Null
     Register-AzureRmResourceProvider -ProviderNamespace "microsoft.documentdb" | Out-Null
-    Register-AzureRmResourceProvider -ProviderNamespace "microsoft.eventhub" | Out-Null
+    Register-AzureRmResourceProvider -ProviderNamespace "microsoft.servicebus" | Out-Null
     Register-AzureRmResourceProvider -ProviderNamespace "microsoft.storage" | Out-Null
     Register-AzureRmResourceProvider -ProviderNamespace "microsoft.keyvault" | Out-Null
     Register-AzureRmResourceProvider -ProviderNamespace "microsoft.authorization" | Out-Null

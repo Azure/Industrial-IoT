@@ -19,7 +19,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
         /// <summary>
         /// Default constructor
         /// </summary>
-        public EndpointApiModel() {}
+        public EndpointApiModel() { }
 
         /// <summary>
         /// Create api model from service model
@@ -33,7 +33,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
             AlternativeUrls = model.AlternativeUrls;
             User = model.User == null ? null :
                 new CredentialApiModel(model.User);
-            ServerThumbprint = model.ServerThumbprint;
+            Certificate = model.Certificate;
             SecurityMode = model.SecurityMode;
             SecurityPolicy = model.SecurityPolicy;
         }
@@ -48,7 +48,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
                 User = User?.ToServiceModel(),
                 SecurityMode = SecurityMode,
                 SecurityPolicy = SecurityPolicy,
-                ServerThumbprint = ServerThumbprint,
+                Certificate = Certificate,
             };
         }
 
@@ -94,11 +94,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
         public string SecurityPolicy { get; set; }
 
         /// <summary>
-        /// Thumbprint to validate against or null to trust any.
+        /// Endpoint certificate that was registered.
         /// </summary>
-        [JsonProperty(PropertyName = "serverThumbprint",
+        [JsonProperty(PropertyName = "certificate",
             NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
-        public byte[] ServerThumbprint { get; set; }
+        public byte[] Certificate { get; set; }
     }
 }

@@ -32,12 +32,13 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.v2.Controllers {
             return new ReadScalarValueTests<string>(() => // Create an adapter over the api
                 new TwinAdapter(
                     new TwinServiceClient(
-                       new HttpClient(_factory, log), new TestConfig(client.BaseAddress), log),
-                            log), "fakeid", (ep, n) => _server.Client.ReadValueAsync(Endpoint, n));
+                       new HttpClient(_factory, log), new TestConfig(client.BaseAddress))),
+                       "fakeid", (ep, n) => _server.Client.ReadValueAsync(Endpoint, n));
         }
 
         public EndpointModel Endpoint => new EndpointModel {
-            Url = $"opc.tcp://{Dns.GetHostName()}:{_server.Port}/UA/SampleServer"
+            Url = $"opc.tcp://{Dns.GetHostName()}:{_server.Port}/UA/SampleServer",
+            Certificate = _server.Certificate?.RawData
         };
 
         private readonly WebAppFixture _factory;

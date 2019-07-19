@@ -67,6 +67,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.History.v2.Models {
         [JsonProperty(PropertyName = "diagnostics",
             NullValueHandling = NullValueHandling.Ignore)]
         [DefaultValue(null)]
-        public JToken Diagnostics{ get; set; }
+        public JToken Diagnostics { get; set; }
     }
 }

@@ -4,16 +4,17 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.Hub.Router.Runtime {
-    using Microsoft.Azure.IIoT.Hub;
-    using Microsoft.Azure.IIoT.Hub.Runtime;
+    using Microsoft.Azure.IIoT.Hub.Client;
+    using Microsoft.Azure.IIoT.Hub.Client.Runtime;
+    using Microsoft.Azure.IIoT.Messaging.EventHub.Runtime;
+    using Microsoft.Azure.IIoT.Messaging.EventHub;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
 
     /// <summary>
     /// Graph model upload agent configuration
     /// </summary>
-    public class Config : ConfigBase, IIoTHubConfig,
-        IEventHubConfig {
+    public class Config : ConfigBase, IIoTHubConfig, IEventHubConfig {
 
         /// <inheritdoc/>
         public string IoTHubConnString => _hub.IoTHubConnString;
@@ -31,13 +32,12 @@ namespace Microsoft.Azure.IIoT.Services.Hub.Router.Runtime {
         /// <summary>
         /// Configuration constructor
         /// </summary>
-        /// <param name="serviceId"></param>
         /// <param name="configuration"></param>
-        public Config(string serviceId, IConfigurationRoot configuration) :
+        public Config(IConfigurationRoot configuration) :
             base(configuration) {
 
-            _eh = new EventHubConfig(configuration, serviceId);
-            _hub = new IoTHubConfig(configuration, serviceId);
+            _eh = new EventHubConfig(configuration);
+            _hub = new IoTHubConfig(configuration);
         }
 
         private readonly EventHubConfig _eh;

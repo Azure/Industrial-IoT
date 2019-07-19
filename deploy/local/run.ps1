@@ -47,6 +47,8 @@ Function GetEnvironmentVariables() {
     $DOCUMENTDB_CONNSTRING = $deployment.Outputs["docdb-connstring"].Value
     $EVENTHUB_CONNSTRING = $deployment.Outputs["eventhub-connstring"].Value
     $EVENTHUB_NAME = $deployment.Outputs["eventhub-name"].Value
+    $SERVICEBUS_CONNSTRING = $deployment.Outputs["sb-connstring"].Value
+    $KEYVAULT_URL = $deployment.Outputs["keyvault-url"].Value
     $WORKSPACE_NAME = $deployment.Outputs["workspace-name"].Value
     $APPINSIGHTS_NAME = $deployment.Outputs["appinsights-name"].Value
     $APPINSIGHTS_INSTRUMENTATIONKEY = $deployment.Outputs["appinsights-instrumentationkey"].Value
@@ -85,6 +87,10 @@ Function GetEnvironmentVariables() {
         "PCS_EVENTHUB_CONNSTRING=$EVENTHUB_CONNSTRING"
     Write-Output `
         "PCS_EVENTHUB_NAME=$EVENTHUB_NAME"
+    Write-Output `
+        "PCS_SERVICEBUS_CONNSTRING=$SERVICEBUS_CONNSTRING"
+    Write-Output `
+        "PCS_KEYVAULT_URL=$KEYVAULT_URL"
 	Write-Output `
         "PCS_WORKSPACE_NAME=$WORKSPACE_NAME"
     Write-Output `
@@ -175,11 +181,18 @@ if ($aadConfig) {
     if (![string]::IsNullOrEmpty($aadConfig.TenantId)) { 
         $templateParameters.Add("aadTenantId", $aadConfig.TenantId)
     }
+    if (![string]::IsNullOrEmpty($aadConfig.ServicePrincipalId)) { 
+        $templateParameters.Add("aadServicePrincipalId", $aadConfig.ServicePrincipalId)
+    }
+    if (![string]::IsNullOrEmpty($aadConfig.UserPrincipalId)) { 
+        $templateParameters.Add("aadUserPrincipalId", $aadConfig.UserPrincipalId)
+    }
 }
 
 if (![string]::IsNullOrEmpty($script:containerRegistryPrefix)) {
     $templateParameters.Add("containerRegistryPrefix", $script:containerRegistryPrefix)
 }
+
 
 # Start the deployment
 $templateFilePath = Join-Path $ScriptDir "template.json"

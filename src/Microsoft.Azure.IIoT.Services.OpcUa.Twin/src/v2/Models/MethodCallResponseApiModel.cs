@@ -18,7 +18,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.v2.Models {
         /// <summary>
         /// Default constructor
         /// </summary>
-        public MethodCallResponseApiModel() {}
+        public MethodCallResponseApiModel() { }
 
         /// <summary>
         /// Create from service model

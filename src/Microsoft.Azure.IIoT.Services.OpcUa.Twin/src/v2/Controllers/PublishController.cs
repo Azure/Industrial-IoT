@@ -112,7 +112,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.v2.Controllers {
         /// <param name="continuationToken">The continuation token to continue with</param>
         /// <returns>The list of published nodes</returns>
         [HttpGet("{endpointId}")]
-        [AutoRestExtension(ContinuationTokenLinkName = "continuationToken")]
+        [AutoRestExtension(NextPageLinkName = "continuationToken")]
         public async Task<PublishedItemListResponseApiModel> GetNextListOfPublishedNodesAsync(
             string endpointId, [FromQuery] [Required] string continuationToken) {
             if (Request.Headers.ContainsKey(HttpHeader.ContinuationToken)) {

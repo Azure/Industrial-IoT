@@ -18,7 +18,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
         /// <summary>
         /// Default constructor
         /// </summary>
-        public EndpointInfoApiModel() {}
+        public EndpointInfoApiModel() { }
 
         /// <summary>
         /// Create from service model

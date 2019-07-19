@@ -3,13 +3,12 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Services.OpcUa.Graph {
-    using Microsoft.Azure.IIoT.Services.OpcUa.Graph.Runtime;
+namespace Microsoft.Azure.IIoT.Services.OpcUa.Processor {
+    using Microsoft.Azure.IIoT.Services.OpcUa.Processor.Runtime;
     using Microsoft.Azure.IIoT.OpcUa.Graph.Services;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.Tasks.Default;
     using Microsoft.Azure.IIoT.Exceptions;
-    using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Hub.Processor.Services;
     using Microsoft.Azure.IIoT.Hub.Processor.EventHub;
@@ -26,7 +25,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Graph {
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Model import processor - processes uploaded models and inserts 
+    /// Model import processor - processes uploaded models and inserts
     /// them into the opc model graph and eventually CDM.
     /// </summary>
     public class Program {
@@ -59,7 +58,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Graph {
             var exit = false;
             while (!exit) {
                 using (var container = ConfigureContainer(config).Build()) {
-                    var host = container.Resolve<IEventProcessorHost>();
+                    var host = container.Resolve<IHost>();
                     var logger = container.Resolve<ILogger>();
                     // Wait until the agent unloads or is cancelled
                     var tcs = new TaskCompletionSource<bool>();
@@ -93,10 +92,12 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Graph {
         public static ContainerBuilder ConfigureContainer(
             IConfigurationRoot configuration) {
 
-            var config = new Config(ServiceInfo.ID, configuration);
+            var serviceInfo = new ServiceInfo();
+            var config = new Config(configuration);
             var builder = new ContainerBuilder();
 
-            // Register configuration interfaces
+            builder.RegisterInstance(serviceInfo)
+                .AsImplementedInterfaces().SingleInstance();
             builder.RegisterInstance(config)
                 .AsImplementedInterfaces().SingleInstance();
 
@@ -105,15 +106,17 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Graph {
 
             // Now Monitor model upload notification using ...
             if (!config.UseFileNotificationHost) {
+
                 // ... event processor for fan out (requires blob
                 // notification router to be running) ...
+
                 builder.RegisterType<EventProcessorHost>()
                     .AsImplementedInterfaces();
                 builder.RegisterType<EventProcessorFactory>()
                     .AsImplementedInterfaces().SingleInstance();
             }
             else {
-                // ... or listen for file notifications on hub
+                // ... or listen for file notifications on hub directly
                 // (for simplicity) ...
                 builder.RegisterType<IoTHubFileNotificationHost>()
                     .AsImplementedInterfaces();

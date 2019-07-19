@@ -31,6 +31,9 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
             Capability = model.Capability;
             SiteOrSupervisorId = model.SiteOrSupervisorId;
             IncludeNotSeenSince = model.IncludeNotSeenSince;
+            DiscoveryProfileUri = model.DiscoveryProfileUri;
+            GatewayServerUri = model.GatewayServerUri;
+            State = model.State;
         }
 
         /// <summary>
@@ -46,7 +49,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
                 Locale = Locale,
                 Capability = Capability,
                 SiteOrSupervisorId = SiteOrSupervisorId,
-                IncludeNotSeenSince = IncludeNotSeenSince
+                IncludeNotSeenSince = IncludeNotSeenSince,
+                GatewayServerUri = GatewayServerUri,
+                DiscoveryProfileUri = DiscoveryProfileUri,
+                State = State
             };
         }
 
@@ -99,12 +105,36 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
         public string Capability { get; set; }
 
         /// <summary>
+        /// Discovery profile uri
+        /// </summary>
+        [JsonProperty(PropertyName = "discoveryProfileUri",
+            NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
+        public string DiscoveryProfileUri { get; set; }
+
+        /// <summary>
+        /// Gateway server uri
+        /// </summary>
+        [JsonProperty(PropertyName = "gatewayServerUri",
+            NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
+        public string GatewayServerUri { get; set; }
+
+        /// <summary>
         /// Supervisor or site the application belongs to.
         /// </summary>
         [JsonProperty(PropertyName = "siteOrSupervisorId",
            NullValueHandling = NullValueHandling.Ignore)]
         [DefaultValue(null)]
         public string SiteOrSupervisorId { get; set; }
+
+        /// <summary>
+        /// State of application
+        /// </summary>
+        [JsonProperty(PropertyName = "state",
+            NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
+        public ApplicationStateMask? State { get; set; }
 
         /// <summary>
         /// Whether to include apps that were soft deleted

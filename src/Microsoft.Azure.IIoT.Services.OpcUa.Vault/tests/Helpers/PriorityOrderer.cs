@@ -4,60 +4,46 @@
 // ------------------------------------------------------------
 
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Xunit.Abstractions;
-using Xunit.Sdk;
-
-namespace TestCaseOrdering
-{
+namespace TestCaseOrdering {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using Xunit.Abstractions;
+    using Xunit.Sdk;
 
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
-    public class TestPriorityAttribute : Attribute
-    {
-        public TestPriorityAttribute(int priority)
-        {
+    public class TestPriorityAttribute : Attribute {
+        public TestPriorityAttribute(int priority) {
             Priority = priority;
         }
-
         public int Priority { get; private set; }
     }
 
-    public class PriorityOrderer : ITestCaseOrderer
-    {
-        public IEnumerable<TTestCase> OrderTestCases<TTestCase>(IEnumerable<TTestCase> testCases) where TTestCase : ITestCase
-        {
+    public class PriorityOrderer : ITestCaseOrderer {
+        public IEnumerable<TTestCase> OrderTestCases<TTestCase>(IEnumerable<TTestCase> testCases) where TTestCase : ITestCase {
             var sortedMethods = new SortedDictionary<int, List<TTestCase>>();
 
-            foreach (TTestCase testCase in testCases)
-            {
-                int priority = 9999;
+            foreach (var testCase in testCases) {
+                var priority = 9999;
 
-                foreach (IAttributeInfo attr in testCase.TestMethod.Method.GetCustomAttributes((typeof(TestPriorityAttribute).AssemblyQualifiedName)))
-                {
+                foreach (var attr in testCase.TestMethod.Method.GetCustomAttributes(typeof(TestPriorityAttribute).AssemblyQualifiedName)) {
                     priority = attr.GetNamedArgument<int>("Priority");
                 }
 
                 GetOrCreate(sortedMethods, priority).Add(testCase);
             }
 
-            foreach (var list in sortedMethods.Keys.Select(priority => sortedMethods[priority]))
-            {
+            foreach (var list in sortedMethods.Keys.Select(priority => sortedMethods[priority])) {
                 list.Sort((x, y) => StringComparer.OrdinalIgnoreCase.Compare(x.TestMethod.Method.Name, y.TestMethod.Method.Name));
-                foreach (TTestCase testCase in list)
-                {
+                foreach (var testCase in list) {
                     yield return testCase;
                 }
             }
         }
 
-        static TValue GetOrCreate<TKey, TValue>(IDictionary<TKey, TValue> dictionary, TKey key) where TValue : new()
-        {
-            TValue result;
+        private static TValue GetOrCreate<TKey, TValue>(IDictionary<TKey, TValue> dictionary, TKey key) where TValue : new() {
 
-            if (dictionary.TryGetValue(key, out result))
-            {
+            if (dictionary.TryGetValue(key, out var result)) {
                 return result;
             }
 
@@ -66,7 +52,5 @@ namespace TestCaseOrdering
 
             return result;
         }
-
     }
-
 }

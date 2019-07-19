@@ -5,14 +5,13 @@
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Gateway {
     using Microsoft.Azure.IIoT.Services.OpcUa.Gateway.Runtime;
+    using Microsoft.Azure.IIoT.OpcUa.Gateway.Server;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Transport;
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Clients;
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Services;
-    using Microsoft.Azure.IIoT.OpcUa.Gateway.Server;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Twin.Clients;
     using Microsoft.Azure.IIoT.Services;
-    using Microsoft.Azure.IIoT.Services.Diagnostics;
     using Microsoft.Azure.IIoT.Services.Auth;
     using Microsoft.Azure.IIoT.Services.Auth.Clients;
     using Microsoft.Azure.IIoT.Services.Cors;
@@ -44,6 +43,11 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Gateway {
         public Config Config { get; }
 
         /// <summary>
+        /// Service info - Initialized in constructor
+        /// </summary>
+        public ServiceInfo ServiceInfo { get; }
+
+        /// <summary>
         /// Current hosting environment - Initialized in constructor
         /// </summary>
         public IHostingEnvironment Environment { get; }
@@ -60,7 +64,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Gateway {
         /// <param name="configuration"></param>
         public Startup(IHostingEnvironment env, IConfiguration configuration) {
             Environment = env;
-            Config = new Config(ServiceInfo.ID,
+            ServiceInfo = new ServiceInfo();
+            Config = new Config(
                 new ConfigurationBuilder()
                     .AddConfiguration(configuration)
                     .SetBasePath(env.ContentRootPath)
@@ -92,7 +97,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Gateway {
             // services.AddHttpClient();
 
             // Add controllers as services so they'll be resolved.
-            services.AddMvc(options => options.Filters.Add(typeof(AuditLogFilter)))
+            services.AddMvc()
                 .AddApplicationPart(GetType().Assembly)
                 .AddControllersAsServices();
 
@@ -131,7 +136,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Gateway {
             appLifetime.ApplicationStopped.Register(ApplicationContainer.Dispose);
 
             // Print some useful information at bootstrap time
-            log.Information("{service} web service started with id {id}", ServiceInfo.NAME,
+            log.Information("{service} web service started with id {id}", ServiceInfo.Name,
                 Uptime.ProcessId);
         }
 
@@ -141,16 +146,14 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Gateway {
         /// <param name="builder"></param>
         public virtual void ConfigureContainer(ContainerBuilder builder) {
 
-            // Register configuration interfaces
+            // Register service info and configuration interfaces
+            builder.RegisterInstance(ServiceInfo)
+                .AsImplementedInterfaces().SingleInstance();
             builder.RegisterInstance(Config)
                 .AsImplementedInterfaces().SingleInstance();
 
             // Register logger
             builder.RegisterLogger(LogEx.ApplicationInsights(Config.Configuration));
-
-            // Diagnostics
-            builder.RegisterType<AuditLogFilter>()
-                .AsImplementedInterfaces().SingleInstance();
 
             // CORS setup
             builder.RegisterType<CorsSetup>()
@@ -180,17 +183,15 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Gateway {
             builder.RegisterType<ChunkMethodClient>()
                 .AsImplementedInterfaces().SingleInstance();
 
-            // Opc Ua services
-            builder.RegisterType<RegistryServices>()
+            // Register registry micro service adapter
+            builder.RegisterType<RegistryServiceClient>()
                 .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<ActivationClient>()
+            builder.RegisterType<RegistryAdapter>()
                 .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<OnboardingClient>()
-                .AsImplementedInterfaces().SingleInstance();
+
+            // Todo: register twin micro service adapter
             builder.RegisterType<TwinClient>()
                 .AsImplementedInterfaces().SingleInstance();
-            //builder.RegisterType<Twin.Clients.SupervisorClient>()
-            //    .AsImplementedInterfaces().SingleInstance();
 
             // Auto start listeners
             builder.RegisterType<TcpChannelListener>()
@@ -202,7 +203,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Gateway {
             builder.RegisterType<HttpChannelListener>()
                 .AutoActivate()
                 .AsImplementedInterfaces().SingleInstance();
-
             builder.RegisterType<StackLogger>()
                 .AutoActivate()
                 .AsImplementedInterfaces().SingleInstance();

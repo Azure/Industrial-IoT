@@ -123,7 +123,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Controllers {
         /// in x-ms-continuation header.
         /// </returns>
         [HttpGet]
-        [AutoRestExtension(ContinuationTokenLinkName = "continuationToken")]
+        [AutoRestExtension(NextPageLinkName = "continuationToken")]
         public async Task<SupervisorListApiModel> GetListOfSupervisorsAsync(
             [FromQuery] bool? onlyServerState,
             [FromQuery] string continuationToken,

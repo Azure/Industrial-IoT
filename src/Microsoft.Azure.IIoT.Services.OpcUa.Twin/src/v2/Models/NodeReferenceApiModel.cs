@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.v2.Models {
         /// <summary>
         /// Default constructor
         /// </summary>
-        public NodeReferenceApiModel() {}
+        public NodeReferenceApiModel() { }
 
         /// <summary>
         /// Create reference api model

@@ -3,16 +3,12 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-using System;
-
-namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test.Helpers
-{
-    public class WebServiceHost
-    {
-        public static string GetBaseAddress()
-        {
-            int port = new Random().Next(40000, 60000);
-            string baseAddress = "http://127.0.0.1:" + port;
+namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Tests.Helpers {
+    using System;
+    public static class WebServiceHost {
+        public static string GetBaseAddress() {
+            var port = new Random().Next(40000, 60000);
+            var baseAddress = "http://127.0.0.1:" + port;
             return baseAddress;
         }
     }

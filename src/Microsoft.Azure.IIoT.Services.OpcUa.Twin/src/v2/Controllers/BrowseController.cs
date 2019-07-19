@@ -153,7 +153,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.v2.Controllers {
         /// <param name="continuationToken">Continuation token from GetSetOfUniqueNodes operation
         /// </param>
         [HttpGet("{endpointId}/next")]
-        [AutoRestExtension(ContinuationTokenLinkName = "continuationToken")]
+        [AutoRestExtension(NextPageLinkName = "continuationToken")]
         public async Task<BrowseNextResponseApiModel> GetNextSetOfUniqueNodesAsync(
             string endpointId, [FromQuery] [Required] string continuationToken) {
             if (Request.Headers.ContainsKey(HttpHeader.ContinuationToken)) {

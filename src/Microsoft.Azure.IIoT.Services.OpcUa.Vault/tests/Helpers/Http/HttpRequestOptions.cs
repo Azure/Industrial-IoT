@@ -4,10 +4,8 @@
 // ------------------------------------------------------------
 
 
-namespace Microsoft.Azure.IIoT.OpcUa.Services.Vault.Test.Helpers.Http
-{
-    public class HttpRequestOptions
-    {
+namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Tests.Helpers.Http {
+    public class HttpRequestOptions {
         public bool EnsureSuccess { get; set; } = false;
 
         public bool AllowInsecureSSLServer { get; set; } = false;

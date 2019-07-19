@@ -43,6 +43,7 @@ while [ "$#" -gt 0 ]; do
         --aad-instance)                 PCS_WEBUI_AUTH_AAD_INSTANCE="$2" ;;
         --aad-appsecret)                PCS_APPLICATION_SECRET="$2" ;;
         --release-version)              PCS_RELEASE_VERSION="$2" ;;
+        --sb-connstring)                PCS_SERVICEBUS_CONNSTRING="$2" ;;
         --evenhub-connstring)           PCS_EVENTHUB_CONNSTRING="$2" ;;
         --eventhub-name)                PCS_EVENTHUB_NAME="$2" ;;
         --workspace-name)               PCS_WORKSPACE_NAME="$2" ;;
@@ -180,13 +181,14 @@ echo "PCS_ASA_DATA_AZUREBLOB_KEY=${PCS_IOTHUBREACT_AZUREBLOB_KEY}" >> ${ENVVARS}
 echo "PCS_ASA_DATA_AZUREBLOB_ENDPOINT_SUFFIX=${PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX}" >> ${ENVVARS}
 echo "PCS_EVENTHUB_CONNSTRING=${PCS_EVENTHUB_CONNSTRING}" >> ${ENVVARS}
 echo "PCS_EVENTHUB_NAME=${PCS_EVENTHUB_NAME}" >> ${ENVVARS}
+echo "PCS_SERVICEBUS_CONNSTRING=${PCS_SERVICEBUS_CONNSTRING}" >> ${ENVVARS}
 echo "PCS_APPLICATION_SECRET=${PCS_APPLICATION_SECRET}" >> ${ENVVARS}
 echo "PCS_LOG_LEVEL=${PCS_LOG_LEVEL}" >> ${ENVVARS}
 echo "PCS_RELEASE_VERSION=${PCS_RELEASE_VERSION}" >> ${ENVVARS}
-echo "_HUB_CS=${PCS_IOTHUB_CONNSTRING}" >> ${ENVVARS}
 echo "PCS_WORKSPACE_NAME=${PCS_WORKSPACE_NAME}" >> ${ENVVARS}
 echo "PCS_APPINSIGHTS_NAME=${PCS_APPINSIGHTS_NAME}" >> ${ENVVARS}
 echo "PCS_APPINSIGHTS_INSTRUMENTATIONKEY=${PCS_APPINSIGHTS_INSTRUMENTATIONKEY}" >> ${ENVVARS}
+echo "_HUB_CS=${PCS_IOTHUB_CONNSTRING}" >> ${ENVVARS}
 
 if [ -z "$REGISTRY_PREFIX" ]; then
   echo -e "Deploying from default registry."

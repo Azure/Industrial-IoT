@@ -1,8 +1,59 @@
 {
-    "aadTenantId": {
-      "value": "{Added through command line interface}"
-    },
-    "solutionName": {
-      "value": "{Added through command line interface}"
-    }
+  "aadTenantId": {
+    "value": "{Added through command line interface}"
+  },
+  "aadServicePrincipalObjectId": {
+    "value": "{Added through command line interface}"
+  },
+  "aadUserPrincipalId": {
+    "value": "{Added through command line interface}"
+  },
+  "solutionName": {
+    "value": "{Added through command line interface}"
+  },
+  "storageName": {
+    "value": "{Added through command line interface}"
+  },
+  "storageSkuName": {
+    "value": "{Added through command line interface}"
+  },
+  "storageEndpointSuffix": {
+    "value": "{Added through command line interface}"
+  },
+  "documentDBName": {
+    "value": "{Added through command line interface}"
+  },
+  "docDBConsistencyLevel": {
+    "value": "{Added through command line interface}"
+  },
+  "docDBMaxStalenessPrefix": {
+    "value": "{Added through command line interface}"
+  },
+  "docDBMaxIntervalInSeconds": {
+    "value": "{Added through command line interface}"
+  },
+  "serviceBusNamespaceName": {
+    "value": "{Added through command line interface}"
+  },
+  "serviceBusSkuTier": {
+    "value": "{Added through command line interface}"
+  },
+  "iotHubName": {
+    "value": "{Added through command line interface}"
+  },
+  "iotHubSku": {
+    "value": "{Added through command line interface}"
+  },
+  "iotHubPartitionCount": {
+    "value": "{Added through command line interface}"
+  },
+  "iotHubTier": {
+    "value": "{Added through command line interface}"
+  },
+  "keyVaultName": {
+    "value": "{Added through command line interface}"
+  },
+  "keyVaultSkuName": {
+    "value": "{Added through command line interface}"
+  }
 }

@@ -18,16 +18,17 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.v2.Controllers {
             var client = _factory.CreateClient();
 
             // Act
-            var response = await client.GetAsync(VersionInfo.PATH + "/status");
+            using (var response = await client.GetAsync(VersionInfo.PATH + "/status")) {
 
-            // Assert
-            response.EnsureSuccessStatusCode(); 
-            Assert.Equal("application/json; charset=utf-8",
-                response.Content.Headers.ContentType.ToString());
+                // Assert
+                response.EnsureSuccessStatusCode();
+                Assert.Equal("application/json; charset=utf-8",
+                    response.Content.Headers.ContentType.ToString());
 
-            var result = await response.Content.ReadAsStringAsync();
-            var status = JsonConvertEx.DeserializeObject<StatusResponseApiModel>(result);
-            Assert.Equal("OK:Alive and well", status.Status);
+                var result = await response.Content.ReadAsStringAsync();
+                var status = JsonConvertEx.DeserializeObject<StatusResponseApiModel>(result);
+                Assert.Equal("OK:Alive and well", status.Status);
+            }
         }
 
         public StatusControllerTest(WebAppFixture factory) {

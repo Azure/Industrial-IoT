@@ -3,9 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Services.OpcUa.Graph.Runtime {
-    using Microsoft.Azure.IIoT.Hub;
-    using Microsoft.Azure.IIoT.Hub.Runtime;
+namespace Microsoft.Azure.IIoT.Services.OpcUa.Processor.Runtime {
+    using Microsoft.Azure.IIoT.Hub.Client;
+    using Microsoft.Azure.IIoT.Hub.Client.Runtime;
     using Microsoft.Azure.IIoT.Storage;
     using Microsoft.Azure.IIoT.Storage.Blob;
     using Microsoft.Azure.IIoT.Storage.Blob.Runtime;
@@ -35,7 +35,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Graph.Runtime {
         /// <inheritdoc/>
         public string BlobStorageConnString => _storage.BlobStorageConnString;
         /// <inheritdoc/>
-        public string ContainerName => ServiceInfo.ID;
+        public string ContainerName => null;
         /// <inheritdoc/>
         public string DatabaseName => null; // TODO
 
@@ -50,15 +50,14 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Graph.Runtime {
         /// <summary>
         /// Configuration constructor
         /// </summary>
-        /// <param name="serviceId"></param>
         /// <param name="configuration"></param>
-        public Config(string serviceId, IConfigurationRoot configuration) :
+        public Config(IConfigurationRoot configuration) :
             base(configuration) {
 
             _tasks = new TaskProcessorConfig(configuration);
             _db = new CosmosDbConfig(configuration);
             _storage = new StorageConfig(configuration);
-            _hub = new IoTHubConfig(configuration, serviceId);
+            _hub = new IoTHubConfig(configuration);
         }
 
         private readonly TaskProcessorConfig _tasks;

@@ -8,6 +8,8 @@ namespace Microsoft.Azure.IIoT.Services.Hub.Router {
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Client;
+    using Microsoft.Azure.IIoT.Messaging;
+    using Microsoft.Azure.IIoT.Messaging.EventHub.Services;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
     using Autofac;
@@ -29,23 +31,24 @@ namespace Microsoft.Azure.IIoT.Services.Hub.Router {
 
         /// <summary>
         /// Static mapping of content type to event hub namespace / service bus
+        /// topic.
         /// Each one defines where the file notification / blob upload event is
         /// routed and thus consumed.
         /// </summary>
-        public static Dictionary<string, string> Routes =
+        public static Dictionary<string, string> _routes =
             new Dictionary<string, string> {
 
-            // Onboarder
+                // Onboarder
 
-            ["application/x-discovery-result-v2-json"] = "onboarding",
-            ["application/x-discovery-event-v2-json"] = "onboarding",
+                ["application/x-discovery-result-v2-json"] = "onboarding",
+                ["application/x-discovery-event-v2-json"] = "onboarding",
 
-            // Model upload
+                // Model upload
 
-            ["application/x-node-set-v1"] = "graph",
+                ["application/x-node-set-v1"] = "graph",
 
-            // ... add more mappings here as we add blob processing services
-        };
+                // ... add more mappings here as we add more blob processing services
+            };
 
         /// <summary>
         /// Main entry point for blob upload notification router.
@@ -77,7 +80,7 @@ namespace Microsoft.Azure.IIoT.Services.Hub.Router {
             var exit = false;
             while (!exit) {
                 using (var container = ConfigureContainer(config).Build()) {
-                    var host = container.Resolve<IEventProcessorHost>();
+                    var host = container.Resolve<IHost>();
                     var logger = container.Resolve<ILogger>();
                     // Wait until the agent unloads or is cancelled
                     var tcs = new TaskCompletionSource<bool>();
@@ -111,9 +114,12 @@ namespace Microsoft.Azure.IIoT.Services.Hub.Router {
         public static ContainerBuilder ConfigureContainer(
             IConfigurationRoot configuration) {
 
-            var config = new Config(ServiceInfo.ID, configuration);
+            var serviceInfo = new ServiceInfo();
+            var config = new Config(configuration);
             var builder = new ContainerBuilder();
 
+            builder.RegisterInstance(serviceInfo)
+                .AsImplementedInterfaces().SingleInstance();
             builder.RegisterInstance(config)
                 .AsImplementedInterfaces().SingleInstance();
 
@@ -141,23 +147,27 @@ namespace Microsoft.Azure.IIoT.Services.Hub.Router {
             /// </summary>
             /// <param name="broker"></param>
             /// <param name="logger"></param>
-            public BlobUploadNotificationRouter(IMessageBrokerClient broker, ILogger logger) {
+            public BlobUploadNotificationRouter(IEventQueueService broker, ILogger logger) {
                 _broker = broker ?? throw new ArgumentNullException(nameof(broker));
                 _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-                _clients = new ConcurrentDictionary<string, Task<IMessageClient>>();
+                _clients = new ConcurrentDictionary<string, Task<IEventQueueClient>>();
             }
 
             /// <inheritdoc/>
             public async Task HandleAsync(string deviceId, string moduleId, string blobName,
                 string contentType, string blobUri, DateTime enqueuedTimeUtc,
                 CancellationToken ct) {
+#pragma warning disable IDE0067 // Dispose objects before losing scope
                 var client = await GetClientAsync(contentType);
+#pragma warning restore IDE0067 // Dispose objects before losing scope
                 if (client == null) {
                     // Not for us.
                     _logger.Verbose(
                         $"Received content {contentType} that was not mapped to any route.");
                     return;
                 }
+
+                // Send blob notification through the message bus
                 await client.SendAsync(Encoding.UTF8.GetBytes(blobUri),
                     new Dictionary<string, string> {
                         { CommonProperties.kDeviceId, deviceId },
@@ -176,11 +186,11 @@ namespace Microsoft.Azure.IIoT.Services.Hub.Router {
             /// </summary>
             /// <param name="contentType"></param>
             /// <returns></returns>
-            private async Task<IMessageClient> GetClientAsync(string contentType) {
+            private async Task<IEventQueueClient> GetClientAsync(string contentType) {
                 // Parse the namespace out of the content type. A content type
                 // looks like this: "application/x-node-set-v1" and is routed to
                 // the path x-node-set-v1
-                if (!Routes.TryGetValue(contentType, out var ns)) {
+                if (!_routes.TryGetValue(contentType, out var ns)) {
                     return null;
                 }
                 return await _clients.GetOrAdd(ns, k => _broker.OpenAsync(k));
@@ -194,8 +204,8 @@ namespace Microsoft.Azure.IIoT.Services.Hub.Router {
                 _clients.Clear();
             }
 
-            private readonly ConcurrentDictionary<string, Task<IMessageClient>> _clients;
-            private readonly IMessageBrokerClient _broker;
+            private readonly ConcurrentDictionary<string, Task<IEventQueueClient>> _clients;
+            private readonly IEventQueueService _broker;
             private readonly ILogger _logger;
         }
     }

@@ -4,16 +4,17 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
-    using Autofac;
+    using Microsoft.Azure.IIoT.Hub.Client;
+    using Microsoft.Azure.IIoT.Utils;
     using Microsoft.AspNetCore;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Mvc.Testing;
-    using Microsoft.Azure.IIoT.Hub;
-    using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
+    using Autofac;
     using System;
     using System.Net.Http;
     using System.Text;
+    using Microsoft.Azure.IIoT.Storage.Default;
 
     /// <summary>
     /// Startup class for tests
@@ -33,6 +34,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
         public override void ConfigureContainer(ContainerBuilder builder) {
             base.ConfigureContainer(builder);
             builder.RegisterType<TestIoTHubConfig>()
+               .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<MemoryDatabase>()
                .AsImplementedInterfaces().SingleInstance();
         }
 

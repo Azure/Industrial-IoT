@@ -47,6 +47,8 @@ Function GetEnvironmentVariables() {
     $DOCUMENTDB_CONNSTRING = $deployment.Outputs["docdb-connstring"].Value
     $EVENTHUB_CONNSTRING = $deployment.Outputs["eventhub-connstring"].Value
     $EVENTHUB_NAME = $deployment.Outputs["eventhub-name"].Value
+    $SERVICEBUS_CONNSTRING = $deployment.Outputs["sb-connstring"].Value
+    $KEYVAULT_URL = $deployment.Outputs["keyvault-url"].Value
     $AZURE_WEBSITE = $deployment.Outputs["azureWebsite"].Value
     $WORKSPACE_NAME = $deployment.Outputs["workspace-name"].Value
     $APPINSIGHTS_NAME = $deployment.Outputs["appinsights-name"].Value
@@ -86,6 +88,10 @@ Function GetEnvironmentVariables() {
         "PCS_EVENTHUB_CONNSTRING=$EVENTHUB_CONNSTRING"
     Write-Output `
         "PCS_EVENTHUB_NAME=$EVENTHUB_NAME"
+    Write-Output `
+        "PCS_SERVICEBUS_CONNSTRING=$SERVICEBUS_CONNSTRING"
+    Write-Output `
+        "PCS_KEYVAULT_URL=$KEYVAULT_URL"
         
     Write-Output `
         "PCS_TWIN_REGISTRY_URL=$AZURE_WEBSITE/registry"
@@ -229,17 +235,32 @@ catch {
 
 # Configure auth
 if ($aadConfig) {
-    if (![string]::IsNullOrEmpty($aadConfig.Audience)) { 
-        $templateParameters.Add("authAudience", $aadConfig.Audience)
-    }
-    if (![string]::IsNullOrEmpty($aadConfig.ClientId)) { 
-        $templateParameters.Add("aadClientId", $aadConfig.ClientId)
-    }
     if (![string]::IsNullOrEmpty($aadConfig.TenantId)) { 
         $templateParameters.Add("aadTenantId", $aadConfig.TenantId)
     }
     if (![string]::IsNullOrEmpty($aadConfig.Instance)) { 
         $templateParameters.Add("aadInstance", $aadConfig.Instance)
+    }
+    if (![string]::IsNullOrEmpty($aadConfig.ServiceId)) { 
+        $templateParameters.Add("aadServiceId", $aadConfig.ServiceId)
+    }
+    if (![string]::IsNullOrEmpty($aadConfig.ServicePrincipalId)) { 
+        $templateParameters.Add("aadServicePrincipalId", $aadConfig.ServicePrincipalId)
+    }
+    if (![string]::IsNullOrEmpty($aadConfig.ServiceSecret)) { 
+        $templateParameters.Add("aadServiceSecret", $aadConfig.ServiceSecret)
+    }
+    if (![string]::IsNullOrEmpty($aadConfig.ClientId)) { 
+        $templateParameters.Add("aadClientId", $aadConfig.ClientId)
+    }
+    if (![string]::IsNullOrEmpty($aadConfig.ClientSecret)) { 
+        $templateParameters.Add("aadClientSecret", $aadConfig.ClientSecret)
+    }
+    if (![string]::IsNullOrEmpty($aadConfig.Audience)) { 
+        $templateParameters.Add("authAudience", $aadConfig.Audience)
+    }
+    if (![string]::IsNullOrEmpty($aadConfig.UserPrincipalId)) { 
+        $templateParameters.Add("aadUserPrincipalId", $aadConfig.UserPrincipalId)
     }
 }
 

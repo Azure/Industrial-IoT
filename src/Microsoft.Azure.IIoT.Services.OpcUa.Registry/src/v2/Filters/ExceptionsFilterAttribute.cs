@@ -46,6 +46,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Filters {
                     context.Result = GetResponse(HttpStatusCode.NotFound,
                         context.Exception);
                     break;
+                case ResourceInvalidStateException ri:
+                    context.Result = GetResponse(HttpStatusCode.Forbidden,
+                        context.Exception);
+                    break;
                 case ConflictingResourceException ce:
                     context.Result = GetResponse(HttpStatusCode.Conflict,
                         context.Exception);

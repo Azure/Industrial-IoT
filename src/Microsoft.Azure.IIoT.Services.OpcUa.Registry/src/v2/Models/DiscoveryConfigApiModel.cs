@@ -62,7 +62,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
                 MaxPortProbes = MaxPortProbes,
                 MinPortProbesPercent = MinPortProbesPercent,
                 IdleTimeBetweenScans = IdleTimeBetweenScansSec == null ?
-                    (TimeSpan?)null: TimeSpan.FromSeconds((double)IdleTimeBetweenScansSec),
+                    (TimeSpan?)null : TimeSpan.FromSeconds((double)IdleTimeBetweenScansSec),
                 ActivationFilter = ActivationFilter?.ToServiceModel(),
                 Callbacks = Callbacks?
                     .Where(c => c != null)

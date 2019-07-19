@@ -4,10 +4,13 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Onboarding.Runtime {
-    using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Processor;
     using Microsoft.Azure.IIoT.Hub.Processor.Runtime;
-    using Microsoft.Azure.IIoT.Hub.Runtime;
+    using Microsoft.Azure.IIoT.Hub.Client;
+    using Microsoft.Azure.IIoT.Hub.Client.Runtime;
+    using Microsoft.Azure.IIoT.Messaging.EventHub;
+    using Microsoft.Azure.IIoT.Messaging.ServiceBus;
+    using Microsoft.Azure.IIoT.Messaging.ServiceBus.Runtime;
     using Microsoft.Azure.IIoT.Tasks;
     using Microsoft.Azure.IIoT.Tasks.Runtime;
     using Microsoft.Azure.IIoT.Utils;
@@ -18,7 +21,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Onboarding.Runtime {
     /// Onboarding service configuration
     /// </summary>
     public class Config : ConfigBase, IEventProcessorConfig, IIoTHubConfig,
-        ITaskProcessorConfig, IEventHubConfig {
+        ITaskProcessorConfig, IEventHubConfig, IServiceBusConfig {
 
         /// <inheritdoc/>
         public string IoTHubConnString => _hub.IoTHubConnString;
@@ -44,24 +47,27 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Onboarding.Runtime {
         public int MaxInstances => _tasks.MaxInstances;
         /// <inheritdoc/>
         public int MaxQueueSize => _tasks.MaxQueueSize;
+        /// <inheritdoc/>
+        public string ServiceBusConnString => _sb.ServiceBusConnString;
 
         /// <summary>
         /// Configuration constructor
         /// </summary>
-        /// <param name="serviceId"></param>
         /// <param name="configuration"></param>
-        public Config(string serviceId, IConfigurationRoot configuration) :
+        public Config(IConfigurationRoot configuration) :
             base(configuration) {
 
             _tasks = new TaskProcessorConfig(configuration);
-            _ep = new EventProcessorConfig(configuration, serviceId);
-            _eh = new IoTHubEventConfig(configuration, serviceId);
-            _hub = new IoTHubConfig(configuration, serviceId);
+            _ep = new EventProcessorConfig(configuration);
+            _eh = new IoTHubEventConfig(configuration);
+            _hub = new IoTHubConfig(configuration);
+            _sb = new ServiceBusConfig(configuration);
         }
 
         private readonly TaskProcessorConfig _tasks;
         private readonly EventProcessorConfig _ep;
         private readonly IoTHubEventConfig _eh;
         private readonly IoTHubConfig _hub;
+        private readonly ServiceBusConfig _sb;
     }
 }

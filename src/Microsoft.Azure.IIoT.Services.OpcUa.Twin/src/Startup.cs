@@ -6,9 +6,8 @@
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
     using Microsoft.Azure.IIoT.Services.OpcUa.Twin.Runtime;
     using Microsoft.Azure.IIoT.Services.OpcUa.Twin.v2;
-    using Microsoft.Azure.IIoT.OpcUa.Twin.Clients;
+    using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Microsoft.Azure.IIoT.Services;
-    using Microsoft.Azure.IIoT.Services.Diagnostics;
     using Microsoft.Azure.IIoT.Services.Auth;
     using Microsoft.Azure.IIoT.Services.Auth.Clients;
     using Microsoft.Azure.IIoT.Services.Cors;
@@ -41,6 +40,11 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
         public Config Config { get; }
 
         /// <summary>
+        /// Service info - Initialized in constructor
+        /// </summary>
+        public ServiceInfo ServiceInfo { get; }
+
+        /// <summary>
         /// Current hosting environment - Initialized in constructor
         /// </summary>
         public IHostingEnvironment Environment { get; }
@@ -57,7 +61,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
         /// <param name="configuration"></param>
         public Startup(IHostingEnvironment env, IConfiguration configuration) {
             Environment = env;
-            Config = new Config(ServiceInfo.ID,
+            ServiceInfo = new ServiceInfo();
+            Config = new Config(
                 new ConfigurationBuilder()
                     .AddConfiguration(configuration)
                     .SetBasePath(env.ContentRootPath)
@@ -96,7 +101,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
             // services.AddHttpClient();
 
             // Add controllers as services so they'll be resolved.
-            services.AddMvc(options => options.Filters.Add(typeof(AuditLogFilter)))
+            services.AddMvc()
                 .AddApplicationPart(GetType().Assembly)
                 .AddControllersAsServices()
                 .AddJsonOptions(options => {
@@ -107,9 +112,9 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
                 });
 
             services.AddSwagger(Config, new Info {
-                Title = ServiceInfo.NAME,
+                Title = ServiceInfo.Name,
                 Version = VersionInfo.PATH,
-                Description = ServiceInfo.DESCRIPTION,
+                Description = ServiceInfo.Description,
             });
 
             // Prepare DI container
@@ -142,9 +147,9 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
             app.EnableCors();
 
             app.UseSwagger(Config, new Info {
-                Title = ServiceInfo.NAME,
+                Title = ServiceInfo.Name,
                 Version = VersionInfo.PATH,
-                Description = ServiceInfo.DESCRIPTION,
+                Description = ServiceInfo.Description,
             });
 
             app.UseMvc();
@@ -154,7 +159,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
             appLifetime.ApplicationStopped.Register(ApplicationContainer.Dispose);
 
             // Print some useful information at bootstrap time
-            log.Information("{service} web service started with id {id}", ServiceInfo.NAME,
+            log.Information("{service} web service started with id {id}", ServiceInfo.Name,
                 Uptime.ProcessId);
         }
 
@@ -164,16 +169,14 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
         /// <param name="builder"></param>
         public virtual void ConfigureContainer(ContainerBuilder builder) {
 
-            // Register configuration interfaces
+            // Register service info and configuration interfaces
+            builder.RegisterInstance(ServiceInfo)
+                .AsImplementedInterfaces().SingleInstance();
             builder.RegisterInstance(Config)
                 .AsImplementedInterfaces().SingleInstance();
 
             // Register logger
             builder.RegisterLogger(LogEx.ApplicationInsights(Config.Configuration));
-
-            // Diagnostics
-            builder.RegisterType<AuditLogFilter>()
-                .AsImplementedInterfaces().SingleInstance();
 
             // CORS setup
             builder.RegisterType<CorsSetup>()
@@ -201,10 +204,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
                 .AsImplementedInterfaces().SingleInstance();
 
             // Edge clients
-            builder.RegisterType<TwinClient>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<SupervisorClient>()
-                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterModule<TwinModuleClients>();
         }
     }
 }

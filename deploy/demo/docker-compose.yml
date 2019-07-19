@@ -11,9 +11,12 @@ services:
       - "443:10443"
     depends_on:
       - registryservice
+      - onboardingservice
       - gatewayservice
-      - historyservice
+      - vaultservice
       - twinservice
+      - historyservice
+      - vaultwebui
       - twinwebui
     volumes:
       - /app:/app:ro
@@ -22,7 +25,9 @@ services:
     image: ${SERVICES_REPOSITORY:-mcr.microsoft.com/iot/}opc-registry-service:${SERVICES_VERSION:-latest}
     restart: always
     environment:
+      - PCS_KEYVAULT_URL
       - PCS_IOTHUB_CONNSTRING
+      - PCS_SERVICEBUS_CONNSTRING
       - PCS_TELEMETRY_DOCUMENTDB_CONNSTRING
       - PCS_AUTH_REQUIRED
       - PCS_AUTH_ISSUER
@@ -36,6 +41,8 @@ services:
     image: ${SERVICES_REPOSITORY:-mcr.microsoft.com/iot/}opc-onboarding-service:${SERVICES_VERSION:-latest}
     restart: always
     environment:
+      - PCS_KEYVAULT_URL
+      - PCS_SERVICEBUS_CONNSTRING
       - PCS_IOTHUB_CONNSTRING
       - PCS_IOTHUBREACT_HUB_ENDPOINT
       - PCS_IOTHUBREACT_HUB_PARTITIONS
@@ -48,6 +55,7 @@ services:
     image: ${SERVICES_REPOSITORY:-mcr.microsoft.com/iot/}opc-twin-service:${SERVICES_VERSION:-latest}
     restart: always
     environment:
+      - PCS_KEYVAULT_URL
       - PCS_IOTHUB_CONNSTRING
       - PCS_TELEMETRY_DOCUMENTDB_CONNSTRING
       - PCS_AUTH_REQUIRED
@@ -62,6 +70,7 @@ services:
     image: ${SERVICES_REPOSITORY:-mcr.microsoft.com/iot/}opc-history-service:${SERVICES_VERSION:-latest}
     restart: always
     environment:
+      - PCS_KEYVAULT_URL
       - PCS_IOTHUB_CONNSTRING
       - PCS_TELEMETRY_DOCUMENTDB_CONNSTRING
       - PCS_AUTH_REQUIRED
@@ -77,6 +86,7 @@ services:
       - "4840:51111"
     restart: always
     environment:
+      - PCS_KEYVAULT_URL
       - PCS_IOTHUB_CONNSTRING
       - PCS_TELEMETRY_DOCUMENTDB_CONNSTRING
       - PCS_AUTH_REQUIRED
@@ -87,10 +97,27 @@ services:
       - PCS_WEBUI_AUTH_AAD_AUTHORITY
       - PCS_WEBUI_AUTH_AAD_TENANT
       - PCS_CORS_WHITELIST
+  vaultservice:
+    image: ${SERVICES_REPOSITORY:-mcr.microsoft.com/iot/}opc-vault-service:${SERVICES_VERSION:-latest}
+    restart: always
+    environment:
+      - PCS_KEYVAULT_URL
+      - PCS_SERVICEBUS_CONNSTRING
+      - PCS_IOTHUB_CONNSTRING
+      - PCS_TELEMETRY_DOCUMENTDB_CONNSTRING
+      - PCS_AUTH_REQUIRED
+      - PCS_AUTH_ISSUER
+      - PCS_AUTH_AUDIENCE
+      - PCS_WEBUI_AUTH_AAD_APPID
+      - PCS_WEBUI_AUTH_AAD_AUTHORITY
+      - PCS_WEBUI_AUTH_AAD_TENANT
+      - PCS_CORS_WHITELIST
   modelprocessor:
     image: ${SERVICES_REPOSITORY:-mcr.microsoft.com/iot/}opc-processor-service:${SERVICES_VERSION:-latest}
     restart: always
     environment:
+      - PCS_KEYVAULT_URL
+      - PCS_SERVICEBUS_CONNSTRING
       - PCS_TELEMETRY_DOCUMENTDB_CONNSTRING
       - PCS_IOTHUB_CONNSTRING
       - PCS_IOTHUBREACT_HUB_ENDPOINT
@@ -104,6 +131,8 @@ services:
     image: ${SERVICES_REPOSITORY:-mcr.microsoft.com/iot/}blob-notification-service:${SERVICES_VERSION:-latest}
     restart: always
     environment:
+      - PCS_KEYVAULT_URL
+      - PCS_SERVICEBUS_CONNSTRING
       - PCS_IOTHUB_CONNSTRING
       - PCS_IOTHUBREACT_HUB_ENDPOINT
       - PCS_IOTHUBREACT_HUB_PARTITIONS
@@ -126,6 +155,17 @@ services:
       - REACT_APP_PCS_WEBUI_AUTH_AAD_TENANT
       - REACT_APP_PCS_TWIN_REGISTRY_URL=/registry/
       - REACT_APP_PCS_TWIN_SERVICE_URL=/twin/
+  vaultwebui:
+    image: ${SERVICES_REPOSITORY:-mcr.microsoft.com/iot/}opc-vault-webui:${SERVICES_VERSION:-latest}
+    restart: always
+    environment:
+      - REACT_APP_PCS_AUTH_REQUIRED
+      - REACT_APP_PCS_AUTH_ISSUER
+      - REACT_APP_PCS_AUTH_AUDIENCE
+      - REACT_APP_PCS_WEBUI_AUTH_AAD_APPID
+      - REACT_APP_PCS_WEBUI_AUTH_AAD_AUTHORITY
+      - REACT_APP_PCS_WEBUI_AUTH_AAD_TENANT
+      - OPCVAULT__BASEADDRESS=http://localhost:10080/vault
   twinmodule:
     image: ${MODULES_REPOSITORY:-mcr.microsoft.com/iotedge/}opc-twin:host-${TWIN_VERSION:-latest}
     restart: always

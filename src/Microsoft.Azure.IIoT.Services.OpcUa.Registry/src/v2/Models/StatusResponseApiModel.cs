@@ -35,7 +35,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
         /// Name of this service
         /// </summary>
         [JsonProperty(PropertyName = "name")]
-        public string Name => ServiceInfo.NAME;
+        public string Name { get; set; }
 
         /// <summary>
         /// Operational status

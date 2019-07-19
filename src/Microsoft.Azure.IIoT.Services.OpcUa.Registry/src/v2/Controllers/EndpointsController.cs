@@ -101,7 +101,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Controllers {
         /// state, or display current client state of the endpoint if available</param>
         /// <returns>List of endpoints and continuation token to use for next request</returns>
         [HttpGet]
-        [AutoRestExtension(ContinuationTokenLinkName = "continuationToken")]
+        [AutoRestExtension(NextPageLinkName = "continuationToken")]
         public async Task<EndpointInfoListApiModel> GetListOfEndpointsAsync(
             [FromQuery] bool? onlyServerState,
             [FromQuery] string continuationToken,

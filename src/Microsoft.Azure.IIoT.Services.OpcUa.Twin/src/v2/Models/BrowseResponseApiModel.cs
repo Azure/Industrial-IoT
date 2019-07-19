@@ -18,7 +18,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.v2.Models {
         /// <summary>
         /// Default constructor
         /// </summary>
-        public BrowseResponseApiModel() {}
+        public BrowseResponseApiModel() { }
 
         /// <summary>
         /// Create from service model

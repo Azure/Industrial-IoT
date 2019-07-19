@@ -34,12 +34,13 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.History.v2.Controllers {
                 new HistoricAccessAdapter<string>(
                     new HistoryRawAdapter(
                         new HistoryServiceClient(
-                           new HttpClient(_factory, log), new TestConfig(client.BaseAddress), log),
-                                log), new JsonVariantEncoder(), log), "fakeid");
+                           new HttpClient(_factory, log), new TestConfig(client.BaseAddress))),
+                    new JsonVariantEncoder()), "fakeid");
         }
 
         public EndpointModel Endpoint => new EndpointModel {
-            Url = $"opc.tcp://{Dns.GetHostName()}:{_server.Port}/UA/SampleServer"
+            Url = $"opc.tcp://{Dns.GetHostName()}:{_server.Port}/UA/SampleServer",
+            Certificate = _server.Certificate?.RawData
         };
 
         private readonly WebAppFixture _factory;

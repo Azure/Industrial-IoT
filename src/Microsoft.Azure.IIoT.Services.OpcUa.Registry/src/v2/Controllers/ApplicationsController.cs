@@ -27,12 +27,14 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Controllers {
     public class ApplicationsController : Controller {
 
         /// <summary>
-        /// Create controller with service
+        /// Create controller
         /// </summary>
         /// <param name="applications"></param>
+        /// <param name="query"></param>
         /// <param name="onboarding"></param>
         public ApplicationsController(IApplicationRegistry applications,
-            IOnboardingServices onboarding) {
+            IApplicationRecordQuery query, IOnboardingServices onboarding) {
+            _query = query;
             _applications = applications;
             _onboarding = onboarding;
         }
@@ -55,6 +57,74 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Controllers {
                 throw new ArgumentNullException(nameof(request));
             }
             await _onboarding.RegisterAsync(request.ToServiceModel());
+        }
+
+        /// <summary>
+        /// Approve a new application.
+        /// </summary>
+        /// <remarks>
+        /// A manager can approve a new application or force an application
+        /// from any state.
+        /// After approval the application is in the 'Approved' state.
+        /// Requires Manager role.
+        /// </remarks>
+        /// <param name="applicationId">The application id</param>
+        /// <param name="force">optional, force application in new state</param>
+        /// <returns></returns>
+        [HttpPost("{applicationId}/approve")]
+        [Authorize(Policy = Policies.CanManage)]
+        public async Task ApproveApplicationAsync(
+            string applicationId, [FromQuery] bool? force) {
+            await _applications.ApproveApplicationAsync(applicationId,
+                force ?? false);
+        }
+
+        /// <summary>
+        /// Reject a new application.
+        /// </summary>
+        /// <remarks>
+        /// A manager can approve a new application or force an application
+        /// from any state.
+        /// After approval the application is in the 'Rejected' state.
+        /// Requires Manager role.
+        /// </remarks>
+        /// <param name="applicationId">The application id</param>
+        /// <param name="force">optional, force application in new state</param>
+        /// <returns></returns>
+        [HttpPost("{applicationId}/reject")]
+        [Authorize(Policy = Policies.CanManage)]
+        public async Task RejectApplicationAsync(
+            string applicationId, [FromQuery] bool? force) {
+            await _applications.RejectApplicationAsync(applicationId,
+                force ?? false);
+        }
+
+        /// <summary>
+        /// Disable an enabled application.
+        /// </summary>
+        /// <remarks>
+        /// A manager can disable an application.
+        /// </remarks>
+        /// <param name="applicationId">The application id</param>
+        /// <returns></returns>
+        [HttpPost("{applicationId}/disable")]
+        [Authorize(Policy = Policies.CanManage)]
+        public async Task DisableApplicationAsync(string applicationId) {
+            await _applications.DisableApplicationAsync(applicationId);
+        }
+
+        /// <summary>
+        /// Re-enable a disabled application.
+        /// </summary>
+        /// <remarks>
+        /// A manager can enable an application.
+        /// </remarks>
+        /// <param name="applicationId">The application id</param>
+        /// <returns></returns>
+        [HttpPost("{applicationId}/enable")]
+        [Authorize(Policy = Policies.CanManage)]
+        public async Task EnableApplicationAsync(string applicationId) {
+            await _applications.EnableApplicationAsync(applicationId);
         }
 
         /// <summary>
@@ -94,8 +164,9 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Controllers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _applications.RegisterAsync(
-                request.ToServiceModel());
+            var model = request.ToServiceModel();
+            // TODO: applicationServiceModel.AuthorityId = User.Identity.Name;
+            var result = await _applications.RegisterApplicationAsync(model);
             return new ApplicationRegistrationResponseApiModel(result);
         }
 
@@ -128,8 +199,9 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Controllers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            await _applications.UpdateApplicationAsync(applicationId,
-                request.ToServiceModel());
+            var model = request.ToServiceModel();
+            // TODO: applicationServiceModel.AuthorityId = User.Identity.Name;
+            await _applications.UpdateApplicationAsync(applicationId, model);
         }
 
         /// <summary>
@@ -174,7 +246,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Controllers {
         /// token</param>
         /// <returns>Sites</returns>
         [HttpGet("sites")]
-        [AutoRestExtension(ContinuationTokenLinkName = "continuationToken")]
+        [AutoRestExtension(NextPageLinkName = "continuationToken")]
         public async Task<ApplicationSiteListApiModel> GetListOfSitesAsync(
             [FromQuery] string continuationToken,
             [FromQuery] int? pageSize) {
@@ -210,7 +282,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Controllers {
         /// in x-ms-continuation header.
         /// </returns>
         [HttpGet]
-        [AutoRestExtension(ContinuationTokenLinkName = "continuationToken")]
+        [AutoRestExtension(NextPageLinkName = "continuationToken")]
         public async Task<ApplicationInfoListApiModel> GetListOfApplicationsAsync(
             [FromQuery] string continuationToken,
             [FromQuery] int? pageSize) {
@@ -261,6 +333,26 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Controllers {
         }
 
         /// <summary>
+        /// Query applications by id.
+        /// </summary>
+        /// <remarks>
+        /// A query model which supports the OPC UA Global Discovery Server query.
+        /// </remarks>
+        /// <param name="query"></param>
+        /// <returns></returns>
+        [HttpPost("querybyid")]
+        public async Task<ApplicationRecordListApiModel> QueryApplicationsByIdAsync(
+            [FromBody] ApplicationRecordQueryApiModel query) {
+            if (query == null) {
+                // query all
+                query = new ApplicationRecordQueryApiModel();
+            }
+            var result = await _query.QueryApplicationsAsync(
+                query.ToServiceModel());
+            return new ApplicationRecordListApiModel(result);
+        }
+
+        /// <summary>
         /// Get filtered list of applications
         /// </summary>
         /// <remarks>
@@ -291,6 +383,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Controllers {
             return new ApplicationInfoListApiModel(result);
         }
 
+        private readonly IApplicationRecordQuery _query;
         private readonly IApplicationRegistry _applications;
         private readonly IOnboardingServices _onboarding;
     }

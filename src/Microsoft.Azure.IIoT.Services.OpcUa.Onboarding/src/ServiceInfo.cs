@@ -4,25 +4,31 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Onboarding {
+    using Microsoft.Azure.IIoT.Diagnostics;
 
     /// <summary>
-    /// Web service information
+    /// Service information
     /// </summary>
-    public static class ServiceInfo {
+    public class ServiceInfo : IProcessIdentity {
 
         /// <summary>
         /// ID
         /// </summary>
-        public const string ID = "OPC_ONBOARDING_AGENT";
+        public string ServiceId => "OPC_ONBOARDING_AGENT";
+
+        /// <summary>
+        /// Process id
+        /// </summary>
+        public string Id => System.Guid.NewGuid().ToString();
 
         /// <summary>
         /// Name of service
         /// </summary>
-        public const string NAME = "Opc-Onboarding-Agent";
+        public string Name => "Opc-Onboarding-Agent";
 
         /// <summary>
         /// Description of service
         /// </summary>
-        public const string DESCRIPTION = "Azure Industrial IoT OPC UA Onboarding Agent";
+        public string Description => "Azure Industrial IoT OPC UA Onboarding Agent";
     }
 }

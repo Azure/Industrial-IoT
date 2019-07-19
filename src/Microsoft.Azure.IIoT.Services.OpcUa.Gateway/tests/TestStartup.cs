@@ -4,13 +4,13 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Gateway {
-    using Autofac;
+    using Microsoft.Azure.IIoT.Hub.Client;
+    using Microsoft.Azure.IIoT.Utils;
+    using Microsoft.Extensions.Configuration;
     using Microsoft.AspNetCore;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Mvc.Testing;
-    using Microsoft.Azure.IIoT.Hub;
-    using Microsoft.Azure.IIoT.Utils;
-    using Microsoft.Extensions.Configuration;
+    using Autofac;
     using System;
     using System.IO;
     using System.Net.Http;
@@ -71,6 +71,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Gateway {
             // Clean up all created certificates
             var certFolder = Path.Combine(Directory.GetCurrentDirectory(),
                 "OPC Foundation");
+            if (Directory.Exists(certFolder)) {
+                Try.Op(() => Directory.Delete(certFolder, true));
+            }
+            certFolder = Path.Combine(Directory.GetCurrentDirectory(), "pki");
             if (Directory.Exists(certFolder)) {
                 Try.Op(() => Directory.Delete(certFolder, true));
             }

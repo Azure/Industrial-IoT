@@ -8,8 +8,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.History.Runtime {
     using Microsoft.Azure.IIoT.Services.Swagger.Runtime;
     using Microsoft.Azure.IIoT.Services.Cors;
     using Microsoft.Azure.IIoT.Services.Cors.Runtime;
-    using Microsoft.Azure.IIoT.Hub;
-    using Microsoft.Azure.IIoT.Hub.Runtime;
+    using Microsoft.Azure.IIoT.Hub.Client;
+    using Microsoft.Azure.IIoT.Hub.Client.Runtime;
+    using Microsoft.Azure.IIoT.Messaging.EventHub.Runtime;
+    using Microsoft.Azure.IIoT.Messaging.EventHub;
     using Microsoft.Azure.IIoT.Auth.Server;
     using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Auth.Clients;
@@ -76,16 +78,15 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.History.Runtime {
         /// <summary>
         /// Configuration constructor
         /// </summary>
-        /// <param name="serviceId"></param>
         /// <param name="configuration"></param>
-        public Config(string serviceId, IConfigurationRoot configuration) :
+        public Config(IConfigurationRoot configuration) :
             base(configuration) {
 
-            _swagger = new SwaggerConfig(configuration, serviceId);
-            _auth = new AuthConfig(configuration, serviceId);
-            _hub = new IoTHubConfig(configuration, serviceId);
+            _swagger = new SwaggerConfig(configuration);
+            _auth = new AuthConfig(configuration);
+            _hub = new IoTHubConfig(configuration);
             _cors = new CorsConfig(configuration);
-            _eh = new EventHubConfig(configuration, serviceId);
+            _eh = new EventHubConfig(configuration);
         }
 
         private readonly SwaggerConfig _swagger;

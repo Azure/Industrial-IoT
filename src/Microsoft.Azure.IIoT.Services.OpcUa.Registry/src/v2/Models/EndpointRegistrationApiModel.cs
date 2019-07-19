@@ -20,7 +20,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
         /// <summary>
         /// Default constructor
         /// </summary>
-        public EndpointRegistrationApiModel() {}
+        public EndpointRegistrationApiModel() { }
 
         /// <summary>
         /// Create from service model
@@ -37,7 +37,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
             AuthenticationMethods = model.AuthenticationMethods?
                 .Select(p => p == null ? null : new AuthenticationMethodApiModel(p))
                 .ToList();
-            Certificate = model.Certificate;
             SiteId = model.SiteId;
             SecurityLevel = model.SecurityLevel;
         }
@@ -54,8 +53,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
                 AuthenticationMethods = AuthenticationMethods?
                     .Select(p => p?.ToServiceModel()).ToList(),
                 SecurityLevel = SecurityLevel,
-                SiteId = SiteId,
-                Certificate = Certificate
+                SiteId = SiteId
             };
         }
 
@@ -95,14 +93,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
             NullValueHandling = NullValueHandling.Ignore)]
         [DefaultValue(null)]
         public int? SecurityLevel { get; set; }
-
-        /// <summary>
-        /// Endpoint cert that was registered.
-        /// </summary>
-        [JsonProperty(PropertyName = "certificate",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
-        public byte[] Certificate { get; set; }
 
         /// <summary>
         /// Supported authentication methods that can be selected to

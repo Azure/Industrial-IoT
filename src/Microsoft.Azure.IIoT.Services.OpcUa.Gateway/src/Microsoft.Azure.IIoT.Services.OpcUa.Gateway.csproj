@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
     <IsPackable>false</IsPackable>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
@@ -28,30 +28,32 @@
     </Otherwise>
   </Choose>
   <Choose>
+    <When Condition="Exists('..\..\..\..\api')">
+      <ItemGroup>
+        <ProjectReference Include="..\..\..\..\api\src\Microsoft.Azure.IIoT.OpcUa.Api\src\Microsoft.Azure.IIoT.OpcUa.Api.csproj" />
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <PackageReference Include="Microsoft.Azure.IIoT.OpcUa.Api" Version="$(ComponentsOpcUaVersion)" />
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
+  <Choose>
     <When Condition="Exists('..\..\..\..\components\opc-ua')">
       <ItemGroup>
         <ProjectReference Include="..\..\..\..\components\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.Gateway\src\Microsoft.Azure.IIoT.OpcUa.Gateway.csproj" />
         <ProjectReference Include="..\..\..\..\components\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.Twin\src\Microsoft.Azure.IIoT.OpcUa.Twin.csproj" />
-        <ProjectReference Include="..\..\..\..\components\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.Registry\src\Microsoft.Azure.IIoT.OpcUa.Registry.csproj" />
       </ItemGroup>
     </When>
     <Otherwise>
       <ItemGroup>
         <PackageReference Include="Microsoft.Azure.IIoT.OpcUa.Twin" Version="$(ComponentsOpcUaVersion)" />
-        <PackageReference Include="Microsoft.Azure.IIoT.OpcUa.Registry" Version="$(ComponentsOpcUaVersion)" />
         <PackageReference Include="Microsoft.Azure.IIoT.OpcUa.Gateway" Version="$(ComponentsOpcUaVersion)" />
       </ItemGroup>
     </Otherwise>
   </Choose>
   <ItemGroup>
     <Folder Include="Properties" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="appsettings.json" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Update="appsettings.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
 </Project>
