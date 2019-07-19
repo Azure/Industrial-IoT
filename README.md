@@ -51,7 +51,7 @@ Follow the instructions [here](https://github.com/Azure/azure-iiot-services) to 
 1. Change into the repo root and run
    `docker build -f docker/linux/amd64/Dockerfile -t azure-iiot-opc-twin-module .`
 1. Then push the module to an accessible registry, e.g. Azure Container Registry, or [dockerhub][dockerhub-url].
-1. Follow the instructions on how to deploy the module to IoT Edge [here][#Using-the-module].
+1. Follow the instructions on how to deploy the module to IoT Edge [here](#Using-the-module).
 
 ### Building and running the module with Visual Studio or VS Code
 
