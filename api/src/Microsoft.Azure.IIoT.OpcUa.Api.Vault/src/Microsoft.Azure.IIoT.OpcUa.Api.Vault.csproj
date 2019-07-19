@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Description>Azure Industrial IoT OPC Vault API</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="v1\Extensions\**" />
+    <EmbeddedResource Remove="v1\Extensions\**" />
+    <None Remove="v1\Extensions\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Rest.ClientRuntime.Azure.Authentication" Version="2.4.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.2.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="2.2.0" />
+  </ItemGroup>
+  <Choose>
+    <When Condition="Exists('..\..\..\..\common')">
+      <ItemGroup>
+        <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Core\src\Microsoft.Azure.IIoT.Core.csproj" />
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <PackageReference Include="Microsoft.Azure.IIoT.Core" Version="$(CommonVersion)" />
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
+</Project>
