@@ -42,7 +42,7 @@ namespace Microsoft.Azure.IIoT.Storage.Blob.Services {
         /// <inheritdoc/>
         public async Task HandleAsync(string deviceId, string moduleId, string blobName,
             string contentType, string blobUri, DateTime enqueuedTimeUtc, CancellationToken ct) {
-            // If registered with blob upload notification host this gets called.  Simpler.
+            // If registered with blob upload notification host directly - this gets called. 
             var properties = new Dictionary<string, string> {
                 { CommonProperties.kDeviceId, deviceId },
                 { CommonProperties.kModuleId, moduleId },
@@ -57,7 +57,7 @@ namespace Microsoft.Azure.IIoT.Storage.Blob.Services {
         /// <inheritdoc/>
         public async Task HandleAsync(byte[] eventData, IDictionary<string, string> properties,
             Func<Task> checkpoint) {
-            // Called as a result of an event hub event - allows fan out of blob processing
+            // Called as a result of an event - allows fan out of blob processing
             if (eventData == null) {
                 return;
             }
@@ -71,7 +71,9 @@ namespace Microsoft.Azure.IIoT.Storage.Blob.Services {
         }
 
         /// <inheritdoc/>
-        public Task OnBatchCompleteAsync() => Task.CompletedTask;
+        public Task OnBatchCompleteAsync() {
+            return Task.CompletedTask;
+        }
 
         /// <summary>
         /// Process blob
@@ -86,19 +88,21 @@ namespace Microsoft.Azure.IIoT.Storage.Blob.Services {
                 var blob = new CloudBlockBlob(new Uri(blobUri), _client);
                 while (true) {
                     var context = new OperationContext();
-                    var stream = await blob.OpenReadAsync(
-                        AccessCondition.GenerateIfExistsCondition(), _options, context, ct);
-                    properties.AddOrUpdate("RequestId", context.ClientRequestID);
-                    var disposition = await _processor.ProcessAsync(stream, properties, ct);
-                    if (disposition == BlobDisposition.Retry) {
-                        continue;
-                    }
-                    if (disposition != BlobDisposition.Delete) {
+                    using (var stream = await blob.OpenReadAsync(
+                        AccessCondition.GenerateIfExistsCondition(), _options, context, ct)) {
+
+                        properties.AddOrUpdate("RequestId", context.ClientRequestID);
+                        var disposition = await _processor.ProcessAsync(stream, properties, ct);
+                        if (disposition == BlobDisposition.Retry) {
+                            continue;
+                        }
+                        if (disposition != BlobDisposition.Delete) {
+                            break;
+                        }
+                        await blob.DeleteAsync(DeleteSnapshotsOption.IncludeSnapshots,
+                            AccessCondition.GenerateIfExistsCondition(), _options, context, ct);
                         break;
                     }
-                    await blob.DeleteAsync(DeleteSnapshotsOption.IncludeSnapshots,
-                        AccessCondition.GenerateIfExistsCondition(), _options, context, ct);
-                    break;
                 }
             }
             catch (StorageException ex) {

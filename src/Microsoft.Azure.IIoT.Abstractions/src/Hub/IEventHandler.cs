@@ -4,17 +4,18 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Hub {
+    using Microsoft.Azure.IIoT.Messaging;
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Handles events
+    /// Handles raw events
     /// </summary>
-    public interface IEventHandler {
+    public interface IEventHandler : IHandler {
 
         /// <summary>
-        /// Handle message
+        /// Handle event
         /// </summary>
         /// <param name="eventData"></param>
         /// <param name="properties"></param>
@@ -24,7 +25,7 @@ namespace Microsoft.Azure.IIoT.Hub {
             IDictionary<string, string> properties, Func<Task> checkpoint);
 
         /// <summary>
-        /// Message batch completed
+        /// Event batch completed
         /// </summary>
         /// <returns></returns>
         Task OnBatchCompleteAsync();

@@ -19,10 +19,11 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
         /// </summary>
         /// <param name="twin"></param>
         /// <returns></returns>
-        public static Device ToDevice(this DeviceTwinModel twin) =>
-            new Device(twin.Id) {
+        public static Device ToDevice(this DeviceTwinModel twin) {
+            return new Device(twin.Id) {
                 Capabilities = twin.Capabilities?.ToCapabilities()
             };
+        }
 
         /// <summary>
         /// Convert twin to module

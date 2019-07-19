@@ -280,7 +280,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser {
         /// <param name="target"></param>
         /// <param name="path"></param>
         /// <returns></returns>
-        private static JsonToken SelectTargetToken<T>(T target, string path) where T : class{
+        private static JsonToken SelectTargetToken<T>(T target, string path) where T : class {
             if (target == null) {
                 return null;
             }
@@ -425,8 +425,9 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser {
         /// </summary>
         /// <param name="stringLiteralContext"></param>
         /// <returns></returns>
-        private string ParseStringValue(ITerminalNode stringLiteralContext) =>
-            stringLiteralContext.GetText().TrimQuotes();
+        private string ParseStringValue(ITerminalNode stringLiteralContext) {
+            return stringLiteralContext.GetText().TrimQuotes();
+        }
 
         /// <summary>
         /// Token helper
@@ -454,10 +455,14 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser {
             public static implicit operator JsonToken(JToken t) => new JsonToken(t);
 
             /// <inheritdoc/>
-            public override int GetHashCode() => JToken.EqualityComparer.GetHashCode(_jtoken);
+            public override int GetHashCode() {
+                return JToken.EqualityComparer.GetHashCode(_jtoken);
+            }
 
             /// <inheritdoc/>
-            public override string ToString() => _jtoken.ToString();
+            public override string ToString() {
+                return _jtoken.ToString();
+            }
 
             /// <inheritdoc/>
             public static bool operator ==(JsonToken helper1, JsonToken helper2) {

@@ -83,7 +83,9 @@ namespace System.Collections.Concurrent {
         }
 
         /// <inheritdoc/>
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() {
+            return GetEnumerator();
+        }
 
         /// <inheritdoc/>
         void ICollection.CopyTo(Array array, int index) {
@@ -142,7 +144,7 @@ namespace System.Collections.Concurrent {
         /// otherwise, false.
         /// </returns>
         public bool TryDequeue(out ValueTuple<T, V> result) {
-            result = default(ValueTuple<T, V>);
+            result = default;
             lock (_syncLock) {
                 if (_minHeap.Count > 0) {
                     result = _minHeap.Remove();
@@ -162,7 +164,7 @@ namespace System.Collections.Concurrent {
         /// <returns> true if an element was returned from the queue
         /// succesfully; otherwise, false. </returns>
         public bool TryPeek(out ValueTuple<T, V> result) {
-            result = default(ValueTuple<T, V>);
+            result = default;
             lock (_syncLock) {
                 if (_minHeap.Count > 0) {
                     result = _minHeap.Peek();
@@ -189,18 +191,18 @@ namespace System.Collections.Concurrent {
             /// <summary>
             /// Gets the number of objects stored in the heap.
             /// </summary>
-            public int Count => _items.Count;
+            public int Count => Items.Count;
 
             /// <summary>
             /// Gets the items stored in the heap.
             /// </summary>
-            internal List<ValueTuple<T, V>> Items => _items;
+            internal List<ValueTuple<T, V>> Items { get; }
 
             /// <summary>
             /// Initializes an empty heap.
             /// </summary>
             public MinBinaryHeap() {
-                _items = new List<ValueTuple<T, V>>();
+                Items = new List<ValueTuple<T, V>>();
             }
 
             /// <summary>
@@ -209,22 +211,24 @@ namespace System.Collections.Concurrent {
             /// <param name="heapToCopy">The heap to copy.</param>
             /// <remarks>Key/Value values are not deep cloned.</remarks>
             public MinBinaryHeap(MinBinaryHeap heapToCopy) {
-                _items = new List<ValueTuple<T, V>>(heapToCopy.Items);
+                Items = new List<ValueTuple<T, V>>(heapToCopy.Items);
             }
 
             /// <summary>
             /// Empties the heap.
             /// </summary>
-            public void Clear() =>
-                _items.Clear();
+            public void Clear() {
+                Items.Clear();
+            }
 
             /// <summary>
             /// Adds an item to the heap.
             /// </summary>
             /// <param name="key"></param>
             /// <param name="value"></param>
-            public void Insert(T key, V value) =>
+            public void Insert(T key, V value) {
                 Insert(new ValueTuple<T, V>(key, value));
+            }
 
             /// <summary>
             /// Adds an item to the heap.
@@ -232,8 +236,8 @@ namespace System.Collections.Concurrent {
             /// <param name="entry"></param>
             public void Insert(ValueTuple<T, V> entry) {
                 // Add the item to the list, making sure to keep track of where it was added.
-                _items.Add(entry);
-                var pos = _items.Count - 1;
+                Items.Add(entry);
+                var pos = Items.Count - 1;
                 // If the new item is the only item, we're done.
                 if (pos == 0) {
                     return;
@@ -244,11 +248,11 @@ namespace System.Collections.Concurrent {
                     // Get the next position to check
                     var nextPos = (pos - 1) / 2;
                     // Extract the entry at the next position
-                    var toCheck = _items[nextPos];
+                    var toCheck = Items[nextPos];
                     // Compare that entry to our new one.  If our entry has a smaller key, move it up.
                     // Otherwise, we're done.
                     if (entry.Item1.CompareTo(toCheck.Item1) < 0) {
-                        _items[pos] = toCheck;
+                        Items[pos] = toCheck;
                         pos = nextPos;
                     }
                     else {
@@ -256,7 +260,7 @@ namespace System.Collections.Concurrent {
                     }
                 }
                 // Make sure we put this entry back in, just in case
-                _items[pos] = entry;
+                Items[pos] = entry;
             }
 
             /// <summary>
@@ -265,10 +269,10 @@ namespace System.Collections.Concurrent {
             /// <returns></returns>
             public ValueTuple<T, V> Peek() {
                 // Returns the first item
-                if (_items.Count == 0) {
+                if (Items.Count == 0) {
                     throw new InvalidOperationException("The heap is empty.");
                 }
-                return _items[0];
+                return Items[0];
             }
 
             /// <summary>
@@ -277,21 +281,21 @@ namespace System.Collections.Concurrent {
             /// <returns></returns>
             public ValueTuple<T, V> Remove() {
                 // Get the first item and save it for later (this is what will be returned).
-                if (_items.Count == 0) {
+                if (Items.Count == 0) {
                     throw new InvalidOperationException("The heap is empty.");
                 }
-                var toReturn = _items[0];
+                var toReturn = Items[0];
 
                 // Remove the first item if there will only be 0 or 1 items left
                 // after doing so.
-                if (_items.Count <= 2) {
-                    _items.RemoveAt(0);
+                if (Items.Count <= 2) {
+                    Items.RemoveAt(0);
                 }
                 // A reheapify will be required for the removal
                 else {
                     // Remove the first item and move the last item to the front.
-                    _items[0] = _items[_items.Count - 1];
-                    _items.RemoveAt(_items.Count - 1);
+                    Items[0] = Items[Items.Count - 1];
+                    Items.RemoveAt(Items.Count - 1);
 
                     // Start reheapify
                     int current = 0, possibleSwap = 0;
@@ -299,14 +303,14 @@ namespace System.Collections.Concurrent {
                     // Keep going until the tree is a heap
                     while (true) {
                         // Get the positions of the node's children
-                        var leftChildPos = 2 * current + 1;
+                        var leftChildPos = (2 * current) + 1;
                         var rightChildPos = leftChildPos + 1;
 
                         // Should we swap with the left child?
-                        if (leftChildPos < _items.Count) {
+                        if (leftChildPos < Items.Count) {
                             // Get the two entries to compare (node and its left child)
-                            var entry1 = _items[current];
-                            var entry2 = _items[leftChildPos];
+                            var entry1 = Items[current];
+                            var entry2 = Items[leftChildPos];
 
                             //
                             // If the child has a lower key than the parent, set that
@@ -325,10 +329,10 @@ namespace System.Collections.Concurrent {
                         // check with the possible swap position (which might be
                         // current and might be left child).
                         //
-                        if (rightChildPos < _items.Count) {
+                        if (rightChildPos < Items.Count) {
                             // Get the two entries to compare (node and its left child)
-                            var entry1 = _items[possibleSwap];
-                            var entry2 = _items[rightChildPos];
+                            var entry1 = Items[possibleSwap];
+                            var entry2 = Items[rightChildPos];
 
                             // If the child has a lower key than the parent, set that
                             // as a possible swap
@@ -339,9 +343,9 @@ namespace System.Collections.Concurrent {
 
                         // Now swap current and possible swap if necessary
                         if (current != possibleSwap) {
-                            var temp = _items[current];
-                            _items[current] = _items[possibleSwap];
-                            _items[possibleSwap] = temp;
+                            var temp = Items[current];
+                            Items[current] = Items[possibleSwap];
+                            Items[possibleSwap] = temp;
                         }
                         else {
                             break; // if nothing to swap, we're done
@@ -354,11 +358,10 @@ namespace System.Collections.Concurrent {
                 // Return the item from the heap
                 return toReturn;
             }
-
-            private readonly List<ValueTuple<T, V>> _items;
         }
 
         private readonly object _syncLock = new object();
         private readonly MinBinaryHeap _minHeap = new MinBinaryHeap();
     }
+
 }

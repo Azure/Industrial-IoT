@@ -27,7 +27,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Storage.Services {
         /// <param name="creds"></param>
         /// <param name="logger"></param>
         public StorageFactory(ICredentialProvider creds, ILogger logger) :
-            base (creds, logger) {
+            base(creds, logger) {
         }
 
         /// <inheritdoc/>

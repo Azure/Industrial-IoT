@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework {
         /// <summary>
         /// Default constructor
         /// </summary>
-        protected ExceptionFilterAttribute() {}
+        protected ExceptionFilterAttribute() { }
 
         /// <summary>
         /// Filter exception and return a status code

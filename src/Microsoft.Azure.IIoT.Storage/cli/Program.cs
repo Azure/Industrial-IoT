@@ -6,11 +6,11 @@
 namespace Microsoft.Azure.IIoT.Storage.Cli {
     using Microsoft.Azure.IIoT.Storage.CosmosDb.Runtime;
     using Microsoft.Azure.IIoT.Storage.CosmosDb.Services;
-    using Serilog;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
+    using Serilog;
     using System;
     using System.IO;
     using System.Linq;
@@ -290,7 +290,7 @@ Commands and Options
             var configuration = new CosmosDbConfig(config);
             var server = new CosmosDbServiceClient(configuration, logger);
             return await server.OpenAsync(
-                options.GetValueOrDefault("-d", "--db", "default"));
+                options.GetValueOrDefault("-d", "--db", "default"), null);
         }
 
         /// <summary>

@@ -31,7 +31,7 @@ namespace System {
                 Console.Write("> ");
                 var line = Console.ReadLine();
                 if (line == exit) {
-                    return default(T);
+                    return default;
                 }
                 if (!int.TryParse(line, out var selected)) {
                     Console.WriteLine(line + " is not a valid index!");
@@ -53,8 +53,9 @@ namespace System {
         /// <param name="items"></param>
         /// <param name="exit"></param>
         /// <returns></returns>
-        public static T Select<T>(IEnumerable<T> items, string exit = "") =>
-            Select(items, t => t.ToString(), exit);
+        public static T Select<T>(IEnumerable<T> items, string exit = "") {
+            return Select(items, t => t.ToString(), exit);
+        }
 
         /// <summary>
         /// Read password

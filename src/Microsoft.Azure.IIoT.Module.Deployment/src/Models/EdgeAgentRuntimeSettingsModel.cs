@@ -31,6 +31,6 @@ namespace Microsoft.Azure.IIoT.Module.Deployment.Models {
         /// </summary>
         [JsonProperty(PropertyName = "registryCredentials",
             NullValueHandling = NullValueHandling.Ignore)]
-        public Dictionary<string, RegistryCredentialsModel> Registries{ get; set; }
+        public Dictionary<string, RegistryCredentialsModel> Registries { get; set; }
     }
 }

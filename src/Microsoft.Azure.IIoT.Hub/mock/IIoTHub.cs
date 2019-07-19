@@ -25,7 +25,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
         /// <summary>
         /// List of modules for module queries
         /// </summary>
-        IEnumerable<IIoTHubDevice> Modules { get;  }
+        IEnumerable<IIoTHubDevice> Modules { get; }
 
         /// <summary>
         /// List of jobs for job queries

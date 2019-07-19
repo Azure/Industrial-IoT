@@ -19,6 +19,8 @@ namespace Microsoft.Azure.IIoT.Tasks {
         /// <param name="task"></param>
         /// <returns></returns>
         public static bool TrySchedule(this ITaskProcessor processor,
-            Func<Task> task) => processor.TrySchedule(task, () => Task.CompletedTask);
+            Func<Task> task) {
+            return processor.TrySchedule(task, () => Task.CompletedTask);
+        }
     }
 }

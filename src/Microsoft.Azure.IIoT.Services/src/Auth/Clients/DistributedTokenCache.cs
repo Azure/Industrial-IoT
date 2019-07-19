@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.Services.Auth.Clients {
     using Microsoft.Azure.IIoT.Auth.Clients;
-    using Serilog;
     using Microsoft.Extensions.Caching.Distributed;
     using Microsoft.IdentityModel.Clients.ActiveDirectory;
     using Microsoft.AspNetCore.DataProtection;
@@ -21,17 +20,16 @@ namespace Microsoft.Azure.IIoT.Services.Auth.Clients {
         /// </summary>
         /// <param name="cache">Cache</param>
         /// <param name="dp">protector</param>
-        /// <param name="logger"></param>
         public DistributedTokenCache(IDistributedCache cache,
-            IDataProtectionProvider dp, ILogger logger) {
+            IDataProtectionProvider dp) {
             _dp = dp ?? throw new ArgumentNullException(nameof(dp));
             _cache = cache ?? throw new ArgumentNullException(nameof(cache));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <inheritdoc/>
-        public TokenCache GetCache(string name) =>
-            new DistributedTokenCacheEntry(this, name);
+        public TokenCache GetCache(string name) {
+            return new DistributedTokenCacheEntry(this, name);
+        }
 
         /// <summary>
         /// Cache implementation
@@ -70,6 +68,5 @@ namespace Microsoft.Azure.IIoT.Services.Auth.Clients {
 
         private readonly IDataProtectionProvider _dp;
         private readonly IDistributedCache _cache;
-        private readonly ILogger _logger;
     }
 }

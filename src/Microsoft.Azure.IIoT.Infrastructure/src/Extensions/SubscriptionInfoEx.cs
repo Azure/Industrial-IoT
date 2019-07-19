@@ -16,7 +16,9 @@ namespace Microsoft.Azure.IIoT.Infrastructure {
         /// Environment of subscription
         /// </summary>
         public static async Task<AzureEnvironment> GetAzureEnvironmentAsync(
-            this ISubscriptionInfo info) => AzureEnvironmentEx.FromName(
-                await info.GetEnvironment());
+            this ISubscriptionInfo info) {
+            return AzureEnvironmentEx.FromName(
+await info.GetEnvironment());
+        }
     }
 }

@@ -41,7 +41,9 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
         /// <param name="config"></param>
         /// <param name="model"></param>
         public static void AddModulesContent(this ConfigurationContentModel config,
-            EdgeAgentConfigurationModel model) => config.AddModulesContent("$edgeAgent", model);
+            EdgeAgentConfigurationModel model) {
+            config.AddModulesContent("$edgeAgent", model);
+        }
 
         /// <summary>
         /// Add iotedge hub configuration model as modules content
@@ -49,7 +51,9 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
         /// <param name="config"></param>
         /// <param name="model"></param>
         public static void AddModulesContent(this ConfigurationContentModel config,
-            EdgeHubConfigurationModel model) => config.AddModulesContent("$edgeHub", model);
+            EdgeHubConfigurationModel model) {
+            config.AddModulesContent("$edgeHub", model);
+        }
 
         /// <summary>
         /// Return module content
@@ -81,8 +85,9 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
         /// <param name="config"></param>
         /// <returns></returns>
         public static EdgeAgentConfigurationModel GetEdgeAgentConfiguration(
-            this ConfigurationContentModel config) =>
-            config.GetModulesContent<EdgeAgentConfigurationModel>("$edgeAgent");
+            this ConfigurationContentModel config) {
+            return config.GetModulesContent<EdgeAgentConfigurationModel>("$edgeAgent");
+        }
 
         /// <summary>
         /// Get iotedge hub configuration model from modules content
@@ -90,7 +95,8 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
         /// <param name="config"></param>
         /// <returns></returns>
         public static EdgeHubConfigurationModel GetEdgeHubConfiguration(
-            this ConfigurationContentModel config) =>
-            config.GetModulesContent<EdgeHubConfigurationModel>("$edgeHub");
+            this ConfigurationContentModel config) {
+            return config.GetModulesContent<EdgeHubConfigurationModel>("$edgeHub");
+        }
     }
 }

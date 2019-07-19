@@ -16,6 +16,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
     using System.Threading.Tasks;
     using System.Security.Cryptography.X509Certificates;
     using Newtonsoft.Json.Linq;
+    using System.Threading;
 
     /// <summary>
     /// Edgelet client providing discovery and in the future other services
@@ -27,11 +28,11 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// </summary>
         /// <param name="client"></param>
         /// <param name="logger"></param>
-        public EdgeletClient(IHttpClient client, ILogger logger) : this (client,
+        public EdgeletClient(IHttpClient client, ILogger logger) : this(client,
             Environment.GetEnvironmentVariable("IOTEDGE_WORKLOADURI")?.TrimEnd('/'),
             Environment.GetEnvironmentVariable("IOTEDGE_MODULEGENERATIONID"),
             Environment.GetEnvironmentVariable("IOTEDGE_MODULEID"),
-            Environment.GetEnvironmentVariable("IOTEDGE_APIVERSION"), 
+            Environment.GetEnvironmentVariable("IOTEDGE_APIVERSION"),
             logger) {
         }
 
@@ -49,26 +50,24 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             ILogger logger) {
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _workloaduri = workloaduri; 
-            _moduleGenerationId = genId; 
-            _moduleId = moduleId; 
-            _apiVersion = apiVersion ?? "2019-01-30"; 
+            _workloaduri = workloaduri;
+            _moduleGenerationId = genId;
+            _moduleId = moduleId;
+            _apiVersion = apiVersion ?? "2019-01-30";
         }
 
         /// <inheritdoc/>
         public async Task<List<DiscoveredModuleModel>> GetModulesAsync(
-            string deviceId) {
-
+            string deviceId, CancellationToken ct) {
 
             if (!string.IsNullOrEmpty(_workloaduri)) {
                 try {
-
                     var uri = _workloaduri + "/modules?api-version=" + _apiVersion;
                     _logger.Debug("Calling GET on {uri} uri...", uri);
 
                     var request = _client.NewRequest(uri);
-                    var result = await Retry.WithExponentialBackoff(_logger, async () => {
-                        var response = await _client.GetAsync(request);
+                    var result = await Retry.WithExponentialBackoff(_logger, ct, async () => {
+                        var response = await _client.GetAsync(request, ct);
                         var payload = response.GetContentAsString();
                         if (response.StatusCode == System.Net.HttpStatusCode.OK) {
                             _logger.Debug("... returned {statusCode}.", response.StatusCode);
@@ -80,7 +79,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                         }
                         response.Validate();
                         return JsonConvertEx.DeserializeObject<EdgeletModules>(payload);
-                    });
+                    }, kMaxRetryCount);
                     return result.Modules?.Select(m => new DiscoveredModuleModel {
                         Id = m.Name,
                         ImageName = m.Config?.Settings?.Image,
@@ -93,7 +92,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     _logger.Error(ex, "Error during GetModulesAsync");
                 }
                 return new List<DiscoveredModuleModel>();
-
             }
             _logger.Warning("Not running in iotedge context - no modules in scope.");
             return new List<DiscoveredModuleModel>();
@@ -101,50 +99,50 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
 
         /// <inheritdoc/>
         public async Task<X509Certificate2Collection> CreateServerCertificateAsync(
-            string commonName, DateTime expiration) {
+            string commonName, DateTime expiration, CancellationToken ct) {
             var request = _client.NewRequest(
                 $"{_workloaduri}/modules/{_moduleId}/genid/{_moduleGenerationId}/" +
                 $"certificate/server?api-version={_apiVersion}");
             request.SetContent(new { commonName, expiration });
-            return await Retry.WithExponentialBackoff(_logger, async () => {
-                var response = await _client.PostAsync(request);
+            return await Retry.WithExponentialBackoff(_logger, ct, async () => {
+                var response = await _client.PostAsync(request, ct);
                 response.Validate();
                 var result = JsonConvertEx.DeserializeObject<EdgeletCertificateResponse>(
                    response.GetContentAsString());
                 // TODO add private key
                 return new X509Certificate2Collection(
-                    X509CertificateEx.ParsePemCerts(result.Certificate).ToArray());
-            });
+                    X509Certificate2Ex.ParsePemCerts(result.Certificate).ToArray());
+            }, kMaxRetryCount);
         }
 
         /// <inheritdoc/>
         public async Task<byte[]> EncryptAsync(
-            string initializationVector, byte[] plaintext) {
+            string initializationVector, byte[] plaintext, CancellationToken ct) {
             var request = _client.NewRequest(
                 $"{_workloaduri}/modules/{_moduleId}/genid/{_moduleGenerationId}/" +
                 $"encrypt?api-version={_apiVersion}");
             request.SetContent(new { initializationVector, plaintext });
-            return await Retry.WithExponentialBackoff(_logger, async () => {
-                var response = await _client.PostAsync(request);
+            return await Retry.WithExponentialBackoff(_logger, ct, async () => {
+                var response = await _client.PostAsync(request, ct);
                 response.Validate();
                 return JObject.Parse(response.GetContentAsString())?
                     .GetValueOrDefault<byte[]>("ciphertext");
-            });
+            }, kMaxRetryCount);
         }
 
         /// <inheritdoc/>
         public async Task<byte[]> DecryptAsync(
-            string initializationVector, byte[] ciphertext) {
+            string initializationVector, byte[] ciphertext, CancellationToken ct) {
             var request = _client.NewRequest(
                 $"{_workloaduri}/modules/{_moduleId}/genid/{_moduleGenerationId}/" +
                 $"decrypt?api-version={_apiVersion}");
             request.SetContent(new { initializationVector, ciphertext });
-            return await Retry.WithExponentialBackoff(_logger, async () => {
-                var response = await _client.PostAsync(request);
+            return await Retry.WithExponentialBackoff(_logger, ct, async () => {
+                var response = await _client.PostAsync(request, ct);
                 response.Validate();
                 return JObject.Parse(response.GetContentAsString())?
                     .GetValueOrDefault<byte[]>("plaintext");
-            });
+            }, kMaxRetryCount);
         }
 
         /// <summary>
@@ -177,7 +175,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// <summary>
         /// Edgelet private key
         /// </summary>
-        public class EdgeletPrivateKey{
+        public class EdgeletPrivateKey {
 
             /// <summary>Type of private key.</summary>
             [JsonProperty("type")]
@@ -300,5 +298,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         private readonly string _moduleGenerationId;
         private readonly string _moduleId;
         private readonly string _apiVersion;
+        private const int kMaxRetryCount = 3;
     }
 }

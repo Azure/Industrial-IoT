@@ -31,7 +31,9 @@ namespace System.Xml {
         /// <returns></returns>
         public static T ToObject<T>(this XmlElement element) {
             var serializer = new DataContractSerializer(typeof(T));
-            return (T)serializer.ReadObject(new XmlNodeReader(element));
+            using (var reader = new XmlNodeReader(element)) {
+                return (T)serializer.ReadObject(reader);
+            }
         }
     }
 }

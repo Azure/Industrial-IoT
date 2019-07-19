@@ -51,7 +51,9 @@ namespace Microsoft.Azure.IIoT.Net.Models {
         /// Clone
         /// </summary>
         /// <returns></returns>
-        public PortRange Copy() => new PortRange(_lower, _upper);
+        public PortRange Copy() {
+            return new PortRange(_lower, _upper);
+        }
 
         /// <inheritdoc/>
         public override bool Equals(object obj) {
@@ -71,9 +73,9 @@ namespace Microsoft.Azure.IIoT.Net.Models {
         /// <inheritdoc/>
         public override int GetHashCode() {
             var hashCode = -1389615925;
-            hashCode = hashCode * -1521134295 +
+            hashCode = (hashCode * -1521134295) +
                 _lower.GetHashCode();
-            hashCode = hashCode * -1521134295 +
+            hashCode = (hashCode * -1521134295) +
                 _upper.GetHashCode();
             return hashCode;
         }

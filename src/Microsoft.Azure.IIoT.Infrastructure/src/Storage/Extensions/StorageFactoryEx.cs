@@ -16,8 +16,9 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Storage {
         /// Create a new randomly named storage
         /// </summary>
         public static Task<IStorageResource> CreateAsync(
-            this IStorageFactory service, IResourceGroupResource resourceGroup) =>
-            service.CreateAsync(resourceGroup, null);
+            this IStorageFactory service, IResourceGroupResource resourceGroup) {
+            return service.CreateAsync(resourceGroup, null);
+        }
 
         /// <summary>
         /// Get or create new storage in a resource group.

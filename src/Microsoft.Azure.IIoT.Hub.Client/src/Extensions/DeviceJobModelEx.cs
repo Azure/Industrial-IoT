@@ -23,7 +23,7 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
                 EndTimeUtc = job.EndTimeUtc,
                 Error = job.Error.ToModel(),
                 LastUpdatedDateTimeUtc = job.LastUpdatedDateTimeUtc,
-            //    ModuleId = job.ModuleId,  // TODO:
+                //    ModuleId = job.ModuleId,  // TODO:
                 Outcome = job.Outcome.ToModel(),
                 StartTimeUtc = job.StartTimeUtc,
                 Status = job.Status.ToModel()

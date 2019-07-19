@@ -12,6 +12,55 @@ namespace Microsoft.Azure.IIoT.Net.Models {
     public class AddressRangeTests {
 
         [Fact]
+        public void TestSubnetRange1() {
+            var range = new AddressRange(
+                IPAddress.Parse("10.93.232.185"), 20);
+
+            Assert.Equal(IPAddress.Parse("10.93.224.0"), (IPv4Address)range.Low);
+            Assert.Equal(IPAddress.Parse("10.93.239.255"), (IPv4Address)range.High);
+            Assert.Equal(4096, range.Count);
+        }
+
+        [Fact]
+        public void TestSubnetRange2() {
+            var range = new AddressRange(
+                IPAddress.Parse("10.93.232.185"), IPAddress.Parse("255.255.240.0"));
+
+            Assert.Equal(IPAddress.Parse("10.93.224.0"), (IPv4Address)range.Low);
+            Assert.Equal(IPAddress.Parse("10.93.239.255"), (IPv4Address)range.High);
+            Assert.Equal(4096, range.Count);
+        }
+
+        [Fact]
+        public void TestSubnetNicLocal() {
+            var nics = NetworkInformationEx.GetAllNetInterfaces(NetworkClass.Wired);
+            if (!nics.Any()) {
+                return;
+            }
+            var nic = nics.First();
+            var range = new AddressRange(nic, true);
+
+            Assert.Equal(nic.UnicastAddress, (IPv4Address)range.Low);
+            Assert.Equal(nic.UnicastAddress, (IPv4Address)range.High);
+            Assert.Equal(1, range.Count);
+        }
+
+        [Fact]
+        public void TestSubnetNic() {
+            var nics = NetworkInformationEx.GetAllNetInterfaces(NetworkClass.Wired);
+            if (!nics.Any()) {
+                return;
+            }
+            var nic = nics.First();
+            var expected = new AddressRange(nic.UnicastAddress, nic.SubnetMask);
+            var range = new AddressRange(nic);
+
+            Assert.Equal((IPv4Address)expected.Low, (IPv4Address)range.Low);
+            Assert.Equal((IPv4Address)expected.High, (IPv4Address)range.High);
+            Assert.Equal(expected.Count, range.Count);
+        }
+
+        [Fact]
         public void TestSimpleRange() {
             var range = new AddressRange(0, 255);
 
@@ -43,7 +92,7 @@ namespace Microsoft.Azure.IIoT.Net.Models {
 
         [Fact]
         public void TestEquality2() {
-            var range1 = new AddressRange(new IPv4Address(0u), 24);
+            var range1 = new AddressRange((IPv4Address)0u, 24);
             var range2 = new AddressRange(0, 255);
 
             Assert.Equal(range1, range2);

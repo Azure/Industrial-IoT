@@ -19,7 +19,7 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
     /// <summary>
     /// Document bulk updater
     /// </summary>
-    sealed class BulkUpdate : IDocumentPatcher {
+    internal sealed class BulkUpdate : IDocumentPatcher {
 
         /// <summary>
         /// Create loader
@@ -61,8 +61,9 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
         }
 
         /// <inheritdoc/>
-        public void Dispose() =>
+        public void Dispose() {
             Try.Op(() => CompleteAsync(true).Wait());
+        }
 
         /// <inheritdoc/>
         public Task CompleteAsync(bool abort) {
@@ -74,7 +75,6 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
             return _complete.Result;
         }
 
-        private const int _retries = 100;
         private const int _maxArgs = 5000;
 
         /// <summary>

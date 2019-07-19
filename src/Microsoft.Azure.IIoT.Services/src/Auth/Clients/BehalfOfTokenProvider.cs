@@ -4,19 +4,19 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.Auth.Clients {
-    using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Auth;
+    using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Auth.Models;
-    using Serilog;
     using Microsoft.AspNetCore.Authentication;
     using Microsoft.AspNetCore.Http;
     using Microsoft.IdentityModel.Clients.ActiveDirectory;
+    using Serilog;
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Security.Authentication;
     using System.Security.Claims;
     using System.Threading.Tasks;
-    using System.Collections.Generic;
 
     /// <summary>
     /// Authenticate on behalf of current logged in claims principal to another
@@ -46,12 +46,7 @@ namespace Microsoft.Azure.IIoT.Services.Auth.Clients {
             }
         }
 
-        /// <summary>
-        /// Obtain token from user
-        /// </summary>
-        /// <param name="resource"></param>
-        /// <param name="scopes"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public async Task<TokenResultModel> GetTokenForAsync(string resource,
             IEnumerable<string> scopes) {
             if (string.IsNullOrEmpty(_config.AppId) ||
@@ -65,8 +60,13 @@ namespace Microsoft.Azure.IIoT.Services.Auth.Clients {
                 throw new AuthenticationException("Missing claims principal.");
             }
 
-            var name = user.FindFirstValue(ClaimTypes.Upn) ??
-                user.FindFirstValue(ClaimTypes.Email);
+            var name = user.FindFirstValue(ClaimTypes.Upn);
+            if (string.IsNullOrEmpty(name)) {
+                name = user.FindFirstValue(ClaimTypes.Email);
+            }
+            if (string.IsNullOrEmpty(name)) {
+                name = user.Identity?.Name;
+            }
 
             const string kAccessTokenKey = "access_token";
             var token = await _ctx.HttpContext.GetTokenAsync(kAccessTokenKey);
@@ -108,6 +108,9 @@ namespace Microsoft.Azure.IIoT.Services.Auth.Clients {
             string authorityUrl, string tenantId, TokenCache cache) {
             if (string.IsNullOrEmpty(authorityUrl)) {
                 authorityUrl = kDefaultAuthorityUrl;
+            }
+            else if (!authorityUrl.EndsWith("/", StringComparison.Ordinal)) {
+                authorityUrl += "/";
             }
             var uri = new UriBuilder(authorityUrl) {
                 Path = tenantId ?? "common"

@@ -21,22 +21,22 @@ namespace Microsoft.Azure.IIoT.Storage {
         /// <param name="newItem"></param>
         /// <param name="ct"></param>
         /// <param name="id"></param>
-        /// <param name="partitionKey"></param>
+        /// <param name="options"></param>
         /// <returns></returns>
         Task<IDocumentInfo<T>> AddAsync<T>(T newItem,
-            CancellationToken ct = default(CancellationToken),
-            string id = null, string partitionKey = null);
+            CancellationToken ct = default,
+            string id = null, OperationOptions options = null);
 
         /// <summary>
-        /// Gets an item.
+        /// Finds an item.
         /// </summary>
         /// <param name="id"></param>
         /// <param name="ct"></param>
-        /// <param name="partitionKey"></param>
+        /// <param name="options"></param>
         /// <returns></returns>
-        Task<IDocumentInfo<T>> GetAsync<T>(string id,
-            CancellationToken ct = default(CancellationToken),
-            string partitionKey = null);
+        Task<IDocumentInfo<T>> FindAsync<T>(string id,
+            CancellationToken ct = default,
+            OperationOptions options = null);
 
         /// <summary>
         /// Replace item
@@ -44,9 +44,11 @@ namespace Microsoft.Azure.IIoT.Storage {
         /// <param name="existing"></param>
         /// <param name="value"></param>
         /// <param name="ct"></param>
+        /// <param name="options"></param>
         /// <returns></returns>
         Task<IDocumentInfo<T>> ReplaceAsync<T>(IDocumentInfo<T> existing,
-            T value, CancellationToken ct = default(CancellationToken));
+            T value, CancellationToken ct = default,
+            OperationOptions options = null);
 
         /// <summary>
         /// Adds or updates an item.
@@ -55,24 +57,24 @@ namespace Microsoft.Azure.IIoT.Storage {
         /// <param name="newItem"></param>
         /// <param name="ct"></param>
         /// <param name="id"></param>
-        /// <param name="partitionKey"></param>
+        /// <param name="options"></param>
         /// <param name="etag"></param>
         /// <returns></returns>
         Task<IDocumentInfo<T>> UpsertAsync<T>(T newItem,
-            CancellationToken ct = default(CancellationToken),
-            string id = null, string partitionKey = null,
+            CancellationToken ct = default,
+            string id = null, OperationOptions options = null,
             string etag = null);
 
         /// <summary>
         /// Query items using expressions
         /// </summary>
         /// <param name="query"></param>
-        /// <param name="partitionKey"></param>
+        /// <param name="options"></param>
         /// <param name="pageSize"></param>
         /// <returns></returns>
         IResultFeed<R> Query<T, R>(
             Func<IQueryable<IDocumentInfo<T>>, IQueryable<R>> query,
-            int? pageSize = null, string partitionKey = null);
+            int? pageSize = null, OperationOptions options = null);
 
         /// <summary>
         /// Removes the item.
@@ -80,21 +82,23 @@ namespace Microsoft.Azure.IIoT.Storage {
         /// <exception cref="ResourceOutOfDateException"/>
         /// <param name="item"></param>
         /// <param name="ct"></param>
+        /// <param name="options"></param>
         /// <returns></returns>
         Task DeleteAsync<T>(IDocumentInfo<T> item,
-            CancellationToken ct = default(CancellationToken));
+            CancellationToken ct = default,
+            OperationOptions options = null);
 
         /// <summary>
         /// Delete an item by id.
         /// </summary>
         /// <param name="id"></param>
         /// <param name="ct"></param>
-        /// <param name="partitionKey"></param>
+        /// <param name="options"></param>
         /// <param name="etag"></param>
         /// <returns></returns>
         Task DeleteAsync(string id,
-            CancellationToken ct = default(CancellationToken),
-            string partitionKey = null, string etag = null);
+            CancellationToken ct = default,
+            OperationOptions options = null, string etag = null);
 
         /// <summary>
         /// Query using sql. If not supported will throw.

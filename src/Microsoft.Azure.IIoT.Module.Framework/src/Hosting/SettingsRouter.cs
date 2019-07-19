@@ -100,9 +100,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// <param name="key"></param>
         /// <param name="invoker"></param>
         /// <returns></returns>
-        private bool GetInvoker(string key, out CascadingInvoker invoker) =>
-            !_calltable.TryGetValue(key, out invoker) &&
-            !_calltable.TryGetValue(kDefaultProp, out invoker);
+        private bool GetInvoker(string key, out CascadingInvoker invoker) {
+            return !_calltable.TryGetValue(key, out invoker) &&
+!_calltable.TryGetValue(kDefaultProp, out invoker);
+        }
 
         /// <summary>
         /// Add target to calltable

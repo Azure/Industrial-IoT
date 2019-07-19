@@ -38,9 +38,9 @@ namespace Microsoft.Azure.CosmosDB.BulkExecutor.Graph {
                 inLabel, outPk, inPk);
             foreach (var prop in jEdge) {
                 switch (prop.Key.ToLowerInvariant()) {
-                    case DocumentProperties.kIdKey:
-                    case DocumentProperties.kLabelKey:
-                    case DocumentProperties.kPartitionKey:
+                    case DocumentProperties.IdKey:
+                    case DocumentProperties.LabelKey:
+                    case DocumentProperties.PartitionKey:
                         break;
                     default:
                         gedge.AddProperty(prop.Key, prop.Value);
@@ -62,9 +62,9 @@ namespace Microsoft.Azure.CosmosDB.BulkExecutor.Graph {
             var gvertex = new GremlinVertex(id, label);
             foreach (var prop in jvertex) {
                 switch (prop.Key.ToLowerInvariant()) {
-                    case DocumentProperties.kIdKey:
-                    case DocumentProperties.kLabelKey:
-                    case DocumentProperties.kPartitionKey:
+                    case DocumentProperties.IdKey:
+                    case DocumentProperties.LabelKey:
+                    case DocumentProperties.PartitionKey:
                         break;
                     default:
                         gvertex.AddProperty(prop.Key, prop.Value);
@@ -88,14 +88,14 @@ namespace Microsoft.Azure.CosmosDB.BulkExecutor.Graph {
             out string id, out string label, out string pk) {
             var jelement = JObject.FromObject(element, serializer);
 
-            id = jelement.GetValueOrDefault(DocumentProperties.kIdKey,
+            id = jelement.GetValueOrDefault(DocumentProperties.IdKey,
                 () => Guid.NewGuid().ToString());
 
-            pk = jelement.GetValueOrDefault(DocumentProperties.kPartitionKey,
+            pk = jelement.GetValueOrDefault(DocumentProperties.PartitionKey,
                 () => Guid.NewGuid().ToString());
 
-            label = jelement.GetValueOrDefault(DocumentProperties.kLabelKey,
-                () => _labelCache.GetOrAdd(typeof(T), t => {
+            label = jelement.GetValueOrDefault(DocumentProperties.LabelKey,
+                () => LabelCache.GetOrAdd(typeof(T), t => {
                     var tattr = typeof(T).GetCustomAttribute<TypeNameAttribute>(true);
                     if (tattr != null && tattr.Name != null) {
                         return tattr.Name;
@@ -106,11 +106,11 @@ namespace Microsoft.Azure.CosmosDB.BulkExecutor.Graph {
                     }
                     return typeof(T).Name.Substring(0, 1).ToLower() +
                         typeof(T).Name.Substring(1);
-               }));
+                }));
             return jelement;
         }
 
-        private static readonly ConcurrentDictionary<Type, string> _labelCache =
+        internal static ConcurrentDictionary<Type, string> LabelCache { get; } =
             new ConcurrentDictionary<Type, string>();
     }
 }

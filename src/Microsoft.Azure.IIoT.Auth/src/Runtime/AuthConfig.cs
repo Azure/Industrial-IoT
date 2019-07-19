@@ -38,9 +38,8 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
         /// Configuration constructor
         /// </summary>
         /// <param name="configuration"></param>
-        /// <param name="serviceId"></param>
-        public AuthConfig(IConfigurationRoot configuration, string serviceId = "") :
-            base(configuration, serviceId) {
+        public AuthConfig(IConfigurationRoot configuration) :
+            base(configuration) {
         }
     }
 }

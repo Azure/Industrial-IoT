@@ -19,11 +19,11 @@ namespace System.Net {
         /// <param name="endpoint"></param>
         /// <param name="preferv4"></param>
         /// <returns></returns>
-        public static IPAddress GetIPAddress(this EndPoint endpoint, 
+        public static IPAddress GetIPAddress(this EndPoint endpoint,
             bool preferv4 = false) {
             if (endpoint is IPEndPoint ipe) {
                 var address = ipe.Address;
-                if (preferv4 && 
+                if (preferv4 &&
                     address.AddressFamily == AddressFamily.InterNetworkV6 &&
                     address.IsIPv4MappedToIPv6) {
                     return address.MapToIPv4();

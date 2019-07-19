@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.Infrastructure.Services {
     using Microsoft.Azure.IIoT.Infrastructure.Auth;
     using Microsoft.Azure.IIoT.Infrastructure.Runtime;
-    using Serilog;
     using Microsoft.Azure.Management.Fluent;
     using Microsoft.Azure.Management.ResourceManager.Fluent;
     using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
@@ -17,15 +16,14 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Services {
     /// <summary>
     /// Read subscription information from user other selector.
     /// </summary>
-    public class AzureSubscription : ISubscriptionInfoProvider  {
+    public class AzureSubscription : ISubscriptionInfoProvider {
 
         /// <summary>
         /// Create subscription service
         /// </summary>
         /// <param name="creds"></param>
-        /// <param name="logger"></param>
-        public AzureSubscription(ICredentialProvider creds,
-            ILogger logger) : this (creds, new FixedSelector(), logger) {
+        public AzureSubscription(ICredentialProvider creds) :
+            this(creds, new FixedSelector()) {
         }
 
         /// <summary>
@@ -33,12 +31,10 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Services {
         /// </summary>
         /// <param name="creds"></param>
         /// <param name="selector"></param>
-        /// <param name="logger"></param>
         public AzureSubscription(ICredentialProvider creds,
-            ISubscriptionInfoSelector selector, ILogger logger) {
+            ISubscriptionInfoSelector selector) {
             _selector = selector ?? throw new ArgumentNullException(nameof(selector));
             _creds = creds ?? throw new ArgumentNullException(nameof(creds));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <inheritdoc/>
@@ -127,8 +123,9 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Services {
             }
 
             /// <inheritdoc/>
-            public Task<string> GetEnvironment() =>
-                Task.FromResult(_environment.Value);
+            public Task<string> GetEnvironment() {
+                return Task.FromResult(_environment.Value);
+            }
 
             /// <inheritdoc/>
             public async Task<string> GetSubscriptionId() {
@@ -137,15 +134,16 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Services {
             }
 
             /// <inheritdoc/>
-            public Task<string> GetRegionAsync() => _region.Value;
+            public Task<string> GetRegionAsync() {
+                return _region.Value;
+            }
 
-            private Lazy<string> _environment;
-            private Lazy<Task<ISubscription>> _subscription;
-            private Lazy<Task<string>> _region;
+            private readonly Lazy<string> _environment;
+            private readonly Lazy<Task<ISubscription>> _subscription;
+            private readonly Lazy<Task<string>> _region;
         }
 
         private readonly ISubscriptionInfoSelector _selector;
         private readonly ICredentialProvider _creds;
-        private readonly ILogger _logger;
     }
 }

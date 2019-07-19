@@ -24,16 +24,22 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Runtime {
         }
 
         /// <inheritdoc/>
-        public Task<string> GetEnvironment() => _main.GetEnvironment()
-            .FallbackWhen(string.IsNullOrEmpty, () => _fallback.GetEnvironment());
+        public Task<string> GetEnvironment() {
+            return _main.GetEnvironment()
+                .FallbackWhen(string.IsNullOrEmpty, () => _fallback.GetEnvironment());
+        }
 
         /// <inheritdoc/>
-        public Task<string> GetSubscriptionId() => _main.GetSubscriptionId()
-            .FallbackWhen(string.IsNullOrEmpty, () => _fallback.GetSubscriptionId());
+        public Task<string> GetSubscriptionId() {
+            return _main.GetSubscriptionId()
+                .FallbackWhen(string.IsNullOrEmpty, () => _fallback.GetSubscriptionId());
+        }
 
         /// <inheritdoc/>
-        public Task<string> GetRegionAsync() => _main.GetRegionAsync()
-            .FallbackWhen(string.IsNullOrEmpty, () => _fallback.GetRegionAsync());
+        public Task<string> GetRegionAsync() {
+            return _main.GetRegionAsync()
+                .FallbackWhen(string.IsNullOrEmpty, () => _fallback.GetRegionAsync());
+        }
 
         /// <summary>
         /// Safe create

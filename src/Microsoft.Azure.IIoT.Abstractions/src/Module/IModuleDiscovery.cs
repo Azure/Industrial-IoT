@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.Module {
     using Microsoft.Azure.IIoT.Module.Models;
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -22,8 +23,9 @@ namespace Microsoft.Azure.IIoT.Module {
         /// device ids an empty list is returned.
         /// </summary>
         /// <param name="deviceId"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         Task<List<DiscoveredModuleModel>> GetModulesAsync(
-            string deviceId);
+            string deviceId, CancellationToken ct = default);
     }
 }

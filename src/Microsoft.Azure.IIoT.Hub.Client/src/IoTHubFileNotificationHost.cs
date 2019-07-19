@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
     /// <summary>
     /// File notification processor
     /// </summary>
-    public sealed class IoTHubFileNotificationHost : IEventProcessorHost,
+    public sealed class IoTHubFileNotificationHost : IHost,
         IDisposable {
 
         /// <summary>
@@ -51,7 +51,6 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
             }
         }
 
-
         /// <inheritdoc/>
         public async Task StopAsync() {
             _cts.Cancel();
@@ -68,6 +67,8 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
         /// <inheritdoc/>
         public void Dispose() {
             StopAsync().Wait();
+            _client.Dispose();
+            _cts.Dispose();
         }
 
         /// <summary>

@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.Module.Deployment.Test {
     using Microsoft.Azure.IIoT.Module.Deployment.Models;
-    using Serilog;
     using Microsoft.Azure.IIoT.Hub.Models;
     using AutoFixture;
     using Docker.DotNet.Models;
@@ -20,14 +19,14 @@ namespace Microsoft.Azure.IIoT.Module.Deployment.Test {
         [Fact]
         protected void TestDeploymentManifestAndJson1() {
 
-            var deployment1 = new EdgeDeploymentBase(Log.Logger)
+            var deployment1 = new EdgeDeploymentBase()
                 .WithModule("test1", "microsoft/test2:latest")
                 .WithModule("test2", "microsoft/test1:latest")
                 .WithRoute("test12", "test1", "test2");
 
             var deployment2 = new EdgeDeploymentBase(
                 JsonConvertEx.DeserializeObject<ConfigurationContentModel>(
-                    deployment1.ToString()), Log.Logger);
+                    deployment1.ToString()));
 
             var config1 = JsonConvertEx.DeserializeObject<ConfigurationContentModel>(
                 deployment1.ToString());
@@ -38,7 +37,7 @@ namespace Microsoft.Azure.IIoT.Module.Deployment.Test {
 
         [Fact]
         protected void TestDeploymentManifestAndJson2() {
-            var deployment1 = new EdgeDeploymentBase(Log.Logger)
+            var deployment1 = new EdgeDeploymentBase()
                 .WithModule("test1", "microsoft/test2:latest", new CreateContainerParameters {
                     Env = new List<string> {
                         "FOOBAR1=zzzzzzz",
@@ -73,7 +72,7 @@ namespace Microsoft.Azure.IIoT.Module.Deployment.Test {
 
             var deployment2 = new EdgeDeploymentBase(
                 JsonConvertEx.DeserializeObject<ConfigurationContentModel>(
-                    deployment1.ToString()), Log.Logger);
+                    deployment1.ToString()));
 
             var config1 = JsonConvertEx.DeserializeObject<ConfigurationContentModel>(
                 deployment1.ToString());
@@ -89,18 +88,18 @@ namespace Microsoft.Azure.IIoT.Module.Deployment.Test {
             customization.Customize(fixture);
             var modules = fixture.CreateMany<EdgeDeploymentModuleModel>(30).ToList();
             var routes = fixture.CreateMany<EdgeDeploymentRouteModel>(10).ToList();
-            for (var i = 0; i < routes.Count; i++){
+            for (var i = 0; i < routes.Count; i++) {
                 routes[i].To = modules[i].Name;
                 routes[i].From = modules[i + 10].Name;
             }
-            var deployment1 = new EdgeDeploymentBase(Log.Logger);
+            var deployment1 = new EdgeDeploymentBase();
             deployment1.WithManifest(new EdgeDeploymentManifestModel {
                 Modules = modules,
                 Routes = routes
             });
             var json1 = deployment1.ToString();
             var deployment2 = new EdgeDeploymentBase(
-                JsonConvertEx.DeserializeObject<ConfigurationContentModel>(json1), Log.Logger);
+                JsonConvertEx.DeserializeObject<ConfigurationContentModel>(json1));
             var config1 = JsonConvertEx.DeserializeObject<ConfigurationContentModel>(
                 json1);
             var config2 = JsonConvertEx.DeserializeObject<ConfigurationContentModel>(
@@ -111,7 +110,7 @@ namespace Microsoft.Azure.IIoT.Module.Deployment.Test {
         [Fact]
         protected void TestDeploymentManifestAndJsonTwin() {
 
-            var deployment1 = new EdgeDeploymentBase(Log.Logger)
+            var deployment1 = new EdgeDeploymentBase()
                 .WithModule("twin", "marcschier/azure-iiot-opc-twin-module", new CreateContainerParameters {
                     HostConfig = new HostConfig {
                         Privileged = true
@@ -120,7 +119,7 @@ namespace Microsoft.Azure.IIoT.Module.Deployment.Test {
 
             var json1 = deployment1.ToString();
             var deployment2 = new EdgeDeploymentBase(
-                JsonConvertEx.DeserializeObject<ConfigurationContentModel>(json1), Log.Logger);
+                JsonConvertEx.DeserializeObject<ConfigurationContentModel>(json1));
             var config1 = JsonConvertEx.DeserializeObject<ConfigurationContentModel>(
                 json1);
             var config2 = JsonConvertEx.DeserializeObject<ConfigurationContentModel>(

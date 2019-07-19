@@ -7,14 +7,15 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
     using Microsoft.Azure.Devices;
     using Microsoft.Azure.Devices.Common.Exceptions;
     using Microsoft.Azure.Devices.Shared;
-    using Serilog;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Azure.IIoT.Utils;
     using Newtonsoft.Json.Linq;
+    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -50,141 +51,148 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
         }
 
         /// <inheritdoc/>
-        public async Task<DeviceTwinModel> CreateOrUpdateAsync(DeviceTwinModel twin,
-            bool forceUpdate) {
+        public async Task<DeviceTwinModel> CreateAsync(DeviceTwinModel twin,
+            bool forceUpdate, CancellationToken ct) {
 
-            if (string.IsNullOrEmpty(twin.Etag)) {
+            // First try create device
+            try {
+                var device = await _registry.AddDeviceAsync(twin.ToDevice(), ct);
+            }
+            catch (DeviceAlreadyExistsException)
+                when (!string.IsNullOrEmpty(twin.ModuleId) || forceUpdate) {
+                // continue
+            }
+            catch (Exception e) {
+                _logger.Verbose(e, "Create device failed in CreateOrUpdate");
+                throw e.Rethrow();
+            }
 
-                // First try create device
+            // Then update twin assuming it now exists. If fails, retry...
+            var etag = string.IsNullOrEmpty(twin.Etag) || forceUpdate ? "*" : twin.Etag;
+            if (!string.IsNullOrEmpty(twin.ModuleId)) {
+                // Try create module
                 try {
-                    var device = await _registry.AddDeviceAsync(twin.ToDevice());
+                    var module = await _registry.AddModuleAsync(twin.ToModule(), ct);
                 }
-                catch (DeviceAlreadyExistsException) {
+                catch (DeviceAlreadyExistsException) when (forceUpdate) {
                     // Expected for update
                 }
                 catch (Exception e) {
-                    _logger.Debug(e, "Create device failed in CreateOrUpdate");
+                    _logger.Verbose(e, "Create module failed in CreateOrUpdate");
+                    throw e.Rethrow();
                 }
             }
+            return await PatchAsync(twin, true, ct); // Force update of twin
+        }
 
+        /// <inheritdoc/>
+        public async Task<DeviceTwinModel> PatchAsync(DeviceTwinModel twin,
+            bool force, CancellationToken ct) {
             try {
-
                 Twin update;
                 // Then update twin assuming it now exists. If fails, retry...
-                var etag = string.IsNullOrEmpty(twin.Etag) || forceUpdate ? "*" : twin.Etag;
+                var etag = string.IsNullOrEmpty(twin.Etag) || force ? "*" : twin.Etag;
                 if (!string.IsNullOrEmpty(twin.ModuleId)) {
-
-                    if (string.IsNullOrEmpty(twin.Etag)) {
-                        // Try create module
-                        try {
-                            var module = await _registry.AddModuleAsync(twin.ToModule());
-                        }
-                        catch (DeviceAlreadyExistsException) {
-                            // Expected for update
-                        }
-                        catch (Exception e) {
-                            _logger.Debug(e, "Create module failed in CreateOrUpdate");
-                        }
-                    }
-
                     update = await _registry.UpdateTwinAsync(twin.Id, twin.ModuleId,
-                        twin.ToTwin(true), etag);
+                        twin.ToTwin(true), etag, ct);
                 }
                 else {
                     // Patch device
                     update = await _registry.UpdateTwinAsync(twin.Id,
-                        twin.ToTwin(true), etag);
+                        twin.ToTwin(true), etag, ct);
                 }
                 return update.ToModel();
             }
             catch (Exception e) {
-                _logger.Debug(e, "Create or update failed ");
-                throw;
+                _logger.Verbose(e, "Create or update failed ");
+                throw e.Rethrow();
             }
         }
 
         /// <inheritdoc/>
         public async Task<MethodResultModel> CallMethodAsync(string deviceId, string moduleId,
-            MethodParameterModel parameters) {
+            MethodParameterModel parameters, CancellationToken ct) {
             try {
                 var methodInfo = new CloudToDeviceMethod(parameters.Name);
                 methodInfo.SetPayloadJson(parameters.JsonPayload);
                 var result = await (string.IsNullOrEmpty(moduleId) ?
-                     _client.InvokeDeviceMethodAsync(deviceId, methodInfo) :
-                     _client.InvokeDeviceMethodAsync(deviceId, moduleId, methodInfo));
+                     _client.InvokeDeviceMethodAsync(deviceId, methodInfo, ct) :
+                     _client.InvokeDeviceMethodAsync(deviceId, moduleId, methodInfo, ct));
                 return new MethodResultModel {
                     JsonPayload = result.GetPayloadAsJson(),
                     Status = result.Status
                 };
             }
             catch (Exception e) {
-                _logger.Debug(e, "Call method failed ");
+                _logger.Verbose(e, "Call method failed ");
                 throw e.Rethrow();
             }
         }
 
         /// <inheritdoc/>
         public async Task UpdatePropertiesAsync(string deviceId, string moduleId,
-            Dictionary<string, JToken> properties, string etag) {
+            Dictionary<string, JToken> properties, string etag, CancellationToken ct) {
             try {
                 var result = await (string.IsNullOrEmpty(moduleId) ?
-                    _registry.UpdateTwinAsync(deviceId, properties.ToTwin(), etag) :
-                    _registry.UpdateTwinAsync(deviceId, moduleId, properties.ToTwin(), etag));
+                    _registry.UpdateTwinAsync(deviceId, properties.ToTwin(), etag, ct) :
+                    _registry.UpdateTwinAsync(deviceId, moduleId, properties.ToTwin(), etag, ct));
             }
             catch (Exception e) {
-                _logger.Debug(e, "Update properties failed ");
+                _logger.Verbose(e, "Update properties failed ");
                 throw e.Rethrow();
             }
         }
 
         /// <inheritdoc/>
         public async Task ApplyConfigurationAsync(string deviceId,
-            ConfigurationContentModel configuration) {
+            ConfigurationContentModel configuration, CancellationToken ct) {
             try {
                 await _registry.ApplyConfigurationContentOnDeviceAsync(deviceId,
-                    configuration.ToContent());
+                    configuration.ToContent(), ct);
             }
             catch (Exception e) {
-                _logger.Debug(e, "Apply configuration failed ");
+                _logger.Verbose(e, "Apply configuration failed ");
                 throw e.Rethrow();
             }
         }
 
         /// <inheritdoc/>
-        public async Task<DeviceTwinModel> GetAsync(string deviceId, string moduleId) {
+        public async Task<DeviceTwinModel> GetAsync(string deviceId, string moduleId,
+            CancellationToken ct) {
             try {
                 if (string.IsNullOrEmpty(moduleId)) {
-                    var device = await _registry.GetTwinAsync(deviceId);
+                    var device = await _registry.GetTwinAsync(deviceId, ct);
                     return device.ToModel();
                 }
-                var module = await _registry.GetTwinAsync(deviceId, moduleId);
+                var module = await _registry.GetTwinAsync(deviceId, moduleId, ct);
                 return module.ToModel();
             }
             catch (Exception e) {
-                _logger.Debug(e, "Get twin failed ");
+                _logger.Verbose(e, "Get twin failed ");
                 throw e.Rethrow();
             }
         }
 
         /// <inheritdoc/>
-        public async Task<DeviceModel> GetRegistrationAsync(string deviceId, string moduleId) {
+        public async Task<DeviceModel> GetRegistrationAsync(string deviceId, string moduleId,
+            CancellationToken ct) {
             try {
                 if (string.IsNullOrEmpty(moduleId)) {
-                    var device = await _registry.GetDeviceAsync(deviceId);
+                    var device = await _registry.GetDeviceAsync(deviceId, ct);
                     return device.ToModel();
                 }
-                var module = await _registry.GetModuleAsync(deviceId, moduleId);
+                var module = await _registry.GetModuleAsync(deviceId, moduleId, ct);
                 return module.ToModel();
             }
             catch (Exception e) {
-                _logger.Debug(e, "Get registration failed ");
+                _logger.Verbose(e, "Get registration failed ");
                 throw e.Rethrow();
             }
         }
 
         /// <inheritdoc/>
         public async Task<QueryResultModel> QueryAsync(string query, string continuation,
-            int? pageSize) {
+            int? pageSize, CancellationToken ct) {
             try {
                 var statement = _registry.CreateQuery(query, pageSize);
                 var options = new QueryOptions { ContinuationToken = continuation };
@@ -195,44 +203,45 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                 };
             }
             catch (Exception e) {
-                _logger.Debug(e, "Query failed ");
+                _logger.Verbose(e, "Query failed ");
                 throw e.Rethrow();
             }
         }
 
         /// <inheritdoc/>
-        public async Task DeleteAsync(string deviceId, string moduleId, string etag) {
+        public async Task DeleteAsync(string deviceId, string moduleId, string etag,
+            CancellationToken ct) {
             try {
                 await (string.IsNullOrEmpty(moduleId) ?
                     _registry.RemoveDeviceAsync(new Device(deviceId) {
                         ETag = etag ?? "*"
-                    }) :
+                    }, ct) :
                     _registry.RemoveModuleAsync(new Module(deviceId, moduleId) {
                         ETag = etag ?? "*"
-                    }));
+                    }, ct));
             }
             catch (Exception e) {
-                _logger.Debug(e, "Delete failed ");
+                _logger.Verbose(e, "Delete failed ");
                 throw e.Rethrow();
             }
         }
 
         /// <inheritdoc/>
         public async Task<ConfigurationModel> CreateOrUpdateConfigurationAsync(
-            ConfigurationModel configuration, bool forceUpdate) {
+            ConfigurationModel configuration, bool forceUpdate, CancellationToken ct) {
 
             if (string.IsNullOrEmpty(configuration.Etag)) {
                 // First try create configuration
                 try {
                     var result = await _registry.AddConfigurationAsync(
-                        configuration.ToConfiguration());
+                        configuration.ToConfiguration(), ct);
                     return result.ToModel();
                 }
                 catch (DeviceAlreadyExistsException) { // TODO
                     // Expected for update
                 }
                 catch (Exception e) {
-                    _logger.Debug(e,
+                    _logger.Verbose(e,
                         "Create configuration failed in CreateOrUpdate");
                     // Try patch
                 }
@@ -240,11 +249,11 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
             try {
                 // Try update configuration
                 var result = await _registry.UpdateConfigurationAsync(
-                    configuration.ToConfiguration());
+                    configuration.ToConfiguration(), ct);
                 return result.ToModel();
             }
             catch (Exception e) {
-                _logger.Debug(e,
+                _logger.Verbose(e,
                     "Update configuration failed in CreateOrUpdate");
                 throw e.Rethrow();
             }
@@ -252,65 +261,65 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
 
         /// <inheritdoc/>
         public async Task<ConfigurationModel> GetConfigurationAsync(
-            string configurationId) {
+            string configurationId, CancellationToken ct) {
             try {
                 var configuration = await _registry.GetConfigurationAsync(
-                    configurationId);
+                    configurationId, ct);
                 return configuration.ToModel();
             }
             catch (Exception e) {
-                _logger.Debug(e, "Get configuration failed");
+                _logger.Verbose(e, "Get configuration failed");
                 throw e.Rethrow();
             }
         }
 
         /// <inheritdoc/>
         public async Task<IEnumerable<ConfigurationModel>> ListConfigurationsAsync(
-            int? maxCount) {
+            int? maxCount, CancellationToken ct) {
             try {
                 var configurations = await _registry.GetConfigurationsAsync(
-                    maxCount ?? int.MaxValue);
+                    maxCount ?? int.MaxValue, ct);
                 return configurations.Select(c => c.ToModel());
             }
             catch (Exception e) {
-                _logger.Debug(e, "List configurations failed");
+                _logger.Verbose(e, "List configurations failed");
                 throw e.Rethrow();
             }
         }
 
         /// <inheritdoc/>
         public async Task DeleteConfigurationAsync(string configurationId,
-            string etag) {
+            string etag, CancellationToken ct) {
             try {
                 if (string.IsNullOrEmpty(etag)) {
-                    await _registry.RemoveConfigurationAsync(configurationId);
+                    await _registry.RemoveConfigurationAsync(configurationId, ct);
                 }
                 else {
                     await _registry.RemoveConfigurationAsync(
-                        new Configuration(configurationId) { ETag = etag });
+                        new Configuration(configurationId) { ETag = etag }, ct);
                 }
             }
             catch (Exception e) {
-                _logger.Debug(e, "Delete configuration failed");
+                _logger.Verbose(e, "Delete configuration failed");
                 throw e.Rethrow();
             }
         }
 
         /// <inheritdoc/>
-        public async Task<JobModel> CreateAsync(JobModel job) {
+        public async Task<JobModel> CreateAsync(JobModel job, CancellationToken ct) {
             JobResponse response;
             switch (job.Type) {
                 case Models.JobType.ScheduleUpdateTwin:
                     response = await _jobs.ScheduleTwinUpdateAsync(job.JobId, job.QueryCondition,
                         job.UpdateTwin?.ToTwin(),
                         job.StartTimeUtc ?? DateTime.MinValue,
-                        job.MaxExecutionTimeInSeconds ?? long.MaxValue);
+                        job.MaxExecutionTimeInSeconds ?? long.MaxValue, ct);
                     break;
                 case Models.JobType.ScheduleDeviceMethod:
                     response = await _jobs.ScheduleDeviceMethodAsync(job.JobId, job.QueryCondition,
                         job.MethodParameter?.ToCloudToDeviceMethod(),
                         job.StartTimeUtc ?? DateTime.MinValue,
-                        job.MaxExecutionTimeInSeconds ?? long.MaxValue);
+                        job.MaxExecutionTimeInSeconds ?? long.MaxValue, ct);
                     break;
                 default:
                     throw new ArgumentException(nameof(job.Type));
@@ -320,14 +329,16 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
         }
 
         /// <inheritdoc/>
-        public async Task<JobModel> RefreshAsync(string jobId) {
-            var response = await _jobs.GetJobAsync(jobId);
+        public async Task<JobModel> RefreshAsync(string jobId, CancellationToken ct) {
+            var response = await _jobs.GetJobAsync(jobId, ct);
             // Get device infos
             return await QueryDevicesInfoAsync(response.ToModel());
         }
 
         /// <inheritdoc/>
-        public Task CancelAsync(string jobId) => _jobs.CancelJobAsync(jobId);
+        public Task CancelAsync(string jobId, CancellationToken ct) {
+            return _jobs.CancelJobAsync(jobId, ct);
+        }
 
         /// <summary>
         /// Fill in individual device responses

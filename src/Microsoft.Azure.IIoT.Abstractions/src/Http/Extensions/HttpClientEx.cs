@@ -19,8 +19,9 @@ namespace Microsoft.Azure.IIoT.Http {
         /// <param name="uri"></param>
         /// <param name="resourceId"></param>
         public static IHttpRequest NewRequest(this IHttpClient client,
-            string uri, string resourceId = null) =>
-            client.NewRequest(new Uri(uri), resourceId);
+            string uri, string resourceId = null) {
+            return client.NewRequest(new Uri(uri), resourceId);
+        }
 
         /// <summary>
         /// Get using uri
@@ -29,8 +30,9 @@ namespace Microsoft.Azure.IIoT.Http {
         /// <param name="uri"></param>
         /// <param name="resourceId"></param>
         public static Task<IHttpResponse> GetAsync(this IHttpClient client,
-            string uri, string resourceId = null) =>
-            client.GetAsync(client.NewRequest(uri, resourceId));
+            string uri, string resourceId = null) {
+            return client.GetAsync(client.NewRequest(uri, resourceId));
+        }
 
         /// <summary>
         /// Get using uri
@@ -39,8 +41,9 @@ namespace Microsoft.Azure.IIoT.Http {
         /// <param name="uri"></param>
         /// <param name="resourceId"></param>
         public static Task<IHttpResponse> GetAsync(this IHttpClient client,
-            Uri uri, string resourceId = null) =>
-            client.GetAsync(client.NewRequest(uri, resourceId));
+            Uri uri, string resourceId = null) {
+            return client.GetAsync(client.NewRequest(uri, resourceId));
+        }
 
         /// <summary>
         /// Delete using uri
@@ -49,8 +52,9 @@ namespace Microsoft.Azure.IIoT.Http {
         /// <param name="uri"></param>
         /// <param name="resourceId"></param>
         public static Task<IHttpResponse> DeleteAsync(this IHttpClient client,
-            string uri, string resourceId = null) =>
-            client.DeleteAsync(client.NewRequest(uri, resourceId));
+            string uri, string resourceId = null) {
+            return client.DeleteAsync(client.NewRequest(uri, resourceId));
+        }
 
         /// <summary>
         /// Delete using uri
@@ -59,7 +63,8 @@ namespace Microsoft.Azure.IIoT.Http {
         /// <param name="uri"></param>
         /// <param name="resourceId"></param>
         public static Task<IHttpResponse> DeleteAsync(this IHttpClient client,
-            Uri uri, string resourceId = null) =>
-            client.DeleteAsync(client.NewRequest(uri, resourceId));
+            Uri uri, string resourceId = null) {
+            return client.DeleteAsync(client.NewRequest(uri, resourceId));
+        }
     }
 }

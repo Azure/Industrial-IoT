@@ -172,7 +172,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
 
             public string TestSetting3 { get; set; } = "yearn";
 
-            public Task ThrowAsync() => Task.FromException(new Exception());
+            public Task ThrowAsync() {
+                return Task.FromException(new Exception());
+            }
 
             public Task ApplyAsync() {
                 _applyCalled = true;
@@ -186,8 +188,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             public DateTime Item3 { get; set; }
 
             public override bool Equals(object obj) {
-                var test = obj as Test;
-                return test != null &&
+                return obj is Test test &&
                        Item1 == test.Item1 &&
                        Item2 == test.Item2 &&
                        Item3 == test.Item3;

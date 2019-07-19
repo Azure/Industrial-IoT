@@ -18,34 +18,38 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Compute {
         /// </summary>
         public static Task<IVirtualMachineResource> CreateAsync(
             this IVirtualMachineFactory service, IResourceGroupResource resourceGroup,
-            string name = null, INetworkResource network = null, string customData = null) =>
-            service.CreateAsync(resourceGroup, name, network, null, customData);
+            string name = null, INetworkResource network = null, string customData = null) {
+            return service.CreateAsync(resourceGroup, name, network, null, customData);
+        }
 
         /// <summary>
         /// Create a new linux virtual machine
         /// </summary>
         public static Task<IVirtualMachineResource> CreateAsync(
             this IVirtualMachineFactory service, IResourceGroupResource resourceGroup,
-            string name, VirtualMachineImage image) =>
-            service.CreateAsync(resourceGroup, name, null, image, null);
+            string name, VirtualMachineImage image) {
+            return service.CreateAsync(resourceGroup, name, null, image, null);
+        }
 
         /// <summary>
         /// Create ubuntu server 18.04 LTS vm
         /// </summary>
         public static Task<IVirtualMachineResource> CreateBionicAsync(
             this IVirtualMachineFactory service, IResourceGroupResource resourceGroup,
-            string name = null, INetworkResource network = null, string customData = null) =>
-            service.CreateAsync(resourceGroup, name, network, KnownImages.Ubuntu_18_04_lts,
+            string name = null, INetworkResource network = null, string customData = null) {
+            return service.CreateAsync(resourceGroup, name, network, KnownImages.Ubuntu_18_04_lts,
                 customData);
+        }
 
         /// <summary>
         /// Create ubuntu server 16.04 LTS vm
         /// </summary>
         public static Task<IVirtualMachineResource> CreateXenialAsync(
             this IVirtualMachineFactory service, IResourceGroupResource resourceGroup,
-            string name = null, INetworkResource network = null, string customData = null) =>
-            service.CreateAsync(resourceGroup, name, network, KnownImages.Ubuntu_16_04_lts,
+            string name = null, INetworkResource network = null, string customData = null) {
+            return service.CreateAsync(resourceGroup, name, network, KnownImages.Ubuntu_16_04_lts,
                 customData);
+        }
 
         /// <summary>
         /// Get or create new vm in a resource group.
@@ -74,10 +78,11 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Compute {
         /// <param name="name"></param>
         /// <param name="network"></param>
         /// <returns></returns>
-        public static  Task<IVirtualMachineResource> GetOrCreateXenialAsync(
+        public static Task<IVirtualMachineResource> GetOrCreateXenialAsync(
             this IVirtualMachineFactory service, IResourceGroupResource resourceGroup,
-            string name, INetworkResource network = null) =>
-            service.GetOrCreateAsync(resourceGroup, name, network, KnownImages.Ubuntu_16_04_lts);
+            string name, INetworkResource network = null) {
+            return service.GetOrCreateAsync(resourceGroup, name, network, KnownImages.Ubuntu_16_04_lts);
+        }
 
         /// <summary>
         /// Get or create new ubuntu server 16.04 LTS vm in a resource group.
@@ -89,7 +94,8 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Compute {
         /// <returns></returns>
         public static Task<IVirtualMachineResource> GetOrCreateBionicAsync(
             this IVirtualMachineFactory service, IResourceGroupResource resourceGroup,
-            string name, INetworkResource network = null) =>
-            service.GetOrCreateAsync(resourceGroup, name, network, KnownImages.Ubuntu_18_04_lts);
+            string name, INetworkResource network = null) {
+            return service.GetOrCreateAsync(resourceGroup, name, network, KnownImages.Ubuntu_18_04_lts);
+        }
     }
 }

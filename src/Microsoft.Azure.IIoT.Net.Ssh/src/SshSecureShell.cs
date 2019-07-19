@@ -28,7 +28,7 @@ namespace Microsoft.Azure.IIoT.Net.Ssh {
         public SshSecureShell(string host, int port, string userName, string password,
             ILogger logger) {
             _logger = logger;
-            _homeDir = UBUNTU_HOME_DIRECTORY + userName + "/";
+            _homeDir = kHome + userName + "/";
             _sshClient = new SshClient(host, port, userName, password);
             _sshClient.Connect();
             _scpClient = new ScpClient(host, port, userName, password);
@@ -50,36 +50,37 @@ namespace Microsoft.Azure.IIoT.Net.Ssh {
                 }
 
                 var tcs = new TaskCompletionSource<bool>();
-                var cts = new CancellationTokenSource();
-                ct.Register(() => {
-                    // Cancel pumps
-                    cts.Cancel();
-                    // Cancel the binding
-                    tcs.TrySetCanceled();
-                });
+                using (var cts = new CancellationTokenSource()) {
+                    ct.Register(() => {
+                        // Cancel pumps
+                        cts.Cancel();
+                        // Cancel the binding
+                        tcs.TrySetCanceled();
+                    });
 
-                shell.ErrorOccurred += (_, e) => {
-                    // Cancel pumps
-                    cts.Cancel();
-                    // Except the binding
-                    if (e.Exception != null) {
-                        tcs.TrySetException(e.Exception);
+                    shell.ErrorOccurred += (_, e) => {
+                        // Cancel pumps
+                        cts.Cancel();
+                        // Except the binding
+                        if (e.Exception != null) {
+                            tcs.TrySetException(e.Exception);
+                        }
+                    };
+
+                    if (output != null) {
+                        shell.DataReceived += (_, e) => output.Write(e.Data);
                     }
-                };
-
-                if (output != null) {
-                    shell.DataReceived += (_, e) => output.Write(e.Data);
-                }
-                if (input != null) {
-                    _ = Task.Run(() => PumpInputAsync(input, shell, tcs,
-                        cts.Token));
-                }
-                try {
-                    // Wait until we are cancelled or error occurs
-                    await tcs.Task;
-                }
-                finally {
-                    Try.Op(shell.Close);
+                    if (input != null) {
+                        _ = Task.Run(() => PumpInputAsync(input, shell, tcs,
+                            cts.Token));
+                    }
+                    try {
+                        // Wait until we are cancelled or error occurs
+                        await tcs.Task;
+                    }
+                    finally {
+                        Try.Op(shell.Close);
+                    }
                 }
             }
         }
@@ -280,7 +281,7 @@ namespace Microsoft.Azure.IIoT.Net.Ssh {
             tcs.TrySetResult(true);
         }
 
-        const string UBUNTU_HOME_DIRECTORY = "/home/";
+        private const string kHome = "/home/";
         private readonly SshClient _sshClient;
         private readonly ScpClient _scpClient;
         private readonly string _homeDir;

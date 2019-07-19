@@ -156,7 +156,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                     throw new InvalidConfigurationException(
                         "No connection string for device client specified.");
                 }
-                return DeviceClientAdapter.CreateAsync(product, _cs, DeviceId, 
+                return DeviceClientAdapter.CreateAsync(product, _cs, DeviceId,
                     transportSetting, _timeout, RetryPolicy, onError, _logger);
             }
             return ModuleClientAdapter.CreateAsync(product, _cs, DeviceId, ModuleId,
@@ -238,68 +238,82 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             }
 
             /// <inheritdoc />
-            public Task SendEventAsync(Message message) =>
-                IsClosed ? Task.CompletedTask : _client.SendEventAsync(message);
+            public Task SendEventAsync(Message message) {
+                return IsClosed ? Task.CompletedTask : _client.SendEventAsync(message);
+            }
 
             /// <inheritdoc />
-            public Task SendEventBatchAsync(IEnumerable<Message> messages) =>
-                IsClosed ? Task.CompletedTask : _client.SendEventBatchAsync(messages);
+            public Task SendEventBatchAsync(IEnumerable<Message> messages) {
+                return IsClosed ? Task.CompletedTask : _client.SendEventBatchAsync(messages);
+            }
 
             /// <inheritdoc />
             public Task SetMethodHandlerAsync(string methodName,
-                MethodCallback methodHandler, object userContext) =>
-                _client.SetMethodHandlerAsync(methodName, methodHandler, userContext);
+                MethodCallback methodHandler, object userContext) {
+                return _client.SetMethodHandlerAsync(methodName, methodHandler, userContext);
+            }
 
             /// <inheritdoc />
             public Task SetMethodDefaultHandlerAsync(
-                MethodCallback methodHandler, object userContext) =>
-                _client.SetMethodDefaultHandlerAsync(methodHandler, userContext);
+                MethodCallback methodHandler, object userContext) {
+                return _client.SetMethodDefaultHandlerAsync(methodHandler, userContext);
+            }
 
             /// <inheritdoc />
             public Task SetDesiredPropertyUpdateCallbackAsync(
-                DesiredPropertyUpdateCallback callback, object userContext) =>
-                _client.SetDesiredPropertyUpdateCallbackAsync(callback, userContext);
+                DesiredPropertyUpdateCallback callback, object userContext) {
+                return _client.SetDesiredPropertyUpdateCallbackAsync(callback, userContext);
+            }
 
             /// <inheritdoc />
-            public Task<Twin> GetTwinAsync() =>
-                _client.GetTwinAsync();
+            public Task<Twin> GetTwinAsync() {
+                return _client.GetTwinAsync();
+            }
 
             /// <inheritdoc />
-            public Task UpdateReportedPropertiesAsync(TwinCollection reportedProperties) =>
-                IsClosed? Task.CompletedTask : _client.UpdateReportedPropertiesAsync(reportedProperties);
+            public Task UpdateReportedPropertiesAsync(TwinCollection reportedProperties) {
+                return IsClosed ? Task.CompletedTask : _client.UpdateReportedPropertiesAsync(reportedProperties);
+            }
 
             /// <inheritdoc />
-            public Task UploadToBlobAsync(string blobName, Stream source) =>
+            public Task UploadToBlobAsync(string blobName, Stream source) {
                 throw new NotSupportedException("Module client does not support upload");
+            }
 
             /// <inheritdoc />
             public Task<MethodResponse> InvokeMethodAsync(string deviceId, string moduleId,
-                MethodRequest methodRequest, CancellationToken cancellationToken) =>
-                _client.InvokeMethodAsync(deviceId, moduleId, methodRequest, cancellationToken);
+                MethodRequest methodRequest, CancellationToken cancellationToken) {
+                return _client.InvokeMethodAsync(deviceId, moduleId, methodRequest, cancellationToken);
+            }
 
             /// <inheritdoc />
             public Task<MethodResponse> InvokeMethodAsync(string deviceId,
-                MethodRequest methodRequest, CancellationToken cancellationToken) =>
-                _client.InvokeMethodAsync(deviceId, methodRequest, cancellationToken);
+                MethodRequest methodRequest, CancellationToken cancellationToken) {
+                return _client.InvokeMethodAsync(deviceId, methodRequest, cancellationToken);
+            }
 
             /// <inheritdoc />
             public Task SetStreamsDefaultHandlerAsync(StreamCallback streamHandler,
-                object userContext) =>
+                object userContext) {
                 throw new NotSupportedException("Module client does not support streams");
+            }
 
             /// <inheritdoc />
             public Task SetStreamHandlerAsync(string streamName, StreamCallback
-                streamHandler, object userContext) =>
+                streamHandler, object userContext) {
                 throw new NotSupportedException("Module client does not support streams");
+            }
 
             /// <inheritdoc />
             public Task<Stream> CreateStreamAsync(string streamName, string hostName,
-                ushort port, CancellationToken cancellationToken) =>
+                ushort port, CancellationToken cancellationToken) {
                 throw new NotSupportedException("Module client does not support streams");
+            }
 
             /// <inheritdoc />
-            public void Dispose() =>
+            public void Dispose() {
                 _client?.Dispose();
+            }
 
             /// <summary>
             /// Helper to create module client
@@ -358,7 +372,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             /// <returns></returns>
             public static async Task<IClient> CreateAsync(string product,
                 IotHubConnectionStringBuilder cs, string deviceId,
-                ITransportSettings transportSetting, TimeSpan timeout, 
+                ITransportSettings transportSetting, TimeSpan timeout,
                 IRetryPolicy retry, Action onConnectionLost, ILogger logger) {
                 var client = Create(cs, transportSetting);
                 var adapter = new DeviceClientAdapter(client);
@@ -393,68 +407,82 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             }
 
             /// <inheritdoc />
-            public Task SendEventAsync(Message message) =>
-                IsClosed ? Task.CompletedTask : _client.SendEventAsync(message);
+            public Task SendEventAsync(Message message) {
+                return IsClosed ? Task.CompletedTask : _client.SendEventAsync(message);
+            }
 
             /// <inheritdoc />
-            public Task SendEventBatchAsync(IEnumerable<Message> messages) =>
-                IsClosed ? Task.CompletedTask : _client.SendEventBatchAsync(messages);
+            public Task SendEventBatchAsync(IEnumerable<Message> messages) {
+                return IsClosed ? Task.CompletedTask : _client.SendEventBatchAsync(messages);
+            }
 
             /// <inheritdoc />
             public Task SetMethodHandlerAsync(string methodName,
-                MethodCallback methodHandler, object userContext) =>
-                _client.SetMethodHandlerAsync(methodName, methodHandler, userContext);
+                MethodCallback methodHandler, object userContext) {
+                return _client.SetMethodHandlerAsync(methodName, methodHandler, userContext);
+            }
 
             /// <inheritdoc />
             public Task SetMethodDefaultHandlerAsync(
-                MethodCallback methodHandler, object userContext) =>
-                _client.SetMethodDefaultHandlerAsync(methodHandler, userContext);
+                MethodCallback methodHandler, object userContext) {
+                return _client.SetMethodDefaultHandlerAsync(methodHandler, userContext);
+            }
 
             /// <inheritdoc />
             public Task SetDesiredPropertyUpdateCallbackAsync(
-                DesiredPropertyUpdateCallback callback, object userContext) =>
-                _client.SetDesiredPropertyUpdateCallbackAsync(callback, userContext);
+                DesiredPropertyUpdateCallback callback, object userContext) {
+                return _client.SetDesiredPropertyUpdateCallbackAsync(callback, userContext);
+            }
 
             /// <inheritdoc />
-            public Task<Twin> GetTwinAsync() =>
-                _client.GetTwinAsync();
+            public Task<Twin> GetTwinAsync() {
+                return _client.GetTwinAsync();
+            }
 
             /// <inheritdoc />
-            public Task UpdateReportedPropertiesAsync(TwinCollection reportedProperties) =>
-                IsClosed ? Task.CompletedTask : _client.UpdateReportedPropertiesAsync(reportedProperties);
+            public Task UpdateReportedPropertiesAsync(TwinCollection reportedProperties) {
+                return IsClosed ? Task.CompletedTask : _client.UpdateReportedPropertiesAsync(reportedProperties);
+            }
 
             /// <inheritdoc />
-            public Task UploadToBlobAsync(string blobName, Stream source) =>
-                IsClosed ? Task.CompletedTask : _client.UploadToBlobAsync(blobName, source);
+            public Task UploadToBlobAsync(string blobName, Stream source) {
+                return IsClosed ? Task.CompletedTask : _client.UploadToBlobAsync(blobName, source);
+            }
 
             /// <inheritdoc />
             public Task<MethodResponse> InvokeMethodAsync(string deviceId, string moduleId,
-                MethodRequest methodRequest, CancellationToken cancellationToken) =>
+                MethodRequest methodRequest, CancellationToken cancellationToken) {
                 throw new NotSupportedException("Device client does not support methods");
+            }
 
             /// <inheritdoc />
             public Task<MethodResponse> InvokeMethodAsync(string deviceId,
-                MethodRequest methodRequest, CancellationToken cancellationToken) =>
+                MethodRequest methodRequest, CancellationToken cancellationToken) {
                 throw new NotSupportedException("Device client does not support methods");
+            }
 
             /// <inheritdoc />
             public Task SetStreamsDefaultHandlerAsync(StreamCallback streamHandler,
-                object userContext) =>
+                object userContext) {
                 throw new NotSupportedException("Device client does not support streams");
+            }
 
             /// <inheritdoc />
             public Task SetStreamHandlerAsync(string streamName, StreamCallback
-                streamHandler, object userContext) =>
+                streamHandler, object userContext) {
                 throw new NotSupportedException("Device client does not support streams");
+            }
 
             /// <inheritdoc />
             public Task<Stream> CreateStreamAsync(string streamName, string hostName,
-                ushort port, CancellationToken cancellationToken) =>
+                ushort port, CancellationToken cancellationToken) {
                 throw new NotSupportedException("Device client does not support streams");
+            }
 
             /// <inheritdoc />
-            public void Dispose() =>
+            public void Dispose() {
                 _client?.Dispose();
+            }
 
             /// <summary>
             /// Helper to create device client
@@ -490,7 +518,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
 
             var store = new X509Store(StoreName.Root, StoreLocation.CurrentUser);
             store.Open(OpenFlags.ReadWrite);
-            store.Add(new X509Certificate2(X509Certificate.CreateFromCertFile(certPath)));
+            using (var cert = new X509Certificate2(X509Certificate.CreateFromCertFile(certPath))) {
+                store.Add(cert);
+            }
             _logger.Information("Added Cert: {certPath}", certPath);
             store.Close();
         }

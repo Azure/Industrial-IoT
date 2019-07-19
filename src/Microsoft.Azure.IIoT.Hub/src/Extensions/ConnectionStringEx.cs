@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Utils {
-    using Microsoft.Azure.IIoT.Hub;
+    using Microsoft.Azure.IIoT.Hub.Client;
 
     /// <summary>
     /// Connection string extensions
@@ -18,7 +18,9 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <param name="resourceId"></param>
         /// <returns></returns>
         public static IIoTHubConfig ToIoTHubConfig(this ConnectionString cs,
-            string resourceId = null) => ToIoTHubConfig(cs.ToString(), resourceId);
+            string resourceId = null) {
+            return ToIoTHubConfig(cs.ToString(), resourceId);
+        }
 
         /// <summary>
         /// IoTHubOwner connection string to configuration
@@ -27,10 +29,12 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <param name="resourceId"></param>
         /// <returns></returns>
         public static IIoTHubConfig ToIoTHubConfig(this string cs,
-            string resourceId = null) => new IoTHubConfig {
+            string resourceId = null) {
+            return new IoTHubConfig {
                 IoTHubConnString = cs,
                 IoTHubResourceId = resourceId
             };
+        }
 
         /// <summary>
         /// Helper class to wrap connection string

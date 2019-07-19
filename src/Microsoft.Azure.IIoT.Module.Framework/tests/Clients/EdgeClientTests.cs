@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
     using System.Net;
     using System.Net.Http;
     using System.Net.Http.Headers;
+    using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Azure.IIoT.Http;
     using Serilog;
@@ -17,9 +18,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
 
         [Fact]
         public async Task EdgeLetGetModulesTest() {
-            var client = new EdgeletClient(new TestHttpClient(EdgeLetModulesJson), 
+            var client = new EdgeletClient(new TestHttpClient(EdgeLetModulesJson),
                 "unix://var/tmp/workload.sock", null, null, null, LogEx.Trace());
-            var result = await client.GetModulesAsync("testedge");
+            var result = await client.GetModulesAsync("testedge", CancellationToken.None);
 
             Assert.Collection(result,
                 elem => {
@@ -156,15 +157,15 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             public TestHttpClient(string response) {
                 _response = response;
             }
-            public Task<IHttpResponse> DeleteAsync(IHttpRequest request) {
+            public Task<IHttpResponse> DeleteAsync(IHttpRequest request, CancellationToken ct) {
                 throw new NotImplementedException();
             }
 
-            public Task<IHttpResponse> GetAsync(IHttpRequest request) {
+            public Task<IHttpResponse> GetAsync(IHttpRequest request, CancellationToken ct) {
                 return Task.FromResult<IHttpResponse>(this);
             }
 
-            public Task<IHttpResponse> HeadAsync(IHttpRequest request) {
+            public Task<IHttpResponse> HeadAsync(IHttpRequest request, CancellationToken ct) {
                 throw new NotImplementedException();
             }
 
@@ -173,19 +174,19 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 return this;
             }
 
-            public Task<IHttpResponse> OptionsAsync(IHttpRequest request) {
+            public Task<IHttpResponse> OptionsAsync(IHttpRequest request, CancellationToken ct) {
                 throw new NotImplementedException();
             }
 
-            public Task<IHttpResponse> PatchAsync(IHttpRequest request) {
+            public Task<IHttpResponse> PatchAsync(IHttpRequest request, CancellationToken ct) {
                 throw new NotImplementedException();
             }
 
-            public Task<IHttpResponse> PostAsync(IHttpRequest request) {
+            public Task<IHttpResponse> PostAsync(IHttpRequest request, CancellationToken ct) {
                 throw new NotImplementedException();
             }
 
-            public Task<IHttpResponse> PutAsync(IHttpRequest request) {
+            public Task<IHttpResponse> PutAsync(IHttpRequest request, CancellationToken ct) {
                 throw new NotImplementedException();
             }
 
@@ -197,7 +198,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
 
             public byte[] Content => System.Text.Encoding.UTF8.GetBytes(_response);
 
-            public Uri Uri { get; private set;  }
+            public Uri Uri { get; private set; }
 
             HttpRequestHeaders IHttpRequest.Headers => _request.Headers;
 

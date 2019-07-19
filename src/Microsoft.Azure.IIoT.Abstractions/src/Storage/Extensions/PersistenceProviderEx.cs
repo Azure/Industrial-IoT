@@ -21,10 +21,12 @@ namespace Microsoft.Azure.IIoT.Storage {
         /// <param name="value"></param>
         /// <returns></returns>
         public static Task WriteAsync(this IPersistenceProvider provider,
-            string key, dynamic value) => provider.WriteAsync(
+            string key, dynamic value) {
+            return provider.WriteAsync(
                 new Dictionary<string, dynamic> {
                     [key] = value
                 });
+        }
 
         /// <summary>
         /// Clear given keys
@@ -33,7 +35,8 @@ namespace Microsoft.Azure.IIoT.Storage {
         /// <param name="keys"></param>
         /// <returns></returns>
         public static Task ClearAsync(this IPersistenceProvider provider,
-            params string[] keys) =>
-            provider.WriteAsync(keys.ToDictionary(k => k, v => (dynamic)null));
+            params string[] keys) {
+            return provider.WriteAsync(keys.ToDictionary(k => k, v => (dynamic)null));
+        }
     }
 }

@@ -17,11 +17,12 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static ConfigurationMetrics ToContent(this ConfigurationMetricsModel model) =>
-            new ConfigurationMetrics {
+        public static ConfigurationMetrics ToContent(this ConfigurationMetricsModel model) {
+            return new ConfigurationMetrics {
                 Queries = model.Queries,
                 Results = model.Results
             };
+        }
 
         /// <summary>
         /// Convert configuration metrics to model

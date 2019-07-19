@@ -14,11 +14,11 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
         /// <summary>
         /// Device
         /// </summary>
-        DeviceModel Device { get;  }
+        DeviceModel Device { get; }
 
         /// <summary>
         /// Twin model
         /// </summary>
-        DeviceTwinModel Twin { get;  }
+        DeviceTwinModel Twin { get; }
     }
 }

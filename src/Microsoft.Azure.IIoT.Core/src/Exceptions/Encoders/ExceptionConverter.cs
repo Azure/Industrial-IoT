@@ -34,8 +34,9 @@ namespace Serilog {
         /// </summary>
         /// <param name="objectType"></param>
         /// <returns></returns>
-        public override bool CanConvert(Type objectType) =>
-            typeof(Exception).IsAssignableFrom(objectType);
+        public override bool CanConvert(Type objectType) {
+            return typeof(Exception).IsAssignableFrom(objectType);
+        }
 
         /// <summary>
         /// Cannot read

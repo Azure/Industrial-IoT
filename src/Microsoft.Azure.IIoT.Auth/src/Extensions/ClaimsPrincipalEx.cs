@@ -15,17 +15,20 @@ namespace System.Security.Claims {
         /// Get current user name
         /// </summary>
         /// <returns></returns>
-        public static string GetUserName() => ClaimsPrincipal.Current.GetUserName();
+        public static string GetUserName() {
+            return ClaimsPrincipal.Current.GetUserName();
+        }
 
         /// <summary>
         /// Get user name
         /// </summary>
         /// <param name="principal"></param>
         /// <returns></returns>
-        public static string GetUserName(this ClaimsPrincipal principal) =>
-            principal.FindFirst(ClaimTypes.Upn) != null ?
-            principal.FindFirst(ClaimTypes.Upn).Value :
-            principal.FindFirst(ClaimTypes.Email).Value;
+        public static string GetUserName(this ClaimsPrincipal principal) {
+            return principal.FindFirst(ClaimTypes.Upn) != null ?
+                principal.FindFirst(ClaimTypes.Upn).Value :
+                principal.FindFirst(ClaimTypes.Email).Value;
+        }
 
         /// <summary>
         /// Get identifier of the object targeted by the logged in principal's
@@ -35,9 +38,11 @@ namespace System.Security.Claims {
         /// <param name="throwIfNotFound"></param>
         /// <returns></returns>
         public static string GetObjectId(this ClaimsPrincipal principal,
-            bool throwIfNotFound = true) => principal.FindFirstValue(
+            bool throwIfNotFound = true) {
+            return principal.FindFirstValue(
                 "http://schemas.microsoft.com/identity/claims/objectidentifier",
                 throwIfNotFound);
+        }
 
         /// <summary>
         /// Returns the audience id of the current claims principal targeted.
@@ -47,8 +52,9 @@ namespace System.Security.Claims {
         /// <param name="throwIfNotFound"></param>
         /// <returns></returns>
         public static string GetAudienceId(this ClaimsPrincipal principal,
-            bool throwIfNotFound = true) => principal.FindFirstValue(
-                "aud", throwIfNotFound);
+            bool throwIfNotFound = true) {
+            return principal.FindFirstValue("aud", throwIfNotFound);
+        }
 
         /// <summary>
         /// Returns the scope for the current claims principal
@@ -57,9 +63,11 @@ namespace System.Security.Claims {
         /// <param name="throwIfNotFound"></param>
         /// <returns></returns>
         public static string GetScope(this ClaimsPrincipal principal,
-            bool throwIfNotFound = false) => principal.FindFirstValue(
+            bool throwIfNotFound = false) {
+            return principal.FindFirstValue(
                 "http://schemas.microsoft.com/identity/claims/scope",
                 throwIfNotFound);
+        }
 
         /// <summary>
         /// Helper to return a claim value

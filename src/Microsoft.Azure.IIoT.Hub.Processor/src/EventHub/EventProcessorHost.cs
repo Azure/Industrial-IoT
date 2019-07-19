@@ -4,10 +4,11 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
-    using Serilog;
+    using Microsoft.Azure.IIoT.Messaging.EventHub;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.EventHubs;
     using Microsoft.Azure.EventHubs.Processor;
+    using Serilog;
     using System;
     using System.Threading;
     using System.Threading.Tasks;
@@ -18,7 +19,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
     /// processors.
     /// </summary>
     public sealed class EventProcessorHost : IStartable, IDisposable,
-        IEventProcessorHost {
+        IEventProcessorHost, IHost {
 
         /// <summary>
         /// Create host wrapper
@@ -29,7 +30,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
         /// <param name="logger"></param>
         public EventProcessorHost(IEventProcessorFactory factory, IEventHubConfig hub,
             IEventProcessorConfig config, ILogger logger) :
-            this (factory, hub, config, null, null, logger) {
+            this(factory, hub, config, null, null, logger) {
         }
 
         /// <summary>
@@ -122,10 +123,15 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
         }
 
         /// <inheritdoc/>
-        public void Start() => StartAsync().Wait();
+        public void Start() {
+            StartAsync().Wait();
+        }
 
         /// <inheritdoc/>
-        public void Dispose() => StopAsync().Wait();
+        public void Dispose() {
+            StopAsync().Wait();
+            _lock.Dispose();
+        }
 
         /// <summary>
         /// Helper to get connection string and validate configuration

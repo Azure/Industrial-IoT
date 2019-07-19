@@ -5,11 +5,11 @@
 
 namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
     using Microsoft.Azure.IIoT.Storage.CosmosDb;
-    using Serilog;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.Documents.Client;
     using Microsoft.Azure.Documents;
     using Newtonsoft.Json;
+    using Serilog;
     using System;
     using System.Threading.Tasks;
 
@@ -35,14 +35,15 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
         }
 
         /// <inheritdoc/>
-        public async Task<IDatabase> OpenAsync(string databaseId) {
+        public async Task<IDatabase> OpenAsync(string databaseId, DatabaseOptions options) {
             if (string.IsNullOrEmpty(databaseId)) {
                 databaseId = "default";
             }
             var cs = ConnectionString.Parse(_config.DbConnectionString);
-            var settings = _jsonConfig?.Serializer ?? JsonConvert.DefaultSettings();
-            var client = new DocumentClient(new Uri(cs.Endpoint),
-                cs.SharedAccessKey, settings);
+            var settings = _jsonConfig?.Serializer ?? JsonConvert.DefaultSettings?.Invoke();
+
+            var client = new DocumentClient(new Uri(cs.Endpoint), cs.SharedAccessKey,
+                settings, null, options?.Consistency.ToConsistencyLevel());
             await client.CreateDatabaseIfNotExistsAsync(new Database {
                 Id = databaseId
             });

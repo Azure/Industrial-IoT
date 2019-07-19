@@ -35,7 +35,7 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
         /// <summary>
         /// Dispose probe
         /// </summary>
-        public void Dispose() {
+        public virtual void Dispose() {
             _lock.Wait();
             try {
                 _cts.Cancel();
@@ -43,14 +43,18 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
                 DisposeArgsNoLock();
             }
             finally {
+                _cts.Dispose();
                 _lock.Release();
+                _lock.Dispose();
             }
         }
 
         /// <summary>
         /// Start probe
         /// </summary>
-        public void Start() => OnBegin();
+        public void Start() {
+            OnBegin();
+        }
 
         /// <summary>
         /// Retrieve next endpoint
@@ -65,7 +69,9 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
         /// a failure. Default is false.
         /// </summary>
         /// <returns></returns>
-        protected virtual bool ShouldGiveUp() => false;
+        protected virtual bool ShouldGiveUp() {
+            return false;
+        }
 
         /// <summary>
         /// Called on individual failure
@@ -261,6 +267,7 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
                 }
                 finally {
                     _lock.Release();
+                    _lock.Dispose();
                 }
             }
 
@@ -451,7 +458,9 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
             private readonly SemaphoreSlim _lock;
             private readonly BaseConnectProbe _outer;
             private State _state;
+#pragma warning disable IDE0069 // Disposable fields should be disposed
             private Socket _socket;
+#pragma warning restore IDE0069 // Disposable fields should be disposed
         }
 
         private readonly CancellationTokenSource _cts = new CancellationTokenSource();

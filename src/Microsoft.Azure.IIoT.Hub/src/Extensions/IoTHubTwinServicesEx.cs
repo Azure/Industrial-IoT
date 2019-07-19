@@ -10,6 +10,7 @@ namespace Microsoft.Azure.IIoT.Hub {
     using Newtonsoft.Json.Linq;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -18,15 +19,36 @@ namespace Microsoft.Azure.IIoT.Hub {
     public static class IoTHubTwinServicesEx {
 
         /// <summary>
+        /// Find twin or return null
+        /// </summary>
+        /// <param name="service"></param>
+        /// <param name="deviceId"></param>
+        /// <param name="moduleId"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        public static async Task<DeviceTwinModel> FindAsync(
+            this IIoTHubTwinServices service, string deviceId,
+            string moduleId = null, CancellationToken ct = default) {
+            try {
+                return await service.GetAsync(deviceId, moduleId, ct);
+            }
+            catch (ResourceNotFoundException) {
+                return null;
+            }
+        }
+
+        /// <summary>
         /// Returns device connection string
         /// </summary>
         /// <param name="service"></param>
         /// <param name="deviceId"></param>
         /// <param name="primary"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         public static async Task<ConnectionString> GetConnectionStringAsync(
-            this IIoTHubTwinServices service, string deviceId, bool primary = true) {
-            var model = await service.GetRegistrationAsync(deviceId);
+            this IIoTHubTwinServices service, string deviceId, bool primary = true,
+            CancellationToken ct = default) {
+            var model = await service.GetRegistrationAsync(deviceId, null, ct);
             if (model == null) {
                 throw new ResourceNotFoundException("Could not find " + deviceId);
             }
@@ -42,11 +64,12 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// <param name="deviceId"></param>
         /// <param name="moduleId"></param>
         /// <param name="primary"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         public static async Task<ConnectionString> GetConnectionStringAsync(
             this IIoTHubTwinServices service, string deviceId, string moduleId,
-            bool primary = true) {
-            var model = await service.GetRegistrationAsync(deviceId, moduleId);
+            bool primary = true, CancellationToken ct = default) {
+            var model = await service.GetRegistrationAsync(deviceId, moduleId, ct);
             if (model == null) {
                 throw new ResourceNotFoundException("Could not find " + moduleId);
             }
@@ -61,10 +84,12 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// <param name="service"></param>
         /// <param name="deviceId"></param>
         /// <param name="moduleId"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         public static async Task<string> GetPrimaryKeyAsync(
-            this IIoTHubTwinServices service, string deviceId, string moduleId = null) {
-            var model = await service.GetRegistrationAsync(deviceId, moduleId);
+            this IIoTHubTwinServices service, string deviceId, string moduleId = null,
+            CancellationToken ct = default) {
+            var model = await service.GetRegistrationAsync(deviceId, moduleId, ct);
             if (model == null) {
                 throw new ResourceNotFoundException("Could not find " + deviceId);
             }
@@ -77,26 +102,17 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// <param name="service"></param>
         /// <param name="deviceId"></param>
         /// <param name="moduleId"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         public static async Task<string> GetSecondaryKeyAsync(
-            this IIoTHubTwinServices service, string deviceId, string moduleId = null) {
-            var model = await service.GetRegistrationAsync(deviceId, moduleId);
+            this IIoTHubTwinServices service, string deviceId, string moduleId = null,
+            CancellationToken ct = default) {
+            var model = await service.GetRegistrationAsync(deviceId, moduleId, ct);
             if (model == null) {
                 throw new ResourceNotFoundException("Could not find " + deviceId);
             }
             return model.Authentication.SecondaryKey;
         }
-
-        /// <summary>
-        /// Returns devices matching a query string
-        /// </summary>
-        /// <param name="service"></param>
-        /// <param name="query"></param>
-        /// <param name="continuation"></param>
-        /// <returns></returns>
-        public static Task<DeviceTwinListModel> QueryDeviceTwinsAsync(
-            this IIoTHubTwinServices service, string query, string continuation) =>
-            service.QueryDeviceTwinsAsync(query, continuation, null);
 
         /// <summary>
         /// Query twins
@@ -105,11 +121,12 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// <param name="query"></param>
         /// <param name="continuation"></param>
         /// <param name="pageSize"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         public static async Task<DeviceTwinListModel> QueryDeviceTwinsAsync(
             this IIoTHubTwinServices service, string query, string continuation,
-            int? pageSize) {
-            var response = await service.QueryAsync(query, continuation, pageSize);
+            int? pageSize = null, CancellationToken ct = default) {
+            var response = await service.QueryAsync(query, continuation, pageSize, ct);
             return new DeviceTwinListModel {
                 ContinuationToken = response.ContinuationToken,
                 Items = response.Result
@@ -123,13 +140,14 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// </summary>
         /// <param name="service"></param>
         /// <param name="query"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
-        public static async Task<List<DeviceTwinModel>> QueryDeviceTwinsAsync(
-            this IIoTHubTwinServices service, string query) {
+        public static async Task<List<DeviceTwinModel>> QueryAllDeviceTwinsAsync(
+            this IIoTHubTwinServices service, string query, CancellationToken ct = default) {
             var result = new List<DeviceTwinModel>();
             string continuation = null;
             do {
-                var response = await service.QueryDeviceTwinsAsync(query, continuation);
+                var response = await service.QueryDeviceTwinsAsync(query, continuation, null, ct);
                 result.AddRange(response.Items);
                 continuation = response.ContinuationToken;
             }
@@ -138,28 +156,18 @@ namespace Microsoft.Azure.IIoT.Hub {
         }
 
         /// <summary>
-        /// Returns results matching a query string
-        /// </summary>
-        /// <param name="service"></param>
-        /// <param name="query"></param>
-        /// <param name="continuation"></param>
-        /// <returns></returns>
-        public static Task<QueryResultModel> QueryAsync(
-            this IIoTHubTwinServices service, string query, string continuation) =>
-            service.QueryAsync(query, continuation, null);
-
-        /// <summary>
         /// Query all results
         /// </summary>
         /// <param name="service"></param>
         /// <param name="query"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         public static async Task<IEnumerable<JToken>> QueryAsync(
-            this IIoTHubTwinServices service, string query) {
+            this IIoTHubTwinServices service, string query, CancellationToken ct = default) {
             var result = new List<JToken>();
             string continuation = null;
             do {
-                var response = await service.QueryAsync(query, continuation);
+                var response = await service.QueryAsync(query, continuation, null, ct);
                 result.AddRange(response.Result);
                 continuation = response.ContinuationToken;
             }
@@ -168,16 +176,6 @@ namespace Microsoft.Azure.IIoT.Hub {
         }
 
         /// <summary>
-        /// Create or update
-        /// </summary>
-        /// <param name="service"></param>
-        /// <param name="device"></param>
-        /// <returns></returns>
-        public static Task<DeviceTwinModel> CreateOrUpdateAsync(
-            this IIoTHubTwinServices service, DeviceTwinModel device) =>
-            service.CreateOrUpdateAsync(device, false);
-
-        /// <summary>
         /// Update device property through twin
         /// </summary>
         /// <param name="service"></param>
@@ -185,13 +183,15 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// <param name="moduleId"></param>
         /// <param name="property"></param>
         /// <param name="value"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         public static Task UpdatePropertyAsync(this IIoTHubTwinServices service,
-            string deviceId, string moduleId, string property, JToken value) {
+            string deviceId, string moduleId, string property, JToken value,
+            CancellationToken ct = default) {
             return service.UpdatePropertiesAsync(deviceId, moduleId,
                 new Dictionary<string, JToken> {
                     [property] = value
-                });
+                }, null, ct);
         }
 
         /// <summary>
@@ -201,10 +201,13 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// <param name="deviceId"></param>
         /// <param name="property"></param>
         /// <param name="value"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         public static Task UpdatePropertyAsync(this IIoTHubTwinServices service,
-            string deviceId, string property, JToken value) =>
-            service.UpdatePropertyAsync(deviceId, null, property, value);
+            string deviceId, string property, JToken value,
+            CancellationToken ct = default) {
+            return service.UpdatePropertyAsync(deviceId, null, property, value, ct);
+        }
 
         /// <summary>
         /// Update device properties through twin
@@ -213,10 +216,13 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// <param name="deviceId"></param>
         /// <param name="moduleId"></param>
         /// <param name="properties"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         public static Task UpdatePropertiesAsync(this IIoTHubTwinServices service,
-            string deviceId, string moduleId, Dictionary<string, JToken> properties) =>
-            service.UpdatePropertiesAsync(deviceId, moduleId, properties, null);
+            string deviceId, string moduleId, Dictionary<string, JToken> properties,
+            CancellationToken ct = default) {
+            return service.UpdatePropertiesAsync(deviceId, moduleId, properties, null, ct);
+        }
 
         /// <summary>
         /// Update device properties through twin
@@ -224,28 +230,13 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// <param name="service"></param>
         /// <param name="deviceId"></param>
         /// <param name="properties"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         public static Task UpdatePropertiesAsync(this IIoTHubTwinServices service,
-            string deviceId, Dictionary<string, JToken> properties) =>
-            service.UpdatePropertiesAsync(deviceId, null, properties);
-
-        /// <summary>
-        /// Returns twin
-        /// </summary>
-        /// <param name="service"></param>
-        /// <param name="deviceId"></param>
-        /// <returns></returns>
-        public static Task<DeviceTwinModel> GetAsync(this IIoTHubTwinServices service,
-            string deviceId) => service.GetAsync(deviceId, null);
-
-        /// <summary>
-        /// Returns registration info
-        /// </summary>
-        /// <param name="service"></param>
-        /// <param name="deviceId"></param>
-        /// <returns></returns>
-        public static Task<DeviceModel> GetRegistrationAsync(this IIoTHubTwinServices service,
-            string deviceId) => service.GetRegistrationAsync(deviceId, null);
+            string deviceId, Dictionary<string, JToken> properties,
+            CancellationToken ct = default) {
+            return service.UpdatePropertiesAsync(deviceId, null, properties, ct);
+        }
 
         /// <summary>
         /// Call device method on twin
@@ -253,28 +244,11 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// <param name="service"></param>
         /// <param name="deviceId"></param>
         /// <param name="parameters"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         public static Task<MethodResultModel> CallMethodAsync(this IIoTHubTwinServices service,
-            string deviceId, MethodParameterModel parameters) =>
-            service.CallMethodAsync(deviceId, null, parameters);
-
-        /// <summary>
-        /// Delete twin
-        /// </summary>
-        /// <param name="service"></param>
-        /// <param name="deviceId"></param>
-        /// <returns></returns>
-        public static Task DeleteAsync(this IIoTHubTwinServices service, string deviceId) =>
-            service.DeleteAsync(deviceId, null, null);
-
-        /// <summary>
-        /// Delete twin
-        /// </summary>
-        /// <param name="service"></param>
-        /// <param name="deviceId"></param>
-        /// <param name="moduleId"></param>
-        /// <returns></returns>
-        public static Task DeleteAsync(this IIoTHubTwinServices service, string deviceId,
-            string moduleId) => service.DeleteAsync(deviceId, moduleId, null);
+            string deviceId, MethodParameterModel parameters, CancellationToken ct = default) {
+            return service.CallMethodAsync(deviceId, null, parameters, ct);
+        }
     }
 }

@@ -21,7 +21,7 @@ namespace Microsoft.Azure.IIoT.Http.Ssl {
         /// <param name="config"></param>
         /// <param name="logger"></param>
         public ThumbprintValidator(IThumbprintValidatorConfig config,
-            ILogger logger) : this (config?.CertThumbprint, logger) {
+            ILogger logger) : this(config?.CertThumbprint, logger) {
         }
 
         /// <summary>

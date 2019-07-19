@@ -70,15 +70,18 @@ namespace Microsoft.Azure.IIoT.Http {
         /// <param name="type"></param>
         /// <returns>this</returns>
         public static IHttpRequest SetContent(this IHttpRequest request, byte[] content,
-            string type) => SetContent(request, content, new MediaTypeHeaderValue(type));
+            string type) {
+            return SetContent(request, content, new MediaTypeHeaderValue(type));
+        }
 
         /// <summary>
         /// Set content
         /// </summary>
         /// <param name="request"></param>
         /// <param name="content"></param>
-        public static IHttpRequest SetContent(this IHttpRequest request, string content) =>
-            request.SetContent(content, kDefaultEncoding, kDefaultMediaType);
+        public static IHttpRequest SetContent(this IHttpRequest request, string content) {
+            return request.SetContent(content, kDefaultEncoding, kDefaultMediaType);
+        }
 
         /// <summary>
         /// Set content
@@ -87,8 +90,9 @@ namespace Microsoft.Azure.IIoT.Http {
         /// <param name="content"></param>
         /// <param name="encoding"></param>
         public static IHttpRequest SetContent(this IHttpRequest request, string content,
-            Encoding encoding) =>
-            request.SetContent(content, encoding, kDefaultMediaType);
+            Encoding encoding) {
+            return request.SetContent(content, encoding, kDefaultMediaType);
+        }
 
         /// <summary>
         /// Set content
@@ -98,8 +102,9 @@ namespace Microsoft.Azure.IIoT.Http {
         /// <param name="encoding"></param>
         /// <param name="mediaType"></param>
         public static IHttpRequest SetContent(this IHttpRequest request, string content,
-            Encoding encoding, string mediaType) =>
-            request.SetContent(content, encoding, new MediaTypeHeaderValue(mediaType));
+            Encoding encoding, string mediaType) {
+            return request.SetContent(content, encoding, new MediaTypeHeaderValue(mediaType));
+        }
 
         private static readonly MediaTypeHeaderValue kDefaultMediaType =
             new MediaTypeHeaderValue(ContentEncodings.MimeTypeJson);

@@ -16,16 +16,17 @@ namespace Microsoft.Azure.IIoT.Net {
         /// </summary>
         /// <param name="address"></param>
         /// <returns></returns>
-        public static PhysicalAddress Copy(this PhysicalAddress address) =>
-            address == null ? null : new PhysicalAddress(address.GetAddressBytes());
+        public static PhysicalAddress Copy(this PhysicalAddress address) {
+            return address == null ? null : new PhysicalAddress(address.GetAddressBytes());
+        }
 
         /// <summary>
         /// Is empty
         /// </summary>
         /// <param name="address"></param>
         /// <returns></returns>
-        public static bool IsEmpty(this PhysicalAddress address) =>
-            address == null || address.Equals(PhysicalAddress.None);
-
+        public static bool IsEmpty(this PhysicalAddress address) {
+            return address == null || address.Equals(PhysicalAddress.None);
+        }
     }
 }

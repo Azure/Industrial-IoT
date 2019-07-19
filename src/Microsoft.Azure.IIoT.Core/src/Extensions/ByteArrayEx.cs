@@ -15,26 +15,18 @@ namespace System {
     public static class ByteArrayEx {
 
         /// <summary>
-        /// Clone byte buffer
-        /// </summary>
-        /// <param name="bytes"></param>
-        /// <returns></returns>
-        public static byte[] Copy(this byte[] bytes) {
-            var copy = new byte[bytes.Length];
-            bytes.CopyTo(copy, 0);
-            return copy;
-        }
-
-        /// <summary>
         /// Convert to base 16
         /// </summary>
         /// <param name="value"></param>
+        /// <param name="upperCase"></param>
         /// <returns></returns>
-        public static string ToBase16String(this byte[] value) {
+        public static string ToBase16String(this byte[] value,
+            bool upperCase = true) {
             if (value == null) {
                 return null;
             }
-            const string charLookup = "0123456789abcdef";
+            var charLookup = upperCase ?
+                "0123456789ABCDEF" : "0123456789abcdef";
             var chars = new char[value.Length * 2];
             // no checking needed here
             var j = 0;
@@ -68,7 +60,7 @@ namespace System {
             }
             using (var sha1 = new SHA1Managed()) {
                 var hash = sha1.ComputeHash(bytestr);
-                return hash.ToBase16String();
+                return hash.ToBase16String(false);
             }
         }
 
@@ -96,8 +88,9 @@ namespace System {
         /// <param name="bytes"></param>
         /// <param name="length"></param>
         /// <returns></returns>
-        public static bool IsAscii(this byte[] bytes, int length) =>
-            bytes.Take(length).All(x => x > 32 || x <= 127);
+        public static bool IsAscii(this byte[] bytes, int length) {
+            return bytes.Take(length).All(x => x > 32 || x <= 127);
+        }
 
 
         /// <summary>

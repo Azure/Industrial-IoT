@@ -6,14 +6,15 @@
 namespace Microsoft.Azure.IIoT.Module.Default {
     using Microsoft.Azure.IIoT.Module.Models;
     using Microsoft.Azure.IIoT.Module;
+    using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
     using Serilog;
-    using Microsoft.Azure.IIoT.Exceptions;
     using Newtonsoft.Json;
     using System;
     using System.Linq;
     using System.Threading.Tasks;
     using System.IO;
+    using System.Threading;
 
     /// <summary>
     /// Chunked method provide reliable any size send/receive
@@ -41,12 +42,13 @@ namespace Microsoft.Azure.IIoT.Module.Default {
 
         /// <inheritdoc/>
         public async Task<byte[]> CallMethodAsync(string deviceId, string moduleId,
-            string method, byte[] payload, string contentType, TimeSpan? timeout) {
+            string method, byte[] payload, string contentType, TimeSpan? timeout,
+            CancellationToken ct) {
             if (string.IsNullOrEmpty(method)) {
                 throw new ArgumentNullException(nameof(method));
             }
             if (payload == null) {
-                payload = new byte[] { (byte)' ' }; 
+                payload = new byte[] { (byte)' ' };
             }
             if (contentType == null) {
                 contentType = ContentEncodings.MimeTypeJson;
@@ -72,7 +74,7 @@ namespace Microsoft.Azure.IIoT.Module.Default {
                                 Handle = handle,
                                 Payload = chunk
                             }),
-                        timeout);
+                        timeout, ct);
                     var response = JsonConvertEx.DeserializeObject<MethodChunkModel>(result);
                     if (response.Payload != null) {
                         received.Write(response.Payload);
@@ -87,7 +89,7 @@ namespace Microsoft.Azure.IIoT.Module.Default {
                     var result = await _client.CallMethodAsync(deviceId, moduleId,
                         MethodNames.Call, JsonConvertEx.SerializeObject(new MethodChunkModel {
                             Handle = handle,
-                        }), timeout);
+                        }), timeout, ct);
                     var response = JsonConvertEx.DeserializeObject<MethodChunkModel>(result);
                     if (response.Payload != null) {
                         received.Write(response.Payload);
@@ -99,6 +101,7 @@ namespace Microsoft.Azure.IIoT.Module.Default {
                 }
                 payload = received.ToArray().Unzip();
                 if (status != 200) {
+                    _logger.Verbose("Received error {status} with: {payload}", status, payload);
                     throw new MethodCallStatusException(payload, status);
                 }
                 return payload;

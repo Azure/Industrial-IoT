@@ -30,17 +30,18 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
         public static IEdgeDeployment WithModule(this IEdgeDeployment deployment,
             string name, string imageName, System.Version version,
             CreateContainerParameters createOptions, ModuleRestartPolicy restart,
-            bool stopped, Dictionary<string, dynamic> properties) =>
-            deployment.WithModule(new EdgeDeploymentModuleModel {
+            bool stopped, Dictionary<string, dynamic> properties) {
+            return deployment.WithModule(new EdgeDeploymentModuleModel {
                 CreateOptions = createOptions,
                 ImageName = imageName,
                 Name = name,
                 Properties = properties,
                 RestartPolicy = restart != ModuleRestartPolicy.Always ?
-                    restart : (ModuleRestartPolicy?)null,
+restart : (ModuleRestartPolicy?)null,
                 Stopped = stopped ? true : (bool?)null,
                 Version = version?.ToString()
             });
+        }
 
         /// <summary>
         /// Add image
@@ -56,9 +57,10 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
         public static IEdgeDeployment WithModule(this IEdgeDeployment deployment,
             string name, string imageName, System.Version version,
             CreateContainerParameters createOptions, ModuleRestartPolicy restart,
-            Dictionary<string, dynamic> properties) =>
-            deployment.WithModule(name, imageName, version, createOptions,
-                restart, false, properties);
+            Dictionary<string, dynamic> properties) {
+            return deployment.WithModule(name, imageName, version, createOptions,
+restart, false, properties);
+        }
 
         /// <summary>
         /// Add image
@@ -73,9 +75,10 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
         public static IEdgeDeployment WithModule(this IEdgeDeployment deployment,
             string name, string imageName, System.Version version,
             CreateContainerParameters createOptions,
-            Dictionary<string, dynamic> properties) =>
-            deployment.WithModule(name, imageName, version, createOptions,
-                ModuleRestartPolicy.Always, properties);
+            Dictionary<string, dynamic> properties) {
+            return deployment.WithModule(name, imageName, version, createOptions,
+ModuleRestartPolicy.Always, properties);
+        }
 
         /// <summary>
         /// Add image
@@ -87,8 +90,9 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
         /// <param name="properties"></param>
         public static IEdgeDeployment WithModule(this IEdgeDeployment deployment,
             string name, string imageName, System.Version version,
-            Dictionary<string, dynamic> properties) =>
-            deployment.WithModule(name, imageName, version, null, properties);
+            Dictionary<string, dynamic> properties) {
+            return deployment.WithModule(name, imageName, version, null, properties);
+        }
 
         /// <summary>
         /// Add image
@@ -98,8 +102,9 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
         /// <param name="imageName"></param>
         /// <param name="properties"></param>
         public static IEdgeDeployment WithModule(this IEdgeDeployment deployment,
-            string name, string imageName, Dictionary<string, dynamic> properties) =>
-            deployment.WithModule(name, imageName, null, null, properties);
+            string name, string imageName, Dictionary<string, dynamic> properties) {
+            return deployment.WithModule(name, imageName, null, null, properties);
+        }
 
         /// <summary>
         /// Add image
@@ -108,8 +113,9 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
         /// <param name="name"></param>
         /// <param name="imageName"></param>
         public static IEdgeDeployment WithModule(this IEdgeDeployment deployment,
-            string name, string imageName) =>
-            deployment.WithModule(name, imageName, null, null, null);
+            string name, string imageName) {
+            return deployment.WithModule(name, imageName, null, null, null);
+        }
 
         /// <summary>
         /// Add image
@@ -121,8 +127,9 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
         /// <param name="properties"></param>
         public static IEdgeDeployment WithModule(this IEdgeDeployment deployment,
             string name, string imageName, CreateContainerParameters createOptions,
-            Dictionary<string, dynamic> properties) =>
-            deployment.WithModule(name, imageName, null, createOptions, properties);
+            Dictionary<string, dynamic> properties) {
+            return deployment.WithModule(name, imageName, null, createOptions, properties);
+        }
 
         /// <summary>
         /// Add image
@@ -132,8 +139,9 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
         /// <param name="imageName"></param>
         /// <param name="createOptions"></param>
         public static IEdgeDeployment WithModule(this IEdgeDeployment deployment,
-            string name, string imageName, CreateContainerParameters createOptions) =>
-            deployment.WithModule(name, imageName, null, createOptions, null);
+            string name, string imageName, CreateContainerParameters createOptions) {
+            return deployment.WithModule(name, imageName, null, createOptions, null);
+        }
 
         /// <summary>
         /// Add a route
@@ -145,13 +153,14 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
         /// <param name="condition"></param>
         /// <returns></returns>
         public static IEdgeDeployment WithRoute(this IEdgeDeployment deployment,
-            string name, string from, string to, string condition) =>
-            deployment.WithRoute(new EdgeDeploymentRouteModel {
+            string name, string from, string to, string condition) {
+            return deployment.WithRoute(new EdgeDeploymentRouteModel {
                 Name = name,
                 From = from,
                 To = to,
                 Condition = condition
             });
+        }
 
         /// <summary>
         /// Add an unconditional route
@@ -161,8 +170,9 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
         /// <param name="from"></param>
         /// <param name="to"></param>
         public static IEdgeDeployment WithRoute(this IEdgeDeployment deployment,
-            string name, string from, string to) =>
-            deployment.WithRoute(name, from, to, null);
+            string name, string from, string to) {
+            return deployment.WithRoute(name, from, to, null);
+        }
 
         /// <summary>
         /// With deployment manifest
@@ -192,8 +202,10 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
         /// <param name="manifestJson"></param>
         /// <returns></returns>
         public static IEdgeDeployment WithManifest(this IEdgeDeployment deployment,
-            string manifestJson) => deployment.WithManifest(
-            JsonConvertEx.DeserializeObject<EdgeDeploymentManifestModel>(manifestJson));
+            string manifestJson) {
+            return deployment.WithManifest(
+JsonConvertEx.DeserializeObject<EdgeDeploymentManifestModel>(manifestJson));
+        }
 
         /// <summary>
         /// Apply manifest

@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Hub {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -27,9 +28,10 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// <param name="method"></param>
         /// <param name="json"></param>
         /// <param name="timeout"></param>
+        /// <param name="ct"></param>
         /// <returns>response json payload</returns>
-        Task<string> CallMethodAsync(string deviceId,
-            string moduleId, string method, string json,
-            TimeSpan? timeout = null);
+        Task<string> CallMethodAsync(string deviceId, string moduleId,
+            string method, string json, TimeSpan? timeout = null,
+            CancellationToken ct = default);
     }
 }

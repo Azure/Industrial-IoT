@@ -8,5 +8,5 @@ namespace Microsoft.Azure.IIoT.Module.Framework {
     /// <summary>
     /// Tags a controllers as settings handler.
     /// </summary>
-    public interface ISettingsController {}
+    public interface ISettingsController { }
 }

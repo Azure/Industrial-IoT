@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
     /// implementation to interrogate the server.
     /// </summary>
     /// <returns></returns>
-    public sealed class ConnectProbe : BaseConnectProbe  {
+    public sealed class ConnectProbe : BaseConnectProbe {
 
         /// <summary>
         /// Create connect probe
@@ -25,7 +25,7 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
         /// <param name="logger"></param>
         /// <param name="timeout"></param>
         public ConnectProbe(ILogger logger, int timeout) :
-            base (0, new NullProbe(), logger) {
+            base(0, new NullProbe(), logger) {
             _timeout = timeout;
             _queue = new BlockingCollection<IPEndPoint>();
             _tasks = new ConcurrentDictionary<IPEndPoint, TaskCompletionSource<bool>>();
@@ -82,6 +82,12 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
             }
         }
 
+        /// <inheritdoc/>
+        public override void Dispose() {
+            base.Dispose();
+            _queue.Dispose();
+        }
+
         private class NullProbe : IAsyncProbe {
 
             /// <inheritdoc />
@@ -96,7 +102,9 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
             public void Dispose() { }
 
             /// <inheritdoc />
-            public bool Reset() => false;
+            public bool Reset() {
+                return false;
+            }
         }
 
         private readonly BlockingCollection<IPEndPoint> _queue;

@@ -144,6 +144,19 @@ namespace Microsoft.Azure.IIoT.Utils {
         }
 
         /// <summary>
+        /// Create cosmos db connection string
+        /// </summary>
+        /// <param name="endpoint"></param>
+        /// <param name="key"></param>
+        public static ConnectionString CreateCosmosDbConnectionString(Uri endpoint,
+            string key) {
+            var connectionString = new ConnectionString();
+            connectionString._items[Id.AccountEndpoint] = endpoint.ToString();
+            connectionString._items[Id.AccountKey] = key;
+            return connectionString;
+        }
+
+        /// <summary>
         /// Create event hub connection string
         /// </summary>
         /// <param name="endpoint"></param>

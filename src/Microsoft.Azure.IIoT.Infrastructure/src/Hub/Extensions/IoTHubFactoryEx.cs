@@ -16,8 +16,9 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Hub {
         /// Create a new iot hub in a resource group.
         /// </summary>
         public static Task<IIoTHubResource> CreateAsync(this IIoTHubFactory service,
-            IResourceGroupResource resourceGroup) =>
-            service.CreateAsync(resourceGroup, null);
+            IResourceGroupResource resourceGroup) {
+            return service.CreateAsync(resourceGroup, null);
+        }
 
         /// <summary>
         /// Get or create new hub in a resource group.

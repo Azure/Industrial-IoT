@@ -92,7 +92,10 @@ namespace Microsoft.Azure.IIoT.Storage.Default {
         }
 
         /// <inheritdoc/>
-        public void Dispose() => _notifier.Dispose();
+        public void Dispose() {
+            _notifier.Dispose();
+            _lock.Dispose();
+        }
 
         /// <summary>
         /// Read master from file

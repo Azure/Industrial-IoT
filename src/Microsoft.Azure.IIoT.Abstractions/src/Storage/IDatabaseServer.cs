@@ -15,7 +15,9 @@ namespace Microsoft.Azure.IIoT.Storage {
         /// Opens a named or default database
         /// </summary>
         /// <param name="id"></param>
+        /// <param name="options"></param>
         /// <returns></returns>
-        Task<IDatabase> OpenAsync(string id = null);
+        Task<IDatabase> OpenAsync(string id = null,
+            DatabaseOptions options = null);
     }
 }

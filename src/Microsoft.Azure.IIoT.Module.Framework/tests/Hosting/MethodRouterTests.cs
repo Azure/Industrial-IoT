@@ -19,6 +19,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
     using Xunit;
     using Autofac;
     using System.Linq;
+    using System.Threading;
 
     public class MethodRouterTests {
 
@@ -29,7 +30,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 var hub = services.Resolve<IIoTHubTwinServices>();
 
                 var buffer = new byte[1049];
-                r.NextBytes(buffer);
+                kRand.NextBytes(buffer);
                 var expected = new TestModel { Test = buffer };
 
                 var response = await hub.CallMethodAsync(device, module, new MethodParameterModel {
@@ -50,7 +51,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 var hub = services.Resolve<IIoTHubTwinServices>();
 
                 var buffer = new byte[1049];
-                r.NextBytes(buffer);
+                kRand.NextBytes(buffer);
 
                 var response = await hub.CallMethodAsync(device, module, new MethodParameterModel {
                     Name = "Test2_V1",
@@ -70,7 +71,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 var hub = services.Resolve<IIoTHubTwinServices>();
 
                 var buffer = new byte[1049];
-                r.NextBytes(buffer);
+                kRand.NextBytes(buffer);
 
                 var response = await hub.CallMethodAsync(device, module, new MethodParameterModel {
                     Name = "Test3_V1",
@@ -93,7 +94,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 var hub = services.Resolve<IIoTHubTwinServices>();
 
                 var buffer = new byte[1049];
-                r.NextBytes(buffer);
+                kRand.NextBytes(buffer);
                 var expected = 3254;
 
                 var response = await hub.CallMethodAsync(device, module, new MethodParameterModel {
@@ -168,7 +169,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 var hub = services.Resolve<IMethodClient>();
 
                 var buffer = new byte[1049];
-                r.NextBytes(buffer);
+                kRand.NextBytes(buffer);
                 var expected = new TestModel { Test = buffer };
                 var response = await hub.CallMethodAsync(device, module, "Test1_V1",
                     JsonConvertEx.SerializeObject(expected));
@@ -184,7 +185,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 var hub = services.Resolve<IMethodClient>();
 
                 var buffer = new byte[300809];
-                r.NextBytes(buffer);
+                kRand.NextBytes(buffer);
                 var expected = new TestModel { Test = buffer };
                 var response = await hub.CallMethodAsync(device, module, "Test1_V1",
                     JsonConvertEx.SerializeObject(expected));
@@ -200,7 +201,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 var hub = services.Resolve<IMethodClient>();
 
                 var buffer = new byte[300809];
-                r.NextBytes(buffer);
+                kRand.NextBytes(buffer);
 
                 var response = await hub.CallMethodAsync(device, module, "Test2_V1",
                     JsonConvertEx.SerializeObject(buffer));
@@ -217,7 +218,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 var hub = services.Resolve<IMethodClient>();
 
                 var buffer = new byte[300809];
-                r.NextBytes(buffer);
+                kRand.NextBytes(buffer);
 
                 var response = await hub.CallMethodAsync(device, module, "Test3_V1",
                     JsonConvertEx.SerializeObject(new {
@@ -238,7 +239,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 var hub = services.Resolve<IMethodClient>();
 
                 var buffer = new byte[300809];
-                r.NextBytes(buffer);
+                kRand.NextBytes(buffer);
                 var expected = 3254;
 
                 var response = await hub.CallMethodAsync(device, module, "Test3_V2",
@@ -314,7 +315,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             var router = GetRouter();
 
             var buffer = new byte[1049];
-            r.NextBytes(buffer);
+            kRand.NextBytes(buffer);
             var expected = new TestModel { Test = buffer };
             var response = router.InvokeMethodAsync(new MethodRequest(
                 "Test1_V1", Encoding.UTF8.GetBytes(
@@ -332,11 +333,11 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 Log.Logger);
 
             var buffer = new byte[300809];
-            r.NextBytes(buffer);
+            kRand.NextBytes(buffer);
             var expected = new TestModel { Test = buffer };
             var response = client.CallMethodAsync("test", "test", "Test1_V1",
                 Encoding.UTF8.GetBytes(JsonConvertEx.SerializeObject(expected)),
-                    null, null).Result;
+                    null, null, CancellationToken.None).Result;
 
             var returned = JsonConvertEx.DeserializeObject<TestModel>(
                 Encoding.UTF8.GetString(response));
@@ -352,7 +353,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         public void TestTest2InvocationNonChunked(int size) {
             var router = GetRouter();
             var expected = new byte[size];
-            r.NextBytes(expected);
+            kRand.NextBytes(expected);
             var response = router.InvokeMethodAsync(new MethodRequest(
                 "Test2_V1", Encoding.UTF8.GetBytes(
                     JsonConvertEx.SerializeObject(expected)))).Result;
@@ -370,7 +371,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         public void TestTest8InvocationV1NonChunked(int size) {
             var router = GetRouter();
             var expected = new byte[size];
-            r.NextBytes(expected);
+            kRand.NextBytes(expected);
             var response = router.InvokeMethodAsync(new MethodRequest(
                 "Test8_V1", Encoding.UTF8.GetBytes(
                     JsonConvertEx.SerializeObject(expected)))).Result;
@@ -388,7 +389,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         public void TestTest8InvocationV2NonChunked(int size) {
             var router = GetRouter();
             var expected = new byte[size];
-            r.NextBytes(expected);
+            kRand.NextBytes(expected);
             var response = router.InvokeMethodAsync(new MethodRequest(
                 "Test8_V2", Encoding.UTF8.GetBytes(
                     JsonConvertEx.SerializeObject(expected)))).Result;
@@ -401,7 +402,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         public void TestTest2InvocationNonChunkedFailsWithLargeBuffer() {
             var router = GetRouter();
             var expected = new byte[96 * 1024];
-            r.NextBytes(expected);
+            kRand.NextBytes(expected);
             var response = router.InvokeMethodAsync(new MethodRequest(
                 "Test2_V1", Encoding.UTF8.GetBytes(
                     JsonConvertEx.SerializeObject(expected)))).Result;
@@ -421,10 +422,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             var client = new ChunkMethodClient(new TestMethodClient(router),
                 Log.Logger);
             var expected = new byte[size];
-            r.NextBytes(expected);
+            kRand.NextBytes(expected);
             var response = client.CallMethodAsync("test", "test", "Test2_V1",
                 Encoding.UTF8.GetBytes(JsonConvertEx.SerializeObject(expected)),
-                    null, null).Result;
+                    null, null, CancellationToken.None).Result;
 
             var returned = JsonConvertEx.DeserializeObject<byte[]>(
                 Encoding.UTF8.GetString(response));
@@ -443,10 +444,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             var client = new ChunkMethodClient(new TestMethodClient(router),
                 Log.Logger);
             var expected = new byte[size];
-            r.NextBytes(expected);
+            kRand.NextBytes(expected);
             var response = client.CallMethodAsync("test", "test", "Test8_V1",
                 Encoding.UTF8.GetBytes(JsonConvertEx.SerializeObject(expected)),
-                    null, null).Result;
+                    null, null, CancellationToken.None).Result;
 
             var returned = JsonConvertEx.DeserializeObject<byte[]>(
                 Encoding.UTF8.GetString(response));
@@ -465,10 +466,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             var client = new ChunkMethodClient(new TestMethodClient(router),
                 Log.Logger);
             var expected = new byte[size];
-            r.NextBytes(expected);
+            kRand.NextBytes(expected);
             var response = client.CallMethodAsync("test", "test", "Test8_V2",
                 Encoding.UTF8.GetBytes(JsonConvertEx.SerializeObject(expected)),
-                    null, null).Result;
+                    null, null, CancellationToken.None).Result;
 
             var returned = JsonConvertEx.DeserializeObject<byte[]>(
                 Encoding.UTF8.GetString(response));
@@ -479,7 +480,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         public void TestTest3InvocationNonChunked() {
             var router = GetRouter();
             var expected = new byte[1049];
-            r.NextBytes(expected);
+            kRand.NextBytes(expected);
             var response = router.InvokeMethodAsync(new MethodRequest(
                 "Test3_V1", Encoding.UTF8.GetBytes(
                     JsonConvertEx.SerializeObject(new {
@@ -496,7 +497,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         public void TestTest2InvocationV2NonChunked() {
             var router = GetRouter();
             var buffer = new byte[1049];
-            r.NextBytes(buffer);
+            kRand.NextBytes(buffer);
             var response = router.InvokeMethodAsync(new MethodRequest(
                 "Test2_v2", Encoding.UTF8.GetBytes(
                     JsonConvertEx.SerializeObject(buffer)))).Result;
@@ -511,7 +512,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         public void TestTest3InvocationV2NonChunked() {
             var router = GetRouter();
             var buffer = new byte[1049];
-            r.NextBytes(buffer);
+            kRand.NextBytes(buffer);
             var expected = 3254;
             var response = router.InvokeMethodAsync(new MethodRequest(
                 "Test3_v2", Encoding.UTF8.GetBytes(
@@ -525,7 +526,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             Assert.Equal(expected, returned);
         }
 
-        private static readonly Random r = new Random();
+        private static readonly Random kRand = new Random();
 
         private static MethodRouter GetRouter() {
             return new MethodRouter(Log.Logger) {
@@ -551,7 +552,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
 
             public async Task<string> CallMethodAsync(string deviceId,
                 string moduleId, string method, string payload,
-                TimeSpan? timeout) {
+                TimeSpan? timeout, CancellationToken ct) {
                 var result = await _router.InvokeMethodAsync(
                     new MethodRequest(method, Encoding.UTF8.GetBytes(payload),
                         timeout, timeout));
@@ -605,6 +606,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         public class TestControllerV2 : IMethodController {
 
             public Task<byte[]> Test2Async(byte[] request) {
+                if (request is null) {
+                    throw new ArgumentNullException(nameof(request));
+                }
                 return Task.FromException<byte[]>(
                     new ArgumentNullException(nameof(request)));
             }

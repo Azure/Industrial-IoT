@@ -32,10 +32,14 @@ namespace System.Collections.Generic {
         }
 
         /// <inheritdoc/>
-        public bool Equals(T x, T y) => _comparer(x, y);
+        public bool Equals(T x, T y) {
+            return _comparer(x, y);
+        }
 
         /// <inheritdoc/>
-        public int GetHashCode(T obj) => _hash(obj);
+        public int GetHashCode(T obj) {
+            return _hash(obj);
+        }
 
         private readonly Func<T, T, bool> _comparer;
         private readonly Func<T, int> _hash;

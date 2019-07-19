@@ -20,7 +20,8 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public TokenCache GetCache(string name) =>
-            TokenCache.DefaultShared;
+        public TokenCache GetCache(string name) {
+            return TokenCache.DefaultShared;
+        }
     }
 }

@@ -24,8 +24,9 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// </summary>
         /// <param name="list"></param>
         /// <returns></returns>
-        public static Dictionary<string, T> EncodeAsDictionary<T>(this List<T> list) =>
-            EncodeAsDictionary(list, t => t);
+        public static Dictionary<string, T> EncodeAsDictionary<T>(this List<T> list) {
+            return EncodeAsDictionary(list, t => t);
+        }
 
         /// <summary>
         /// Convert list to dictionary
@@ -50,8 +51,9 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// </summary>
         /// <param name="dictionary"></param>
         /// <returns></returns>
-        public static List<T> DecodeAsList<T>(this Dictionary<string, T> dictionary) =>
-            DecodeAsList(dictionary, t => t);
+        public static List<T> DecodeAsList<T>(this Dictionary<string, T> dictionary) {
+            return DecodeAsList(dictionary, t => t);
+        }
 
         /// <summary>
         /// Convert dictionary to list
@@ -92,7 +94,7 @@ namespace Microsoft.Azure.IIoT.Hub {
             if (buffer == null) {
                 return null;
             }
-            var str = buffer.ToBase64String() ?? string.Empty ;
+            var str = buffer.ToBase64String() ?? string.Empty;
             var result = new Dictionary<string, string>();
             for (var i = 0; ; i++) {
                 if (str.Length < 512) {

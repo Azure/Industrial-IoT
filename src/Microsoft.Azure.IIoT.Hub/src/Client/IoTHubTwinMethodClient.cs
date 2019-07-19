@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
     using Microsoft.Azure.IIoT.Hub.Models;
     using System;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -28,13 +29,13 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
 
         /// <inheritdoc/>
         public async Task<string> CallMethodAsync(string deviceId, string moduleId,
-            string method, string payload, TimeSpan? timeout = null) {
+            string method, string payload, TimeSpan? timeout, CancellationToken ct) {
             var result = await _twin.CallMethodAsync(deviceId, moduleId,
                 new MethodParameterModel {
                     Name = method,
                     ResponseTimeout = timeout,
                     JsonPayload = payload
-                });
+                }, ct);
             if (result.Status != 200) {
                 throw new MethodCallStatusException(
                     Encoding.UTF8.GetBytes(result.JsonPayload), result.Status);

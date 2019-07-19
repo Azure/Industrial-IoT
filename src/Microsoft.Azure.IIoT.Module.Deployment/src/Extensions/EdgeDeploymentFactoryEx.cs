@@ -23,8 +23,9 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
         /// <param name="priority"></param>
         /// <returns></returns>
         public static IEdgeDeployment Create(this IEdgeDeploymentFactory factory,
-            string name, string condition, int priority = 0) =>
-            factory.Create(name, condition, priority, null);
+            string name, string condition, int priority = 0) {
+            return factory.Create(name, condition, priority, null);
+        }
 
         /// <summary>
         /// Create deployment for a fleet of devices identified by
@@ -38,8 +39,10 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
         /// <returns></returns>
         public static IEdgeDeployment CreateFromDeploymentJson(
             this IEdgeDeploymentFactory factory, string name, string condition,
-            int priority, string deploymentJson) => factory.Create(name, condition, priority,
-                JsonConvertEx.DeserializeObject<ConfigurationContentModel>(deploymentJson));
+            int priority, string deploymentJson) {
+            return factory.Create(name, condition, priority,
+JsonConvertEx.DeserializeObject<ConfigurationContentModel>(deploymentJson));
+        }
 
         /// <summary>
         /// Create deployment for a fleet of devices identified by
@@ -52,8 +55,10 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
         /// <returns></returns>
         public static IEdgeDeployment CreateFromDeploymentJson(
             this IEdgeDeploymentFactory factory, string name, string condition,
-            string deploymentJson) => factory.Create(name, condition, 0,
-                JsonConvertEx.DeserializeObject<ConfigurationContentModel>(deploymentJson));
+            string deploymentJson) {
+            return factory.Create(name, condition, 0,
+JsonConvertEx.DeserializeObject<ConfigurationContentModel>(deploymentJson));
+        }
 
         /// <summary>
         /// Create deployment for a single device.
@@ -62,7 +67,9 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
         /// <param name="deviceId"></param>
         /// <returns></returns>
         public static IEdgeDeployment Create(this IEdgeDeploymentFactory factory,
-            string deviceId) => factory.Create(deviceId, null);
+            string deviceId) {
+            return factory.Create(deviceId, null);
+        }
 
         /// <summary>
         /// Create deployment for a single device.
@@ -72,9 +79,10 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
         /// <param name="deploymentJson"></param>
         /// <returns></returns>
         public static IEdgeDeployment CreateFromDeploymentJson(
-            this IEdgeDeploymentFactory factory, string deviceId, string deploymentJson) =>
-            factory.Create(deviceId, JsonConvertEx.DeserializeObject<ConfigurationContentModel>(
-                deploymentJson));
+            this IEdgeDeploymentFactory factory, string deviceId, string deploymentJson) {
+            return factory.Create(deviceId, JsonConvertEx.DeserializeObject<ConfigurationContentModel>(
+deploymentJson));
+        }
 
         /// <summary>
         /// Create and apply deployment to single device
@@ -84,8 +92,9 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
         /// <param name="deviceId"></param>
         /// <returns></returns>
         public static Task DeployManifestAsync(this IEdgeDeploymentFactory factory,
-            string deviceId, string manifestJson) =>
-            factory.Create(deviceId).WithManifest(manifestJson).ApplyAsync();
+            string deviceId, string manifestJson) {
+            return factory.Create(deviceId).WithManifest(manifestJson).ApplyAsync();
+        }
 
         /// <summary>
         /// Deploy to single device
@@ -95,8 +104,9 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
         /// <param name="deviceId"></param>
         /// <returns></returns>
         public static Task DeployAsync(this IEdgeDeploymentFactory factory,
-            string deviceId, string deploymentJson) =>
-            factory.CreateFromDeploymentJson(deviceId, deploymentJson).ApplyAsync();
+            string deviceId, string deploymentJson) {
+            return factory.CreateFromDeploymentJson(deviceId, deploymentJson).ApplyAsync();
+        }
 
         /// <summary>
         /// Deploy to fleet of devices
@@ -108,9 +118,10 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
         /// <param name="priority"></param>
         /// <returns></returns>
         public static Task DeployManifestAsync(this IEdgeDeploymentFactory factory,
-            string name, string condition, int priority, string manifestJson) =>
-            factory.Create(name, condition, priority).WithManifest(manifestJson)
-                .ApplyAsync();
+            string name, string condition, int priority, string manifestJson) {
+            return factory.Create(name, condition, priority).WithManifest(manifestJson)
+.ApplyAsync();
+        }
 
         /// <summary>
         /// Deploy to fleet of devices
@@ -122,8 +133,9 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
         /// <param name="priority"></param>
         /// <returns></returns>
         public static Task DeployAsync(this IEdgeDeploymentFactory factory,
-            string name, string condition, int priority, string deploymentJson) =>
-            factory.CreateFromDeploymentJson(name, condition, priority, deploymentJson)
-                .ApplyAsync();
+            string name, string condition, int priority, string deploymentJson) {
+            return factory.CreateFromDeploymentJson(name, condition, priority, deploymentJson)
+.ApplyAsync();
+        }
     }
 }

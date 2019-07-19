@@ -36,7 +36,7 @@ namespace Microsoft.Azure.IIoT.Http.Default {
         /// Create factory
         /// </summary>
         /// <param name="logger"></param>
-        public HttpClientFactory(ILogger logger) : this (null, logger) { }
+        public HttpClientFactory(ILogger logger) : this(null, logger) { }
 
         /// <inheritdoc/>
         public System.Net.Http.HttpClient CreateClient(string resourceId) {
@@ -76,7 +76,9 @@ namespace Microsoft.Azure.IIoT.Http.Default {
             public string Name { get; }
 
             /// <inheritdoc/>
-            public void Dispose() => _innerHandler.Dispose();
+            public void Dispose() {
+                _innerHandler.Dispose();
+            }
 
             private readonly WeakReference _livenessTracker;
             private readonly HttpMessageHandler _innerHandler;
@@ -113,7 +115,9 @@ namespace Microsoft.Azure.IIoT.Http.Default {
             /// <returns></returns>
             public static ActiveHandlerEntry Create(IHttpHandlerFactory factory,
                 string name, Action<ActiveHandlerEntry> expirationCallback) {
+#pragma warning disable IDE0067 // Dispose objects before losing scope
                 var lifetime = factory.Create(name, out var handler);
+#pragma warning restore IDE0067 // Dispose objects before losing scope
                 return new ActiveHandlerEntry(name, handler, lifetime, expirationCallback);
             }
 
@@ -124,11 +128,19 @@ namespace Microsoft.Azure.IIoT.Http.Default {
 
             private void OnTimer(object state) {
                 _timer.Dispose();
+                _timer = null;
                 _expired(this);
             }
 
-            private readonly SemaphoreSlim _lock = new SemaphoreSlim(1);
-            private readonly Timer _timer;
+            /// <inheritdoc/>
+            protected override void Dispose(bool disposing) {
+                base.Dispose(disposing);
+                if (disposing) {
+                    _timer?.Dispose();
+                }
+            }
+
+            private Timer _timer;
             private readonly Action<ActiveHandlerEntry> _expired;
         }
 
@@ -140,8 +152,10 @@ namespace Microsoft.Azure.IIoT.Http.Default {
         /// </summary>
         /// <param name="active"></param>
         private void OnHandlerExpired(ActiveHandlerEntry active) {
-            var removed = _activeHandlers.TryRemove(active.Name, out var found);
+#pragma warning disable IDE0067 // Dispose objects before losing scope
+            _activeHandlers.TryRemove(active.Name, out _);
             _expiredHandlers.Enqueue(new ExpiredHandlerEntry(active));
+#pragma warning restore IDE0067 // Dispose objects before losing scope
             StartCleanupTimer();
         }
 
@@ -178,7 +192,9 @@ namespace Microsoft.Azure.IIoT.Http.Default {
                 try {
                     var initialCount = _expiredHandlers.Count;
                     for (var i = 0; i < initialCount; i++) {
+#pragma warning disable IDE0068 // Use recommended dispose pattern
                         _expiredHandlers.TryDequeue(out var entry);
+#pragma warning restore IDE0068 // Use recommended dispose pattern
                         if (entry.CanDispose) {
                             try {
                                 entry.Dispose();

@@ -19,8 +19,9 @@ namespace Microsoft.AspNetCore.Authorization {
         /// <param name="handler"></param>
         public static AuthorizationPolicyBuilder Require(
             this AuthorizationPolicyBuilder builder,
-            Func<AuthorizationHandlerContext, bool> handler) =>
-            builder.RequireAssertion(ctx => handler(ctx));
+            Func<AuthorizationHandlerContext, bool> handler) {
+            return builder.RequireAssertion(ctx => handler(ctx));
+        }
 
         /// <summary>
         /// Require nothing
@@ -28,8 +29,9 @@ namespace Microsoft.AspNetCore.Authorization {
         /// <param name="builder"></param>
         /// <returns></returns>
         public static AuthorizationPolicyBuilder RequireNothing(
-            this AuthorizationPolicyBuilder builder) =>
-            builder.RequireAssertion(ctx => true);
+            this AuthorizationPolicyBuilder builder) {
+            return builder.RequireAssertion(ctx => true);
+        }
 
         /// <summary>
         /// Add no op policies
@@ -38,7 +40,7 @@ namespace Microsoft.AspNetCore.Authorization {
         /// <param name="policies"></param>
         public static void AddNoOpPolicies(this AuthorizationOptions options,
             IEnumerable<string> policies) {
-            foreach(var policy in policies) {
+            foreach (var policy in policies) {
                 options.AddPolicy(policy, builder => builder.RequireNothing());
             }
         }

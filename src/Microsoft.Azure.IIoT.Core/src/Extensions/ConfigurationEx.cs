@@ -56,6 +56,7 @@ namespace Microsoft.Extensions.Configuration {
                         if (key.StartsWith("#", StringComparison.Ordinal)) {
                             continue;
                         }
+                        key = key.Replace("__", ConfigurationPath.KeyDelimiter);
                         values.AddOrUpdate(key, line.Substring(offset + 1));
                     }
                     builder.AddInMemoryCollection(values);

@@ -20,7 +20,8 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// <param name="message"></param>
         /// <returns></returns>
         public static Task SendAsync(this IIoTHubTelemetryServices service,
-            string deviceId, EventModel message) =>
-            service.SendAsync(deviceId, null, message);
+            string deviceId, EventModel message) {
+            return service.SendAsync(deviceId, null, message);
+        }
     }
 }

@@ -15,8 +15,9 @@ namespace System.Xml {
         /// </summary>
         /// <param name="qname"></param>
         /// <returns></returns>
-        public static bool IsNullOrEmpty(this XmlQualifiedName qname) =>
-            qname == null || string.IsNullOrEmpty(qname.Name);
+        public static bool IsNullOrEmpty(this XmlQualifiedName qname) {
+            return qname == null || string.IsNullOrEmpty(qname.Name);
+        }
 
         /// <summary>
         /// Checks whether the qname is valid

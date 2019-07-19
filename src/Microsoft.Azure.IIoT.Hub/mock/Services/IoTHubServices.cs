@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
     using Microsoft.Azure.Devices.Shared;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub.Mock.SqlParser;
+    using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Azure.IIoT.Utils;
     using Newtonsoft.Json.Linq;
@@ -17,12 +18,13 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
+    using System.Threading;
 
     /// <summary>
     /// Mock device registry
     /// </summary>
     public class IoTHubServices : IIoTHubTwinServices, IIoTHubJobServices,
-        IIoTHubTelemetryServices, IIoTHub, IEventProcessorHost {
+        IIoTHubTelemetryServices, IIoTHub, IEventProcessorHost, IHost {
 
         /// <inheritdoc/>
         public string HostName { get; } = "mock.azure-devices.net";
@@ -40,31 +42,41 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
             _jobs;
 
         /// <inheritdoc/>
-        public BlockingCollection<EventMessage> Events =>
-            _events;
+        public BlockingCollection<EventMessage> Events { get; } =
+            new BlockingCollection<EventMessage>();
 
         /// <summary>
-        /// Create iot hub
+        /// Create iot hub services
         /// </summary>
         /// <param name="config"></param>
-        /// <param name="handlers"></param>
-        public IoTHubServices(IIoTHubConfig config,
-            IEnumerable<IBlobUploadHandler> handlers) : this(null) {
-            _handlers = handlers;
-            HostName = ConnectionString.Parse(config.IoTHubConnString).HostName;
+        public IoTHubServices(IIoTHubConfig config = null) :
+            this(config, null) {
         }
 
         /// <summary>
         /// Create iot hub services
         /// </summary>
+        /// <param name="config"></param>
         /// <param name="devices"></param>
-        public IoTHubServices(
+        private IoTHubServices(IIoTHubConfig config,
             IEnumerable<(DeviceTwinModel, DeviceModel)> devices) {
+            if (config?.IoTHubConnString != null) {
+                HostName = ConnectionString.Parse(config.IoTHubConnString).HostName;
+            }
             if (devices != null) {
                 _devices.AddRange(devices
                     .Select(d => new IoTHubDeviceModel(this, d.Item2, d.Item1)));
             }
             _query = new SqlQuery(this);
+        }
+
+        /// <summary>
+        /// Create iot hub services with devices
+        /// </summary>
+        /// <param name="devices"></param>
+        public static IoTHubServices Create(
+            IEnumerable<(DeviceTwinModel, DeviceModel)> devices) {
+            return new IoTHubServices(null, devices);
         }
 
         /// <inheritdoc/>
@@ -92,17 +104,17 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
         }
 
         /// <inheritdoc/>
-        public Task<JobModel> CreateAsync(JobModel job) {
+        public Task<JobModel> CreateAsync(JobModel job, CancellationToken ct) {
             throw new NotImplementedException();
         }
 
         /// <inheritdoc/>
-        public Task<JobModel> RefreshAsync(string jobId) {
+        public Task<JobModel> RefreshAsync(string jobId, CancellationToken ct) {
             throw new NotImplementedException();
         }
 
         /// <inheritdoc/>
-        public Task CancelAsync(string jobId) {
+        public Task CancelAsync(string jobId, CancellationToken ct) {
             throw new NotImplementedException();
         }
 
@@ -117,13 +129,13 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
             foreach (var item in message.Properties) {
                 ev.Message.Properties.Add(item.Key, item.Value);
             }
-            _events.TryAdd(ev);
+            Events.TryAdd(ev);
             return Task.CompletedTask;
         }
 
         /// <inheritdoc/>
-        public Task<DeviceTwinModel> CreateOrUpdateAsync(DeviceTwinModel twin,
-            bool forceUpdate) {
+        public Task<DeviceTwinModel> CreateAsync(DeviceTwinModel twin, bool force,
+            CancellationToken ct) {
 
             var model = GetModel(twin.Id, twin.ModuleId);
             if (model == null) {
@@ -132,15 +144,28 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
                     new DeviceModel { Id = twin.Id, ModuleId = twin.ModuleId }, twin);
                 _devices.Add(model);
             }
-            else {
-                model.UpdateTwin(twin);
+            else if (!force) {
+                throw new ConflictingResourceException("Twin conflict");
             }
+            model.UpdateTwin(twin);
+            return Task.FromResult(model.Twin);
+        }
+
+
+        /// <inheritdoc/>
+        public Task<DeviceTwinModel> PatchAsync(DeviceTwinModel twin, bool force,
+            CancellationToken ct) {
+            var model = GetModel(twin.Id, twin.ModuleId);
+            if (model == null) {
+                throw new ResourceNotFoundException("Twin not found");
+            }
+            model.UpdateTwin(twin);
             return Task.FromResult(model.Twin);
         }
 
         /// <inheritdoc/>
         public Task<MethodResultModel> CallMethodAsync(string deviceId, string moduleId,
-            MethodParameterModel parameters) {
+            MethodParameterModel parameters, CancellationToken ct) {
             var model = GetModel(deviceId, moduleId);
             if (model == null) {
                 throw new ResourceNotFoundException("No such device");
@@ -159,7 +184,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
 
         /// <inheritdoc/>
         public Task UpdatePropertiesAsync(string deviceId, string moduleId,
-            Dictionary<string, JToken> properties, string etag) {
+            Dictionary<string, JToken> properties, string etag, CancellationToken ct) {
 
             var model = GetModel(deviceId, moduleId, etag);
             if (model == null) {
@@ -170,7 +195,8 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
         }
 
         /// <inheritdoc/>
-        public Task<DeviceTwinModel> GetAsync(string deviceId, string moduleId) {
+        public Task<DeviceTwinModel> GetAsync(string deviceId, string moduleId,
+            CancellationToken ct) {
             var model = GetModel(deviceId, moduleId);
             if (model == null) {
                 throw new ResourceNotFoundException("No such device");
@@ -179,7 +205,8 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
         }
 
         /// <inheritdoc/>
-        public Task<DeviceModel> GetRegistrationAsync(string deviceId, string moduleId) {
+        public Task<DeviceModel> GetRegistrationAsync(string deviceId, string moduleId,
+            CancellationToken ct) {
             var model = GetModel(deviceId, moduleId);
             if (model == null) {
                 throw new ResourceNotFoundException("No such device");
@@ -188,7 +215,8 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
         }
 
         /// <inheritdoc/>
-        public Task DeleteAsync(string deviceId, string moduleId, string etag) {
+        public Task DeleteAsync(string deviceId, string moduleId, string etag,
+            CancellationToken ct) {
             var model = GetModel(deviceId, moduleId, etag);
             if (model == null) {
                 throw new ResourceNotFoundException("No such device");
@@ -200,7 +228,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
 
         /// <inheritdoc/>
         public Task<QueryResultModel> QueryAsync(string query, string continuation,
-            int? pageSize) {
+            int? pageSize, CancellationToken ct) {
             var result = _query.Query(query).Select(r => r.DeepClone()).ToList();
             if (pageSize == null) {
                 pageSize = int.MaxValue;
@@ -299,11 +327,11 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
                 MethodRequest methodRequest) {
                 var response = _outer.CallMethodAsync(deviceId, moduleId,
                     new MethodParameterModel {
-                    JsonPayload = methodRequest.DataAsJson,
-                    Name = methodRequest.Name,
-                    ConnectionTimeout = methodRequest.ConnectionTimeout,
-                    ResponseTimeout = methodRequest.ResponseTimeout
-                }).Result;
+                        JsonPayload = methodRequest.DataAsJson,
+                        Name = methodRequest.Name,
+                        ConnectionTimeout = methodRequest.ConnectionTimeout,
+                        ResponseTimeout = methodRequest.ResponseTimeout
+                    }, CancellationToken.None).Result;
                 return new MethodResponse(Encoding.UTF8.GetBytes(response.JsonPayload),
                     response.Status);
             }
@@ -346,7 +374,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
 
             /// <inheritdoc/>
             public void SendEvent(Message message) {
-                if (!_outer._events.TryAdd(new EventMessage {
+                if (!_outer.Events.TryAdd(new EventMessage {
                     DeviceId = Device.Id,
                     ModuleId = Device.ModuleId,
                     Message = message,
@@ -486,11 +514,8 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
         }
 
         private readonly SqlQuery _query;
-        private readonly IEnumerable<IBlobUploadHandler> _handlers;
         private readonly BlockingCollection<FileNotification> _blobs =
             new BlockingCollection<FileNotification>();
-        private readonly BlockingCollection<EventMessage> _events =
-            new BlockingCollection<EventMessage>();
         private readonly List<IoTHubDeviceModel> _devices =
             new List<IoTHubDeviceModel>();
         private readonly List<DeviceJobModel> _jobs =

@@ -73,5 +73,26 @@ namespace Microsoft.Azure.IIoT {
         /// </summary>
         public const string MimeTypeUaNonReversibleJsonReference =
             "application/ua+json+ref+nr";
+
+        /// <summary>
+        /// Certificate content
+        /// </summary>
+        public const string MimeTypeCert =
+            "application/pkix-cert";
+        /// <summary>
+        /// Crl content
+        /// </summary>
+        public const string MimeTypeCrl =
+            "application/pkix-crl";
+        /// <summary>
+        /// see CertificateContentType.Pfx
+        /// </summary>
+        public const string MimeTypePfxCert =
+            "application/x-pkcs12";
+        /// <summary>
+        /// see CertificateContentType.Pem
+        /// </summary>
+        public const string MimeTypePemCert =
+            "application/x-pem-file";
     }
 }

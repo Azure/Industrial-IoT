@@ -119,7 +119,9 @@ namespace System.Linq {
         /// <param name="checkSingle"></param>
         /// <returns></returns>
         public static T OneOrDefault<T>(this IEnumerable<T> source,
-            bool checkSingle = false) => source.OneOrThis(default(T), checkSingle);
+            bool checkSingle = false) {
+            return source.OneOrThis(default, checkSingle);
+        }
 
         /// <summary>
         /// Returns one item or default (null for reference types)

@@ -24,7 +24,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Auth {
         /// <param name="provider"></param>
         /// <param name="config"></param>
         public TokenProviderCredentials(ITokenProvider provider,
-            IClientConfig config) : this (config) {
+            IClientConfig config) : this(config) {
             _provider = provider ?? throw new ArgumentNullException(nameof(provider));
         }
 

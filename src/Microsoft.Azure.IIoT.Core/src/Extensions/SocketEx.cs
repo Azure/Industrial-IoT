@@ -34,10 +34,11 @@ namespace System.Net.Sockets {
         /// <param name="flags"></param>
         /// <returns></returns>
         public static Task<int> SendAsync(this Socket socket, byte[] buffer,
-            int offset, int size, SocketFlags flags) =>
-            Task.Factory.FromAsync((c, o) => socket.BeginSend(
-                buffer, offset, size, flags, c, o),
-                socket.EndSend, TaskCreationOptions.DenyChildAttach);
+            int offset, int size, SocketFlags flags) {
+            return Task.Factory.FromAsync((c, o) => socket.BeginSend(
+buffer, offset, size, flags, c, o),
+socket.EndSend, TaskCreationOptions.DenyChildAttach);
+        }
 
         /// <summary>
         /// Send to asynchronously
@@ -50,9 +51,10 @@ namespace System.Net.Sockets {
         /// <param name="flags"></param>
         /// <returns></returns>
         public static Task<int> SendToAsync(this Socket socket, byte[] buffer,
-            int offset, int size, SocketFlags flags, EndPoint remoteEndpoint) =>
-            Task.Factory.FromAsync((c, o) => socket.BeginSendTo(
-                buffer, offset, size, flags, remoteEndpoint, c, o),
-                socket.EndSendTo, TaskCreationOptions.DenyChildAttach);
+            int offset, int size, SocketFlags flags, EndPoint remoteEndpoint) {
+            return Task.Factory.FromAsync((c, o) => socket.BeginSendTo(
+buffer, offset, size, flags, remoteEndpoint, c, o),
+socket.EndSendTo, TaskCreationOptions.DenyChildAttach);
+        }
     }
 }

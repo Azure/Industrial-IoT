@@ -64,7 +64,7 @@ namespace Microsoft.Azure.IIoT.Net.Models {
         public void ThrowForSize() {
             Assert.Throws<ArgumentException>(() => new IPv4Address(new byte[0]));
             Assert.Throws<ArgumentException>(() => new IPv4Address(new byte[] { 0 }));
-            Assert.Throws<ArgumentException>(() => new IPv4Address(new byte[] { 0, 1, 1, 2, 1}));
+            Assert.Throws<ArgumentException>(() => new IPv4Address(new byte[] { 0, 1, 1, 2, 1 }));
             Assert.Throws<ArgumentException>(() => new IPv4Address(new byte[] { 0, 2, 4 }));
         }
     }

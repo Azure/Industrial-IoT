@@ -19,24 +19,27 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
         /// </summary>
         /// <param name="twin"></param>
         /// <returns></returns>
-        public static bool? IsConnected(this DeviceTwinModel twin) =>
-            twin.ConnectionState?.EqualsIgnoreCase("connected");
+        public static bool? IsConnected(this DeviceTwinModel twin) {
+            return twin.ConnectionState?.EqualsIgnoreCase("connected");
+        }
 
         /// <summary>
         /// Check whether twin is enabled
         /// </summary>
         /// <param name="twin"></param>
         /// <returns></returns>
-        public static bool? IsEnabled(this DeviceTwinModel twin) =>
-            twin.Status?.EqualsIgnoreCase("enabled");
+        public static bool? IsEnabled(this DeviceTwinModel twin) {
+            return twin.Status?.EqualsIgnoreCase("enabled");
+        }
 
         /// <summary>
         /// Check whether twin is disabled
         /// </summary>
         /// <param name="twin"></param>
         /// <returns></returns>
-        public static bool? IsDisabled(this DeviceTwinModel twin) =>
-            twin.Status?.EqualsIgnoreCase("disabled");
+        public static bool? IsDisabled(this DeviceTwinModel twin) {
+            return twin.Status?.EqualsIgnoreCase("disabled");
+        }
 
         /// <summary>
         /// Clone twin

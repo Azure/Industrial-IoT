@@ -25,8 +25,9 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
-        public IEventProcessor CreateEventProcessor(PartitionContext context) =>
-            _factory.Resolve<IEventProcessor>();
+        public IEventProcessor CreateEventProcessor(PartitionContext context) {
+            return _factory.Resolve<IEventProcessor>();
+        }
 
         private readonly IComponentContext _factory;
     }

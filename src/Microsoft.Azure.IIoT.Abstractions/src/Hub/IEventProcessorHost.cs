@@ -4,23 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Hub {
-    using System.Threading.Tasks;
-
     /// <summary>
     /// Event processor
     /// </summary>
-    public interface IEventProcessorHost {
-
-        /// <summary>
-        /// Start host
-        /// </summary>
-        /// <returns></returns>
-        Task StartAsync();
-
-        /// <summary>
-        /// Stop host
-        /// </summary>
-        /// <returns></returns>
-        Task StopAsync();
+    public interface IEventProcessorHost : IHost {
     }
 }

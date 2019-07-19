@@ -80,28 +80,47 @@ namespace Microsoft.Azure.IIoT.Net.Models {
         /// <param name="localOnly"></param>
         /// <param name="suffix"></param>
         public AddressRange(NetInterface itf,
-            bool localOnly = false, int? suffix = null) {
+            bool localOnly = false, int? suffix = null) :
+            this(itf?.UnicastAddress, itf?.SubnetMask, suffix, itf?.Name) {
 
-            if (itf == null) {
-                throw new ArgumentNullException(nameof(itf));
-            }
-
-            var curAddr = (uint)new IPv4Address(itf.UnicastAddress);
-            var mask = suffix == null ?
-                (uint)new IPv4Address(itf.SubnetMask) :
-                    0xffffffff << (32 - suffix.Value);
-
-            Nic = itf.Name;
             if (localOnly) {
+                var curAddr = (uint)new IPv4Address(itf.UnicastAddress);
+
                 // Add local address only
                 High = curAddr;
                 Low = _cur = curAddr;
+
+                System.Diagnostics.Debug.Assert(Low <= High);
+                System.Diagnostics.Debug.Assert(High != 0);
             }
-            else {
-                // Add entire network
-                High = curAddr | ~mask;
-                Low = _cur = curAddr & mask;
+        }
+
+        /// <summary>
+        /// Create address range from address and subnet mask
+        /// </summary>
+        /// <param name="address"></param>
+        /// <param name="subnet"></param>
+        /// <param name="suffix"></param>
+        /// <param name="nic"></param>
+        public AddressRange(IPAddress address, IPAddress subnet,
+            int? suffix = null, string nic = "custom range") {
+
+            if (address == null) {
+                throw new ArgumentNullException(nameof(address));
             }
+            if (subnet == null) {
+                throw new ArgumentNullException(nameof(subnet));
+            }
+
+            var mask = suffix == null ?
+                (uint)new IPv4Address(subnet) :
+                    0xffffffff << (32 - suffix.Value);
+
+            var curAddr = new IPv4Address(address);
+            Nic = nic;
+            High = curAddr | ~mask;
+            Low = _cur = curAddr & mask;
+
             System.Diagnostics.Debug.Assert(Low <= High);
             System.Diagnostics.Debug.Assert(High != 0);
         }
@@ -124,20 +143,23 @@ namespace Microsoft.Azure.IIoT.Net.Models {
         /// <inheritdoc/>
         public override int GetHashCode() {
             var hashCode = 2082053542;
-            hashCode = hashCode * -1521134295 + Low.GetHashCode();
-            hashCode = hashCode * -1521134295 + High.GetHashCode();
+            hashCode = (hashCode * -1521134295) + Low.GetHashCode();
+            hashCode = (hashCode * -1521134295) + High.GetHashCode();
             return hashCode;
         }
 
         /// <inheritdoc/>
-        public override string ToString() =>
-            $"{(IPv4Address)Low}-{(IPv4Address)High} [{Nic}]";
+        public override string ToString() {
+            return $"{(IPv4Address)Low}-{(IPv4Address)High} [{Nic}]";
+        }
 
         /// <summary>
         /// Clone
         /// </summary>
         /// <returns></returns>
-        public AddressRange Copy() => new AddressRange(Low, High, Nic);
+        public AddressRange Copy() {
+            return new AddressRange(Low, High, Nic);
+        }
 
         /// <summary>
         /// Parses a series of address ranges
@@ -202,7 +224,10 @@ namespace Microsoft.Azure.IIoT.Net.Models {
         /// <summary>
         /// Reset range
         /// </summary>
-        public void Reset() => _cur = 0;
+        public void Reset() {
+            _cur = 0;
+        }
+
         private uint _cur;
     }
 }

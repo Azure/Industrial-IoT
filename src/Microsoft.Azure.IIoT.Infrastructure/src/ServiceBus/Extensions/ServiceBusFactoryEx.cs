@@ -16,8 +16,9 @@ namespace Microsoft.Azure.IIoT.Infrastructure.ServiceBus {
         /// Create a new randomly named service bus namespace
         /// </summary>
         public static Task<IServiceBusResource> CreateAsync(
-            this IServiceBusFactory service, IResourceGroupResource resourceGroup) =>
-            service.CreateAsync(resourceGroup, null);
+            this IServiceBusFactory service, IResourceGroupResource resourceGroup) {
+            return service.CreateAsync(resourceGroup, null);
+        }
 
         /// <summary>
         /// Get or create new service bus namespace in a resource group.

@@ -68,7 +68,7 @@ namespace System {
         public static T As<T>(this object value) {
             var converter = TypeDescriptor.GetConverter(typeof(T));
             if (value == null) {
-                return default(T);
+                return default;
             }
             return (T)converter.ConvertFrom(value);
         }

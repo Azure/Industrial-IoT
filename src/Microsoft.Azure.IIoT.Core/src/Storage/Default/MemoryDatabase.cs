@@ -4,9 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Storage.Default {
-    using Serilog;
     using Microsoft.Azure.IIoT.Exceptions;
     using Newtonsoft.Json.Linq;
+    using Serilog;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
@@ -20,17 +20,19 @@ namespace Microsoft.Azure.IIoT.Storage.Default {
     public sealed class MemoryDatabase : IDatabaseServer {
 
         /// <summary>
-        /// Create service
+        /// Create database
         /// </summary>
         /// <param name="logger"></param>
-        public MemoryDatabase(ILogger logger) {
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        /// <param name="queryEngine"></param>
+        public MemoryDatabase(ILogger logger, IQueryEngine queryEngine = null) {
+            _queryEngine = queryEngine;
+            _logger = logger;
         }
 
         /// <inheritdoc/>
-        public Task<IDatabase> OpenAsync(string id) {
+        public Task<IDatabase> OpenAsync(string id, DatabaseOptions options) {
             return Task.FromResult<IDatabase>(_databases.GetOrAdd(id ?? "",
-                k => new ItemContainerDatabase(_logger)));
+                k => new ItemContainerDatabase(this)));
         }
 
         /// <summary>
@@ -39,16 +41,17 @@ namespace Microsoft.Azure.IIoT.Storage.Default {
         private class ItemContainerDatabase : IDatabase {
 
             /// <summary>
-            /// Create service
+            /// Create database
             /// </summary>
-            /// <param name="logger"></param>
-            public ItemContainerDatabase(ILogger logger) {
-                _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            /// <param name="queryEngine"></param>
+            public ItemContainerDatabase(MemoryDatabase queryEngine) {
+                _outer = queryEngine;
             }
 
             /// <inheritdoc/>
             public Task DeleteContainerAsync(string id) {
                 _containers.TryRemove(id, out var tmp);
+                tmp?.Dispose();
                 return Task.CompletedTask;
             }
 
@@ -58,33 +61,40 @@ namespace Microsoft.Azure.IIoT.Storage.Default {
             }
 
             /// <inheritdoc/>
-            public Task<IItemContainer> OpenContainerAsync(string id, bool partitioned) {
+            public Task<IItemContainer> OpenContainerAsync(string id,
+                ContainerOptions options) {
                 return Task.FromResult<IItemContainer>(_containers.GetOrAdd(id ?? "",
-                    k => new ItemContainer(_logger)));
+                    k => new ItemContainer(id, _outer)));
             }
 
             private readonly ConcurrentDictionary<string, ItemContainer> _containers =
                 new ConcurrentDictionary<string, ItemContainer>();
-            private readonly ILogger _logger;
+            private readonly MemoryDatabase _outer;
         }
 
         /// <summary>
         /// In memory container
         /// </summary>
-        private class ItemContainer : IDocuments, IItemContainer {
+        private class ItemContainer : IItemContainer, IDocuments, IGraph,
+            ISqlClient, IGremlinClient {
+
+            /// <inheritdoc/>
+            public string Name { get; }
 
             /// <summary>
             /// Create service
             /// </summary>
-            /// <param name="logger"></param>
-            public ItemContainer(ILogger logger) {
-                _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            /// <param name="name"></param>
+            /// <param name="outer"></param>
+            public ItemContainer(string name, MemoryDatabase outer) {
+                Name = name ?? throw new ArgumentNullException(nameof(name));
+                _outer = outer;
             }
 
             /// <inheritdoc/>
             public Task<IDocumentInfo<T>> AddAsync<T>(T newItem,
-                CancellationToken ct, string id, string partitionKey) {
-                var newDoc = new Document<T>(id, newItem, partitionKey);
+                CancellationToken ct, string id, OperationOptions options) {
+                var newDoc = new Document<T>(id, newItem, options?.PartitionKey);
                 lock (_data) {
                     if (_data.TryGetValue(newDoc.Id, out var existing)) {
                         return Task.FromException<IDocumentInfo<T>>(
@@ -96,16 +106,19 @@ namespace Microsoft.Azure.IIoT.Storage.Default {
             }
 
             /// <inheritdoc/>
-            public Task DeleteAsync<T>(IDocumentInfo<T> item, CancellationToken ct) {
+            public Task DeleteAsync<T>(IDocumentInfo<T> item, CancellationToken ct,
+                OperationOptions options) {
                 if (item == null) {
                     throw new ArgumentNullException(nameof(item));
                 }
-                return DeleteAsync(item.Id, ct, item.PartitionKey, item.Etag);
+                return DeleteAsync(item.Id, ct, new OperationOptions {
+                    PartitionKey = item.PartitionKey
+                }, item.Etag);
             }
 
             /// <inheritdoc/>
             public Task DeleteAsync(string id, CancellationToken ct,
-                string partitionKey, string etag) {
+                OperationOptions options, string etag) {
                 if (string.IsNullOrEmpty(id)) {
                     throw new ArgumentNullException(nameof(id));
                 }
@@ -124,8 +137,8 @@ namespace Microsoft.Azure.IIoT.Storage.Default {
             }
 
             /// <inheritdoc/>
-            public Task<IDocumentInfo<T>> GetAsync<T>(string id, CancellationToken ct,
-                string partitionKey) {
+            public Task<IDocumentInfo<T>> FindAsync<T>(string id, CancellationToken ct,
+                OperationOptions options) {
                 if (string.IsNullOrEmpty(id)) {
                     throw new ArgumentNullException(nameof(id));
                 }
@@ -137,19 +150,19 @@ namespace Microsoft.Azure.IIoT.Storage.Default {
 
             /// <inheritdoc/>
             public IResultFeed<R> Query<T, R>(Func<IQueryable<IDocumentInfo<T>>,
-                IQueryable<R>> query, int? pageSize, string partitionKey) {
+                IQueryable<R>> query, int? pageSize, OperationOptions options) {
                 var results = query(_data.Values
                     .OfType<IDocumentInfo<T>>()
                     .AsQueryable())
                     .AsEnumerable();
                 var feed = (pageSize == null) ?
                     results.YieldReturn() : results.Batch(pageSize.Value);
-                return new MemoryFeed<R>(new Queue<IEnumerable<R>>(feed));
+                return new MemoryFeed<R>(this, new Queue<IEnumerable<R>>(feed));
             }
 
             /// <inheritdoc/>
             public Task<IDocumentInfo<T>> ReplaceAsync<T>(IDocumentInfo<T> existing, T value,
-                CancellationToken ct) {
+                CancellationToken ct, OperationOptions options) {
                 if (existing == null) {
                     throw new ArgumentNullException(nameof(existing));
                 }
@@ -173,8 +186,8 @@ namespace Microsoft.Azure.IIoT.Storage.Default {
 
             /// <inheritdoc/>
             public Task<IDocumentInfo<T>> UpsertAsync<T>(T newItem, CancellationToken ct,
-                string id, string partitionKey, string etag) {
-                var newDoc = new Document<T>(id, newItem, partitionKey);
+                string id, OperationOptions options, string etag) {
+                var newDoc = new Document<T>(id, newItem, options?.PartitionKey);
                 lock (_data) {
                     if (_data.TryGetValue(newDoc.Id, out var doc)) {
                         if (!string.IsNullOrEmpty(etag) && doc.Etag != etag) {
@@ -207,8 +220,23 @@ namespace Microsoft.Azure.IIoT.Storage.Default {
             }
 
             /// <inheritdoc/>
+            public IDocuments AsDocuments() {
+                return this;
+            }
+
+            /// <inheritdoc/>
+            public IGraph AsGraph() {
+                return this;
+            }
+
+            /// <inheritdoc/>
             public ISqlClient OpenSqlClient() {
-                throw new NotSupportedException();
+                return this;
+            }
+
+            /// <inheritdoc/>
+            public IGremlinClient OpenGremlinClient() {
+                return this;
             }
 
             /// <inheritdoc/>
@@ -217,23 +245,86 @@ namespace Microsoft.Azure.IIoT.Storage.Default {
             }
 
             /// <inheritdoc/>
-            public IDocuments AsDocuments() => this;
+            Task<IGraphLoader> IGraph.CreateBulkLoader() {
+                throw new NotImplementedException();
+            }
 
             /// <inheritdoc/>
-            public IGraph AsGraph() {
-                throw new NotSupportedException();
+            public IResultFeed<T> Submit<T>(string gremlin, int? pageSize,
+                string partitionKey ) {
+                var documents = _outer._queryEngine?.ExecuteGremlin(_data.Values, gremlin);
+                if (documents == null) {
+                    throw new NotSupportedException("Query not supported");
+                }
+                var results = documents
+                    .Select(d => d.Value.ToObject<T>());
+                var feed = (pageSize == null) ?
+                    results.YieldReturn() : results.Batch(pageSize.Value);
+                return new MemoryFeed<T>(this, new Queue<IEnumerable<T>>(feed));
+            }
+
+            /// <inheritdoc/>
+            public IResultFeed<IDocumentInfo<T>> Continue<T>(string continuationToken,
+                int? pageSize, string partitionKey) {
+                if (_queryStore.TryGetValue(continuationToken, out var feed)) {
+                    var result = feed as IResultFeed<IDocumentInfo<T>>;
+                    if (result == null) {
+                        _outer._logger.Error("Continuation {continuation} type mismatch.",
+                            continuationToken);
+                    }
+                    return result;
+                }
+                _outer._logger.Error("Continuation {continuation} not found",
+                    continuationToken);
+                return null;
+            }
+
+            /// <inheritdoc/>
+            public Task DropAsync(string queryString,
+                IDictionary<string, object> parameters, string partitionKey,
+                CancellationToken ct) {
+                queryString = FormatQueryString(queryString, parameters);
+                var documents = _outer._queryEngine?.ExecuteSql(_data.Values, queryString);
+                if (documents == null) {
+                    throw new NotSupportedException("Query not supported");
+                }
+                foreach (var item in documents) {
+                    _data.Remove(item.Id);
+                }
+                return Task.CompletedTask;
+            }
+
+            /// <inheritdoc/>
+            public IResultFeed<IDocumentInfo<T>> Query<T>(string queryString,
+                IDictionary<string, object> parameters, int? pageSize,
+                string partitionKey) {
+                queryString = FormatQueryString(queryString, parameters);
+                var documents = _outer._queryEngine?.ExecuteSql(_data.Values, queryString);
+                if (documents == null) {
+                    throw new NotSupportedException("Query not supported");
+                }
+                var results = documents
+                    .Select(d => new Document<T>(d.Id, d.Value.ToObject<T>(), d.PartitionKey));
+                var feed = (pageSize == null) ?
+                    results.YieldReturn() : results.Batch(pageSize.Value);
+                return new MemoryFeed<IDocumentInfo<T>>(this,
+                    new Queue<IEnumerable<IDocumentInfo<T>>>(feed));
+            }
+
+            /// <inheritdoc/>
+            public void Dispose() {
             }
 
             /// <summary>
             /// Wraps a document value
             /// </summary>
-            private abstract class MemoryDocument {
+            private abstract class MemoryDocument : IDocumentInfo<JObject> {
 
                 /// <summary>
                 /// Returns the size of the document
                 /// </summary>
                 public int Size => System.Text.Encoding.UTF8.GetByteCount(
-                    _value.ToString(Newtonsoft.Json.Formatting.None));
+                    Value.ToString(Newtonsoft.Json.Formatting.None));
 
                 /// <summary>
                 /// Create memory document
@@ -242,9 +333,9 @@ namespace Microsoft.Azure.IIoT.Storage.Default {
                 /// <param name="value"></param>
                 /// <param name="partitionKey"></param>
                 protected MemoryDocument(JObject value, string id, string partitionKey) {
-                    _value = value;
-                    Id = id ?? _value.GetValueOrDefault("id", Guid.NewGuid().ToString());
-                    PartitionKey = partitionKey ?? _value.GetValueOrDefault("__pk",
+                    Value = value;
+                    Id = id ?? Value.GetValueOrDefault("id", Guid.NewGuid().ToString());
+                    PartitionKey = partitionKey ?? Value.GetValueOrDefault("__pk",
                         Guid.NewGuid().ToString());
                 }
 
@@ -258,20 +349,25 @@ namespace Microsoft.Azure.IIoT.Storage.Default {
                 public string Etag { get; } = Guid.NewGuid().ToString();
 
                 /// <inheritdoc/>
+                public JObject Value { get; }
+
+                /// <inheritdoc/>
                 public override bool Equals(object obj) {
                     if (obj is MemoryDocument wrapper) {
-                        return JToken.DeepEquals(_value, wrapper._value);
+                        return JToken.DeepEquals(Value, wrapper.Value);
                     }
                     return false;
                 }
 
                 /// <inheritdoc/>
-                public override int GetHashCode() =>
-                    EqualityComparer<JObject>.Default.GetHashCode(_value);
+                public override int GetHashCode() {
+                    return EqualityComparer<JObject>.Default.GetHashCode(Value);
+                }
 
                 /// <inheritdoc/>
-                public override string ToString() =>
-                    _value.ToString(Newtonsoft.Json.Formatting.Indented);
+                public override string ToString() {
+                    return Value.ToString(Newtonsoft.Json.Formatting.Indented);
+                }
 
                 /// <inheritdoc/>
                 public static bool operator ==(MemoryDocument o1, MemoryDocument o2) =>
@@ -280,8 +376,6 @@ namespace Microsoft.Azure.IIoT.Storage.Default {
                 /// <inheritdoc/>
                 public static bool operator !=(MemoryDocument o1, MemoryDocument o2) =>
                     !(o1 == o2);
-
-                private readonly JObject _value;
             }
 
 
@@ -297,12 +391,11 @@ namespace Microsoft.Azure.IIoT.Storage.Default {
                 /// <param name="value"></param>
                 /// <param name="partitionKey"></param>
                 public Document(string id, T value, string partitionKey) :
-                    base (JObject.FromObject(value), id, partitionKey) {
-                    Value = value;
+                    base(JObject.FromObject(value), id, partitionKey) {
                 }
 
                 /// <inheritdoc/>
-                public T Value { get; }
+                T IDocumentInfo<T>.Value => Value.ToObject<T>();
             }
 
             /// <summary>
@@ -310,34 +403,92 @@ namespace Microsoft.Azure.IIoT.Storage.Default {
             /// </summary>
             private class MemoryFeed<T> : IResultFeed<T> {
 
+                /// <inheritdoc/>
+                public string ContinuationToken {
+                    get {
+                        lock (_lock) {
+                            if (_items.Count == 0) {
+                                return null;
+                            }
+                            return _continuationToken;
+                        }
+                    }
+                }
+
                 /// <summary>
                 /// Create feed
                 /// </summary>
+                /// <param name="container"></param>
                 /// <param name="items"></param>
-                public MemoryFeed(Queue<IEnumerable<T>> items) {
+                public MemoryFeed(ItemContainer container, Queue<IEnumerable<T>> items) {
+                    _container = container;
                     _items = items;
+                    _continuationToken = Guid.NewGuid().ToString();
+                    _container._queryStore.Add(_continuationToken, this);
                 }
 
                 /// <inheritdoc/>
                 public void Dispose() { }
 
                 /// <inheritdoc/>
-                public bool HasMore() => _items.Count != 0;
+                public bool HasMore() {
+                    lock (_lock) {
+                        if (_items.Count == 0) {
+                            _container._queryStore.Remove(_continuationToken);
+                            return false;
+                        }
+                        return true;
+                    }
+                }
 
                 /// <inheritdoc/>
-                public Task<IEnumerable<T>> ReadAsync(CancellationToken ct) =>
-                    Task.FromResult(HasMore() ? _items.Dequeue() : null);
+                public Task<IEnumerable<T>> ReadAsync(CancellationToken ct) {
+                    lock (_lock) {
+                        var result = _items.Count != 0 ? _items.Dequeue() : Enumerable.Empty<T>();
+                        if (result == null) {
+                            _container._queryStore.Remove(_continuationToken);
+                        }
+                        return Task.FromResult(result);
+                    }
+                }
 
+                private readonly ItemContainer _container;
+                private readonly string _continuationToken;
                 private readonly Queue<IEnumerable<T>> _items;
+                private readonly object _lock = new object();
             }
 
+
+            /// <summary>
+            /// Format query string
+            /// </summary>
+            /// <param name="query"></param>
+            /// <param name="parameters"></param>
+            /// <returns></returns>
+            private string FormatQueryString(string query,
+                IDictionary<string, object> parameters) {
+                if (parameters != null) {
+                    foreach (var parameter in parameters) {
+                        var value = parameter.Value.ToString();
+                        if (value is string) {
+                            value = "'" + value + "'";
+                        }
+                        query = query.Replace(parameter.Key + " ", value + " ");
+                    }
+                }
+                return query;
+            }
+
+            private readonly MemoryDatabase _outer;
+            private readonly Dictionary<string, object> _queryStore =
+                new Dictionary<string, object>();
             private readonly Dictionary<string, MemoryDocument> _data =
                 new Dictionary<string, MemoryDocument>();
-            private readonly ILogger _logger;
         }
 
         private readonly ConcurrentDictionary<string, ItemContainerDatabase> _databases =
             new ConcurrentDictionary<string, ItemContainerDatabase>();
+        private readonly IQueryEngine _queryEngine;
         private readonly ILogger _logger;
     }
 }

@@ -17,7 +17,8 @@ namespace System.Collections.Generic {
         /// <typeparam name="T"></typeparam>
         /// <param name="func"></param>
         /// <returns></returns>
-        public static IEqualityComparer<T> Using<T>(Func<T, T, bool> func) =>
-            new FuncCompare<T>(func);
+        public static IEqualityComparer<T> Using<T>(Func<T, T, bool> func) {
+            return new FuncCompare<T>(func);
+        }
     }
 }

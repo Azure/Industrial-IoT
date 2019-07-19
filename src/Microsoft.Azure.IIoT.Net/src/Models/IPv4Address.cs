@@ -18,7 +18,7 @@ namespace Microsoft.Azure.IIoT.Net.Models {
         /// Create address
         /// </summary>
         /// <param name="address"></param>
-        public IPv4Address(uint address) :
+        private IPv4Address(uint address) :
             base(address) {
         }
 
@@ -34,7 +34,7 @@ namespace Microsoft.Azure.IIoT.Net.Models {
         /// Create address
         /// </summary>
         /// <param name="address"></param>
-        public IPv4Address(byte[] address) : base (address) {
+        public IPv4Address(byte[] address) : base(address) {
             if (address.Length != 4) {
                 throw new ArgumentException(nameof(address.Length));
             }
@@ -109,18 +109,28 @@ namespace Microsoft.Azure.IIoT.Net.Models {
             !(addr1 == addr2);
 
         /// <inheritdoc/>
-        public override int GetHashCode() => base.GetHashCode();
+        public override int GetHashCode() {
+            return base.GetHashCode();
+        }
 
         /// <inheritdoc/>
-        public override bool Equals(object comparand) => base.Equals(comparand);
+        public override bool Equals(object comparand) {
+            return base.Equals(comparand);
+        }
 
         /// <inheritdoc/>
-        public int CompareTo(IPv4Address other) => (int)(this - other);
+        public int CompareTo(IPv4Address other) {
+            return (int)(this - other);
+        }
 
         /// <inheritdoc/>
-        public int CompareTo(IPAddress other) => CompareTo(other.AsV4());
+        public int CompareTo(IPAddress other) {
+            return CompareTo(other.AsV4());
+        }
 
         /// <inheritdoc/>
-        public int Compare(IPv4Address x, IPv4Address y) => x.CompareTo(y);
+        public int Compare(IPv4Address x, IPv4Address y) {
+            return x.CompareTo(y);
+        }
     }
 }

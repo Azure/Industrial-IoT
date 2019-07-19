@@ -41,19 +41,21 @@ namespace System {
         /// <param name="extension"></param>
         /// <returns></returns>
         public static IEnumerable<Tuple<string, ArraySegment<byte>>> GetManifestResources(
-            this Assembly assembly, string extension = null) => assembly?
-            .GetManifestResourceNames()
-            .Where(r => extension == null ||
-                r.EndsWith(extension, StringComparison.Ordinal))
-            .Select(r => {
-                using (var stream = assembly.GetManifestResourceStream(r)) {
-                    if (stream == null) {
-                        throw new FileNotFoundException(r + " not found");
-                    }
-                    return Tuple.Create(r.Replace($"{assembly.GetName().Name}.", ""),
-                        stream.ReadAsBuffer());
-                }
-            });
+            this Assembly assembly, string extension = null) {
+            return assembly?
+.GetManifestResourceNames()
+.Where(r => extension == null ||
+r.EndsWith(extension, StringComparison.Ordinal))
+.Select(r => {
+    using (var stream = assembly.GetManifestResourceStream(r)) {
+        if (stream == null) {
+            throw new FileNotFoundException(r + " not found");
+        }
+        return Tuple.Create(r.Replace($"{assembly.GetName().Name}.", ""),
+        stream.ReadAsBuffer());
+    }
+});
+        }
 
         /// <summary>
         /// Get assembly version

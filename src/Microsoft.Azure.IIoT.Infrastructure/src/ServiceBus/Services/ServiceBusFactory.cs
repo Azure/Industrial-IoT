@@ -26,7 +26,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.ServiceBus.Services {
         /// <param name="creds"></param>
         /// <param name="logger"></param>
         public ServiceBusFactory(ICredentialProvider creds, ILogger logger) :
-            base (creds, logger) {
+            base(creds, logger) {
         }
 
         /// <inheritdoc/>

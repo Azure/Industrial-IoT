@@ -13,7 +13,6 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Cli {
     using Microsoft.Azure.IIoT.Infrastructure.Services;
     using Microsoft.Azure.IIoT.Infrastructure;
     using Microsoft.Azure.IIoT.Utils;
-    using Newtonsoft.Json;
     using Autofac;
     using AutofacSerilogIntegration;
     using System;
@@ -98,8 +97,8 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Cli {
         /// <param name="context"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-            private static async Task TestIoTHubCreateDeleteCreate(IComponentContext context,
-            CliOptions options) {
+        private static async Task TestIoTHubCreateDeleteCreate(IComponentContext context,
+        CliOptions options) {
 
             var manager = context.Resolve<IResourceGroupFactory>();
             var name = options.GetValueOrDefault("-n", "--name", StringEx.CreateUnique(9, "test"));
@@ -152,22 +151,6 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Cli {
             }
             Console.WriteLine("Resource group deleted.");
         }
-
-
-        /// <summary>
-        /// Print result
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="options"></param>
-        /// <param name="status"></param>
-        private static void PrintResult<T>(CliOptions options,
-            T status) {
-            Console.WriteLine("==================");
-            Console.WriteLine(JsonConvert.SerializeObject(status,
-                options.GetValueOrDefault("-F", "--format", Formatting.Indented)));
-            Console.WriteLine("==================");
-        }
-
 
         /// <summary>
         /// Configure Dependency injection

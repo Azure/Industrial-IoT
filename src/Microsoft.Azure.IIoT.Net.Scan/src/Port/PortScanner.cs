@@ -112,6 +112,7 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
             }
             _probePool.Clear();
             _completion.TrySetCanceled();
+            _cts.Dispose();
         }
 
         /// <summary>
@@ -189,8 +190,9 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
             /// Called on error
             /// </summary>
             /// <returns></returns>
-            protected override bool ShouldGiveUp() =>
-                _scanner._active > _scanner._minProbeCount;
+            protected override bool ShouldGiveUp() {
+                return _scanner._active > _scanner._minProbeCount;
+            }
 
             /// <summary>
             /// Called when endpoint probe failed for some reason
@@ -205,14 +207,16 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
             /// Called on success
             /// </summary>
             /// <param name="ep"></param>
-            protected override void OnSuccess(IPEndPoint ep) =>
+            protected override void OnSuccess(IPEndPoint ep) {
                 _scanner._target(ep);
+            }
 
             /// <summary>
             /// Called when probe terminates
             /// </summary>
-            protected override void OnExit() =>
+            protected override void OnExit() {
                 _scanner.OnProbeExit();
+            }
 
             private readonly PortScanner _scanner;
         }
@@ -234,10 +238,14 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
             public void Dispose() { }
 
             /// <inheritdoc />
-            public bool Reset() => false;
+            public bool Reset() {
+                return false;
+            }
 
             /// <inheritdoc />
-            public IAsyncProbe Create() => this;
+            public IAsyncProbe Create() {
+                return this;
+            }
         }
 
         /// <summary>
@@ -251,7 +259,7 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
         /// By default ensure at least 80% probes are going.
         /// </summary>
         private const int kDefaultMinProbePercent = 80;
-        private readonly TimeSpan kDefaultProbeTimeout =
+        private static readonly TimeSpan kDefaultProbeTimeout =
             TimeSpan.FromSeconds(5);
 
         private readonly ConcurrentQueue<IPEndPoint> _requeued;

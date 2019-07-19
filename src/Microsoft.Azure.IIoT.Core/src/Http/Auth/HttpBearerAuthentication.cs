@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Http.Auth {
-    using Serilog;
     using Microsoft.Azure.IIoT.Auth;
     using System.Net.Http.Headers;
     using System.Threading.Tasks;
@@ -23,10 +22,8 @@ namespace Microsoft.Azure.IIoT.Http.Auth {
         /// Create bearer auth handler
         /// </summary>
         /// <param name="provider"></param>
-        /// <param name="logger"></param>
-        public HttpBearerAuthentication(ITokenProvider provider, ILogger logger) {
+        public HttpBearerAuthentication(ITokenProvider provider) {
             _provider = provider ?? throw new ArgumentNullException(nameof(provider));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <summary>
@@ -84,6 +81,5 @@ namespace Microsoft.Azure.IIoT.Http.Auth {
         }
 
         private readonly ITokenProvider _provider;
-        private readonly ILogger _logger;
     }
 }

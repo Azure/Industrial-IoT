@@ -50,6 +50,11 @@ namespace Swashbuckle.AspNetCore.Swagger {
                 // Add annotations
                 options.EnableAnnotations();
 
+                // send all enums as string
+                // required for x-ms-enum
+                // TODO: Investigate - test and remove
+                options.DescribeAllEnumsAsStrings();
+
                 // Add help
                 options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory,
                     config.GetType().Assembly.GetName().Name + ".xml"), true);
@@ -59,8 +64,8 @@ namespace Swashbuckle.AspNetCore.Swagger {
 
                 // If auth enabled, need to have bearer token to access any api
                 if (config.WithAuth) {
-                    var resource = config as IClientConfig;
-                    if (string.IsNullOrEmpty(config.SwaggerAppId) || resource == null) {
+                    if (string.IsNullOrEmpty(config.SwaggerAppId) ||
+                        !(config is IClientConfig resource)) {
                         options.AddSecurityDefinition("bearer", new ApiKeyScheme {
                             Description =
                                 "Authorization token in the form of 'bearer <token>'",
@@ -137,7 +142,7 @@ namespace Swashbuckle.AspNetCore.Swagger {
                     }
                 }
                 options.RoutePrefix = "";
-                options.SwaggerEndpoint("v2/swagger.json", info.Version);
+                options.SwaggerEndpoint($"{info.Version}/swagger.json", info.Version);
             });
         }
 
@@ -172,13 +177,14 @@ namespace Swashbuckle.AspNetCore.Swagger {
                 if (paramType.IsEnum) {
                     extensions.Add("x-ms-enum", new {
                         name = paramType.Name,
-                        modelAsString = false,
-                        values = paramType
-                            .GetFields(BindingFlags.Static | BindingFlags.Public)
-                            .Select(field => new {
-                                name = field.Name,
-                                value = field.Name,
-                            })
+                        modelAsString = false
+                        // TODO: Investigate,
+                        //  values = paramType
+                        //      .GetFields(BindingFlags.Static | BindingFlags.Public)
+                        //      .Select(field => new {
+                        //          name = field.Name,
+                        //          value = field.Name,
+                        //      })
                     });
                 }
             }
@@ -194,7 +200,10 @@ namespace Swashbuckle.AspNetCore.Swagger {
             public virtual void Apply(Operation operation, OperationFilterContext context) {
                 var name = context.MethodInfo.Name;
                 if (name.EndsWith("Async", StringComparison.InvariantCultureIgnoreCase)) {
-                    operation.OperationId = name.Substring(0, name.Length - 5);
+                    var autoOperationId = name.Substring(0, name.Length - 5);
+                    if (autoOperationId.Length < operation.OperationId.Length) {
+                        operation.OperationId = autoOperationId;
+                    }
                 }
                 if (operation.OperationId.Contains("CreateOrUpdate") &&
                     context.ApiDescription.HttpMethod.EqualsIgnoreCase("PATCH")) {
@@ -206,10 +215,10 @@ namespace Swashbuckle.AspNetCore.Swagger {
                     if (attribute.LongRunning) {
                         operation.Extensions.Add("x-ms-long-running-operation", true);
                     }
-                    if (!string.IsNullOrEmpty(attribute.ContinuationTokenLinkName)) {
+                    if (!string.IsNullOrEmpty(attribute.NextPageLinkName)) {
                         operation.Extensions.Add("x-ms-pageable",
                             new Dictionary<string, string> {
-                                { "nextLinkName", attribute.ContinuationTokenLinkName }
+                                { "nextLinkName", attribute.NextPageLinkName }
                             });
                     }
                     if (attribute.ResponseTypeIsFileStream) {
@@ -247,10 +256,12 @@ namespace Swashbuckle.AspNetCore.Swagger {
                     ControllerActionDescriptor;
                 var claims = descriptor.GetRequiredPolicyGlaims(_options.Value);
                 if (claims.Any()) {
-                    operation.Responses.Add("401",
-                        new Response { Description = "Unauthorized" });
-                    operation.Responses.Add("403",
-                        new Response { Description = "Forbidden" });
+                    // TODO: Investigate
+                    // responses cause csharp api do not throw exception on error
+                    //operation.Responses.Add("401",
+                    //    new Response { Description = "Unauthorized" });
+                    //operation.Responses.Add("403",
+                    //    new Response { Description = "Forbidden" });
 
                     // Add security description
                     operation.Security = new List<IDictionary<string, IEnumerable<string>>> {

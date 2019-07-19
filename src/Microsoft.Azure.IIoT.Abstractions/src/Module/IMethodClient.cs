@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Module {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -21,9 +22,10 @@ namespace Microsoft.Azure.IIoT.Module {
         /// <param name="payload"></param>
         /// <param name="contentType"></param>
         /// <param name="timeout"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         Task<byte[]> CallMethodAsync(string deviceId, string moduleId,
             string method, byte[] payload, string contentType,
-            TimeSpan? timeout = null);
+            TimeSpan? timeout = null, CancellationToken ct = default);
     }
 }

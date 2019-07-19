@@ -21,7 +21,7 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
         /// <summary>
         /// The processors task scheduler
         /// </summary>
-        public ITaskScheduler Scheduler => _scheduler;
+        public ITaskScheduler Scheduler { get; }
 
         /// <summary>
         /// Create processor
@@ -37,7 +37,7 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
         /// <param name="config"></param>
         /// <param name="logger"></param>
         public TaskProcessor(ITaskProcessorConfig config, ILogger logger) :
-            this (config, new DefaultScheduler(), logger) {
+            this(config, new DefaultScheduler(), logger) {
         }
 
         /// <summary>
@@ -50,7 +50,7 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
             ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _config = config ?? throw new ArgumentNullException(nameof(config));
-            _scheduler = scheduler ?? throw new ArgumentNullException(nameof(scheduler));
+            Scheduler = scheduler ?? throw new ArgumentNullException(nameof(scheduler));
             _processors = new List<ProcessorWorker>();
             for (var i = 0; i < Math.Max(1, config.MaxInstances); i++) {
                 _processors.Add(new ProcessorWorker(this));
@@ -78,10 +78,12 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
         }
 
         /// <inheritdoc/>
-        public void Dispose() => Try.Op(() =>
-            Task.WaitAll(_processors.Select(p => p.CloseAsync()).ToArray()));
+        public void Dispose() {
+            Try.Op(() =>
+Task.WaitAll(_processors.Select(p => p.CloseAsync()).ToArray()));
+        }
 
-        sealed class ProcessorWorker {
+        private sealed class ProcessorWorker {
 
             internal BlockingCollection<Work> Queue { get; }
 
@@ -94,7 +96,7 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
                     throw new ArgumentNullException(nameof(processor));
                 Queue = new BlockingCollection<Work>(
                     Math.Max(1, processor._config.MaxQueueSize));
-                _worker = processor._scheduler.Run(WorkAsync);
+                _worker = processor.Scheduler.Run(WorkAsync);
             }
 
             /// <summary>
@@ -164,7 +166,6 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
 
         private readonly ILogger _logger;
         private readonly ITaskProcessorConfig _config;
-        private readonly ITaskScheduler _scheduler;
         private readonly List<ProcessorWorker> _processors;
     }
 }

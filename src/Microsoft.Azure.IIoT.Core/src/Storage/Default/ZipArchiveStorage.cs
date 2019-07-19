@@ -43,7 +43,9 @@ namespace Microsoft.Azure.IIoT.Storage.Default {
             }
 
             /// <inheritdoc/>
-            public void Dispose() => _zip.Dispose();
+            public void Dispose() {
+                _zip.Dispose();
+            }
 
             /// <inheritdoc/>
             public Task CloseAsync() {

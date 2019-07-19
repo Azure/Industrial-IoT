@@ -19,8 +19,9 @@ namespace Microsoft.Azure.IIoT.Http {
         /// </summary>
         /// <param name="statusCode"></param>
         /// <returns></returns>
-        public static bool IsError(this HttpStatusCode statusCode) =>
-            (int)statusCode >= 400 || statusCode == 0;
+        public static bool IsError(this HttpStatusCode statusCode) {
+            return (int)statusCode >= 400 || statusCode == 0;
+        }
 
         /// <summary>
         /// Validate status code
@@ -45,6 +46,7 @@ namespace Microsoft.Azure.IIoT.Http {
                 case HttpStatusCode.BadRequest:
                     throw new BadRequestException(message, inner);
                 case HttpStatusCode.Forbidden:
+                    throw new ResourceInvalidStateException(message, inner);
                 case HttpStatusCode.Unauthorized:
                     throw new UnauthorizedAccessException(message, inner);
                 case HttpStatusCode.NotFound:

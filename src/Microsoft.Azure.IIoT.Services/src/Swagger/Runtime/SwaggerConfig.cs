@@ -7,7 +7,6 @@ namespace Microsoft.Azure.IIoT.Services.Swagger.Runtime {
     using Microsoft.Azure.IIoT.Services.Swagger;
     using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Extensions.Configuration;
-    using System;
 
     /// <summary>
     /// Swagger configuration with fall back to client configuration.
@@ -34,22 +33,17 @@ namespace Microsoft.Azure.IIoT.Services.Swagger.Runtime {
             GetIntOrDefault("PCS_AUTH_HTTPSREDIRECTPORT", 0));
         /// <summary>Application id</summary>
         public string SwaggerAppId => GetStringOrDefault(kSwagger_AppIdKey,
-            GetStringOrDefault(_serviceId + "_SWAGGER_APP_ID", AppId)).Trim();
+            GetStringOrDefault("PCS_SWAGGER_APP_ID", AppId)).Trim();
         /// <summary>Application key</summary>
         public string SwaggerAppSecret => GetStringOrDefault(kSwagger_AppSecretKey,
-            GetStringOrDefault(_serviceId + "_SWAGGER_APP_KEY", AppSecret)).Trim();
+            GetStringOrDefault("PCS_SWAGGER_APP_KEY", AppSecret)).Trim();
 
         /// <summary>
         /// Configuration constructor
         /// </summary>
         /// <param name="configuration"></param>
-        /// <param name="serviceId"></param>
-        public SwaggerConfig(IConfigurationRoot configuration, string serviceId = "") :
+        public SwaggerConfig(IConfigurationRoot configuration) :
             base(configuration) {
-            _serviceId = serviceId?.ToUpperInvariant() ??
-                throw new ArgumentNullException(nameof(serviceId));
         }
-
-        private readonly string _serviceId;
     }
 }

@@ -20,6 +20,6 @@ namespace Microsoft.Azure.IIoT.Auth {
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<TokenResultModel> ValidateAsync(string token,
-            CancellationToken ct = default(CancellationToken));
+            CancellationToken ct = default);
     }
 }

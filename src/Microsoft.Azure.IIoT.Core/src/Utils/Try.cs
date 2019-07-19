@@ -39,7 +39,7 @@ namespace Microsoft.Azure.IIoT.Utils {
                 return action.Invoke();
             }
             catch {
-                return default(T);
+                return default;
             }
         }
 
@@ -86,7 +86,7 @@ namespace Microsoft.Azure.IIoT.Utils {
                 return await action.Invoke();
             }
             catch {
-                return default(T);
+                return default;
             }
         }
 
@@ -102,7 +102,7 @@ namespace Microsoft.Azure.IIoT.Utils {
                 return await action.Invoke(ct);
             }
             catch {
-                return default(T);
+                return default;
             }
         }
 

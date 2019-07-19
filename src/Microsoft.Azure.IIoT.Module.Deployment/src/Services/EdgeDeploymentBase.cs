@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.Module.Deployment {
     using Microsoft.Azure.IIoT.Module.Deployment.Models;
-    using Serilog;
     using Microsoft.Azure.IIoT.Hub.Models;
     using System;
     using System.Collections.Generic;
@@ -20,21 +19,15 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
         /// <summary>
         /// Create new deployment
         /// </summary>
-        /// <param name="logger"></param>
-        internal EdgeDeploymentBase(ILogger logger) :
-            this (null, logger) {
+        internal EdgeDeploymentBase() :
+            this(null) {
         }
 
         /// <summary>
         /// Create new deployment
         /// </summary>
         /// <param name="configuration"></param>
-        /// <param name="logger"></param>
-        internal EdgeDeploymentBase(ConfigurationContentModel configuration,
-            ILogger logger) {
-            _logger = logger ??
-                throw new ArgumentNullException(nameof(logger));
-
+        internal EdgeDeploymentBase(ConfigurationContentModel configuration) {
             if (configuration == null) {
                 // Create default configuration
                 _configuration = new ConfigurationContentModel();
@@ -131,12 +124,14 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
         }
 
         /// <inheritdoc/>
-        public virtual Task ApplyAsync() =>
+        public virtual Task ApplyAsync() {
             throw new NotSupportedException();
+        }
 
         /// <inheritdoc/>
-        public override string ToString() =>
-            JsonConvertEx.SerializeObjectPretty(_configuration);
+        public override string ToString() {
+            return JsonConvertEx.SerializeObjectPretty(_configuration);
+        }
 
         private const string kDefaultSchemaVersion = "1.0";
         private const string kDefaultRouteName = "default";
@@ -146,6 +141,5 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
         protected readonly ConfigurationContentModel _configuration;
         private readonly EdgeAgentConfigurationModel _edgeAgent;
         private readonly EdgeHubConfigurationModel _edgeHub;
-        private readonly ILogger _logger;
     }
 }

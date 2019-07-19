@@ -11,7 +11,7 @@ namespace Microsoft.Azure.IIoT.Net {
     public class ByteBufferExTests {
 
         [Fact]
-        void TestReadUint8() {
+        public void TestReadUint8() {
             var offset = 3;
             var data = new byte[] { 0, 2, 3, 4, 5 };
             var val = data.ReadUInt8(ref offset);
@@ -21,7 +21,7 @@ namespace Microsoft.Azure.IIoT.Net {
         }
 
         [Fact]
-        void TestReadUint8Throws() {
+        public void TestReadUint8Throws() {
             var offset = 8;
             var data = new byte[] { 0, 2, 3, 4, 5 };
 
@@ -29,7 +29,7 @@ namespace Microsoft.Azure.IIoT.Net {
         }
 
         [Fact]
-        void TestReadUint16HostOrder() {
+        public void TestReadUint16HostOrder() {
             var offset = 1;
             var data = new byte[] { 0, 2, 3, 4, 5 };
             var val = data.ReadUInt16(ref offset);
@@ -39,7 +39,7 @@ namespace Microsoft.Azure.IIoT.Net {
         }
 
         [Fact]
-        void TestReadUint16() {
+        public void TestReadUint16() {
             var offset = 1;
             var data = new byte[] { 0, 2, 3, 4, 5 };
             var val = data.ReadUInt16(ref offset, true);
@@ -49,7 +49,7 @@ namespace Microsoft.Azure.IIoT.Net {
         }
 
         [Fact]
-        void TestReadUint16Throws() {
+        public void TestReadUint16Throws() {
             var offset = 4;
             var data = new byte[] { 0, 2, 3, 4, 5 };
 
@@ -58,7 +58,7 @@ namespace Microsoft.Azure.IIoT.Net {
         }
 
         [Fact]
-        void TestReadUint32HostOrder() {
+        public void TestReadUint32HostOrder() {
             var offset = 1;
             var data = new byte[] { 0, 2, 3, 4, 5 };
             var val = data.ReadUInt32(ref offset);
@@ -68,7 +68,7 @@ namespace Microsoft.Azure.IIoT.Net {
         }
 
         [Fact]
-        void TestReadUint32() {
+        public void TestReadUint32() {
             var offset = 1;
             var data = new byte[] { 0, 2, 3, 4, 5 };
             var val = data.ReadUInt32(ref offset, true);
@@ -78,7 +78,7 @@ namespace Microsoft.Azure.IIoT.Net {
         }
 
         [Fact]
-        void TestReadUint32Throws() {
+        public void TestReadUint32Throws() {
             var offset = 4;
             var data = new byte[] { 0, 2, 3, 4, 5 };
 
@@ -87,7 +87,7 @@ namespace Microsoft.Azure.IIoT.Net {
         }
 
         [Fact]
-        void TestReadBuffer1() {
+        public void TestReadBuffer1() {
             var offset = 4;
             var data = new byte[] { 0, 2, 3, 4, 5, 6, 7, 8, 9 };
             var expected = new byte[] { 5, 6, 7 };
@@ -99,7 +99,7 @@ namespace Microsoft.Azure.IIoT.Net {
         }
 
         [Fact]
-        void TestReadBuffer2() {
+        public void TestReadBuffer2() {
             var offset = 4;
             var data = new byte[] { 0, 2, 3, 4, 5, 6, 7, 8, 9 };
             var expected = new byte[] { 5, 6, 7 };
@@ -111,7 +111,7 @@ namespace Microsoft.Azure.IIoT.Net {
         }
 
         [Fact]
-        void TestReadBuffer3() {
+        public void TestReadBuffer3() {
             var offset = 4;
             var data = new byte[] { 0, 2, 3, 4, 5, 6, 7, 8, 9 };
             var expected = new byte[] { 5, 6, 7 };
@@ -123,7 +123,7 @@ namespace Microsoft.Azure.IIoT.Net {
         }
 
         [Fact]
-        void TestReadBufferThrows() {
+        public void TestReadBufferThrows() {
             var offset = 2;
             var data = new byte[] { 0, 2, 3, 4, 5 };
 
@@ -132,7 +132,7 @@ namespace Microsoft.Azure.IIoT.Net {
         }
 
         [Fact]
-        void TestUInt16ToBytes1HostOrder() {
+        public void TestUInt16ToBytes1HostOrder() {
             var value = (ushort)1u;
             var expected = new byte[] { 1, 0 };
             var result = value.ToBytes();
@@ -140,7 +140,7 @@ namespace Microsoft.Azure.IIoT.Net {
         }
 
         [Fact]
-        void TestUInt16ToBytes1() {
+        public void TestUInt16ToBytes1() {
             var value = (ushort)1u;
             var expected = new byte[] { 0, 1 };
             var result = value.ToBytes(true);
@@ -148,7 +148,7 @@ namespace Microsoft.Azure.IIoT.Net {
         }
 
         [Fact]
-        void TestUInt16ToBytes2() {
+        public void TestUInt16ToBytes2() {
             var value = (ushort)0u;
             var expected = new byte[] { 0, 0 };
             var result = value.ToBytes();
@@ -156,7 +156,7 @@ namespace Microsoft.Azure.IIoT.Net {
         }
 
         [Fact]
-        void TestUInt32ToBytes1HostOrder() {
+        public void TestUInt32ToBytes1HostOrder() {
             var value = 1u;
             var expected = new byte[] { 1, 0, 0, 0 };
             var result = value.ToBytes();
@@ -164,7 +164,7 @@ namespace Microsoft.Azure.IIoT.Net {
         }
 
         [Fact]
-        void TestUInt32ToBytes1() {
+        public void TestUInt32ToBytes1() {
             var value = 1u;
             var expected = new byte[] { 0, 0, 0, 1 };
             var result = value.ToBytes(true);
@@ -172,7 +172,7 @@ namespace Microsoft.Azure.IIoT.Net {
         }
 
         [Fact]
-        void TestUInt32ToBytes2() {
+        public void TestUInt32ToBytes2() {
             var value = 0u;
             var expected = new byte[] { 0, 0, 0, 0 };
             var result = value.ToBytes();
@@ -180,7 +180,7 @@ namespace Microsoft.Azure.IIoT.Net {
         }
 
         [Fact]
-        void TestStringToBytes() {
+        public void TestStringToBytes() {
             var value = "aaaa";
             var expected = new byte[] { 97, 97, 97, 97 };
             var result = value.ToBytes();
@@ -188,7 +188,7 @@ namespace Microsoft.Azure.IIoT.Net {
         }
 
         [Fact]
-        void TestStringToBytesUtf8() {
+        public void TestStringToBytesUtf8() {
             var value = "aaaa";
             var expected = new byte[] { 97, 97, 97, 97 };
             var result = value.ToBytes(Encoding.UTF8);
@@ -196,14 +196,14 @@ namespace Microsoft.Azure.IIoT.Net {
         }
 
         [Fact]
-        void TestEmptyStringToBytes() {
+        public void TestEmptyStringToBytes() {
             var value = string.Empty;
             var result = value.ToBytes();
             Assert.Null(result);
         }
 
         [Fact]
-        void TestBytesToString() {
+        public void TestBytesToString() {
             var value = new byte[] { 97, 97, 97, 97 };
             var expected = "aaaa";
             var result = value.ToEncodedString();
@@ -211,7 +211,7 @@ namespace Microsoft.Azure.IIoT.Net {
         }
 
         [Fact]
-        void TestBytesToStringUtf8() {
+        public void TestBytesToStringUtf8() {
             var value = new byte[] { 97, 97, 97, 97 };
             var expected = "aaaa";
             var result = value.ToEncodedString(Encoding.UTF8);
@@ -219,7 +219,7 @@ namespace Microsoft.Azure.IIoT.Net {
         }
 
         [Fact]
-        void TestBytesToStringUtf8WithOffset() {
+        public void TestBytesToStringUtf8WithOffset() {
             var value = new byte[] { 97, 97, 97, 97 };
             var expected = "aa";
             var result = value.ToEncodedString(Encoding.UTF8, 2);
@@ -227,7 +227,7 @@ namespace Microsoft.Azure.IIoT.Net {
         }
 
         [Fact]
-        void TestNullBytesToEmptyString() {
+        public void TestNullBytesToEmptyString() {
             byte[] value = null;
             var result = value.ToEncodedString();
             var expected = string.Empty;

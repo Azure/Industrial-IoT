@@ -14,6 +14,7 @@ namespace Microsoft.Azure.IIoT.Module {
     using System.Threading.Tasks;
     using Xunit;
     using AutoFixture;
+    using System.Threading;
 
     public class ChunkMethodTests {
 
@@ -100,7 +101,8 @@ namespace Microsoft.Azure.IIoT.Module {
             public int MaxMethodPayloadCharacterCount { get; }
 
             public async Task<string> CallMethodAsync(string deviceId,
-                string moduleId, string method, string json, TimeSpan? timeout = null) {
+                string moduleId, string method, string json, TimeSpan? timeout,
+                CancellationToken ct) {
                 var processed = await _server.ProcessAsync(
                     JsonConvertEx.DeserializeObject<MethodChunkModel>(json));
                 return JsonConvertEx.SerializeObject(processed);

@@ -59,8 +59,9 @@ namespace Microsoft.Azure.IIoT.Auth.Models {
         /// </summary>
         /// <param name="accessToken"></param>
         /// <returns></returns>
-        public static TokenResultModel Parse(string accessToken) =>
-            new JwtSecurityToken(accessToken.Replace("Bearer ", ""))
+        public static TokenResultModel Parse(string accessToken) {
+            return new JwtSecurityToken(accessToken.Replace("Bearer ", ""))
                 .ToTokenResult();
+        }
     }
 }

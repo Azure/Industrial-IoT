@@ -24,8 +24,9 @@ namespace Microsoft.Azure.IIoT.Net {
         /// <param name="ct"></param>
         /// <returns></returns>
         public static Task<ISecureShell> OpenSecureShellAsync(this IShellFactory factory,
-            string host, int port, string userName, string password, CancellationToken ct) =>
-            factory.OpenSecureShellAsync(host, port, new NetworkCredential(userName, password), ct);
+            string host, int port, string userName, string password, CancellationToken ct) {
+            return factory.OpenSecureShellAsync(host, port, new NetworkCredential(userName, password), ct);
+        }
 
         /// <summary>
         /// Open shell to destination
@@ -37,8 +38,9 @@ namespace Microsoft.Azure.IIoT.Net {
         /// <param name="ct"></param>
         /// <returns></returns>
         public static Task<ISecureShell> OpenSecureShellAsync(this IShellFactory factory,
-            string host, string userName, string password, CancellationToken ct) =>
-            factory.OpenSecureShellAsync(host, new NetworkCredential(userName, password), ct);
+            string host, string userName, string password, CancellationToken ct) {
+            return factory.OpenSecureShellAsync(host, new NetworkCredential(userName, password), ct);
+        }
 
         /// <summary>
         /// Open shell to destination
@@ -49,8 +51,9 @@ namespace Microsoft.Azure.IIoT.Net {
         /// <param name="password"></param>
         /// <returns></returns>
         public static Task<ISecureShell> OpenSecureShellAsync(this IShellFactory factory,
-            string host, string userName, string password) =>
-            factory.OpenSecureShellAsync(host, new NetworkCredential(userName, password));
+            string host, string userName, string password) {
+            return factory.OpenSecureShellAsync(host, new NetworkCredential(userName, password));
+        }
 
         /// <summary>
         /// Open shell to destination
@@ -61,8 +64,9 @@ namespace Microsoft.Azure.IIoT.Net {
         /// <param name="ct"></param>
         /// <returns></returns>
         public static Task<ISecureShell> OpenSecureShellAsync(this IShellFactory factory,
-            string host, NetworkCredential credentials, CancellationToken ct) =>
-            factory.OpenSecureShellAsync(host, 22, credentials, ct);
+            string host, NetworkCredential credentials, CancellationToken ct) {
+            return factory.OpenSecureShellAsync(host, 22, credentials, ct);
+        }
 
         /// <summary>
         /// Open shell to destination
@@ -72,7 +76,8 @@ namespace Microsoft.Azure.IIoT.Net {
         /// <param name="credentials"></param>
         /// <returns></returns>
         public static Task<ISecureShell> OpenSecureShellAsync(this IShellFactory factory,
-            string host, NetworkCredential credentials) =>
-            factory.OpenSecureShellAsync(host, credentials, CancellationToken.None);
+            string host, NetworkCredential credentials) {
+            return factory.OpenSecureShellAsync(host, credentials, CancellationToken.None);
+        }
     }
 }

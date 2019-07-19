@@ -40,7 +40,7 @@ namespace Microsoft.Azure.IIoT.Exceptions {
         /// </summary>
         /// <param name="message"></param>
         public ResourceTooLargeException(string message) :
-            this(message, -1, -1){
+            this(message, -1, -1) {
         }
     }
 }

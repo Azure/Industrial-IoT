@@ -37,8 +37,9 @@ namespace Microsoft.Azure.IIoT.Net {
         /// <param name="replies"></param>
         /// <param name="ct"></param>
         public static Task ScanAsync(this IScanServices services, Action<PingReply> replies,
-            CancellationToken ct) =>
-            services.ScanAsync(replies, false, null, NetworkClass.Wired, null, null, ct);
+            CancellationToken ct) {
+            return services.ScanAsync(replies, false, null, NetworkClass.Wired, null, null, ct);
+        }
 
         /// <summary>
         /// Create scanner
@@ -48,8 +49,9 @@ namespace Microsoft.Azure.IIoT.Net {
         /// <param name="replies"></param>
         /// <param name="ct"></param>
         public static Task ScanAsync(this IScanServices services, Action<PingReply> replies,
-            NetworkClass netclass, CancellationToken ct) =>
-            services.ScanAsync(replies, false, null, netclass, null, null, ct);
+            NetworkClass netclass, CancellationToken ct) {
+            return services.ScanAsync(replies, false, null, netclass, null, null, ct);
+        }
 
         /// <summary>
         /// Create scanner
@@ -60,8 +62,9 @@ namespace Microsoft.Azure.IIoT.Net {
         /// <param name="replies"></param>
         /// <param name="ct"></param>
         public static Task ScanAsync(this IScanServices services, Action<PingReply> replies,
-            bool local, NetworkClass netclass, CancellationToken ct) =>
-            services.ScanAsync(replies, local, null, netclass, null, null, ct);
+            bool local, NetworkClass netclass, CancellationToken ct) {
+            return services.ScanAsync(replies, local, null, netclass, null, null, ct);
+        }
 
         /// <summary>
         /// Create scanner
@@ -71,10 +74,11 @@ namespace Microsoft.Azure.IIoT.Net {
         /// <param name="replies"></param>
         /// <param name="ct"></param>
         public static Task ScanAsync(this IScanServices services, Action<PingReply> replies,
-            IEnumerable<AddressRange> addresses, CancellationToken ct) =>
-            services.ScanAsync(replies, false, addresses ??
-                throw new ArgumentNullException(nameof(addresses)),
-                NetworkClass.None, null, null, ct);
+            IEnumerable<AddressRange> addresses, CancellationToken ct) {
+            return services.ScanAsync(replies, false, addresses ??
+throw new ArgumentNullException(nameof(addresses)),
+NetworkClass.None, null, null, ct);
+        }
 
         /// <summary>
         /// Create scanner with default port probe
@@ -84,8 +88,9 @@ namespace Microsoft.Azure.IIoT.Net {
         /// <param name="target"></param>
         /// <param name="ct"></param>
         public static Task ScanAsync(this IScanServices services, IEnumerable<IPEndPoint> source,
-            Action<IPEndPoint> target, CancellationToken ct) =>
-            services.ScanAsync(source, target, null, ct);
+            Action<IPEndPoint> target, CancellationToken ct) {
+            return services.ScanAsync(source, target, null, ct);
+        }
 
         /// <summary>
         /// Create scanner
@@ -96,8 +101,9 @@ namespace Microsoft.Azure.IIoT.Net {
         /// <param name="portProbe"></param>
         /// <param name="ct"></param>
         public static Task ScanAsync(this IScanServices services, IEnumerable<IPEndPoint> source,
-            Action<IPEndPoint> target, IPortProbe portProbe, CancellationToken ct) =>
-            services.ScanAsync(source, target, portProbe, 5000, null, null, ct);
+            Action<IPEndPoint> target, IPortProbe portProbe, CancellationToken ct) {
+            return services.ScanAsync(source, target, portProbe, 5000, null, null, ct);
+        }
 
         /// <summary>
         /// Scan range of addresses and return the ones that are open
@@ -124,7 +130,7 @@ namespace Microsoft.Azure.IIoT.Net {
         public static async Task<IEnumerable<IPEndPoint>> ScanAsync(this IScanServices services,
             IEnumerable<IPEndPoint> range, CancellationToken ct) {
             var result = new List<IPEndPoint>();
-            await ScanAsync(services, range, ep => result.Add(ep), (IPortProbe)null, ct);
+            await ScanAsync(services, range, ep => result.Add(ep), null, ct);
             return result;
         }
     }

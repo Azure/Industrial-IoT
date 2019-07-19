@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.Hub {
     using Microsoft.Azure.IIoT.Hub.Models;
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -19,9 +20,11 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// </summary>
         /// <param name="deviceId"></param>
         /// <param name="configuration"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         Task ApplyConfigurationAsync(string deviceId,
-            ConfigurationContentModel configuration);
+            ConfigurationContentModel configuration,
+            CancellationToken ct = default);
 
         /// <summary>
         /// Create new configuration for a fleet of devices or
@@ -29,33 +32,38 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// </summary>
         /// <param name="configuration"></param>
         /// <param name="forceUpdate"></param>
+        /// <param name="ct"></param>
         /// <returns>new device</returns>
         Task<ConfigurationModel> CreateOrUpdateConfigurationAsync(
-            ConfigurationModel configuration, bool forceUpdate);
+            ConfigurationModel configuration, bool forceUpdate,
+            CancellationToken ct = default);
 
         /// <summary>
         /// Returns a single fleet configuration
         /// </summary>
         /// <param name="configurationId"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         Task<ConfigurationModel> GetConfigurationAsync(
-            string configurationId);
+            string configurationId, CancellationToken ct = default);
 
         /// <summary>
         /// Returns fleet configurations
         /// </summary>
         /// <param name="maxCount"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         Task<IEnumerable<ConfigurationModel>> ListConfigurationsAsync(
-            int? maxCount);
+            int? maxCount, CancellationToken ct = default);
 
         /// <summary>
         /// Delete fleet configuration
         /// </summary>
         /// <param name="configurationId"></param>
         /// <param name="etag"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         Task DeleteConfigurationAsync(string configurationId,
-            string etag);
+            string etag, CancellationToken ct = default);
     }
 }

@@ -19,7 +19,6 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Runtime {
         /// </summary>
         private const string kReceiveBatchSizeKey = "ReceiveBatchSize";
         private const string kReceiveTimeoutKey = "ReceiveTimeout";
-        private const string kNamespaceKey = "StorageNamespace";
         private const string kLeaseContainerNameKey = "LeaseContainerName";
 
         /// <summary> Checkpoint storage </summary>
@@ -34,13 +33,9 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Runtime {
         /// <summary>
         /// Configuration constructor
         /// </summary>
-        /// <param name="serviceId"></param>
         /// <param name="configuration"></param>
-        public EventProcessorConfig(IConfigurationRoot configuration, string serviceId = "") :
+        public EventProcessorConfig(IConfigurationRoot configuration) :
             base(configuration) {
-            _serviceId = serviceId ?? throw new ArgumentNullException(nameof(serviceId));
         }
-
-        private readonly string _serviceId;
     }
 }

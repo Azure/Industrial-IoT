@@ -22,7 +22,7 @@ namespace Microsoft.Azure.IIoT.Storage {
         /// <returns></returns>
         public static async Task ForEachAsync<T>(this IResultFeed<T> feed,
             Func<T, Task> callback,
-            CancellationToken ct = default(CancellationToken)) {
+            CancellationToken ct = default) {
             while (feed.HasMore()) {
                 var results = await feed.ReadAsync(ct);
                 foreach (var item in results) {

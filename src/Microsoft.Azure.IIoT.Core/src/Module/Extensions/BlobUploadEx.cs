@@ -19,7 +19,7 @@ namespace Microsoft.Azure.IIoT.Module {
         /// <param name="fileName"></param>
         /// <param name="contentType"></param>
         /// <returns></returns>
-        public async static Task SendFileAsync(this IBlobUpload upload,
+        public static async Task SendFileAsync(this IBlobUpload upload,
             string fileName, string contentType) {
             using (var file = new FileStream(fileName, FileMode.Open)) {
                 await upload.SendFileAsync(fileName, file, contentType);

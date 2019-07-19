@@ -175,8 +175,14 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             try {
                 await _lock.WaitAsync();
                 if (_client != null) {
-                    await _client.SendEventBatchAsync(batch.Select(ev =>
-                        CreateMessage(ev, contentType, DeviceId, ModuleId)));
+                    var messages = batch.Select(ev =>
+                         CreateMessage(ev, contentType, DeviceId, ModuleId)).ToList();
+                    try {
+                        await _client.SendEventBatchAsync(messages);
+                    }
+                    finally {
+                        messages.ForEach(m => m?.Dispose());
+                    }
                 }
             }
             finally {
@@ -189,8 +195,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             try {
                 await _lock.WaitAsync();
                 if (_client != null) {
-                    await _client.SendEventAsync(
-                        CreateMessage(data, contentType, DeviceId, ModuleId));
+                    using (var msg = CreateMessage(data, contentType, DeviceId, ModuleId)) {
+                        await _client.SendEventAsync(msg);
+                    }
                 }
             }
             finally {
@@ -246,15 +253,15 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
 
         /// <inheritdoc/>
         public async Task<string> CallMethodAsync(string deviceId, string moduleId,
-            string method, string payload, TimeSpan? timeout) {
+            string method, string payload, TimeSpan? timeout, CancellationToken ct) {
             var request = new MethodRequest(method, Encoding.UTF8.GetBytes(payload),
                 timeout, null);
             MethodResponse response;
             if (string.IsNullOrEmpty(moduleId)) {
-                response = await _client.InvokeMethodAsync(deviceId, request);
+                response = await _client.InvokeMethodAsync(deviceId, request, ct);
             }
             else {
-                response = await _client.InvokeMethodAsync(deviceId, moduleId, request);
+                response = await _client.InvokeMethodAsync(deviceId, moduleId, request, ct);
             }
             if (response.Status != 200) {
                 throw new MethodCallStatusException(
@@ -268,6 +275,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             if (_client != null) {
                 StopAsync().Wait();
             }
+            _lock.Dispose();
         }
 
         /// <summary>
@@ -437,7 +445,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// <returns></returns>
         private bool ProcessEdgeHostSettings(string key, dynamic value,
             TwinCollection processed = null) {
-            switch(key.ToLowerInvariant()) {
+            switch (key.ToLowerInvariant()) {
                 case TwinProperty.kConnected:
                 case TwinProperty.kType:
                     break;

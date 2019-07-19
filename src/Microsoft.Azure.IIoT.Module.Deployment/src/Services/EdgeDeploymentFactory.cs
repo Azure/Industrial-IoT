@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Module.Deployment {
-    using Serilog;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Models;
     using System;
@@ -19,22 +18,21 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
         /// Create deployment manager
         /// </summary>
         /// <param name="service"></param>
-        /// <param name="logger"></param>
-        public EdgeDeploymentFactory(IIoTHubConfigurationServices service,
-            ILogger logger) {
+        public EdgeDeploymentFactory(IIoTHubConfigurationServices service) {
             _service = service ?? throw new ArgumentNullException(nameof(service));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <inheritdoc/>
         public IEdgeDeployment Create(string deviceId,
-            ConfigurationContentModel configuration) =>
-            new EdgeDeviceDeployment(this, deviceId, configuration);
+            ConfigurationContentModel configuration) {
+            return new EdgeDeviceDeployment(this, deviceId, configuration);
+        }
 
         /// <inheritdoc/>
         public IEdgeDeployment Create(string name, string condition,
-            int priority, ConfigurationContentModel configuration) =>
-            new EdgeFleetDeployment(this, name, condition, priority, configuration);
+            int priority, ConfigurationContentModel configuration) {
+            return new EdgeFleetDeployment(this, name, condition, priority, configuration);
+        }
 
         /// <summary>
         /// Single Deployment
@@ -49,14 +47,15 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
             /// <param name="configuration"></param>
             public EdgeDeviceDeployment(EdgeDeploymentFactory factory,
                 string deviceId, ConfigurationContentModel configuration) :
-                base(configuration, factory._logger) {
+                base(configuration) {
                 _deviceId = deviceId ?? throw new ArgumentNullException(nameof(deviceId));
                 _factory = factory ?? throw new ArgumentNullException(nameof(factory));
             }
 
             /// <inheritdoc/>
-            public override Task ApplyAsync() =>
-                _factory._service.ApplyConfigurationAsync(_deviceId, _configuration);
+            public override Task ApplyAsync() {
+                return _factory._service.ApplyConfigurationAsync(_deviceId, _configuration);
+            }
 
             private readonly string _deviceId;
             private readonly EdgeDeploymentFactory _factory;
@@ -77,7 +76,7 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
             /// <param name="configuration"></param>
             public EdgeFleetDeployment(EdgeDeploymentFactory factory, string name,
                 string condition, int priority, ConfigurationContentModel configuration) :
-                base(configuration, factory._logger) {
+                base(configuration) {
                 if (string.IsNullOrEmpty(condition)) {
                     throw new ArgumentNullException(nameof(condition));
                 }
@@ -95,8 +94,9 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
             }
 
             /// <inheritdoc/>
-            public override Task ApplyAsync() =>
-                _factory._service.CreateOrUpdateConfigurationAsync(_model, false);
+            public override Task ApplyAsync() {
+                return _factory._service.CreateOrUpdateConfigurationAsync(_model, false);
+            }
 
             private const string kDefaultSchemaVersion = "1.0";
             private readonly EdgeDeploymentFactory _factory;
@@ -104,6 +104,5 @@ namespace Microsoft.Azure.IIoT.Module.Deployment {
         }
 
         private readonly IIoTHubConfigurationServices _service;
-        private readonly ILogger _logger;
     }
 }

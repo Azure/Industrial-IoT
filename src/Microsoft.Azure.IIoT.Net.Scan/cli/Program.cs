@@ -20,8 +20,7 @@ namespace Microsoft.Azure.IIoT.Net.Cli {
     /// Networking command line interface
     /// </summary>
     public class Program {
-
-        enum Op {
+        private enum Op {
             None,
             TestNetworkScanner,
             TestPortScanner
@@ -99,13 +98,15 @@ Operations (Mutually exclusive):
 
             try {
                 Console.WriteLine($"Running {op}...");
-                switch(op) {
+                switch (op) {
                     case Op.TestNetworkScanner:
                         TestNetworkScanner().Wait();
                         break;
                     case Op.TestPortScanner:
-                        while(true) TestPortScanner(host).Wait();
-                        //break;
+                        while (true) {
+                            TestPortScanner(host).Wait();
+                        }
+                    //break;
                     default:
                         throw new ArgumentException("Unknown.");
                 }
@@ -128,18 +129,19 @@ Operations (Mutually exclusive):
         private static async Task TestPortScanner(string host) {
             var logger = LogEx.ConsoleOut();
             var addresses = await Dns.GetHostAddressesAsync(host);
-            var cts = new CancellationTokenSource(TimeSpan.FromMinutes(10));
-            var watch = Stopwatch.StartNew();
-            var scanning = new ScanServices(logger);
-            DumpMemory();
-            var results = await scanning.ScanAsync(
-                PortRange.All.SelectMany(r => r.GetEndpoints(addresses.First())),
-                cts.Token);
-            foreach(var result in results) {
-                Console.WriteLine($"Found {result} open.");
+            using (var cts = new CancellationTokenSource(TimeSpan.FromMinutes(10))) {
+                var watch = Stopwatch.StartNew();
+                var scanning = new ScanServices(logger);
+                DumpMemory();
+                var results = await scanning.ScanAsync(
+                    PortRange.All.SelectMany(r => r.GetEndpoints(addresses.First())),
+                    cts.Token);
+                foreach (var result in results) {
+                    Console.WriteLine($"Found {result} open.");
+                }
+                Console.WriteLine($"Scan took: {watch.Elapsed}");
+                DumpMemory();
             }
-            Console.WriteLine($"Scan took: {watch.Elapsed}");
-            DumpMemory();
         }
 
         /// <summary>
@@ -148,16 +150,17 @@ Operations (Mutually exclusive):
         /// <returns></returns>
         private static async Task TestNetworkScanner() {
             var logger = LogEx.ConsoleOut();
-            var cts = new CancellationTokenSource(TimeSpan.FromMinutes(10));
-            var watch = Stopwatch.StartNew();
-            var scanning = new ScanServices(logger);
-            DumpMemory();
-            var results = await scanning.ScanAsync(NetworkClass.Wired, cts.Token);
-            foreach (var result in results) {
-                Console.WriteLine($"Found {result.Address}...");
+            using (var cts = new CancellationTokenSource(TimeSpan.FromMinutes(10))) {
+                var watch = Stopwatch.StartNew();
+                var scanning = new ScanServices(logger);
+                DumpMemory();
+                var results = await scanning.ScanAsync(NetworkClass.Wired, cts.Token);
+                foreach (var result in results) {
+                    Console.WriteLine($"Found {result.Address}...");
+                }
+                Console.WriteLine($"Scan took: {watch.Elapsed}");
+                DumpMemory();
             }
-            Console.WriteLine($"Scan took: {watch.Elapsed}");
-            DumpMemory();
         }
 
         /// <summary>

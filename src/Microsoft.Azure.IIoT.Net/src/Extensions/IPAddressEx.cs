@@ -18,50 +18,56 @@ namespace System.Net {
         /// </summary>
         /// <param name="address"></param>
         /// <returns></returns>
-        public static bool IsEmpty(this IPAddress address) =>
-            address == null ||
-            address.Equals(IPAddress.Any) || address.Equals(IPAddress.IPv6Any) ||
-            address.Equals(IPAddress.None) || address.Equals(IPAddress.IPv6None);
+        public static bool IsEmpty(this IPAddress address) {
+            return address == null ||
+address.Equals(IPAddress.Any) || address.Equals(IPAddress.IPv6Any) ||
+address.Equals(IPAddress.None) || address.Equals(IPAddress.IPv6None);
+        }
 
         /// <summary>
         /// Clone address as v4 address
         /// </summary>
         /// <param name="address"></param>
         /// <returns></returns>
-        public static IPv4Address AsV4(this IPAddress address) =>
-            address == null ? null : new IPv4Address(address.GetAddressBytes());
+        public static IPv4Address AsV4(this IPAddress address) {
+            return address == null ? null : new IPv4Address(address.GetAddressBytes());
+        }
 
         /// <summary>
         /// Clone address
         /// </summary>
         /// <param name="address"></param>
         /// <returns></returns>
-        public static IPAddress Copy(this IPAddress address) =>
-            address == null ? null : new IPAddress(address.GetAddressBytes());
+        public static IPAddress Copy(this IPAddress address) {
+            return address == null ? null : new IPAddress(address.GetAddressBytes());
+        }
 
         /// <summary>
         /// Resolve address to host entry
         /// </summary>
         /// <param name="address"></param>
         /// <returns></returns>
-        public static IPHostEntry GetHostEntry(this IPAddress address) =>
-            Dns.GetHostEntry(address);
+        public static IPHostEntry GetHostEntry(this IPAddress address) {
+            return Dns.GetHostEntry(address);
+        }
 
         /// <summary>
         /// Resolve address to host
         /// </summary>
         /// <param name="address"></param>
         /// <returns></returns>
-        public static Task<IPHostEntry> GetHostEntryAsync(this IPAddress address) =>
-            Dns.GetHostEntryAsync(address);
+        public static Task<IPHostEntry> GetHostEntryAsync(this IPAddress address) {
+            return Dns.GetHostEntryAsync(address);
+        }
 
         /// <summary>
         /// Resolve address to host
         /// </summary>
         /// <param name="address"></param>
         /// <returns></returns>
-        public static string Resolve(this IPAddress address) =>
-            address.GetHostEntry().HostName;
+        public static string Resolve(this IPAddress address) {
+            return address.GetHostEntry().HostName;
+        }
 
         /// <summary>
         /// Resolve address to host
@@ -125,16 +131,18 @@ namespace System.Net {
         /// Ascending comparer implementation
         /// </summary>
         private class DescendingComparer : IComparer<IPAddress> {
-            public int Compare(IPAddress x, IPAddress y) =>
-                y.AsV4().CompareTo(x);
+            public int Compare(IPAddress x, IPAddress y) {
+                return y.AsV4().CompareTo(x);
+            }
         }
 
         /// <summary>
         /// Ascending comparer implementation
         /// </summary>
         private class AscendingComparer : IComparer<IPAddress> {
-            public int Compare(IPAddress x, IPAddress y) =>
-                x.AsV4().CompareTo(y);
+            public int Compare(IPAddress x, IPAddress y) {
+                return x.AsV4().CompareTo(y);
+            }
         }
     }
 }

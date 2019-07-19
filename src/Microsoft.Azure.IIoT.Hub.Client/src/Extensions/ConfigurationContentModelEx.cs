@@ -17,11 +17,12 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static ConfigurationContent ToContent(this ConfigurationContentModel model) =>
-            new ConfigurationContent {
+        public static ConfigurationContent ToContent(this ConfigurationContentModel model) {
+            return new ConfigurationContent {
                 ModulesContent = model.ModulesContent,
                 DeviceContent = model.DeviceContent
             };
+        }
 
         /// <summary>
         /// Convert configuration content to model

@@ -7,7 +7,6 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
     using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
-    using System;
 
     /// <summary>
     /// Auth client configuration
@@ -25,10 +24,10 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
 
         /// <summary>Application id</summary>
         public string AppId => GetStringOrDefault(kAuth_AppIdKey, GetStringOrDefault(
-            _serviceId + "_APP_ID", GetStringOrDefault("PCS_WEBUI_AUTH_AAD_APPID"))).Trim();
+            GetStringOrDefault("PCS_WEBUI_AUTH_AAD_APPID")))?.Trim();
         /// <summary>App secret</summary>
         public string AppSecret => GetStringOrDefault(kAuth_AppSecretKey, GetStringOrDefault(
-            _serviceId + "_APP_KEY", GetStringOrDefault("PCS_APPLICATION_SECRET"))).Trim();
+            GetStringOrDefault("PCS_APPLICATION_SECRET")))?.Trim();
         /// <summary>Optional tenant</summary>
         public string TenantId => GetStringOrDefault(kAuth_TenantIdKey,
             GetStringOrDefault("PCS_WEBUI_AUTH_AAD_TENANT", "common")).Trim();
@@ -44,13 +43,8 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
         /// Configuration constructor
         /// </summary>
         /// <param name="configuration"></param>
-        /// <param name="serviceId"></param>
-        public ClientConfig(IConfigurationRoot configuration, string serviceId = "") :
+        public ClientConfig(IConfigurationRoot configuration) :
             base(configuration) {
-            _serviceId = serviceId?.ToUpperInvariant() ??
-                throw new ArgumentNullException(nameof(serviceId));
         }
-
-        private readonly string _serviceId;
     }
 }

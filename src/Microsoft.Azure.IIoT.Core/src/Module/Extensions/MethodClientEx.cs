@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.Module {
     using System;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -22,13 +23,14 @@ namespace Microsoft.Azure.IIoT.Module {
         /// <param name="method"></param>
         /// <param name="json"></param>
         /// <param name="timeout"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         public static async Task<string> CallMethodAsync(this IMethodClient client,
             string deviceId, string moduleId, string method, string json,
-            TimeSpan? timeout = null) {
+            TimeSpan? timeout = null, CancellationToken ct = default) {
             var response = await client.CallMethodAsync(deviceId, moduleId, method,
                 json == null ? null : Encoding.UTF8.GetBytes(json),
-                ContentEncodings.MimeTypeUaJson, timeout);
+                ContentEncodings.MimeTypeUaJson, timeout, ct);
             return response.Length == 0 ? null : Encoding.UTF8.GetString(response);
         }
     }

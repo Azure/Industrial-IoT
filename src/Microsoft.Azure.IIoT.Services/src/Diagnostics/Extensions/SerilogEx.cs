@@ -3,10 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-using Microsoft.AspNetCore.Hosting;
-using Serilog.Events;
-
 namespace Serilog {
+    using Serilog.Events;
+    using Microsoft.AspNetCore.Hosting;
 
     /// <summary>
     /// Serilog extensions
@@ -19,9 +18,10 @@ namespace Serilog {
         /// <param name="context"></param>
         /// <param name="configuration"></param>
         public static void Console(WebHostBuilderContext context,
-            LoggerConfiguration configuration) =>
+            LoggerConfiguration configuration) {
             configuration.Console(context.Configuration)
                 .MinimumLevel.Override("Microsoft", LogEventLevel.Information);
+        }
 
         /// <summary>
         /// Configure serilog for application insights
@@ -29,9 +29,10 @@ namespace Serilog {
         /// <param name="context"></param>
         /// <param name="configuration"></param>
         public static void ApplicationInsights(WebHostBuilderContext context,
-            LoggerConfiguration configuration) =>
+            LoggerConfiguration configuration) {
             configuration.ApplicationInsights(context.Configuration)
                 .MinimumLevel.Override("Microsoft", LogEventLevel.Information);
+        }
 
         /// <summary>
         /// Configure serilog
@@ -39,8 +40,9 @@ namespace Serilog {
         /// <param name="context"></param>
         /// <param name="configuration"></param>
         public static void Trace(WebHostBuilderContext context,
-            LoggerConfiguration configuration) =>
+            LoggerConfiguration configuration) {
             configuration.Trace(context.Configuration)
                 .MinimumLevel.Override("Microsoft", LogEventLevel.Information);
+        }
     }
 }

@@ -21,7 +21,7 @@ namespace Microsoft.Azure.IIoT.Storage {
         /// <param name="ct"></param>
         /// <returns></returns>
         public static async Task<IEnumerable<T>> AllAsync<T>(this IResultFeed<T> feed,
-            CancellationToken ct = default(CancellationToken)) {
+            CancellationToken ct = default) {
             var results = new List<T>();
             while (feed.HasMore()) {
                 var result = await feed.ReadAsync(ct);

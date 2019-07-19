@@ -20,9 +20,10 @@ namespace System {
         /// <param name="len"></param>
         /// <param name="prefix"></param>
         /// <returns></returns>
-        public static string CreateUnique(int len, string prefix = "") =>
-            (prefix + Guid.NewGuid().ToString("N"))
-                .Substring(0, Math.Min(len, 32 + prefix.Length));
+        public static string CreateUnique(int len, string prefix = "") {
+            return (prefix + Guid.NewGuid().ToString("N"))
+.Substring(0, Math.Min(len, 32 + prefix.Length));
+        }
 
         /// <summary>
         /// Yet another case insensitve equals
@@ -30,8 +31,9 @@ namespace System {
         /// <param name="str"></param>
         /// <param name="to"></param>
         /// <returns></returns>
-        public static bool EqualsIgnoreCase(this string str, string to) =>
-            StringComparer.OrdinalIgnoreCase.Equals(str, to);
+        public static bool EqualsIgnoreCase(this string str, string to) {
+            return StringComparer.OrdinalIgnoreCase.Equals(str, to);
+        }
 
         /// <summary>
         /// Equal to any in the list
@@ -41,9 +43,10 @@ namespace System {
         /// <param name="ignoreCase"></param>
         /// <returns></returns>
         public static bool AnyOf(this string str, IEnumerable<string> to,
-            bool ignoreCase = false) =>
-                to.Any(s => s.Equals(str, ignoreCase ?
-                    StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase));
+            bool ignoreCase = false) {
+            return to.Any(s => s.Equals(str, ignoreCase ?
+StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase));
+        }
 
         /// <summary>
         /// Equal to any in the list
@@ -51,8 +54,9 @@ namespace System {
         /// <param name="str"></param>
         /// <param name="to"></param>
         /// <returns></returns>
-        public static bool AnyOf(this string str, params string[] to) =>
-            AnyOf(str, to, false);
+        public static bool AnyOf(this string str, params string[] to) {
+            return AnyOf(str, to, false);
+        }
 
         /// <summary>
         /// Equal to any in the list but case ignoring
@@ -60,8 +64,9 @@ namespace System {
         /// <param name="str"></param>
         /// <param name="to"></param>
         /// <returns></returns>
-        public static bool AnyOfIgnoreCase(this string str, params string[] to) =>
-            AnyOf(str, to, true);
+        public static bool AnyOfIgnoreCase(this string str, params string[] to) {
+            return AnyOf(str, to, true);
+        }
 
         /// <summary>
         /// Check whether this is base 64
@@ -91,12 +96,48 @@ namespace System {
         }
 
         /// <summary>
+        /// Check if base 16
+        /// </summary>
+        /// <param name="str"></param>
+        /// <returns></returns>
+        public static bool IsBase16(this string str) {
+            try {
+                DecodeAsBase16(str);
+                return true;
+            }
+            catch {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Convert from base 16
+        /// </summary>
+        /// <param name="str"></param>
+        /// <returns></returns>
+        public static byte[] DecodeAsBase16(this string str) {
+            if (str == null) {
+                return null;
+            }
+            if (str.Length % 2 != 0) {
+                throw new ArgumentException("Invalid length", nameof(str));
+            }
+            var bytes = new byte[str.Length / 2];
+            for (var i = 0; i < str.Length; i += 2) {
+                var s = str.Substring(i, 2);
+                bytes[i / 2] = byte.Parse(s, Globalization.NumberStyles.HexNumber, null);
+            }
+            return bytes;
+        }
+
+        /// <summary>
         /// Hashes the string
         /// </summary>
         /// <param name="str">string to hash</param>
         /// <returns></returns>
-        public static string ToSha1Hash(this string str) =>
-            Encoding.UTF8.GetBytes(str).ToSha1Hash();
+        public static string ToSha1Hash(this string str) {
+            return Encoding.UTF8.GetBytes(str).ToSha1Hash();
+        }
 
         /// <summary>
         /// Trims quotes

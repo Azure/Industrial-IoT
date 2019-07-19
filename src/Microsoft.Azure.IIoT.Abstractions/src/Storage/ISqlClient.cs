@@ -27,6 +27,18 @@ namespace Microsoft.Azure.IIoT.Storage {
             int? pageSize = null, string partitionKey = null);
 
         /// <summary>
+        /// Continue a previously run query using continuation token
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="continuationToken"></param>
+        /// <param name="pageSize"></param>
+        /// <param name="partitionKey"></param>
+        /// <returns></returns>
+        IResultFeed<IDocumentInfo<T>> Continue<T>(
+            string continuationToken, int? pageSize = null,
+            string partitionKey = null);
+
+        /// <summary>
         /// Drop all items that match the query
         /// </summary>
         /// <param name="queryString"></param>
@@ -37,6 +49,6 @@ namespace Microsoft.Azure.IIoT.Storage {
         Task DropAsync(string queryString,
             IDictionary<string, object> parameters = null,
             string partitionKey = null,
-            CancellationToken ct = default(CancellationToken));
+            CancellationToken ct = default);
     }
 }

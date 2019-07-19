@@ -16,14 +16,15 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
         /// </summary>
         /// <param name="config"></param>
         /// <returns></returns>
-        public static Configuration ToConfiguration(this ConfigurationModel config) =>
-            new Configuration(config.Id) {
+        public static Configuration ToConfiguration(this ConfigurationModel config) {
+            return new Configuration(config.Id) {
                 Content = config.Content.ToContent(),
                 ETag = config.Etag,
                 Labels = config.Labels,
                 Priority = config.Priority,
                 TargetCondition = config.TargetCondition
             };
+        }
 
         /// <summary>
         /// Convert configuration to model

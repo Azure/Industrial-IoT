@@ -4,10 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Hub.Client {
-    using Microsoft.Azure.IIoT.Hub;
-    using Serilog;
     using Microsoft.Azure.IIoT.Http;
     using Microsoft.Azure.IIoT.Utils;
+    using Serilog;
     using System;
     using System.Net;
     using System.Security.Cryptography;
@@ -62,8 +61,9 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
         /// <param name="deviceId"></param>
         /// <param name="moduleId"></param>
         /// <returns></returns>
-        protected static string ToResourceId(string deviceId, string moduleId) =>
-            string.IsNullOrEmpty(moduleId) ? deviceId : $"{deviceId}/modules/{moduleId}";
+        protected static string ToResourceId(string deviceId, string moduleId) {
+            return string.IsNullOrEmpty(moduleId) ? deviceId : $"{deviceId}/modules/{moduleId}";
+        }
 
         /// <summary>
         /// Create a token for iothub from connection string.
@@ -90,9 +90,11 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
             }
         }
 
-        const string kApiVersion = "2018-06-30";
-        const string kClientId = "OpcTwin";
+        private const string kApiVersion = "2018-06-30";
+        private const string kClientId = "AzureIIoT";
 
+        /// <summary>Max retry count</summary>
+        protected const int kMaxRetryCount = 4;
         /// <summary>Hub connection string to use</summary>
         protected readonly ConnectionString _hubConnectionString;
         /// <summary>resource id to use in derived class</summary>

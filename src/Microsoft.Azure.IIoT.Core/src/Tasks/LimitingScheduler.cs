@@ -17,21 +17,23 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
     public sealed class LimitingScheduler : ITaskScheduler {
 
         /// <inheritdoc/>
-        public TaskFactory Factory => _factory;
+        public TaskFactory Factory => kFactory;
 
         /// <summary>
         /// Initialize factory
         /// </summary>
         /// <returns></returns>
         static LimitingScheduler() {
-            _scheduler = new LimitingTaskScheduler(Environment.ProcessorCount);
-            _factory = new TaskFactory(CancellationToken.None,
+            kScheduler = new LimitingTaskScheduler(Environment.ProcessorCount);
+            kFactory = new TaskFactory(CancellationToken.None,
                 TaskCreationOptions.DenyChildAttach, TaskContinuationOptions.None,
-                    _scheduler);
+                    kScheduler);
         }
 
         /// <inheritdoc/>
-        public void Dump(Action<Task> logger) => _scheduler?.Dump(logger);
+        public void Dump(Action<Task> logger) {
+            kScheduler?.Dump(logger);
+        }
 
         /// <summary>
         /// Scheduler implementation
@@ -187,7 +189,7 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
             private int _delegatesQueuedOrRunning;
         }
 
-        private static readonly TaskFactory _factory;
-        private static readonly LimitingTaskScheduler _scheduler;
+        private static readonly TaskFactory kFactory;
+        private static readonly LimitingTaskScheduler kScheduler;
     }
 }

@@ -20,8 +20,9 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// <param name="configurationId"></param>
         /// <returns></returns>
         public static Task DeleteConfigurationAsync(
-            this IIoTHubConfigurationServices service, string configurationId) =>
-            service.DeleteConfigurationAsync(configurationId, null);
+            this IIoTHubConfigurationServices service, string configurationId) {
+            return service.DeleteConfigurationAsync(configurationId, null);
+        }
 
         /// <summary>
         /// Delete configuration
@@ -30,8 +31,9 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// <param name="configuration"></param>
         /// <returns></returns>
         public static Task DeleteConfigurationAsync(
-            this IIoTHubConfigurationServices service, ConfigurationModel configuration) =>
-            service.DeleteConfigurationAsync(configuration.Id, configuration.Etag);
+            this IIoTHubConfigurationServices service, ConfigurationModel configuration) {
+            return service.DeleteConfigurationAsync(configuration.Id, configuration.Etag);
+        }
 
         /// <summary>
         /// List all configurations
@@ -39,7 +41,8 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// <param name="service"></param>
         /// <returns></returns>
         public static Task<IEnumerable<ConfigurationModel>> ListConfigurationsAsync(
-            this IIoTHubConfigurationServices service) =>
-            service.ListConfigurationsAsync(null);
+            this IIoTHubConfigurationServices service) {
+            return service.ListConfigurationsAsync(null);
+        }
     }
 }

@@ -18,10 +18,10 @@ namespace Microsoft.Azure.IIoT.Storage {
         /// collection of document elements.
         /// </summary>
         /// <param name="id"></param>
-        /// <param name="partitioned"></param>
+        /// <param name="options"></param>
         /// <returns></returns>
         Task<IItemContainer> OpenContainerAsync(
-            string id = null, bool partitioned = false);
+            string id = null, ContainerOptions options = null);
 
         /// <summary>
         /// List all collections in the database
@@ -29,7 +29,7 @@ namespace Microsoft.Azure.IIoT.Storage {
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<IEnumerable<string>> ListContainersAsync(
-            CancellationToken ct = default(CancellationToken));
+            CancellationToken ct = default);
 
         /// <summary>
         /// Delete (default) collection in database

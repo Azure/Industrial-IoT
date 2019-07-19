@@ -14,7 +14,10 @@ namespace Microsoft.Azure.IIoT.Storage {
         /// <summary>
         /// Create container
         /// </summary>
+        /// <param name="postFix">To qualify the container</param>
+        /// <param name="options"></param>
         /// <returns></returns>
-        Task<IItemContainer> OpenAsync();
+        Task<IItemContainer> OpenAsync(string postFix = null,
+            ContainerOptions options = null);
     }
 }

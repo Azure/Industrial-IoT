@@ -26,15 +26,21 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Runtime {
 
         /// <inheritdoc/>
         public string SelectEnvironment(
-            IEnumerable<string> environments) => _environment;
+            IEnumerable<string> environments) {
+            return _environment;
+        }
 
         /// <inheritdoc/>
         public string SelectSubscription(
-            IEnumerable<string> subscriptions) => _subscription;
+            IEnumerable<string> subscriptions) {
+            return _subscription;
+        }
 
         /// <inheritdoc/>
         public string SelectRegion(
-            IEnumerable<string> regions) => _region;
+            IEnumerable<string> regions) {
+            return _region;
+        }
 
         private readonly string _environment;
         private readonly string _subscription;

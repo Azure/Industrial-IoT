@@ -34,7 +34,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework {
             // different
             //
             if (to is JObject o) {
-                foreach(var prop in (JObject)from) {
+                foreach (var prop in (JObject)from) {
                     if (o.TryGetValue(prop.Key, out var existing)) {
                         o.Remove(prop.Key);
                     }

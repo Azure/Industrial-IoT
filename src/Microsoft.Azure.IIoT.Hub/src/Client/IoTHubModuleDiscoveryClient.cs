@@ -15,6 +15,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using System.Threading;
 
     /// <summary>
     /// Module discovery client using twin services
@@ -33,10 +34,10 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
 
         /// <inheritdoc/>
         public async Task<List<DiscoveredModuleModel>> GetModulesAsync(
-            string deviceId) {
+            string deviceId, CancellationToken ct) {
             // First try to get edge agent twin
             try {
-                var agent = await _twin.GetAsync(deviceId, "$edgeAgent");
+                var agent = await _twin.GetAsync(deviceId, "$edgeAgent", ct);
                 var reported = agent.Properties?.Reported;
                 var result = new List<DiscoveredModuleModel>();
                 if (reported != null) {
@@ -49,10 +50,11 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                 }
                 return result;
             }
-            catch (ResourceNotFoundException) {
+            catch (ResourceNotFoundException ex) {
                 // Fall back to find all modules under the device using query
-                var modules = await _twin.QueryDeviceTwinsAsync(
-                     $"SELECT * FROM devices.modules WHERE deviceId = '{deviceId}'");
+                _logger.Error(ex, "Agent not found, query modules under device");
+                var modules = await _twin.QueryAllDeviceTwinsAsync(
+                     $"SELECT * FROM devices.modules WHERE deviceId = '{deviceId}'", ct);
                 return modules.Select(ToDiscoveredModuleModel).ToList();
             }
         }

@@ -16,10 +16,11 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static DeviceCapabilities ToCapabilities(this DeviceCapabilitiesModel model) =>
-            new DeviceCapabilities {
+        public static DeviceCapabilities ToCapabilities(this DeviceCapabilitiesModel model) {
+            return new DeviceCapabilities {
                 IotEdge = model.IotEdge ?? false
             };
+        }
 
         /// <summary>
         /// Convert capabilities to model

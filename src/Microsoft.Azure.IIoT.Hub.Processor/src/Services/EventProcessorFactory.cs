@@ -31,8 +31,9 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
         }
 
         /// <inheritdoc/>
-        public IEventProcessor CreateEventProcessor(PartitionContext context) =>
-            new DefaultProcessor(this, _logger);
+        public IEventProcessor CreateEventProcessor(PartitionContext context) {
+            return new DefaultProcessor(this, _logger);
+        }
 
         /// <summary>
         /// Processor implementation
@@ -48,7 +49,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
                 _logger = logger ?? throw new ArgumentNullException(nameof(logger));
                 _factory = factory ?? throw new ArgumentNullException(nameof(factory));
                 _processorId = Guid.NewGuid().ToString();
-                logger.Information("EventProcessor {id} created", _processorId );
+                logger.Information("EventProcessor {id} created", _processorId);
             }
 
             /// <inheritdoc/>
@@ -74,13 +75,13 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
 
             /// <inheritdoc/>
             public Task ProcessErrorAsync(PartitionContext context, Exception error) {
-                _logger.Warning(error, "Processor {id} error",  _processorId);
+                _logger.Warning(error, "Processor {id} error", _processorId);
                 return Task.CompletedTask;
             }
 
             /// <inheritdoc/>
             public Task CloseAsync(PartitionContext context, CloseReason reason) {
-                _logger.Information("Partition {id} closed ({reason})",  _processorId, reason);
+                _logger.Information("Partition {id} closed ({reason})", _processorId, reason);
                 return Task.CompletedTask;
             }
 
@@ -130,16 +131,19 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
                 }
 
                 /// <inheritdoc/>
-                public void Add(string key, string value) =>
+                public void Add(string key, string value) {
                     _user.Add(key, value);
+                }
 
                 /// <inheritdoc/>
-                public bool ContainsKey(string key) =>
-                    _user.ContainsKey(key) || _system.ContainsKey(key);
+                public bool ContainsKey(string key) {
+                    return _user.ContainsKey(key) || _system.ContainsKey(key);
+                }
 
                 /// <inheritdoc/>
-                public bool Remove(string key) =>
-                    _user.Remove(key) || _system.Remove(key);
+                public bool Remove(string key) {
+                    return _user.Remove(key) || _system.Remove(key);
+                }
 
                 /// <inheritdoc/>
                 public bool TryGetValue(string key, out string value) {
@@ -153,8 +157,9 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
                 }
 
                 /// <inheritdoc/>
-                public void Add(KeyValuePair<string, string> item) =>
+                public void Add(KeyValuePair<string, string> item) {
                     _user.Add(new KeyValuePair<string, object>(item.Key, item.Value));
+                }
 
                 /// <inheritdoc/>
                 public void Clear() {
@@ -178,7 +183,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
                             return;
                         }
                         array[index++] = item;
-                    } 
+                    }
                 }
 
                 /// <inheritdoc/>
@@ -190,15 +195,18 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
                 }
 
                 /// <inheritdoc/>
-                public IEnumerator<KeyValuePair<string, string>> GetEnumerator() => _user
-                    .Select(v => new KeyValuePair<string, string>(v.Key, v.Value.ToString()))
-                    .Concat(_system
-                        .Select(v => new KeyValuePair<string, string>(v.Key, v.Value.ToString())))
-                    .GetEnumerator();
+                public IEnumerator<KeyValuePair<string, string>> GetEnumerator() {
+                    return _user
+.Select(v => new KeyValuePair<string, string>(v.Key, v.Value.ToString()))
+.Concat(_system
+.Select(v => new KeyValuePair<string, string>(v.Key, v.Value.ToString())))
+.GetEnumerator();
+                }
 
                 /// <inheritdoc/>
-                IEnumerator IEnumerable.GetEnumerator() =>
-                    _user.Concat(_system).GetEnumerator();
+                IEnumerator IEnumerable.GetEnumerator() {
+                    return _user.Concat(_system).GetEnumerator();
+                }
 
                 private readonly IDictionary<string, object> _system;
                 private readonly IDictionary<string, object> _user;

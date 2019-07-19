@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
     /// <summary>
     /// Bulk graph loader, handles loading in batches of default 10000.
     /// </summary>
-    sealed class BulkImporter : IGraphLoader, IDocumentLoader {
+    internal sealed class BulkImporter : IGraphLoader, IDocumentLoader {
 
         /// <summary>
         /// Create loader
@@ -53,15 +53,17 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
             _complete = _batcher.Completion
                 .ContinueWith(async t => {
                     importer.Complete();
-                        // Drain
-                        await importer.Completion;
+                    // Drain
+                    await importer.Completion;
                 });
             _cts = new CancellationTokenSource();
         }
 
         /// <inheritdoc/>
-        public void Dispose() =>
+        public void Dispose() {
             Try.Op(() => CompleteAsync(true).Wait());
+            _cts.Dispose();
+        }
 
         /// <inheritdoc/>
         public Task CompleteAsync(bool abort) {
@@ -74,16 +76,19 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
         }
 
         /// <inheritdoc/>
-        public Task AddVertexAsync<V>(V vertex) =>
-            _batcher.SendAsync(vertex.ToVertex(_serializer));
+        public Task AddVertexAsync<V>(V vertex) {
+            return _batcher.SendAsync(vertex.ToVertex(_serializer));
+        }
 
         /// <inheritdoc/>
-        public Task AddEdgeAsync<V1, E, V2>(V1 from, E edge, V2 to) =>
-            _batcher.SendAsync(edge.ToEdge(_serializer, from, to));
+        public Task AddEdgeAsync<V1, E, V2>(V1 from, E edge, V2 to) {
+            return _batcher.SendAsync(edge.ToEdge(_serializer, from, to));
+        }
 
         /// <inheritdoc/>
-        public Task AddAsync<T>(T doc) =>
-            _batcher.SendAsync(doc);
+        public Task AddAsync<T>(T doc) {
+            return _batcher.SendAsync(doc);
+        }
 
         /// <summary>
         /// Imports a batch of objects

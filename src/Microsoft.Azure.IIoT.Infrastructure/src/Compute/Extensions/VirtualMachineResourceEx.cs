@@ -21,7 +21,8 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Compute {
         /// else it will run forever</param>
         /// <returns></returns>
         public static Task<ISecureShell> OpenShellAsync(
-            this IVirtualMachineResource resource, CancellationToken ct) =>
-            resource.OpenShellAsync(22, ct);
+            this IVirtualMachineResource resource, CancellationToken ct) {
+            return resource.OpenShellAsync(22, ct);
+        }
     }
 }

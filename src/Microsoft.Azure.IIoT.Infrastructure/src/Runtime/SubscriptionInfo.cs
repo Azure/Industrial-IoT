@@ -32,7 +32,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Runtime {
         /// <param name="region"></param>
         public SubscriptionInfo(string environment, string subscriptionId,
             string region) :
-            this (Task.FromResult(environment), Task.FromResult(subscriptionId),
+            this(Task.FromResult(environment), Task.FromResult(subscriptionId),
                 Task.FromResult(region)) {
         }
 
@@ -40,17 +40,23 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Runtime {
         /// Create empty info
         /// </summary>
         internal SubscriptionInfo() :
-            this ((string)null, null, null) {
+            this((string)null, null, null) {
         }
 
         /// <inheritdoc/>
-        public Task<string> GetEnvironment() => _environment;
+        public Task<string> GetEnvironment() {
+            return _environment;
+        }
 
         /// <inheritdoc/>
-        public Task<string> GetSubscriptionId() => _subscriptionId;
+        public Task<string> GetSubscriptionId() {
+            return _subscriptionId;
+        }
 
         /// <inheritdoc/>
-        public Task<string> GetRegionAsync() => _region;
+        public Task<string> GetRegionAsync() {
+            return _region;
+        }
 
         private readonly Task<string> _region;
         private readonly Task<string> _environment;

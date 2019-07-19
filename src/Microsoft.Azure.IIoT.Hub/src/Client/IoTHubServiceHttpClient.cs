@@ -6,15 +6,16 @@
 namespace Microsoft.Azure.IIoT.Hub.Client {
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Models;
-    using Serilog;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Http;
     using Microsoft.Azure.IIoT.Utils;
     using Newtonsoft.Json.Linq;
+    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using System.Threading;
 
     /// <summary>
     /// Implementation of twin and job services, talking to iot hub
@@ -37,65 +38,76 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
         /// <param name="logger"></param>
         public IoTHubServiceHttpClient(IHttpClient httpClient,
             IIoTHubConfig config, ILogger logger) :
-            base (httpClient, config, logger) {
+            base(httpClient, config, logger) {
         }
 
         /// <inheritdoc/>
-        public Task<DeviceTwinModel> CreateOrUpdateAsync(DeviceTwinModel twin,
-            bool forceUpdate) {
+        public Task<DeviceTwinModel> CreateAsync(DeviceTwinModel twin, bool force,
+            CancellationToken ct) {
             if (twin == null) {
                 throw new ArgumentNullException(nameof(twin));
             }
             if (string.IsNullOrEmpty(twin.Id)) {
                 throw new ArgumentNullException(nameof(twin.Id));
             }
-            return Retry.WithExponentialBackoff(_logger, async () => {
-
-                if (string.IsNullOrEmpty(twin.Etag)) {
-                    // First try create
+            // Retry transient errors
+            return Retry.WithExponentialBackoff(_logger, ct, async () => {
+                // First try create device
+                try {
+                    var device = NewRequest($"/devices/{twin.Id}");
+                    device.SetContent(new {
+                        deviceId = twin.Id,
+                        capabilities = twin.Capabilities
+                    });
+                    var response = await _httpClient.PutAsync(device, ct);
+                    response.Validate();
+                }
+                catch (ConflictingResourceException)
+                    when (!string.IsNullOrEmpty(twin.ModuleId) || force) {
+                    // Continue onward
+                }
+                catch (Exception e) {
+                    _logger.Debug(e, "Create device failed in CreateOrUpdate");
+                }
+                if (!string.IsNullOrEmpty(twin.ModuleId)) {
+                    // Try create module
                     try {
-                        var device = NewRequest($"/devices/{twin.Id}");
-                        device.SetContent(new {
+                        var module = NewRequest(
+                            $"/devices/{twin.Id}/modules/{twin.ModuleId}");
+                        module.SetContent(new {
                             deviceId = twin.Id,
-                            capabilities = twin.Capabilities
+                            moduleId = twin.ModuleId
                         });
-                        var response = await _httpClient.PutAsync(device);
+                        var response = await _httpClient.PutAsync(module, ct);
                         response.Validate();
                     }
-                    catch (ConflictingResourceException) {
-                        // Expected for update
+                    catch (ConflictingResourceException)
+                        when (force) {
                     }
                     catch (Exception e) {
-                        _logger.Debug(e, "Create device failed in CreateOrUpdate");
+                        _logger.Debug(e, "Create module failed in CreateOrUpdate");
                     }
                 }
+                return await PatchAsync(twin, true, ct);  // Force update of twin
+            }, kMaxRetryCount);
+        }
+
+        /// <inheritdoc/>
+        public Task<DeviceTwinModel> PatchAsync(DeviceTwinModel twin, bool force, CancellationToken ct) {
+            if (twin == null) {
+                throw new ArgumentNullException(nameof(twin));
+            }
+            if (string.IsNullOrEmpty(twin.Id)) {
+                throw new ArgumentNullException(nameof(twin.Id));
+            }
+            return Retry.WithExponentialBackoff(_logger, ct, async () => {
 
                 // Then update twin assuming it now exists. If fails, retry...
                 var patch = NewRequest(
                     $"/twins/{ToResourceId(twin.Id, twin.ModuleId)}");
                 patch.Headers.Add("If-Match",
-                     $"\"{(string.IsNullOrEmpty(twin.Etag) || forceUpdate ? "*" : twin.Etag)}\"");
+                     $"\"{(string.IsNullOrEmpty(twin.Etag) || force ? "*" : twin.Etag)}\"");
                 if (!string.IsNullOrEmpty(twin.ModuleId)) {
-
-                    if (string.IsNullOrEmpty(twin.Etag)) {
-                        // Try create module
-                        try {
-                            var module = NewRequest(
-                                $"/devices/{twin.Id}/modules/{twin.ModuleId}");
-                            module.SetContent(new {
-                                deviceId = twin.Id,
-                                moduleId = twin.ModuleId
-                            });
-                            var response = await _httpClient.PutAsync(module);
-                            response.Validate();
-                        }
-                        catch (ConflictingResourceException) {
-                            // Expected for update
-                        }
-                        catch (Exception e) {
-                            _logger.Debug(e, "Create module failed in CreateOrUpdate");
-                        }
-                    }
 
                     // Patch module
                     patch.SetContent(new {
@@ -118,7 +130,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                     });
                 }
                 {
-                    var response = await _httpClient.PatchAsync(patch);
+                    var response = await _httpClient.PatchAsync(patch, ct);
                     response.Validate();
                     var result = response.GetContent<DeviceTwinModel>();
                     _logger.Information(
@@ -126,12 +138,12 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                         twin.Id, twin.ModuleId ?? string.Empty, twin.Etag ?? "*", result.Etag);
                     return result;
                 }
-            });
+            }, kMaxRetryCount);
         }
 
         /// <inheritdoc/>
-        public Task<MethodResultModel> CallMethodAsync(string deviceId, string moduleId,
-            MethodParameterModel parameters) {
+        public async Task<MethodResultModel> CallMethodAsync(string deviceId, string moduleId,
+            MethodParameterModel parameters, CancellationToken ct) {
             if (string.IsNullOrEmpty(deviceId)) {
                 throw new ArgumentNullException(nameof(deviceId));
             }
@@ -141,33 +153,31 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
             if (string.IsNullOrEmpty(parameters.Name)) {
                 throw new ArgumentNullException(nameof(parameters.Name));
             }
-            return Retry.WithExponentialBackoff(_logger, async () => {
-                var request = NewRequest(
-                    $"/twins/{ToResourceId(deviceId, moduleId)}/methods");
+            var request = NewRequest(
+                $"/twins/{ToResourceId(deviceId, moduleId)}/methods");
 
-                request.SetContent(new {
-                    methodName = parameters.Name,
-                    // TODO: Add timeouts...
-                    // responseTimeoutInSeconds = ...
-                    payload = JToken.Parse(parameters.JsonPayload)
-                });
-                var response = await _httpClient.PostAsync(request);
-                response.Validate();
-                dynamic result = JToken.Parse(response.GetContentAsString());
-                return new MethodResultModel {
-                    JsonPayload = ((JToken)result.payload).ToString(),
-                    Status = result.status
-                };
+            request.SetContent(new {
+                methodName = parameters.Name,
+                // TODO: Add timeouts...
+                // responseTimeoutInSeconds = ...
+                payload = JToken.Parse(parameters.JsonPayload)
             });
+            var response = await _httpClient.PostAsync(request, ct);
+            response.Validate();
+            dynamic result = JToken.Parse(response.GetContentAsString());
+            return new MethodResultModel {
+                JsonPayload = ((JToken)result.payload).ToString(),
+                Status = result.status
+            };
         }
 
         /// <inheritdoc/>
         public Task UpdatePropertiesAsync(string deviceId, string moduleId,
-            Dictionary<string, JToken> properties, string etag) {
+            Dictionary<string, JToken> properties, string etag, CancellationToken ct) {
             if (string.IsNullOrEmpty(deviceId)) {
                 throw new ArgumentNullException(nameof(deviceId));
             }
-            return Retry.WithExponentialBackoff(_logger, async () => {
+            return Retry.WithExponentialBackoff(_logger, ct, async () => {
                 var request = NewRequest(
                     $"/twins/{ToResourceId(deviceId, moduleId)}");
                 request.SetContent(new {
@@ -178,103 +188,105 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                 });
                 request.Headers.Add("If-Match",
                     $"\"{(string.IsNullOrEmpty(etag) ? "*" : etag)}\"");
-                var response = await _httpClient.PatchAsync(request);
+                var response = await _httpClient.PatchAsync(request, ct);
                 response.Validate();
-            });
+            }, kMaxRetryCount);
         }
 
         /// <inheritdoc/>
         public Task ApplyConfigurationAsync(string deviceId,
-            ConfigurationContentModel configuration) {
+            ConfigurationContentModel configuration, CancellationToken ct) {
             if (configuration == null) {
                 throw new ArgumentNullException(nameof(configuration));
             }
             if (string.IsNullOrEmpty(deviceId)) {
                 throw new ArgumentNullException(nameof(deviceId));
             }
-            return Retry.WithExponentialBackoff(_logger, async () => {
+            return Retry.WithExponentialBackoff(_logger, ct, async () => {
                 var request = NewRequest(
                     $"/devices/{ToResourceId(deviceId, null)}/applyConfigurationContent");
                 request.SetContent(configuration);
-                var response = await _httpClient.PostAsync(request);
+                var response = await _httpClient.PostAsync(request, ct);
                 response.Validate();
-            });
+            }, kMaxRetryCount);
         }
 
         /// <inheritdoc/>
-        public Task<DeviceTwinModel> GetAsync(string deviceId, string moduleId) {
+        public Task<DeviceTwinModel> GetAsync(string deviceId, string moduleId,
+            CancellationToken ct) {
             if (string.IsNullOrEmpty(deviceId)) {
                 throw new ArgumentNullException(nameof(deviceId));
             }
-            return Retry.WithExponentialBackoff(_logger, async () => {
+            return Retry.WithExponentialBackoff(_logger, ct, async () => {
                 var request = NewRequest(
                     $"/twins/{ToResourceId(deviceId, moduleId)}");
-                var response = await _httpClient.GetAsync(request);
+                var response = await _httpClient.GetAsync(request, ct);
                 response.Validate();
                 return response.GetContent<DeviceTwinModel>();
-            });
+            }, kMaxRetryCount);
         }
 
         /// <inheritdoc/>
-        public Task<DeviceModel> GetRegistrationAsync(string deviceId, string moduleId) {
+        public Task<DeviceModel> GetRegistrationAsync(string deviceId, string moduleId,
+            CancellationToken ct) {
             if (string.IsNullOrEmpty(deviceId)) {
                 throw new ArgumentNullException(nameof(deviceId));
             }
-            return Retry.WithExponentialBackoff(_logger, async () => {
+            return Retry.WithExponentialBackoff(_logger, ct, async () => {
                 var request = NewRequest(
                     $"/devices/{ToResourceId(deviceId, moduleId)}");
-                var response = await _httpClient.GetAsync(request);
+                var response = await _httpClient.GetAsync(request, ct);
                 response.Validate();
                 return ToDeviceRegistrationModel(JToken.Parse(response.GetContentAsString()));
-            });
+            }, kMaxRetryCount);
         }
 
         /// <inheritdoc/>
-        public Task<QueryResultModel> QueryAsync(string query, string continuation,
-            int? pageSize) {
+        public async Task<QueryResultModel> QueryAsync(string query, string continuation,
+            int? pageSize, CancellationToken ct) {
             if (string.IsNullOrEmpty(query)) {
                 throw new ArgumentNullException(nameof(query));
             }
-            return Retry.WithExponentialBackoff(_logger, async () => {
-                var request = NewRequest("/devices/query");
-                if (continuation != null) {
-                    request.Headers.Add(HttpHeader.ContinuationToken, continuation);
-                }
-                if (pageSize != null) {
-                    request.Headers.Add(HttpHeader.MaxItemCount, pageSize.ToString());
-                }
-                request.SetContent(new {
-                    query
-                });
-                var response = await _httpClient.PostAsync(request);
-                response.Validate();
-                if (response.Headers.TryGetValues(HttpHeader.ContinuationToken, out var values)) {
-                    continuation = values.First();
-                }
-                return new QueryResultModel {
-                    ContinuationToken = continuation,
-                    Result = JArray.Parse(response.GetContentAsString())
-                };
+            var request = NewRequest("/devices/query");
+            if (continuation != null) {
+                request.Headers.Add(HttpHeader.ContinuationToken, continuation);
+            }
+            if (pageSize != null) {
+                request.Headers.Add(HttpHeader.MaxItemCount, pageSize.ToString());
+            }
+            request.SetContent(new {
+                query
             });
+            var response = await _httpClient.PostAsync(request, ct);
+            response.Validate();
+            if (response.Headers.TryGetValues(HttpHeader.ContinuationToken, out var values)) {
+                continuation = values.First();
+            }
+            return new QueryResultModel {
+                ContinuationToken = continuation,
+                Result = JArray.Parse(response.GetContentAsString())
+            };
         }
 
         /// <inheritdoc/>
-        public Task DeleteAsync(string deviceId, string moduleId, string etag) {
+        public Task DeleteAsync(string deviceId, string moduleId, string etag,
+            CancellationToken ct) {
             if (string.IsNullOrEmpty(deviceId)) {
                 throw new ArgumentNullException(nameof(deviceId));
             }
-            return Retry.WithExponentialBackoff(_logger, async () => {
+            etag = null; // TODO : Fix - Currently prevents internal server error
+            return Retry.WithExponentialBackoff(_logger, ct, async () => {
                 var request = NewRequest(
                     $"/devices/{ToResourceId(deviceId, moduleId)}");
                 request.Headers.Add("If-Match",
                     $"\"{(string.IsNullOrEmpty(etag) ? "*" : etag)}\"");
-                var response = await _httpClient.DeleteAsync(request);
+                var response = await _httpClient.DeleteAsync(request, ct);
                 response.Validate();
-            });
+            }, kMaxRetryCount);
         }
 
         /// <inheritdoc/>
-        public async Task<JobModel> CreateAsync(JobModel job) {
+        public async Task<JobModel> CreateAsync(JobModel job, CancellationToken ct) {
             if (job == null) {
                 throw new ArgumentNullException(nameof(job));
             }
@@ -284,7 +296,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
             if (string.IsNullOrEmpty(job.QueryCondition)) {
                 throw new ArgumentNullException(nameof(job.QueryCondition));
             }
-            var model = await Retry.WithExponentialBackoff(_logger, async () => {
+            var model = await Retry.WithExponentialBackoff(_logger, ct, async () => {
                 var request = NewRequest($"/jobs/v2/{job.JobId}");
                 switch (job.Type) {
                     case JobType.ScheduleUpdateTwin:
@@ -321,51 +333,52 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                     default:
                         throw new ArgumentException(nameof(job.Type));
                 }
-                var response = await _httpClient.PutAsync(request);
+                var response = await _httpClient.PutAsync(request, ct);
                 response.Validate();
                 return ToJobModel(JToken.Parse(response.GetContentAsString()));
-            });
+            }, kMaxRetryCount);
             // Get device infos
-            return await QueryDevicesInfoAsync(model);
+            return await QueryDevicesInfoAsync(model, ct);
         }
 
         /// <inheritdoc/>
-        public async Task<JobModel> RefreshAsync(string jobId) {
+        public async Task<JobModel> RefreshAsync(string jobId, CancellationToken ct) {
             if (string.IsNullOrEmpty(jobId)) {
                 throw new ArgumentNullException(nameof(jobId));
             }
-            var model = await Retry.WithExponentialBackoff(_logger, async () => {
+            var model = await Retry.WithExponentialBackoff(_logger, ct, async () => {
                 var request = NewRequest($"/jobs/v2/{jobId}");
-                var response = await _httpClient.GetAsync(request);
+                var response = await _httpClient.GetAsync(request, ct);
                 response.Validate();
                 return ToJobModel(JToken.Parse(response.GetContentAsString()));
-            });
+            }, kMaxRetryCount);
             // Get device infos
-            return await QueryDevicesInfoAsync(model);
+            return await QueryDevicesInfoAsync(model, ct);
         }
 
         /// <inheritdoc/>
-        public Task CancelAsync(string jobId) {
+        public Task CancelAsync(string jobId, CancellationToken ct) {
             if (string.IsNullOrEmpty(jobId)) {
                 throw new ArgumentNullException(nameof(jobId));
             }
-            return Retry.WithExponentialBackoff(_logger, async () => {
+            return Retry.WithExponentialBackoff(_logger, ct, async () => {
                 var request = NewRequest($"/jobs/v2/{jobId}/cancel");
-                var response = await _httpClient.PostAsync(request);
+                var response = await _httpClient.PostAsync(request, ct);
                 response.Validate();
-            });
+            }, kMaxRetryCount);
         }
 
         /// <summary>
         /// Fill in individual device responses
         /// </summary>
         /// <param name="job"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
-        private async Task<JobModel> QueryDevicesInfoAsync(JobModel job) {
+        private async Task<JobModel> QueryDevicesInfoAsync(JobModel job, CancellationToken ct) {
             var devices = new List<DeviceJobModel>();
             string continuation = null;
             do {
-                continuation = await QueryDevicesInfoAsync(job, devices, continuation);
+                continuation = await QueryDevicesInfoAsync(job, devices, continuation, ct);
             }
             while (!string.IsNullOrEmpty(continuation));
             job.Devices = devices;
@@ -378,10 +391,11 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
         /// <param name="job"></param>
         /// <param name="devices"></param>
         /// <param name="continuation"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         private async Task<string> QueryDevicesInfoAsync(JobModel job,
-            List<DeviceJobModel> devices, string continuation) {
-            await Retry.WithExponentialBackoff(_logger, async () => {
+            List<DeviceJobModel> devices, string continuation, CancellationToken ct) {
+            await Retry.WithExponentialBackoff(_logger, ct, async () => {
                 var request = NewRequest("/devices/query");
                 if (continuation != null) {
                     request.Headers.Add(HttpHeader.ContinuationToken, continuation);
@@ -390,14 +404,14 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                 request.SetContent(new {
                     query = $"SELECT * FROM devices.jobs WHERE devices.jobs.jobId = '{job.JobId}'"
                 });
-                var response = await _httpClient.PostAsync(request);
+                var response = await _httpClient.PostAsync(request, ct);
                 response.Validate();
                 if (response.Headers.TryGetValues(HttpHeader.ContinuationToken, out var values)) {
                     continuation = values.First();
                 }
                 var result = (JArray)JToken.Parse(response.GetContentAsString());
                 devices.AddRange(result.Select(ToDeviceJobModel));
-            });
+            }, kMaxRetryCount);
             return continuation;
         }
 

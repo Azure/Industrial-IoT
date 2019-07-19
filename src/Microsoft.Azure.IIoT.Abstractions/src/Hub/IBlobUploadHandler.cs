@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Hub {
+    using Microsoft.Azure.IIoT.Messaging;
     using System;
     using System.Threading;
     using System.Threading.Tasks;
@@ -11,7 +12,7 @@ namespace Microsoft.Azure.IIoT.Hub {
     /// <summary>
     /// Handler that handles blob file upload notifications
     /// </summary>
-    public interface IBlobUploadHandler {
+    public interface IBlobUploadHandler : IHandler {
 
         /// <summary>
         /// Handle blob file upload notifications.

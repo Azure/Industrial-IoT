@@ -16,8 +16,9 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Network {
         /// Create a new randomly named storage
         /// </summary>
         public static Task<INetworkResource> CreateAsync(
-            this INetworkFactory service, IResourceGroupResource resourceGroup) =>
-            service.CreateAsync(resourceGroup, null, null, false);
+            this INetworkFactory service, IResourceGroupResource resourceGroup) {
+            return service.CreateAsync(resourceGroup, null, null, false);
+        }
 
         /// <summary>
         /// Get or create new storage in a resource group.

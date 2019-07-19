@@ -11,7 +11,7 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
     /// Document wrapper
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    sealed class DocumentInfo<T> : IDocumentInfo<T> {
+    internal sealed class DocumentInfo<T> : IDocumentInfo<T> {
 
         /// <summary>
         /// Create document
@@ -29,7 +29,7 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
 
         /// <inheritdoc/>
         public string PartitionKey => _doc.GetPropertyValue<string>(
-            DocumentCollection.kPartitionKeyProperty);
+            DocumentCollection.PartitionKeyProperty);
 
         /// <inheritdoc/>
         public string Etag => _doc.ETag;

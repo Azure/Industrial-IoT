@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Http {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -24,49 +25,63 @@ namespace Microsoft.Azure.IIoT.Http {
         /// Perform get
         /// </summary>
         /// <param name="request"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
-        Task<IHttpResponse> GetAsync(IHttpRequest request);
+        Task<IHttpResponse> GetAsync(IHttpRequest request,
+            CancellationToken ct = default);
 
         /// <summary>
         /// Perform post
         /// </summary>
         /// <param name="request"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
-        Task<IHttpResponse> PostAsync(IHttpRequest request);
+        Task<IHttpResponse> PostAsync(IHttpRequest request,
+            CancellationToken ct = default);
 
         /// <summary>
         /// Perform put
         /// </summary>
         /// <param name="request"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
-        Task<IHttpResponse> PutAsync(IHttpRequest request);
+        Task<IHttpResponse> PutAsync(IHttpRequest request,
+            CancellationToken ct = default);
 
         /// <summary>
         /// Perform patch
         /// </summary>
         /// <param name="request"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
-        Task<IHttpResponse> PatchAsync(IHttpRequest request);
+        Task<IHttpResponse> PatchAsync(IHttpRequest request,
+            CancellationToken ct = default);
 
         /// <summary>
         /// Perform delete
         /// </summary>
         /// <param name="request"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
-        Task<IHttpResponse> DeleteAsync(IHttpRequest request);
+        Task<IHttpResponse> DeleteAsync(IHttpRequest request,
+            CancellationToken ct = default);
 
         /// <summary>
         /// Perform head
         /// </summary>
         /// <param name="request"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
-        Task<IHttpResponse> HeadAsync(IHttpRequest request);
+        Task<IHttpResponse> HeadAsync(IHttpRequest request,
+            CancellationToken ct = default);
 
         /// <summary>
         /// Perform options
         /// </summary>
         /// <param name="request"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
-        Task<IHttpResponse> OptionsAsync(IHttpRequest request);
+        Task<IHttpResponse> OptionsAsync(IHttpRequest request,
+            CancellationToken ct = default);
     }
 }

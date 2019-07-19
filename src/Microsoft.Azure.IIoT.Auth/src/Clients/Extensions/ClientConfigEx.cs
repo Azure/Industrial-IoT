@@ -18,13 +18,16 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
         public static string GetAuthorityUrl(this IClientConfig config) {
             var instanceUrl = config?.InstanceUrl;
             if (string.IsNullOrEmpty(instanceUrl)) {
-                instanceUrl = "https://login.microsoftonline.com/";
+                instanceUrl = kDefaultAuthorityUrl;
             }
-            var tenantId = config?.TenantId;
+            var tenantId = /* config?.AppSecret ?? */ config?.TenantId;
             if (string.IsNullOrEmpty(tenantId)) {
-                tenantId = "common";
+                tenantId = kDefaultTenantId;
             }
             return instanceUrl.TrimEnd('/') + "/" + tenantId;
         }
+
+        private const string kDefaultAuthorityUrl = "https://login.microsoftonline.com/";
+        private const string kDefaultTenantId = "common";
     }
 }

@@ -4,13 +4,14 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Hub {
+    using Microsoft.Azure.IIoT.Messaging;
     using System;
     using System.Threading.Tasks;
 
     /// <summary>
     /// Handles events
     /// </summary>
-    public interface IDeviceEventHandler {
+    public interface IDeviceEventHandler : IHandler {
 
         /// <summary>
         /// Event content type

@@ -24,9 +24,10 @@ namespace Microsoft.Azure.IIoT.Http {
         /// <param name="mediaType"></param>
         /// <returns>this</returns>
         public static IHttpRequest SetContent<T>(this IHttpRequest request, T sourceObject,
-            JsonSerializerSettings settings, Encoding encoding, MediaTypeHeaderValue mediaType) =>
-            request.SetContent(JsonConvert.SerializeObject(sourceObject, Formatting.None,
+            JsonSerializerSettings settings, Encoding encoding, MediaTypeHeaderValue mediaType) {
+            return request.SetContent(JsonConvert.SerializeObject(sourceObject, Formatting.None,
                 settings ?? JsonConvertEx.DefaultSettings), encoding, mediaType);
+        }
 
         /// <summary>
         /// Set content
@@ -34,8 +35,9 @@ namespace Microsoft.Azure.IIoT.Http {
         /// <typeparam name="T"></typeparam>
         /// <param name="request"></param>
         /// <param name="sourceObject"></param>
-        public static IHttpRequest SetContent<T>(this IHttpRequest request, T sourceObject) =>
-            request.SetContent(sourceObject, null, kDefaultEncoding, kDefaultMediaType);
+        public static IHttpRequest SetContent<T>(this IHttpRequest request, T sourceObject) {
+            return request.SetContent(sourceObject, null, kDefaultEncoding, kDefaultMediaType);
+        }
 
         /// <summary>
         /// Set content
@@ -45,8 +47,9 @@ namespace Microsoft.Azure.IIoT.Http {
         /// <param name="sourceObject"></param>
         /// <param name="settings"></param>
         public static IHttpRequest SetContent<T>(this IHttpRequest request, T sourceObject,
-            JsonSerializerSettings settings) =>
-            request.SetContent(sourceObject, settings, kDefaultEncoding, kDefaultMediaType);
+            JsonSerializerSettings settings) {
+            return request.SetContent(sourceObject, settings, kDefaultEncoding, kDefaultMediaType);
+        }
 
         private static readonly MediaTypeHeaderValue kDefaultMediaType =
             new MediaTypeHeaderValue(ContentEncodings.MimeTypeJson);

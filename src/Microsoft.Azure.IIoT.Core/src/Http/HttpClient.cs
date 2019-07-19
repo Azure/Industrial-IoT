@@ -12,7 +12,7 @@ namespace Microsoft.Azure.IIoT.Http.Default {
     using System.Threading.Tasks;
     using System.Net;
     using System.Text;
-    using System.Linq;
+    using System.Threading;
 
     /// <summary>
     /// Http client wrapping http client factory created http clients and
@@ -42,45 +42,54 @@ namespace Microsoft.Azure.IIoT.Http.Default {
         }
 
         /// <inheritdoc/>
-        public IHttpRequest NewRequest(Uri uri, string resourceId) =>
-            new HttpRequest(uri, resourceId);
+        public IHttpRequest NewRequest(Uri uri, string resourceId) {
+            return new HttpRequest(uri, resourceId);
+        }
 
         /// <inheritdoc/>
-        public Task<IHttpResponse> GetAsync(IHttpRequest request) =>
-            SendAsync(request, HttpMethod.Get);
+        public Task<IHttpResponse> GetAsync(IHttpRequest request, CancellationToken ct) {
+            return SendAsync(request, HttpMethod.Get, ct);
+        }
 
         /// <inheritdoc/>
-        public Task<IHttpResponse> PostAsync(IHttpRequest request) =>
-            SendAsync(request, HttpMethod.Post);
+        public Task<IHttpResponse> PostAsync(IHttpRequest request, CancellationToken ct) {
+            return SendAsync(request, HttpMethod.Post, ct);
+        }
 
         /// <inheritdoc/>
-        public Task<IHttpResponse> PutAsync(IHttpRequest request) =>
-            SendAsync(request, HttpMethod.Put);
+        public Task<IHttpResponse> PutAsync(IHttpRequest request, CancellationToken ct) {
+            return SendAsync(request, HttpMethod.Put, ct);
+        }
 
         /// <inheritdoc/>
-        public Task<IHttpResponse> PatchAsync(IHttpRequest request) =>
-            SendAsync(request, new HttpMethod("PATCH"));
+        public Task<IHttpResponse> PatchAsync(IHttpRequest request, CancellationToken ct) {
+            return SendAsync(request, new HttpMethod("PATCH"), ct);
+        }
 
         /// <inheritdoc/>
-        public Task<IHttpResponse> DeleteAsync(IHttpRequest request) =>
-            SendAsync(request, HttpMethod.Delete);
+        public Task<IHttpResponse> DeleteAsync(IHttpRequest request, CancellationToken ct) {
+            return SendAsync(request, HttpMethod.Delete, ct);
+        }
 
         /// <inheritdoc/>
-        public Task<IHttpResponse> HeadAsync(IHttpRequest request) =>
-            SendAsync(request, HttpMethod.Head);
+        public Task<IHttpResponse> HeadAsync(IHttpRequest request, CancellationToken ct) {
+            return SendAsync(request, HttpMethod.Head, ct);
+        }
 
         /// <inheritdoc/>
-        public Task<IHttpResponse> OptionsAsync(IHttpRequest request) =>
-            SendAsync(request, HttpMethod.Options);
+        public Task<IHttpResponse> OptionsAsync(IHttpRequest request, CancellationToken ct) {
+            return SendAsync(request, HttpMethod.Options, ct);
+        }
 
         /// <summary>
         /// Send request
         /// </summary>
         /// <param name="httpRequest"></param>
         /// <param name="httpMethod"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         private async Task<IHttpResponse> SendAsync(IHttpRequest httpRequest,
-            HttpMethod httpMethod) {
+            HttpMethod httpMethod, CancellationToken ct) {
 
             if (!(httpRequest is HttpRequest wrapper)) {
                 throw new InvalidOperationException("Bad request");
@@ -92,14 +101,14 @@ namespace Microsoft.Azure.IIoT.Http.Default {
             }
 #endif
             using (var client = _factory.CreateClient(httpRequest.ResourceId ??
-                HttpHandlerFactory.kDefaultResourceId)) {
+                HttpHandlerFactory.DefaultResourceId)) {
                 client.Timeout = TimeSpan.FromMilliseconds(httpRequest.Options.Timeout);
                 var sw = Stopwatch.StartNew();
                 _logger.Verbose("Sending {method} request to {uri}...", httpMethod,
                     httpRequest.Uri);
                 try {
                     wrapper.Request.Method = httpMethod;
-                    using (var response = await client.SendAsync(wrapper.Request)) {
+                    using (var response = await client.SendAsync(wrapper.Request, ct)) {
                         var result = new HttpResponse {
                             ResourceId = httpRequest.ResourceId,
                             StatusCode = response.StatusCode,

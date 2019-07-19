@@ -262,7 +262,8 @@ namespace Microsoft.Azure.IIoT.Net {
         /// </summary>
         /// <param name="buffer"></param>
         /// <param name="other"></param>
-        public static bool EqualsAsEncodedString(this byte[] buffer, byte[] other) =>
-            buffer.ToEncodedString() == other.ToEncodedString();
+        public static bool EqualsAsEncodedString(this byte[] buffer, byte[] other) {
+            return buffer.ToEncodedString() == other.ToEncodedString();
+        }
     }
 }

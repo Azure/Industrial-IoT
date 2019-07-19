@@ -22,7 +22,7 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
     /// <summary>
     /// Provides document db database interface.
     /// </summary>
-    sealed class DocumentDatabase : IDatabase {
+    internal sealed class DocumentDatabase : IDatabase {
 
         /// <summary>
         /// Database id
@@ -52,7 +52,9 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
 
         /// <inheritdoc/>
         public async Task<IItemContainer> OpenContainerAsync(string id,
-            bool partitioned) => await OpenOrCreateCollectionAsync(id, partitioned);
+            ContainerOptions options) {
+            return await OpenOrCreateCollectionAsync(id, options);
+        }
 
         /// <inheritdoc/>
         public async Task<IEnumerable<string>> ListContainersAsync(CancellationToken ct) {
@@ -91,17 +93,17 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
         /// Create or Open collection
         /// </summary>
         /// <param name="id"></param>
-        /// <param name="partitioned"></param>
+        /// <param name="options"></param>
         /// <returns></returns>
         private async Task<DocumentCollection> OpenOrCreateCollectionAsync(
-            string id, bool partitioned) {
+            string id, ContainerOptions options) {
             if (string.IsNullOrEmpty(id)) {
                 id = "default";
             }
             if (!_collections.TryGetValue(id, out var collection)) {
-                var coll = await EnsureCollectionExists(id, partitioned);
+                var coll = await EnsureCollectionExists(id, options);
                 collection = _collections.GetOrAdd(id, k =>
-                    new DocumentCollection(this, coll, partitioned, _serializer, _logger));
+                    new DocumentCollection(this, coll, _serializer, _logger));
             }
             return collection;
         }
@@ -110,10 +112,10 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
         /// Ensures collection exists
         /// </summary>
         /// <param name="id"></param>
-        /// <param name="partitioned"></param>
+        /// <param name="options"></param>
         /// <returns></returns>
         private async Task<CosmosContainer> EnsureCollectionExists(string id,
-            bool partitioned) {
+            ContainerOptions options) {
             var database = await Client.CreateDatabaseIfNotExistsAsync(
                 new Database {
                     Id = DatabaseId
@@ -122,15 +124,14 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
 
             var container = new CosmosContainer {
                 Id = id,
-                DefaultTimeToLive = -1, // Infinite
+                DefaultTimeToLive = (int?)options?.ItemTimeToLive?.TotalMilliseconds ?? -1,
                 IndexingPolicy = new IndexingPolicy(new RangeIndex(DataType.String) {
                     Precision = -1
                 })
             };
 
-            if (partitioned) {
-                container.PartitionKey.Paths.Add("/" +
-                    DocumentCollection.kPartitionKeyProperty);
+            if (options?.Partitioned ?? false) {
+                container.PartitionKey.Paths.Add("/" + DocumentCollection.PartitionKeyProperty);
             }
 
             var throughput = 10000;
@@ -141,13 +142,13 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
                      OfferThroughput = throughput
                  }
             );
-            await CreateSprocIfNotExists(id, kBulkUpdateSprocName);
-            await CreateSprocIfNotExists(id, kBulkDeleteSprocName);
+            await CreateSprocIfNotExists(id, BulkUpdateSprocName);
+            await CreateSprocIfNotExists(id, BulkDeleteSprocName);
             return collection.Resource;
         }
 
-        internal const string kBulkUpdateSprocName = "bulkUpdate";
-        internal const string kBulkDeleteSprocName = "bulkDelete";
+        internal const string BulkUpdateSprocName = "bulkUpdate";
+        internal const string BulkDeleteSprocName = "bulkDelete";
 
         /// <summary>
         /// Create stored procedures

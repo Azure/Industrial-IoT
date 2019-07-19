@@ -19,8 +19,9 @@ namespace Newtonsoft.Json.Linq {
         /// </summary>
         /// <param name="token"></param>
         /// <returns></returns>
-        public static string ToSha1Hash(this JToken token) =>
-            token.ToString(Formatting.None).ToSha1Hash();
+        public static string ToSha1Hash(this JToken token) {
+            return token.ToString(Formatting.None).ToSha1Hash();
+        }
 
         /// <summary>
         /// Creates a comparable bson buffer from token
@@ -109,8 +110,9 @@ namespace Newtonsoft.Json.Linq {
         /// <param name="defaultValue"></param>
         /// <returns></returns>
         public static T GetValueOrDefault<T>(this JToken t,
-            string key, T defaultValue) =>
-            GetValueOrDefault(t, key, () => defaultValue);
+            string key, T defaultValue) {
+            return GetValueOrDefault(t, key, () => defaultValue);
+        }
 
         /// <summary>
         /// Helper to get values from object
@@ -120,8 +122,9 @@ namespace Newtonsoft.Json.Linq {
         /// <param name="key"></param>
         /// <returns></returns>
         public static T GetValueOrDefault<T>(this JToken t,
-            string key) =>
-            GetValueOrDefault(t, key, () => default(T));
+            string key) {
+            return GetValueOrDefault(t, key, () => default(T));
+        }
 
         /// <summary>
         /// Helper to get values from object
@@ -153,8 +156,9 @@ namespace Newtonsoft.Json.Linq {
         /// <param name="defaultValue"></param>
         /// <returns></returns>
         public static T? GetValueOrDefault<T>(this JToken t,
-            string key, T? defaultValue) where T : struct =>
-            GetValueOrDefault(t, key, () => defaultValue);
+            string key, T? defaultValue) where T : struct {
+            return GetValueOrDefault(t, key, () => defaultValue);
+        }
 
         /// <summary>
         /// Helper to get values from object

@@ -19,7 +19,9 @@ namespace Microsoft.Azure.IIoT.Net.Ssh {
         /// </summary>
         /// <returns></returns>
         public static Task BindAsync(this ISecureShell shell,
-            CancellationToken ct) => BindAsync(shell, false, ct);
+            CancellationToken ct) {
+            return BindAsync(shell, false, ct);
+        }
 
         /// <summary>
         /// Bind shell to terminal/console
@@ -73,19 +75,19 @@ namespace Microsoft.Azure.IIoT.Net.Ssh {
         /// Windows interop
         /// </summary>
         [DllImport("kernel32.dll", SetLastError = true)]
-        static extern IntPtr GetStdHandle(int nStdHandle);
+        private static extern IntPtr GetStdHandle(int nStdHandle);
         [DllImport("kernel32.dll")]
-        static extern bool GetConsoleMode(IntPtr hConsoleHandle, out uint lpMode);
+        private static extern bool GetConsoleMode(IntPtr hConsoleHandle, out uint lpMode);
         [DllImport("kernel32.dll")]
-        static extern bool SetConsoleMode(IntPtr hConsoleHandle, uint dwMode);
+        private static extern bool SetConsoleMode(IntPtr hConsoleHandle, uint dwMode);
 
         /// <summary>
         /// Enable vterm mode on windows anniversary edition
         /// </summary>
-        static void EnableVtermOnWindows10AnniversaryEdition(
+        private static void EnableVtermOnWindows10AnniversaryEdition(
             out uint oldinput, out uint oldOutput) {
             // Enable virtual output
-            var handle = GetStdHandle(k_STD_OUTPUT_HANDLE);
+            var handle = GetStdHandle(kStdOut);
             GetConsoleMode(handle, out oldOutput);
             const uint k_DISABLE_NEWLINE_AUTO_RETURN = 0x8;
             const uint k_ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x4;
@@ -94,7 +96,7 @@ namespace Microsoft.Azure.IIoT.Net.Ssh {
                 k_DISABLE_NEWLINE_AUTO_RETURN);
 
             // Enable virtual input
-            handle = GetStdHandle(k_STD_INPUT_HANDLE);
+            handle = GetStdHandle(kStdIn);
             GetConsoleMode(handle, out oldinput);
             const uint kENABLE_VIRTUAL_TERMINAL_INPUT = 0x200;
             SetConsoleMode(handle, oldinput |
@@ -104,15 +106,15 @@ namespace Microsoft.Azure.IIoT.Net.Ssh {
         /// <summary>
         /// Set input and output modes
         /// </summary>
-        static void RestoreConsoleModes(
+        private static void RestoreConsoleModes(
             uint input, uint output) {
-            var handle = GetStdHandle(k_STD_OUTPUT_HANDLE);
+            var handle = GetStdHandle(kStdOut);
             SetConsoleMode(handle, output);
-            handle = GetStdHandle(k_STD_INPUT_HANDLE);
+            handle = GetStdHandle(kStdIn);
             SetConsoleMode(handle, input);
         }
 
-        const int k_STD_OUTPUT_HANDLE = -11;
-        const int k_STD_INPUT_HANDLE = -10;
+        private const int kStdOut = -11;
+        private const int kStdIn = -10;
     }
 }

@@ -21,8 +21,9 @@ namespace Microsoft.Azure.IIoT.Infrastructure {
         /// <returns></returns>
         public static Task<IResourceGroupResource> CreateAsync(
             this IResourceGroupFactory service, string resourceGroup,
-            bool deleteOnDispose) =>
-            service.CreateAsync(resourceGroup, deleteOnDispose, null);
+            bool deleteOnDispose) {
+            return service.CreateAsync(resourceGroup, deleteOnDispose, null);
+        }
 
         /// <summary>
         /// create randomly named resource group
@@ -31,8 +32,9 @@ namespace Microsoft.Azure.IIoT.Infrastructure {
         /// <param name="deleteOnDispose"></param>
         /// <returns></returns>
         public static Task<IResourceGroupResource> CreateAsync(
-            this IResourceGroupFactory service, bool deleteOnDispose) =>
-            service.CreateAsync(null, deleteOnDispose);
+            this IResourceGroupFactory service, bool deleteOnDispose) {
+            return service.CreateAsync(null, deleteOnDispose);
+        }
 
         /// <summary>
         /// create named resource group that is non auto-delete
@@ -44,8 +46,9 @@ namespace Microsoft.Azure.IIoT.Infrastructure {
         /// <returns></returns>
         public static Task<IResourceGroupResource> CreateAsync(
             this IResourceGroupFactory service, string resourceGroup,
-            ISubscriptionInfo subscription) =>
-            service.CreateAsync(resourceGroup, false, subscription);
+            ISubscriptionInfo subscription) {
+            return service.CreateAsync(resourceGroup, false, subscription);
+        }
 
         /// <summary>
         /// create non auto-delete on dispose resource group
@@ -54,8 +57,9 @@ namespace Microsoft.Azure.IIoT.Infrastructure {
         /// <param name="resourceGroup"></param>
         /// <returns></returns>
         public static Task<IResourceGroupResource> CreateAsync(
-            this IResourceGroupFactory service, string resourceGroup) =>
-            service.CreateAsync(resourceGroup, false);
+            this IResourceGroupFactory service, string resourceGroup) {
+            return service.CreateAsync(resourceGroup, false);
+        }
 
         /// <summary>
         /// create non auto-delete on dispose randomly named
@@ -64,8 +68,9 @@ namespace Microsoft.Azure.IIoT.Infrastructure {
         /// <param name="service"></param>
         /// <returns></returns>
         public static Task<IResourceGroupResource> CreateAsync(
-            this IResourceGroupFactory service) =>
-            service.CreateAsync(null, false);
+            this IResourceGroupFactory service) {
+            return service.CreateAsync(null, false);
+        }
 
         /// <summary>
         /// Get non auto-delete on dispose resource group
@@ -76,8 +81,9 @@ namespace Microsoft.Azure.IIoT.Infrastructure {
         /// <returns></returns>
         public static Task<IResourceGroupResource> GetAsync(
             this IResourceGroupFactory service, string resourceGroup,
-            ISubscriptionInfo subscription) =>
-            service.GetAsync(resourceGroup, false, subscription);
+            ISubscriptionInfo subscription) {
+            return service.GetAsync(resourceGroup, false, subscription);
+        }
 
         /// <summary>
         /// Get named resource group
@@ -88,8 +94,9 @@ namespace Microsoft.Azure.IIoT.Infrastructure {
         /// <returns></returns>
         public static Task<IResourceGroupResource> GetAsync(
             this IResourceGroupFactory service, string resourceGroup,
-            bool deleteOnDispose) =>
-            service.GetAsync(resourceGroup, deleteOnDispose, null);
+            bool deleteOnDispose) {
+            return service.GetAsync(resourceGroup, deleteOnDispose, null);
+        }
 
         /// <summary>
         /// Get non auto-delete on dispose resource group
@@ -98,8 +105,9 @@ namespace Microsoft.Azure.IIoT.Infrastructure {
         /// <param name="resourceGroup"></param>
         /// <returns></returns>
         public static Task<IResourceGroupResource> GetAsync(
-            this IResourceGroupFactory service, string resourceGroup) =>
-            service.GetAsync(resourceGroup, false);
+            this IResourceGroupFactory service, string resourceGroup) {
+            return service.GetAsync(resourceGroup, false);
+        }
 
         /// <summary>
         /// Get or create new  named resource group

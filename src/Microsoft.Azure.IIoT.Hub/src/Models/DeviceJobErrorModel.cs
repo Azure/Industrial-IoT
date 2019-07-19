@@ -9,8 +9,7 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
     /// <summary>
     /// Potential error during job execution on device
     /// </summary>
-    public class DeviceJobErrorModel
-    {
+    public class DeviceJobErrorModel {
         /// <summary>
         /// Error code
         /// </summary>

@@ -28,7 +28,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Hub.Services {
         /// <param name="creds"></param>
         /// <param name="logger"></param>
         public IoTHubFactory(ICredentialProvider creds, ILogger logger) :
-            base (creds, logger) {
+            base(creds, logger) {
         }
 
         /// <inheritdoc/>
@@ -40,19 +40,20 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Hub.Services {
             if (string.IsNullOrEmpty(hubName)) {
                 throw new ArgumentNullException(nameof(hubName));
             }
-            var client = await CreateIoTHubClientAsync(resourceGroup);
-            var hub = await client.IotHubResource.GetAsync(
-                resourceGroup.Name, hubName);
-            if (hub == null) {
-                return null;
+            using (var client = await CreateIoTHubClientAsync(resourceGroup)) {
+                var hub = await client.IotHubResource.GetAsync(
+                    resourceGroup.Name, hubName);
+                if (hub == null) {
+                    return null;
+                }
+                var keys = await client.IotHubResource.GetKeysForKeyNameAsync(
+                    resourceGroup.Name, hubName, kIoTHubOwner);
+                if (keys == null) {
+                    return null;
+                }
+                return new IoTHubResource(this, resourceGroup, hubName,
+                    hub.Properties, _logger, keys);
             }
-            var keys = await client.IotHubResource.GetKeysForKeyNameAsync(
-                resourceGroup.Name, hubName, kIoTHubOwner);
-            if (keys == null) {
-                return null;
-            }
-            return new IoTHubResource(this, resourceGroup, hubName,
-                hub.Properties, _logger, keys);
         }
 
         /// <inheritdoc/>
@@ -62,63 +63,64 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Hub.Services {
                 throw new ArgumentNullException(nameof(resourceGroup));
             }
 
-            var client = await CreateIoTHubClientAsync(resourceGroup);
+            using (var client = await CreateIoTHubClientAsync(resourceGroup)) {
 
-            // Check quota
-            var quota = await client.ResourceProviderCommon
-                .GetSubscriptionQuotaAsync();
-            var limit = quota.Value
-                .FirstOrDefault(x => x.Name.Value.Equals("paidIotHubCount"));
-            if (limit?.Limit == limit?.CurrentValue) {
-                throw new ExternalDependencyException(
-                    $"Subscription limit reached at {limit?.Limit ?? -1}");
-            }
+                // Check quota
+                var quota = await client.ResourceProviderCommon
+                    .GetSubscriptionQuotaAsync();
+                var limit = quota.Value
+                    .FirstOrDefault(x => x.Name.Value.Equals("paidIotHubCount"));
+                if (limit?.Limit == limit?.CurrentValue) {
+                    throw new ExternalDependencyException(
+                        $"Subscription limit reached at {limit?.Limit ?? -1}");
+                }
 
-            // Check name - null means we need to create one
-            if (string.IsNullOrEmpty(hubName)) {
-                while (true) {
-                    hubName = StringEx.CreateUnique(10, "iothub");
-                    var result = client.IotHubResource.CheckNameAvailability(
-                        new OperationInputs { Name = hubName });
-                    if (result.NameAvailable ?? false) {
-                        break;
+                // Check name - null means we need to create one
+                if (string.IsNullOrEmpty(hubName)) {
+                    while (true) {
+                        hubName = StringEx.CreateUnique(10, "iothub");
+                        var result = client.IotHubResource.CheckNameAvailability(
+                            new OperationInputs { Name = hubName });
+                        if (result.NameAvailable ?? false) {
+                            break;
+                        }
                     }
                 }
-            }
-            else {
-                var result = client.IotHubResource.CheckNameAvailability(
-                    new OperationInputs { Name = hubName });
-                if (!(result.NameAvailable ?? false)) {
-                    throw new ArgumentException("hub exists with this name",
-                        nameof(hubName));
+                else {
+                    var result = client.IotHubResource.CheckNameAvailability(
+                        new OperationInputs { Name = hubName });
+                    if (!(result.NameAvailable ?? false)) {
+                        throw new ArgumentException("hub exists with this name",
+                            nameof(hubName));
+                    }
                 }
-            }
 
-            // Create hub
-            var hub = await client.IotHubResource.CreateOrUpdateAsync(
-                resourceGroup.Name, hubName, new IotHubDescription {
-                    Location = await resourceGroup.Subscription.GetRegionAsync(),
-                    Sku = new IotHubSkuInfo {
-                        Name = IotHubSku.S1,
-                        Capacity = 1
-                    },
-                    Properties = new IotHubProperties {
-                        AuthorizationPolicies =
-                            new List<SharedAccessSignatureAuthorizationRule> {
+                // Create hub
+                var hub = await client.IotHubResource.CreateOrUpdateAsync(
+                    resourceGroup.Name, hubName, new IotHubDescription {
+                        Location = await resourceGroup.Subscription.GetRegionAsync(),
+                        Sku = new IotHubSkuInfo {
+                            Name = IotHubSku.S1,
+                            Capacity = 1
+                        },
+                        Properties = new IotHubProperties {
+                            AuthorizationPolicies =
+                                new List<SharedAccessSignatureAuthorizationRule> {
                                 new SharedAccessSignatureAuthorizationRule (
                                     kIoTHubOwner,
             AccessRights.RegistryReadRegistryWriteServiceConnectDeviceConnect)
-                    }
-                    }
-                });
+                        }
+                        }
+                    });
 
-            _logger.Information("Created iot hub {hubName} in resource " +
-                "group {resourceGroup}...", hubName, resourceGroup.Name);
+                _logger.Information("Created iot hub {hubName} in resource " +
+                    "group {resourceGroup}...", hubName, resourceGroup.Name);
 
-            var keys = await client.IotHubResource.GetKeysForKeyNameAsync(
-                resourceGroup.Name, hubName, kIoTHubOwner);
-            return new IoTHubResource(this, resourceGroup, hubName,
-                hub.Properties, _logger, keys);
+                var keys = await client.IotHubResource.GetKeysForKeyNameAsync(
+                    resourceGroup.Name, hubName, kIoTHubOwner);
+                return new IoTHubResource(this, resourceGroup, hubName,
+                    hub.Properties, _logger, keys);
+            }
         }
 
         /// <summary>
@@ -174,11 +176,12 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Hub.Services {
             public async Task<bool> IsHealthyAsync() {
                 try {
                     // Check health
-                    var client = await _manager.CreateIoTHubClientAsync(_resourceGroup);
-                    var eps = await client.IotHubResource.GetEndpointHealthAsync(
-                        _resourceGroup.Name, Name);
-                    return eps.All(q => q.HealthStatus.Equals("healthy",
-                        StringComparison.OrdinalIgnoreCase));
+                    using (var client = await _manager.CreateIoTHubClientAsync(_resourceGroup)) {
+                        var eps = await client.IotHubResource.GetEndpointHealthAsync(
+                            _resourceGroup.Name, Name);
+                        return eps.All(q => q.HealthStatus.Equals("healthy",
+                            StringComparison.OrdinalIgnoreCase));
+                    }
                 }
                 catch (Exception ex) {
                     _manager._logger.Error(ex, "Exception during health check");
@@ -190,9 +193,10 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Hub.Services {
             public async Task DeleteAsync() {
                 try {
                     _logger.Information("Deleting iot hub {Name}...", Name);
-                    var client = await _manager.CreateIoTHubClientAsync(_resourceGroup);
-                    await client.IotHubResource.DeleteAsync(_resourceGroup.Name, Name);
-                    _logger.Information("iot hub {Name} deleted.", Name);
+                    using (var client = await _manager.CreateIoTHubClientAsync(_resourceGroup)) {
+                        await client.IotHubResource.DeleteAsync(_resourceGroup.Name, Name);
+                        _logger.Information("iot hub {Name} deleted.", Name);
+                    }
                 }
                 catch (Exception ex) {
                     _manager._logger.Error(ex, "Exception during delete of iot hub");
@@ -202,7 +206,9 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Hub.Services {
             private readonly IResourceGroupResource _resourceGroup;
             private readonly ILogger _logger;
             private readonly IoTHubFactory _manager;
+#pragma warning disable IDE0052 // Remove unread private members
             private readonly IotHubProperties _properties;
+#pragma warning restore IDE0052 // Remove unread private members
         }
 
         /// <summary>

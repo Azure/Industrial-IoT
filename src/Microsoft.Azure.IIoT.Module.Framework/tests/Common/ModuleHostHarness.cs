@@ -4,21 +4,22 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
-    using Autofac;
-    using AutofacSerilogIntegration;
-    using Microsoft.Azure.IIoT.Hub;
+    using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Hub.Mock;
     using Microsoft.Azure.IIoT.Hub.Models;
+    using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Microsoft.Azure.IIoT.Module.Framework.Services;
     using Microsoft.Azure.IIoT.Utils;
+    using Autofac;
+    using AutofacSerilogIntegration;
     using System;
     using System.Collections.Generic;
     using System.Text;
     using System.Threading.Tasks;
     using Xunit;
 
-    public class ModuleHostHarness { 
+    public class ModuleHostHarness {
 
         /// <summary>
         /// Module test harness
@@ -36,7 +37,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 var services = hubContainer.Resolve<IIoTHubTwinServices>();
 
                 // Create module
-                var twin = await services.CreateOrUpdateAsync(new DeviceTwinModel {
+                var twin = await services.CreateAsync(new DeviceTwinModel {
                     Id = "TestDevice",
                     ModuleId = "TestModule"
                 });

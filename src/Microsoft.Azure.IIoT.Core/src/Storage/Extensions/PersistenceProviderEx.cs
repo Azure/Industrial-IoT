@@ -42,8 +42,8 @@ namespace Microsoft.Azure.IIoT.Storage {
         /// <param name="task"></param>
         /// <returns></returns>
         public static Task<T> RunTaskAsync<T>(this IPersistenceProvider provider,
-            string id, Func<string, Task<T>> task) =>
-            provider.RunTaskAsync(id, task, StringEx.CreateUnique(10, id));
-
+            string id, Func<string, Task<T>> task) {
+            return provider.RunTaskAsync(id, task, StringEx.CreateUnique(10, id));
+        }
     }
 }

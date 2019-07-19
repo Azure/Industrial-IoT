@@ -8,7 +8,6 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
     using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Microsoft.Azure.Devices.Client;
     using Microsoft.Azure.Devices.Shared;
-    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -35,10 +34,8 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
         /// </summary>
         /// <param name="hub">Outer hub abstraction</param>
         /// <param name="config">Module framework configuration</param>
-        /// <param name="logger">Optional logger</param>
-        public IoTHubClientFactory(IIoTHub hub, IModuleConfig config, ILogger logger) {
+        public IoTHubClientFactory(IIoTHub hub, IModuleConfig config) {
             _hub = hub ?? throw new ArgumentNullException(nameof(hub));
-            _logger = logger ?? Log.Logger;
             if (string.IsNullOrEmpty(config.EdgeHubConnectionString)) {
                 throw new InvalidConfigurationException(
                     "Must have connection string or module id to create clients.");
@@ -231,10 +228,11 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
                 new Dictionary<string, (MethodCallback, object)>();
             private readonly List<(DesiredPropertyUpdateCallback, object)> _properties =
                 new List<(DesiredPropertyUpdateCallback, object)>();
+#pragma warning disable IDE0052 // Remove unread private members
             private readonly IProcessControl _ctrl;
+#pragma warning restore IDE0052 // Remove unread private members
         }
 
-        private readonly ILogger _logger;
         private readonly IIoTHub _hub;
     }
 }

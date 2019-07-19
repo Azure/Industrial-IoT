@@ -8,15 +8,20 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
     using Microsoft.Azure.Services.AppAuthentication;
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Authenticate using azure service token provider.  This can be used for where you
-    /// would not have a token from a logged on user, e.g. in deamon or service to service
-    /// scenarios.
-    /// This provider works for development, managed service identity and service principal
-    /// scenarios.  It can optionally be configured using a connection string provided as
-    /// environment variable or injected configuration.  For more information check out
+    /// Authenticate using azure service token provider. This can be
+    /// used for where you would not have a token from a logged on user,
+    /// e.g. in deamon or service to service scenarios.
+    ///
+    /// This provider works for development, managed service identity
+    /// and service principal scenarios.  It can optionally be
+    /// configured using a connection string provided as environment
+    /// variable or injected configuration.
+    ///
+    /// For more information check out
     /// https://docs.microsoft.com/en-us/azure/key-vault/service-to-service-authentication
     /// </summary>
     public class AppAuthenticationProvider : ITokenProvider {
@@ -45,19 +50,23 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         /// <returns></returns>
         public async Task<TokenResultModel> GetTokenForAsync(string resource,
             IEnumerable<string> scopes) {
-            var token = await _provider.GetAccessTokenAsync(resource,
-                _config?.AppSecret ?? _config?.TenantId);
+            var token = await _provider.KeyVaultTokenCallback(
+                _config.GetAuthorityUrl(), resource, scopes.FirstOrDefault());
             return TokenResultModelEx.Parse(token);
         }
 
         /// <inheritdoc/>
-        public Task InvalidateAsync(string resource) => Task.CompletedTask;
+        public Task InvalidateAsync(string resource) {
+            return Task.CompletedTask;
+        }
 
         /// <summary>
         /// Have inheriting class override the runas string.
         /// </summary>
         /// <returns></returns>
-        protected virtual string NoClientIdRunAs() => null;
+        protected virtual string NoClientIdRunAs() {
+            return null;
+        }
 
         /// <summary>
         /// Helper to create provider

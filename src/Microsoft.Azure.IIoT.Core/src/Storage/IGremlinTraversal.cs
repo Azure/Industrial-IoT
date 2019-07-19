@@ -30,9 +30,9 @@ namespace Microsoft.Azure.IIoT.Storage {
         /// </summary>
         /// <param name="gremlin"></param>
         /// <param name="pageSize"></param>
-        /// <param name="partitionKey"></param>
+        /// <param name="options"></param>
         /// <returns></returns>
         IResultFeed<T> Submit<T>(ITraversal gremlin,
-            int? pageSize = null, string partitionKey = null);
+            int? pageSize = null, OperationOptions options = null);
     }
 }

@@ -11,6 +11,11 @@ namespace Microsoft.Azure.IIoT.Storage {
     public interface IItemContainer {
 
         /// <summary>
+        /// Name of the container
+        /// </summary>
+        string Name { get; }
+
+        /// <summary>
         /// Presents the items as documents
         /// </summary>
         /// <exception cref="System.NotSupportedException" />

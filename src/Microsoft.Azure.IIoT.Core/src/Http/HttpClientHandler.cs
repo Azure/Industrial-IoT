@@ -27,7 +27,7 @@ namespace Microsoft.Azure.IIoT.Http.Default {
         protected override Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request, CancellationToken cancellationToken) {
             if (request.Headers.TryGetValues(HttpHeader.UdsPath, out var paths)) {
-                return SendOverUnixDomainSocketAsync(paths.FirstOrDefault(), request, 
+                return SendOverUnixDomainSocketAsync(paths.FirstOrDefault(), request,
                     cancellationToken);
             }
             return base.SendAsync(request, cancellationToken);
@@ -40,7 +40,7 @@ namespace Microsoft.Azure.IIoT.Http.Default {
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        private async Task<HttpResponseMessage> SendOverUnixDomainSocketAsync(string udsPath, 
+        private async Task<HttpResponseMessage> SendOverUnixDomainSocketAsync(string udsPath,
             HttpRequestMessage request, CancellationToken ct) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
@@ -130,7 +130,7 @@ namespace Microsoft.Azure.IIoT.Http.Default {
                 throw new HttpRequestException("Status line is not valid.");
             }
             var httpVersion = statusParts[0].Split(new[] { kProtoVersionSep }, 2);
-            if (httpVersion.Length < 2 || 
+            if (httpVersion.Length < 2 ||
                 !Version.TryParse(httpVersion[1], out var version)) {
                 throw new HttpRequestException(
                     $"Version is not valid {statusParts[0]}.");
@@ -236,26 +236,29 @@ namespace Microsoft.Azure.IIoT.Http.Default {
                 for (var index = 0; index < _encodedPath.Length; index++) {
                     result[s_nativePathOffset + index] = _encodedPath[index];
                 }
-                result[s_nativePathOffset + _encodedPath.Length] = 0; 
+                result[s_nativePathOffset + _encodedPath.Length] = 0;
                 // path must be null-terminated
                 return result;
             }
 
             /// <inheritdoc/>
-            public override EndPoint Create(SocketAddress socketAddress) =>
-                new UdsEndPoint(socketAddress);
+            public override EndPoint Create(SocketAddress socketAddress) {
+                return new UdsEndPoint(socketAddress);
+            }
 
             /// <inheritdoc/>
             public override AddressFamily AddressFamily => AddressFamily.Unix;
 
             /// <inheritdoc/>
-            public override string ToString() => _path;
+            public override string ToString() {
+                return _path;
+            }
 
             private static readonly int s_nativePathOffset = 2;
             // = offsetof(struct sockaddr_un, sun_path). It's the same on Linux and OSX
             private static readonly int s_nativePathLength = 91;
-            // sockaddr_un.sun_path 
-            // at http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/sys_un.h.html, 
+            // sockaddr_un.sun_path
+            // at http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/sys_un.h.html,
             // -1 for terminator
             private static readonly int s_nativeAddressSize =
                 s_nativePathOffset + s_nativePathLength;
@@ -273,7 +276,7 @@ namespace Microsoft.Azure.IIoT.Http.Default {
             /// Create string
             /// </summary>
             /// <param name="stream"></param>
-            public HttpLineReader(Stream stream) : 
+            public HttpLineReader(Stream stream) :
                 base(new BufferedStream(stream)) {
             }
 

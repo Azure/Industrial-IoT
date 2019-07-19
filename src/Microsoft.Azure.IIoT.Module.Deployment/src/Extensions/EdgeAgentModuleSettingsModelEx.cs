@@ -18,8 +18,9 @@ namespace Microsoft.Azure.IIoT.Module.Deployment.Models {
         /// <param name="model"></param>
         /// <param name="createOptions"></param>
         public static void SetCreateOptions(this EdgeAgentModuleSettingsModel model,
-            CreateContainerParameters createOptions) =>
+            CreateContainerParameters createOptions) {
             model.CreateOptions = JsonConvertEx.SerializeObject(createOptions);
+        }
 
         /// <summary>
         /// Create with creation options
@@ -30,8 +31,9 @@ namespace Microsoft.Azure.IIoT.Module.Deployment.Models {
         /// <param name="createOptions"></param>
         /// <returns></returns>
         public static EdgeAgentModuleSettingsModel Create(string registry, string imageName,
-            string version, CreateContainerParameters createOptions) =>
-            Create($"{registry}/{imageName}:{version ?? "latest"}", createOptions);
+            string version, CreateContainerParameters createOptions) {
+            return Create($"{registry}/{imageName}:{version ?? "latest"}", createOptions);
+        }
 
         /// <summary>
         /// Create with creation options
@@ -41,8 +43,9 @@ namespace Microsoft.Azure.IIoT.Module.Deployment.Models {
         /// <param name="createOptions"></param>
         /// <returns></returns>
         public static EdgeAgentModuleSettingsModel Create(string imageName,
-            string version, CreateContainerParameters createOptions) =>
-            Create($"{imageName}:{version ?? "latest"}", createOptions);
+            string version, CreateContainerParameters createOptions) {
+            return Create($"{imageName}:{version ?? "latest"}", createOptions);
+        }
 
         /// <summary>
         /// Create with creation options

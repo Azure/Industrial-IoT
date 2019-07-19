@@ -130,7 +130,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         /// <returns></returns>
         Task<MethodResponse> InvokeMethodAsync(string deviceId, string moduleId,
             MethodRequest methodRequest,
-            CancellationToken cancellationToken = default(CancellationToken));
+            CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Interactively invokes a method on a device.
@@ -141,7 +141,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         /// <returns></returns>
         Task<MethodResponse> InvokeMethodAsync(string deviceId,
             MethodRequest methodRequest,
-            CancellationToken cancellationToken = default(CancellationToken));
+            CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Create a new stream
@@ -154,7 +154,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         /// <returns></returns>
         Task<Stream> CreateStreamAsync(string streamName, string hostName,
             ushort port,
-            CancellationToken cancellationToken = default(CancellationToken));
+            CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Close the DeviceClient instance

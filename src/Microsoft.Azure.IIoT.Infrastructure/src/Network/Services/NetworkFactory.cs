@@ -27,7 +27,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Network.Services {
         /// <param name="creds"></param>
         /// <param name="logger"></param>
         public NetworkFactory(ICredentialProvider creds, ILogger logger) :
-            base (creds, logger) {
+            base(creds, logger) {
         }
 
         /// <inheritdoc/>

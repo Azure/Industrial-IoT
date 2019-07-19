@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.Hub.Services {
     using Microsoft.Azure.IIoT.Hub;
-    using Serilog;
     using Microsoft.Azure.IIoT.Utils;
     using System;
     using System.Collections.Generic;
@@ -21,10 +20,7 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
         /// Create processor factory
         /// </summary>
         /// <param name="handlers"></param>
-        /// <param name="logger"></param>
-        public IoTHubDeviceEventHandler(IEnumerable<IDeviceEventHandler> handlers,
-            ILogger logger) {
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        public IoTHubDeviceEventHandler(IEnumerable<IDeviceEventHandler> handlers) {
             if (handlers == null) {
                 throw new ArgumentNullException(nameof(handlers));
             }
@@ -62,7 +58,6 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
 
         private readonly HashSet<IDeviceEventHandler> _used =
             new HashSet<IDeviceEventHandler>();
-        private readonly ILogger _logger;
         private readonly Dictionary<string, IDeviceEventHandler> _handlers;
     }
 }

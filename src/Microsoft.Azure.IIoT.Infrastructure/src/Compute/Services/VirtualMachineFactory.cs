@@ -36,7 +36,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Compute.Services {
         /// <param name="logger"></param>
         public VirtualMachineFactory(ICredentialProvider creds,
             ISubscriptionInfoSelector selector, ILogger logger) :
-            this (creds, selector, null, logger) {
+            this(creds, selector, null, logger) {
         }
 
         /// <summary>
@@ -48,7 +48,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Compute.Services {
         /// <param name="logger"></param>
         public VirtualMachineFactory(ICredentialProvider creds,
             ISubscriptionInfoSelector selector, IShellFactory shell,
-            ILogger logger) : base (creds, logger) {
+            ILogger logger) : base(creds, logger) {
             _shell = shell ??
                 throw new ArgumentNullException(nameof(shell));
             _selector = selector ??
@@ -72,7 +72,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Compute.Services {
                 return null;
             }
 
-            var user = VirtualMachineResource.kDefaultUser;
+            var user = VirtualMachineResource.DefaultUser;
             var pw = "Vm$" + name.ToSha1Hash().Substring(0, 3);
 
             return new VirtualMachineResource(this, resourceGroup, vm,
@@ -92,7 +92,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Compute.Services {
             name = await client.VirtualMachines.SelectResourceNameAsync(resourceGroup.Name,
                 "vm", name);
 
-            var user = VirtualMachineResource.kDefaultUser;
+            var user = VirtualMachineResource.DefaultUser;
             var pw = "Vm$" + name.ToSha1Hash().Substring(0, 3);
 
             if (image == null) {
@@ -211,7 +211,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Compute.Services {
         /// </summary>
         private class VirtualMachineResource : IVirtualMachineResource {
 
-            public const string kDefaultUser = "sshuser";
+            public const string DefaultUser = "sshuser";
 
             /// <summary>
             /// Create resource
@@ -355,8 +355,9 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Compute.Services {
                 }
             }
 
-            public Task RestartAsync() =>
-                _vm.RestartAsync();
+            public Task RestartAsync() {
+                return _vm.RestartAsync();
+            }
 
             private readonly IResourceGroupResource _resourceGroup;
             private readonly IVirtualMachine _vm;
@@ -412,38 +413,38 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Compute.Services {
             }
         }
 
-    //  /// <summary>
-    //  /// Helper to select vm size
-    //  /// </summary>
-    //  /// <param name="resourceGroup"></param>
-    //  /// <param name="client"></param>
-    //  /// <returns></returns>
-    //  private static async Task<string> SelectVmSizeAsync2(
-    //      IResourceGroupResource resourceGroup, IAzure client) {
-    //      var skus = await client.ComputeSkus.ListbyRegionAndResourceTypeAsync(
-    //          Region.Create(resourceGroup.Subscription.Region),
-    //          ComputeResourceType.VirtualMachines);
-    //      var skuSizeRestrictions = skus
-    //          .Where(s => s.ResourceType == ComputeResourceType.VirtualMachines)
-    //          .Where(s => s.Restrictions
-    //              .Where(r => r.Type == ResourceSkuRestrictionsType.Location)
-    //              .Any(r => r.Values.Contains(resourceGroup.Subscription.Region)))
-    //          .ToDictionary(s => s.VirtualMachineSizeType.Value, s => s.Restrictions);
-    //
-    //      var sizes = await client.VirtualMachines.Sizes.ListByRegionAsync(
-    //          resourceGroup.Subscription.Region);
-    //      var candidates = sizes
-    //          .Where(s => !skuSizeRestrictions.ContainsKey(s.Name))
-    //          .Where(s => s.MemoryInMB >= 4 * 1024)
-    //          .Where(s => s.NumberOfCores >= 4)
-    //          .Where(s => s.OSDiskSizeInMB >= 256 * 1024)
-    //          .OrderBy(s => s.MemoryInMB);
-    //      var vmSize = candidates.FirstOrDefault();
-    //      if (vmSize == null) {
-    //          throw new ExternalDependencyException("No sizes available.");
-    //      }
-    //      return vmSize.Name;
-    //    }
+        //  /// <summary>
+        //  /// Helper to select vm size
+        //  /// </summary>
+        //  /// <param name="resourceGroup"></param>
+        //  /// <param name="client"></param>
+        //  /// <returns></returns>
+        //  private static async Task<string> SelectVmSizeAsync2(
+        //      IResourceGroupResource resourceGroup, IAzure client) {
+        //      var skus = await client.ComputeSkus.ListbyRegionAndResourceTypeAsync(
+        //          Region.Create(resourceGroup.Subscription.Region),
+        //          ComputeResourceType.VirtualMachines);
+        //      var skuSizeRestrictions = skus
+        //          .Where(s => s.ResourceType == ComputeResourceType.VirtualMachines)
+        //          .Where(s => s.Restrictions
+        //              .Where(r => r.Type == ResourceSkuRestrictionsType.Location)
+        //              .Any(r => r.Values.Contains(resourceGroup.Subscription.Region)))
+        //          .ToDictionary(s => s.VirtualMachineSizeType.Value, s => s.Restrictions);
+        //
+        //      var sizes = await client.VirtualMachines.Sizes.ListByRegionAsync(
+        //          resourceGroup.Subscription.Region);
+        //      var candidates = sizes
+        //          .Where(s => !skuSizeRestrictions.ContainsKey(s.Name))
+        //          .Where(s => s.MemoryInMB >= 4 * 1024)
+        //          .Where(s => s.NumberOfCores >= 4)
+        //          .Where(s => s.OSDiskSizeInMB >= 256 * 1024)
+        //          .OrderBy(s => s.MemoryInMB);
+        //      var vmSize = candidates.FirstOrDefault();
+        //      if (vmSize == null) {
+        //          throw new ExternalDependencyException("No sizes available.");
+        //      }
+        //      return vmSize.Name;
+        //    }
 
         /// <summary>
         /// Check whether the capabilities are satifying our configuration

@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
-    using Serilog;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Http.Exceptions;
@@ -14,23 +13,27 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
     using Microsoft.Azure.Documents.Linq;
     using Microsoft.Azure.CosmosDB.BulkExecutor;
     using Microsoft.Azure.CosmosDB.BulkExecutor.Graph;
+    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
+    using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
     using Gremlin.Net.CosmosDb;
     using Gremlin.Net.CosmosDb.Structure;
     using Gremlin.Net.Process.Traversal;
     using CosmosContainer = Documents.DocumentCollection;
-    using Newtonsoft.Json;
 
     /// <summary>
     /// Wraps a cosmos db container
     /// </summary>
-    sealed class DocumentCollection : IItemContainer, IGraph, IDocuments {
+    internal sealed class DocumentCollection : IItemContainer, IGraph, IDocuments {
+
+        /// <inheritdoc/>
+        public string Name => Container.Id;
 
         /// <summary>
         /// Wrapped document collection instance
@@ -43,34 +46,34 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
         /// <param name="db"></param>
         /// <param name="serializer"></param>
         /// <param name="container"></param>
-        /// <param name="partitioned"></param>
         /// <param name="logger"></param>
         internal DocumentCollection(DocumentDatabase db, CosmosContainer container,
-            bool partitioned, JsonSerializerSettings serializer, ILogger logger) {
+            JsonSerializerSettings serializer, ILogger logger) {
             Container = container ?? throw new ArgumentNullException(nameof(container));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _serializer = serializer;
             _db = db ?? throw new ArgumentNullException(nameof(db));
-            _partitioned = partitioned;
+            _partitioned = container.PartitionKey.Paths.Any();
         }
 
         /// <inheritdoc/>
         public IResultFeed<R> Query<T, R>(Func<IQueryable<IDocumentInfo<T>>,
-            IQueryable<R>> query, int? pageSize, string partitionKey) {
+            IQueryable<R>> query, int? pageSize, OperationOptions options) {
             if (query == null) {
                 throw new ArgumentNullException(nameof(query));
             }
-            var pk = _partitioned || string.IsNullOrEmpty(partitionKey) ? null :
-                new PartitionKey(partitionKey);
+            var pk = _partitioned || string.IsNullOrEmpty(options?.PartitionKey) ? null :
+                new PartitionKey(options.PartitionKey);
             var result = query(_db.Client.CreateDocumentQuery<Document>(
                 UriFactory.CreateDocumentCollectionUri(_db.DatabaseId, Container.Id),
                    new FeedOptions {
                        MaxDegreeOfParallelism = 8,
-                       MaxItemCount = pageSize ?? - 1,
+                       MaxItemCount = pageSize ?? -1,
                        PartitionKey = pk,
+                       ConsistencyLevel = options?.Consistency.ToConsistencyLevel(),
                        EnableCrossPartitionQuery = pk == null
                    }).Select(d => (IDocumentInfo<T>)new DocumentInfo<T>(d)));
-            return new DocumentFeed<R>(result.AsDocumentQuery(), _logger);
+            return new DocumentResultFeed<R>(result.AsDocumentQuery(), _logger);
         }
 
         /// <inheritdoc/>
@@ -96,16 +99,20 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
         }
 
         /// <inheritdoc/>
-        public IDocuments AsDocuments() =>
-            this;
+        public IDocuments AsDocuments() {
+            return this;
+        }
 
         /// <inheritdoc/>
-        public IGraph AsGraph() =>
-            this;
+        public IGraph AsGraph() {
+            return this;
+        }
 
         /// <inheritdoc/>
-        public ISqlClient OpenSqlClient() => new DocumentQuery(
-            _db.Client, _db.DatabaseId, Container.Id, _partitioned, _logger);
+        public ISqlClient OpenSqlClient() {
+            return new DocumentQuery(
+                _db.Client, _db.DatabaseId, Container.Id, _partitioned, _logger);
+        }
 
         /// <inheritdoc/>
         async Task<IGraphLoader> IGraph.CreateBulkLoader() {
@@ -124,25 +131,23 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
         /// <inheritdoc/>
         public Task<IDocumentPatcher> CreateBulkPatcher() {
             var uri = UriFactory.CreateStoredProcedureUri(_db.DatabaseId, Container.Id,
-                DocumentDatabase.kBulkUpdateSprocName);
+                DocumentDatabase.BulkUpdateSprocName);
             return Task.FromResult<IDocumentPatcher>(
                 new BulkUpdate(_db.Client, uri, _logger));
         }
 
         /// <inheritdoc/>
-        public async Task<IDocumentInfo<T>> GetAsync<T>(string id, CancellationToken ct,
-            string partitionKey) {
+        public async Task<IDocumentInfo<T>> FindAsync<T>(string id, CancellationToken ct,
+            OperationOptions options) {
             if (string.IsNullOrEmpty(id)) {
                 throw new ArgumentNullException(nameof(id));
             }
-            var pk = _partitioned || string.IsNullOrEmpty(partitionKey) ? null :
-                new PartitionKey(partitionKey);
             try {
                 return await Retry.WithExponentialBackoff(_logger, ct, async () => {
                     try {
                         return new DocumentInfo<T>(await _db.Client.ReadDocumentAsync(
                             UriFactory.CreateDocumentUri(_db.DatabaseId, Container.Id, id),
-                            new RequestOptions { PartitionKey = pk }, ct));
+                            options.ToRequestOptions(_partitioned), ct));
                     }
                     catch (Exception ex) {
                         FilterException(ex);
@@ -157,19 +162,13 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
 
         /// <inheritdoc/>
         public async Task<IDocumentInfo<T>> UpsertAsync<T>(T newItem,
-            CancellationToken ct, string id, string partitionKey, string etag) {
-            var ac = string.IsNullOrEmpty(etag) ? null : new AccessCondition {
-                Condition = etag,
-                Type = AccessConditionType.IfMatch
-            };
-            var pk = _partitioned || string.IsNullOrEmpty(partitionKey) ? null :
-                new PartitionKey(partitionKey);
+            CancellationToken ct, string id, OperationOptions options, string etag) {
             return await Retry.WithExponentialBackoff(_logger, ct, async () => {
                 try {
                     return new DocumentInfo<T>(await this._db.Client.UpsertDocumentAsync(
                         UriFactory.CreateDocumentCollectionUri(_db.DatabaseId, Container.Id),
-                        DocumentCollection.GetItem(id, newItem, partitionKey),
-                        new RequestOptions { AccessCondition = ac, PartitionKey = pk },
+                        DocumentCollection.GetItem(id, newItem, options),
+                        options.ToRequestOptions(_partitioned, etag),
                         false, ct));
                 }
                 catch (Exception ex) {
@@ -181,22 +180,18 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
 
         /// <inheritdoc/>
         public async Task<IDocumentInfo<T>> ReplaceAsync<T>(IDocumentInfo<T> existing,
-            T newItem, CancellationToken ct) {
+            T newItem, CancellationToken ct, OperationOptions options) {
             if (existing == null) {
                 throw new ArgumentNullException(nameof(existing));
             }
-            var ac = string.IsNullOrEmpty(existing.Etag) ? null : new AccessCondition {
-                Condition = existing.Etag,
-                Type = AccessConditionType.IfMatch
-            };
-            var pk = _partitioned || string.IsNullOrEmpty(existing.PartitionKey) ? null :
-                new PartitionKey(existing.PartitionKey);
+            options = options ?? new OperationOptions();
+            options.PartitionKey = existing.PartitionKey;
             return await Retry.WithExponentialBackoff(_logger, ct, async () => {
                 try {
                     return new DocumentInfo<T>(await this._db.Client.ReplaceDocumentAsync(
                         UriFactory.CreateDocumentUri(_db.DatabaseId, Container.Id, existing.Id),
-                        DocumentCollection.GetItem(existing.Id, newItem, existing.PartitionKey),
-                        new RequestOptions { AccessCondition = ac, PartitionKey = pk }, ct));
+                        DocumentCollection.GetItem(existing.Id, newItem, options),
+                        options.ToRequestOptions(_partitioned, existing.Etag), ct));
                 }
                 catch (Exception ex) {
                     FilterException(ex);
@@ -207,15 +202,13 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
 
         /// <inheritdoc/>
         public async Task<IDocumentInfo<T>> AddAsync<T>(T newItem, CancellationToken ct,
-            string id, string partitionKey) {
-            var pk = _partitioned || string.IsNullOrEmpty(partitionKey) ? null :
-                new PartitionKey(partitionKey);
+            string id, OperationOptions options) {
             return await Retry.WithExponentialBackoff(_logger, ct, async () => {
                 try {
                     return new DocumentInfo<T>(await this._db.Client.CreateDocumentAsync(
                         UriFactory.CreateDocumentCollectionUri(_db.DatabaseId, Container.Id),
-                        DocumentCollection.GetItem(id, newItem, partitionKey),
-                        new RequestOptions { PartitionKey = pk }, false, ct));
+                        DocumentCollection.GetItem(id, newItem, options),
+                        options.ToRequestOptions(_partitioned), false, ct));
                 }
                 catch (Exception ex) {
                     FilterException(ex);
@@ -225,30 +218,27 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
         }
 
         /// <inheritdoc/>
-        public Task DeleteAsync<T>(IDocumentInfo<T> item, CancellationToken ct) {
+        public Task DeleteAsync<T>(IDocumentInfo<T> item, CancellationToken ct,
+            OperationOptions options) {
             if (item == null) {
                 throw new ArgumentNullException(nameof(item));
             }
-            return DeleteAsync(item.Id, ct, item.PartitionKey, item.Etag);
+            options = options ?? new OperationOptions();
+            options.PartitionKey = item.PartitionKey;
+            return DeleteAsync(item.Id, ct, options, item.Etag);
         }
 
         /// <inheritdoc/>
         public async Task DeleteAsync(string id, CancellationToken ct,
-            string partitionKey, string etag) {
+            OperationOptions options, string etag) {
             if (string.IsNullOrEmpty(id)) {
                 throw new ArgumentNullException(nameof(id));
             }
-            var ac = string.IsNullOrEmpty(etag) ? null : new AccessCondition {
-                Condition = etag,
-                Type = AccessConditionType.IfMatch
-            };
-            var pk = _partitioned || string.IsNullOrEmpty(partitionKey) ? null :
-                new PartitionKey(partitionKey);
             await Retry.WithExponentialBackoff(_logger, ct, async () => {
                 try {
                     await _db.Client.DeleteDocumentAsync(
                         UriFactory.CreateDocumentUri(_db.DatabaseId, Container.Id, id),
-                        new RequestOptions { AccessCondition = ac, PartitionKey = pk }, ct);
+                        options.ToRequestOptions(_partitioned, etag), ct);
                 }
                 catch (Exception ex) {
                     FilterException(ex);
@@ -280,19 +270,23 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
         /// <typeparam name="T"></typeparam>
         /// <param name="id"></param>
         /// <param name="value"></param>
-        /// <param name="partitionKey"></param>
+        /// <param name="options"></param>
         /// <returns></returns>
-        private static dynamic GetItem<T>(string id, T value, string partitionKey) {
+        private static dynamic GetItem<T>(string id, T value, OperationOptions options) {
             var token = JObject.FromObject(value);
-            if (partitionKey != null) {
-                token.AddOrUpdate(kPartitionKeyProperty, partitionKey);
+            if (options?.PartitionKey != null) {
+                token.AddOrUpdate(PartitionKeyProperty, options.PartitionKey);
             }
             if (id != null) {
-                token.AddOrUpdate(kIdProperty, id);
+                token.AddOrUpdate(IdProperty, id);
             }
             return token;
         }
 
+        /// <summary>
+        /// Clone client
+        /// </summary>
+        /// <returns></returns>
         private DocumentClient CloneClient() {
             // Clone client to set specific connection policy
             var client = new DocumentClient(_db.Client.ServiceEndpoint,
@@ -317,16 +311,20 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
             }
 
             /// <inheritdoc/>
-            public void Dispose() => _client.Dispose();
+            public void Dispose() {
+                _client.Dispose();
+            }
 
             /// <inheritdoc/>
-            public ITraversal V(params (string, string)[] ids) =>
-                _client.CreateTraversalSource().V(ids
+            public ITraversal V(params (string, string)[] ids) {
+                return _client.CreateTraversalSource().V(ids
                     .Select(id => (PartitionKeyIdPair)id).ToArray());
+            }
 
             /// <inheritdoc/>
-            public ITraversal E(params string[] ids) =>
-                _client.CreateTraversalSource().E(ids);
+            public ITraversal E(params string[] ids) {
+                return _client.CreateTraversalSource().E(ids);
+            }
 
             /// <inheritdoc/>
             public IResultFeed<T> Submit<T>(string gremlin,
@@ -336,7 +334,7 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
 
             /// <inheritdoc/>
             public IResultFeed<T> Submit<T>(ITraversal gremlin,
-                int? pageSize = null, string partitionKey = null) {
+                int? pageSize = null, OperationOptions options = null) {
                 return new GremlinQueryResult<T>(_client.QueryAsync<T>(gremlin));
             }
 
@@ -345,16 +343,23 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
             /// </summary>
             /// <typeparam name="T"></typeparam>
             private class GremlinQueryResult<T> : IResultFeed<T> {
+
                 /// <inheritdoc/>
-                public GremlinQueryResult(
-                    Task<GraphResult<T>> query) {
+                public string ContinuationToken => throw new NotSupportedException();
+
+                /// <inheritdoc/>
+                public GremlinQueryResult(Task<GraphResult<T>> query) {
                     _query = query;
                 }
                 /// <inheritdoc/>
-                public void Dispose() => _query?.Dispose();
+                public void Dispose() {
+                    _query?.Dispose();
+                }
 
                 /// <inheritdoc/>
-                public bool HasMore() => _query != null;
+                public bool HasMore() {
+                    return _query != null;
+                }
 
                 /// <inheritdoc/>
                 public async Task<IEnumerable<T>> ReadAsync(
@@ -369,8 +374,8 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
             private readonly GraphClient _client;
         }
 
-        internal const string kIdProperty = "id";
-        internal const string kPartitionKeyProperty = "__pk";
+        internal const string IdProperty = "id";
+        internal const string PartitionKeyProperty = "__pk";
 
         private readonly DocumentDatabase _db;
         private readonly ILogger _logger;

@@ -168,7 +168,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             }
 
             /// <inheritdoc/>
-            public void Dispose() => _server.Dispose();
+            public void Dispose() {
+                _server.Dispose();
+            }
 
             private readonly IChunkMethodServer _server;
         }

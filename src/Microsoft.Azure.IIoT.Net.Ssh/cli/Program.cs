@@ -35,73 +35,78 @@ namespace Microsoft.Azure.IIoT.Net.Ssh.Cli {
         public static async Task RunAsync(string[] args) {
             var sshFactory = new SshShellFactory(LogEx.ConsoleOut());
             ISecureShell shell = null;
-            var run = true;
-            do {
-                if (run) {
-                    Console.Write("> ");
-                    args = CliOptions.ParseAsCommandLine(Console.ReadLine());
-                }
-                try {
-                    if (args.Length < 1) {
-                        throw new ArgumentException("Need a command!");
+            try {
+                var run = true;
+                do {
+                    if (run) {
+                        Console.Write("> ");
+                        args = CliOptions.ParseAsCommandLine(Console.ReadLine());
                     }
-                    var command = args[0].ToLowerInvariant();
-                    var options = new CliOptions(args);
-                    switch (command) {
-                        case "exit":
-                            run = false;
-                            break;
-                        case "logout":
-                            shell = Logout(shell);
-                            break;
-                        case "login":
-                            if (shell != null) {
-                                throw new ArgumentException("Already logged in.");
-                            }
-                            shell = await LoginAsync(sshFactory, options);
-                            break;
-                        case "terminal":
-                            await RunTerminalAsync(shell, options);
-                            break;
-                        case "exec":
-                            await ExecuteCommandAsync(shell, options);
-                            break;
-                        case "download":
-                            await DownloadAsync(shell, options);
-                            break;
-                        case "upload":
-                            await UploadAsync(shell, options);
-                            break;
-                        case "folderup":
-                            await UploadFolderAsync(shell, options);
-                            break;
-                        case "folderdown":
-                            await DownloadFolderAsync(shell, options);
-                            break;
-                        case "-?":
-                        case "-h":
-                        case "--help":
-                        case "help":
+                    try {
+                        if (args.Length < 1) {
+                            throw new ArgumentException("Need a command!");
+                        }
+                        var command = args[0].ToLowerInvariant();
+                        var options = new CliOptions(args);
+                        switch (command) {
+                            case "exit":
+                                run = false;
+                                break;
+                            case "logout":
+                                shell = Logout(shell);
+                                break;
+                            case "login":
+                                if (shell != null) {
+                                    throw new ArgumentException("Already logged in.");
+                                }
+                                shell = await LoginAsync(sshFactory, options);
+                                break;
+                            case "terminal":
+                                await RunTerminalAsync(shell, options);
+                                break;
+                            case "exec":
+                                await ExecuteCommandAsync(shell, options);
+                                break;
+                            case "download":
+                                await DownloadAsync(shell, options);
+                                break;
+                            case "upload":
+                                await UploadAsync(shell, options);
+                                break;
+                            case "folderup":
+                                await UploadFolderAsync(shell, options);
+                                break;
+                            case "folderdown":
+                                await DownloadFolderAsync(shell, options);
+                                break;
+                            case "-?":
+                            case "-h":
+                            case "--help":
+                            case "help":
+                                PrintHelp();
+                                break;
+                            default:
+                                throw new ArgumentException($"Unknown command {command}.");
+                        }
+                    }
+                    catch (ArgumentException e) {
+                        Console.WriteLine(e.Message);
+                        if (!run) {
                             PrintHelp();
-                            break;
-                        default:
-                            throw new ArgumentException($"Unknown command {command}.");
+                            return;
+                        }
+                    }
+                    catch (Exception e) {
+                        Console.WriteLine("==================");
+                        Console.WriteLine(e);
+                        Console.WriteLine("==================");
                     }
                 }
-                catch (ArgumentException e) {
-                    Console.WriteLine(e.Message);
-                    if (!run) {
-                        PrintHelp();
-                        return;
-                    }
-                }
-                catch (Exception e) {
-                    Console.WriteLine("==================");
-                    Console.WriteLine(e);
-                    Console.WriteLine("==================");
-                }
+                while (run);
             }
-            while (run);
+            finally {
+                shell?.Dispose();
+            }
         }
 
         /// <summary>
@@ -130,12 +135,13 @@ namespace Microsoft.Azure.IIoT.Net.Ssh.Cli {
                 creds = new NetworkCredential(user, pw);
             }
 
-            var cts = new CancellationTokenSource(
-                options.GetValueOrDefault("-t", "--timeout", -1));
-            return await shellFactory.OpenSecureShellAsync(
-                options.GetValue<string>("-h", "--host"),
-                options.GetValueOrDefault("-p", "--port", 22),
-                creds, cts.Token);
+            using (var cts = new CancellationTokenSource(
+                options.GetValueOrDefault("-t", "--timeout", -1))) {
+                return await shellFactory.OpenSecureShellAsync(
+                    options.GetValue<string>("-h", "--host"),
+                    options.GetValueOrDefault("-p", "--port", 22),
+                    creds, cts.Token);
+            }
         }
 
         /// <summary>
@@ -165,9 +171,10 @@ namespace Microsoft.Azure.IIoT.Net.Ssh.Cli {
             if (shell == null) {
                 throw new ArgumentException("Must login first");
             }
-            var cts = new CancellationTokenSource(
-                options.GetValueOrDefault("-t", "--timeout", -1));
-            await shell.BindAsync(cts.Token);
+            using (var cts = new CancellationTokenSource(
+                options.GetValueOrDefault("-t", "--timeout", -1))) {
+                await shell.BindAsync(cts.Token);
+            }
         }
 
         /// <summary>
