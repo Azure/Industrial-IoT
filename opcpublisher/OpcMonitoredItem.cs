@@ -244,7 +244,7 @@ namespace OpcPublisher
         public int HeartbeatInterval
         {
             get => _heartbeatInterval;
-            set => _heartbeatInterval = (value <= 0 ? 0 : value > HeartbeatIntvervalMax ? HeartbeatIntvervalMax : value);
+            set => _heartbeatInterval = value <= 0 ? 0 : value > HeartbeatIntvervalMax ? HeartbeatIntvervalMax : value;
         }
 
         public bool HeartbeatIntervalFromConfiguration { get; set; } = false;
@@ -445,24 +445,24 @@ namespace OpcPublisher
                     }
                     if (telemetryConfiguration.MonitoredItem.ApplicationUri.Publish == true)
                     {
-                        messageData.ApplicationUri = (monitoredItem.Subscription.Session.Endpoint.Server.ApplicationUri + (string.IsNullOrEmpty(OpcSession.PublisherSite) ? "" : $":{OpcSession.PublisherSite}"));
+                        messageData.ApplicationUri = monitoredItem.Subscription.Session.Endpoint.Server.ApplicationUri + (string.IsNullOrEmpty(OpcSession.PublisherSite) ? "" : $":{OpcSession.PublisherSite}");
                     }
                     if (telemetryConfiguration.MonitoredItem.DisplayName.Publish == true && monitoredItem.DisplayName != null)
                     {
                         // use the DisplayName as reported in the MonitoredItem
                         messageData.DisplayName = monitoredItem.DisplayName;
                     }
-                    if (telemetryConfiguration.Value.SourceTimestamp.Publish == true && value.SourceTimestamp != null)
+                    if (telemetryConfiguration.Value.SourceTimestamp.Publish == true)
                     {
                         // use the SourceTimestamp as reported in the notification event argument in ISO8601 format
                         messageData.SourceTimestamp = value.SourceTimestamp.ToString("o", CultureInfo.InvariantCulture);
                     }
-                    if (telemetryConfiguration.Value.StatusCode.Publish == true && value.StatusCode != null)
+                    if (telemetryConfiguration.Value.StatusCode.Publish == true)
                     {
                         // use the StatusCode as reported in the notification event argument
                         messageData.StatusCode = value.StatusCode.Code;
                     }
-                    if (telemetryConfiguration.Value.Status.Publish == true && value.StatusCode != null)
+                    if (telemetryConfiguration.Value.Status.Publish == true)
                     {
                         // use the StatusCode as reported in the notification event argument to lookup the symbolic name
                         messageData.Status = StatusCode.LookupSymbolicId(value.StatusCode.Code);
@@ -605,6 +605,7 @@ namespace OpcPublisher
         /// </summary>
         internal void HeartbeatSend(object state)
         {
+            System.Diagnostics.Debug.Assert(state == null);
             // send the last known message
             lock (HeartbeatMessage)
             {
@@ -629,6 +630,6 @@ namespace OpcPublisher
             }
         }
 
-        private int _heartbeatInterval = 0;
+        private int _heartbeatInterval;
     }
 }

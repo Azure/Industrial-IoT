@@ -51,7 +51,6 @@ namespace OpcPublisher
         public static int OpcMaxStringLength { get; set; } = HubCommunicationBase.MaxResponsePayloadLength;
 
         /// <summary>
-        /// <summary>
         /// Mapping of the application logging levels to OPC stack logging levels.
         /// </summary>
         public static int OpcTraceToLoggerVerbose { get; set; } = 0;
@@ -145,7 +144,7 @@ namespace OpcPublisher
             }
 
             // by default use high secure transport
-            ServerSecurityPolicy newPolicy = new ServerSecurityPolicy()
+            ServerSecurityPolicy newPolicy = new ServerSecurityPolicy
             {
                 SecurityMode = MessageSecurityMode.SignAndEncrypt,
                 SecurityPolicyUri = SecurityPolicies.Basic256Sha256
@@ -156,7 +155,7 @@ namespace OpcPublisher
             // add none secure transport on request
             if (EnableUnsecureTransport)
             {
-                newPolicy = new ServerSecurityPolicy()
+                newPolicy = new ServerSecurityPolicy
                 {
                     SecurityMode = MessageSecurityMode.None,
                     SecurityPolicyUri = SecurityPolicies.None

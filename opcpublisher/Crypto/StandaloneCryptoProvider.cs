@@ -10,16 +10,16 @@ namespace OpcPublisher.Crypto
     /// </summary>
     public class StandaloneCryptoProvider : ICryptoProvider
     {
-        public async Task<byte[]> DecryptAsync(byte[] encryptedData)
+        public Task<byte[]> DecryptAsync(byte[] encryptedData)
         {
             var encString = Encoding.UTF8.GetString(encryptedData);
-            return Convert.FromBase64String(encString);
+            return Task.FromResult(Convert.FromBase64String(encString));
         }
 
-        public async Task<byte[]> EncryptAsync(byte[] plainData)
+        public Task<byte[]> EncryptAsync(byte[] plainData)
         {
             var result = Convert.ToBase64String(plainData);
-            return Encoding.UTF8.GetBytes(result);
+            return Task.FromResult(Encoding.UTF8.GetBytes(result));
         }
     }
 }

@@ -713,6 +713,6 @@ namespace OpcPublisher
         private List<PublisherConfigurationFileEntryLegacyModel> _configurationFileEntries;
 
         private static readonly object _singletonLock = new object();
-        private static IPublisherNodeConfiguration _instance = null;
+        private static IPublisherNodeConfiguration _instance;
     }
 }

@@ -47,7 +47,7 @@ namespace OpcPublisher
         /// The version of the node configuration. Each change in the configuration
         /// increments the version to protect get calls using continuation tokens.
         /// </summary>
-        public static int NodeConfigVersion = 0;
+        public static int NodeConfigVersion;
 #pragma warning restore CA2211 // Non-constant fields should not be visible
 
         /// <summary>
@@ -305,7 +305,9 @@ namespace OpcPublisher
                 {
                     _connectAndMonitorAsync.Wait();
                 }
+#pragma warning disable RECS0022 // A catch clause that catches System.Exception and has an empty body
                 catch
+#pragma warning restore RECS0022 // A catch clause that catches System.Exception and has an empty body
                 {
                 }
                 _sessionCancelationTokenSource?.Dispose();
@@ -338,8 +340,7 @@ namespace OpcPublisher
         {
             uint lastNodeConfigVersion = 0;
 
-            WaitHandle[] connectAndMonitorEvents = new WaitHandle[]
-            {
+            WaitHandle[] connectAndMonitorEvents = {
                 _sessionCancelationToken.WaitHandle,
                 ConnectAndMonitorSession
             };
@@ -386,7 +387,7 @@ namespace OpcPublisher
                 }
                 catch (Exception e)
                 {
-                    if (_sessionCancelationToken != null && !_sessionCancelationToken.IsCancellationRequested)
+                    if (!_sessionCancelationToken.IsCancellationRequested)
                     {
                         Logger.Error(e, "Exception");
                     }
@@ -562,14 +563,14 @@ namespace OpcPublisher
                     }
 
                     // process all unmonitored items.
-                    var unmonitoredItems = opcSubscription.OpcMonitoredItems.Where(i => (i.State == OpcMonitoredItemState.Unmonitored || i.State == OpcMonitoredItemState.UnmonitoredNamespaceUpdateRequested));
+                    var unmonitoredItems = opcSubscription.OpcMonitoredItems.Where(i => i.State == OpcMonitoredItemState.Unmonitored || i.State == OpcMonitoredItemState.UnmonitoredNamespaceUpdateRequested);
                     int additionalMonitoredItemsCount = 0;
                     int monitoredItemsCount = 0;
                     bool haveUnmonitoredItems = false;
                     if (unmonitoredItems.Count() != 0)
                     {
                         haveUnmonitoredItems = true;
-                        monitoredItemsCount = opcSubscription.OpcMonitoredItems.Count(i => (i.State == OpcMonitoredItemState.Monitored));
+                        monitoredItemsCount = opcSubscription.OpcMonitoredItems.Count(i => i.State == OpcMonitoredItemState.Monitored);
                         Logger.Information($"Start monitoring items on endpoint '{EndpointUrl}'. Currently monitoring {monitoredItemsCount} items.");
                     }
 
@@ -665,7 +666,7 @@ namespace OpcPublisher
                             }
 
                             // add the new monitored item.
-                            IOpcUaMonitoredItem monitoredItem = new OpcUaMonitoredItem()
+                            IOpcUaMonitoredItem monitoredItem = new OpcUaMonitoredItem
                             {
                                 StartNodeId = currentNodeId,
                                 AttributeId = item.AttributeId,
@@ -733,7 +734,7 @@ namespace OpcPublisher
                     stopWatch.Stop();
                     if (haveUnmonitoredItems == true)
                     {
-                        monitoredItemsCount = opcSubscription.OpcMonitoredItems.Count(i => (i.State == OpcMonitoredItemState.Monitored));
+                        monitoredItemsCount = opcSubscription.OpcMonitoredItems.Count(i => i.State == OpcMonitoredItemState.Monitored);
                         Logger.Information($"Done processing unmonitored items on endpoint '{EndpointUrl}' took {stopWatch.ElapsedMilliseconds} msec. Now monitoring {monitoredItemsCount} items in subscription with id '{opcSubscription.OpcUaClientSubscription.Id}'.");
                     }
                 }
@@ -786,7 +787,9 @@ namespace OpcPublisher
                             opcSubscription.OpcUaClientSubscription.RemoveItems(itemsToRemove.Select(i => i.OpcUaClientMonitoredItem));
                             Logger.Information($"There are now {opcSubscription.OpcUaClientSubscription.MonitoredItemCount} monitored items in this subscription.");
                         }
+#pragma warning disable RECS0022 // A catch clause that catches System.Exception and has an empty body
                         catch
+#pragma warning restore RECS0022 // A catch clause that catches System.Exception and has an empty body
                         {
                             // nodes may be tagged for stop before they are monitored, just continue
                         }
@@ -837,7 +840,9 @@ namespace OpcPublisher
                         OpcUaClientSession.RemoveSubscriptions(subscriptionsToRemove.Select(s => s.OpcUaClientSubscription));
                         Logger.Information($"There are now {OpcUaClientSession.SubscriptionCount} subscriptions in this session.");
                     }
+#pragma warning disable RECS0022 // A catch clause that catches System.Exception and has an empty body
                     catch
+#pragma warning restore RECS0022 // A catch clause that catches System.Exception and has an empty body
                     {
                         // subsriptions may be no longer required before they are created, just continue
                     }
@@ -938,7 +943,9 @@ namespace OpcPublisher
                             OpcUaClientSession.RemoveSubscription(opcSubscription.OpcUaClientSubscription);
                         }
                     }
+#pragma warning disable RECS0022 // A catch clause that catches System.Exception and has an empty body
                     catch
+#pragma warning restore RECS0022 // A catch clause that catches System.Exception and has an empty body
                     {
                         // the session might be already invalidated. ignore.
                     }
@@ -958,7 +965,9 @@ namespace OpcPublisher
                 {
                     OpcUaClientSession?.Close();
                 }
+#pragma warning disable RECS0022 // A catch clause that catches System.Exception and has an empty body
                 catch
+#pragma warning restore RECS0022 // A catch clause that catches System.Exception and has an empty body
                 {
                     // the session might be already invalidated. ignore.
                 }
@@ -1023,7 +1032,7 @@ namespace OpcPublisher
                     }
                     if (nodeId == null)
                     {
-                        nodeIdCheck = new NodeId(expandedNodeId.Identifier, (ushort)(_namespaceTable.GetIndex(expandedNodeId.NamespaceUri)));
+                        nodeIdCheck = new NodeId(expandedNodeId.Identifier, (ushort)_namespaceTable.GetIndex(expandedNodeId.NamespaceUri));
                     }
                 }
 
@@ -1100,7 +1109,7 @@ namespace OpcPublisher
                     }
                     if (nodeId == null)
                     {
-                        nodeIdCheck = new NodeId(expandedNodeId.Identifier, (ushort)(_namespaceTable.GetIndex(expandedNodeId.NamespaceUri)));
+                        nodeIdCheck = new NodeId(expandedNodeId.Identifier, (ushort)_namespaceTable.GetIndex(expandedNodeId.NamespaceUri));
                     }
 
                 }
@@ -1287,7 +1296,7 @@ namespace OpcPublisher
         /// </summary>
         private IOpcUaSubscription CreateSubscription(int requestedPublishingInterval, out int revisedPublishingInterval)
         {
-            IOpcUaSubscription subscription = new OpcUaSubscription()
+            IOpcUaSubscription subscription = new OpcUaSubscription
             {
                 PublishingInterval = requestedPublishingInterval,
             };
@@ -1333,7 +1342,7 @@ namespace OpcPublisher
                             {
                                 Logger.Warning($"Hit configured missed keep alive threshold of {OpcKeepAliveDisconnectThreshold}. Disconnecting the session to endpoint {session.ConfiguredEndpoint.EndpointUrl}.");
                                 session.KeepAlive -= StandardClient_KeepAlive;
-                                Task t = Task.Run(async () => await DisconnectAsync().ConfigureAwait(false));
+                                Task t = Task.Run(() => DisconnectAsync().ConfigureAwait(false));
                             }
                         }
                     }
@@ -1371,7 +1380,7 @@ namespace OpcPublisher
             {
                 return false;
             }
-            if (_sessionCancelationToken == null || _sessionCancelationToken.IsCancellationRequested)
+            if (_sessionCancelationToken.IsCancellationRequested)
             {
                 return false;
             }
@@ -1388,9 +1397,9 @@ namespace OpcPublisher
 
         private SemaphoreSlim _opcSessionSemaphore;
         private CancellationTokenSource _sessionCancelationTokenSource;
-        private CancellationToken _sessionCancelationToken;
-        private NamespaceTable _namespaceTable;
-        private EndpointTelemetryConfigurationModel _telemetryConfiguration;
-        private Task _connectAndMonitorAsync;
+        private readonly CancellationToken _sessionCancelationToken;
+        private readonly NamespaceTable _namespaceTable;
+        private readonly EndpointTelemetryConfigurationModel _telemetryConfiguration;
+        private readonly Task _connectAndMonitorAsync;
     }
 }

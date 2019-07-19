@@ -76,6 +76,6 @@ namespace OpcPublisher
         public void SetPublishingMode(bool enabled) => _subscription.SetPublishingMode(enabled);
 
 
-        private Subscription _subscription = null;
+        private Subscription _subscription;
     }
 }

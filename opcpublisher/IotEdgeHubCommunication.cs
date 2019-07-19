@@ -45,6 +45,6 @@
         }
 
         private static readonly object _singletonLock = new object();
-        private static IotEdgeHubCommunication _instance = null;
+        private static IotEdgeHubCommunication _instance;
     }
 }

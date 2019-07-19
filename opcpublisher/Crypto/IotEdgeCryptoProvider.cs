@@ -56,7 +56,7 @@ namespace OpcPublisher.Crypto
 
         private readonly HttpClient workloadHttpClient = null;
         private readonly string workloadUrlPattern = null;
-        private const string InitializationVector = "alKGJdfsgidfasdO";
+        private const string kInitializationVector = "alKGJdfsgidfasdO";
 
         private async Task<TOut> CallWorkloadApi<TIn, TOut>(string endpoint, TIn payload)
         {
@@ -74,7 +74,7 @@ namespace OpcPublisher.Crypto
         public async Task<byte[]> EncryptAsync(byte[] plainData)
         {
             string plainDataBase64 = Convert.ToBase64String(plainData);
-            var encryptRequestBody = new EncryptRequestBody() { InitializationVector = InitializationVector, PlainText = plainDataBase64 };
+            var encryptRequestBody = new EncryptRequestBody() { InitializationVector = kInitializationVector, PlainText = plainDataBase64 };
             var result = await CallWorkloadApi<EncryptRequestBody, EncryptResponse>("encrypt", encryptRequestBody);
             return Convert.FromBase64String(result.CipherText);
         }
@@ -82,7 +82,7 @@ namespace OpcPublisher.Crypto
         public async Task<byte[]> DecryptAsync(byte[] encryptedData)
         {
             string encryptedDataBase64 = Convert.ToBase64String(encryptedData);
-            var decryptRequestBody = new DecryptRequestBody() { InitializationVector = InitializationVector, CipherText = encryptedDataBase64 };
+            var decryptRequestBody = new DecryptRequestBody() { InitializationVector = kInitializationVector, CipherText = encryptedDataBase64 };
             var result = await CallWorkloadApi<DecryptRequestBody, DecryptResponse>("decrypt", decryptRequestBody);
             return Convert.FromBase64String(result.PlainText);
         }

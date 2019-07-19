@@ -54,7 +54,7 @@ namespace OpcPublisher
             // kick off the task to show diagnostic info
             if (DiagnosticsInterval > 0)
             {
-                _showDiagnosticsInfoTask = Task.Run(async () => await ShowDiagnosticsInfoAsync(_shutdownTokenSource.Token).ConfigureAwait(false));
+                _showDiagnosticsInfoTask = Task.Run(() => ShowDiagnosticsInfoAsync(_shutdownTokenSource.Token).ConfigureAwait(false));
             }
         }
 
@@ -121,7 +121,9 @@ namespace OpcPublisher
                 diagnosticInfo.HubMessageSize = HubMessageSize;
                 diagnosticInfo.HubProtocol = HubProtocol;
             }
+#pragma warning disable RECS0022 // A catch clause that catches System.Exception and has an empty body
             catch
+#pragma warning restore RECS0022 // A catch clause that catches System.Exception and has an empty body
             {
                 // startup might be not completed yet
             }
@@ -250,7 +252,9 @@ namespace OpcPublisher
                     Logger.Information($"--ih setting: {diagnosticInfo.HubProtocol}");
                     Logger.Information("==========================================================================");
                 }
+#pragma warning disable RECS0022 // A catch clause that catches System.Exception and has an empty body
                 catch
+#pragma warning restore RECS0022 // A catch clause that catches System.Exception and has an empty body
                 {
                 }
             }
@@ -267,7 +271,9 @@ namespace OpcPublisher
             {
                 message = _logQueue.Dequeue();
             }
+#pragma warning disable RECS0022 // A catch clause that catches System.Exception and has an empty body
             catch
+#pragma warning restore RECS0022 // A catch clause that catches System.Exception and has an empty body
             {
             }
             return message;
@@ -300,16 +306,16 @@ namespace OpcPublisher
             }
         }
 
-        private static SemaphoreSlim _logQueueSemaphore = new SemaphoreSlim(1);
-        private static int _logMessageCount = 100;
+        private static readonly SemaphoreSlim _logQueueSemaphore = new SemaphoreSlim(1);
+        private static readonly int _logMessageCount = 100;
         private static int _missedMessageCount;
-        private static Queue<string> _logQueue = new Queue<string>();
+        private static readonly Queue<string> _logQueue = new Queue<string>();
         private static CancellationTokenSource _shutdownTokenSource;
         private static Task _showDiagnosticsInfoTask;
-        private static List<string> _startupLog = new List<string>();
+        private static readonly List<string> _startupLog = new List<string>();
 
         private static readonly object _singletonLock = new object();
-        private static IPublisherDiagnostics _instance = null;
+        private static IPublisherDiagnostics _instance;
     }
 
     /// <summary>
@@ -365,7 +371,7 @@ namespace OpcPublisher
             {
                 exceptionLog = new List<string>();
                 exceptionLog.Add(logEvent.Exception.Message);
-                exceptionLog.Add(logEvent.Exception.StackTrace.ToString(CultureInfo.InvariantCulture));
+                exceptionLog.Add(logEvent.Exception.StackTrace);
             }
             return exceptionLog;
         }

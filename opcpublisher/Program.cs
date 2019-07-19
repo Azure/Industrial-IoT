@@ -678,7 +678,9 @@ namespace OpcPublisher
                         ShutdownTokenSource.Cancel();
                     };
                 }
+#pragma warning disable RECS0022 // A catch clause that catches System.Exception and has an empty body
                 catch
+#pragma warning restore RECS0022 // A catch clause that catches System.Exception and has an empty body
                 {
                 }
 
@@ -707,7 +709,7 @@ namespace OpcPublisher
                 // start our server interface
                 try
                 {
-                    Logger.Information($"Starting server on endpoint {OpcApplicationConfiguration.ApplicationConfiguration.ServerConfiguration.BaseAddresses[0].ToString(CultureInfo.InvariantCulture)} ...");
+                    Logger.Information($"Starting server on endpoint {OpcApplicationConfiguration.ApplicationConfiguration.ServerConfiguration.BaseAddresses[0]} ...");
                     _publisherServer = new PublisherServer();
                     _publisherServer.Start(OpcApplicationConfiguration.ApplicationConfiguration);
                     Logger.Information("Server started.");
@@ -1093,9 +1095,9 @@ namespace OpcPublisher
         }
 
         private static PublisherServer _publisherServer;
-        private static bool _noShutdown = false;
-        private static bool _installOnly = false;
+        private static bool _noShutdown;
+        private static bool _installOnly;
         private static TimeSpan _logFileFlushTimeSpanSec = TimeSpan.FromSeconds(30);
-        private static string _hubProtocols = string.Join(", ", Enum.GetNames(IotHubProtocolDefault.GetType()));
+        private static readonly string _hubProtocols = string.Join(", ", Enum.GetNames(IotHubProtocolDefault.GetType()));
     }
 }

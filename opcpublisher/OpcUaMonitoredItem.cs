@@ -114,6 +114,6 @@ namespace OpcPublisher
             }
         }
 
-        private MonitoredItem _monitoredItem = null;
+        private readonly MonitoredItem _monitoredItem;
     }
 }

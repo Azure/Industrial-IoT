@@ -3,7 +3,7 @@ namespace OpcPublisher
     /// <summary>
     /// Defines constants for namespaces used by the application.
     /// </summary>
-    public static partial class Namespaces
+    public static class Namespaces
     {
         /// <summary>
         /// The namespace for the nodes provided by the publisher server.
