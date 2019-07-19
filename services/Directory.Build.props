@@ -1,0 +1,7 @@
+﻿<Project>
+  <Import Project="project.props" /> 
+  <Import Project="common.props" />
+  <Import Project="version.props" />
+  <Import Project="$([MSBuild]::GetPathOfFileAbove(root.props))" Condition="'$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), root.props))' != ''" />
+  <Import Project="packages.props" />
+</Project>
