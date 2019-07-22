@@ -7,7 +7,6 @@ namespace Serilog {
     using Serilog.Events;
     using Microsoft.Extensions.Configuration;
     using Serilog.Core;
-    using System;
 
     /// <summary>
     /// Serilog extensions
@@ -120,6 +119,16 @@ namespace Serilog {
         }
 
         /// <summary>
+        /// Create trace logger
+        /// </summary>
+        /// <param name="level"></param>
+        /// <returns></returns>
+        public static ILogger Trace(LogEventLevel level = LogEventLevel.Debug) {
+            Level.MinimumLevel = level;
+            return new LoggerConfiguration().Trace().CreateLogger();
+        }
+
+        /// <summary>
         /// Create application insights logger
         /// </summary>
         /// <param name="configuration"></param>
@@ -128,7 +137,7 @@ namespace Serilog {
         public static LoggerConfiguration ApplicationInsights(this LoggerConfiguration configuration,
             IConfiguration config = null) {
 
-            string applicationInsightsInstrumentationKey = "";
+            var applicationInsightsInstrumentationKey = "";
             if (config != null) {
                 applicationInsightsInstrumentationKey = config.GetValue<string>("PCS_APPINSIGHTS_INSTRUMENTATIONKEY", null);
                 configuration = configuration.ReadFrom.Configuration(config);
@@ -153,16 +162,6 @@ namespace Serilog {
         public static ILogger ApplicationInsights(IConfiguration config, LogEventLevel level = LogEventLevel.Debug) {
             Level.MinimumLevel = level;
             return new LoggerConfiguration().ApplicationInsights(config).CreateLogger();
-        }
-
-        /// <summary>
-        /// Create trace logger
-        /// </summary>
-        /// <param name="level"></param>
-        /// <returns></returns>
-        public static ILogger Trace(LogEventLevel level = LogEventLevel.Debug) {
-            Level.MinimumLevel = level;
-            return new LoggerConfiguration().Trace().CreateLogger();
         }
 
         private const string kDefaultTemplate =
