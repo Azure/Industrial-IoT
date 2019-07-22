@@ -136,111 +136,125 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
         /// <inheritdoc/>
         public Task<DeviceTwinModel> CreateAsync(DeviceTwinModel twin, bool force,
             CancellationToken ct) {
-
-            var model = GetModel(twin.Id, twin.ModuleId);
-            if (model == null) {
-                // Create
-                model = new IoTHubDeviceModel(this,
-                    new DeviceModel { Id = twin.Id, ModuleId = twin.ModuleId }, twin);
-                _devices.Add(model);
+            lock (_lock) {
+                var model = GetModel(twin.Id, twin.ModuleId);
+                if (model == null) {
+                    // Create
+                    model = new IoTHubDeviceModel(this,
+                        new DeviceModel { Id = twin.Id, ModuleId = twin.ModuleId }, twin);
+                    _devices.Add(model);
+                }
+                else if (!force) {
+                    throw new ConflictingResourceException("Twin conflict");
+                }
+                model.UpdateTwin(twin);
+                return Task.FromResult(model.Twin);
             }
-            else if (!force) {
-                throw new ConflictingResourceException("Twin conflict");
-            }
-            model.UpdateTwin(twin);
-            return Task.FromResult(model.Twin);
         }
 
 
         /// <inheritdoc/>
         public Task<DeviceTwinModel> PatchAsync(DeviceTwinModel twin, bool force,
             CancellationToken ct) {
-            var model = GetModel(twin.Id, twin.ModuleId);
-            if (model == null) {
-                throw new ResourceNotFoundException("Twin not found");
+            lock (_lock) {
+                var model = GetModel(twin.Id, twin.ModuleId);
+                if (model == null) {
+                    throw new ResourceNotFoundException("Twin not found");
+                }
+                model.UpdateTwin(twin);
+                return Task.FromResult(model.Twin);
             }
-            model.UpdateTwin(twin);
-            return Task.FromResult(model.Twin);
         }
 
         /// <inheritdoc/>
         public Task<MethodResultModel> CallMethodAsync(string deviceId, string moduleId,
             MethodParameterModel parameters, CancellationToken ct) {
-            var model = GetModel(deviceId, moduleId);
-            if (model == null) {
-                throw new ResourceNotFoundException("No such device");
+            lock (_lock) {
+                var model = GetModel(deviceId, moduleId);
+                if (model == null) {
+                    throw new ResourceNotFoundException("No such device");
+                }
+                if (model.Connection == null) {
+                    throw new TimeoutException("Timed out waiting for device to connect");
+                }
+                var result = model.Connection.Call(new MethodRequest(parameters.Name,
+                    Encoding.UTF8.GetBytes(parameters.JsonPayload), parameters.ResponseTimeout,
+                    parameters.ConnectionTimeout));
+                return Task.FromResult(new MethodResultModel {
+                    JsonPayload = result.ResultAsJson,
+                    Status = result.Status
+                });
             }
-            if (model.Connection == null) {
-                throw new TimeoutException("Timed out waiting for device to connect");
-            }
-            var result = model.Connection.Call(new MethodRequest(parameters.Name,
-                Encoding.UTF8.GetBytes(parameters.JsonPayload), parameters.ResponseTimeout,
-                parameters.ConnectionTimeout));
-            return Task.FromResult(new MethodResultModel {
-                JsonPayload = result.ResultAsJson,
-                Status = result.Status
-            });
         }
 
         /// <inheritdoc/>
         public Task UpdatePropertiesAsync(string deviceId, string moduleId,
             Dictionary<string, JToken> properties, string etag, CancellationToken ct) {
-
-            var model = GetModel(deviceId, moduleId, etag);
-            if (model == null) {
-                throw new ResourceNotFoundException("No such device");
+            lock (_lock) {
+                var model = GetModel(deviceId, moduleId, etag);
+                if (model == null) {
+                    throw new ResourceNotFoundException("No such device");
+                }
+                model.UpdateDesiredProperties(properties);
+                return Task.CompletedTask;
             }
-            model.UpdateDesiredProperties(properties);
-            return Task.CompletedTask;
         }
 
         /// <inheritdoc/>
         public Task<DeviceTwinModel> GetAsync(string deviceId, string moduleId,
             CancellationToken ct) {
-            var model = GetModel(deviceId, moduleId);
-            if (model == null) {
-                throw new ResourceNotFoundException("No such device");
+            lock (_lock) {
+                var model = GetModel(deviceId, moduleId);
+                if (model == null) {
+                    throw new ResourceNotFoundException("No such device");
+                }
+                return Task.FromResult(model.Twin.Clone());
             }
-            return Task.FromResult(model.Twin.Clone());
         }
 
         /// <inheritdoc/>
         public Task<DeviceModel> GetRegistrationAsync(string deviceId, string moduleId,
             CancellationToken ct) {
-            var model = GetModel(deviceId, moduleId);
-            if (model == null) {
-                throw new ResourceNotFoundException("No such device");
+            lock (_lock) {
+                var model = GetModel(deviceId, moduleId);
+                if (model == null) {
+                    throw new ResourceNotFoundException("No such device");
+                }
+                return Task.FromResult(model.Device.Clone());
             }
-            return Task.FromResult(model.Device.Clone());
         }
 
         /// <inheritdoc/>
         public Task DeleteAsync(string deviceId, string moduleId, string etag,
             CancellationToken ct) {
-            var model = GetModel(deviceId, moduleId, etag);
-            if (model == null) {
-                throw new ResourceNotFoundException("No such device");
+            lock (_lock) {
+                var model = GetModel(deviceId, moduleId, etag);
+                if (model == null) {
+                    throw new ResourceNotFoundException("No such device");
+                }
+                model.Connect(null);
+                _devices.RemoveAll(d => d.Device.Id == deviceId && d.Device.ModuleId == moduleId);
+                return Task.CompletedTask;
             }
-            model.Connect(null);
-            _devices.RemoveAll(d => d.Device.Id == deviceId && d.Device.ModuleId == moduleId);
-            return Task.CompletedTask;
         }
 
         /// <inheritdoc/>
         public Task<QueryResultModel> QueryAsync(string query, string continuation,
             int? pageSize, CancellationToken ct) {
-            var result = _query.Query(query).Select(r => r.DeepClone()).ToList();
-            if (pageSize == null) {
-                pageSize = int.MaxValue;
+            lock (_lock) {
+                var result = _query.Query(query).Select(r => r.DeepClone()).ToList();
+                if (pageSize == null) {
+                    pageSize = int.MaxValue;
+                }
+
+                int.TryParse(continuation, out var index);
+                var count = Math.Max(0, Math.Min(pageSize.Value, result.Count - index));
+
+                return Task.FromResult(new QueryResultModel {
+                    ContinuationToken = count >= result.Count ? null : count.ToString(),
+                    Result = JArray.FromObject(result.Skip(index).Take(count).ToList())
+                });
             }
-
-            int.TryParse(continuation, out var index);
-            var count = Math.Max(0, Math.Min(pageSize.Value, result.Count - index));
-
-            return Task.FromResult(new QueryResultModel {
-                ContinuationToken = count >= result.Count ? null : count.ToString(),
-                Result = JArray.FromObject(result.Skip(index).Take(count).ToList())
-            });
         }
 
         /// <summary>
@@ -425,18 +439,16 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
             /// </summary>
             /// <param name="twin"></param>
             public void UpdateTwin(DeviceTwinModel twin) {
-                lock (_lock) {
-                    Twin.Tags = Merge(Twin.Tags, twin.Tags);
-                    if (Twin.Properties == null) {
-                        Twin.Properties = new TwinPropertiesModel();
-                    }
-                    Twin.Properties.Desired = Merge(
-                        Twin.Properties.Desired, twin.Properties?.Desired);
-                    Twin.Properties.Reported = Merge(
-                        Twin.Properties.Reported, twin.Properties?.Reported);
-                    Twin.LastActivityTime = DateTime.UtcNow;
-                    Twin.Etag = Device.Etag = Guid.NewGuid().ToString();
+                Twin.Tags = Merge(Twin.Tags, twin.Tags);
+                if (Twin.Properties == null) {
+                    Twin.Properties = new TwinPropertiesModel();
                 }
+                Twin.Properties.Desired = Merge(
+                    Twin.Properties.Desired, twin.Properties?.Desired);
+                Twin.Properties.Reported = Merge(
+                    Twin.Properties.Reported, twin.Properties?.Reported);
+                Twin.LastActivityTime = DateTime.UtcNow;
+                Twin.Etag = Device.Etag = Guid.NewGuid().ToString();
             }
 
             /// <summary>
@@ -514,6 +526,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
         }
 
         private readonly SqlQuery _query;
+        private readonly object _lock = new object();
         private readonly BlockingCollection<FileNotification> _blobs =
             new BlockingCollection<FileNotification>();
         private readonly List<IoTHubDeviceModel> _devices =

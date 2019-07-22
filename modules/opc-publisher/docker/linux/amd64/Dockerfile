@@ -1,5 +1,5 @@
-ARG runtime_base_tag=2.1-runtime-alpine
-ARG build_base_tag=2.1-sdk-alpine
+ARG runtime_base_tag=2.2-runtime-alpine
+ARG build_base_tag=2.2-sdk-alpine
 
 FROM microsoft/dotnet:${build_base_tag} AS build
 WORKDIR /app

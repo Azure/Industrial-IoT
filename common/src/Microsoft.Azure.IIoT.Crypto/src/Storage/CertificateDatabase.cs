@@ -338,9 +338,7 @@ namespace Microsoft.Azure.IIoT.Crypto.Storage {
         /// <param name="chain"></param>
         private IEnumerable<Certificate> Validate(List<Certificate> chain) {
             if (!chain.First().IsValidChain(chain, out var status)) {
-                throw new CryptographicException("Chain invalid: \n" +
-                    status.Select(s => s.StatusInformation).Aggregate(
-                        (a, b) => a + "\n" + b));
+                throw new CryptographicException(status.AsString("Chain invalid:"));
             }
             return chain;
         }

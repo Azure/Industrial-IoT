@@ -79,8 +79,7 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
 
         /// <inheritdoc/>
         public void Dispose() {
-            Try.Op(() =>
-Task.WaitAll(_processors.Select(p => p.CloseAsync()).ToArray()));
+            Try.Op(() => Task.WaitAll(_processors.Select(p => p.CloseAsync()).ToArray()));
         }
 
         private sealed class ProcessorWorker {

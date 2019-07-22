@@ -55,7 +55,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures {
             if (nodes == null) {
                 throw new ArgumentNullException(nameof(nodes));
             }
-            Logger = LogEx.Trace(LogEventLevel.Debug);
+            Logger = LogEx.ConsoleOut(LogEventLevel.Debug);
             _config = new TestClientServicesConfig();
             _client = new Lazy<ClientServices>(() => {
                 return new ClientServices(Logger, _config);
@@ -69,29 +69,37 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures {
             var port = Interlocked.Increment(ref _nextPort);
             for (var i = 0; i < 200; i++) { // Retry 200 times
                 try {
+                    Logger.Information("Starting server host on {port}...",
+                        port);
                     _serverHost.StartAsync(new int[] { port }).Wait();
                     Port = port;
                     break;
                 }
                 catch (Exception ex) {
-                    Logger.Error(ex, "Failed to create server host, retrying...");
                     port = Interlocked.Increment(ref _nextPort);
+                    Logger.Error(ex, "Failed to start server host, retrying {port}...",
+                        port);
                 }
             }
         }
 
         /// <inheritdoc/>
         public void Dispose() {
+            Logger.Information("Disposing server and client fixture...");
             _serverHost.Dispose();
             // Clean up all created certificates
             var certFolder = Path.Combine(Directory.GetCurrentDirectory(), "OPC Foundation");
             if (Directory.Exists(certFolder)) {
+                Logger.Information("Server disposed - cleaning up server certificates...");
                 Try.Op(() => Directory.Delete(certFolder, true));
             }
             if (_client.IsValueCreated) {
+                Logger.Information("Disposing client...");
                 _client.Value.Dispose();
+                Logger.Information("Client disposed - cleaning up client certificates...");
                 _config?.Dispose();
             }
+            Logger.Information("Server and client fixture disposed.");
         }
 
         private static readonly Random kRand = new Random();

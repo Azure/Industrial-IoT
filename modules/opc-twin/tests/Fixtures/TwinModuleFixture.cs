@@ -31,6 +31,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
     using System.Text;
     using System.Threading.Tasks;
     using Xunit;
+    using Serilog;
 
     /// <summary>
     /// Harness for opc twin module
@@ -263,7 +264,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
         /// <returns></returns>
         private IContainer CreateHubContainer() {
             var builder = new ContainerBuilder();
-            builder.RegisterLogger();
+            builder.RegisterLogger(LogEx.ConsoleOut());
             builder.RegisterModule<IoTHubMockService>();
             builder.RegisterType<TestIoTHubConfig>()
                 .AsImplementedInterfaces();

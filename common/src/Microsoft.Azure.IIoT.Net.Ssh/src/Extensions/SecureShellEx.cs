@@ -29,7 +29,6 @@ namespace Microsoft.Azure.IIoT.Net.Ssh {
         /// <returns></returns>
         public static async Task BindAsync(this ISecureShell shell,
             bool forceVTerm, CancellationToken ct) {
-            var win = IsWindowsAnniversaryEdition(forceVTerm);
             var inMode = ~0u;
             var outMode = ~0u;
             if (IsWindowsAnniversaryEdition(forceVTerm)) {

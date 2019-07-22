@@ -1,5 +1,5 @@
-ARG runtime_base_tag=2.1-runtime-nanoserver-1809
-ARG build_base_tag=2.1-sdk
+ARG runtime_base_tag=2.2-runtime-nanoserver-1809
+ARG build_base_tag=2.2-sdk
 
 FROM microsoft/dotnet:${build_base_tag} AS build
 WORKDIR /app

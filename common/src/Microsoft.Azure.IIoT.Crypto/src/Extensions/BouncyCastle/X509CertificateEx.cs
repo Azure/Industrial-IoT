@@ -37,7 +37,8 @@ namespace Microsoft.Azure.IIoT.Crypto.BouncyCastle {
                 });
             using (var stream = new MemoryStream()) {
                 using (var cfrg = new RandomGeneratorAdapter()) {
-                    store.Save(stream, password?.ToCharArray(), new SecureRandom(cfrg));
+                    store.Save(stream, (password ?? string.Empty).ToCharArray(),
+                        new SecureRandom(cfrg));
                 }
                 return Pkcs12Utilities.ConvertToDefiniteLength(stream.ToArray());
             }

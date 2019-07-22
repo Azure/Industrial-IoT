@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.Crypto {
     using Microsoft.Azure.IIoT.Crypto.Models;
     using System;
+    using System.Runtime.InteropServices;
     using System.Security.Cryptography.X509Certificates;
     using Xunit;
 
@@ -37,7 +38,6 @@ namespace Microsoft.Azure.IIoT.Crypto {
         [InlineData(SignatureType.PS384)]
         [InlineData(SignatureType.RS512)]
         public static void ConvertRSACertToPfxAndBackWithPassword(SignatureType sig) {
-
             var pw = Guid.NewGuid().ToString();
             using (var cert = sig.Create("CN=leaf")) {
                 var certificate1 = cert.ToCertificate();
@@ -52,12 +52,12 @@ namespace Microsoft.Azure.IIoT.Crypto {
             }
         }
 
-        [Theory]
+        [SkippableTheory]
         [InlineData(SignatureType.ES256)]
         [InlineData(SignatureType.ES384)]
         [InlineData(SignatureType.ES512)]
         public static void ConvertECCCertToPfxAndBackWithPassword(SignatureType sig) {
-
+            Skip.If(RuntimeInformation.IsOSPlatform(OSPlatform.OSX), "Invalid key");
             var pw = Guid.NewGuid().ToString();
             using (var cert = sig.Create("CN=leaf")) {
                 var certificate1 = cert.ToCertificate();
@@ -73,12 +73,12 @@ namespace Microsoft.Azure.IIoT.Crypto {
             }
         }
 
-        [Theory]
+        [SkippableTheory]
         [InlineData(SignatureType.ES256)]
         [InlineData(SignatureType.ES384)]
         [InlineData(SignatureType.ES512)]
         public static void ConvertECCCertToPfxAndBack(SignatureType sig) {
-
+            Skip.If(RuntimeInformation.IsOSPlatform(OSPlatform.OSX), "Invalid key");
             using (var cert = sig.Create("CN=leaf")) {
                 var certificate1 = cert.ToCertificate();
                 var pfx = certificate1.ToPfx(cert.GetECDsaPrivateKey().ToKey());

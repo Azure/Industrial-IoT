@@ -1,5 +1,5 @@
-ARG runtime_base_tag=2.1-runtime-bionic-arm32v7
-ARG build_base_tag=2.1-sdk-bionic-arm32v7
+ARG runtime_base_tag=2.2-runtime-bionic-arm32v7
+ARG build_base_tag=2.2-sdk-bionic-arm32v7
 
 FROM microsoft/dotnet:${build_base_tag} AS build
 WORKDIR /app

@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.Crypto {
     using Microsoft.Azure.IIoT.Crypto.BouncyCastle;
     using Microsoft.Azure.IIoT.Crypto.Models;
-    using Org.BouncyCastle.Bcpg.Sig;
     using System;
     using System.Collections.Generic;
     using System.Linq;

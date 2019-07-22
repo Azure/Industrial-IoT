@@ -1,0 +1,116 @@
+jobs:
+- job: buildall
+  displayName: Build
+  strategy:
+    matrix:
+      linux:
+        poolName: "Hosted Ubuntu 1604"
+      mac:
+        poolName: "Hosted macOS"
+      windows:
+        poolName: "Hosted Windows 2019 with VS2019"
+  pool:
+    name: $(poolName)
+  steps:
+  - task: DotNetCoreCLI@2
+    displayName: Build
+    inputs:
+      command: build
+      projects: 'azure-iiot-components.sln'
+      arguments: '--configuration Release'
+  - task: DotNetCoreCLI@2
+    displayName: Build
+    inputs:
+      command: build
+      projects: 'azure-iiot-components.sln'
+      arguments: '--configuration Debug'
+- job: testall
+  displayName: Test
+  strategy:
+    matrix:
+      common_linux:
+        folder: "common"
+        poolName: "Hosted Ubuntu 1604"
+      components_linux:
+        folder: "components"
+        poolName: "Hosted Ubuntu 1604"
+      services_linux:
+        folder: "services"
+        poolName: "Hosted Ubuntu 1604"
+      modules_linux:
+        folder: "modules"
+        poolName: "Hosted Ubuntu 1604"
+      api_linux:
+        folder: "api"
+        poolName: "Hosted Ubuntu 1604"
+      common_windows:
+        folder: "common"
+        poolName: "Hosted Windows 2019 with VS2019"
+      components_windows:
+        folder: "components"
+        poolName: "Hosted Windows 2019 with VS2019"
+      services_windows:
+        folder: "services"
+        poolName: "Hosted Windows 2019 with VS2019"
+      modules_windows:
+        folder: "modules"
+        poolName: "Hosted Windows 2019 with VS2019"
+      api_windows:
+        folder: "api"
+        poolName: "Hosted Windows 2019 with VS2019"
+      common_mac:
+        folder: "common"
+        poolName: "Hosted macOS"
+      components_mac:
+        folder: "components"
+        poolName: "Hosted macOS"
+      services_mac:
+        folder: "services"
+        poolName: "Hosted macOS"
+      modules_mac:
+        folder: "modules"
+        poolName: "Hosted macOS"
+      api_mac:
+        folder: "api"
+        poolName: "Hosted macOS"
+  pool:
+    name: $(poolName)
+  steps:
+  - task: DotNetCoreCLI@2
+    displayName: Test
+    inputs:
+      command: test
+      projects: '$(folder)/**/tests/*.csproj'
+      arguments: '--configuration Release'
+- job: package
+  displayName: Package
+  dependsOn:
+    - buildall
+    - testall
+  pool:
+    name: Hosted Windows 2019 with VS2019
+  steps:
+  - task: DotNetCoreCLI@2
+    displayName: Build
+    inputs:
+      projects: 'azure-iiot-components.sln'
+      arguments: '--configuration Release'
+  - task: ComponentGovernanceComponentDetection@0
+    inputs:
+      scanType: 'Register'
+      verbosity: 'Verbose'
+      alertWarningLevel: 'High'
+  - task: DotNetCoreCLI@2
+    displayName: Pack
+    inputs:
+      command: pack
+      packagesToPack: 'azure-iiot-components.sln'
+      configuration: Release
+      nobuild: true
+  - task: NuGetCommand@2
+    displayName: Push
+    inputs:
+      command: push
+      packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.snupkg'
+      nuGetFeedType: external
+      publishFeedCredentials: azureiiot-dev

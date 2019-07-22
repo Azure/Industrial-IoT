@@ -56,14 +56,14 @@ namespace Microsoft.Azure.IIoT.Crypto.Models {
                 case CurveType.Brainpool_P512t1:
                     return "Brainpool-P-512-t1";
             }
-            throw new ArgumentException("Unknown curve");
+            throw new ArgumentException($"Unknown curve {type}");
         }
 
         /// <summary>
         /// Returns the required size, in bytes, of each key parameters
-        /// (X, Y and D), or -1 if the curve is unsupported. 
+        /// (X, Y and D), or -1 if the curve is unsupported.
         /// </summary>
-        /// <param name="type">The curve for which key parameter size is 
+        /// <param name="type">The curve for which key parameter size is
         /// required.</param>
         /// <returns></returns>
         public static int GetKeyParameterSize(this CurveType type) {
@@ -105,7 +105,7 @@ namespace Microsoft.Azure.IIoT.Crypto.Models {
                 case CurveType.Brainpool_P512t1:
                     break;
             }
-            throw new ArgumentException("Unknown curve");
+            throw new ArgumentException($"Unknown curve {type}");
         }
 
         /// <summary>
@@ -152,7 +152,7 @@ namespace Microsoft.Azure.IIoT.Crypto.Models {
                 case CurveType.Brainpool_P512t1:
                     return ECCurve.NamedCurves.brainpoolP512t1;
             }
-            throw new ArgumentException("Unknown curve");
+            throw new ArgumentException($"Unknown curve {type}");
         }
 
         /// <summary>
@@ -161,14 +161,34 @@ namespace Microsoft.Azure.IIoT.Crypto.Models {
         /// <param name="curve"></param>
         /// <returns></returns>
         public static CurveType ToCurveType(this ECCurve curve) {
+            switch (curve.Oid.Value) {
+                case "1.2.840.10045.3.1.7":
+                    return CurveType.P256;
+                case "1.3.132.0.34":
+                    return CurveType.P384;
+                case "1.3.132.0.35":
+                    return CurveType.P521;
+                case "1.3.132.0.10":
+                    return CurveType.P256K;
+
+                // ...
+            }
+
+            // Try match on friendly name
             switch (curve.Oid.FriendlyName) {
+                case "secP256r1":
+                case "ECDSA_P256":
                 case nameof(ECCurve.NamedCurves.nistP256):
                     return CurveType.P256;
+                case "secP384r1":
+                case "ECDSA_P384":
                 case nameof(ECCurve.NamedCurves.nistP384):
                     return CurveType.P384;
+                case "secP521r1":
+                case "ECDSA_P521":
                 case nameof(ECCurve.NamedCurves.nistP521):
                     return CurveType.P521;
-                case "secP256r1":
+                case "secP256k1":
                     return CurveType.P256K;
                 case nameof(ECCurve.NamedCurves.brainpoolP160r1):
                     return CurveType.Brainpool_P160r1;
@@ -199,7 +219,8 @@ namespace Microsoft.Azure.IIoT.Crypto.Models {
                 case nameof(ECCurve.NamedCurves.brainpoolP512t1):
                     return CurveType.Brainpool_P512t1;
             }
-            throw new ArgumentException("Unknown curve");
+            throw new ArgumentException(
+                $"Unknown curve {curve.Oid.Value} ({curve.Oid.FriendlyName})");
         }
     }
 }

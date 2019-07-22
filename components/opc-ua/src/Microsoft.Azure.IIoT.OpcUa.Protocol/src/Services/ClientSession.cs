@@ -71,7 +71,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             _enqueueEvent = new TaskCompletionSource<bool>(
                 TaskContinuationOptions.RunContinuationsAsynchronously);
 #pragma warning disable RECS0002 // Convert anonymous method to method group
-            _processor = Task.Run(() => RunAsync());
+            _processor = Task.Factory.StartNew(() => RunAsync(), _cts.Token,
+                TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();
 #pragma warning restore RECS0002 // Convert anonymous method to method group
         }
 
@@ -89,8 +90,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 _cts.Cancel();
                 // Unblock keep alives and retries.
                 _enqueueEvent.TrySetResult(true);
+                _logger.Debug("Waiting for processor {processor} to close - {status}...",
+                    _processor.Id, _processor.Status);
                 // Wait for processor to finish
-                await _processor;
+                if (_processor.Status != TaskStatus.WaitingForActivation) {
+                    await Try.Async(() => _processor);
+                }
+                _logger.Verbose("Processor closed.");
             }
             // Clear queue and cancel all remaining outstanding operations
             while (_queue.TryDequeue(out var result)) {
@@ -382,9 +388,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
                 _lastActivity = DateTime.MinValue;
 
+                _logger.Verbose("Closing session...");
                 _session?.Close();
                 _session = null;
+                _logger.Debug("Session closed.");
             }
+            _logger.Verbose("Processor stopped.");
         }
 
         /// <summary>

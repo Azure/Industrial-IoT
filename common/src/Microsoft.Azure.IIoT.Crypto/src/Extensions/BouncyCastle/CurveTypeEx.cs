@@ -59,7 +59,7 @@ namespace Microsoft.Azure.IIoT.Crypto.BouncyCastle {
                 case CurveType.Brainpool_P512t1:
                     return ECNamedCurveTable.GetByName("brainpoolP512t1");
             }
-            throw new ArgumentException("Unknown curve");
+            throw new ArgumentException($"Unknown curve {type}");
         }
 
         /// <summary>
@@ -98,7 +98,8 @@ namespace Microsoft.Azure.IIoT.Crypto.BouncyCastle {
         internal static CurveType ToCurveType(this ECDomainParameters ecParameterSpec) {
             var name = ToCurveName(ecParameterSpec);
             if (name == null) {
-                throw new ArgumentException($"Unknown curve.");
+                throw new ArgumentException(
+                    "Failed to find name from parameter spec - unknown curve.");
             }
             switch (name) {
                 case "secp256r1":
