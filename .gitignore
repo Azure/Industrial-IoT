@@ -24,6 +24,7 @@
 /src/Logs
 /_tmpout/**
 /TestResults/**
+/**/TestResults/**
 /**/swagger/*.json
 /**/packages/**
 .env

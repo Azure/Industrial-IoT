@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Microsoft.Azure.IIoT.Net.Scan.Cli": {
+      "commandName": "Project",
+      "commandLineArgs": "-p"
+    }
+  }
+}

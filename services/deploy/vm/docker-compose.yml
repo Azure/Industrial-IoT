@@ -1,0 +1,142 @@
+version: '3'
+services:
+  reverseproxy:
+    image: nginx:1.13
+    restart: always
+    entrypoint: 
+      - nginx 
+      - -c 
+      - /app/nginx.conf
+    ports:
+      - "443:10443"
+    depends_on:
+      - registryservice
+      - onboardingservice
+      - gatewayservice
+      - vaultservice
+      - twinservice
+      - historyservice
+    volumes:
+      - /app:/app:ro
+      - /logs:/logs:rw
+  registryservice:
+    image: ${SERVICES_REPOSITORY:-mcr.microsoft.com/iot/}opc-registry-service:${SERVICES_VERSION:-latest}
+    restart: always
+    environment:
+      - PCS_KEYVAULT_URL
+      - PCS_IOTHUB_CONNSTRING
+      - PCS_SERVICEBUS_CONNSTRING
+      - PCS_TELEMETRY_DOCUMENTDB_CONNSTRING
+      - PCS_AUTH_REQUIRED
+      - PCS_AUTH_ISSUER
+      - PCS_AUTH_AUDIENCE
+      - PCS_AUTH_HTTPSREDIRECTPORT
+      - PCS_WEBUI_AUTH_AAD_APPID
+      - PCS_WEBUI_AUTH_AAD_AUTHORITY
+      - PCS_WEBUI_AUTH_AAD_TENANT
+      - PCS_CORS_WHITELIST
+  onboardingservice:
+    image: ${SERVICES_REPOSITORY:-mcr.microsoft.com/iot/}opc-onboarding-service:${SERVICES_VERSION:-latest}
+    restart: always
+    environment:
+      - PCS_KEYVAULT_URL
+      - PCS_SERVICEBUS_CONNSTRING
+      - PCS_IOTHUB_CONNSTRING
+      - PCS_IOTHUBREACT_HUB_ENDPOINT
+      - PCS_IOTHUBREACT_HUB_PARTITIONS
+      - PCS_IOTHUBREACT_HUB_NAME
+      - PCS_IOTHUBREACT_HUB_CONSUMERGROUP
+      - PCS_IOTHUBREACT_AZUREBLOB_ACCOUNT
+      - PCS_IOTHUBREACT_AZUREBLOB_KEY
+      - PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX
+  twinservice:
+    image: ${SERVICES_REPOSITORY:-mcr.microsoft.com/iot/}opc-twin-service:${SERVICES_VERSION:-latest}
+    restart: always
+    environment:
+      - PCS_KEYVAULT_URL
+      - PCS_IOTHUB_CONNSTRING
+      - PCS_TELEMETRY_DOCUMENTDB_CONNSTRING
+      - PCS_AUTH_REQUIRED
+      - PCS_AUTH_ISSUER
+      - PCS_AUTH_AUDIENCE
+      - PCS_AUTH_HTTPSREDIRECTPORT
+      - PCS_WEBUI_AUTH_AAD_APPID
+      - PCS_WEBUI_AUTH_AAD_AUTHORITY
+      - PCS_WEBUI_AUTH_AAD_TENANT
+      - PCS_CORS_WHITELIST
+  historyservice:
+    image: ${SERVICES_REPOSITORY:-mcr.microsoft.com/iot/}opc-history-service:${SERVICES_VERSION:-latest}
+    restart: always
+    environment:
+      - PCS_KEYVAULT_URL
+      - PCS_IOTHUB_CONNSTRING
+      - PCS_TELEMETRY_DOCUMENTDB_CONNSTRING
+      - PCS_AUTH_REQUIRED
+      - PCS_AUTH_ISSUER
+      - PCS_AUTH_AUDIENCE
+      - PCS_WEBUI_AUTH_AAD_APPID
+      - PCS_WEBUI_AUTH_AAD_AUTHORITY
+      - PCS_WEBUI_AUTH_AAD_TENANT
+      - PCS_CORS_WHITELIST
+  gatewayservice:
+    image: ${SERVICES_REPOSITORY:-mcr.microsoft.com/iot/}opc-gateway-service:${SERVICES_VERSION:-latest}
+    ports:
+      - "4840:51111"
+    restart: always
+    environment:
+      - PCS_KEYVAULT_URL
+      - PCS_IOTHUB_CONNSTRING
+      - PCS_TELEMETRY_DOCUMENTDB_CONNSTRING
+      - PCS_AUTH_REQUIRED
+      - PCS_AUTH_ISSUER
+      - PCS_AUTH_AUDIENCE
+      - PCS_AUTH_HTTPSREDIRECTPORT
+      - PCS_WEBUI_AUTH_AAD_APPID
+      - PCS_WEBUI_AUTH_AAD_AUTHORITY
+      - PCS_WEBUI_AUTH_AAD_TENANT
+      - PCS_CORS_WHITELIST
+  vaultservice:
+    image: ${SERVICES_REPOSITORY:-mcr.microsoft.com/iot/}opc-vault-service:${SERVICES_VERSION:-latest}
+    restart: always
+    environment:
+      - PCS_KEYVAULT_URL
+      - PCS_SERVICEBUS_CONNSTRING
+      - PCS_IOTHUB_CONNSTRING
+      - PCS_TELEMETRY_DOCUMENTDB_CONNSTRING
+      - PCS_AUTH_REQUIRED
+      - PCS_AUTH_ISSUER
+      - PCS_AUTH_AUDIENCE
+      - PCS_WEBUI_AUTH_AAD_APPID
+      - PCS_WEBUI_AUTH_AAD_AUTHORITY
+      - PCS_WEBUI_AUTH_AAD_TENANT
+      - PCS_CORS_WHITELIST
+  modelprocessor:
+    image: ${SERVICES_REPOSITORY:-mcr.microsoft.com/iot/}opc-processor-service:${SERVICES_VERSION:-latest}
+    restart: always
+    environment:
+      - PCS_KEYVAULT_URL
+      - PCS_SERVICEBUS_CONNSTRING
+      - PCS_TELEMETRY_DOCUMENTDB_CONNSTRING
+      - PCS_IOTHUB_CONNSTRING
+      - PCS_IOTHUBREACT_HUB_ENDPOINT
+      - PCS_IOTHUBREACT_HUB_PARTITIONS
+      - PCS_IOTHUBREACT_HUB_NAME
+      - PCS_IOTHUBREACT_HUB_CONSUMERGROUP
+      - PCS_IOTHUBREACT_AZUREBLOB_ACCOUNT
+      - PCS_IOTHUBREACT_AZUREBLOB_KEY
+      - PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX
+  blobnotification:
+    image: ${SERVICES_REPOSITORY:-mcr.microsoft.com/iot/}blob-notification-service:${SERVICES_VERSION:-latest}
+    restart: always
+    environment:
+      - PCS_KEYVAULT_URL
+      - PCS_SERVICEBUS_CONNSTRING
+      - PCS_IOTHUB_CONNSTRING
+      - PCS_IOTHUBREACT_HUB_ENDPOINT
+      - PCS_IOTHUBREACT_HUB_PARTITIONS
+      - PCS_IOTHUBREACT_HUB_NAME
+      - PCS_IOTHUBREACT_HUB_CONSUMERGROUP
+      - PCS_EVENTHUB_CONNSTRING
+      - PCS_IOTHUBREACT_AZUREBLOB_ACCOUNT
+      - PCS_IOTHUBREACT_AZUREBLOB_KEY
+      - PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX

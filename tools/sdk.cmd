@@ -39,12 +39,15 @@ rem
 set _registry_up=
 set _twin_up=
 set _history_up=
+set _vault_up=
 for /f %%i in ('netstat -na ^| findstr "9041" ^| findstr "LISTENING"') do set _twin_up=1
 for /f %%i in ('netstat -na ^| findstr "9042" ^| findstr "LISTENING"') do set _registry_up=1
 for /f %%i in ('netstat -na ^| findstr "9043" ^| findstr "LISTENING"') do set _history_up=1
+for /f %%i in ('netstat -na ^| findstr "9044" ^| findstr "LISTENING"') do set _vault_up=1
 if "%_twin_up%" == "" goto :wait_up_0
 if "%_registry_up%" == "" goto :wait_up_0
 if "%_history_up%" == "" goto :wait_up_0
+if "%_vault_up%" == "" goto :wait_up_0
 ping nowhere -w 5000 >nul 2>&1
 goto :eof
 
@@ -87,6 +90,12 @@ if exist history\security_save.md move history\security_save.md history\security
 if exist history\paths.md type history\paths.md >> history\readme.md
 if exist history\paths.md del /f history\paths.md
 
+if exist vault\security.md move vault\security.md vault\security_save.md
+%convert% -i http://%_hostname%:9044/v1/swagger.json -d /opt/vault -c /opt/config.properties
+if exist vault\security_save.md move vault\security_save.md vault\security.md
+if exist vault\paths.md type vault\paths.md >> vault\readme.md
+if exist vault\paths.md del /f vault\paths.md
+
 set convert=
 if exist config.properties del /f config.properties
 popd
@@ -113,6 +122,10 @@ rem generate history sdk
 copy %build_root%\docs\api\history\autorest.md readme.md
 set args=--input-file=http://%_hostname%:9042/v2/swagger.json
 docker run --rm --mount type=bind,source=%cd%,target=/opt -w /opt azuresdk/autorest:latest %args%
+rem generate vault sdk
+copy %build_root%\docs\api\vault\autorest.md readme.md
+set args=--input-file=http://%_hostname%:9044/v1/swagger.json
+docker run --rm --mount type=bind,source=%cd%,target=/opt -w /opt azuresdk/autorest:latest %args%
 
 set args=
 del /f readme.md
@@ -125,6 +138,7 @@ pushd %build_root%\swagger
 curl -o twin.json http://%_hostname%:9041/v2/swagger.json
 curl -o registry.json http://%_hostname%:9042/v2/swagger.json
 curl -o history.json http://%_hostname%:9043/v2/swagger.json
+curl -o vault.json http://%_hostname%:9044/v1/swagger.json
 popd
 goto :eof
 

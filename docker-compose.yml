@@ -4,7 +4,6 @@ services:
     build: 
       context: ./services
       dockerfile: ./reverse-proxy/Dockerfile
-    restart: always
     ports:
       - "10080:10080"
     depends_on:
@@ -20,9 +19,10 @@ services:
       dockerfile: ./src/Microsoft.Azure.IIoT.Services.OpcUa.Registry/docker/Dockerfile
     ports:
       - "9042:9042"
-    restart: always
     environment:
+      - PCS_KEYVAULT_URL
       - PCS_IOTHUB_CONNSTRING
+      - PCS_SERVICEBUS_CONNSTRING
       - PCS_TELEMETRY_DOCUMENTDB_CONNSTRING
       - PCS_AUTH_REQUIRED
       - PCS_AUTH_ISSUER
@@ -36,8 +36,9 @@ services:
     build: 
       context: ./services
       dockerfile: ./src/Microsoft.Azure.IIoT.Services.OpcUa.Onboarding/docker/Dockerfile
-    restart: always
     environment:
+      - PCS_KEYVAULT_URL
+      - PCS_SERVICEBUS_CONNSTRING
       - PCS_IOTHUB_CONNSTRING
       - PCS_IOTHUBREACT_HUB_ENDPOINT
       - PCS_IOTHUBREACT_HUB_PARTITIONS
@@ -51,10 +52,10 @@ services:
     build: 
       context: ./services
       dockerfile: ./src/Microsoft.Azure.IIoT.Services.OpcUa.Twin/docker/Dockerfile
-    restart: always
     ports:
       - "9041:9041"
     environment:
+      - PCS_KEYVAULT_URL
       - PCS_IOTHUB_CONNSTRING
       - PCS_TELEMETRY_DOCUMENTDB_CONNSTRING
       - PCS_AUTH_REQUIRED
@@ -69,10 +70,10 @@ services:
     build: 
       context: ./services
       dockerfile: ./src/Microsoft.Azure.IIoT.Services.OpcUa.History/docker/Dockerfile
-    restart: always
     ports:
       - "9043:9043"
     environment:
+      - PCS_KEYVAULT_URL
       - PCS_IOTHUB_CONNSTRING
       - PCS_TELEMETRY_DOCUMENTDB_CONNSTRING
       - PCS_AUTH_REQUIRED
@@ -90,8 +91,27 @@ services:
     ports:
       - "9040:9040"
       - "51111:51111"
-    restart: always
     environment:
+      - PCS_KEYVAULT_URL
+      - PCS_IOTHUB_CONNSTRING
+      - PCS_TELEMETRY_DOCUMENTDB_CONNSTRING
+      - PCS_AUTH_REQUIRED
+      - PCS_AUTH_ISSUER
+      - PCS_AUTH_AUDIENCE
+      - PCS_WEBUI_AUTH_AAD_APPID
+      - PCS_WEBUI_AUTH_AAD_AUTHORITY
+      - PCS_WEBUI_AUTH_AAD_TENANT
+      - PCS_CORS_WHITELIST
+  vaultservice:
+    image: ${REPOSITORY:-localhost:5000/azure-iiot-}opc-vault-service:${IMAGE_VERSION:-latest}
+    build: 
+      context: ./services
+      dockerfile: ./src/Microsoft.Azure.IIoT.Services.OpcUa.Vault/docker/Dockerfile
+    ports:
+      - "9044:9044"
+    environment:
+      - PCS_KEYVAULT_URL
+      - PCS_SERVICEBUS_CONNSTRING
       - PCS_IOTHUB_CONNSTRING
       - PCS_TELEMETRY_DOCUMENTDB_CONNSTRING
       - PCS_AUTH_REQUIRED
@@ -106,8 +126,9 @@ services:
     build: 
       context: ./services
       dockerfile: ./src/Microsoft.Azure.IIoT.Services.OpcUa.Processor/docker/Dockerfile
-    restart: always
     environment:
+      - PCS_KEYVAULT_URL
+      - PCS_SERVICEBUS_CONNSTRING
       - PCS_TELEMETRY_DOCUMENTDB_CONNSTRING
       - PCS_IOTHUB_CONNSTRING
       - PCS_IOTHUBREACT_HUB_ENDPOINT
@@ -122,8 +143,9 @@ services:
     build: 
       context: ./services
       dockerfile: ./src/Microsoft.Azure.IIoT.Services.Notification.Blob/docker/Dockerfile
-    restart: always
     environment:
+      - PCS_KEYVAULT_URL
+      - PCS_SERVICEBUS_CONNSTRING
       - PCS_IOTHUB_CONNSTRING
       - PCS_IOTHUBREACT_HUB_ENDPOINT
       - PCS_IOTHUBREACT_HUB_PARTITIONS
@@ -133,30 +155,14 @@ services:
       - PCS_IOTHUBREACT_AZUREBLOB_ACCOUNT
       - PCS_IOTHUBREACT_AZUREBLOB_KEY
       - PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX
-  twinwebui:
-    image: ${REPOSITORY:-localhost:5000/azure-iiot-}opc-twin-webui:${IMAGE_VERSION:-latest}
-    build: ./samples/opc-twin-webui
-    restart: always
-    command: npm start
-    ports:
-      - "3000:3000"
-    environment:
-      - REACT_APP_PCS_AUTH_REQUIRED
-      - REACT_APP_PCS_AUTH_ISSUER
-      - REACT_APP_PCS_AUTH_AUDIENCE
-      - REACT_APP_PCS_WEBUI_AUTH_AAD_APPID
-      - REACT_APP_PCS_WEBUI_AUTH_AAD_AUTHORITY
-      - REACT_APP_PCS_WEBUI_AUTH_AAD_TENANT
-      - REACT_APP_PCS_TWIN_REGISTRY_URL=http://localhost:10080/registry
-      - REACT_APP_PCS_TWIN_SERVICE_URL=http://localhost:10080/twin
   twinmodule:
     image: ${REPOSITORY:-localhost:5000/azure-iiot-}opc-twin:host-${IMAGE_VERSION:-latest}
     build: ./modules/opc-twin
-    restart: always
     network_mode: "${HOST_NETWORK:-host}"
     cap_add:
       - NET_ADMIN
     environment:
+      - PCS_KEYVAULT_URL
       - PCS_IOTHUB_CONNSTRING
   publishermodule:
     image: ${REPOSITORY:-localhost:5000/azure-iiot-}opc-publisher:${IMAGE_VERSION:-latest}
@@ -165,7 +171,6 @@ services:
       dockerfile: ./docker/linux/amd64/Dockerfile
     ports:
       - "62222:62222"
-    restart: always
     environment:
       - _HUB_CS
     command: --aa
@@ -173,7 +178,6 @@ services:
     image: ${REPOSITORY:-localhost:5000/azure-iiot-}opc-ua-testing:${IMAGE_VERSION:-latest}
     build: ./components/opc-ua
     hostname: opcserver0
-    restart: always
     command: --sample -p 51210
     ports:
       - "51210:51210"
@@ -181,7 +185,6 @@ services:
     image: ${REPOSITORY:-localhost:5000/azure-iiot-}opc-ua-testing:${IMAGE_VERSION:-latest}
     build: ./components/opc-ua
     hostname: opcserver1
-    restart: always
     command: --sample -p 51211
     ports:
       - "51211:51211"
@@ -189,7 +192,6 @@ services:
     image: ${REPOSITORY:-localhost:5000/azure-iiot-}opc-ua-testing:${IMAGE_VERSION:-latest}
     build: ./components/opc-ua
     hostname: opcserver2
-    restart: always
     command: --sample -p 51212
     ports:
       - "51212:51212"
@@ -198,6 +200,7 @@ services:
     build: ./api
     command: exit
     environment:
+      - PCS_KEYVAULT_URL
       - PCS_TWIN_REGISTRY_URL=http://twinregistry:9042
       - PCS_TWIN_SERVICE_URL=http://twinservice:9041
       - PCS_WEBUI_AUTH_AAD_APPID
