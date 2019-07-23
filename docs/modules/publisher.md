@@ -1,29 +1,22 @@
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments
+# OPC Publisher Edge Module
+The OPC Publisher runs inside IoT Edge.  It connects to OPC UA servers and publishes JSON encoded telemetry data from these servers in OPC UA "Pub/Sub" format (using a JSON payload) to Azure IoT Hub. All transport protocols supported by the Azure IoTHub client SDK can be used, i.e. HTTPS, AMQP and MQTT.
 
-# OPC Publisher
-This reference implementation demonstrates how to connect to existing OPC UA servers and publishes JSON encoded telemetry data from these servers in OPC UA "Pub/Sub" format (using a JSON payload) to Azure IoT Hub. All transport protocols supported by the Azure IoTHub client SDK can be used, i.e. HTTPS, AMQP and MQTT.
+This module, apart from including an OPC UA *client* for connecting to existing OPC UA servers on your network, also offers a IoTHub direct methods interface to manage what gets published.
 
-This application, apart from including an OPC UA *client* for connecting to existing OPC UA servers you have on your network, also includes an OPC UA *server* on port 62222 that can be used to manage what gets published and offers IoTHub direct methods to do the same.
-
-The application is implemented using .NET Core technology and is able to run on the platforms supported by .NET Core.
+The module is implemented using .NET Core technology and is able to run on the platforms supported by .NET Core.
 
 OPC Publisher implements a retry logic to establish connections to endpoints which have not responded to a certain number of keep alive requests, for example if the OPC UA server on this endpoint had a power outage.
 
 For each distinct publishing interval to an OPC UA server it creates a separate subscription over which all nodes with this publishing interval are updated.
 
-OPC Publisher supports batching of the data sent to IoTHub, to reduce network load. This batching is sending a packet to IoTHub only if the configured package size is reached.
+All OPC UA components use the OPC Foundation's OPC UA reference stack as nuget packages and therefore licensing of their nuget packages apply. Visit https://opcfoundation.org/license/redistributables/1.3/ for the licensing terms.
 
-This application uses the OPC Foundations's OPC UA reference stack as nuget packages and therefore licensing of their nuget packages apply. Visit https://opcfoundation.org/license/redistributables/1.3/ for the licensing terms.
+# Building
 
-|Branch|Status|
-|------|-------------|
-|master|[![Build status](https://ci.appveyor.com/api/projects/status/6t7ru6ow7t9uv74r/branch/master?svg=true)](https://ci.appveyor.com/project/marcschier/iot-gateway-opc-ua-r4ba5/branch/master) [![Build Status](https://travis-ci.org/Azure/iot-gateway-opc-ua.svg?branch=master)](https://travis-ci.org/Azure/iot-gateway-opc-ua)|
-
-# Building the application
-The application requires the .NET Core SDK 2.1.
+The module requires .NET Core SDK 2.2.   The code can be found in the `modules/opc-publisher` folder in the repository.
 
 ## As native Windows application
-Open the opcpublisher.sln project with Visual Studio 2017 and build the solution by hitting F7.
+Open the opcpublisher.sln project with Visual Studio 2019 and build the solution by hitting F7.
 
 ## As Docker container
 
@@ -32,9 +25,7 @@ From the root of the repository, in a console, type:
 
     docker build -f <docker-configfile-to-use> -t <your-container-name> .
 
-The `-f` option for `docker build` is optional and the default is to use Dockerfile. Docker also support building directly from a git repository, which means you also can build a Linux container by:
-
-    docker build -t <your-container-name> https://github.com/Azure/iot-edge-opc-publisher
+The `-f` option for `docker build` is optional and the default is to use Dockerfile. 
 
 Note: if you want to have correct version information, please install [gitversion](https://gitversion.readthedocs.io/en/latest/) and run it with the following command line in the root of the repository: `gitversion  . /updateassemblyinfo /ensureassemblyinfo updateassemblyinfofilename opcpublisher/AssemblyInfo.cs`
 
@@ -69,15 +60,6 @@ To prevent sending the value of a node at startup, you can add the `SkipFirst` k
                 "SkipFirst": true,
 
 Both configurations settings can be enabled for all nodes in your configuration file via command line options as well.
-
-
-### Configuration via OPC UA method calls
-OPC Publisher has an OPC UA Server integrated, which can be accessed on port 62222. If the hostname is `publisher`, then the URI of the endpoint is: `opc.tcp://publisher:62222/UA/Publisher`
-This endpoint exposes five methods:
-  - PublishNode
-  - UnpublishNode
-  - GetPublishedNodes
-  - IoTHubDirectMethod (see below)
 
 ### Configuration via IoTHub direct function calls
 OPC Publisher implements the following IoTHub direct method calls, which can be called when OPC Publisher runs standalone or in IoT Edge:
@@ -119,7 +101,7 @@ The syntax of the configuration file is as follows:
         // Both objects are optional and if they are not specified, then publisher uses
         // its internal default configuration, which generates telemetry messages compatible
         // with the Microsoft Connected factory Preconfigured Solution (https://github.com/Azure/azure-iot-connected-factory).
-
+    
         // A JSON telemetry message for Connected factory looks like:
         //  {
         //      "NodeId": "i=2058",
@@ -130,7 +112,7 @@ The syntax of the configuration file is as follows:
         //          "SourceTimestamp": "2017-11-10T14:03:17Z"
         //      }
         //  }
-
+    
         // The 'Defaults' object in the sample below, are similar to what publisher is
         // using as its internal default telemetry configuration.
         {
@@ -138,13 +120,13 @@ The syntax of the configuration file is as follows:
                 // The first two properties ('EndpointUrl' and 'NodeId' are configuring data
                 // taken from the OpcPublisher node configuration.
                 "EndpointUrl": {
-
+    
                     // The following three properties can be used to configure the 'EndpointUrl'
                     // property in the JSON message send by publisher to IoTHub.
-
+    
                     // Publish controls if the property should be part of the JSON message at all.
                     "Publish": false,
-
+    
                     // Pattern is a regular expression, which is applied to the actual value of the
                     // property (here 'EndpointUrl').
                     // If this key is ommited (which is the default), then no regex matching is done
@@ -163,28 +145,28 @@ The syntax of the configuration file is as follows:
                     // "Pattern": "(i)=(.*)"
                     // defined for Defaults.NodeId.Pattern, will generate for the above sample
                     // a 'NodeId' value of 'i2058' to be sent by publisher
-
+    
                     // Name allows you to use a shorter string as property name in the JSON message
                     // sent by publisher. By default the property name is unchanged and will be
                     // here 'EndpointUrl'.
                     // The 'Name' property can only be set in the 'Defaults' object to ensure
                     // all messages from publisher sent to IoTHub have a similar layout.
                     "Name": "EndpointUrl"
-
+    
                 },
                 "NodeId": {
                     "Publish": true,
-
+    
                     // If you set Defaults.NodeId.Name to "ni", then the "NodeId" key/value pair
                     // (from the above example) will change to:
                     //      "ni": "i=2058",
                     "Name": "NodeId"
                 },
-
+    
                 // The MonitoredItem object is configuring the data taken from the MonitoredItem
                 // OPC UA object for published nodes.
                 "MonitoredItem": {
-
+    
                     // If you set the Defaults.MonitoredItem.Flat to 'false', then a
                     // 'MonitoredItem' object will appear, which contains 'ApplicationUri'
                     // and 'DisplayNode' proerties:
@@ -197,7 +179,7 @@ The syntax of the configuration file is as follows:
                     // 'Value' objects of the 'Defaults' object and will be used
                     // for all JSON messages sent by publisher.
                     "Flat": true,
-
+    
                     "ApplicationUri": {
                         "Publish": true,
                         "Name": "ApplicationUri"
@@ -220,7 +202,7 @@ The syntax of the configuration file is as follows:
                     // objects of the 'Defaults' object and will be used for all
                     // messages sent by publisher.
                     "Flat": false,
-
+    
                     "Value": {
                         "Publish": true,
                         "Name": "Value"
@@ -242,7 +224,7 @@ The syntax of the configuration file is as follows:
                     }
                 }
             },
-
+    
             // The next object allows to configure 'Publish' and 'Pattern' for specific
             // endpoint URLs. Those will overwrite the ones specified in the 'Defaults' object
             // or the defaults used by publisher.
@@ -301,7 +283,7 @@ The syntax of the configuration file is as follows:
             ]
         }
 
-# Running the application
+# Starting the publisher
 
 ## Command line options
 The complete usage of the application can be shown using the `--help` command line option and is as follows:
@@ -309,29 +291,29 @@ The complete usage of the application can be shown using the `--help` command li
         Current directory is: /appdata
         Log file is: <hostname>-publisher.log
         Log level is: info
-
+    
         OPC Publisher V2.3.0
         Informational version: V2.3.0+Branch.develop_hans_methodlog.Sha.0985e54f01a0b0d7f143b1248936022ea5d749f9
-
+    
         Usage: opcpublisher.exe <applicationname> [<iothubconnectionstring>] [<options>]
-
+    
         OPC Edge Publisher to subscribe to configured OPC UA servers and send telemetry to Azure IoTHub.
         To exit the application, just press CTRL-C while it is running.
-
+    
         applicationname: the OPC UA application name to use, required
                          The application name is also used to register the publisher under this name in the
                          IoTHub device registry.
-
+    
         iothubconnectionstring: the IoTHub owner connectionstring, optional
-
+    
         There are a couple of environment variables which can be used to control the application:
         _HUB_CS: sets the IoTHub owner connectionstring
         _GW_LOGP: sets the filename of the log file to use
         _TPC_SP: sets the path to store certificates of trusted stations
         _GW_PNFP: sets the filename of the publishing configuration file
-
+    
         Command line arguments overrule environment variable settings.
-
+    
         Options:
               --pf, --publishfile=VALUE
                                      the filename to configure the nodes to publish.
@@ -620,26 +602,6 @@ The complete usage of the application can be shown using the `--help` command li
 Typically you specify the IoTHub owner connectionstring only on the first start of the application. The connectionstring will be encrypted and stored in the platforms certificiate store.
 On subsequent calls it will be read from there and reused. If you specify the connectionstring on each start, the device which is created for the application in the IoTHub device registry will be removed and recreated each time.
 
-
-## Native on Windows
-Open the opcpublisher.sln project with Visual Studio 2017, build the solution and publish it. You can start the application in the 'Target directory' you have published to with:
-
-    dotnet opcpublisher.dll <applicationname> [<iothubconnectionstring>] [options]
-
-
-## Using a self-built container
-Build your own container and then start the container:
-
-    docker run <your-container-name> <applicationname> [<iothubconnectionstring>] [options]
-
-## Using a container from Microsoft Container Registry
-There is a prebuilt container available on docker hub. To start it, just do:
-
-    docker run mcr.microsoft.com/iotedge/opc-publisher <applicationname> [<iothubconnectionstring>] [options]
-
-Check [docker Hub](https://hub.docker.com/_/microsoft-iotedge-opc-publisher) to see which operating systems and processor architectures are supported.
-The right container for your OS and CPU architecture (if supported) will be automatically selected and used.
-
 ## Using it as a module in Azure IoT Edge
 OPC Publisher is ready to be used as a module to run in [Azure IoT Edge](https://docs.microsoft.com/en-us/azure/iot-edge) Microsoft's Intelligent Edge framework.
 We recommend to take a look on the information available on the beforementioned link and use then the information provided here. When using
@@ -680,16 +642,36 @@ To add OPC Publisher as module to your IoT Edge deployment, you go to the Azure 
 * When you have started IoT Edge on your edge device and the docker container `publisher` is started, you can check out the log output of OPC Publisher either by
   using `docker logs -f publisher` or by checking the logfile (in our example above `d:\iiotegde\publisher-publisher.log` content or by using the diagnostic tool [here](https://github.com/Azure-Samples/iot-edge-opc-publisher-diagnostics).
 
+## Running Publisher natively on Windows
 
+Open the opcpublisher.sln project with Visual Studio 2017, build the solution and publish it. You can start the application in the 'Target directory' you have published to with:
+
+```
+dotnet opcpublisher.dll <applicationname> [<iothubconnectionstring>] [options]
+```
+
+## Using a self-built container
+
+Build your own container and then start the container:
+
+```
+docker run <your-container-name> <applicationname> [<iothubconnectionstring>] [options]
+```
+
+## Using a container from Microsoft Container Registry
+
+There is a prebuilt container available on docker hub. To start it, just do:
+
+```
+docker run mcr.microsoft.com/iotedge/opc-publisher <applicationname> [<iothubconnectionstring>] [options]
+```
+
+Check [docker Hub](https://hub.docker.com/_/microsoft-iotedge-opc-publisher) to see which operating systems and processor architectures are supported.
+The right container for your OS and CPU architecture (if supported) will be automatically selected and used.
 
 ## Important when using a container
 
-### Access to the OPC Publisher OPC UA server
-The OPC Publisher OPC UA server listens by default on port 62222. To expose this inbound port in a container, you need to use `docker run` option `-p`:
-
-    docker run -p 62222:62222 mcr.microsoft.com/iotedge/opc-publisher <applicationname> [<iothubconnectionstring>] [options]
-
-### Enable intercontainer nameresolution
+### Enable inter-container name-resolution
 To enable name resolution from within the container to other containers, you need to create a user define docker bridge network and connect the container to this network using the `--network` option.
 Additionally you need to assign the container a name using the `--name` option as in this example:
 
@@ -832,7 +814,7 @@ Here are some measurements with different values for `--si` and `--ms` parameter
 OPC Publisher was used as debug build on Windows 10 natively for 120 seconds. The IoTHub protocol was the default MQTT protocol.
 
 #### Default configuration (--si 10 --ms 262144)
- 
+
         ==========================================================================
         OpcPublisher status @ 26.10.2017 15:33:05 (started @ 26.10.2017 15:31:09)
         ---------------------------------
@@ -864,7 +846,7 @@ OPC Publisher was used as debug build on Windows 10 natively for 120 seconds. Th
 The default configuration sends data to IoTHub each 10 seconds or when 256 kB of data to ingest is available. This adds a moderate latency of max 10 seconds, but has lowest probablilty of loosing data because of the large message size.
 As you see in the diagnostics ouptut there are no OPC node udpates lost (`monitored item notifications enqueue failure`).
 
-#### Constant send inverval (--si 1 --ms 0)
+#### Constant send interval (--si 1 --ms 0)
 
         ==========================================================================
         OpcPublisher status @ 26.10.2017 15:35:59 (started @ 26.10.2017 15:34:03)
@@ -968,9 +950,7 @@ When using this configuration you need to ensure, that your scenario does not ha
 
 ## Native on Windows
 
-Open the opcpublisher.sln project with Visual Studio 2017 and start debugging the app by hitting F5.
-
-If you need to access the OPC UA server in the OPC Publisher, you should ensure that the firewall setting allow access to the port the server is listening on (default: 62222).
+Open the opcpublisher.sln project with Visual Studio 2019 and start debugging the app by hitting F5.
 
 # Controlling the application remotely
 
@@ -985,7 +965,7 @@ Beyond this OPC Publisher implements a few IoTHub direct method calls, which all
 
 In addition to this is implements a direct method to exit the application.
 
-In the following github repos there are tools to [configure the nodes to publish](https://github.com/Azure-Samples/iot-edge-opc-publisher-nodeconfiguration) 
+In the following GitHub repos there are tools to [configure the nodes to publish](https://github.com/Azure-Samples/iot-edge-opc-publisher-nodeconfiguration) 
 and [read the diagnostic information](https://github.com/Azure-Samples/iot-edge-opc-publisher-diagnostics). Both tools are also available as containers in Docker Hub.
 
 # As OPC UA server to start

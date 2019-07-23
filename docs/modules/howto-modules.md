@@ -2,9 +2,14 @@
 
 This article explains how to deploy the Industrial IoT Edge modules to [Azure IoT Edge](https://azure.microsoft.com/en-us/services/iot-edge/). 
 
+There are several options to deploy modules to your [Azure IoT Edge](https://azure.microsoft.com/en-us/services/iot-edge/) Gateway, among them
+
+- [Deploying from Azure Portal's IoT Edge blade](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-deploy-modules-portal)
+- [Deploying using AZ CLI](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-deploy-monitor-cli)
+
 ## Deployment manifest
 
-All modules are deployed using a deployment manifest.  An example manifest to deploy both [OPC Publisher](https://github.com/Azure/iot-edge-opc-publisher) and [OPC Twin](module.md) is shown below, but can also be found in the root of the [OPC Twin Module repository](https://github.com/Azure/azure-iiot-opc-twin-module).
+All modules are deployed using a deployment manifest.  An example manifest to deploy both [OPC Publisher](publisher.md) and [OPC Twin](twin.md) is shown below.
 
 ```json
 {

@@ -1,4 +1,4 @@
-# Azure Security of Things for IoT and Sentinel Integration
+# Azure Security Center and Azure Sentinel Integration
 
 ### Pre-requites
 
@@ -10,7 +10,7 @@
 	* Northern Europe
 	* Southeast Asia
  * Azure Sentinel supports  workspaces created in the following regions only:
-	* Southeast, Canada Central, Central India, East U.S., East U.S. 2 EUAP (Canary), Japan  East, Southeast Asia, UK South, West Europe, and West U.S. 2    	
+	* Southeast, Canada Central, Central India, East U.S., East U.S. 2 EUAP (Canary), Japan  East, Southeast Asia, UK South, West Europe, and West U.S. 2.
 
 
 ### Steps
@@ -23,6 +23,7 @@
 
 * Provide your Log Analytics Workspace details (workspace should NOT be the default one)
 	* Elect to store raw events in addition to the default information types of storage by leaving the raw event toggle On
+	
 	* Elect to enable twin collection by leaving the twin collection toggle On
 	
 * Click Save
@@ -43,9 +44,9 @@
 ![analytics](media/asc4.png)
 
 * Create the alert rule using the following query:
-SecurityIoTRawEvent
-| where RawEventName == 'ConfigurationError' and parse_json(EventDetails)['ErrorType'] == 'NotOptimal'
-| extend AccountCustomEntity = EventDetails
+`SecurityIoTRawEvent`
+`| where RawEventName == 'ConfigurationError' and parse_json(EventDetails)['ErrorType'] == 'NotOptimal'`
+`| extend AccountCustomEntity = EventDetails`
 
 ![alertrule](media/asc5.png)
 

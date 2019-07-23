@@ -4,7 +4,7 @@ The following diagrams illustrate the OPC Twin architecture and how its componen
 
 ## Discovery and Activation
 
-1. The operator enables network scanning on the [OPC Twin module](module.md) or sends a one-time discovery using a discovery URL. The discovered endpoints and server application information is sent via telemetry to the onboarding agent for processing.  The [OPC UA onboarding agent](onboarding.md) processes these discovery events sent. The discovery events result in application registration and updates in Azure IoT Hub.  
+1. The operator enables network scanning on the [OPC Twin module](twin.md) or sends a one-time discovery using a discovery URL. The discovered endpoints and server application information is sent via telemetry to the onboarding agent for processing.  The [OPC UA onboarding agent](onboarding.md) processes these discovery events sent. The discovery events result in application registration and updates in Azure IoT Hub.  
 
    ![How OPC Twin works](media/twin1.png)
 
@@ -18,10 +18,11 @@ The following diagrams illustrate the OPC Twin architecture and how its componen
 
    ![How OPC Twin works](media/twin3.png)
 
-1. The [OPC Twin Microservice](twin.md) REST interface can also be used to create monitored items and subscriptions inside the OPC Publisher module. The OPC Publisher sends variable changes and events in the OPC UA server as telemetry to Azure IoT Hub. For more information about OPC Publisher, see the [OPC Publisher](https://github.com/Azure/iot-edge-opc-publisher) repository on GitHub. 
+1. The [OPC Twin Microservice](twin.md) REST interface can also be used to create monitored items and subscriptions inside the [OPC Publisher](publisher.md) module. The OPC Publisher sends variable changes and events in the OPC UA server as telemetry to Azure IoT Hub.  
 
    ![How OPC Twin works](media/twin4.png)
 
 ## Next steps
 
-- [Deploy Industrial IoT Microservices to Azure](../howto-deploy-microservices-md)
+- [Deploy Industrial IoT Microservices to Azure](howto-deploy-microservices-md)
+

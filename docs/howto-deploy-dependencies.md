@@ -51,5 +51,5 @@ The deployment script tries to register AAD applications in Azure Active Directo
 
 Now that you have successfully deployed Azure Industrial IoT Microservices to an existing project, here are the suggested next steps:
 
-- [Run the Industrial IoT modules locally](howto-deploy-modules.md)
-- [Learn about the OPC Twin dependencies](modules/dependencies.md)
+- [Run the Industrial IoT modules locally](modules/howto-modules.md)
+- [Learn about the OPC Twin dependencies](services/dependencies.md)

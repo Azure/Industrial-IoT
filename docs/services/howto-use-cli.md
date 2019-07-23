@@ -8,7 +8,7 @@ You should have already successfully deployed all Microservices and at least one
 
 1. [Deploy the Industrial IoT Microservices to Azure](../howto-deploy-microservices.md) and securely store the resulting `.env` file.
 
-2. [Deploy Industrial IoT Edge Modules](../howto-deploy-modules.md)
+2. [Deploy Industrial IoT Edge Modules](../modules/howto-modules.md)
 
 To run the demo OPC UA server and the OPC Device Management Console Client you will also need Docker installed on your development PC.  If you have not, please follow the instructions for [Linux](https://docs.docker.com/install/linux/docker-ce/ubuntu/), [Mac](https://docs.docker.com/docker-for-mac/install/), or on [Windows](https://docs.docker.com/docker-for-windows/install/).
 

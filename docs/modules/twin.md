@@ -2,6 +2,8 @@
 
 The OPC Twin module runs inside IoT Edge.  
 
+All OPC UA components use the OPC Foundation's OPC UA reference stack as nuget packages and therefore licensing of their nuget packages apply. Visit https://opcfoundation.org/license/redistributables/1.3/ for the licensing terms.
+
 ## Server Discovery
 
 The supervisor provides services inside the OPC Twin module which include OPC UA server discovery.  If discovery is configured and enabled, the OPC Twin Module will send the results of a scan probe via the IoT Edge and IoT Hub telemetry path to the Onboarding agent.  The agent processes the results and updates the Identities in the [OPC Registry](registry.md) and thus IoT Hub Device Registry.
@@ -47,7 +49,7 @@ A single session is opened on demand per endpoint (same as in the existing OPC P
 
 ## OPC Publisher Module Integration
 
-The OPC Publisher module is responsible for maintaining durable Subscriptions to Variables and Events on an endpoint.  On startup, the twin module locates the OPC Publisher module in its Edge environment.  It then forwards requests to it that it receives by way of the OPC Twin Microservice REST API.  This includes requests to
+The [OPC Publisher](publisher.md) module is responsible for maintaining durable Subscriptions to Variables and Events on an endpoint.  On startup, the twin module locates the OPC Publisher module in its Edge environment.  It then forwards requests to it that it receives by way of the OPC Twin Microservice REST API.  This includes requests to
 
 - **`Publish`** a variable on an endpoint to IoT Hub.
 - Disable publishing (**`Unpublish`**)
@@ -55,11 +57,10 @@ The OPC Publisher module is responsible for maintaining durable Subscriptions to
 
 If no OPC Publisher module is deployed alongside OPC Twin module, OPC Twin publishing REST calls will fail.
 
-For more information about OPC Publisher, see the [OPC Publisher](https://github.com/Azure/iot-edge-opc-publisher) repository on GitHub.
+For more information about OPC Publisher, see [here](publisher.md).
 
 ## Next steps
 
 - [Learn how to deploy OPC Twin Module](howto-modules.md)
-- [Explore the OPC Twin Module repository](https://github.com/Azure/azure-iiot-opc-twin-module)
 - [Learn about the OPC Twin Microservice](twin.md)
 - [Learn about OPC Registry Onboarding](onboarding.md)
