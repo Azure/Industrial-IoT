@@ -21,7 +21,7 @@ To make the demo deterministic we also start a demo OPC UA server.
 1. Open a terminal or command prompt and run
 
    ```bash
-   hostname 
+   hostname
    ```
 
    Remember the return host name of your development PC.  You will need it later when you specify the discovery URL of the server.  
@@ -29,7 +29,7 @@ To make the demo deterministic we also start a demo OPC UA server.
 2. Now run
 
    ```bash
-   docker run -it -p 50000:50000 mcr.microsoft.com/iotedge/opc-plc -aa 
+   docker run -it -p 50000:50000 mcr.microsoft.com/iotedge/opc-plc -aa
    ```
 
    to start PLC demo server.  For simplicity we instruct the demo server to accept our certificate.  
@@ -42,12 +42,12 @@ To make the demo deterministic we also start a demo OPC UA server.
 
    ```bash
    docker build -t cli .
-   docker run -it --env-file .env cli console 
+   docker run -it --env-file .env cli console
    ```
 
    > If you are trying to access running Microservices on your local development machine and your OS is Linux you must explicitly specify your host's host name using `-e _HOST=$(hostname)` argument.
 
-3. You will now see a prompt and be able to enter commands, e.g. type 
+3. You will now see a prompt and be able to enter commands, e.g. type
 
    ```bash
    > help
@@ -141,7 +141,7 @@ To make the demo deterministic we also start a demo OPC UA server.
    > apps add --url opc.tcp://<hostname>:50000 -a
    ```
 
-   - `–a` auto-activates all discovered twins automatically, a convenience shortcut. Normally an operator would manually activate/enable newly registered twins based on some form of security audit.
+   * `–a` auto-activates all discovered twins automatically, a convenience shortcut. Normally an operator would manually activate/enable newly registered twins based on some form of security audit.
 
 3. Run
 
@@ -193,7 +193,7 @@ To make the demo deterministic we also start a demo OPC UA server.
 2. Run
 
    ```bash
-   > nodes browse –i <endpointId> 
+   > nodes browse –i <endpointId>
    ```
 
    to browse the root node of the endpoint.
@@ -222,7 +222,7 @@ apps unregister -i <applicationId>
 
    and note down the `supervisorId`.
 
-1. Enable scanning in the supervisor by running 
+1. Enable scanning in the supervisor by running
 
    ```bash
    > supervisors update –d Fast -i <supervisorId> –a
@@ -232,7 +232,7 @@ apps unregister -i <applicationId>
 
    You can change the configuration to your needs. For more information, see the console help.
 
-1. The discovery takes about a minute. Run 
+1. The discovery takes about a minute. Run
 
    ```bash
    > apps list
@@ -247,18 +247,18 @@ You can now [browse one of the discovered endpoints](#Browse-all-root-nodes-of-t
 1. Note each applicationId in `apps list` and remove them by running
 
    ```bash
-   > apps unregister -i <applicationId> 
+   > apps unregister -i <applicationId>
    ```
 
    Disable scanning on the supervisor by running
 
    ```bash
-   > supervisor update -d Off -i <supervisorId> 
+   > supervisor update -d Off -i <supervisorId>
    ```
 
 ## Next steps
 
 Now that you are done, try to run your own OPC UA server in the same network as your IoT Edge gateway and follow the instructions above with the relevant variations (e.g. discovery URL).
 
-- Learn how to write an application that reads and writes variable values on an OPC UA server (COMING SOON)
-- [Explore Microservices REST APIs](../api/readme.md)
+* Learn how to write an application that reads and writes variable values on an OPC UA server (COMING SOON)
+* [Explore Microservices REST APIs](../api/readme.md)

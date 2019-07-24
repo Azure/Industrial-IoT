@@ -4,14 +4,14 @@ The OPC Onboarding agent receives discovery events from the OPC Twin module (sup
 
 When receiving new scan results it performs the following tasks:
 
-- Add new applications and their endpoints to the registry if they do not yet exist
-- Update existing applications and endpoints to reflect what the server reported and re-enable them if they are disabled.
-- Add the "Supervisor ID" to any endpoint to claim the endpoint for the supervisor that found it (unless it is already activated).
-- Disable all applications and endpoints found or registered through the supervisor at an earlier point in time and that were not found this time around.  
+* Add new applications and their endpoints to the registry if they do not yet exist
+* Update existing applications and endpoints to reflect what the server reported and re-enable them if they are disabled.
+* Add the "Supervisor ID" to any endpoint to claim the endpoint for the supervisor that found it (unless it is already activated).
+* Disable all applications and endpoints found or registered through the supervisor at an earlier point in time and that were not found this time around.  
 
-All soft deleted applications and their endpoints can be purged using the [OPC Registry API](../api/registry/overview.md).
+All soft deleted applications and their endpoints can be purged using the [OPC Registry API](../api/registry/readme.md).
 
 ## Next steps
 
-- [Learn about OPC Twin module discovery](../modules/module.md)
-- [Learn about OPC Registry](registry.md)
+* [Learn about OPC Twin module discovery](../modules/module.md)
+* [Learn about OPC Registry](registry.md)
