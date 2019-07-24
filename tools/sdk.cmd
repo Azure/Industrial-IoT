@@ -142,8 +142,8 @@ popd
 goto :eof
 
 :retrieve_spec
-if not exist %build_root%\swagger mkdir %build_root%\swagger
-pushd %build_root%\swagger
+if not exist %build_root%\api\swagger mkdir %build_root%\api\swagger
+pushd %build_root%\api\swagger
 curl -o twin.json http://%_hostname%:9041/v2/swagger.json
 curl -o registry.json http://%_hostname%:9042/v2/swagger.json
 curl -o history.json http://%_hostname%:9043/v2/swagger.json
