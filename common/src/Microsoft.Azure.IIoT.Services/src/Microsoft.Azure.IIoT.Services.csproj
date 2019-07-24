@@ -10,6 +10,7 @@
     <PackageReference Include="Serilog.Sinks.ApplicationInsights" Version="3.0.3" />
     <PackageReference Include="System.Net.Security" Version="4.3.2" />
     <PackageReference Include="Microsoft.AspNetCore" Version="2.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Server.IIS" Version="2.2.6" />
     <PackageReference Include="Microsoft.AspNetCore.HttpsPolicy" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Cors" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.2.5" />

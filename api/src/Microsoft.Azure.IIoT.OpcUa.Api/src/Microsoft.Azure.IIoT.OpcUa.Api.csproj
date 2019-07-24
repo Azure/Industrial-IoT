@@ -11,9 +11,6 @@
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa.Api.Twin\src\Microsoft.Azure.IIoT.OpcUa.Api.Twin.csproj" />
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa.Api.Vault\src\Microsoft.Azure.IIoT.OpcUa.Api.Vault.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Vault\" />
-  </ItemGroup>
   <Choose>
     <When Condition="Exists('..\..\..\..\components\opc-ua')">
       <ItemGroup>

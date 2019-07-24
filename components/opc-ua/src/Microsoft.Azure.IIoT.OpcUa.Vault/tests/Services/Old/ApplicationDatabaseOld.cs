@@ -28,7 +28,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Vault.Services {
         /// <summary>
         /// Create database
         /// </summary>
-        /// <param name="config"></param>
         /// <param name="db"></param>
         /// <param name="logger"></param>
         public ApplicationDatabaseOld(IItemContainerFactory db, ILogger logger) {
