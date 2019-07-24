@@ -49,7 +49,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             _logger = logger ??
                 throw new ArgumentNullException(nameof(logger));
             _configuration = configuration ??
-                throw new ArgumentNullException(nameof(configuration)); ;
+                throw new ArgumentNullException(nameof(configuration));
             _maxOpTimeout = maxOpTimeout;
 
             // Create discovery config and client certificate
