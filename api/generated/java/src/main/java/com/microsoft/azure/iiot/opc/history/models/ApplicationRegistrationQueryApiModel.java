@@ -18,7 +18,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class ApplicationRegistrationQueryApiModel {
     /**
      * Type of application. Possible values include: 'Server', 'Client',
-     * 'ClientAndServer'.
+     * 'ClientAndServer', 'DiscoveryServer'.
      */
     @JsonProperty(value = "applicationType")
     private ApplicationType applicationType;
@@ -54,10 +54,29 @@ public class ApplicationRegistrationQueryApiModel {
     private String capability;
 
     /**
+     * Discovery profile uri.
+     */
+    @JsonProperty(value = "discoveryProfileUri")
+    private String discoveryProfileUri;
+
+    /**
+     * Gateway server uri.
+     */
+    @JsonProperty(value = "gatewayServerUri")
+    private String gatewayServerUri;
+
+    /**
      * Supervisor or site the application belongs to.
      */
     @JsonProperty(value = "siteOrSupervisorId")
     private String siteOrSupervisorId;
+
+    /**
+     * State of application. Possible values include: 'Any', 'New', 'Approved',
+     * 'Rejected', 'Unregistered', 'Deleted'.
+     */
+    @JsonProperty(value = "state")
+    private ApplicationStateMask state;
 
     /**
      * Whether to include apps that were soft deleted.
@@ -66,7 +85,7 @@ public class ApplicationRegistrationQueryApiModel {
     private Boolean includeNotSeenSince;
 
     /**
-     * Get type of application. Possible values include: 'Server', 'Client', 'ClientAndServer'.
+     * Get type of application. Possible values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'.
      *
      * @return the applicationType value
      */
@@ -75,7 +94,7 @@ public class ApplicationRegistrationQueryApiModel {
     }
 
     /**
-     * Set type of application. Possible values include: 'Server', 'Client', 'ClientAndServer'.
+     * Set type of application. Possible values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'.
      *
      * @param applicationType the applicationType value to set
      * @return the ApplicationRegistrationQueryApiModel object itself.
@@ -186,6 +205,46 @@ public class ApplicationRegistrationQueryApiModel {
     }
 
     /**
+     * Get discovery profile uri.
+     *
+     * @return the discoveryProfileUri value
+     */
+    public String discoveryProfileUri() {
+        return this.discoveryProfileUri;
+    }
+
+    /**
+     * Set discovery profile uri.
+     *
+     * @param discoveryProfileUri the discoveryProfileUri value to set
+     * @return the ApplicationRegistrationQueryApiModel object itself.
+     */
+    public ApplicationRegistrationQueryApiModel withDiscoveryProfileUri(String discoveryProfileUri) {
+        this.discoveryProfileUri = discoveryProfileUri;
+        return this;
+    }
+
+    /**
+     * Get gateway server uri.
+     *
+     * @return the gatewayServerUri value
+     */
+    public String gatewayServerUri() {
+        return this.gatewayServerUri;
+    }
+
+    /**
+     * Set gateway server uri.
+     *
+     * @param gatewayServerUri the gatewayServerUri value to set
+     * @return the ApplicationRegistrationQueryApiModel object itself.
+     */
+    public ApplicationRegistrationQueryApiModel withGatewayServerUri(String gatewayServerUri) {
+        this.gatewayServerUri = gatewayServerUri;
+        return this;
+    }
+
+    /**
      * Get supervisor or site the application belongs to.
      *
      * @return the siteOrSupervisorId value
@@ -202,6 +261,26 @@ public class ApplicationRegistrationQueryApiModel {
      */
     public ApplicationRegistrationQueryApiModel withSiteOrSupervisorId(String siteOrSupervisorId) {
         this.siteOrSupervisorId = siteOrSupervisorId;
+        return this;
+    }
+
+    /**
+     * Get state of application. Possible values include: 'Any', 'New', 'Approved', 'Rejected', 'Unregistered', 'Deleted'.
+     *
+     * @return the state value
+     */
+    public ApplicationStateMask state() {
+        return this.state;
+    }
+
+    /**
+     * Set state of application. Possible values include: 'Any', 'New', 'Approved', 'Rejected', 'Unregistered', 'Deleted'.
+     *
+     * @param state the state value to set
+     * @return the ApplicationRegistrationQueryApiModel object itself.
+     */
+    public ApplicationRegistrationQueryApiModel withState(ApplicationStateMask state) {
+        this.state = state;
         return this;
     }
 

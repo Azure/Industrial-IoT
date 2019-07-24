@@ -11,6 +11,8 @@
 package com.microsoft.azure.iiot.opc.registry;
 
 import com.microsoft.azure.iiot.opc.registry.models.ApplicationInfoListApiModel;
+import com.microsoft.azure.iiot.opc.registry.models.ApplicationRecordListApiModel;
+import com.microsoft.azure.iiot.opc.registry.models.ApplicationRecordQueryApiModel;
 import com.microsoft.azure.iiot.opc.registry.models.ApplicationRegistrationApiModel;
 import com.microsoft.azure.iiot.opc.registry.models.ApplicationRegistrationQueryApiModel;
 import com.microsoft.azure.iiot.opc.registry.models.ApplicationRegistrationRequestApiModel;
@@ -353,6 +355,312 @@ public interface AzureOpcRegistryClient {
      * @return the {@link ServiceResponse} object if successful.
      */
     Observable<ServiceResponse<Void>> deleteAllDisabledApplicationsWithServiceResponseAsync(String notSeenFor);
+
+    /**
+     * Approve a new application.
+     * A manager can approve a new application or force an application
+     from any state.
+     After approval the application is in the 'Approved' state.
+     Requires Manager role.
+     *
+     * @param applicationId The application id
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     */
+    void approveApplication(String applicationId);
+
+    /**
+     * Approve a new application.
+     * A manager can approve a new application or force an application
+     from any state.
+     After approval the application is in the 'Approved' state.
+     Requires Manager role.
+     *
+     * @param applicationId The application id
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    ServiceFuture<Void> approveApplicationAsync(String applicationId, final ServiceCallback<Void> serviceCallback);
+
+    /**
+     * Approve a new application.
+     * A manager can approve a new application or force an application
+     from any state.
+     After approval the application is in the 'Approved' state.
+     Requires Manager role.
+     *
+     * @param applicationId The application id
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    Observable<Void> approveApplicationAsync(String applicationId);
+
+    /**
+     * Approve a new application.
+     * A manager can approve a new application or force an application
+     from any state.
+     After approval the application is in the 'Approved' state.
+     Requires Manager role.
+     *
+     * @param applicationId The application id
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    Observable<ServiceResponse<Void>> approveApplicationWithServiceResponseAsync(String applicationId);
+    /**
+     * Approve a new application.
+     * A manager can approve a new application or force an application
+     from any state.
+     After approval the application is in the 'Approved' state.
+     Requires Manager role.
+     *
+     * @param applicationId The application id
+     * @param force optional, force application in new state
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     */
+    void approveApplication(String applicationId, Boolean force);
+
+    /**
+     * Approve a new application.
+     * A manager can approve a new application or force an application
+     from any state.
+     After approval the application is in the 'Approved' state.
+     Requires Manager role.
+     *
+     * @param applicationId The application id
+     * @param force optional, force application in new state
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    ServiceFuture<Void> approveApplicationAsync(String applicationId, Boolean force, final ServiceCallback<Void> serviceCallback);
+
+    /**
+     * Approve a new application.
+     * A manager can approve a new application or force an application
+     from any state.
+     After approval the application is in the 'Approved' state.
+     Requires Manager role.
+     *
+     * @param applicationId The application id
+     * @param force optional, force application in new state
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    Observable<Void> approveApplicationAsync(String applicationId, Boolean force);
+
+    /**
+     * Approve a new application.
+     * A manager can approve a new application or force an application
+     from any state.
+     After approval the application is in the 'Approved' state.
+     Requires Manager role.
+     *
+     * @param applicationId The application id
+     * @param force optional, force application in new state
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    Observable<ServiceResponse<Void>> approveApplicationWithServiceResponseAsync(String applicationId, Boolean force);
+
+    /**
+     * Reject a new application.
+     * A manager can approve a new application or force an application
+     from any state.
+     After approval the application is in the 'Rejected' state.
+     Requires Manager role.
+     *
+     * @param applicationId The application id
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     */
+    void rejectApplication(String applicationId);
+
+    /**
+     * Reject a new application.
+     * A manager can approve a new application or force an application
+     from any state.
+     After approval the application is in the 'Rejected' state.
+     Requires Manager role.
+     *
+     * @param applicationId The application id
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    ServiceFuture<Void> rejectApplicationAsync(String applicationId, final ServiceCallback<Void> serviceCallback);
+
+    /**
+     * Reject a new application.
+     * A manager can approve a new application or force an application
+     from any state.
+     After approval the application is in the 'Rejected' state.
+     Requires Manager role.
+     *
+     * @param applicationId The application id
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    Observable<Void> rejectApplicationAsync(String applicationId);
+
+    /**
+     * Reject a new application.
+     * A manager can approve a new application or force an application
+     from any state.
+     After approval the application is in the 'Rejected' state.
+     Requires Manager role.
+     *
+     * @param applicationId The application id
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    Observable<ServiceResponse<Void>> rejectApplicationWithServiceResponseAsync(String applicationId);
+    /**
+     * Reject a new application.
+     * A manager can approve a new application or force an application
+     from any state.
+     After approval the application is in the 'Rejected' state.
+     Requires Manager role.
+     *
+     * @param applicationId The application id
+     * @param force optional, force application in new state
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     */
+    void rejectApplication(String applicationId, Boolean force);
+
+    /**
+     * Reject a new application.
+     * A manager can approve a new application or force an application
+     from any state.
+     After approval the application is in the 'Rejected' state.
+     Requires Manager role.
+     *
+     * @param applicationId The application id
+     * @param force optional, force application in new state
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    ServiceFuture<Void> rejectApplicationAsync(String applicationId, Boolean force, final ServiceCallback<Void> serviceCallback);
+
+    /**
+     * Reject a new application.
+     * A manager can approve a new application or force an application
+     from any state.
+     After approval the application is in the 'Rejected' state.
+     Requires Manager role.
+     *
+     * @param applicationId The application id
+     * @param force optional, force application in new state
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    Observable<Void> rejectApplicationAsync(String applicationId, Boolean force);
+
+    /**
+     * Reject a new application.
+     * A manager can approve a new application or force an application
+     from any state.
+     After approval the application is in the 'Rejected' state.
+     Requires Manager role.
+     *
+     * @param applicationId The application id
+     * @param force optional, force application in new state
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    Observable<ServiceResponse<Void>> rejectApplicationWithServiceResponseAsync(String applicationId, Boolean force);
+
+    /**
+     * Disable an enabled application.
+     * A manager can disable an application.
+     *
+     * @param applicationId The application id
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     */
+    void disableApplication(String applicationId);
+
+    /**
+     * Disable an enabled application.
+     * A manager can disable an application.
+     *
+     * @param applicationId The application id
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    ServiceFuture<Void> disableApplicationAsync(String applicationId, final ServiceCallback<Void> serviceCallback);
+
+    /**
+     * Disable an enabled application.
+     * A manager can disable an application.
+     *
+     * @param applicationId The application id
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    Observable<Void> disableApplicationAsync(String applicationId);
+
+    /**
+     * Disable an enabled application.
+     * A manager can disable an application.
+     *
+     * @param applicationId The application id
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    Observable<ServiceResponse<Void>> disableApplicationWithServiceResponseAsync(String applicationId);
+
+    /**
+     * Re-enable a disabled application.
+     * A manager can enable an application.
+     *
+     * @param applicationId The application id
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     */
+    void enableApplication(String applicationId);
+
+    /**
+     * Re-enable a disabled application.
+     * A manager can enable an application.
+     *
+     * @param applicationId The application id
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    ServiceFuture<Void> enableApplicationAsync(String applicationId, final ServiceCallback<Void> serviceCallback);
+
+    /**
+     * Re-enable a disabled application.
+     * A manager can enable an application.
+     *
+     * @param applicationId The application id
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    Observable<Void> enableApplicationAsync(String applicationId);
+
+    /**
+     * Re-enable a disabled application.
+     * A manager can enable an application.
+     *
+     * @param applicationId The application id
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    Observable<ServiceResponse<Void>> enableApplicationWithServiceResponseAsync(String applicationId);
 
     /**
      * Discover servers.
@@ -873,6 +1181,87 @@ public interface AzureOpcRegistryClient {
      * @return the observable to the ApplicationInfoListApiModel object
      */
     Observable<ServiceResponse<ApplicationInfoListApiModel>> queryApplicationsWithServiceResponseAsync(ApplicationRegistrationQueryApiModel query, Integer pageSize);
+
+    /**
+     * Query applications by id.
+     * A query model which supports the OPC UA Global Discovery Server query.
+     *
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     * @return the ApplicationRecordListApiModel object if successful.
+     */
+    ApplicationRecordListApiModel queryApplicationsById();
+
+    /**
+     * Query applications by id.
+     * A query model which supports the OPC UA Global Discovery Server query.
+     *
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    ServiceFuture<ApplicationRecordListApiModel> queryApplicationsByIdAsync(final ServiceCallback<ApplicationRecordListApiModel> serviceCallback);
+
+    /**
+     * Query applications by id.
+     * A query model which supports the OPC UA Global Discovery Server query.
+     *
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the ApplicationRecordListApiModel object
+     */
+    Observable<ApplicationRecordListApiModel> queryApplicationsByIdAsync();
+
+    /**
+     * Query applications by id.
+     * A query model which supports the OPC UA Global Discovery Server query.
+     *
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the ApplicationRecordListApiModel object
+     */
+    Observable<ServiceResponse<ApplicationRecordListApiModel>> queryApplicationsByIdWithServiceResponseAsync();
+    /**
+     * Query applications by id.
+     * A query model which supports the OPC UA Global Discovery Server query.
+     *
+     * @param query the ApplicationRecordQueryApiModel value
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     * @return the ApplicationRecordListApiModel object if successful.
+     */
+    ApplicationRecordListApiModel queryApplicationsById(ApplicationRecordQueryApiModel query);
+
+    /**
+     * Query applications by id.
+     * A query model which supports the OPC UA Global Discovery Server query.
+     *
+     * @param query the ApplicationRecordQueryApiModel value
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    ServiceFuture<ApplicationRecordListApiModel> queryApplicationsByIdAsync(ApplicationRecordQueryApiModel query, final ServiceCallback<ApplicationRecordListApiModel> serviceCallback);
+
+    /**
+     * Query applications by id.
+     * A query model which supports the OPC UA Global Discovery Server query.
+     *
+     * @param query the ApplicationRecordQueryApiModel value
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the ApplicationRecordListApiModel object
+     */
+    Observable<ApplicationRecordListApiModel> queryApplicationsByIdAsync(ApplicationRecordQueryApiModel query);
+
+    /**
+     * Query applications by id.
+     * A query model which supports the OPC UA Global Discovery Server query.
+     *
+     * @param query the ApplicationRecordQueryApiModel value
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the ApplicationRecordListApiModel object
+     */
+    Observable<ServiceResponse<ApplicationRecordListApiModel>> queryApplicationsByIdWithServiceResponseAsync(ApplicationRecordQueryApiModel query);
 
     /**
      * Activate endpoint.

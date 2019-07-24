@@ -10,6 +10,7 @@
 
 package com.microsoft.azure.iiot.opc.registry.models;
 
+import java.util.Map;
 import java.util.List;
 import org.joda.time.DateTime;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -19,6 +20,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class ApplicationInfoApiModel {
     /**
+     * State. Possible values include: 'New', 'Approved', 'Rejected'.
+     */
+    @JsonProperty(value = "state")
+    private ApplicationState state;
+
+    /**
      * Unique application id.
      */
     @JsonProperty(value = "applicationId")
@@ -26,7 +33,7 @@ public class ApplicationInfoApiModel {
 
     /**
      * Type of application. Possible values include: 'Server', 'Client',
-     * 'ClientAndServer'.
+     * 'ClientAndServer', 'DiscoveryServer'.
      */
     @JsonProperty(value = "applicationType")
     private ApplicationType applicationType;
@@ -44,16 +51,22 @@ public class ApplicationInfoApiModel {
     private String productUri;
 
     /**
-     * Name of server.
+     * Default name of application.
      */
     @JsonProperty(value = "applicationName")
     private String applicationName;
 
     /**
-     * Locale of name - defaults to "en".
+     * Locale of default name - defaults to "en".
      */
     @JsonProperty(value = "locale")
     private String locale;
+
+    /**
+     * Localized Names of application keyed on locale.
+     */
+    @JsonProperty(value = "localizedNames")
+    private Map<String, String> localizedNames;
 
     /**
      * Application public cert.
@@ -80,6 +93,12 @@ public class ApplicationInfoApiModel {
     private String discoveryProfileUri;
 
     /**
+     * Gateway server uri.
+     */
+    @JsonProperty(value = "gatewayServerUri")
+    private String gatewayServerUri;
+
+    /**
      * Host addresses of server application or null.
      */
     @JsonProperty(value = "hostAddresses")
@@ -104,6 +123,44 @@ public class ApplicationInfoApiModel {
     private DateTime notSeenSince;
 
     /**
+     * Created.
+     */
+    @JsonProperty(value = "created")
+    private RegistryOperationApiModel created;
+
+    /**
+     * Approved.
+     */
+    @JsonProperty(value = "approved")
+    private RegistryOperationApiModel approved;
+
+    /**
+     * Updated.
+     */
+    @JsonProperty(value = "updated")
+    private RegistryOperationApiModel updated;
+
+    /**
+     * Get state. Possible values include: 'New', 'Approved', 'Rejected'.
+     *
+     * @return the state value
+     */
+    public ApplicationState state() {
+        return this.state;
+    }
+
+    /**
+     * Set state. Possible values include: 'New', 'Approved', 'Rejected'.
+     *
+     * @param state the state value to set
+     * @return the ApplicationInfoApiModel object itself.
+     */
+    public ApplicationInfoApiModel withState(ApplicationState state) {
+        this.state = state;
+        return this;
+    }
+
+    /**
      * Get unique application id.
      *
      * @return the applicationId value
@@ -124,7 +181,7 @@ public class ApplicationInfoApiModel {
     }
 
     /**
-     * Get type of application. Possible values include: 'Server', 'Client', 'ClientAndServer'.
+     * Get type of application. Possible values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'.
      *
      * @return the applicationType value
      */
@@ -133,7 +190,7 @@ public class ApplicationInfoApiModel {
     }
 
     /**
-     * Set type of application. Possible values include: 'Server', 'Client', 'ClientAndServer'.
+     * Set type of application. Possible values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'.
      *
      * @param applicationType the applicationType value to set
      * @return the ApplicationInfoApiModel object itself.
@@ -184,7 +241,7 @@ public class ApplicationInfoApiModel {
     }
 
     /**
-     * Get name of server.
+     * Get default name of application.
      *
      * @return the applicationName value
      */
@@ -193,7 +250,7 @@ public class ApplicationInfoApiModel {
     }
 
     /**
-     * Set name of server.
+     * Set default name of application.
      *
      * @param applicationName the applicationName value to set
      * @return the ApplicationInfoApiModel object itself.
@@ -204,7 +261,7 @@ public class ApplicationInfoApiModel {
     }
 
     /**
-     * Get locale of name - defaults to "en".
+     * Get locale of default name - defaults to "en".
      *
      * @return the locale value
      */
@@ -213,13 +270,33 @@ public class ApplicationInfoApiModel {
     }
 
     /**
-     * Set locale of name - defaults to "en".
+     * Set locale of default name - defaults to "en".
      *
      * @param locale the locale value to set
      * @return the ApplicationInfoApiModel object itself.
      */
     public ApplicationInfoApiModel withLocale(String locale) {
         this.locale = locale;
+        return this;
+    }
+
+    /**
+     * Get localized Names of application keyed on locale.
+     *
+     * @return the localizedNames value
+     */
+    public Map<String, String> localizedNames() {
+        return this.localizedNames;
+    }
+
+    /**
+     * Set localized Names of application keyed on locale.
+     *
+     * @param localizedNames the localizedNames value to set
+     * @return the ApplicationInfoApiModel object itself.
+     */
+    public ApplicationInfoApiModel withLocalizedNames(Map<String, String> localizedNames) {
+        this.localizedNames = localizedNames;
         return this;
     }
 
@@ -304,6 +381,26 @@ public class ApplicationInfoApiModel {
     }
 
     /**
+     * Get gateway server uri.
+     *
+     * @return the gatewayServerUri value
+     */
+    public String gatewayServerUri() {
+        return this.gatewayServerUri;
+    }
+
+    /**
+     * Set gateway server uri.
+     *
+     * @param gatewayServerUri the gatewayServerUri value to set
+     * @return the ApplicationInfoApiModel object itself.
+     */
+    public ApplicationInfoApiModel withGatewayServerUri(String gatewayServerUri) {
+        this.gatewayServerUri = gatewayServerUri;
+        return this;
+    }
+
+    /**
      * Get host addresses of server application or null.
      *
      * @return the hostAddresses value
@@ -380,6 +477,66 @@ public class ApplicationInfoApiModel {
      */
     public ApplicationInfoApiModel withNotSeenSince(DateTime notSeenSince) {
         this.notSeenSince = notSeenSince;
+        return this;
+    }
+
+    /**
+     * Get created.
+     *
+     * @return the created value
+     */
+    public RegistryOperationApiModel created() {
+        return this.created;
+    }
+
+    /**
+     * Set created.
+     *
+     * @param created the created value to set
+     * @return the ApplicationInfoApiModel object itself.
+     */
+    public ApplicationInfoApiModel withCreated(RegistryOperationApiModel created) {
+        this.created = created;
+        return this;
+    }
+
+    /**
+     * Get approved.
+     *
+     * @return the approved value
+     */
+    public RegistryOperationApiModel approved() {
+        return this.approved;
+    }
+
+    /**
+     * Set approved.
+     *
+     * @param approved the approved value to set
+     * @return the ApplicationInfoApiModel object itself.
+     */
+    public ApplicationInfoApiModel withApproved(RegistryOperationApiModel approved) {
+        this.approved = approved;
+        return this;
+    }
+
+    /**
+     * Get updated.
+     *
+     * @return the updated value
+     */
+    public RegistryOperationApiModel updated() {
+        return this.updated;
+    }
+
+    /**
+     * Set updated.
+     *
+     * @param updated the updated value to set
+     * @return the ApplicationInfoApiModel object itself.
+     */
+    public ApplicationInfoApiModel withUpdated(RegistryOperationApiModel updated) {
+        this.updated = updated;
         return this;
     }
 

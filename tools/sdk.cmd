@@ -91,7 +91,7 @@ if exist history\paths.md type history\paths.md >> history\readme.md
 if exist history\paths.md del /f history\paths.md
 
 if exist vault\security.md move vault\security.md vault\security_save.md
-%convert% -i http://%_hostname%:9044/v1/swagger.json -d /opt/vault -c /opt/config.properties
+%convert% -i http://%_hostname%:9044/v2/swagger.json -d /opt/vault -c /opt/config.properties
 if exist vault\security_save.md move vault\security_save.md vault\security.md
 if exist vault\paths.md type vault\paths.md >> vault\readme.md
 if exist vault\paths.md del /f vault\paths.md
@@ -124,7 +124,7 @@ set args=--input-file=http://%_hostname%:9042/v2/swagger.json
 docker run --rm --mount type=bind,source=%cd%,target=/opt -w /opt azuresdk/autorest:latest %args%
 rem generate vault sdk
 copy %build_root%\docs\api\vault\autorest.md readme.md
-set args=--input-file=http://%_hostname%:9044/v1/swagger.json
+set args=--input-file=http://%_hostname%:9044/v2/swagger.json
 docker run --rm --mount type=bind,source=%cd%,target=/opt -w /opt azuresdk/autorest:latest %args%
 
 set args=
@@ -138,7 +138,7 @@ pushd %build_root%\swagger
 curl -o twin.json http://%_hostname%:9041/v2/swagger.json
 curl -o registry.json http://%_hostname%:9042/v2/swagger.json
 curl -o history.json http://%_hostname%:9043/v2/swagger.json
-curl -o vault.json http://%_hostname%:9044/v1/swagger.json
+curl -o vault.json http://%_hostname%:9044/v2/swagger.json
 popd
 goto :eof
 

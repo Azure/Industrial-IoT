@@ -146,7 +146,8 @@ export const ApplicationRegistrationRequestApiModel: msRest.CompositeMapper = {
           allowedValues: [
             "Server",
             "Client",
-            "ClientAndServer"
+            "ClientAndServer",
+            "DiscoveryServer"
           ]
         }
       },
@@ -166,6 +167,23 @@ export const ApplicationRegistrationRequestApiModel: msRest.CompositeMapper = {
         serializedName: "locale",
         type: {
           name: "String"
+        }
+      },
+      siteId: {
+        serializedName: "siteId",
+        type: {
+          name: "String"
+        }
+      },
+      localizedNames: {
+        serializedName: "localizedNames",
+        type: {
+          name: "Dictionary",
+          value: {
+            type: {
+              name: "String"
+            }
+          }
         }
       },
       capabilities: {
@@ -201,6 +219,12 @@ export const ApplicationRegistrationRequestApiModel: msRest.CompositeMapper = {
         type: {
           name: "String"
         }
+      },
+      gatewayServerUri: {
+        serializedName: "gatewayServerUri",
+        type: {
+          name: "String"
+        }
       }
     }
   }
@@ -222,12 +246,48 @@ export const ApplicationRegistrationResponseApiModel: msRest.CompositeMapper = {
   }
 };
 
+export const RegistryOperationApiModel: msRest.CompositeMapper = {
+  serializedName: "RegistryOperationApiModel",
+  type: {
+    name: "Composite",
+    className: "RegistryOperationApiModel",
+    modelProperties: {
+      authorityId: {
+        required: true,
+        serializedName: "authorityId",
+        type: {
+          name: "String"
+        }
+      },
+      time: {
+        required: true,
+        serializedName: "time",
+        type: {
+          name: "DateTime"
+        }
+      }
+    }
+  }
+};
+
 export const ApplicationInfoApiModel: msRest.CompositeMapper = {
   serializedName: "ApplicationInfoApiModel",
   type: {
     name: "Composite",
     className: "ApplicationInfoApiModel",
     modelProperties: {
+      state: {
+        serializedName: "state",
+        defaultValue: 'New',
+        type: {
+          name: "Enum",
+          allowedValues: [
+            "New",
+            "Approved",
+            "Rejected"
+          ]
+        }
+      },
       applicationId: {
         serializedName: "applicationId",
         type: {
@@ -241,7 +301,8 @@ export const ApplicationInfoApiModel: msRest.CompositeMapper = {
           allowedValues: [
             "Server",
             "Client",
-            "ClientAndServer"
+            "ClientAndServer",
+            "DiscoveryServer"
           ]
         }
       },
@@ -267,6 +328,17 @@ export const ApplicationInfoApiModel: msRest.CompositeMapper = {
         serializedName: "locale",
         type: {
           name: "String"
+        }
+      },
+      localizedNames: {
+        serializedName: "localizedNames",
+        type: {
+          name: "Dictionary",
+          value: {
+            type: {
+              name: "String"
+            }
+          }
         }
       },
       certificate: {
@@ -309,6 +381,12 @@ export const ApplicationInfoApiModel: msRest.CompositeMapper = {
           name: "String"
         }
       },
+      gatewayServerUri: {
+        serializedName: "gatewayServerUri",
+        type: {
+          name: "String"
+        }
+      },
       hostAddresses: {
         serializedName: "hostAddresses",
         constraints: {
@@ -339,6 +417,27 @@ export const ApplicationInfoApiModel: msRest.CompositeMapper = {
         serializedName: "notSeenSince",
         type: {
           name: "DateTime"
+        }
+      },
+      created: {
+        serializedName: "created",
+        type: {
+          name: "Composite",
+          className: "RegistryOperationApiModel"
+        }
+      },
+      approved: {
+        serializedName: "approved",
+        type: {
+          name: "Composite",
+          className: "RegistryOperationApiModel"
+        }
+      },
+      updated: {
+        serializedName: "updated",
+        type: {
+          name: "Composite",
+          className: "RegistryOperationApiModel"
         }
       }
     }
@@ -590,8 +689,8 @@ export const EndpointApiModel: msRest.CompositeMapper = {
           name: "String"
         }
       },
-      serverThumbprint: {
-        serializedName: "serverThumbprint",
+      certificate: {
+        serializedName: "certificate",
         type: {
           name: "ByteArray"
         }
@@ -681,12 +780,6 @@ export const EndpointRegistrationApiModel: msRest.CompositeMapper = {
           name: "Number"
         }
       },
-      certificate: {
-        serializedName: "certificate",
-        type: {
-          name: "ByteArray"
-        }
-      },
       authenticationMethods: {
         serializedName: "authenticationMethods",
         type: {
@@ -769,6 +862,17 @@ export const ApplicationRegistrationUpdateApiModel: msRest.CompositeMapper = {
           name: "String"
         }
       },
+      localizedNames: {
+        serializedName: "localizedNames",
+        type: {
+          name: "Dictionary",
+          value: {
+            type: {
+              name: "String"
+            }
+          }
+        }
+      },
       certificate: {
         serializedName: "certificate",
         type: {
@@ -805,6 +909,12 @@ export const ApplicationRegistrationUpdateApiModel: msRest.CompositeMapper = {
       },
       discoveryProfileUri: {
         serializedName: "discoveryProfileUri",
+        type: {
+          name: "String"
+        }
+      },
+      gatewayServerUri: {
+        serializedName: "gatewayServerUri",
         type: {
           name: "String"
         }
@@ -853,7 +963,8 @@ export const ApplicationRegistrationQueryApiModel: msRest.CompositeMapper = {
           allowedValues: [
             "Server",
             "Client",
-            "ClientAndServer"
+            "ClientAndServer",
+            "DiscoveryServer"
           ]
         }
       },
@@ -887,16 +998,166 @@ export const ApplicationRegistrationQueryApiModel: msRest.CompositeMapper = {
           name: "String"
         }
       },
+      discoveryProfileUri: {
+        serializedName: "discoveryProfileUri",
+        type: {
+          name: "String"
+        }
+      },
+      gatewayServerUri: {
+        serializedName: "gatewayServerUri",
+        type: {
+          name: "String"
+        }
+      },
       siteOrSupervisorId: {
         serializedName: "siteOrSupervisorId",
         type: {
           name: "String"
         }
       },
+      state: {
+        serializedName: "state",
+        type: {
+          name: "Enum",
+          allowedValues: [
+            "Any",
+            "New",
+            "Approved",
+            "Rejected",
+            "Unregistered",
+            "Deleted"
+          ]
+        }
+      },
       includeNotSeenSince: {
         serializedName: "includeNotSeenSince",
         type: {
           name: "Boolean"
+        }
+      }
+    }
+  }
+};
+
+export const ApplicationRecordQueryApiModel: msRest.CompositeMapper = {
+  serializedName: "ApplicationRecordQueryApiModel",
+  type: {
+    name: "Composite",
+    className: "ApplicationRecordQueryApiModel",
+    modelProperties: {
+      startingRecordId: {
+        serializedName: "startingRecordId",
+        type: {
+          name: "Number"
+        }
+      },
+      maxRecordsToReturn: {
+        serializedName: "maxRecordsToReturn",
+        type: {
+          name: "Number"
+        }
+      },
+      applicationName: {
+        serializedName: "applicationName",
+        type: {
+          name: "String"
+        }
+      },
+      applicationUri: {
+        serializedName: "applicationUri",
+        type: {
+          name: "String"
+        }
+      },
+      applicationType: {
+        serializedName: "applicationType",
+        type: {
+          name: "Enum",
+          allowedValues: [
+            "Server",
+            "Client",
+            "ClientAndServer",
+            "DiscoveryServer"
+          ]
+        }
+      },
+      productUri: {
+        serializedName: "productUri",
+        type: {
+          name: "String"
+        }
+      },
+      serverCapabilities: {
+        serializedName: "serverCapabilities",
+        type: {
+          name: "Sequence",
+          element: {
+            type: {
+              name: "String"
+            }
+          }
+        }
+      }
+    }
+  }
+};
+
+export const ApplicationRecordApiModel: msRest.CompositeMapper = {
+  serializedName: "ApplicationRecordApiModel",
+  type: {
+    name: "Composite",
+    className: "ApplicationRecordApiModel",
+    modelProperties: {
+      recordId: {
+        required: true,
+        serializedName: "recordId",
+        type: {
+          name: "Number"
+        }
+      },
+      application: {
+        required: true,
+        serializedName: "application",
+        type: {
+          name: "Composite",
+          className: "ApplicationInfoApiModel"
+        }
+      }
+    }
+  }
+};
+
+export const ApplicationRecordListApiModel: msRest.CompositeMapper = {
+  serializedName: "ApplicationRecordListApiModel",
+  type: {
+    name: "Composite",
+    className: "ApplicationRecordListApiModel",
+    modelProperties: {
+      applications: {
+        serializedName: "applications",
+        type: {
+          name: "Sequence",
+          element: {
+            type: {
+              name: "Composite",
+              className: "ApplicationRecordApiModel"
+            }
+          }
+        }
+      },
+      lastCounterResetTime: {
+        required: true,
+        serializedName: "lastCounterResetTime",
+        type: {
+          name: "DateTime"
+        }
+      },
+      nextRecordId: {
+        required: true,
+        serializedName: "nextRecordId",
+        type: {
+          name: "Number"
         }
       }
     }
@@ -1103,7 +1364,6 @@ export const StatusResponseApiModel: msRest.CompositeMapper = {
     className: "StatusResponseApiModel",
     modelProperties: {
       name: {
-        readOnly: true,
         serializedName: "name",
         type: {
           name: "String"

@@ -25,7 +25,6 @@
 /_tmpout/**
 /TestResults/**
 /**/TestResults/**
-/**/swagger/*.json
 /**/packages/**
 .env
 

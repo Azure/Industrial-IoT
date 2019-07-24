@@ -10,6 +10,7 @@
 
 package com.microsoft.azure.iiot.opc.registry.models;
 
+import java.util.Map;
 import java.util.List;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -25,7 +26,7 @@ public class ApplicationRegistrationRequestApiModel {
 
     /**
      * Type of application. Possible values include: 'Server', 'Client',
-     * 'ClientAndServer'.
+     * 'ClientAndServer', 'DiscoveryServer'.
      */
     @JsonProperty(value = "applicationType")
     private ApplicationType applicationType;
@@ -37,16 +38,28 @@ public class ApplicationRegistrationRequestApiModel {
     private String productUri;
 
     /**
-     * Name of the server or client.
+     * Default name of the server or client.
      */
     @JsonProperty(value = "applicationName")
     private String applicationName;
 
     /**
-     * Locale of name.
+     * Locale of default name.
      */
     @JsonProperty(value = "locale")
     private String locale;
+
+    /**
+     * Site of the application.
+     */
+    @JsonProperty(value = "siteId")
+    private String siteId;
+
+    /**
+     * Localized names key off locale id.
+     */
+    @JsonProperty(value = "localizedNames")
+    private Map<String, String> localizedNames;
 
     /**
      * The OPC UA defined capabilities of the server.
@@ -65,6 +78,12 @@ public class ApplicationRegistrationRequestApiModel {
      */
     @JsonProperty(value = "discoveryProfileUri")
     private String discoveryProfileUri;
+
+    /**
+     * Gateway server uri.
+     */
+    @JsonProperty(value = "gatewayServerUri")
+    private String gatewayServerUri;
 
     /**
      * Get unique application uri.
@@ -87,7 +106,7 @@ public class ApplicationRegistrationRequestApiModel {
     }
 
     /**
-     * Get type of application. Possible values include: 'Server', 'Client', 'ClientAndServer'.
+     * Get type of application. Possible values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'.
      *
      * @return the applicationType value
      */
@@ -96,7 +115,7 @@ public class ApplicationRegistrationRequestApiModel {
     }
 
     /**
-     * Set type of application. Possible values include: 'Server', 'Client', 'ClientAndServer'.
+     * Set type of application. Possible values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'.
      *
      * @param applicationType the applicationType value to set
      * @return the ApplicationRegistrationRequestApiModel object itself.
@@ -127,7 +146,7 @@ public class ApplicationRegistrationRequestApiModel {
     }
 
     /**
-     * Get name of the server or client.
+     * Get default name of the server or client.
      *
      * @return the applicationName value
      */
@@ -136,7 +155,7 @@ public class ApplicationRegistrationRequestApiModel {
     }
 
     /**
-     * Set name of the server or client.
+     * Set default name of the server or client.
      *
      * @param applicationName the applicationName value to set
      * @return the ApplicationRegistrationRequestApiModel object itself.
@@ -147,7 +166,7 @@ public class ApplicationRegistrationRequestApiModel {
     }
 
     /**
-     * Get locale of name.
+     * Get locale of default name.
      *
      * @return the locale value
      */
@@ -156,13 +175,53 @@ public class ApplicationRegistrationRequestApiModel {
     }
 
     /**
-     * Set locale of name.
+     * Set locale of default name.
      *
      * @param locale the locale value to set
      * @return the ApplicationRegistrationRequestApiModel object itself.
      */
     public ApplicationRegistrationRequestApiModel withLocale(String locale) {
         this.locale = locale;
+        return this;
+    }
+
+    /**
+     * Get site of the application.
+     *
+     * @return the siteId value
+     */
+    public String siteId() {
+        return this.siteId;
+    }
+
+    /**
+     * Set site of the application.
+     *
+     * @param siteId the siteId value to set
+     * @return the ApplicationRegistrationRequestApiModel object itself.
+     */
+    public ApplicationRegistrationRequestApiModel withSiteId(String siteId) {
+        this.siteId = siteId;
+        return this;
+    }
+
+    /**
+     * Get localized names key off locale id.
+     *
+     * @return the localizedNames value
+     */
+    public Map<String, String> localizedNames() {
+        return this.localizedNames;
+    }
+
+    /**
+     * Set localized names key off locale id.
+     *
+     * @param localizedNames the localizedNames value to set
+     * @return the ApplicationRegistrationRequestApiModel object itself.
+     */
+    public ApplicationRegistrationRequestApiModel withLocalizedNames(Map<String, String> localizedNames) {
+        this.localizedNames = localizedNames;
         return this;
     }
 
@@ -223,6 +282,26 @@ public class ApplicationRegistrationRequestApiModel {
      */
     public ApplicationRegistrationRequestApiModel withDiscoveryProfileUri(String discoveryProfileUri) {
         this.discoveryProfileUri = discoveryProfileUri;
+        return this;
+    }
+
+    /**
+     * Get gateway server uri.
+     *
+     * @return the gatewayServerUri value
+     */
+    public String gatewayServerUri() {
+        return this.gatewayServerUri;
+    }
+
+    /**
+     * Set gateway server uri.
+     *
+     * @param gatewayServerUri the gatewayServerUri value to set
+     * @return the ApplicationRegistrationRequestApiModel object itself.
+     */
+    public ApplicationRegistrationRequestApiModel withGatewayServerUri(String gatewayServerUri) {
+        this.gatewayServerUri = gatewayServerUri;
         return this;
     }
 

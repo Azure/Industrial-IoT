@@ -51,7 +51,6 @@ class StatusResponseApiModel {
         modelProperties: {
           name: {
             required: false,
-            readOnly: true,
             serializedName: 'name',
             type: {
               name: 'String'

@@ -18,14 +18,18 @@ class ApplicationRegistrationQueryApiModel {
   /**
    * Create a ApplicationRegistrationQueryApiModel.
    * @property {string} [applicationType] Type of application. Possible values
-   * include: 'Server', 'Client', 'ClientAndServer'
+   * include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
    * @property {string} [applicationUri] Application uri
    * @property {string} [productUri] Product uri
    * @property {string} [applicationName] Name of application
    * @property {string} [locale] Locale of application name - default is "en"
    * @property {string} [capability] Application capability to query with
+   * @property {string} [discoveryProfileUri] Discovery profile uri
+   * @property {string} [gatewayServerUri] Gateway server uri
    * @property {string} [siteOrSupervisorId] Supervisor or site the application
    * belongs to.
+   * @property {string} [state] State of application. Possible values include:
+   * 'Any', 'New', 'Approved', 'Rejected', 'Unregistered', 'Deleted'
    * @property {boolean} [includeNotSeenSince] Whether to include apps that
    * were soft deleted
    */
@@ -51,7 +55,7 @@ class ApplicationRegistrationQueryApiModel {
             serializedName: 'applicationType',
             type: {
               name: 'Enum',
-              allowedValues: [ 'Server', 'Client', 'ClientAndServer' ]
+              allowedValues: [ 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer' ]
             }
           },
           applicationUri: {
@@ -89,11 +93,33 @@ class ApplicationRegistrationQueryApiModel {
               name: 'String'
             }
           },
+          discoveryProfileUri: {
+            required: false,
+            serializedName: 'discoveryProfileUri',
+            type: {
+              name: 'String'
+            }
+          },
+          gatewayServerUri: {
+            required: false,
+            serializedName: 'gatewayServerUri',
+            type: {
+              name: 'String'
+            }
+          },
           siteOrSupervisorId: {
             required: false,
             serializedName: 'siteOrSupervisorId',
             type: {
               name: 'String'
+            }
+          },
+          state: {
+            required: false,
+            serializedName: 'state',
+            type: {
+              name: 'Enum',
+              allowedValues: [ 'Any', 'New', 'Approved', 'Rejected', 'Unregistered', 'Deleted' ]
             }
           },
           includeNotSeenSince: {

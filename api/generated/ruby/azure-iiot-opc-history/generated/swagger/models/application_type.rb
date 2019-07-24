@@ -16,6 +16,7 @@ module azure.iiot.opc.history
       Server = "Server"
       Client = "Client"
       ClientAndServer = "ClientAndServer"
+      DiscoveryServer = "DiscoveryServer"
     end
   end
 end

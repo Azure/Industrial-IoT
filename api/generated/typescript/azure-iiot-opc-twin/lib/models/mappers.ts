@@ -1525,7 +1525,6 @@ export const StatusResponseApiModel: msRest.CompositeMapper = {
     className: "StatusResponseApiModel",
     modelProperties: {
       name: {
-        readOnly: true,
         serializedName: "name",
         type: {
           name: "String"

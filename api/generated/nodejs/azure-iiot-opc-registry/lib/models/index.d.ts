@@ -82,7 +82,8 @@ export interface ApplicationRegistrationRequestApiModel {
    */
   applicationUri: string;
   /**
-   * Type of application. Possible values include: 'Server', 'Client', 'ClientAndServer'
+   * Type of application. Possible values include: 'Server', 'Client', 'ClientAndServer',
+   * 'DiscoveryServer'
    */
   applicationType?: string;
   /**
@@ -90,13 +91,21 @@ export interface ApplicationRegistrationRequestApiModel {
    */
   productUri?: string;
   /**
-   * Name of the server or client.
+   * Default name of the server or client.
    */
   applicationName?: string;
   /**
-   * Locale of name
+   * Locale of default name
    */
   locale?: string;
+  /**
+   * Site of the application
+   */
+  siteId?: string;
+  /**
+   * Localized names key off locale id.
+   */
+  localizedNames?: { [propertyName: string]: string };
   /**
    * The OPC UA defined capabilities of the server.
    */
@@ -109,6 +118,10 @@ export interface ApplicationRegistrationRequestApiModel {
    * The discovery profile uri of the server.
    */
   discoveryProfileUri?: string;
+  /**
+   * Gateway server uri
+   */
+  gatewayServerUri?: string;
 }
 
 /**
@@ -122,15 +135,34 @@ export interface ApplicationRegistrationResponseApiModel {
 }
 
 /**
+ * Registry operation log model
+ */
+export interface RegistryOperationApiModel {
+  /**
+   * Operation User
+   */
+  authorityId: string;
+  /**
+   * Operation time
+   */
+  time: Date;
+}
+
+/**
  * Application info model
  */
 export interface ApplicationInfoApiModel {
+  /**
+   * State. Possible values include: 'New', 'Approved', 'Rejected'
+   */
+  state?: string;
   /**
    * Unique application id
    */
   applicationId?: string;
   /**
-   * Type of application. Possible values include: 'Server', 'Client', 'ClientAndServer'
+   * Type of application. Possible values include: 'Server', 'Client', 'ClientAndServer',
+   * 'DiscoveryServer'
    */
   applicationType?: string;
   /**
@@ -142,13 +174,17 @@ export interface ApplicationInfoApiModel {
    */
   productUri?: string;
   /**
-   * Name of server
+   * Default name of application
    */
   applicationName?: string;
   /**
-   * Locale of name - defaults to "en"
+   * Locale of default name - defaults to "en"
    */
   locale?: string;
+  /**
+   * Localized Names of application keyed on locale
+   */
+  localizedNames?: { [propertyName: string]: string };
   /**
    * Application public cert
    */
@@ -166,6 +202,10 @@ export interface ApplicationInfoApiModel {
    */
   discoveryProfileUri?: string;
   /**
+   * Gateway server uri
+   */
+  gatewayServerUri?: string;
+  /**
    * Host addresses of server application or null
    */
   hostAddresses?: string[];
@@ -181,6 +221,18 @@ export interface ApplicationInfoApiModel {
    * Last time application was seen
    */
   notSeenSince?: Date;
+  /**
+   * Created
+   */
+  created?: RegistryOperationApiModel;
+  /**
+   * Approved
+   */
+  approved?: RegistryOperationApiModel;
+  /**
+   * Updated
+   */
+  updated?: RegistryOperationApiModel;
 }
 
 /**
@@ -311,9 +363,9 @@ export interface EndpointApiModel {
    */
   securityPolicy?: string;
   /**
-   * Thumbprint to validate against or null to trust any.
+   * Endpoint certificate that was registered.
    */
-  serverThumbprint?: Buffer;
+  certificate?: Buffer;
 }
 
 /**
@@ -363,10 +415,6 @@ export interface EndpointRegistrationApiModel {
    */
   securityLevel?: number;
   /**
-   * Endpoint cert that was registered.
-   */
-  certificate?: Buffer;
-  /**
    * Supported authentication methods that can be selected to
    * obtain a credential and used to interact with the endpoint.
    */
@@ -400,13 +448,18 @@ export interface ApplicationRegistrationUpdateApiModel {
    */
   productUri?: string;
   /**
-   * Application name
+   * Default name of the server or client.
    */
   applicationName?: string;
   /**
-   * Locale of name - defaults to "en"
+   * Locale of default name - defaults to "en"
    */
   locale?: string;
+  /**
+   * Localized names keyed off locale id.
+   * To remove entry, set value for locale id to null.
+   */
+  localizedNames?: { [propertyName: string]: string };
   /**
    * Application public cert
    */
@@ -423,6 +476,10 @@ export interface ApplicationRegistrationUpdateApiModel {
    * Discovery profile uri
    */
   discoveryProfileUri?: string;
+  /**
+   * Gateway server uri
+   */
+  gatewayServerUri?: string;
 }
 
 /**
@@ -444,7 +501,8 @@ export interface ApplicationSiteListApiModel {
  */
 export interface ApplicationRegistrationQueryApiModel {
   /**
-   * Type of application. Possible values include: 'Server', 'Client', 'ClientAndServer'
+   * Type of application. Possible values include: 'Server', 'Client', 'ClientAndServer',
+   * 'DiscoveryServer'
    */
   applicationType?: string;
   /**
@@ -468,13 +526,93 @@ export interface ApplicationRegistrationQueryApiModel {
    */
   capability?: string;
   /**
+   * Discovery profile uri
+   */
+  discoveryProfileUri?: string;
+  /**
+   * Gateway server uri
+   */
+  gatewayServerUri?: string;
+  /**
    * Supervisor or site the application belongs to.
    */
   siteOrSupervisorId?: string;
   /**
+   * State of application. Possible values include: 'Any', 'New', 'Approved', 'Rejected',
+   * 'Unregistered', 'Deleted'
+   */
+  state?: string;
+  /**
    * Whether to include apps that were soft deleted
    */
   includeNotSeenSince?: boolean;
+}
+
+/**
+ * Query by id
+ */
+export interface ApplicationRecordQueryApiModel {
+  /**
+   * Starting record id
+   */
+  startingRecordId?: number;
+  /**
+   * Max records to return
+   */
+  maxRecordsToReturn?: number;
+  /**
+   * Application name
+   */
+  applicationName?: string;
+  /**
+   * Application uri
+   */
+  applicationUri?: string;
+  /**
+   * Application type. Possible values include: 'Server', 'Client', 'ClientAndServer',
+   * 'DiscoveryServer'
+   */
+  applicationType?: string;
+  /**
+   * Product uri
+   */
+  productUri?: string;
+  /**
+   * Server capabilities
+   */
+  serverCapabilities?: string[];
+}
+
+/**
+ * Application with optional list of endpoints
+ */
+export interface ApplicationRecordApiModel {
+  /**
+   * Record id
+   */
+  recordId: number;
+  /**
+   * Application information
+   */
+  application: ApplicationInfoApiModel;
+}
+
+/**
+ * Create response
+ */
+export interface ApplicationRecordListApiModel {
+  /**
+   * Applications found
+   */
+  applications?: ApplicationRecordApiModel[];
+  /**
+   * Last counter reset
+   */
+  lastCounterResetTime: Date;
+  /**
+   * Next record id
+   */
+  nextRecordId: number;
 }
 
 /**
@@ -584,7 +722,7 @@ export interface StatusResponseApiModel {
   /**
    * Name of this service
    */
-  readonly name?: string;
+  name?: string;
   /**
    * Operational status
    */

@@ -52,10 +52,10 @@ public class EndpointApiModel {
     private String securityPolicy;
 
     /**
-     * Thumbprint to validate against or null to trust any.
+     * Endpoint certificate that was registered.
      */
-    @JsonProperty(value = "serverThumbprint")
-    private byte[] serverThumbprint;
+    @JsonProperty(value = "certificate")
+    private byte[] certificate;
 
     /**
      * Get endpoint url to use to connect with.
@@ -164,22 +164,22 @@ public class EndpointApiModel {
     }
 
     /**
-     * Get thumbprint to validate against or null to trust any.
+     * Get endpoint certificate that was registered.
      *
-     * @return the serverThumbprint value
+     * @return the certificate value
      */
-    public byte[] serverThumbprint() {
-        return this.serverThumbprint;
+    public byte[] certificate() {
+        return this.certificate;
     }
 
     /**
-     * Set thumbprint to validate against or null to trust any.
+     * Set endpoint certificate that was registered.
      *
-     * @param serverThumbprint the serverThumbprint value to set
+     * @param certificate the certificate value to set
      * @return the EndpointApiModel object itself.
      */
-    public EndpointApiModel withServerThumbprint(byte[] serverThumbprint) {
-        this.serverThumbprint = serverThumbprint;
+    public EndpointApiModel withCertificate(byte[] certificate) {
+        this.certificate = certificate;
         return this;
     }
 

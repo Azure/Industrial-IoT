@@ -48,12 +48,6 @@ public class EndpointRegistrationApiModel {
     private Integer securityLevel;
 
     /**
-     * Endpoint cert that was registered.
-     */
-    @JsonProperty(value = "certificate")
-    private byte[] certificate;
-
-    /**
      * Supported authentication methods that can be selected to
      * obtain a credential and used to interact with the endpoint.
      */
@@ -157,26 +151,6 @@ public class EndpointRegistrationApiModel {
      */
     public EndpointRegistrationApiModel withSecurityLevel(Integer securityLevel) {
         this.securityLevel = securityLevel;
-        return this;
-    }
-
-    /**
-     * Get endpoint cert that was registered.
-     *
-     * @return the certificate value
-     */
-    public byte[] certificate() {
-        return this.certificate;
-    }
-
-    /**
-     * Set endpoint cert that was registered.
-     *
-     * @param certificate the certificate value to set
-     * @return the EndpointRegistrationApiModel object itself.
-     */
-    public EndpointRegistrationApiModel withCertificate(byte[] certificate) {
-        this.certificate = certificate;
         return this;
     }
 

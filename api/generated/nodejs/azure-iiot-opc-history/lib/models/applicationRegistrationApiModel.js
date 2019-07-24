@@ -18,24 +18,41 @@ class ApplicationRegistrationApiModel {
   /**
    * Create a ApplicationRegistrationApiModel.
    * @property {object} application Application information
+   * @property {string} [application.state] State. Possible values include:
+   * 'New', 'Approved', 'Rejected'
    * @property {string} [application.applicationId] Unique application id
    * @property {string} [application.applicationType] Type of application.
-   * Possible values include: 'Server', 'Client', 'ClientAndServer'
+   * Possible values include: 'Server', 'Client', 'ClientAndServer',
+   * 'DiscoveryServer'
    * @property {string} [application.applicationUri] Unique application uri
    * @property {string} [application.productUri] Product uri
-   * @property {string} [application.applicationName] Name of server
-   * @property {string} [application.locale] Locale of name - defaults to "en"
+   * @property {string} [application.applicationName] Default name of
+   * application
+   * @property {string} [application.locale] Locale of default name - defaults
+   * to "en"
+   * @property {object} [application.localizedNames] Localized Names of
+   * application keyed on locale
    * @property {buffer} [application.certificate] Application public cert
    * @property {array} [application.capabilities] The capabilities advertised
    * by the server.
    * @property {array} [application.discoveryUrls] Discovery urls of the server
    * @property {string} [application.discoveryProfileUri] Discovery profile uri
+   * @property {string} [application.gatewayServerUri] Gateway server uri
    * @property {array} [application.hostAddresses] Host addresses of server
    * application or null
    * @property {string} [application.siteId] Site of the application
    * @property {string} [application.supervisorId] Supervisor having registered
    * the application
    * @property {date} [application.notSeenSince] Last time application was seen
+   * @property {object} [application.created] Created
+   * @property {string} [application.created.authorityId] Operation User
+   * @property {date} [application.created.time] Operation time
+   * @property {object} [application.approved] Approved
+   * @property {string} [application.approved.authorityId] Operation User
+   * @property {date} [application.approved.time] Operation time
+   * @property {object} [application.updated] Updated
+   * @property {string} [application.updated.authorityId] Operation User
+   * @property {date} [application.updated.time] Operation time
    * @property {array} [endpoints] List of endpoint twins
    * @property {string} [securityAssessment] Application security assessment.
    * Possible values include: 'Unknown', 'Low', 'Medium', 'High'

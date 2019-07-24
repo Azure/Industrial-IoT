@@ -31,8 +31,7 @@ class EndpointApiModel {
    * @property {string} [securityPolicy] Security policy uri to use for
    * communication
    * default to best.
-   * @property {buffer} [serverThumbprint] Thumbprint to validate against or
-   * null to trust any.
+   * @property {buffer} [certificate] Endpoint certificate that was registered.
    */
   constructor() {
   }
@@ -99,9 +98,9 @@ class EndpointApiModel {
               name: 'String'
             }
           },
-          serverThumbprint: {
+          certificate: {
             required: false,
-            serializedName: 'serverThumbprint',
+            serializedName: 'certificate',
             type: {
               name: 'ByteArray'
             }

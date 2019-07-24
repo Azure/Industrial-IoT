@@ -96,7 +96,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 "endpointId": autorest.Encode("path",endpointID),
                 }
 
-        preparer := autorest.CreatePreparer(
+            preparer := autorest.CreatePreparer(
         autorest.AsContentType("application/json-patch+json; charset=utf-8"),
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
@@ -108,8 +108,8 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         // BrowseSender sends the Browse request. The method will close the
         // http.Response Body if it receives an error.
         func (client BaseClient) BrowseSender(req *http.Request) (*http.Response, error) {
-                return autorest.SendWithSender(client, req,
-                autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
                 }
 
     // BrowseResponder handles the response to the Browse request. The method always
@@ -175,7 +175,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 "endpointId": autorest.Encode("path",endpointID),
                 }
 
-        preparer := autorest.CreatePreparer(
+            preparer := autorest.CreatePreparer(
         autorest.AsContentType("application/json-patch+json; charset=utf-8"),
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
@@ -187,8 +187,8 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         // BrowseNextSender sends the BrowseNext request. The method will close the
         // http.Response Body if it receives an error.
         func (client BaseClient) BrowseNextSender(req *http.Request) (*http.Response, error) {
-                return autorest.SendWithSender(client, req,
-                autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
                 }
 
     // BrowseNextResponder handles the response to the BrowseNext request. The method always
@@ -255,7 +255,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 "endpointId": autorest.Encode("path",endpointID),
                 }
 
-        preparer := autorest.CreatePreparer(
+            preparer := autorest.CreatePreparer(
         autorest.AsContentType("application/json-patch+json; charset=utf-8"),
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
@@ -267,8 +267,8 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         // BrowseUsingPathSender sends the BrowseUsingPath request. The method will close the
         // http.Response Body if it receives an error.
         func (client BaseClient) BrowseUsingPathSender(req *http.Request) (*http.Response, error) {
-                return autorest.SendWithSender(client, req,
-                autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
                 }
 
     // BrowseUsingPathResponder handles the response to the BrowseUsingPath request. The method always
@@ -328,7 +328,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 "endpointId": autorest.Encode("path",endpointID),
                 }
 
-        preparer := autorest.CreatePreparer(
+            preparer := autorest.CreatePreparer(
         autorest.AsContentType("application/json-patch+json; charset=utf-8"),
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
@@ -340,8 +340,8 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         // CallMethodSender sends the CallMethod request. The method will close the
         // http.Response Body if it receives an error.
         func (client BaseClient) CallMethodSender(req *http.Request) (*http.Response, error) {
-                return autorest.SendWithSender(client, req,
-                autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
                 }
 
     // CallMethodResponder handles the response to the CallMethod request. The method always
@@ -409,7 +409,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 "endpointId": autorest.Encode("path",endpointID),
                 }
 
-        preparer := autorest.CreatePreparer(
+            preparer := autorest.CreatePreparer(
         autorest.AsContentType("application/json-patch+json; charset=utf-8"),
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
@@ -421,8 +421,8 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         // GetCallMetadataSender sends the GetCallMetadata request. The method will close the
         // http.Response Body if it receives an error.
         func (client BaseClient) GetCallMetadataSender(req *http.Request) (*http.Response, error) {
-                return autorest.SendWithSender(client, req,
-                autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
                 }
 
     // GetCallMetadataResponder handles the response to the GetCallMetadata request. The method always
@@ -483,7 +483,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 "endpointId": autorest.Encode("path",endpointID),
                 }
 
-        preparer := autorest.CreatePreparer(
+            preparer := autorest.CreatePreparer(
         autorest.AsContentType("application/json-patch+json; charset=utf-8"),
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
@@ -495,8 +495,8 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         // GetFirstListOfPublishedNodesSender sends the GetFirstListOfPublishedNodes request. The method will close the
         // http.Response Body if it receives an error.
         func (client BaseClient) GetFirstListOfPublishedNodesSender(req *http.Request) (*http.Response, error) {
-                return autorest.SendWithSender(client, req,
-                autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
                 }
 
     // GetFirstListOfPublishedNodesResponder handles the response to the GetFirstListOfPublishedNodes request. The method always
@@ -562,7 +562,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             "continuationToken": autorest.Encode("query",continuationToken),
             }
 
-        preparer := autorest.CreatePreparer(
+            preparer := autorest.CreatePreparer(
         autorest.AsGet(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPathParameters("/v2/publish/{endpointId}",pathParameters),
@@ -573,8 +573,8 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         // GetNextListOfPublishedNodesSender sends the GetNextListOfPublishedNodes request. The method will close the
         // http.Response Body if it receives an error.
         func (client BaseClient) GetNextListOfPublishedNodesSender(req *http.Request) (*http.Response, error) {
-                return autorest.SendWithSender(client, req,
-                autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
                 }
 
     // GetNextListOfPublishedNodesResponder handles the response to the GetNextListOfPublishedNodes request. The method always
@@ -681,7 +681,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             "continuationToken": autorest.Encode("query",continuationToken),
             }
 
-        preparer := autorest.CreatePreparer(
+            preparer := autorest.CreatePreparer(
         autorest.AsGet(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPathParameters("/v2/browse/{endpointId}/next",pathParameters),
@@ -692,8 +692,8 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         // GetNextSetOfUniqueNodesSender sends the GetNextSetOfUniqueNodes request. The method will close the
         // http.Response Body if it receives an error.
         func (client BaseClient) GetNextSetOfUniqueNodesSender(req *http.Request) (*http.Response, error) {
-                return autorest.SendWithSender(client, req,
-                autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
                 }
 
     // GetNextSetOfUniqueNodesResponder handles the response to the GetNextSetOfUniqueNodes request. The method always
@@ -802,7 +802,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 queryParameters["nodeId"] = autorest.Encode("query",nodeID)
                 }
 
-        preparer := autorest.CreatePreparer(
+            preparer := autorest.CreatePreparer(
         autorest.AsGet(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPathParameters("/v2/browse/{endpointId}",pathParameters),
@@ -813,8 +813,8 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         // GetSetOfUniqueNodesSender sends the GetSetOfUniqueNodes request. The method will close the
         // http.Response Body if it receives an error.
         func (client BaseClient) GetSetOfUniqueNodesSender(req *http.Request) (*http.Response, error) {
-                return autorest.SendWithSender(client, req,
-                autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
                 }
 
     // GetSetOfUniqueNodesResponder handles the response to the GetSetOfUniqueNodes request. The method always
@@ -865,7 +865,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
 
         // GetStatusPreparer prepares the GetStatus request.
         func (client BaseClient) GetStatusPreparer(ctx context.Context) (*http.Request, error) {
-        preparer := autorest.CreatePreparer(
+            preparer := autorest.CreatePreparer(
         autorest.AsGet(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPath("/v2/status"))
@@ -875,8 +875,8 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         // GetStatusSender sends the GetStatus request. The method will close the
         // http.Response Body if it receives an error.
         func (client BaseClient) GetStatusSender(req *http.Request) (*http.Response, error) {
-                return autorest.SendWithSender(client, req,
-                autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
                 }
 
     // GetStatusResponder handles the response to the GetStatus request. The method always
@@ -940,7 +940,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             "nodeId": autorest.Encode("query",nodeID),
             }
 
-        preparer := autorest.CreatePreparer(
+            preparer := autorest.CreatePreparer(
         autorest.AsGet(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPathParameters("/v2/read/{endpointId}",pathParameters),
@@ -951,8 +951,8 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         // GetValueSender sends the GetValue request. The method will close the
         // http.Response Body if it receives an error.
         func (client BaseClient) GetValueSender(req *http.Request) (*http.Response, error) {
-                return autorest.SendWithSender(client, req,
-                autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
                 }
 
     // GetValueResponder handles the response to the GetValue request. The method always
@@ -1018,7 +1018,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 "endpointId": autorest.Encode("path",endpointID),
                 }
 
-        preparer := autorest.CreatePreparer(
+            preparer := autorest.CreatePreparer(
         autorest.AsContentType("application/json-patch+json; charset=utf-8"),
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
@@ -1030,8 +1030,8 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         // ReadAttributesSender sends the ReadAttributes request. The method will close the
         // http.Response Body if it receives an error.
         func (client BaseClient) ReadAttributesSender(req *http.Request) (*http.Response, error) {
-                return autorest.SendWithSender(client, req,
-                autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
                 }
 
     // ReadAttributesResponder handles the response to the ReadAttributes request. The method always
@@ -1097,7 +1097,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 "endpointId": autorest.Encode("path",endpointID),
                 }
 
-        preparer := autorest.CreatePreparer(
+            preparer := autorest.CreatePreparer(
         autorest.AsContentType("application/json-patch+json; charset=utf-8"),
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
@@ -1109,8 +1109,8 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         // ReadValueSender sends the ReadValue request. The method will close the
         // http.Response Body if it receives an error.
         func (client BaseClient) ReadValueSender(req *http.Request) (*http.Response, error) {
-                return autorest.SendWithSender(client, req,
-                autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
                 }
 
     // ReadValueResponder handles the response to the ReadValue request. The method always
@@ -1178,7 +1178,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 "endpointId": autorest.Encode("path",endpointID),
                 }
 
-        preparer := autorest.CreatePreparer(
+            preparer := autorest.CreatePreparer(
         autorest.AsContentType("application/json-patch+json; charset=utf-8"),
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
@@ -1190,8 +1190,8 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         // StartPublishingValuesSender sends the StartPublishingValues request. The method will close the
         // http.Response Body if it receives an error.
         func (client BaseClient) StartPublishingValuesSender(req *http.Request) (*http.Response, error) {
-                return autorest.SendWithSender(client, req,
-                autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
                 }
 
     // StartPublishingValuesResponder handles the response to the StartPublishingValues request. The method always
@@ -1257,7 +1257,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 "endpointId": autorest.Encode("path",endpointID),
                 }
 
-        preparer := autorest.CreatePreparer(
+            preparer := autorest.CreatePreparer(
         autorest.AsContentType("application/json-patch+json; charset=utf-8"),
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
@@ -1269,8 +1269,8 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         // StopPublishingValuesSender sends the StopPublishingValues request. The method will close the
         // http.Response Body if it receives an error.
         func (client BaseClient) StopPublishingValuesSender(req *http.Request) (*http.Response, error) {
-                return autorest.SendWithSender(client, req,
-                autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
                 }
 
     // StopPublishingValuesResponder handles the response to the StopPublishingValues request. The method always
@@ -1336,7 +1336,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 "endpointId": autorest.Encode("path",endpointID),
                 }
 
-        preparer := autorest.CreatePreparer(
+            preparer := autorest.CreatePreparer(
         autorest.AsContentType("application/json-patch+json; charset=utf-8"),
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
@@ -1348,8 +1348,8 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         // WriteAttributesSender sends the WriteAttributes request. The method will close the
         // http.Response Body if it receives an error.
         func (client BaseClient) WriteAttributesSender(req *http.Request) (*http.Response, error) {
-                return autorest.SendWithSender(client, req,
-                autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
                 }
 
     // WriteAttributesResponder handles the response to the WriteAttributes request. The method always
@@ -1416,7 +1416,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 "endpointId": autorest.Encode("path",endpointID),
                 }
 
-        preparer := autorest.CreatePreparer(
+            preparer := autorest.CreatePreparer(
         autorest.AsContentType("application/json-patch+json; charset=utf-8"),
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
@@ -1428,8 +1428,8 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         // WriteValueSender sends the WriteValue request. The method will close the
         // http.Response Body if it receives an error.
         func (client BaseClient) WriteValueSender(req *http.Request) (*http.Response, error) {
-                return autorest.SendWithSender(client, req,
-                autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
                 }
 
     // WriteValueResponder handles the response to the WriteValue request. The method always

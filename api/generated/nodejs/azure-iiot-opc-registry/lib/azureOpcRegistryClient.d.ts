@@ -123,13 +123,18 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    * @param {string} request.applicationUri Unique application uri
    *
    * @param {string} [request.applicationType] Type of application. Possible
-   * values include: 'Server', 'Client', 'ClientAndServer'
+   * values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
    *
    * @param {string} [request.productUri] Product uri of the application.
    *
-   * @param {string} [request.applicationName] Name of the server or client.
+   * @param {string} [request.applicationName] Default name of the server or
+   * client.
    *
-   * @param {string} [request.locale] Locale of name
+   * @param {string} [request.locale] Locale of default name
+   *
+   * @param {string} [request.siteId] Site of the application
+   *
+   * @param {object} [request.localizedNames] Localized names key off locale id.
    *
    * @param {array} [request.capabilities] The OPC UA defined capabilities of the
    * server.
@@ -138,6 +143,8 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {string} [request.discoveryProfileUri] The discovery profile uri of
    * the server.
+   *
+   * @param {string} [request.gatewayServerUri] Gateway server uri
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -165,13 +172,18 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    * @param {string} request.applicationUri Unique application uri
    *
    * @param {string} [request.applicationType] Type of application. Possible
-   * values include: 'Server', 'Client', 'ClientAndServer'
+   * values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
    *
    * @param {string} [request.productUri] Product uri of the application.
    *
-   * @param {string} [request.applicationName] Name of the server or client.
+   * @param {string} [request.applicationName] Default name of the server or
+   * client.
    *
-   * @param {string} [request.locale] Locale of name
+   * @param {string} [request.locale] Locale of default name
+   *
+   * @param {string} [request.siteId] Site of the application
+   *
+   * @param {object} [request.localizedNames] Localized names key off locale id.
    *
    * @param {array} [request.capabilities] The OPC UA defined capabilities of the
    * server.
@@ -180,6 +192,8 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {string} [request.discoveryProfileUri] The discovery profile uri of
    * the server.
+   *
+   * @param {string} [request.gatewayServerUri] Gateway server uri
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -402,6 +416,258 @@ export default class AzureOpcRegistryClient extends ServiceClient {
   deleteAllDisabledApplications(options?: { notSeenFor? : string, customHeaders? : { [headerName: string]: string; } }): Promise<void>;
   deleteAllDisabledApplications(callback: ServiceCallback<void>): void;
   deleteAllDisabledApplications(options: { notSeenFor? : string, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
+
+
+  /**
+   * @summary Approve a new application.
+   *
+   * A manager can approve a new application or force an application
+   * from any state.
+   * After approval the application is in the 'Approved' state.
+   * Requires Manager role.
+   *
+   * @param {string} applicationId The application id
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {boolean} [options.force] optional, force application in new state
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  approveApplicationWithHttpOperationResponse(applicationId: string, options?: { force? : boolean, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<void>>;
+
+  /**
+   * @summary Approve a new application.
+   *
+   * A manager can approve a new application or force an application
+   * from any state.
+   * After approval the application is in the 'Approved' state.
+   * Requires Manager role.
+   *
+   * @param {string} applicationId The application id
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {boolean} [options.force] optional, force application in new state
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {null} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  approveApplication(applicationId: string, options?: { force? : boolean, customHeaders? : { [headerName: string]: string; } }): Promise<void>;
+  approveApplication(applicationId: string, callback: ServiceCallback<void>): void;
+  approveApplication(applicationId: string, options: { force? : boolean, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
+
+
+  /**
+   * @summary Reject a new application.
+   *
+   * A manager can approve a new application or force an application
+   * from any state.
+   * After approval the application is in the 'Rejected' state.
+   * Requires Manager role.
+   *
+   * @param {string} applicationId The application id
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {boolean} [options.force] optional, force application in new state
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  rejectApplicationWithHttpOperationResponse(applicationId: string, options?: { force? : boolean, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<void>>;
+
+  /**
+   * @summary Reject a new application.
+   *
+   * A manager can approve a new application or force an application
+   * from any state.
+   * After approval the application is in the 'Rejected' state.
+   * Requires Manager role.
+   *
+   * @param {string} applicationId The application id
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {boolean} [options.force] optional, force application in new state
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {null} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  rejectApplication(applicationId: string, options?: { force? : boolean, customHeaders? : { [headerName: string]: string; } }): Promise<void>;
+  rejectApplication(applicationId: string, callback: ServiceCallback<void>): void;
+  rejectApplication(applicationId: string, options: { force? : boolean, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
+
+
+  /**
+   * @summary Disable an enabled application.
+   *
+   * A manager can disable an application.
+   *
+   * @param {string} applicationId The application id
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  disableApplicationWithHttpOperationResponse(applicationId: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<void>>;
+
+  /**
+   * @summary Disable an enabled application.
+   *
+   * A manager can disable an application.
+   *
+   * @param {string} applicationId The application id
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {null} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  disableApplication(applicationId: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<void>;
+  disableApplication(applicationId: string, callback: ServiceCallback<void>): void;
+  disableApplication(applicationId: string, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
+
+
+  /**
+   * @summary Re-enable a disabled application.
+   *
+   * A manager can enable an application.
+   *
+   * @param {string} applicationId The application id
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  enableApplicationWithHttpOperationResponse(applicationId: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<void>>;
+
+  /**
+   * @summary Re-enable a disabled application.
+   *
+   * A manager can enable an application.
+   *
+   * @param {string} applicationId The application id
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {null} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  enableApplication(applicationId: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<void>;
+  enableApplication(applicationId: string, callback: ServiceCallback<void>): void;
+  enableApplication(applicationId: string, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
 
 
   /**
@@ -707,9 +973,14 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {string} [request.productUri] Product uri
    *
-   * @param {string} [request.applicationName] Application name
+   * @param {string} [request.applicationName] Default name of the server or
+   * client.
    *
-   * @param {string} [request.locale] Locale of name - defaults to "en"
+   * @param {string} [request.locale] Locale of default name - defaults to "en"
+   *
+   * @param {object} [request.localizedNames] Localized names keyed off locale
+   * id.
+   * To remove entry, set value for locale id to null.
    *
    * @param {buffer} [request.certificate] Application public cert
    *
@@ -718,6 +989,8 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    * @param {array} [request.discoveryUrls] Discovery urls of the application
    *
    * @param {string} [request.discoveryProfileUri] Discovery profile uri
+   *
+   * @param {string} [request.gatewayServerUri] Gateway server uri
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -745,9 +1018,14 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {string} [request.productUri] Product uri
    *
-   * @param {string} [request.applicationName] Application name
+   * @param {string} [request.applicationName] Default name of the server or
+   * client.
    *
-   * @param {string} [request.locale] Locale of name - defaults to "en"
+   * @param {string} [request.locale] Locale of default name - defaults to "en"
+   *
+   * @param {object} [request.localizedNames] Localized names keyed off locale
+   * id.
+   * To remove entry, set value for locale id to null.
    *
    * @param {buffer} [request.certificate] Application public cert
    *
@@ -756,6 +1034,8 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    * @param {array} [request.discoveryUrls] Discovery urls of the application
    *
    * @param {string} [request.discoveryProfileUri] Discovery profile uri
+   *
+   * @param {string} [request.gatewayServerUri] Gateway server uri
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -868,7 +1148,7 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    * @param {object} query Applications Query model
    *
    * @param {string} [query.applicationType] Type of application. Possible values
-   * include: 'Server', 'Client', 'ClientAndServer'
+   * include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
    *
    * @param {string} [query.applicationUri] Application uri
    *
@@ -880,8 +1160,15 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {string} [query.capability] Application capability to query with
    *
+   * @param {string} [query.discoveryProfileUri] Discovery profile uri
+   *
+   * @param {string} [query.gatewayServerUri] Gateway server uri
+   *
    * @param {string} [query.siteOrSupervisorId] Supervisor or site the
    * application belongs to.
+   *
+   * @param {string} [query.state] State of application. Possible values include:
+   * 'Any', 'New', 'Approved', 'Rejected', 'Unregistered', 'Deleted'
    *
    * @param {boolean} [query.includeNotSeenSince] Whether to include apps that
    * were soft deleted
@@ -913,7 +1200,7 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    * @param {object} query Applications Query model
    *
    * @param {string} [query.applicationType] Type of application. Possible values
-   * include: 'Server', 'Client', 'ClientAndServer'
+   * include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
    *
    * @param {string} [query.applicationUri] Application uri
    *
@@ -925,8 +1212,15 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {string} [query.capability] Application capability to query with
    *
+   * @param {string} [query.discoveryProfileUri] Discovery profile uri
+   *
+   * @param {string} [query.gatewayServerUri] Gateway server uri
+   *
    * @param {string} [query.siteOrSupervisorId] Supervisor or site the
    * application belongs to.
+   *
+   * @param {string} [query.state] State of application. Possible values include:
+   * 'Any', 'New', 'Approved', 'Rejected', 'Unregistered', 'Deleted'
    *
    * @param {boolean} [query.includeNotSeenSince] Whether to include apps that
    * were soft deleted
@@ -978,7 +1272,7 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    * @param {object} query Application query
    *
    * @param {string} [query.applicationType] Type of application. Possible values
-   * include: 'Server', 'Client', 'ClientAndServer'
+   * include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
    *
    * @param {string} [query.applicationUri] Application uri
    *
@@ -990,8 +1284,15 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {string} [query.capability] Application capability to query with
    *
+   * @param {string} [query.discoveryProfileUri] Discovery profile uri
+   *
+   * @param {string} [query.gatewayServerUri] Gateway server uri
+   *
    * @param {string} [query.siteOrSupervisorId] Supervisor or site the
    * application belongs to.
+   *
+   * @param {string} [query.state] State of application. Possible values include:
+   * 'Any', 'New', 'Approved', 'Rejected', 'Unregistered', 'Deleted'
    *
    * @param {boolean} [query.includeNotSeenSince] Whether to include apps that
    * were soft deleted
@@ -1024,7 +1325,7 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    * @param {object} query Application query
    *
    * @param {string} [query.applicationType] Type of application. Possible values
-   * include: 'Server', 'Client', 'ClientAndServer'
+   * include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
    *
    * @param {string} [query.applicationUri] Application uri
    *
@@ -1036,8 +1337,15 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {string} [query.capability] Application capability to query with
    *
+   * @param {string} [query.discoveryProfileUri] Discovery profile uri
+   *
+   * @param {string} [query.gatewayServerUri] Gateway server uri
+   *
    * @param {string} [query.siteOrSupervisorId] Supervisor or site the
    * application belongs to.
+   *
+   * @param {string} [query.state] State of application. Possible values include:
+   * 'Any', 'New', 'Approved', 'Rejected', 'Unregistered', 'Deleted'
    *
    * @param {boolean} [query.includeNotSeenSince] Whether to include apps that
    * were soft deleted
@@ -1076,6 +1384,96 @@ export default class AzureOpcRegistryClient extends ServiceClient {
   queryApplications(query: models.ApplicationRegistrationQueryApiModel, options?: { pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<models.ApplicationInfoListApiModel>;
   queryApplications(query: models.ApplicationRegistrationQueryApiModel, callback: ServiceCallback<models.ApplicationInfoListApiModel>): void;
   queryApplications(query: models.ApplicationRegistrationQueryApiModel, options: { pageSize? : number, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.ApplicationInfoListApiModel>): void;
+
+
+  /**
+   * @summary Query applications by id.
+   *
+   * A query model which supports the OPC UA Global Discovery Server query.
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.query]
+   *
+   * @param {number} [options.query.startingRecordId] Starting record id
+   *
+   * @param {number} [options.query.maxRecordsToReturn] Max records to return
+   *
+   * @param {string} [options.query.applicationName] Application name
+   *
+   * @param {string} [options.query.applicationUri] Application uri
+   *
+   * @param {string} [options.query.applicationType] Application type. Possible
+   * values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
+   *
+   * @param {string} [options.query.productUri] Product uri
+   *
+   * @param {array} [options.query.serverCapabilities] Server capabilities
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<ApplicationRecordListApiModel>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  queryApplicationsByIdWithHttpOperationResponse(options?: { query? : models.ApplicationRecordQueryApiModel, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.ApplicationRecordListApiModel>>;
+
+  /**
+   * @summary Query applications by id.
+   *
+   * A query model which supports the OPC UA Global Discovery Server query.
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.query]
+   *
+   * @param {number} [options.query.startingRecordId] Starting record id
+   *
+   * @param {number} [options.query.maxRecordsToReturn] Max records to return
+   *
+   * @param {string} [options.query.applicationName] Application name
+   *
+   * @param {string} [options.query.applicationUri] Application uri
+   *
+   * @param {string} [options.query.applicationType] Application type. Possible
+   * values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
+   *
+   * @param {string} [options.query.productUri] Product uri
+   *
+   * @param {array} [options.query.serverCapabilities] Server capabilities
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {ApplicationRecordListApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {ApplicationRecordListApiModel} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link ApplicationRecordListApiModel} for more
+   *                      information.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  queryApplicationsById(options?: { query? : models.ApplicationRecordQueryApiModel, customHeaders? : { [headerName: string]: string; } }): Promise<models.ApplicationRecordListApiModel>;
+  queryApplicationsById(callback: ServiceCallback<models.ApplicationRecordListApiModel>): void;
+  queryApplicationsById(options: { query? : models.ApplicationRecordQueryApiModel, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.ApplicationRecordListApiModel>): void;
 
 
   /**

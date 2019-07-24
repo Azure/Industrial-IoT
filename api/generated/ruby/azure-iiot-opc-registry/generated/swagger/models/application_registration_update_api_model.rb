@@ -16,11 +16,15 @@ module azure.iiot.opc.registry
       # @return [String] Product uri
       attr_accessor :product_uri
 
-      # @return [String] Application name
+      # @return [String] Default name of the server or client.
       attr_accessor :application_name
 
-      # @return [String] Locale of name - defaults to "en"
+      # @return [String] Locale of default name - defaults to "en"
       attr_accessor :locale
+
+      # @return [Hash{String => String}] Localized names keyed off locale id.
+      # To remove entry, set value for locale id to null.
+      attr_accessor :localized_names
 
       # @return [Array<Integer>] Application public cert
       attr_accessor :certificate
@@ -33,6 +37,9 @@ module azure.iiot.opc.registry
 
       # @return [String] Discovery profile uri
       attr_accessor :discovery_profile_uri
+
+      # @return [String] Gateway server uri
+      attr_accessor :gateway_server_uri
 
 
       #
@@ -70,6 +77,22 @@ module azure.iiot.opc.registry
                 serialized_name: 'locale',
                 type: {
                   name: 'String'
+                }
+              },
+              localized_names: {
+                client_side_validation: true,
+                required: false,
+                serialized_name: 'localizedNames',
+                type: {
+                  name: 'Dictionary',
+                  value: {
+                      client_side_validation: true,
+                      required: false,
+                      serialized_name: 'StringElementType',
+                      type: {
+                        name: 'String'
+                      }
+                  }
                 }
               },
               certificate: {
@@ -122,6 +145,14 @@ module azure.iiot.opc.registry
                 client_side_validation: true,
                 required: false,
                 serialized_name: 'discoveryProfileUri',
+                type: {
+                  name: 'String'
+                }
+              },
+              gateway_server_uri: {
+                client_side_validation: true,
+                required: false,
+                serialized_name: 'gatewayServerUri',
                 type: {
                   name: 'String'
                 }

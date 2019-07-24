@@ -173,13 +173,18 @@ function _getListOfApplications(options, callback) {
  * @param {string} request.applicationUri Unique application uri
  *
  * @param {string} [request.applicationType] Type of application. Possible
- * values include: 'Server', 'Client', 'ClientAndServer'
+ * values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
  *
  * @param {string} [request.productUri] Product uri of the application.
  *
- * @param {string} [request.applicationName] Name of the server or client.
+ * @param {string} [request.applicationName] Default name of the server or
+ * client.
  *
- * @param {string} [request.locale] Locale of name
+ * @param {string} [request.locale] Locale of default name
+ *
+ * @param {string} [request.siteId] Site of the application
+ *
+ * @param {object} [request.localizedNames] Localized names key off locale id.
  *
  * @param {array} [request.capabilities] The OPC UA defined capabilities of the
  * server.
@@ -188,6 +193,8 @@ function _getListOfApplications(options, callback) {
  *
  * @param {string} [request.discoveryProfileUri] The discovery profile uri of
  * the server.
+ *
+ * @param {string} [request.gatewayServerUri] Gateway server uri
  *
  * @param {object} [options] Optional Parameters.
  *
@@ -520,6 +527,434 @@ function _deleteAllDisabledApplications(options, callback) {
   // Create HTTP transport objects
   let httpRequest = new WebResource();
   httpRequest.method = 'DELETE';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  httpRequest.body = null;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
+ * @summary Approve a new application.
+ *
+ * A manager can approve a new application or force an application
+ * from any state.
+ * After approval the application is in the 'Approved' state.
+ * Requires Manager role.
+ *
+ * @param {string} applicationId The application id
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {boolean} [options.force] optional, force application in new state
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {null} [result]   - The deserialized result object if an error did not occur.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _approveApplication(applicationId, options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  let force = (options && options.force !== undefined) ? options.force : undefined;
+  // Validate
+  try {
+    if (applicationId === null || applicationId === undefined || typeof applicationId.valueOf() !== 'string') {
+      throw new Error('applicationId cannot be null or undefined and it must be of type string.');
+    }
+    if (force !== null && force !== undefined && typeof force !== 'boolean') {
+      throw new Error('force must be of type boolean.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/applications/{applicationId}/approve';
+  requestUrl = requestUrl.replace('{applicationId}', encodeURIComponent(applicationId));
+  let queryParameters = [];
+  if (force !== null && force !== undefined) {
+    queryParameters.push('force=' + encodeURIComponent(force.toString()));
+  }
+  if (queryParameters.length > 0) {
+    requestUrl += '?' + queryParameters.join('&');
+  }
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'POST';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  httpRequest.body = null;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
+ * @summary Reject a new application.
+ *
+ * A manager can approve a new application or force an application
+ * from any state.
+ * After approval the application is in the 'Rejected' state.
+ * Requires Manager role.
+ *
+ * @param {string} applicationId The application id
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {boolean} [options.force] optional, force application in new state
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {null} [result]   - The deserialized result object if an error did not occur.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _rejectApplication(applicationId, options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  let force = (options && options.force !== undefined) ? options.force : undefined;
+  // Validate
+  try {
+    if (applicationId === null || applicationId === undefined || typeof applicationId.valueOf() !== 'string') {
+      throw new Error('applicationId cannot be null or undefined and it must be of type string.');
+    }
+    if (force !== null && force !== undefined && typeof force !== 'boolean') {
+      throw new Error('force must be of type boolean.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/applications/{applicationId}/reject';
+  requestUrl = requestUrl.replace('{applicationId}', encodeURIComponent(applicationId));
+  let queryParameters = [];
+  if (force !== null && force !== undefined) {
+    queryParameters.push('force=' + encodeURIComponent(force.toString()));
+  }
+  if (queryParameters.length > 0) {
+    requestUrl += '?' + queryParameters.join('&');
+  }
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'POST';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  httpRequest.body = null;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
+ * @summary Disable an enabled application.
+ *
+ * A manager can disable an application.
+ *
+ * @param {string} applicationId The application id
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {null} [result]   - The deserialized result object if an error did not occur.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _disableApplication(applicationId, options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  // Validate
+  try {
+    if (applicationId === null || applicationId === undefined || typeof applicationId.valueOf() !== 'string') {
+      throw new Error('applicationId cannot be null or undefined and it must be of type string.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/applications/{applicationId}/disable';
+  requestUrl = requestUrl.replace('{applicationId}', encodeURIComponent(applicationId));
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'POST';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  httpRequest.body = null;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
+ * @summary Re-enable a disabled application.
+ *
+ * A manager can enable an application.
+ *
+ * @param {string} applicationId The application id
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {null} [result]   - The deserialized result object if an error did not occur.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _enableApplication(applicationId, options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  // Validate
+  try {
+    if (applicationId === null || applicationId === undefined || typeof applicationId.valueOf() !== 'string') {
+      throw new Error('applicationId cannot be null or undefined and it must be of type string.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/applications/{applicationId}/enable';
+  requestUrl = requestUrl.replace('{applicationId}', encodeURIComponent(applicationId));
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'POST';
   httpRequest.url = requestUrl;
   httpRequest.headers = {};
   // Set Headers
@@ -967,9 +1402,14 @@ function _deleteApplication(applicationId, options, callback) {
  *
  * @param {string} [request.productUri] Product uri
  *
- * @param {string} [request.applicationName] Application name
+ * @param {string} [request.applicationName] Default name of the server or
+ * client.
  *
- * @param {string} [request.locale] Locale of name - defaults to "en"
+ * @param {string} [request.locale] Locale of default name - defaults to "en"
+ *
+ * @param {object} [request.localizedNames] Localized names keyed off locale
+ * id.
+ * To remove entry, set value for locale id to null.
  *
  * @param {buffer} [request.certificate] Application public cert
  *
@@ -978,6 +1418,8 @@ function _deleteApplication(applicationId, options, callback) {
  * @param {array} [request.discoveryUrls] Discovery urls of the application
  *
  * @param {string} [request.discoveryProfileUri] Discovery profile uri
+ *
+ * @param {string} [request.gatewayServerUri] Gateway server uri
  *
  * @param {object} [options] Optional Parameters.
  *
@@ -1236,7 +1678,7 @@ function _getListOfSites(options, callback) {
  * @param {object} query Applications Query model
  *
  * @param {string} [query.applicationType] Type of application. Possible values
- * include: 'Server', 'Client', 'ClientAndServer'
+ * include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
  *
  * @param {string} [query.applicationUri] Application uri
  *
@@ -1248,8 +1690,15 @@ function _getListOfSites(options, callback) {
  *
  * @param {string} [query.capability] Application capability to query with
  *
+ * @param {string} [query.discoveryProfileUri] Discovery profile uri
+ *
+ * @param {string} [query.gatewayServerUri] Gateway server uri
+ *
  * @param {string} [query.siteOrSupervisorId] Supervisor or site the
  * application belongs to.
+ *
+ * @param {string} [query.state] State of application. Possible values include:
+ * 'Any', 'New', 'Approved', 'Rejected', 'Unregistered', 'Deleted'
  *
  * @param {boolean} [query.includeNotSeenSince] Whether to include apps that
  * were soft deleted
@@ -1403,7 +1852,7 @@ function _getFilteredListOfApplications(query, options, callback) {
  * @param {object} query Application query
  *
  * @param {string} [query.applicationType] Type of application. Possible values
- * include: 'Server', 'Client', 'ClientAndServer'
+ * include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
  *
  * @param {string} [query.applicationUri] Application uri
  *
@@ -1415,8 +1864,15 @@ function _getFilteredListOfApplications(query, options, callback) {
  *
  * @param {string} [query.capability] Application capability to query with
  *
+ * @param {string} [query.discoveryProfileUri] Discovery profile uri
+ *
+ * @param {string} [query.gatewayServerUri] Gateway server uri
+ *
  * @param {string} [query.siteOrSupervisorId] Supervisor or site the
  * application belongs to.
+ *
+ * @param {string} [query.state] State of application. Possible values include:
+ * 'Any', 'New', 'Approved', 'Rejected', 'Unregistered', 'Deleted'
  *
  * @param {boolean} [query.includeNotSeenSince] Whether to include apps that
  * were soft deleted
@@ -1545,6 +2001,145 @@ function _queryApplications(query, options, callback) {
         result = JSON.parse(responseBody);
         if (parsedResponse !== null && parsedResponse !== undefined) {
           let resultMapper = new client.models['ApplicationInfoListApiModel']().mapper();
+          result = client.deserialize(resultMapper, parsedResponse, 'result');
+        }
+      } catch (error) {
+        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
+        deserializationError.request = msRest.stripRequest(httpRequest);
+        deserializationError.response = msRest.stripResponse(response);
+        return callback(deserializationError);
+      }
+    }
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
+ * @summary Query applications by id.
+ *
+ * A query model which supports the OPC UA Global Discovery Server query.
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {object} [options.query]
+ *
+ * @param {number} [options.query.startingRecordId] Starting record id
+ *
+ * @param {number} [options.query.maxRecordsToReturn] Max records to return
+ *
+ * @param {string} [options.query.applicationName] Application name
+ *
+ * @param {string} [options.query.applicationUri] Application uri
+ *
+ * @param {string} [options.query.applicationType] Application type. Possible
+ * values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
+ *
+ * @param {string} [options.query.productUri] Product uri
+ *
+ * @param {array} [options.query.serverCapabilities] Server capabilities
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {object} [result]   - The deserialized result object if an error did not occur.
+ *                      See {@link ApplicationRecordListApiModel} for more
+ *                      information.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _queryApplicationsById(options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  let query = (options && options.query !== undefined) ? options.query : undefined;
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/applications/querybyid';
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'POST';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  // Serialize Request
+  let requestContent = null;
+  let requestModel = null;
+  try {
+    if (query !== null && query !== undefined) {
+      let requestModelMapper = new client.models['ApplicationRecordQueryApiModel']().mapper();
+      requestModel = client.serialize(requestModelMapper, query, 'query');
+      requestContent = JSON.stringify(requestModel);
+    }
+  } catch (error) {
+    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
+        `payload - ${JSON.stringify(query, null, 2)}.`);
+    return callback(serializationError);
+  }
+  httpRequest.body = requestContent;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+    // Deserialize Response
+    if (statusCode === 200) {
+      let parsedResponse = null;
+      try {
+        parsedResponse = JSON.parse(responseBody);
+        result = JSON.parse(responseBody);
+        if (parsedResponse !== null && parsedResponse !== undefined) {
+          let resultMapper = new client.models['ApplicationRecordListApiModel']().mapper();
           result = client.deserialize(resultMapper, parsedResponse, 'result');
         }
       } catch (error) {
@@ -3734,6 +4329,10 @@ class AzureOpcRegistryClient extends ServiceClient {
     this._createApplication = _createApplication;
     this._registerServer = _registerServer;
     this._deleteAllDisabledApplications = _deleteAllDisabledApplications;
+    this._approveApplication = _approveApplication;
+    this._rejectApplication = _rejectApplication;
+    this._disableApplication = _disableApplication;
+    this._enableApplication = _enableApplication;
     this._discoverServer = _discoverServer;
     this._getApplicationRegistration = _getApplicationRegistration;
     this._deleteApplication = _deleteApplication;
@@ -3741,6 +4340,7 @@ class AzureOpcRegistryClient extends ServiceClient {
     this._getListOfSites = _getListOfSites;
     this._getFilteredListOfApplications = _getFilteredListOfApplications;
     this._queryApplications = _queryApplications;
+    this._queryApplicationsById = _queryApplicationsById;
     this._activateEndpoint = _activateEndpoint;
     this._getEndpoint = _getEndpoint;
     this._updateEndpoint = _updateEndpoint;
@@ -3873,13 +4473,18 @@ class AzureOpcRegistryClient extends ServiceClient {
    * @param {string} request.applicationUri Unique application uri
    *
    * @param {string} [request.applicationType] Type of application. Possible
-   * values include: 'Server', 'Client', 'ClientAndServer'
+   * values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
    *
    * @param {string} [request.productUri] Product uri of the application.
    *
-   * @param {string} [request.applicationName] Name of the server or client.
+   * @param {string} [request.applicationName] Default name of the server or
+   * client.
    *
-   * @param {string} [request.locale] Locale of name
+   * @param {string} [request.locale] Locale of default name
+   *
+   * @param {string} [request.siteId] Site of the application
+   *
+   * @param {object} [request.localizedNames] Localized names key off locale id.
    *
    * @param {array} [request.capabilities] The OPC UA defined capabilities of the
    * server.
@@ -3888,6 +4493,8 @@ class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {string} [request.discoveryProfileUri] The discovery profile uri of
    * the server.
+   *
+   * @param {string} [request.gatewayServerUri] Gateway server uri
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -3927,13 +4534,18 @@ class AzureOpcRegistryClient extends ServiceClient {
    * @param {string} request.applicationUri Unique application uri
    *
    * @param {string} [request.applicationType] Type of application. Possible
-   * values include: 'Server', 'Client', 'ClientAndServer'
+   * values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
    *
    * @param {string} [request.productUri] Product uri of the application.
    *
-   * @param {string} [request.applicationName] Name of the server or client.
+   * @param {string} [request.applicationName] Default name of the server or
+   * client.
    *
-   * @param {string} [request.locale] Locale of name
+   * @param {string} [request.locale] Locale of default name
+   *
+   * @param {string} [request.siteId] Site of the application
+   *
+   * @param {object} [request.localizedNames] Localized names key off locale id.
    *
    * @param {array} [request.capabilities] The OPC UA defined capabilities of the
    * server.
@@ -3942,6 +4554,8 @@ class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {string} [request.discoveryProfileUri] The discovery profile uri of
    * the server.
+   *
+   * @param {string} [request.gatewayServerUri] Gateway server uri
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -4232,6 +4846,366 @@ class AzureOpcRegistryClient extends ServiceClient {
       });
     } else {
       return self._deleteAllDisabledApplications(options, optionalCallback);
+    }
+  }
+
+  /**
+   * @summary Approve a new application.
+   *
+   * A manager can approve a new application or force an application
+   * from any state.
+   * After approval the application is in the 'Approved' state.
+   * Requires Manager role.
+   *
+   * @param {string} applicationId The application id
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {boolean} [options.force] optional, force application in new state
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   *
+   * @reject {Error} - The error object.
+   */
+  approveApplicationWithHttpOperationResponse(applicationId, options) {
+    let client = this;
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self._approveApplication(applicationId, options, (err, result, request, response) => {
+        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
+        httpOperationResponse.body = result;
+        if (err) { reject(err); }
+        else { resolve(httpOperationResponse); }
+        return;
+      });
+    });
+  }
+
+  /**
+   * @summary Approve a new application.
+   *
+   * A manager can approve a new application or force an application
+   * from any state.
+   * After approval the application is in the 'Approved' state.
+   * Requires Manager role.
+   *
+   * @param {string} applicationId The application id
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {boolean} [options.force] optional, force application in new state
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {function} [optionalCallback] - The optional callback.
+   *
+   * @returns {function|Promise} If a callback was passed as the last parameter
+   * then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned
+   *
+   *                      @resolve {null} - The deserialized result object.
+   *
+   *                      @reject {Error} - The error object.
+   *
+   * {function} optionalCallback(err, result, request, response)
+   *
+   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
+   *
+   *                      {object} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+   */
+  approveApplication(applicationId, options, optionalCallback) {
+    let client = this;
+    let self = this;
+    if (!optionalCallback && typeof options === 'function') {
+      optionalCallback = options;
+      options = null;
+    }
+    if (!optionalCallback) {
+      return new Promise((resolve, reject) => {
+        self._approveApplication(applicationId, options, (err, result, request, response) => {
+          if (err) { reject(err); }
+          else { resolve(result); }
+          return;
+        });
+      });
+    } else {
+      return self._approveApplication(applicationId, options, optionalCallback);
+    }
+  }
+
+  /**
+   * @summary Reject a new application.
+   *
+   * A manager can approve a new application or force an application
+   * from any state.
+   * After approval the application is in the 'Rejected' state.
+   * Requires Manager role.
+   *
+   * @param {string} applicationId The application id
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {boolean} [options.force] optional, force application in new state
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   *
+   * @reject {Error} - The error object.
+   */
+  rejectApplicationWithHttpOperationResponse(applicationId, options) {
+    let client = this;
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self._rejectApplication(applicationId, options, (err, result, request, response) => {
+        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
+        httpOperationResponse.body = result;
+        if (err) { reject(err); }
+        else { resolve(httpOperationResponse); }
+        return;
+      });
+    });
+  }
+
+  /**
+   * @summary Reject a new application.
+   *
+   * A manager can approve a new application or force an application
+   * from any state.
+   * After approval the application is in the 'Rejected' state.
+   * Requires Manager role.
+   *
+   * @param {string} applicationId The application id
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {boolean} [options.force] optional, force application in new state
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {function} [optionalCallback] - The optional callback.
+   *
+   * @returns {function|Promise} If a callback was passed as the last parameter
+   * then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned
+   *
+   *                      @resolve {null} - The deserialized result object.
+   *
+   *                      @reject {Error} - The error object.
+   *
+   * {function} optionalCallback(err, result, request, response)
+   *
+   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
+   *
+   *                      {object} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+   */
+  rejectApplication(applicationId, options, optionalCallback) {
+    let client = this;
+    let self = this;
+    if (!optionalCallback && typeof options === 'function') {
+      optionalCallback = options;
+      options = null;
+    }
+    if (!optionalCallback) {
+      return new Promise((resolve, reject) => {
+        self._rejectApplication(applicationId, options, (err, result, request, response) => {
+          if (err) { reject(err); }
+          else { resolve(result); }
+          return;
+        });
+      });
+    } else {
+      return self._rejectApplication(applicationId, options, optionalCallback);
+    }
+  }
+
+  /**
+   * @summary Disable an enabled application.
+   *
+   * A manager can disable an application.
+   *
+   * @param {string} applicationId The application id
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   *
+   * @reject {Error} - The error object.
+   */
+  disableApplicationWithHttpOperationResponse(applicationId, options) {
+    let client = this;
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self._disableApplication(applicationId, options, (err, result, request, response) => {
+        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
+        httpOperationResponse.body = result;
+        if (err) { reject(err); }
+        else { resolve(httpOperationResponse); }
+        return;
+      });
+    });
+  }
+
+  /**
+   * @summary Disable an enabled application.
+   *
+   * A manager can disable an application.
+   *
+   * @param {string} applicationId The application id
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {function} [optionalCallback] - The optional callback.
+   *
+   * @returns {function|Promise} If a callback was passed as the last parameter
+   * then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned
+   *
+   *                      @resolve {null} - The deserialized result object.
+   *
+   *                      @reject {Error} - The error object.
+   *
+   * {function} optionalCallback(err, result, request, response)
+   *
+   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
+   *
+   *                      {object} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+   */
+  disableApplication(applicationId, options, optionalCallback) {
+    let client = this;
+    let self = this;
+    if (!optionalCallback && typeof options === 'function') {
+      optionalCallback = options;
+      options = null;
+    }
+    if (!optionalCallback) {
+      return new Promise((resolve, reject) => {
+        self._disableApplication(applicationId, options, (err, result, request, response) => {
+          if (err) { reject(err); }
+          else { resolve(result); }
+          return;
+        });
+      });
+    } else {
+      return self._disableApplication(applicationId, options, optionalCallback);
+    }
+  }
+
+  /**
+   * @summary Re-enable a disabled application.
+   *
+   * A manager can enable an application.
+   *
+   * @param {string} applicationId The application id
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   *
+   * @reject {Error} - The error object.
+   */
+  enableApplicationWithHttpOperationResponse(applicationId, options) {
+    let client = this;
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self._enableApplication(applicationId, options, (err, result, request, response) => {
+        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
+        httpOperationResponse.body = result;
+        if (err) { reject(err); }
+        else { resolve(httpOperationResponse); }
+        return;
+      });
+    });
+  }
+
+  /**
+   * @summary Re-enable a disabled application.
+   *
+   * A manager can enable an application.
+   *
+   * @param {string} applicationId The application id
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {function} [optionalCallback] - The optional callback.
+   *
+   * @returns {function|Promise} If a callback was passed as the last parameter
+   * then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned
+   *
+   *                      @resolve {null} - The deserialized result object.
+   *
+   *                      @reject {Error} - The error object.
+   *
+   * {function} optionalCallback(err, result, request, response)
+   *
+   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
+   *
+   *                      {object} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+   */
+  enableApplication(applicationId, options, optionalCallback) {
+    let client = this;
+    let self = this;
+    if (!optionalCallback && typeof options === 'function') {
+      optionalCallback = options;
+      options = null;
+    }
+    if (!optionalCallback) {
+      return new Promise((resolve, reject) => {
+        self._enableApplication(applicationId, options, (err, result, request, response) => {
+          if (err) { reject(err); }
+          else { resolve(result); }
+          return;
+        });
+      });
+    } else {
+      return self._enableApplication(applicationId, options, optionalCallback);
     }
   }
 
@@ -4619,9 +5593,14 @@ class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {string} [request.productUri] Product uri
    *
-   * @param {string} [request.applicationName] Application name
+   * @param {string} [request.applicationName] Default name of the server or
+   * client.
    *
-   * @param {string} [request.locale] Locale of name - defaults to "en"
+   * @param {string} [request.locale] Locale of default name - defaults to "en"
+   *
+   * @param {object} [request.localizedNames] Localized names keyed off locale
+   * id.
+   * To remove entry, set value for locale id to null.
    *
    * @param {buffer} [request.certificate] Application public cert
    *
@@ -4630,6 +5609,8 @@ class AzureOpcRegistryClient extends ServiceClient {
    * @param {array} [request.discoveryUrls] Discovery urls of the application
    *
    * @param {string} [request.discoveryProfileUri] Discovery profile uri
+   *
+   * @param {string} [request.gatewayServerUri] Gateway server uri
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -4669,9 +5650,14 @@ class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {string} [request.productUri] Product uri
    *
-   * @param {string} [request.applicationName] Application name
+   * @param {string} [request.applicationName] Default name of the server or
+   * client.
    *
-   * @param {string} [request.locale] Locale of name - defaults to "en"
+   * @param {string} [request.locale] Locale of default name - defaults to "en"
+   *
+   * @param {object} [request.localizedNames] Localized names keyed off locale
+   * id.
+   * To remove entry, set value for locale id to null.
    *
    * @param {buffer} [request.certificate] Application public cert
    *
@@ -4680,6 +5666,8 @@ class AzureOpcRegistryClient extends ServiceClient {
    * @param {array} [request.discoveryUrls] Discovery urls of the application
    *
    * @param {string} [request.discoveryProfileUri] Discovery profile uri
+   *
+   * @param {string} [request.gatewayServerUri] Gateway server uri
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -4834,7 +5822,7 @@ class AzureOpcRegistryClient extends ServiceClient {
    * @param {object} query Applications Query model
    *
    * @param {string} [query.applicationType] Type of application. Possible values
-   * include: 'Server', 'Client', 'ClientAndServer'
+   * include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
    *
    * @param {string} [query.applicationUri] Application uri
    *
@@ -4846,8 +5834,15 @@ class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {string} [query.capability] Application capability to query with
    *
+   * @param {string} [query.discoveryProfileUri] Discovery profile uri
+   *
+   * @param {string} [query.gatewayServerUri] Gateway server uri
+   *
    * @param {string} [query.siteOrSupervisorId] Supervisor or site the
    * application belongs to.
+   *
+   * @param {string} [query.state] State of application. Possible values include:
+   * 'Any', 'New', 'Approved', 'Rejected', 'Unregistered', 'Deleted'
    *
    * @param {boolean} [query.includeNotSeenSince] Whether to include apps that
    * were soft deleted
@@ -4891,7 +5886,7 @@ class AzureOpcRegistryClient extends ServiceClient {
    * @param {object} query Applications Query model
    *
    * @param {string} [query.applicationType] Type of application. Possible values
-   * include: 'Server', 'Client', 'ClientAndServer'
+   * include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
    *
    * @param {string} [query.applicationUri] Application uri
    *
@@ -4903,8 +5898,15 @@ class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {string} [query.capability] Application capability to query with
    *
+   * @param {string} [query.discoveryProfileUri] Discovery profile uri
+   *
+   * @param {string} [query.gatewayServerUri] Gateway server uri
+   *
    * @param {string} [query.siteOrSupervisorId] Supervisor or site the
    * application belongs to.
+   *
+   * @param {string} [query.state] State of application. Possible values include:
+   * 'Any', 'New', 'Approved', 'Rejected', 'Unregistered', 'Deleted'
    *
    * @param {boolean} [query.includeNotSeenSince] Whether to include apps that
    * were soft deleted
@@ -4971,7 +5973,7 @@ class AzureOpcRegistryClient extends ServiceClient {
    * @param {object} query Application query
    *
    * @param {string} [query.applicationType] Type of application. Possible values
-   * include: 'Server', 'Client', 'ClientAndServer'
+   * include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
    *
    * @param {string} [query.applicationUri] Application uri
    *
@@ -4983,8 +5985,15 @@ class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {string} [query.capability] Application capability to query with
    *
+   * @param {string} [query.discoveryProfileUri] Discovery profile uri
+   *
+   * @param {string} [query.gatewayServerUri] Gateway server uri
+   *
    * @param {string} [query.siteOrSupervisorId] Supervisor or site the
    * application belongs to.
+   *
+   * @param {string} [query.state] State of application. Possible values include:
+   * 'Any', 'New', 'Approved', 'Rejected', 'Unregistered', 'Deleted'
    *
    * @param {boolean} [query.includeNotSeenSince] Whether to include apps that
    * were soft deleted
@@ -5029,7 +6038,7 @@ class AzureOpcRegistryClient extends ServiceClient {
    * @param {object} query Application query
    *
    * @param {string} [query.applicationType] Type of application. Possible values
-   * include: 'Server', 'Client', 'ClientAndServer'
+   * include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
    *
    * @param {string} [query.applicationUri] Application uri
    *
@@ -5041,8 +6050,15 @@ class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {string} [query.capability] Application capability to query with
    *
+   * @param {string} [query.discoveryProfileUri] Discovery profile uri
+   *
+   * @param {string} [query.gatewayServerUri] Gateway server uri
+   *
    * @param {string} [query.siteOrSupervisorId] Supervisor or site the
    * application belongs to.
+   *
+   * @param {string} [query.state] State of application. Possible values include:
+   * 'Any', 'New', 'Approved', 'Rejected', 'Unregistered', 'Deleted'
    *
    * @param {boolean} [query.includeNotSeenSince] Whether to include apps that
    * were soft deleted
@@ -5095,6 +6111,123 @@ class AzureOpcRegistryClient extends ServiceClient {
       });
     } else {
       return self._queryApplications(query, options, optionalCallback);
+    }
+  }
+
+  /**
+   * @summary Query applications by id.
+   *
+   * A query model which supports the OPC UA Global Discovery Server query.
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.query]
+   *
+   * @param {number} [options.query.startingRecordId] Starting record id
+   *
+   * @param {number} [options.query.maxRecordsToReturn] Max records to return
+   *
+   * @param {string} [options.query.applicationName] Application name
+   *
+   * @param {string} [options.query.applicationUri] Application uri
+   *
+   * @param {string} [options.query.applicationType] Application type. Possible
+   * values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
+   *
+   * @param {string} [options.query.productUri] Product uri
+   *
+   * @param {array} [options.query.serverCapabilities] Server capabilities
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<ApplicationRecordListApiModel>} - The deserialized result object.
+   *
+   * @reject {Error} - The error object.
+   */
+  queryApplicationsByIdWithHttpOperationResponse(options) {
+    let client = this;
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self._queryApplicationsById(options, (err, result, request, response) => {
+        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
+        httpOperationResponse.body = result;
+        if (err) { reject(err); }
+        else { resolve(httpOperationResponse); }
+        return;
+      });
+    });
+  }
+
+  /**
+   * @summary Query applications by id.
+   *
+   * A query model which supports the OPC UA Global Discovery Server query.
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.query]
+   *
+   * @param {number} [options.query.startingRecordId] Starting record id
+   *
+   * @param {number} [options.query.maxRecordsToReturn] Max records to return
+   *
+   * @param {string} [options.query.applicationName] Application name
+   *
+   * @param {string} [options.query.applicationUri] Application uri
+   *
+   * @param {string} [options.query.applicationType] Application type. Possible
+   * values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
+   *
+   * @param {string} [options.query.productUri] Product uri
+   *
+   * @param {array} [options.query.serverCapabilities] Server capabilities
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {function} [optionalCallback] - The optional callback.
+   *
+   * @returns {function|Promise} If a callback was passed as the last parameter
+   * then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned
+   *
+   *                      @resolve {ApplicationRecordListApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error} - The error object.
+   *
+   * {function} optionalCallback(err, result, request, response)
+   *
+   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {object} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link ApplicationRecordListApiModel} for more
+   *                      information.
+   *
+   *                      {object} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+   */
+  queryApplicationsById(options, optionalCallback) {
+    let client = this;
+    let self = this;
+    if (!optionalCallback && typeof options === 'function') {
+      optionalCallback = options;
+      options = null;
+    }
+    if (!optionalCallback) {
+      return new Promise((resolve, reject) => {
+        self._queryApplicationsById(options, (err, result, request, response) => {
+          if (err) { reject(err); }
+          else { resolve(result); }
+          return;
+        });
+      });
+    } else {
+      return self._queryApplicationsById(options, optionalCallback);
     }
   }
 

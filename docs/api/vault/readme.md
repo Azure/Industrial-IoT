@@ -1,9 +1,9 @@
-# Opc-Twin
+# Opc-Vault-Service
 
 
 <a name="overview"></a>
 ## Overview
-Azure Industrial IoT OPC UA Twin Service
+Azure Industrial IoT OPC UA Vault Service
 
 
 ### Version information
@@ -16,12 +16,14 @@ Azure Industrial IoT OPC UA Twin Service
 
 ### Tags
 
-* Browse : Browse nodes services
-* Call : Call node method services
-* Publish : Value and Event publishing services
-* Read : Node read services
-* Status : Status checks
-* Write : Node writing services
+* Certificates : Certificate services.
+* Distribution : Certificate CRL Distribution Point and Authority
+Information Access
+services.
+* Requests : Certificate request services.
+* Status : The status service.
+* TrustGroups : Trust group services.
+* TrustLists : Trust lists services.
 
 
 
@@ -29,37 +31,185 @@ Azure Industrial IoT OPC UA Twin Service
 <a name="paths"></a>
 ## Resources
 
-<a name="browse_resource"></a>
-### Browse
-Browse nodes services
+<a name="certificates_resource"></a>
+### Certificates
+Certificate services.
 
 
-<a name="browse"></a>
-#### Browse node references
+<a name="getissuercertificatechain"></a>
+#### Get Issuer CA Certificate chain.
 ```
-POST /v2/browse/{endpointId}
+GET /v2/certificates/{serialNumber}
 ```
-
-
-##### Description
-Browse a node on the specified endpoint.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
 
 
 ##### Parameters
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The browse request|[BrowseRequestApiModel](definitions.md#browserequestapimodel)|
+|**Path**|**serialNumber**  <br>*required*|the serial number of the<br>            Issuer CA Certificate|string|
 
 
 ##### Responses
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[BrowseResponseApiModel](definitions.md#browseresponseapimodel)|
+|**200**|Success|[X509CertificateChainApiModel](definitions.md#x509certificatechainapimodel)|
+
+
+##### Produces
+
+* `application/json`
+
+
+<a name="getissuercrlchain"></a>
+#### Get Issuer CA CRL chain.
+```
+GET /v2/certificates/{serialNumber}/crl
+```
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**serialNumber**  <br>*required*|the serial number of the Issuer<br>            CA Certificate|string|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|[X509CrlChainApiModel](definitions.md#x509crlchainapimodel)|
+
+
+##### Produces
+
+* `application/json`
+
+
+<a name="distribution_resource"></a>
+### Distribution
+Certificate CRL Distribution Point and Authority
+Information Access
+services.
+
+
+<a name="getissuercrlchain"></a>
+#### Get Issuer CRL in CRL Distribution Endpoint.
+```
+GET /v2/crl/{serialNumber}
+```
+
+
+##### Parameters
+
+|Type|Name|Schema|
+|---|---|---|
+|**Path**|**serialNumber**  <br>*required*|string|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|No Content|
+
+
+##### Produces
+
+* `application/pkix-crl`
+
+
+<a name="getissuercertificatechain"></a>
+#### Get Issuer Certificate for Authority Information Access endpoint.
+```
+GET /v2/issuer/{serialNumber}
+```
+
+
+##### Parameters
+
+|Type|Name|Schema|
+|---|---|---|
+|**Path**|**serialNumber**  <br>*required*|string|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|No Content|
+
+
+##### Produces
+
+* `application/pkix-cert`
+
+
+<a name="requests_resource"></a>
+### Requests
+Certificate request services.
+
+
+<a name="listrequests"></a>
+#### Lists certificate requests.
+```
+GET /v2/requests
+```
+
+
+##### Description
+Get all certificate requests in paged form or continue a current listing or
+query.
+The returned model can contain a link to the next page if more results are
+available.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Query**|**nextPageLink**  <br>*optional*|optional, link to next page|string|
+|**Query**|**pageSize**  <br>*optional*|optional, the maximum number of result per page|integer (int32)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|[CertificateRequestQueryResponseApiModel](definitions.md#certificaterequestqueryresponseapimodel)|
+
+
+##### Produces
+
+* `application/json`
+
+
+<a name="startnewkeypairrequest"></a>
+#### Create a certificate request with a new key pair.
+```
+PUT /v2/requests/keypair
+```
+
+
+##### Description
+The request is in the 'New' state after this call.
+Requires Writer or Manager role.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**newKeyPairRequest**  <br>*required*|The new key pair request parameters|[StartNewKeyPairRequestApiModel](definitions.md#startnewkeypairrequestapimodel)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|[StartNewKeyPairRequestResponseApiModel](definitions.md#startnewkeypairrequestresponseapimodel)|
 
 
 ##### Consumes
@@ -75,37 +225,33 @@ and server must trust each other.
 * `application/json`
 
 
-<a name="getsetofuniquenodes"></a>
-#### Browse set of unique target nodes
+<a name="finishnewkeypairrequest"></a>
+#### Fetch certificate request result.
 ```
-GET /v2/browse/{endpointId}
+GET /v2/requests/keypair/{requestId}
 ```
 
 
 ##### Description
-Browse the set of unique hierarchically referenced target nodes on the endpoint.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
-The root node id to browse from can be provided as part of the query
-parameters.
-If it is not provided, the RootFolder node is browsed. Note that this
-is the same as the POST method with the model containing the node id
-and the targetNodesOnly flag set to true.
+Can be called in any state.
+Fetches private key in 'Completed' state.
+After a successful fetch in 'Completed' state, the request is
+moved into 'Accepted' state.
+Requires Writer role.
 
 
 ##### Parameters
 
-|Type|Name|Description|Schema|
-|---|---|---|---|
-|**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Query**|**nodeId**  <br>*optional*|The node to browse or omit to browse the root node (i=84)|string|
+|Type|Name|Schema|
+|---|---|---|
+|**Path**|**requestId**  <br>*required*|string|
 
 
 ##### Responses
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[BrowseResponseApiModel](definitions.md#browseresponseapimodel)|
+|**200**|Success|[FinishNewKeyPairRequestResponseApiModel](definitions.md#finishnewkeypairrequestresponseapimodel)|
 
 
 ##### Produces
@@ -113,32 +259,32 @@ and the targetNodesOnly flag set to true.
 * `application/json`
 
 
-<a name="browsenext"></a>
-#### Browse next set of references
+<a name="queryrequests"></a>
+#### Query for certificate requests.
 ```
-POST /v2/browse/{endpointId}/next
+POST /v2/requests/query
 ```
 
 
 ##### Description
-Browse next set of references on the endpoint.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+Get all certificate requests in paged form.
+The returned model can contain a link to the next page if more results are
+available.  Use ListRequests to continue.
 
 
 ##### Parameters
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The request body with continuation token.|[BrowseNextRequestApiModel](definitions.md#browsenextrequestapimodel)|
+|**Query**|**pageSize**  <br>*optional*|optional, the maximum number of result per page|integer (int32)|
+|**Body**|**query**  <br>*optional*|optional, query filter|[CertificateRequestQueryRequestApiModel](definitions.md#certificaterequestqueryrequestapimodel)|
 
 
 ##### Responses
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[BrowseNextResponseApiModel](definitions.md#browsenextresponseapimodel)|
+|**200**|Success|[CertificateRequestQueryResponseApiModel](definitions.md#certificaterequestqueryresponseapimodel)|
 
 
 ##### Consumes
@@ -154,69 +300,30 @@ and server must trust each other.
 * `application/json`
 
 
-<a name="getnextsetofuniquenodes"></a>
-#### Browse next set of unique target nodes
+<a name="startsigningrequest"></a>
+#### Create a certificate request with a certificate signing request (CSR).
 ```
-GET /v2/browse/{endpointId}/next
+PUT /v2/requests/sign
 ```
 
 
 ##### Description
-Browse the next set of unique hierarchically referenced target nodes on the
-endpoint.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
-Note that this is the same as the POST method with the model containing
-the continuation token and the targetNodesOnly flag set to true.
+The request is in the 'New' state after this call.
+Requires Writer or Manager role.
 
 
 ##### Parameters
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Query**|**continuationToken**  <br>*required*|Continuation token from GetSetOfUniqueNodes operation|string|
+|**Body**|**signingRequest**  <br>*required*|The signing request parameters|[StartSigningRequestApiModel](definitions.md#startsigningrequestapimodel)|
 
 
 ##### Responses
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[BrowseNextResponseApiModel](definitions.md#browsenextresponseapimodel)|
-
-
-##### Produces
-
-* `application/json`
-
-
-<a name="browseusingpath"></a>
-#### Browse using a browse path
-```
-POST /v2/browse/{endpointId}/path
-```
-
-
-##### Description
-Browse using a path from the specified node id.
-This call uses TranslateBrowsePathsToNodeIds service under the hood.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
-
-
-##### Parameters
-
-|Type|Name|Description|Schema|
-|---|---|---|---|
-|**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The browse path request|[BrowsePathRequestApiModel](definitions.md#browsepathrequestapimodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[BrowsePathResponseApiModel](definitions.md#browsepathresponseapimodel)|
+|**200**|Success|[StartSigningRequestResponseApiModel](definitions.md#startsigningrequestresponseapimodel)|
 
 
 ##### Consumes
@@ -232,45 +339,32 @@ and server must trust each other.
 * `application/json`
 
 
-<a name="call_resource"></a>
-### Call
-Call node method services
-
-
-<a name="callmethod"></a>
-#### Call a method
+<a name="finishsigningrequest"></a>
+#### Fetch signing request results.
 ```
-POST /v2/call/{endpointId}
+GET /v2/requests/sign/{requestId}
 ```
 
 
 ##### Description
-Invoke method node with specified input arguments.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+Can be called in any state.
+After a successful fetch in 'Completed' state, the request is
+moved into 'Accepted' state.
+Requires Writer role.
 
 
 ##### Parameters
 
-|Type|Name|Description|Schema|
-|---|---|---|---|
-|**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The method call request|[MethodCallRequestApiModel](definitions.md#methodcallrequestapimodel)|
+|Type|Name|Schema|
+|---|---|---|
+|**Path**|**requestId**  <br>*required*|string|
 
 
 ##### Responses
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[MethodCallResponseApiModel](definitions.md#methodcallresponseapimodel)|
-
-
-##### Consumes
-
-* `application/json-patch+json`
-* `application/json`
-* `text/json`
-* `application/*+json`
+|**200**|Success|[FinishSigningRequestResponseApiModel](definitions.md#finishsigningrequestresponseapimodel)|
 
 
 ##### Produces
@@ -278,41 +372,25 @@ and server must trust each other.
 * `application/json`
 
 
-<a name="getcallmetadata"></a>
-#### Get method meta data
+<a name="getrequest"></a>
+#### Get a specific certificate request.
 ```
-POST /v2/call/{endpointId}/metadata
+GET /v2/requests/{requestId}
 ```
-
-
-##### Description
-Return method meta data to support a user interface displaying forms to
-input and output arguments.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
 
 
 ##### Parameters
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The method metadata request|[MethodMetadataRequestApiModel](definitions.md#methodmetadatarequestapimodel)|
+|**Path**|**requestId**  <br>*required*|The certificate request id|string|
 
 
 ##### Responses
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[MethodMetadataResponseApiModel](definitions.md#methodmetadataresponseapimodel)|
-
-
-##### Consumes
-
-* `application/json-patch+json`
-* `application/json`
-* `text/json`
-* `application/*+json`
+|**200**|Success|[CertificateRequestRecordApiModel](definitions.md#certificaterequestrecordapimodel)|
 
 
 ##### Produces
@@ -320,45 +398,31 @@ and server must trust each other.
 * `application/json`
 
 
-<a name="publish_resource"></a>
-### Publish
-Value and Event publishing services
-
-
-<a name="getfirstlistofpublishednodes"></a>
-#### Get currently published nodes
+<a name="deleterequest"></a>
+#### Delete request. Physically delete the request.
 ```
-POST /v2/publish/{endpointId}
+DELETE /v2/requests/{requestId}
 ```
 
 
 ##### Description
-Returns currently published node ids for an endpoint.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+By purging the request it is actually physically deleted from the
+database, including the public key and other information.
+Requires Manager role.
 
 
 ##### Parameters
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The list request|[PublishedItemListRequestApiModel](definitions.md#publisheditemlistrequestapimodel)|
+|**Path**|**requestId**  <br>*required*|The certificate request id|string|
 
 
 ##### Responses
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[PublishedItemListResponseApiModel](definitions.md#publisheditemlistresponseapimodel)|
-
-
-##### Consumes
-
-* `application/json-patch+json`
-* `application/json`
-* `text/json`
-* `application/*+json`
+|**200**|Success|No Content|
 
 
 ##### Produces
@@ -366,32 +430,30 @@ and server must trust each other.
 * `application/json`
 
 
-<a name="getnextlistofpublishednodes"></a>
-#### Get next set of published nodes
+<a name="acceptrequest"></a>
+#### Cancel request
 ```
-GET /v2/publish/{endpointId}
+POST /v2/requests/{requestId}/accept
 ```
 
 
 ##### Description
-Returns next set of currently published node ids for an endpoint.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+The request is in the 'Accepted' state after this call.
+Requires Writer role.
 
 
 ##### Parameters
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Query**|**continuationToken**  <br>*required*|The continuation token to continue with|string|
+|**Path**|**requestId**  <br>*required*|The certificate request id|string|
 
 
 ##### Responses
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[PublishedItemListResponseApiModel](definitions.md#publisheditemlistresponseapimodel)|
+|**200**|Success|No Content|
 
 
 ##### Produces
@@ -399,40 +461,39 @@ and server must trust each other.
 * `application/json`
 
 
-<a name="startpublishingvalues"></a>
-#### Start publishing node values
+<a name="approverequest"></a>
+#### Approve the certificate request.
 ```
-POST /v2/publish/{endpointId}/start
+POST /v2/requests/{requestId}/approve
 ```
 
 
 ##### Description
-Start publishing variable node values to IoT Hub.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+Validates the request with the application database.
+- If Approved:
+  - New Key Pair request: Creates the new key pair
+        in the requested format, signs the certificate and stores the
+        private key for later securely in KeyVault.
+  - Cert Signing Request: Creates and signs the certificate.
+        Deletes the CSR from the database.
+ Stores the signed certificate for later use in the Database.
+ The request is in the 'Approved' or 'Rejected' state after this call.
+ Requires Approver role.
+ Approver needs signing rights in KeyVault.
 
 
 ##### Parameters
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The publish request|[PublishStartRequestApiModel](definitions.md#publishstartrequestapimodel)|
+|**Path**|**requestId**  <br>*required*|The certificate request id|string|
 
 
 ##### Responses
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[PublishStartResponseApiModel](definitions.md#publishstartresponseapimodel)|
-
-
-##### Consumes
-
-* `application/json-patch+json`
-* `application/json`
-* `text/json`
-* `application/*+json`
+|**200**|Success|No Content|
 
 
 ##### Produces
@@ -440,160 +501,31 @@ and server must trust each other.
 * `application/json`
 
 
-<a name="stoppublishingvalues"></a>
-#### Stop publishing node values
+<a name="rejectrequest"></a>
+#### Reject the certificate request.
 ```
-POST /v2/publish/{endpointId}/stop
+POST /v2/requests/{requestId}/reject
 ```
 
 
 ##### Description
-Stop publishing variable node values to IoT Hub.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+The request is in the 'Rejected' state after this call.
+Requires Approver role.
+Approver needs signing rights in KeyVault.
 
 
 ##### Parameters
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The unpublish request|[PublishStopRequestApiModel](definitions.md#publishstoprequestapimodel)|
+|**Path**|**requestId**  <br>*required*|The certificate request id|string|
 
 
 ##### Responses
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[PublishStopResponseApiModel](definitions.md#publishstopresponseapimodel)|
-
-
-##### Consumes
-
-* `application/json-patch+json`
-* `application/json`
-* `text/json`
-* `application/*+json`
-
-
-##### Produces
-
-* `application/json`
-
-
-<a name="read_resource"></a>
-### Read
-Node read services
-
-
-<a name="readvalue"></a>
-#### Read variable value
-```
-POST /v2/read/{endpointId}
-```
-
-
-##### Description
-Read a variable node's value.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
-
-
-##### Parameters
-
-|Type|Name|Description|Schema|
-|---|---|---|---|
-|**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The read value request|[ValueReadRequestApiModel](definitions.md#valuereadrequestapimodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[ValueReadResponseApiModel](definitions.md#valuereadresponseapimodel)|
-
-
-##### Consumes
-
-* `application/json-patch+json`
-* `application/json`
-* `text/json`
-* `application/*+json`
-
-
-##### Produces
-
-* `application/json`
-
-
-<a name="getvalue"></a>
-#### Get variable value
-```
-GET /v2/read/{endpointId}
-```
-
-
-##### Description
-Get a variable node's value using its node id.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
-
-
-##### Parameters
-
-|Type|Name|Description|Schema|
-|---|---|---|---|
-|**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Query**|**nodeId**  <br>*required*|The node to read|string|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[ValueReadResponseApiModel](definitions.md#valuereadresponseapimodel)|
-
-
-##### Produces
-
-* `application/json`
-
-
-<a name="readattributes"></a>
-#### Read node attributes
-```
-POST /v2/read/{endpointId}/attributes
-```
-
-
-##### Description
-Read attributes of a node.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
-
-
-##### Parameters
-
-|Type|Name|Description|Schema|
-|---|---|---|---|
-|**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The read request|[ReadRequestApiModel](definitions.md#readrequestapimodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[ReadResponseApiModel](definitions.md#readresponseapimodel)|
-
-
-##### Consumes
-
-* `application/json-patch+json`
-* `application/json`
-* `text/json`
-* `application/*+json`
+|**200**|Success|No Content|
 
 
 ##### Produces
@@ -603,11 +535,11 @@ and server must trust each other.
 
 <a name="status_resource"></a>
 ### Status
-Status checks
+The status service.
 
 
 <a name="getstatus"></a>
-#### Return the service status in the form of the service status api model.
+#### Get the status.
 ```
 GET /v2/status
 ```
@@ -625,37 +557,68 @@ GET /v2/status
 * `application/json`
 
 
-<a name="write_resource"></a>
-### Write
-Node writing services
+<a name="trustgroups_resource"></a>
+### TrustGroups
+Trust group services.
 
 
-<a name="writevalue"></a>
-#### Write variable value
+<a name="listgroups"></a>
+#### Get information about all groups.
 ```
-POST /v2/write/{endpointId}
+GET /v2/groups
 ```
 
 
 ##### Description
-Write variable node's value.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+A trust group has a root certificate which issues certificates
+to entities.  Entities can be part of a trust group and thus
+trust the root certificate and all entities that the root has
+issued certificates for.
 
 
 ##### Parameters
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The write value request|[ValueWriteRequestApiModel](definitions.md#valuewriterequestapimodel)|
+|**Query**|**nextPageLink**  <br>*optional*|optional, link to next page|string|
+|**Query**|**pageSize**  <br>*optional*|optional, the maximum number of result per page|integer (int32)|
 
 
 ##### Responses
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[ValueWriteResponseApiModel](definitions.md#valuewriteresponseapimodel)|
+|**200**|Success|[TrustGroupRegistrationListApiModel](definitions.md#trustgroupregistrationlistapimodel)|
+
+
+##### Produces
+
+* `application/json`
+
+
+<a name="creategroup"></a>
+#### Create new sub-group of an existing group.
+```
+PUT /v2/groups
+```
+
+
+##### Description
+Requires manager role.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**request**  <br>*required*|The create request|[TrustGroupRegistrationRequestApiModel](definitions.md#trustgroupregistrationrequestapimodel)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|[TrustGroupRegistrationResponseApiModel](definitions.md#trustgroupregistrationresponseapimodel)|
 
 
 ##### Consumes
@@ -671,32 +634,29 @@ and server must trust each other.
 * `application/json`
 
 
-<a name="writeattributes"></a>
-#### Write node attributes
+<a name="createroot"></a>
+#### Create new root group.
 ```
-POST /v2/write/{endpointId}/attributes
+PUT /v2/groups/root
 ```
 
 
 ##### Description
-Write any attribute of a node.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+Requires manager role.
 
 
 ##### Parameters
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The batch write request|[WriteRequestApiModel](definitions.md#writerequestapimodel)|
+|**Body**|**request**  <br>*required*|The create request|[TrustGroupRootCreateRequestApiModel](definitions.md#trustgrouprootcreaterequestapimodel)|
 
 
 ##### Responses
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[WriteResponseApiModel](definitions.md#writeresponseapimodel)|
+|**200**|Success|[TrustGroupRegistrationResponseApiModel](definitions.md#trustgroupregistrationresponseapimodel)|
 
 
 ##### Consumes
@@ -705,6 +665,240 @@ and server must trust each other.
 * `application/json`
 * `text/json`
 * `application/*+json`
+
+
+##### Produces
+
+* `application/json`
+
+
+<a name="updategroup"></a>
+#### Update group registration.
+```
+POST /v2/groups/{groupId}
+```
+
+
+##### Description
+Use this function with care and only if you are aware of
+the security implications.
+Requires manager role.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**groupId**  <br>*required*|The group id|string|
+|**Body**|**request**  <br>*required*|The group configuration|[TrustGroupUpdateRequestApiModel](definitions.md#trustgroupupdaterequestapimodel)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|No Content|
+
+
+##### Consumes
+
+* `application/json-patch+json`
+* `application/json`
+* `text/json`
+* `application/*+json`
+
+
+##### Produces
+
+* `application/json`
+
+
+<a name="getgroup"></a>
+#### Get group information.
+```
+GET /v2/groups/{groupId}
+```
+
+
+##### Description
+A trust group has a root certificate which issues certificates
+to entities.  Entities can be part of a trust group and thus
+trust the root certificate and all entities that the root has
+issued certificates for.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**groupId**  <br>*required*|The group id|string|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|[TrustGroupRegistrationApiModel](definitions.md#trustgroupregistrationapimodel)|
+
+
+##### Produces
+
+* `application/json`
+
+
+<a name="deletegroup"></a>
+#### Delete a group.
+```
+DELETE /v2/groups/{groupId}
+```
+
+
+##### Description
+After this operation the Issuer CA, CRLs and keys become inaccessible.
+Use this function with extreme caution.
+Requires manager role.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**groupId**  <br>*required*|The group id|string|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|No Content|
+
+
+##### Produces
+
+* `application/json`
+
+
+<a name="renewissuercertificate"></a>
+#### Renew a group CA Certificate.
+```
+POST /v2/groups/{groupId}/renew
+```
+
+
+##### Parameters
+
+|Type|Name|Schema|
+|---|---|---|
+|**Path**|**groupId**  <br>*required*|string|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|No Content|
+
+
+##### Produces
+
+* `application/json`
+
+
+<a name="trustlists_resource"></a>
+### TrustLists
+Trust lists services.
+
+
+<a name="listtrustedcertificates"></a>
+#### List trusted certificates
+```
+GET /v2/trustlists/{entityId}
+```
+
+
+##### Description
+Returns all certificates the entity should trust based on the
+applied trust configuration.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**entityId**  <br>*required*||string|
+|**Query**|**nextPageLink**  <br>*optional*|optional, link to next page|string|
+|**Query**|**pageSize**  <br>*optional*|optional, the maximum number of result per page|integer (int32)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|[X509CertificateListApiModel](definitions.md#x509certificatelistapimodel)|
+
+
+##### Produces
+
+* `application/json`
+
+
+<a name="addtrustrelationship"></a>
+#### Add trust relationship
+```
+PUT /v2/trustlists/{entityId}/{trustedEntityId}
+```
+
+
+##### Description
+Define trust between two entities.  The entities are identifiers
+of application, groups, or endpoints.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**entityId**  <br>*required*|The entity identifier, e.g. group, etc.|string|
+|**Path**|**trustedEntityId**  <br>*required*|The trusted entity identifier|string|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|No Content|
+
+
+##### Produces
+
+* `application/json`
+
+
+<a name="removetrustrelationship"></a>
+#### Remove a trust relationship
+```
+DELETE /v2/trustlists/{entityId}/{untrustedEntityId}
+```
+
+
+##### Description
+Removes trust between two entities.  The entities are identifiers
+of application, groups, or endpoints.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**entityId**  <br>*required*|The entity identifier, e.g. group, etc.|string|
+|**Path**|**untrustedEntityId**  <br>*required*|The trusted entity identifier|string|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|No Content|
 
 
 ##### Produces

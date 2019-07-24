@@ -1021,10 +1021,8 @@ export interface ReadResponseApiModel {
 export interface StatusResponseApiModel {
   /**
    * @member {string} [name] Name of this service
-   * **NOTE: This property will not be serialized. It can only be populated by
-   * the server.**
    */
-  readonly name?: string;
+  name?: string;
   /**
    * @member {string} [status] Operational status
    */

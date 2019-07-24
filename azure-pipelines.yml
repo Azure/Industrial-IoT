@@ -16,13 +16,13 @@ jobs:
     displayName: Build
     inputs:
       command: build
-      projects: 'azure-iiot-components.sln'
+      projects: 'Industrial-IoT.sln'
       arguments: '--configuration Release'
   - task: DotNetCoreCLI@2
     displayName: Build
     inputs:
       command: build
-      projects: 'azure-iiot-components.sln'
+      projects: 'Industrial-IoT.sln'
       arguments: '--configuration Debug'
 - job: testall
   displayName: Test
@@ -93,7 +93,7 @@ jobs:
   - task: DotNetCoreCLI@2
     displayName: Build
     inputs:
-      projects: 'azure-iiot-components.sln'
+      projects: 'Industrial-IoT.sln'
       arguments: '--configuration Release'
   - task: ComponentGovernanceComponentDetection@0
     inputs:
@@ -104,7 +104,7 @@ jobs:
     displayName: Pack
     inputs:
       command: pack
-      packagesToPack: 'azure-iiot-components.sln'
+      packagesToPack: 'Industrial-IoT.sln'
       configuration: Release
       nobuild: true
   - task: NuGetCommand@2

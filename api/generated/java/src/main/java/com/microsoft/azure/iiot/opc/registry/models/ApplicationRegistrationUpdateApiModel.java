@@ -10,6 +10,7 @@
 
 package com.microsoft.azure.iiot.opc.registry.models;
 
+import java.util.Map;
 import java.util.List;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -24,16 +25,23 @@ public class ApplicationRegistrationUpdateApiModel {
     private String productUri;
 
     /**
-     * Application name.
+     * Default name of the server or client.
      */
     @JsonProperty(value = "applicationName")
     private String applicationName;
 
     /**
-     * Locale of name - defaults to "en".
+     * Locale of default name - defaults to "en".
      */
     @JsonProperty(value = "locale")
     private String locale;
+
+    /**
+     * Localized names keyed off locale id.
+     * To remove entry, set value for locale id to null.
+     */
+    @JsonProperty(value = "localizedNames")
+    private Map<String, String> localizedNames;
 
     /**
      * Application public cert.
@@ -60,6 +68,12 @@ public class ApplicationRegistrationUpdateApiModel {
     private String discoveryProfileUri;
 
     /**
+     * Gateway server uri.
+     */
+    @JsonProperty(value = "gatewayServerUri")
+    private String gatewayServerUri;
+
+    /**
      * Get product uri.
      *
      * @return the productUri value
@@ -80,7 +94,7 @@ public class ApplicationRegistrationUpdateApiModel {
     }
 
     /**
-     * Get application name.
+     * Get default name of the server or client.
      *
      * @return the applicationName value
      */
@@ -89,7 +103,7 @@ public class ApplicationRegistrationUpdateApiModel {
     }
 
     /**
-     * Set application name.
+     * Set default name of the server or client.
      *
      * @param applicationName the applicationName value to set
      * @return the ApplicationRegistrationUpdateApiModel object itself.
@@ -100,7 +114,7 @@ public class ApplicationRegistrationUpdateApiModel {
     }
 
     /**
-     * Get locale of name - defaults to "en".
+     * Get locale of default name - defaults to "en".
      *
      * @return the locale value
      */
@@ -109,13 +123,35 @@ public class ApplicationRegistrationUpdateApiModel {
     }
 
     /**
-     * Set locale of name - defaults to "en".
+     * Set locale of default name - defaults to "en".
      *
      * @param locale the locale value to set
      * @return the ApplicationRegistrationUpdateApiModel object itself.
      */
     public ApplicationRegistrationUpdateApiModel withLocale(String locale) {
         this.locale = locale;
+        return this;
+    }
+
+    /**
+     * Get localized names keyed off locale id.
+     To remove entry, set value for locale id to null.
+     *
+     * @return the localizedNames value
+     */
+    public Map<String, String> localizedNames() {
+        return this.localizedNames;
+    }
+
+    /**
+     * Set localized names keyed off locale id.
+     To remove entry, set value for locale id to null.
+     *
+     * @param localizedNames the localizedNames value to set
+     * @return the ApplicationRegistrationUpdateApiModel object itself.
+     */
+    public ApplicationRegistrationUpdateApiModel withLocalizedNames(Map<String, String> localizedNames) {
+        this.localizedNames = localizedNames;
         return this;
     }
 
@@ -196,6 +232,26 @@ public class ApplicationRegistrationUpdateApiModel {
      */
     public ApplicationRegistrationUpdateApiModel withDiscoveryProfileUri(String discoveryProfileUri) {
         this.discoveryProfileUri = discoveryProfileUri;
+        return this;
+    }
+
+    /**
+     * Get gateway server uri.
+     *
+     * @return the gatewayServerUri value
+     */
+    public String gatewayServerUri() {
+        return this.gatewayServerUri;
+    }
+
+    /**
+     * Set gateway server uri.
+     *
+     * @param gatewayServerUri the gatewayServerUri value to set
+     * @return the ApplicationRegistrationUpdateApiModel object itself.
+     */
+    public ApplicationRegistrationUpdateApiModel withGatewayServerUri(String gatewayServerUri) {
+        this.gatewayServerUri = gatewayServerUri;
         return this;
     }
 

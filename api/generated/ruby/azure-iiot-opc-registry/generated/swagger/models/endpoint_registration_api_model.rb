@@ -28,9 +28,6 @@ module azure.iiot.opc.registry
       # @return [Integer] Security level of the endpoint
       attr_accessor :security_level
 
-      # @return [Array<Integer>] Endpoint cert that was registered.
-      attr_accessor :certificate
-
       # @return [Array<AuthenticationMethodApiModel>] Supported authentication
       # methods that can be selected to
       # obtain a credential and used to interact with the endpoint.
@@ -89,14 +86,6 @@ module azure.iiot.opc.registry
                 serialized_name: 'securityLevel',
                 type: {
                   name: 'Number'
-                }
-              },
-              certificate: {
-                client_side_validation: true,
-                required: false,
-                serialized_name: 'certificate',
-                type: {
-                  name: 'ByteArray'
                 }
               },
               authentication_methods: {

@@ -1,9 +1,6 @@
-| Branch                    | Build Status                                                 |
-| ------------------------- | ------------------------------------------------------------ |
-| **master** (Release)      | [![Build Status](https://msazure.visualstudio.com/One/_apis/build/status/Custom/Azure_IOT/Industrial/Components/ci-azure-iiot-components?branchName=master)](https://msazure.visualstudio.com/One/_build/latest?definitionId=33971&branchName=master) |
-
-
 # Azure Industrial IoT Platform
+
+## Features
 
 ### Discover, register and manage your Industrial Assets in Azure
 
@@ -23,13 +20,15 @@ The platform also allows OT and IT to manage OPC UA Application Certificates and
 
 ## Components
 
-This repository includes all Azure Industrial IoT platform component which are:
+[![Build status](https://msazure.visualstudio.com/One/_apis/build/status/Custom/Azure_IOT/Industrial/Components/Industrial-IoT-CI)](https://msazure.visualstudio.com/One/_build/latest?definitionId=33971)
 
--  Cloud Management and Data Plane, including
+This repository includes the Industrial IoT platform component:
+
+- Cloud Management and Data Plane, including
    - [OPC Twin](docs/services/twin.md) Microservices provide discovery, registration, and remote control of industrial devices through REST APIs.  
    - [OPC Vault](docs/services/vault.md) enables secure communication among OPC UA enabled devices and the cloud. 
    - A REST based [API](docs/api/readme.md) to access service functionality.
--  Edge components
+- Edge components
   - [OPC Twin module](docs/modules/twin.md)
   - [OPC Publisher module](docs/modules/publisher.md)
 - Components and protocol stacks including
@@ -47,7 +46,7 @@ This repository includes all Azure Industrial IoT platform component which are:
 
 ### Give Feedback
 
-Please enter issues, bugs, or suggestions for any of the components and services as GitHub Issues [here](https://github.com/Azure/azure-iiot-components/issues).
+Please enter issues, bugs, or suggestions for any of the components and services as GitHub Issues [here](https://github.com/Azure/Industrial-IoT/issues).
 
 ### Contribute
 

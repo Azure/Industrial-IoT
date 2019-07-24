@@ -17,10 +17,13 @@ class ApplicationRegistrationUpdateApiModel(Model):
 
     :param product_uri: Product uri
     :type product_uri: str
-    :param application_name: Application name
+    :param application_name: Default name of the server or client.
     :type application_name: str
-    :param locale: Locale of name - defaults to "en"
+    :param locale: Locale of default name - defaults to "en"
     :type locale: str
+    :param localized_names: Localized names keyed off locale id.
+     To remove entry, set value for locale id to null.
+    :type localized_names: dict[str, str]
     :param certificate: Application public cert
     :type certificate: bytearray
     :param capabilities: Capabilities of the application
@@ -29,6 +32,8 @@ class ApplicationRegistrationUpdateApiModel(Model):
     :type discovery_urls: list[str]
     :param discovery_profile_uri: Discovery profile uri
     :type discovery_profile_uri: str
+    :param gateway_server_uri: Gateway server uri
+    :type gateway_server_uri: str
     """
 
     _validation = {
@@ -40,18 +45,22 @@ class ApplicationRegistrationUpdateApiModel(Model):
         'product_uri': {'key': 'productUri', 'type': 'str'},
         'application_name': {'key': 'applicationName', 'type': 'str'},
         'locale': {'key': 'locale', 'type': 'str'},
+        'localized_names': {'key': 'localizedNames', 'type': '{str}'},
         'certificate': {'key': 'certificate', 'type': 'bytearray'},
         'capabilities': {'key': 'capabilities', 'type': '[str]'},
         'discovery_urls': {'key': 'discoveryUrls', 'type': '[str]'},
         'discovery_profile_uri': {'key': 'discoveryProfileUri', 'type': 'str'},
+        'gateway_server_uri': {'key': 'gatewayServerUri', 'type': 'str'},
     }
 
-    def __init__(self, product_uri=None, application_name=None, locale=None, certificate=None, capabilities=None, discovery_urls=None, discovery_profile_uri=None):
+    def __init__(self, product_uri=None, application_name=None, locale=None, localized_names=None, certificate=None, capabilities=None, discovery_urls=None, discovery_profile_uri=None, gateway_server_uri=None):
         super(ApplicationRegistrationUpdateApiModel, self).__init__()
         self.product_uri = product_uri
         self.application_name = application_name
         self.locale = locale
+        self.localized_names = localized_names
         self.certificate = certificate
         self.capabilities = capabilities
         self.discovery_urls = discovery_urls
         self.discovery_profile_uri = discovery_profile_uri
+        self.gateway_server_uri = gateway_server_uri
