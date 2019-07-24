@@ -9,316 +9,13 @@
 import * as moment from "moment";
 
 /**
- * A registered callback
+ * Deletes data at times
  */
-export interface CallbackApiModel {
+export interface DeleteValuesAtTimesDetailsApiModel {
   /**
-   * Uri to call - should use https scheme in which
-   * case security is enforced.
+   * The timestamps to delete
    */
-  uri?: string;
-  /**
-   * Http Method to use for callback. Possible values include: 'Get', 'Post', 'Put', 'Delete'
-   */
-  method?: string;
-  /**
-   * Authentication header to add or null if not needed
-   */
-  authenticationHeader?: string;
-}
-
-/**
- * Endpoint Activation Filter model
- */
-export interface EndpointActivationFilterApiModel {
-  /**
-   * Certificate trust list identifiers to use for
-   * activation, if null, all certificates are
-   * trusted.  If empty list, no certificates are
-   * trusted which is equal to no filter.
-   */
-  trustLists?: string[];
-  /**
-   * Endpoint security policies to filter against.
-   * If set to null, all policies are in scope.
-   */
-  securityPolicies?: string[];
-  /**
-   * Security mode level to activate. If null,
-   * then Microsoft.Azure.IIoT.OpcUa.Registry.Models.SecurityMode.Best is assumed. Possible values
-   * include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
-   */
-  securityMode?: string;
-}
-
-/**
- * Application registration request
- */
-export interface ServerRegistrationRequestApiModel {
-  /**
-   * Discovery url to use for registration
-   */
-  discoveryUrl: string;
-  /**
-   * Registration id
-   */
-  id?: string;
-  /**
-   * An optional callback hook to register.
-   */
-  callback?: CallbackApiModel;
-  /**
-   * Upon discovery, activate all endpoints with this filter.
-   */
-  activationFilter?: EndpointActivationFilterApiModel;
-}
-
-/**
- * Application information
- */
-export interface ApplicationRegistrationRequestApiModel {
-  /**
-   * Unique application uri
-   */
-  applicationUri: string;
-  /**
-   * Type of application. Possible values include: 'Server', 'Client', 'ClientAndServer',
-   * 'DiscoveryServer'
-   */
-  applicationType?: string;
-  /**
-   * Product uri of the application.
-   */
-  productUri?: string;
-  /**
-   * Default name of the server or client.
-   */
-  applicationName?: string;
-  /**
-   * Locale of default name
-   */
-  locale?: string;
-  /**
-   * Site of the application
-   */
-  siteId?: string;
-  /**
-   * Localized names key off locale id.
-   */
-  localizedNames?: { [propertyName: string]: string };
-  /**
-   * The OPC UA defined capabilities of the server.
-   */
-  capabilities?: string[];
-  /**
-   * Discovery urls of the server.
-   */
-  discoveryUrls?: string[];
-  /**
-   * The discovery profile uri of the server.
-   */
-  discoveryProfileUri?: string;
-  /**
-   * Gateway server uri
-   */
-  gatewayServerUri?: string;
-}
-
-/**
- * Result of an application registration
- */
-export interface ApplicationRegistrationResponseApiModel {
-  /**
-   * New id application was registered under
-   */
-  id?: string;
-}
-
-/**
- * Registry operation log model
- */
-export interface RegistryOperationApiModel {
-  /**
-   * Operation User
-   */
-  authorityId: string;
-  /**
-   * Operation time
-   */
-  time: Date;
-}
-
-/**
- * Application info model
- */
-export interface ApplicationInfoApiModel {
-  /**
-   * State. Possible values include: 'New', 'Approved', 'Rejected'
-   */
-  state?: string;
-  /**
-   * Unique application id
-   */
-  applicationId?: string;
-  /**
-   * Type of application. Possible values include: 'Server', 'Client', 'ClientAndServer',
-   * 'DiscoveryServer'
-   */
-  applicationType?: string;
-  /**
-   * Unique application uri
-   */
-  applicationUri?: string;
-  /**
-   * Product uri
-   */
-  productUri?: string;
-  /**
-   * Default name of application
-   */
-  applicationName?: string;
-  /**
-   * Locale of default name - defaults to "en"
-   */
-  locale?: string;
-  /**
-   * Localized Names of application keyed on locale
-   */
-  localizedNames?: { [propertyName: string]: string };
-  /**
-   * Application public cert
-   */
-  certificate?: Buffer;
-  /**
-   * The capabilities advertised by the server.
-   */
-  capabilities?: string[];
-  /**
-   * Discovery urls of the server
-   */
-  discoveryUrls?: string[];
-  /**
-   * Discovery profile uri
-   */
-  discoveryProfileUri?: string;
-  /**
-   * Gateway server uri
-   */
-  gatewayServerUri?: string;
-  /**
-   * Host addresses of server application or null
-   */
-  hostAddresses?: string[];
-  /**
-   * Site of the application
-   */
-  siteId?: string;
-  /**
-   * Supervisor having registered the application
-   */
-  supervisorId?: string;
-  /**
-   * Last time application was seen
-   */
-  notSeenSince?: Date;
-  /**
-   * Created
-   */
-  created?: RegistryOperationApiModel;
-  /**
-   * Approved
-   */
-  approved?: RegistryOperationApiModel;
-  /**
-   * Updated
-   */
-  updated?: RegistryOperationApiModel;
-}
-
-/**
- * List of registered applications
- */
-export interface ApplicationInfoListApiModel {
-  /**
-   * Application infos
-   */
-  items?: ApplicationInfoApiModel[];
-  /**
-   * Continuation or null if final
-   */
-  continuationToken?: string;
-}
-
-/**
- * Discovery configuration
- */
-export interface DiscoveryConfigApiModel {
-  /**
-   * Address ranges to scan (null == all wired nics)
-   */
-  addressRangesToScan?: string;
-  /**
-   * Network probe timeout
-   */
-  networkProbeTimeoutMs?: number;
-  /**
-   * Max network probes that should ever run.
-   */
-  maxNetworkProbes?: number;
-  /**
-   * Port ranges to scan (null == all unassigned)
-   */
-  portRangesToScan?: string;
-  /**
-   * Port probe timeout
-   */
-  portProbeTimeoutMs?: number;
-  /**
-   * Max port probes that should ever run.
-   */
-  maxPortProbes?: number;
-  /**
-   * Probes that must always be there as percent of max.
-   */
-  minPortProbesPercent?: number;
-  /**
-   * Delay time between discovery sweeps in seconds
-   */
-  idleTimeBetweenScansSec?: number;
-  /**
-   * List of preset discovery urls to use
-   */
-  discoveryUrls?: string[];
-  /**
-   * List of locales to filter with during discovery
-   */
-  locales?: string[];
-  /**
-   * Callbacks to invoke once onboarding finishes
-   */
-  callbacks?: CallbackApiModel[];
-  /**
-   * Activate all twins with this filter during onboarding.
-   */
-  activationFilter?: EndpointActivationFilterApiModel;
-}
-
-/**
- * Discovery request
- */
-export interface DiscoveryRequestApiModel {
-  /**
-   * Id of discovery request
-   */
-  id?: string;
-  /**
-   * Discovery mode to use. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
-   */
-  discovery?: string;
-  /**
-   * Scan configuration to use
-   */
-  configuration?: DiscoveryConfigApiModel;
+  reqTimes: Date[];
 }
 
 /**
@@ -336,383 +33,377 @@ export interface CredentialApiModel {
 }
 
 /**
- * Endpoint model
+ * Diagnostics configuration
  */
-export interface EndpointApiModel {
+export interface DiagnosticsApiModel {
   /**
-   * Endpoint url to use to connect with
+   * Requested level of response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations', 'Diagnostics',
+   * 'Verbose'
    */
-  url: string;
+  level?: string;
   /**
-   * Alternative endpoint urls that can be used for
-   * accessing and validating the server
+   * Client audit log entry.
+   * (default: client generated)
    */
-  alternativeUrls?: string[];
+  auditId?: string;
   /**
-   * User Authentication
+   * Timestamp of request.
+   * (default: client generated)
    */
-  user?: CredentialApiModel;
-  /**
-   * Security Mode to use for communication
-   * default to best. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
-   */
-  securityMode?: string;
-  /**
-   * Security policy uri to use for communication
-   * default to best.
-   */
-  securityPolicy?: string;
-  /**
-   * Endpoint certificate that was registered.
-   */
-  certificate?: Buffer;
+  timeStamp?: Date;
 }
 
 /**
- * Authentication Method model
+ * Request header model
  */
-export interface AuthenticationMethodApiModel {
+export interface RequestHeaderApiModel {
   /**
-   * Method id
+   * Optional User elevation
    */
-  id: string;
+  elevation?: CredentialApiModel;
   /**
-   * Type of credential. Possible values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * Optional list of locales in preference order.
    */
-  credentialType?: string;
+  locales?: string[];
   /**
-   * Security policy to use when passing credential.
+   * Optional diagnostics configuration
    */
-  securityPolicy?: string;
-  /**
-   * Method specific configuration
-   */
-  configuration?: any;
+  diagnostics?: DiagnosticsApiModel;
 }
 
 /**
- * Endpoint registration model
+ * Service result
  */
-export interface EndpointRegistrationApiModel {
+export interface ServiceResultApiModel {
   /**
-   * Registered identifier of the endpoint
+   * Error code - if null operation succeeded.
    */
-  id: string;
+  statusCode?: number;
   /**
-   * Original endpoint url of the endpoint
+   * Error message in case of error or null.
    */
-  endpointUrl?: string;
+  errorMessage?: string;
   /**
-   * Registered site of the endpoint
+   * Additional diagnostics information
    */
-  siteId?: string;
-  /**
-   * Endpoint information of the registration
-   */
-  endpoint: EndpointApiModel;
-  /**
-   * Security level of the endpoint
-   */
-  securityLevel?: number;
-  /**
-   * Supported authentication methods that can be selected to
-   * obtain a credential and used to interact with the endpoint.
-   */
-  authenticationMethods?: AuthenticationMethodApiModel[];
+  diagnostics?: any;
 }
 
 /**
- * Application with list of endpoints
+ * History update results
  */
-export interface ApplicationRegistrationApiModel {
+export interface HistoryUpdateResponseApiModel {
   /**
-   * Application information
+   * List of results from the update operation
    */
-  application: ApplicationInfoApiModel;
+  results?: ServiceResultApiModel[];
   /**
-   * List of endpoint twins
+   * Service result in case of service call error
    */
-  endpoints?: EndpointRegistrationApiModel[];
-  /**
-   * Application security assessment. Possible values include: 'Unknown', 'Low', 'Medium', 'High'
-   */
-  securityAssessment?: string;
+  errorInfo?: ServiceResultApiModel;
 }
 
 /**
- * Application registration update request
+ * Delete raw modified data
  */
-export interface ApplicationRegistrationUpdateApiModel {
+export interface DeleteValuesDetailsApiModel {
   /**
-   * Product uri
+   * Start time
    */
-  productUri?: string;
+  startTime?: Date;
   /**
-   * Default name of the server or client.
+   * End time to delete until
    */
-  applicationName?: string;
-  /**
-   * Locale of default name - defaults to "en"
-   */
-  locale?: string;
-  /**
-   * Localized names keyed off locale id.
-   * To remove entry, set value for locale id to null.
-   */
-  localizedNames?: { [propertyName: string]: string };
-  /**
-   * Application public cert
-   */
-  certificate?: Buffer;
-  /**
-   * Capabilities of the application
-   */
-  capabilities?: string[];
-  /**
-   * Discovery urls of the application
-   */
-  discoveryUrls?: string[];
-  /**
-   * Discovery profile uri
-   */
-  discoveryProfileUri?: string;
-  /**
-   * Gateway server uri
-   */
-  gatewayServerUri?: string;
+  endTime?: Date;
 }
 
 /**
- * List of application sites
+ * Delete raw modified data
  */
-export interface ApplicationSiteListApiModel {
+export interface DeleteModifiedValuesDetailsApiModel {
   /**
-   * Distinct list of sites applications were registered in.
+   * Start time
    */
-  sites?: string[];
+  startTime?: Date;
   /**
-   * Continuation or null if final
+   * End time to delete until
    */
-  continuationToken?: string;
+  endTime?: Date;
 }
 
 /**
- * Application information
+ * The events to delete
  */
-export interface ApplicationRegistrationQueryApiModel {
+export interface DeleteEventsDetailsApiModel {
   /**
-   * Type of application. Possible values include: 'Server', 'Client', 'ClientAndServer',
-   * 'DiscoveryServer'
+   * Events to delete
    */
-  applicationType?: string;
-  /**
-   * Application uri
-   */
-  applicationUri?: string;
-  /**
-   * Product uri
-   */
-  productUri?: string;
-  /**
-   * Name of application
-   */
-  applicationName?: string;
-  /**
-   * Locale of application name - default is "en"
-   */
-  locale?: string;
-  /**
-   * Application capability to query with
-   */
-  capability?: string;
-  /**
-   * Discovery profile uri
-   */
-  discoveryProfileUri?: string;
-  /**
-   * Gateway server uri
-   */
-  gatewayServerUri?: string;
-  /**
-   * Supervisor or site the application belongs to.
-   */
-  siteOrSupervisorId?: string;
-  /**
-   * State of application. Possible values include: 'Any', 'New', 'Approved', 'Rejected',
-   * 'Unregistered', 'Deleted'
-   */
-  state?: string;
-  /**
-   * Whether to include apps that were soft deleted
-   */
-  includeNotSeenSince?: boolean;
+  eventIds: Buffer[];
 }
 
 /**
- * Query by id
+ * Request node history read continuation
  */
-export interface ApplicationRecordQueryApiModel {
+export interface HistoryReadNextRequestApiModel {
   /**
-   * Starting record id
+   * Continuation token to continue reading more
+   * results.
    */
-  startingRecordId?: number;
+  continuationToken: string;
   /**
-   * Max records to return
+   * Abort reading after this read
    */
-  maxRecordsToReturn?: number;
+  abort?: boolean;
   /**
-   * Application name
+   * Optional request header
    */
-  applicationName?: string;
-  /**
-   * Application uri
-   */
-  applicationUri?: string;
-  /**
-   * Application type. Possible values include: 'Server', 'Client', 'ClientAndServer',
-   * 'DiscoveryServer'
-   */
-  applicationType?: string;
-  /**
-   * Product uri
-   */
-  productUri?: string;
-  /**
-   * Server capabilities
-   */
-  serverCapabilities?: string[];
+  header?: RequestHeaderApiModel;
 }
 
 /**
- * Application with optional list of endpoints
+ * Modification information
  */
-export interface ApplicationRecordApiModel {
+export interface ModificationInfoApiModel {
   /**
-   * Record id
+   * Modification time
    */
-  recordId: number;
+  modificationTime?: Date;
   /**
-   * Application information
+   * Operation. Possible values include: 'Insert', 'Replace', 'Update', 'Delete'
    */
-  application: ApplicationInfoApiModel;
+  updateType?: string;
+  /**
+   * User who made the change
+   */
+  userName?: string;
 }
 
 /**
- * Create response
+ * Historic data
  */
-export interface ApplicationRecordListApiModel {
+export interface HistoricValueApiModel {
   /**
-   * Applications found
+   * ,
+   * The value of data value.
    */
-  applications?: ApplicationRecordApiModel[];
+  value?: any;
   /**
-   * Last counter reset
+   * The status code associated with the value.
    */
-  lastCounterResetTime: Date;
+  statusCode?: number;
   /**
-   * Next record id
+   * The source timestamp associated with the value.
    */
-  nextRecordId: number;
+  sourceTimestamp?: Date;
+  /**
+   * Additional resolution for the source timestamp.
+   */
+  sourcePicoseconds?: number;
+  /**
+   * The server timestamp associated with the value.
+   */
+  serverTimestamp?: Date;
+  /**
+   * Additional resolution for the server timestamp.
+   */
+  serverPicoseconds?: number;
+  /**
+   * modification information when reading modifications.
+   */
+  modificationInfo?: ModificationInfoApiModel;
 }
 
 /**
- * Endpoint registration update request
+ * Insert historic data
  */
-export interface EndpointRegistrationUpdateApiModel {
+export interface InsertValuesDetailsApiModel {
   /**
-   * User authentication to change on the endpoint.
+   * Values to insert
    */
-  user?: CredentialApiModel;
+  values: HistoricValueApiModel[];
 }
 
 /**
- * Endpoint registration model
+ * Historic event
  */
-export interface EndpointInfoApiModel {
+export interface HistoricEventApiModel {
   /**
-   * Endpoint registration
+   * The selected fields of the event
    */
-  registration: EndpointRegistrationApiModel;
-  /**
-   * Application id endpoint is registered under.
-   */
-  applicationId: string;
-  /**
-   * Activation state of endpoint. Possible values include: 'Deactivated', 'Activated',
-   * 'ActivatedAndConnected'
-   */
-  activationState?: string;
-  /**
-   * Last state of the activated endpoint. Possible values include: 'Connecting', 'NotReachable',
-   * 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
-   */
-  endpointState?: string;
-  /**
-   * Whether the registration is out of sync
-   */
-  outOfSync?: boolean;
-  /**
-   * Last time endpoint was seen
-   */
-  notSeenSince?: Date;
+  eventFields?: any[];
 }
 
 /**
- * Endpoint registration list
+ * Insert historic events
  */
-export interface EndpointInfoListApiModel {
+export interface InsertEventsDetailsApiModel {
   /**
-   * Endpoint registrations
+   * The filter to use to select the events
    */
-  items?: EndpointInfoApiModel[];
+  filter?: any;
   /**
-   * Continuation or null if final
+   * The new events to insert
    */
-  continuationToken?: string;
+  events: HistoricEventApiModel[];
 }
 
 /**
- * Endpoint query
+ * Read event data
  */
-export interface EndpointRegistrationQueryApiModel {
+export interface ReadEventsDetailsApiModel {
   /**
-   * Endoint url for direct server access
+   * Start time to read from
    */
-  url?: string;
+  startTime?: Date;
   /**
-   * Type of credential selected for authentication. Possible values include: 'None', 'UserName',
-   * 'X509Certificate', 'JwtToken'
+   * End time to read to
    */
-  userAuthentication?: string;
+  endTime?: Date;
   /**
-   * Certificate of the endpoint
+   * Number of events to read
    */
-  certificate?: Buffer;
+  numEvents?: number;
   /**
-   * Security Mode. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
+   * The filter to use to select the event fields
    */
-  securityMode?: string;
+  filter?: any;
+}
+
+/**
+ * Read historic values
+ */
+export interface ReadValuesDetailsApiModel {
   /**
-   * Security policy uri
+   * Beginning of period to read. Set to null
+   * if no specific start time is specified.
    */
-  securityPolicy?: string;
+  startTime?: Date;
   /**
-   * Whether the endpoint was activated
+   * End of period to read. Set to null if no
+   * specific end time is specified.
    */
-  activated?: boolean;
+  endTime?: Date;
   /**
-   * Whether the endpoint is connected on supervisor.
+   * The maximum number of values returned for any Node
+   * over the time range. If only one time is specified,
+   * the time range shall extend to return this number
+   * of values. 0 or null indicates that there is no
+   * maximum.
    */
-  connected?: boolean;
+  numValues?: number;
   /**
-   * The last state of the the activated endpoint. Possible values include: 'Connecting',
-   * 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
+   * Whether to return the bounding values or not.
    */
-  endpointState?: string;
+  returnBounds?: boolean;
+}
+
+/**
+ * Read data at specified times
+ */
+export interface ReadValuesAtTimesDetailsApiModel {
   /**
-   * Whether to include endpoints that were soft deleted
+   * Requested datums
    */
-  includeNotSeenSince?: boolean;
+  reqTimes: Date[];
+  /**
+   * Whether to use simple bounds
+   */
+  useSimpleBounds?: boolean;
+}
+
+/**
+ * Aggregate configuration
+ */
+export interface AggregateConfigApiModel {
+  /**
+   * Whether to use the default server caps
+   */
+  useServerCapabilitiesDefaults?: boolean;
+  /**
+   * Whether to treat uncertain as bad
+   */
+  treatUncertainAsBad?: boolean;
+  /**
+   * Percent of data that is bad
+   */
+  percentDataBad?: number;
+  /**
+   * Percent of data that is good
+   */
+  percentDataGood?: number;
+  /**
+   * Whether to use sloped extrapolation.
+   */
+  useSlopedExtrapolation?: boolean;
+}
+
+/**
+ * Read processed historic data
+ */
+export interface ReadProcessedValuesDetailsApiModel {
+  /**
+   * Start time to read from.
+   */
+  startTime?: Date;
+  /**
+   * End time to read until
+   */
+  endTime?: Date;
+  /**
+   * Interval to process
+   */
+  processingInterval?: number;
+  /**
+   * The aggregate type node ids
+   */
+  aggregateTypeId?: string;
+  /**
+   * A configuration for the aggregate
+   */
+  aggregateConfiguration?: AggregateConfigApiModel;
+}
+
+/**
+ * Read modified data
+ */
+export interface ReadModifiedValuesDetailsApiModel {
+  /**
+   * The start time to read from
+   */
+  startTime?: Date;
+  /**
+   * The end time to read to
+   */
+  endTime?: Date;
+  /**
+   * The number of values to read
+   */
+  numValues?: number;
+}
+
+/**
+ * Replace historic data
+ */
+export interface ReplaceValuesDetailsApiModel {
+  /**
+   * Values to replace
+   */
+  values: HistoricValueApiModel[];
+}
+
+/**
+ * Replace historic events
+ */
+export interface ReplaceEventsDetailsApiModel {
+  /**
+   * The filter to use to select the events
+   */
+  filter?: any;
+  /**
+   * The events to replace
+   */
+  events: HistoricEventApiModel[];
 }
 
 /**
@@ -760,141 +451,535 @@ export interface StatusResponseApiModel {
 }
 
 /**
- * Supervisor registration model
+ * Request node history update
  */
-export interface SupervisorApiModel {
+export interface HistoryUpdateRequestApiModelDeleteValuesAtTimesDetailsApiModel {
   /**
-   * Supervisor id
+   * Node to update
    */
-  id: string;
+  nodeId?: string;
   /**
-   * Site of the supervisor
+   * An optional path from NodeId instance to
+   * the actual node.
    */
-  siteId?: string;
+  browsePath?: string[];
   /**
-   * Whether the supervisor is in discovery mode. Possible values include: 'Off', 'Local',
-   * 'Network', 'Fast', 'Scan'
+   * The HistoryUpdateDetailsType extension object
+   * encoded as json Variant and containing the tunneled
+   * update request for the Historian server. The value
+   * is updated at edge using above node address.
    */
-  discovery?: string;
+  details: DeleteValuesAtTimesDetailsApiModel;
   /**
-   * Supervisor configuration
+   * Optional request header
    */
-  discoveryConfig?: DiscoveryConfigApiModel;
-  /**
-   * Supervisor public client cert
-   */
-  certificate?: Buffer;
-  /**
-   * Current log level. Possible values include: 'Error', 'Information', 'Debug', 'Verbose'
-   */
-  logLevel?: string;
-  /**
-   * Whether the registration is out of sync between
-   * client (module) and server (service) (default: false).
-   */
-  outOfSync?: boolean;
-  /**
-   * Whether supervisor is connected on this registration
-   */
-  connected?: boolean;
+  header?: RequestHeaderApiModel;
 }
 
 /**
- * Supervisor registration update request
+ * Request node history update
  */
-export interface SupervisorUpdateApiModel {
+export interface HistoryUpdateRequestApiModelDeleteValuesDetailsApiModel {
   /**
-   * Site of the supervisor
+   * Node to update
    */
-  siteId?: string;
+  nodeId?: string;
   /**
-   * Whether the supervisor is in discovery mode.
-   * If null, does not change. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
+   * An optional path from NodeId instance to
+   * the actual node.
    */
-  discovery?: string;
+  browsePath?: string[];
   /**
-   * Supervisor discovery configuration
+   * The HistoryUpdateDetailsType extension object
+   * encoded as json Variant and containing the tunneled
+   * update request for the Historian server. The value
+   * is updated at edge using above node address.
    */
-  discoveryConfig?: DiscoveryConfigApiModel;
+  details: DeleteValuesDetailsApiModel;
   /**
-   * Callbacks to add or remove (see below)
+   * Optional request header
    */
-  discoveryCallbacks?: CallbackApiModel[];
-  /**
-   * Whether to add or remove callbacks
-   */
-  removeDiscoveryCallbacks?: boolean;
-  /**
-   * Current log level. Possible values include: 'Error', 'Information', 'Debug', 'Verbose'
-   */
-  logLevel?: string;
+  header?: RequestHeaderApiModel;
 }
 
 /**
- * Endpoint Activation status model
+ * Request node history update
  */
-export interface EndpointActivationStatusApiModel {
+export interface HistoryUpdateRequestApiModelDeleteModifiedValuesDetailsApiModel {
   /**
-   * Identifier of the endoint
+   * Node to update
    */
-  id: string;
+  nodeId?: string;
   /**
-   * Activation state. Possible values include: 'Deactivated', 'Activated', 'ActivatedAndConnected'
+   * An optional path from NodeId instance to
+   * the actual node.
    */
-  activationState?: string;
+  browsePath?: string[];
+  /**
+   * The HistoryUpdateDetailsType extension object
+   * encoded as json Variant and containing the tunneled
+   * update request for the Historian server. The value
+   * is updated at edge using above node address.
+   */
+  details: DeleteModifiedValuesDetailsApiModel;
+  /**
+   * Optional request header
+   */
+  header?: RequestHeaderApiModel;
 }
 
 /**
- * Supervisor runtime status
+ * Request node history update
  */
-export interface SupervisorStatusApiModel {
+export interface HistoryUpdateRequestApiModelDeleteEventsDetailsApiModel {
   /**
-   * Edge device id
+   * Node to update
    */
-  deviceId: string;
+  nodeId?: string;
   /**
-   * Module id
+   * An optional path from NodeId instance to
+   * the actual node.
    */
-  moduleId?: string;
+  browsePath?: string[];
   /**
-   * Site id
+   * The HistoryUpdateDetailsType extension object
+   * encoded as json Variant and containing the tunneled
+   * update request for the Historian server. The value
+   * is updated at edge using above node address.
    */
-  siteId?: string;
+  details: DeleteEventsDetailsApiModel;
   /**
-   * Endpoint activation status
+   * Optional request header
    */
-  endpoints?: EndpointActivationStatusApiModel[];
+  header?: RequestHeaderApiModel;
 }
 
 /**
- * Supervisor registration list
+ * Request node history read
  */
-export interface SupervisorListApiModel {
+export interface HistoryReadRequestApiModelJToken {
   /**
-   * Registrations
+   * Node to read from (mandatory)
    */
-  items?: SupervisorApiModel[];
+  nodeId?: string;
   /**
-   * Continuation or null if final
+   * An optional path from NodeId instance to
+   * the actual node.
+   */
+  browsePath?: string[];
+  /**
+   * The HistoryReadDetailsType extension object
+   * encoded in json and containing the tunneled
+   * Historian reader request.
+   */
+  details?: any;
+  /**
+   * Index range to read, e.g. 1:2,0:1 for 2 slices
+   * out of a matrix or 0:1 for the first item in
+   * an array, string or bytestring.
+   * See 7.22 of part 4: NumericRange.
+   */
+  indexRange?: string;
+  /**
+   * Optional request header
+   */
+  header?: RequestHeaderApiModel;
+}
+
+/**
+ * History read results
+ */
+export interface HistoryReadResponseApiModelJToken {
+  /**
+   * History as json encoded extension object
+   */
+  history?: any;
+  /**
+   * Continuation token if more results pending.
    */
   continuationToken?: string;
+  /**
+   * Service result in case of error
+   */
+  errorInfo?: ServiceResultApiModel;
 }
 
 /**
- * Supervisor registration query
+ * History read continuation result
  */
-export interface SupervisorQueryApiModel {
+export interface HistoryReadNextResponseApiModelJToken {
   /**
-   * Site of the supervisor
+   * History as json encoded extension object
    */
-  siteId?: string;
+  history?: any;
   /**
-   * Discovery mode of supervisor. Possible values include: 'Off', 'Local', 'Network', 'Fast',
-   * 'Scan'
+   * Continuation token if more results pending.
    */
-  discovery?: string;
+  continuationToken?: string;
   /**
-   * Included connected or disconnected
+   * Service result in case of error
    */
-  connected?: boolean;
+  errorInfo?: ServiceResultApiModel;
+}
+
+/**
+ * Request node history update
+ */
+export interface HistoryUpdateRequestApiModelJToken {
+  /**
+   * Node to update
+   */
+  nodeId?: string;
+  /**
+   * An optional path from NodeId instance to
+   * the actual node.
+   */
+  browsePath?: string[];
+  /**
+   * The HistoryUpdateDetailsType extension object
+   * encoded as json Variant and containing the tunneled
+   * update request for the Historian server. The value
+   * is updated at edge using above node address.
+   */
+  details: any;
+  /**
+   * Optional request header
+   */
+  header?: RequestHeaderApiModel;
+}
+
+/**
+ * Request node history update
+ */
+export interface HistoryUpdateRequestApiModelInsertValuesDetailsApiModel {
+  /**
+   * Node to update
+   */
+  nodeId?: string;
+  /**
+   * An optional path from NodeId instance to
+   * the actual node.
+   */
+  browsePath?: string[];
+  /**
+   * The HistoryUpdateDetailsType extension object
+   * encoded as json Variant and containing the tunneled
+   * update request for the Historian server. The value
+   * is updated at edge using above node address.
+   */
+  details: InsertValuesDetailsApiModel;
+  /**
+   * Optional request header
+   */
+  header?: RequestHeaderApiModel;
+}
+
+/**
+ * Request node history update
+ */
+export interface HistoryUpdateRequestApiModelInsertEventsDetailsApiModel {
+  /**
+   * Node to update
+   */
+  nodeId?: string;
+  /**
+   * An optional path from NodeId instance to
+   * the actual node.
+   */
+  browsePath?: string[];
+  /**
+   * The HistoryUpdateDetailsType extension object
+   * encoded as json Variant and containing the tunneled
+   * update request for the Historian server. The value
+   * is updated at edge using above node address.
+   */
+  details: InsertEventsDetailsApiModel;
+  /**
+   * Optional request header
+   */
+  header?: RequestHeaderApiModel;
+}
+
+/**
+ * Request node history read
+ */
+export interface HistoryReadRequestApiModelReadEventsDetailsApiModel {
+  /**
+   * Node to read from (mandatory)
+   */
+  nodeId?: string;
+  /**
+   * An optional path from NodeId instance to
+   * the actual node.
+   */
+  browsePath?: string[];
+  /**
+   * The HistoryReadDetailsType extension object
+   * encoded in json and containing the tunneled
+   * Historian reader request.
+   */
+  details?: ReadEventsDetailsApiModel;
+  /**
+   * Index range to read, e.g. 1:2,0:1 for 2 slices
+   * out of a matrix or 0:1 for the first item in
+   * an array, string or bytestring.
+   * See 7.22 of part 4: NumericRange.
+   */
+  indexRange?: string;
+  /**
+   * Optional request header
+   */
+  header?: RequestHeaderApiModel;
+}
+
+/**
+ * History read results
+ */
+export interface HistoryReadResponseApiModelHistoricEventApiModel {
+  /**
+   * History as json encoded extension object
+   */
+  history?: HistoricEventApiModel[];
+  /**
+   * Continuation token if more results pending.
+   */
+  continuationToken?: string;
+  /**
+   * Service result in case of error
+   */
+  errorInfo?: ServiceResultApiModel;
+}
+
+/**
+ * History read continuation result
+ */
+export interface HistoryReadNextResponseApiModelHistoricEventApiModel {
+  /**
+   * History as json encoded extension object
+   */
+  history?: HistoricEventApiModel[];
+  /**
+   * Continuation token if more results pending.
+   */
+  continuationToken?: string;
+  /**
+   * Service result in case of error
+   */
+  errorInfo?: ServiceResultApiModel;
+}
+
+/**
+ * Request node history read
+ */
+export interface HistoryReadRequestApiModelReadValuesDetailsApiModel {
+  /**
+   * Node to read from (mandatory)
+   */
+  nodeId?: string;
+  /**
+   * An optional path from NodeId instance to
+   * the actual node.
+   */
+  browsePath?: string[];
+  /**
+   * The HistoryReadDetailsType extension object
+   * encoded in json and containing the tunneled
+   * Historian reader request.
+   */
+  details?: ReadValuesDetailsApiModel;
+  /**
+   * Index range to read, e.g. 1:2,0:1 for 2 slices
+   * out of a matrix or 0:1 for the first item in
+   * an array, string or bytestring.
+   * See 7.22 of part 4: NumericRange.
+   */
+  indexRange?: string;
+  /**
+   * Optional request header
+   */
+  header?: RequestHeaderApiModel;
+}
+
+/**
+ * History read results
+ */
+export interface HistoryReadResponseApiModelHistoricValueApiModel {
+  /**
+   * History as json encoded extension object
+   */
+  history?: HistoricValueApiModel[];
+  /**
+   * Continuation token if more results pending.
+   */
+  continuationToken?: string;
+  /**
+   * Service result in case of error
+   */
+  errorInfo?: ServiceResultApiModel;
+}
+
+/**
+ * Request node history read
+ */
+export interface HistoryReadRequestApiModelReadValuesAtTimesDetailsApiModel {
+  /**
+   * Node to read from (mandatory)
+   */
+  nodeId?: string;
+  /**
+   * An optional path from NodeId instance to
+   * the actual node.
+   */
+  browsePath?: string[];
+  /**
+   * The HistoryReadDetailsType extension object
+   * encoded in json and containing the tunneled
+   * Historian reader request.
+   */
+  details?: ReadValuesAtTimesDetailsApiModel;
+  /**
+   * Index range to read, e.g. 1:2,0:1 for 2 slices
+   * out of a matrix or 0:1 for the first item in
+   * an array, string or bytestring.
+   * See 7.22 of part 4: NumericRange.
+   */
+  indexRange?: string;
+  /**
+   * Optional request header
+   */
+  header?: RequestHeaderApiModel;
+}
+
+/**
+ * Request node history read
+ */
+export interface HistoryReadRequestApiModelReadProcessedValuesDetailsApiModel {
+  /**
+   * Node to read from (mandatory)
+   */
+  nodeId?: string;
+  /**
+   * An optional path from NodeId instance to
+   * the actual node.
+   */
+  browsePath?: string[];
+  /**
+   * The HistoryReadDetailsType extension object
+   * encoded in json and containing the tunneled
+   * Historian reader request.
+   */
+  details?: ReadProcessedValuesDetailsApiModel;
+  /**
+   * Index range to read, e.g. 1:2,0:1 for 2 slices
+   * out of a matrix or 0:1 for the first item in
+   * an array, string or bytestring.
+   * See 7.22 of part 4: NumericRange.
+   */
+  indexRange?: string;
+  /**
+   * Optional request header
+   */
+  header?: RequestHeaderApiModel;
+}
+
+/**
+ * Request node history read
+ */
+export interface HistoryReadRequestApiModelReadModifiedValuesDetailsApiModel {
+  /**
+   * Node to read from (mandatory)
+   */
+  nodeId?: string;
+  /**
+   * An optional path from NodeId instance to
+   * the actual node.
+   */
+  browsePath?: string[];
+  /**
+   * The HistoryReadDetailsType extension object
+   * encoded in json and containing the tunneled
+   * Historian reader request.
+   */
+  details?: ReadModifiedValuesDetailsApiModel;
+  /**
+   * Index range to read, e.g. 1:2,0:1 for 2 slices
+   * out of a matrix or 0:1 for the first item in
+   * an array, string or bytestring.
+   * See 7.22 of part 4: NumericRange.
+   */
+  indexRange?: string;
+  /**
+   * Optional request header
+   */
+  header?: RequestHeaderApiModel;
+}
+
+/**
+ * History read continuation result
+ */
+export interface HistoryReadNextResponseApiModelHistoricValueApiModel {
+  /**
+   * History as json encoded extension object
+   */
+  history?: HistoricValueApiModel[];
+  /**
+   * Continuation token if more results pending.
+   */
+  continuationToken?: string;
+  /**
+   * Service result in case of error
+   */
+  errorInfo?: ServiceResultApiModel;
+}
+
+/**
+ * Request node history update
+ */
+export interface HistoryUpdateRequestApiModelReplaceValuesDetailsApiModel {
+  /**
+   * Node to update
+   */
+  nodeId?: string;
+  /**
+   * An optional path from NodeId instance to
+   * the actual node.
+   */
+  browsePath?: string[];
+  /**
+   * The HistoryUpdateDetailsType extension object
+   * encoded as json Variant and containing the tunneled
+   * update request for the Historian server. The value
+   * is updated at edge using above node address.
+   */
+  details: ReplaceValuesDetailsApiModel;
+  /**
+   * Optional request header
+   */
+  header?: RequestHeaderApiModel;
+}
+
+/**
+ * Request node history update
+ */
+export interface HistoryUpdateRequestApiModelReplaceEventsDetailsApiModel {
+  /**
+   * Node to update
+   */
+  nodeId?: string;
+  /**
+   * An optional path from NodeId instance to
+   * the actual node.
+   */
+  browsePath?: string[];
+  /**
+   * The HistoryUpdateDetailsType extension object
+   * encoded as json Variant and containing the tunneled
+   * update request for the Historian server. The value
+   * is updated at edge using above node address.
+   */
+  details: ReplaceEventsDetailsApiModel;
+  /**
+   * Optional request header
+   */
+  header?: RequestHeaderApiModel;
 }

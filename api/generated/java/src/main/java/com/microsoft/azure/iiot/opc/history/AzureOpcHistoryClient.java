@@ -10,27 +10,30 @@
 
 package com.microsoft.azure.iiot.opc.history;
 
-import com.microsoft.azure.iiot.opc.history.models.ApplicationInfoListApiModel;
-import com.microsoft.azure.iiot.opc.history.models.ApplicationRecordListApiModel;
-import com.microsoft.azure.iiot.opc.history.models.ApplicationRecordQueryApiModel;
-import com.microsoft.azure.iiot.opc.history.models.ApplicationRegistrationApiModel;
-import com.microsoft.azure.iiot.opc.history.models.ApplicationRegistrationQueryApiModel;
-import com.microsoft.azure.iiot.opc.history.models.ApplicationRegistrationRequestApiModel;
-import com.microsoft.azure.iiot.opc.history.models.ApplicationRegistrationResponseApiModel;
-import com.microsoft.azure.iiot.opc.history.models.ApplicationRegistrationUpdateApiModel;
-import com.microsoft.azure.iiot.opc.history.models.ApplicationSiteListApiModel;
-import com.microsoft.azure.iiot.opc.history.models.DiscoveryRequestApiModel;
-import com.microsoft.azure.iiot.opc.history.models.EndpointInfoApiModel;
-import com.microsoft.azure.iiot.opc.history.models.EndpointInfoListApiModel;
-import com.microsoft.azure.iiot.opc.history.models.EndpointRegistrationQueryApiModel;
-import com.microsoft.azure.iiot.opc.history.models.EndpointRegistrationUpdateApiModel;
-import com.microsoft.azure.iiot.opc.history.models.ServerRegistrationRequestApiModel;
+import com.microsoft.azure.iiot.opc.history.models.HistoryReadNextRequestApiModel;
+import com.microsoft.azure.iiot.opc.history.models.HistoryReadNextResponseApiModelHistoricEventApiModel;
+import com.microsoft.azure.iiot.opc.history.models.HistoryReadNextResponseApiModelHistoricValueApiModel;
+import com.microsoft.azure.iiot.opc.history.models.HistoryReadNextResponseApiModelJToken;
+import com.microsoft.azure.iiot.opc.history.models.HistoryReadRequestApiModelJToken;
+import com.microsoft.azure.iiot.opc.history.models.HistoryReadRequestApiModelReadEventsDetailsApiModel;
+import com.microsoft.azure.iiot.opc.history.models.HistoryReadRequestApiModelReadModifiedValuesDetailsApiModel;
+import com.microsoft.azure.iiot.opc.history.models.HistoryReadRequestApiModelReadProcessedValuesDetailsApiModel;
+import com.microsoft.azure.iiot.opc.history.models.HistoryReadRequestApiModelReadValuesAtTimesDetailsApiModel;
+import com.microsoft.azure.iiot.opc.history.models.HistoryReadRequestApiModelReadValuesDetailsApiModel;
+import com.microsoft.azure.iiot.opc.history.models.HistoryReadResponseApiModelHistoricEventApiModel;
+import com.microsoft.azure.iiot.opc.history.models.HistoryReadResponseApiModelHistoricValueApiModel;
+import com.microsoft.azure.iiot.opc.history.models.HistoryReadResponseApiModelJToken;
+import com.microsoft.azure.iiot.opc.history.models.HistoryUpdateRequestApiModelDeleteEventsDetailsApiModel;
+import com.microsoft.azure.iiot.opc.history.models.HistoryUpdateRequestApiModelDeleteModifiedValuesDetailsApiModel;
+import com.microsoft.azure.iiot.opc.history.models.HistoryUpdateRequestApiModelDeleteValuesAtTimesDetailsApiModel;
+import com.microsoft.azure.iiot.opc.history.models.HistoryUpdateRequestApiModelDeleteValuesDetailsApiModel;
+import com.microsoft.azure.iiot.opc.history.models.HistoryUpdateRequestApiModelInsertEventsDetailsApiModel;
+import com.microsoft.azure.iiot.opc.history.models.HistoryUpdateRequestApiModelInsertValuesDetailsApiModel;
+import com.microsoft.azure.iiot.opc.history.models.HistoryUpdateRequestApiModelJToken;
+import com.microsoft.azure.iiot.opc.history.models.HistoryUpdateRequestApiModelReplaceEventsDetailsApiModel;
+import com.microsoft.azure.iiot.opc.history.models.HistoryUpdateRequestApiModelReplaceValuesDetailsApiModel;
+import com.microsoft.azure.iiot.opc.history.models.HistoryUpdateResponseApiModel;
 import com.microsoft.azure.iiot.opc.history.models.StatusResponseApiModel;
-import com.microsoft.azure.iiot.opc.history.models.SupervisorApiModel;
-import com.microsoft.azure.iiot.opc.history.models.SupervisorListApiModel;
-import com.microsoft.azure.iiot.opc.history.models.SupervisorQueryApiModel;
-import com.microsoft.azure.iiot.opc.history.models.SupervisorStatusApiModel;
-import com.microsoft.azure.iiot.opc.history.models.SupervisorUpdateApiModel;
 import com.microsoft.rest.RestException;
 import com.microsoft.rest.ServiceCallback;
 import com.microsoft.rest.ServiceFuture;
@@ -56,1850 +59,994 @@ public interface AzureOpcHistoryClient {
     String DEFAULT_BASE_URL = "http://localhost";
 
     /**
-     * Get list of applications.
-     * Get all registered applications in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
+     * Delete value history at specified times.
+     * Delete value history using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history update request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the ApplicationInfoListApiModel object if successful.
+     * @return the HistoryUpdateResponseApiModel object if successful.
      */
-    ApplicationInfoListApiModel getListOfApplications();
+    HistoryUpdateResponseApiModel historyDeleteValuesAtTimes(String endpointId, HistoryUpdateRequestApiModelDeleteValuesAtTimesDetailsApiModel request);
 
     /**
-     * Get list of applications.
-     * Get all registered applications in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
+     * Delete value history at specified times.
+     * Delete value history using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history update request
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    ServiceFuture<ApplicationInfoListApiModel> getListOfApplicationsAsync(final ServiceCallback<ApplicationInfoListApiModel> serviceCallback);
+    ServiceFuture<HistoryUpdateResponseApiModel> historyDeleteValuesAtTimesAsync(String endpointId, HistoryUpdateRequestApiModelDeleteValuesAtTimesDetailsApiModel request, final ServiceCallback<HistoryUpdateResponseApiModel> serviceCallback);
 
     /**
-     * Get list of applications.
-     * Get all registered applications in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
+     * Delete value history at specified times.
+     * Delete value history using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history update request
      * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the ApplicationInfoListApiModel object
+     * @return the observable to the HistoryUpdateResponseApiModel object
      */
-    Observable<ApplicationInfoListApiModel> getListOfApplicationsAsync();
+    Observable<HistoryUpdateResponseApiModel> historyDeleteValuesAtTimesAsync(String endpointId, HistoryUpdateRequestApiModelDeleteValuesAtTimesDetailsApiModel request);
 
     /**
-     * Get list of applications.
-     * Get all registered applications in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
+     * Delete value history at specified times.
+     * Delete value history using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history update request
      * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the ApplicationInfoListApiModel object
+     * @return the observable to the HistoryUpdateResponseApiModel object
      */
-    Observable<ServiceResponse<ApplicationInfoListApiModel>> getListOfApplicationsWithServiceResponseAsync();
+    Observable<ServiceResponse<HistoryUpdateResponseApiModel>> historyDeleteValuesAtTimesWithServiceResponseAsync(String endpointId, HistoryUpdateRequestApiModelDeleteValuesAtTimesDetailsApiModel request);
+
     /**
-     * Get list of applications.
-     * Get all registered applications in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
+     * Delete historic values.
+     * Delete historic values using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param continuationToken Optional Continuation
-                 token
-     * @param pageSize Optional number of results to
-                 return
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history update request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the ApplicationInfoListApiModel object if successful.
+     * @return the HistoryUpdateResponseApiModel object if successful.
      */
-    ApplicationInfoListApiModel getListOfApplications(String continuationToken, Integer pageSize);
+    HistoryUpdateResponseApiModel historyDeleteValues(String endpointId, HistoryUpdateRequestApiModelDeleteValuesDetailsApiModel request);
 
     /**
-     * Get list of applications.
-     * Get all registered applications in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
+     * Delete historic values.
+     * Delete historic values using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param continuationToken Optional Continuation
-                 token
-     * @param pageSize Optional number of results to
-                 return
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history update request
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    ServiceFuture<ApplicationInfoListApiModel> getListOfApplicationsAsync(String continuationToken, Integer pageSize, final ServiceCallback<ApplicationInfoListApiModel> serviceCallback);
+    ServiceFuture<HistoryUpdateResponseApiModel> historyDeleteValuesAsync(String endpointId, HistoryUpdateRequestApiModelDeleteValuesDetailsApiModel request, final ServiceCallback<HistoryUpdateResponseApiModel> serviceCallback);
 
     /**
-     * Get list of applications.
-     * Get all registered applications in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
+     * Delete historic values.
+     * Delete historic values using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param continuationToken Optional Continuation
-                 token
-     * @param pageSize Optional number of results to
-                 return
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history update request
      * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the ApplicationInfoListApiModel object
+     * @return the observable to the HistoryUpdateResponseApiModel object
      */
-    Observable<ApplicationInfoListApiModel> getListOfApplicationsAsync(String continuationToken, Integer pageSize);
+    Observable<HistoryUpdateResponseApiModel> historyDeleteValuesAsync(String endpointId, HistoryUpdateRequestApiModelDeleteValuesDetailsApiModel request);
 
     /**
-     * Get list of applications.
-     * Get all registered applications in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
+     * Delete historic values.
+     * Delete historic values using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param continuationToken Optional Continuation
-                 token
-     * @param pageSize Optional number of results to
-                 return
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history update request
      * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the ApplicationInfoListApiModel object
+     * @return the observable to the HistoryUpdateResponseApiModel object
      */
-    Observable<ServiceResponse<ApplicationInfoListApiModel>> getListOfApplicationsWithServiceResponseAsync(String continuationToken, Integer pageSize);
+    Observable<ServiceResponse<HistoryUpdateResponseApiModel>> historyDeleteValuesWithServiceResponseAsync(String endpointId, HistoryUpdateRequestApiModelDeleteValuesDetailsApiModel request);
 
     /**
-     * Create new application.
-     * The application is registered using the provided information, but it
-     is not associated with a supervisor.  This is useful for when you need
-     to register clients or you want to register a server that is located
-     in a network not reachable through a Twin module.
+     * Delete historic values.
+     * Delete historic values using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param request Application registration request
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history update request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the ApplicationRegistrationResponseApiModel object if successful.
+     * @return the HistoryUpdateResponseApiModel object if successful.
      */
-    ApplicationRegistrationResponseApiModel createApplication(ApplicationRegistrationRequestApiModel request);
+    HistoryUpdateResponseApiModel historyDeleteModifiedValues(String endpointId, HistoryUpdateRequestApiModelDeleteModifiedValuesDetailsApiModel request);
 
     /**
-     * Create new application.
-     * The application is registered using the provided information, but it
-     is not associated with a supervisor.  This is useful for when you need
-     to register clients or you want to register a server that is located
-     in a network not reachable through a Twin module.
+     * Delete historic values.
+     * Delete historic values using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param request Application registration request
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history update request
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    ServiceFuture<ApplicationRegistrationResponseApiModel> createApplicationAsync(ApplicationRegistrationRequestApiModel request, final ServiceCallback<ApplicationRegistrationResponseApiModel> serviceCallback);
+    ServiceFuture<HistoryUpdateResponseApiModel> historyDeleteModifiedValuesAsync(String endpointId, HistoryUpdateRequestApiModelDeleteModifiedValuesDetailsApiModel request, final ServiceCallback<HistoryUpdateResponseApiModel> serviceCallback);
 
     /**
-     * Create new application.
-     * The application is registered using the provided information, but it
-     is not associated with a supervisor.  This is useful for when you need
-     to register clients or you want to register a server that is located
-     in a network not reachable through a Twin module.
+     * Delete historic values.
+     * Delete historic values using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param request Application registration request
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history update request
      * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the ApplicationRegistrationResponseApiModel object
+     * @return the observable to the HistoryUpdateResponseApiModel object
      */
-    Observable<ApplicationRegistrationResponseApiModel> createApplicationAsync(ApplicationRegistrationRequestApiModel request);
+    Observable<HistoryUpdateResponseApiModel> historyDeleteModifiedValuesAsync(String endpointId, HistoryUpdateRequestApiModelDeleteModifiedValuesDetailsApiModel request);
 
     /**
-     * Create new application.
-     * The application is registered using the provided information, but it
-     is not associated with a supervisor.  This is useful for when you need
-     to register clients or you want to register a server that is located
-     in a network not reachable through a Twin module.
+     * Delete historic values.
+     * Delete historic values using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param request Application registration request
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history update request
      * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the ApplicationRegistrationResponseApiModel object
+     * @return the observable to the HistoryUpdateResponseApiModel object
      */
-    Observable<ServiceResponse<ApplicationRegistrationResponseApiModel>> createApplicationWithServiceResponseAsync(ApplicationRegistrationRequestApiModel request);
+    Observable<ServiceResponse<HistoryUpdateResponseApiModel>> historyDeleteModifiedValuesWithServiceResponseAsync(String endpointId, HistoryUpdateRequestApiModelDeleteModifiedValuesDetailsApiModel request);
 
     /**
-     * Register new server.
-     * Registers a server solely using a discovery url. Requires that
-     the onboarding agent service is running and the server can be
-     located by a supervisor in its network using the discovery url.
+     * Delete historic events.
+     * Delete historic events using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param request Server registration request
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history update request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     * @return the HistoryUpdateResponseApiModel object if successful.
      */
-    void registerServer(ServerRegistrationRequestApiModel request);
+    HistoryUpdateResponseApiModel historyDeleteEvents(String endpointId, HistoryUpdateRequestApiModelDeleteEventsDetailsApiModel request);
 
     /**
-     * Register new server.
-     * Registers a server solely using a discovery url. Requires that
-     the onboarding agent service is running and the server can be
-     located by a supervisor in its network using the discovery url.
+     * Delete historic events.
+     * Delete historic events using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param request Server registration request
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history update request
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    ServiceFuture<Void> registerServerAsync(ServerRegistrationRequestApiModel request, final ServiceCallback<Void> serviceCallback);
+    ServiceFuture<HistoryUpdateResponseApiModel> historyDeleteEventsAsync(String endpointId, HistoryUpdateRequestApiModelDeleteEventsDetailsApiModel request, final ServiceCallback<HistoryUpdateResponseApiModel> serviceCallback);
 
     /**
-     * Register new server.
-     * Registers a server solely using a discovery url. Requires that
-     the onboarding agent service is running and the server can be
-     located by a supervisor in its network using the discovery url.
+     * Delete historic events.
+     * Delete historic events using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param request Server registration request
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history update request
      * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceResponse} object if successful.
+     * @return the observable to the HistoryUpdateResponseApiModel object
      */
-    Observable<Void> registerServerAsync(ServerRegistrationRequestApiModel request);
+    Observable<HistoryUpdateResponseApiModel> historyDeleteEventsAsync(String endpointId, HistoryUpdateRequestApiModelDeleteEventsDetailsApiModel request);
 
     /**
-     * Register new server.
-     * Registers a server solely using a discovery url. Requires that
-     the onboarding agent service is running and the server can be
-     located by a supervisor in its network using the discovery url.
+     * Delete historic events.
+     * Delete historic events using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param request Server registration request
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history update request
      * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceResponse} object if successful.
+     * @return the observable to the HistoryUpdateResponseApiModel object
      */
-    Observable<ServiceResponse<Void>> registerServerWithServiceResponseAsync(ServerRegistrationRequestApiModel request);
+    Observable<ServiceResponse<HistoryUpdateResponseApiModel>> historyDeleteEventsWithServiceResponseAsync(String endpointId, HistoryUpdateRequestApiModelDeleteEventsDetailsApiModel request);
 
     /**
-     * Purge applications.
-     * Purges all applications that have not been seen for a specified amount of time.
+     * Read history using json details.
+     * Read node history if available using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history read request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     * @return the HistoryReadResponseApiModelJToken object if successful.
      */
-    void deleteAllDisabledApplications();
+    HistoryReadResponseApiModelJToken historyReadRaw(String endpointId, HistoryReadRequestApiModelJToken request);
 
     /**
-     * Purge applications.
-     * Purges all applications that have not been seen for a specified amount of time.
+     * Read history using json details.
+     * Read node history if available using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history read request
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    ServiceFuture<Void> deleteAllDisabledApplicationsAsync(final ServiceCallback<Void> serviceCallback);
+    ServiceFuture<HistoryReadResponseApiModelJToken> historyReadRawAsync(String endpointId, HistoryReadRequestApiModelJToken request, final ServiceCallback<HistoryReadResponseApiModelJToken> serviceCallback);
 
     /**
-     * Purge applications.
-     * Purges all applications that have not been seen for a specified amount of time.
+     * Read history using json details.
+     * Read node history if available using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history read request
      * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceResponse} object if successful.
+     * @return the observable to the HistoryReadResponseApiModelJToken object
      */
-    Observable<Void> deleteAllDisabledApplicationsAsync();
+    Observable<HistoryReadResponseApiModelJToken> historyReadRawAsync(String endpointId, HistoryReadRequestApiModelJToken request);
 
     /**
-     * Purge applications.
-     * Purges all applications that have not been seen for a specified amount of time.
+     * Read history using json details.
+     * Read node history if available using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history read request
      * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceResponse} object if successful.
+     * @return the observable to the HistoryReadResponseApiModelJToken object
      */
-    Observable<ServiceResponse<Void>> deleteAllDisabledApplicationsWithServiceResponseAsync();
+    Observable<ServiceResponse<HistoryReadResponseApiModelJToken>> historyReadRawWithServiceResponseAsync(String endpointId, HistoryReadRequestApiModelJToken request);
+
     /**
-     * Purge applications.
-     * Purges all applications that have not been seen for a specified amount of time.
+     * Read next batch of history as json.
+     * Read next batch of node history values using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param notSeenFor A duration in milliseconds
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history read next request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     * @return the HistoryReadNextResponseApiModelJToken object if successful.
      */
-    void deleteAllDisabledApplications(String notSeenFor);
+    HistoryReadNextResponseApiModelJToken historyReadRawNext(String endpointId, HistoryReadNextRequestApiModel request);
 
     /**
-     * Purge applications.
-     * Purges all applications that have not been seen for a specified amount of time.
+     * Read next batch of history as json.
+     * Read next batch of node history values using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param notSeenFor A duration in milliseconds
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history read next request
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    ServiceFuture<Void> deleteAllDisabledApplicationsAsync(String notSeenFor, final ServiceCallback<Void> serviceCallback);
+    ServiceFuture<HistoryReadNextResponseApiModelJToken> historyReadRawNextAsync(String endpointId, HistoryReadNextRequestApiModel request, final ServiceCallback<HistoryReadNextResponseApiModelJToken> serviceCallback);
 
     /**
-     * Purge applications.
-     * Purges all applications that have not been seen for a specified amount of time.
+     * Read next batch of history as json.
+     * Read next batch of node history values using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param notSeenFor A duration in milliseconds
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history read next request
      * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceResponse} object if successful.
+     * @return the observable to the HistoryReadNextResponseApiModelJToken object
      */
-    Observable<Void> deleteAllDisabledApplicationsAsync(String notSeenFor);
+    Observable<HistoryReadNextResponseApiModelJToken> historyReadRawNextAsync(String endpointId, HistoryReadNextRequestApiModel request);
 
     /**
-     * Purge applications.
-     * Purges all applications that have not been seen for a specified amount of time.
+     * Read next batch of history as json.
+     * Read next batch of node history values using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param notSeenFor A duration in milliseconds
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history read next request
      * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceResponse} object if successful.
+     * @return the observable to the HistoryReadNextResponseApiModelJToken object
      */
-    Observable<ServiceResponse<Void>> deleteAllDisabledApplicationsWithServiceResponseAsync(String notSeenFor);
+    Observable<ServiceResponse<HistoryReadNextResponseApiModelJToken>> historyReadRawNextWithServiceResponseAsync(String endpointId, HistoryReadNextRequestApiModel request);
 
     /**
-     * Approve a new application.
-     * A manager can approve a new application or force an application
-     from any state.
-     After approval the application is in the 'Approved' state.
-     Requires Manager role.
+     * Update node history using raw json.
+     * Update node history using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param applicationId The application id
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history update request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     * @return the HistoryUpdateResponseApiModel object if successful.
      */
-    void approveApplication(String applicationId);
+    HistoryUpdateResponseApiModel historyUpdateRaw(String endpointId, HistoryUpdateRequestApiModelJToken request);
 
     /**
-     * Approve a new application.
-     * A manager can approve a new application or force an application
-     from any state.
-     After approval the application is in the 'Approved' state.
-     Requires Manager role.
+     * Update node history using raw json.
+     * Update node history using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param applicationId The application id
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history update request
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    ServiceFuture<Void> approveApplicationAsync(String applicationId, final ServiceCallback<Void> serviceCallback);
+    ServiceFuture<HistoryUpdateResponseApiModel> historyUpdateRawAsync(String endpointId, HistoryUpdateRequestApiModelJToken request, final ServiceCallback<HistoryUpdateResponseApiModel> serviceCallback);
 
     /**
-     * Approve a new application.
-     * A manager can approve a new application or force an application
-     from any state.
-     After approval the application is in the 'Approved' state.
-     Requires Manager role.
+     * Update node history using raw json.
+     * Update node history using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param applicationId The application id
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history update request
      * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceResponse} object if successful.
+     * @return the observable to the HistoryUpdateResponseApiModel object
      */
-    Observable<Void> approveApplicationAsync(String applicationId);
+    Observable<HistoryUpdateResponseApiModel> historyUpdateRawAsync(String endpointId, HistoryUpdateRequestApiModelJToken request);
 
     /**
-     * Approve a new application.
-     * A manager can approve a new application or force an application
-     from any state.
-     After approval the application is in the 'Approved' state.
-     Requires Manager role.
+     * Update node history using raw json.
+     * Update node history using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param applicationId The application id
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history update request
      * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceResponse} object if successful.
+     * @return the observable to the HistoryUpdateResponseApiModel object
      */
-    Observable<ServiceResponse<Void>> approveApplicationWithServiceResponseAsync(String applicationId);
+    Observable<ServiceResponse<HistoryUpdateResponseApiModel>> historyUpdateRawWithServiceResponseAsync(String endpointId, HistoryUpdateRequestApiModelJToken request);
+
     /**
-     * Approve a new application.
-     * A manager can approve a new application or force an application
-     from any state.
-     After approval the application is in the 'Approved' state.
-     Requires Manager role.
+     * Insert historic values.
+     * Insert historic values using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param applicationId The application id
-     * @param force optional, force application in new state
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history insert request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     * @return the HistoryUpdateResponseApiModel object if successful.
      */
-    void approveApplication(String applicationId, Boolean force);
+    HistoryUpdateResponseApiModel historyInsertValues(String endpointId, HistoryUpdateRequestApiModelInsertValuesDetailsApiModel request);
 
     /**
-     * Approve a new application.
-     * A manager can approve a new application or force an application
-     from any state.
-     After approval the application is in the 'Approved' state.
-     Requires Manager role.
+     * Insert historic values.
+     * Insert historic values using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param applicationId The application id
-     * @param force optional, force application in new state
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history insert request
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    ServiceFuture<Void> approveApplicationAsync(String applicationId, Boolean force, final ServiceCallback<Void> serviceCallback);
+    ServiceFuture<HistoryUpdateResponseApiModel> historyInsertValuesAsync(String endpointId, HistoryUpdateRequestApiModelInsertValuesDetailsApiModel request, final ServiceCallback<HistoryUpdateResponseApiModel> serviceCallback);
 
     /**
-     * Approve a new application.
-     * A manager can approve a new application or force an application
-     from any state.
-     After approval the application is in the 'Approved' state.
-     Requires Manager role.
+     * Insert historic values.
+     * Insert historic values using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param applicationId The application id
-     * @param force optional, force application in new state
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history insert request
      * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceResponse} object if successful.
+     * @return the observable to the HistoryUpdateResponseApiModel object
      */
-    Observable<Void> approveApplicationAsync(String applicationId, Boolean force);
+    Observable<HistoryUpdateResponseApiModel> historyInsertValuesAsync(String endpointId, HistoryUpdateRequestApiModelInsertValuesDetailsApiModel request);
 
     /**
-     * Approve a new application.
-     * A manager can approve a new application or force an application
-     from any state.
-     After approval the application is in the 'Approved' state.
-     Requires Manager role.
+     * Insert historic values.
+     * Insert historic values using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param applicationId The application id
-     * @param force optional, force application in new state
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history insert request
      * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceResponse} object if successful.
+     * @return the observable to the HistoryUpdateResponseApiModel object
      */
-    Observable<ServiceResponse<Void>> approveApplicationWithServiceResponseAsync(String applicationId, Boolean force);
+    Observable<ServiceResponse<HistoryUpdateResponseApiModel>> historyInsertValuesWithServiceResponseAsync(String endpointId, HistoryUpdateRequestApiModelInsertValuesDetailsApiModel request);
 
     /**
-     * Reject a new application.
-     * A manager can approve a new application or force an application
-     from any state.
-     After approval the application is in the 'Rejected' state.
-     Requires Manager role.
+     * Insert historic events.
+     * Insert historic events using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param applicationId The application id
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history insert request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     * @return the HistoryUpdateResponseApiModel object if successful.
      */
-    void rejectApplication(String applicationId);
+    HistoryUpdateResponseApiModel historyInsertEvents(String endpointId, HistoryUpdateRequestApiModelInsertEventsDetailsApiModel request);
 
     /**
-     * Reject a new application.
-     * A manager can approve a new application or force an application
-     from any state.
-     After approval the application is in the 'Rejected' state.
-     Requires Manager role.
+     * Insert historic events.
+     * Insert historic events using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param applicationId The application id
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history insert request
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    ServiceFuture<Void> rejectApplicationAsync(String applicationId, final ServiceCallback<Void> serviceCallback);
+    ServiceFuture<HistoryUpdateResponseApiModel> historyInsertEventsAsync(String endpointId, HistoryUpdateRequestApiModelInsertEventsDetailsApiModel request, final ServiceCallback<HistoryUpdateResponseApiModel> serviceCallback);
 
     /**
-     * Reject a new application.
-     * A manager can approve a new application or force an application
-     from any state.
-     After approval the application is in the 'Rejected' state.
-     Requires Manager role.
+     * Insert historic events.
+     * Insert historic events using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param applicationId The application id
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history insert request
      * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceResponse} object if successful.
+     * @return the observable to the HistoryUpdateResponseApiModel object
      */
-    Observable<Void> rejectApplicationAsync(String applicationId);
+    Observable<HistoryUpdateResponseApiModel> historyInsertEventsAsync(String endpointId, HistoryUpdateRequestApiModelInsertEventsDetailsApiModel request);
 
     /**
-     * Reject a new application.
-     * A manager can approve a new application or force an application
-     from any state.
-     After approval the application is in the 'Rejected' state.
-     Requires Manager role.
+     * Insert historic events.
+     * Insert historic events using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param applicationId The application id
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history insert request
      * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceResponse} object if successful.
+     * @return the observable to the HistoryUpdateResponseApiModel object
      */
-    Observable<ServiceResponse<Void>> rejectApplicationWithServiceResponseAsync(String applicationId);
+    Observable<ServiceResponse<HistoryUpdateResponseApiModel>> historyInsertEventsWithServiceResponseAsync(String endpointId, HistoryUpdateRequestApiModelInsertEventsDetailsApiModel request);
+
     /**
-     * Reject a new application.
-     * A manager can approve a new application or force an application
-     from any state.
-     After approval the application is in the 'Rejected' state.
-     Requires Manager role.
+     * Read historic events.
+     * Read historic events of a node if available using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param applicationId The application id
-     * @param force optional, force application in new state
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history read request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     * @return the HistoryReadResponseApiModelHistoricEventApiModel object if successful.
      */
-    void rejectApplication(String applicationId, Boolean force);
+    HistoryReadResponseApiModelHistoricEventApiModel historyReadEvents(String endpointId, HistoryReadRequestApiModelReadEventsDetailsApiModel request);
 
     /**
-     * Reject a new application.
-     * A manager can approve a new application or force an application
-     from any state.
-     After approval the application is in the 'Rejected' state.
-     Requires Manager role.
+     * Read historic events.
+     * Read historic events of a node if available using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param applicationId The application id
-     * @param force optional, force application in new state
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history read request
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    ServiceFuture<Void> rejectApplicationAsync(String applicationId, Boolean force, final ServiceCallback<Void> serviceCallback);
+    ServiceFuture<HistoryReadResponseApiModelHistoricEventApiModel> historyReadEventsAsync(String endpointId, HistoryReadRequestApiModelReadEventsDetailsApiModel request, final ServiceCallback<HistoryReadResponseApiModelHistoricEventApiModel> serviceCallback);
 
     /**
-     * Reject a new application.
-     * A manager can approve a new application or force an application
-     from any state.
-     After approval the application is in the 'Rejected' state.
-     Requires Manager role.
+     * Read historic events.
+     * Read historic events of a node if available using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param applicationId The application id
-     * @param force optional, force application in new state
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history read request
      * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceResponse} object if successful.
+     * @return the observable to the HistoryReadResponseApiModelHistoricEventApiModel object
      */
-    Observable<Void> rejectApplicationAsync(String applicationId, Boolean force);
+    Observable<HistoryReadResponseApiModelHistoricEventApiModel> historyReadEventsAsync(String endpointId, HistoryReadRequestApiModelReadEventsDetailsApiModel request);
 
     /**
-     * Reject a new application.
-     * A manager can approve a new application or force an application
-     from any state.
-     After approval the application is in the 'Rejected' state.
-     Requires Manager role.
+     * Read historic events.
+     * Read historic events of a node if available using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param applicationId The application id
-     * @param force optional, force application in new state
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history read request
      * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceResponse} object if successful.
+     * @return the observable to the HistoryReadResponseApiModelHistoricEventApiModel object
      */
-    Observable<ServiceResponse<Void>> rejectApplicationWithServiceResponseAsync(String applicationId, Boolean force);
+    Observable<ServiceResponse<HistoryReadResponseApiModelHistoricEventApiModel>> historyReadEventsWithServiceResponseAsync(String endpointId, HistoryReadRequestApiModelReadEventsDetailsApiModel request);
 
     /**
-     * Disable an enabled application.
-     * A manager can disable an application.
+     * Read next batch of historic events.
+     * Read next batch of historic events of a node using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param applicationId The application id
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history read next request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     * @return the HistoryReadNextResponseApiModelHistoricEventApiModel object if successful.
      */
-    void disableApplication(String applicationId);
+    HistoryReadNextResponseApiModelHistoricEventApiModel historyReadEventsNext(String endpointId, HistoryReadNextRequestApiModel request);
 
     /**
-     * Disable an enabled application.
-     * A manager can disable an application.
+     * Read next batch of historic events.
+     * Read next batch of historic events of a node using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param applicationId The application id
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history read next request
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    ServiceFuture<Void> disableApplicationAsync(String applicationId, final ServiceCallback<Void> serviceCallback);
+    ServiceFuture<HistoryReadNextResponseApiModelHistoricEventApiModel> historyReadEventsNextAsync(String endpointId, HistoryReadNextRequestApiModel request, final ServiceCallback<HistoryReadNextResponseApiModelHistoricEventApiModel> serviceCallback);
 
     /**
-     * Disable an enabled application.
-     * A manager can disable an application.
+     * Read next batch of historic events.
+     * Read next batch of historic events of a node using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param applicationId The application id
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history read next request
      * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceResponse} object if successful.
+     * @return the observable to the HistoryReadNextResponseApiModelHistoricEventApiModel object
      */
-    Observable<Void> disableApplicationAsync(String applicationId);
+    Observable<HistoryReadNextResponseApiModelHistoricEventApiModel> historyReadEventsNextAsync(String endpointId, HistoryReadNextRequestApiModel request);
 
     /**
-     * Disable an enabled application.
-     * A manager can disable an application.
+     * Read next batch of historic events.
+     * Read next batch of historic events of a node using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param applicationId The application id
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history read next request
      * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceResponse} object if successful.
+     * @return the observable to the HistoryReadNextResponseApiModelHistoricEventApiModel object
      */
-    Observable<ServiceResponse<Void>> disableApplicationWithServiceResponseAsync(String applicationId);
+    Observable<ServiceResponse<HistoryReadNextResponseApiModelHistoricEventApiModel>> historyReadEventsNextWithServiceResponseAsync(String endpointId, HistoryReadNextRequestApiModel request);
 
     /**
-     * Re-enable a disabled application.
-     * A manager can enable an application.
+     * Read historic processed values at specified times.
+     * Read processed history values of a node if available using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param applicationId The application id
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history read request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     * @return the HistoryReadResponseApiModelHistoricValueApiModel object if successful.
      */
-    void enableApplication(String applicationId);
+    HistoryReadResponseApiModelHistoricValueApiModel historyReadValues(String endpointId, HistoryReadRequestApiModelReadValuesDetailsApiModel request);
 
     /**
-     * Re-enable a disabled application.
-     * A manager can enable an application.
+     * Read historic processed values at specified times.
+     * Read processed history values of a node if available using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param applicationId The application id
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history read request
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    ServiceFuture<Void> enableApplicationAsync(String applicationId, final ServiceCallback<Void> serviceCallback);
+    ServiceFuture<HistoryReadResponseApiModelHistoricValueApiModel> historyReadValuesAsync(String endpointId, HistoryReadRequestApiModelReadValuesDetailsApiModel request, final ServiceCallback<HistoryReadResponseApiModelHistoricValueApiModel> serviceCallback);
 
     /**
-     * Re-enable a disabled application.
-     * A manager can enable an application.
+     * Read historic processed values at specified times.
+     * Read processed history values of a node if available using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param applicationId The application id
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history read request
      * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceResponse} object if successful.
+     * @return the observable to the HistoryReadResponseApiModelHistoricValueApiModel object
      */
-    Observable<Void> enableApplicationAsync(String applicationId);
+    Observable<HistoryReadResponseApiModelHistoricValueApiModel> historyReadValuesAsync(String endpointId, HistoryReadRequestApiModelReadValuesDetailsApiModel request);
 
     /**
-     * Re-enable a disabled application.
-     * A manager can enable an application.
+     * Read historic processed values at specified times.
+     * Read processed history values of a node if available using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param applicationId The application id
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history read request
      * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceResponse} object if successful.
+     * @return the observable to the HistoryReadResponseApiModelHistoricValueApiModel object
      */
-    Observable<ServiceResponse<Void>> enableApplicationWithServiceResponseAsync(String applicationId);
+    Observable<ServiceResponse<HistoryReadResponseApiModelHistoricValueApiModel>> historyReadValuesWithServiceResponseAsync(String endpointId, HistoryReadRequestApiModelReadValuesDetailsApiModel request);
 
     /**
-     * Discover servers.
-     * Registers servers by running a discovery scan in a supervisor's
-     network. Requires that the onboarding agent service is running.
+     * Read historic values at specified times.
+     * Read historic values of a node if available using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param request Discovery request
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history read request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     * @return the HistoryReadResponseApiModelHistoricValueApiModel object if successful.
      */
-    void discoverServer(DiscoveryRequestApiModel request);
+    HistoryReadResponseApiModelHistoricValueApiModel historyReadValuesAtTimes(String endpointId, HistoryReadRequestApiModelReadValuesAtTimesDetailsApiModel request);
 
     /**
-     * Discover servers.
-     * Registers servers by running a discovery scan in a supervisor's
-     network. Requires that the onboarding agent service is running.
+     * Read historic values at specified times.
+     * Read historic values of a node if available using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param request Discovery request
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history read request
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    ServiceFuture<Void> discoverServerAsync(DiscoveryRequestApiModel request, final ServiceCallback<Void> serviceCallback);
+    ServiceFuture<HistoryReadResponseApiModelHistoricValueApiModel> historyReadValuesAtTimesAsync(String endpointId, HistoryReadRequestApiModelReadValuesAtTimesDetailsApiModel request, final ServiceCallback<HistoryReadResponseApiModelHistoricValueApiModel> serviceCallback);
 
     /**
-     * Discover servers.
-     * Registers servers by running a discovery scan in a supervisor's
-     network. Requires that the onboarding agent service is running.
+     * Read historic values at specified times.
+     * Read historic values of a node if available using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param request Discovery request
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history read request
      * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceResponse} object if successful.
+     * @return the observable to the HistoryReadResponseApiModelHistoricValueApiModel object
      */
-    Observable<Void> discoverServerAsync(DiscoveryRequestApiModel request);
+    Observable<HistoryReadResponseApiModelHistoricValueApiModel> historyReadValuesAtTimesAsync(String endpointId, HistoryReadRequestApiModelReadValuesAtTimesDetailsApiModel request);
 
     /**
-     * Discover servers.
-     * Registers servers by running a discovery scan in a supervisor's
-     network. Requires that the onboarding agent service is running.
+     * Read historic values at specified times.
+     * Read historic values of a node if available using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param request Discovery request
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history read request
      * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceResponse} object if successful.
+     * @return the observable to the HistoryReadResponseApiModelHistoricValueApiModel object
      */
-    Observable<ServiceResponse<Void>> discoverServerWithServiceResponseAsync(DiscoveryRequestApiModel request);
+    Observable<ServiceResponse<HistoryReadResponseApiModelHistoricValueApiModel>> historyReadValuesAtTimesWithServiceResponseAsync(String endpointId, HistoryReadRequestApiModelReadValuesAtTimesDetailsApiModel request);
 
     /**
-     * Get application registration.
+     * Read historic processed values at specified times.
+     * Read processed history values of a node if available using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param applicationId Application id for the server
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history read request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the ApplicationRegistrationApiModel object if successful.
+     * @return the HistoryReadResponseApiModelHistoricValueApiModel object if successful.
      */
-    ApplicationRegistrationApiModel getApplicationRegistration(String applicationId);
+    HistoryReadResponseApiModelHistoricValueApiModel historyReadProcessedValues(String endpointId, HistoryReadRequestApiModelReadProcessedValuesDetailsApiModel request);
 
     /**
-     * Get application registration.
+     * Read historic processed values at specified times.
+     * Read processed history values of a node if available using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param applicationId Application id for the server
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history read request
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    ServiceFuture<ApplicationRegistrationApiModel> getApplicationRegistrationAsync(String applicationId, final ServiceCallback<ApplicationRegistrationApiModel> serviceCallback);
+    ServiceFuture<HistoryReadResponseApiModelHistoricValueApiModel> historyReadProcessedValuesAsync(String endpointId, HistoryReadRequestApiModelReadProcessedValuesDetailsApiModel request, final ServiceCallback<HistoryReadResponseApiModelHistoricValueApiModel> serviceCallback);
 
     /**
-     * Get application registration.
+     * Read historic processed values at specified times.
+     * Read processed history values of a node if available using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param applicationId Application id for the server
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history read request
      * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the ApplicationRegistrationApiModel object
+     * @return the observable to the HistoryReadResponseApiModelHistoricValueApiModel object
      */
-    Observable<ApplicationRegistrationApiModel> getApplicationRegistrationAsync(String applicationId);
+    Observable<HistoryReadResponseApiModelHistoricValueApiModel> historyReadProcessedValuesAsync(String endpointId, HistoryReadRequestApiModelReadProcessedValuesDetailsApiModel request);
 
     /**
-     * Get application registration.
+     * Read historic processed values at specified times.
+     * Read processed history values of a node if available using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param applicationId Application id for the server
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history read request
      * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the ApplicationRegistrationApiModel object
+     * @return the observable to the HistoryReadResponseApiModelHistoricValueApiModel object
      */
-    Observable<ServiceResponse<ApplicationRegistrationApiModel>> getApplicationRegistrationWithServiceResponseAsync(String applicationId);
+    Observable<ServiceResponse<HistoryReadResponseApiModelHistoricValueApiModel>> historyReadProcessedValuesWithServiceResponseAsync(String endpointId, HistoryReadRequestApiModelReadProcessedValuesDetailsApiModel request);
 
     /**
-     * Unregister application.
-     * Unregisters and deletes application and all its associated endpoints.
+     * Read historic modified values at specified times.
+     * Read processed history values of a node if available using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param applicationId The identifier of the application
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history read request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     * @return the HistoryReadResponseApiModelHistoricValueApiModel object if successful.
      */
-    void deleteApplication(String applicationId);
+    HistoryReadResponseApiModelHistoricValueApiModel historyReadModifiedValues(String endpointId, HistoryReadRequestApiModelReadModifiedValuesDetailsApiModel request);
 
     /**
-     * Unregister application.
-     * Unregisters and deletes application and all its associated endpoints.
+     * Read historic modified values at specified times.
+     * Read processed history values of a node if available using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param applicationId The identifier of the application
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history read request
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    ServiceFuture<Void> deleteApplicationAsync(String applicationId, final ServiceCallback<Void> serviceCallback);
+    ServiceFuture<HistoryReadResponseApiModelHistoricValueApiModel> historyReadModifiedValuesAsync(String endpointId, HistoryReadRequestApiModelReadModifiedValuesDetailsApiModel request, final ServiceCallback<HistoryReadResponseApiModelHistoricValueApiModel> serviceCallback);
 
     /**
-     * Unregister application.
-     * Unregisters and deletes application and all its associated endpoints.
+     * Read historic modified values at specified times.
+     * Read processed history values of a node if available using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param applicationId The identifier of the application
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history read request
      * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceResponse} object if successful.
+     * @return the observable to the HistoryReadResponseApiModelHistoricValueApiModel object
      */
-    Observable<Void> deleteApplicationAsync(String applicationId);
+    Observable<HistoryReadResponseApiModelHistoricValueApiModel> historyReadModifiedValuesAsync(String endpointId, HistoryReadRequestApiModelReadModifiedValuesDetailsApiModel request);
 
     /**
-     * Unregister application.
-     * Unregisters and deletes application and all its associated endpoints.
+     * Read historic modified values at specified times.
+     * Read processed history values of a node if available using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param applicationId The identifier of the application
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history read request
      * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceResponse} object if successful.
+     * @return the observable to the HistoryReadResponseApiModelHistoricValueApiModel object
      */
-    Observable<ServiceResponse<Void>> deleteApplicationWithServiceResponseAsync(String applicationId);
+    Observable<ServiceResponse<HistoryReadResponseApiModelHistoricValueApiModel>> historyReadModifiedValuesWithServiceResponseAsync(String endpointId, HistoryReadRequestApiModelReadModifiedValuesDetailsApiModel request);
 
     /**
-     * Update application registration.
-     * The application information is updated with new properties.  Note that
-     this information might be overridden if the application is re-discovered
-     during a discovery run (recurring or one-time).
+     * Read next batch of historic values.
+     * Read next batch of historic values of a node using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param applicationId The identifier of the application
-     * @param request Application update request
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history read next request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     * @return the HistoryReadNextResponseApiModelHistoricValueApiModel object if successful.
      */
-    void updateApplicationRegistration(String applicationId, ApplicationRegistrationUpdateApiModel request);
+    HistoryReadNextResponseApiModelHistoricValueApiModel historyReadValueNext(String endpointId, HistoryReadNextRequestApiModel request);
 
     /**
-     * Update application registration.
-     * The application information is updated with new properties.  Note that
-     this information might be overridden if the application is re-discovered
-     during a discovery run (recurring or one-time).
+     * Read next batch of historic values.
+     * Read next batch of historic values of a node using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param applicationId The identifier of the application
-     * @param request Application update request
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history read next request
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    ServiceFuture<Void> updateApplicationRegistrationAsync(String applicationId, ApplicationRegistrationUpdateApiModel request, final ServiceCallback<Void> serviceCallback);
+    ServiceFuture<HistoryReadNextResponseApiModelHistoricValueApiModel> historyReadValueNextAsync(String endpointId, HistoryReadNextRequestApiModel request, final ServiceCallback<HistoryReadNextResponseApiModelHistoricValueApiModel> serviceCallback);
 
     /**
-     * Update application registration.
-     * The application information is updated with new properties.  Note that
-     this information might be overridden if the application is re-discovered
-     during a discovery run (recurring or one-time).
+     * Read next batch of historic values.
+     * Read next batch of historic values of a node using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param applicationId The identifier of the application
-     * @param request Application update request
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history read next request
      * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceResponse} object if successful.
+     * @return the observable to the HistoryReadNextResponseApiModelHistoricValueApiModel object
      */
-    Observable<Void> updateApplicationRegistrationAsync(String applicationId, ApplicationRegistrationUpdateApiModel request);
+    Observable<HistoryReadNextResponseApiModelHistoricValueApiModel> historyReadValueNextAsync(String endpointId, HistoryReadNextRequestApiModel request);
 
     /**
-     * Update application registration.
-     * The application information is updated with new properties.  Note that
-     this information might be overridden if the application is re-discovered
-     during a discovery run (recurring or one-time).
+     * Read next batch of historic values.
+     * Read next batch of historic values of a node using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param applicationId The identifier of the application
-     * @param request Application update request
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history read next request
      * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceResponse} object if successful.
+     * @return the observable to the HistoryReadNextResponseApiModelHistoricValueApiModel object
      */
-    Observable<ServiceResponse<Void>> updateApplicationRegistrationWithServiceResponseAsync(String applicationId, ApplicationRegistrationUpdateApiModel request);
+    Observable<ServiceResponse<HistoryReadNextResponseApiModelHistoricValueApiModel>> historyReadValueNextWithServiceResponseAsync(String endpointId, HistoryReadNextRequestApiModel request);
 
     /**
-     * Get list of sites.
-     * List all sites applications are registered in.
+     * Replace historic values.
+     * Replace historic values using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history replace request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the ApplicationSiteListApiModel object if successful.
+     * @return the HistoryUpdateResponseApiModel object if successful.
      */
-    ApplicationSiteListApiModel getListOfSites();
+    HistoryUpdateResponseApiModel historyReplaceValues(String endpointId, HistoryUpdateRequestApiModelReplaceValuesDetailsApiModel request);
 
     /**
-     * Get list of sites.
-     * List all sites applications are registered in.
+     * Replace historic values.
+     * Replace historic values using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history replace request
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    ServiceFuture<ApplicationSiteListApiModel> getListOfSitesAsync(final ServiceCallback<ApplicationSiteListApiModel> serviceCallback);
+    ServiceFuture<HistoryUpdateResponseApiModel> historyReplaceValuesAsync(String endpointId, HistoryUpdateRequestApiModelReplaceValuesDetailsApiModel request, final ServiceCallback<HistoryUpdateResponseApiModel> serviceCallback);
 
     /**
-     * Get list of sites.
-     * List all sites applications are registered in.
+     * Replace historic values.
+     * Replace historic values using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history replace request
      * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the ApplicationSiteListApiModel object
+     * @return the observable to the HistoryUpdateResponseApiModel object
      */
-    Observable<ApplicationSiteListApiModel> getListOfSitesAsync();
+    Observable<HistoryUpdateResponseApiModel> historyReplaceValuesAsync(String endpointId, HistoryUpdateRequestApiModelReplaceValuesDetailsApiModel request);
 
     /**
-     * Get list of sites.
-     * List all sites applications are registered in.
+     * Replace historic values.
+     * Replace historic values using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history replace request
      * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the ApplicationSiteListApiModel object
+     * @return the observable to the HistoryUpdateResponseApiModel object
      */
-    Observable<ServiceResponse<ApplicationSiteListApiModel>> getListOfSitesWithServiceResponseAsync();
+    Observable<ServiceResponse<HistoryUpdateResponseApiModel>> historyReplaceValuesWithServiceResponseAsync(String endpointId, HistoryUpdateRequestApiModelReplaceValuesDetailsApiModel request);
+
     /**
-     * Get list of sites.
-     * List all sites applications are registered in.
+     * Replace historic events.
+     * Replace historic events using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param continuationToken Optional Continuation
-                 token
-     * @param pageSize Optional number of results to
-                 return
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history replace request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the ApplicationSiteListApiModel object if successful.
+     * @return the HistoryUpdateResponseApiModel object if successful.
      */
-    ApplicationSiteListApiModel getListOfSites(String continuationToken, Integer pageSize);
+    HistoryUpdateResponseApiModel historyReplaceEvents(String endpointId, HistoryUpdateRequestApiModelReplaceEventsDetailsApiModel request);
 
     /**
-     * Get list of sites.
-     * List all sites applications are registered in.
+     * Replace historic events.
+     * Replace historic events using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param continuationToken Optional Continuation
-                 token
-     * @param pageSize Optional number of results to
-                 return
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history replace request
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    ServiceFuture<ApplicationSiteListApiModel> getListOfSitesAsync(String continuationToken, Integer pageSize, final ServiceCallback<ApplicationSiteListApiModel> serviceCallback);
+    ServiceFuture<HistoryUpdateResponseApiModel> historyReplaceEventsAsync(String endpointId, HistoryUpdateRequestApiModelReplaceEventsDetailsApiModel request, final ServiceCallback<HistoryUpdateResponseApiModel> serviceCallback);
 
     /**
-     * Get list of sites.
-     * List all sites applications are registered in.
+     * Replace historic events.
+     * Replace historic events using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param continuationToken Optional Continuation
-                 token
-     * @param pageSize Optional number of results to
-                 return
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history replace request
      * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the ApplicationSiteListApiModel object
+     * @return the observable to the HistoryUpdateResponseApiModel object
      */
-    Observable<ApplicationSiteListApiModel> getListOfSitesAsync(String continuationToken, Integer pageSize);
+    Observable<HistoryUpdateResponseApiModel> historyReplaceEventsAsync(String endpointId, HistoryUpdateRequestApiModelReplaceEventsDetailsApiModel request);
 
     /**
-     * Get list of sites.
-     * List all sites applications are registered in.
+     * Replace historic events.
+     * Replace historic events using historic access.
+     The endpoint must be activated and connected and the module client
+     and server must trust each other.
      *
-     * @param continuationToken Optional Continuation
-                 token
-     * @param pageSize Optional number of results to
-                 return
+     * @param endpointId The identifier of the activated endpoint.
+     * @param request The history replace request
      * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the ApplicationSiteListApiModel object
+     * @return the observable to the HistoryUpdateResponseApiModel object
      */
-    Observable<ServiceResponse<ApplicationSiteListApiModel>> getListOfSitesWithServiceResponseAsync(String continuationToken, Integer pageSize);
-
-    /**
-     * Get filtered list of applications.
-     * Get a list of applications filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfApplications operation using the token to retrieve
-     more results.
-     *
-     * @param query Applications Query model
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the ApplicationInfoListApiModel object if successful.
-     */
-    ApplicationInfoListApiModel getFilteredListOfApplications(ApplicationRegistrationQueryApiModel query);
-
-    /**
-     * Get filtered list of applications.
-     * Get a list of applications filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfApplications operation using the token to retrieve
-     more results.
-     *
-     * @param query Applications Query model
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    ServiceFuture<ApplicationInfoListApiModel> getFilteredListOfApplicationsAsync(ApplicationRegistrationQueryApiModel query, final ServiceCallback<ApplicationInfoListApiModel> serviceCallback);
-
-    /**
-     * Get filtered list of applications.
-     * Get a list of applications filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfApplications operation using the token to retrieve
-     more results.
-     *
-     * @param query Applications Query model
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the ApplicationInfoListApiModel object
-     */
-    Observable<ApplicationInfoListApiModel> getFilteredListOfApplicationsAsync(ApplicationRegistrationQueryApiModel query);
-
-    /**
-     * Get filtered list of applications.
-     * Get a list of applications filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfApplications operation using the token to retrieve
-     more results.
-     *
-     * @param query Applications Query model
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the ApplicationInfoListApiModel object
-     */
-    Observable<ServiceResponse<ApplicationInfoListApiModel>> getFilteredListOfApplicationsWithServiceResponseAsync(ApplicationRegistrationQueryApiModel query);
-    /**
-     * Get filtered list of applications.
-     * Get a list of applications filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfApplications operation using the token to retrieve
-     more results.
-     *
-     * @param query Applications Query model
-     * @param pageSize Number of results to return
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the ApplicationInfoListApiModel object if successful.
-     */
-    ApplicationInfoListApiModel getFilteredListOfApplications(ApplicationRegistrationQueryApiModel query, Integer pageSize);
-
-    /**
-     * Get filtered list of applications.
-     * Get a list of applications filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfApplications operation using the token to retrieve
-     more results.
-     *
-     * @param query Applications Query model
-     * @param pageSize Number of results to return
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    ServiceFuture<ApplicationInfoListApiModel> getFilteredListOfApplicationsAsync(ApplicationRegistrationQueryApiModel query, Integer pageSize, final ServiceCallback<ApplicationInfoListApiModel> serviceCallback);
-
-    /**
-     * Get filtered list of applications.
-     * Get a list of applications filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfApplications operation using the token to retrieve
-     more results.
-     *
-     * @param query Applications Query model
-     * @param pageSize Number of results to return
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the ApplicationInfoListApiModel object
-     */
-    Observable<ApplicationInfoListApiModel> getFilteredListOfApplicationsAsync(ApplicationRegistrationQueryApiModel query, Integer pageSize);
-
-    /**
-     * Get filtered list of applications.
-     * Get a list of applications filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfApplications operation using the token to retrieve
-     more results.
-     *
-     * @param query Applications Query model
-     * @param pageSize Number of results to return
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the ApplicationInfoListApiModel object
-     */
-    Observable<ServiceResponse<ApplicationInfoListApiModel>> getFilteredListOfApplicationsWithServiceResponseAsync(ApplicationRegistrationQueryApiModel query, Integer pageSize);
-
-    /**
-     * Query applications.
-     * List applications that match a query model.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfApplications operation using the token to retrieve
-     more results.
-     *
-     * @param query Application query
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the ApplicationInfoListApiModel object if successful.
-     */
-    ApplicationInfoListApiModel queryApplications(ApplicationRegistrationQueryApiModel query);
-
-    /**
-     * Query applications.
-     * List applications that match a query model.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfApplications operation using the token to retrieve
-     more results.
-     *
-     * @param query Application query
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    ServiceFuture<ApplicationInfoListApiModel> queryApplicationsAsync(ApplicationRegistrationQueryApiModel query, final ServiceCallback<ApplicationInfoListApiModel> serviceCallback);
-
-    /**
-     * Query applications.
-     * List applications that match a query model.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfApplications operation using the token to retrieve
-     more results.
-     *
-     * @param query Application query
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the ApplicationInfoListApiModel object
-     */
-    Observable<ApplicationInfoListApiModel> queryApplicationsAsync(ApplicationRegistrationQueryApiModel query);
-
-    /**
-     * Query applications.
-     * List applications that match a query model.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfApplications operation using the token to retrieve
-     more results.
-     *
-     * @param query Application query
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the ApplicationInfoListApiModel object
-     */
-    Observable<ServiceResponse<ApplicationInfoListApiModel>> queryApplicationsWithServiceResponseAsync(ApplicationRegistrationQueryApiModel query);
-    /**
-     * Query applications.
-     * List applications that match a query model.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfApplications operation using the token to retrieve
-     more results.
-     *
-     * @param query Application query
-     * @param pageSize Optional number of results to
-                 return
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the ApplicationInfoListApiModel object if successful.
-     */
-    ApplicationInfoListApiModel queryApplications(ApplicationRegistrationQueryApiModel query, Integer pageSize);
-
-    /**
-     * Query applications.
-     * List applications that match a query model.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfApplications operation using the token to retrieve
-     more results.
-     *
-     * @param query Application query
-     * @param pageSize Optional number of results to
-                 return
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    ServiceFuture<ApplicationInfoListApiModel> queryApplicationsAsync(ApplicationRegistrationQueryApiModel query, Integer pageSize, final ServiceCallback<ApplicationInfoListApiModel> serviceCallback);
-
-    /**
-     * Query applications.
-     * List applications that match a query model.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfApplications operation using the token to retrieve
-     more results.
-     *
-     * @param query Application query
-     * @param pageSize Optional number of results to
-                 return
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the ApplicationInfoListApiModel object
-     */
-    Observable<ApplicationInfoListApiModel> queryApplicationsAsync(ApplicationRegistrationQueryApiModel query, Integer pageSize);
-
-    /**
-     * Query applications.
-     * List applications that match a query model.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfApplications operation using the token to retrieve
-     more results.
-     *
-     * @param query Application query
-     * @param pageSize Optional number of results to
-                 return
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the ApplicationInfoListApiModel object
-     */
-    Observable<ServiceResponse<ApplicationInfoListApiModel>> queryApplicationsWithServiceResponseAsync(ApplicationRegistrationQueryApiModel query, Integer pageSize);
-
-    /**
-     * Query applications by id.
-     * A query model which supports the OPC UA Global Discovery Server query.
-     *
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the ApplicationRecordListApiModel object if successful.
-     */
-    ApplicationRecordListApiModel queryApplicationsById();
-
-    /**
-     * Query applications by id.
-     * A query model which supports the OPC UA Global Discovery Server query.
-     *
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    ServiceFuture<ApplicationRecordListApiModel> queryApplicationsByIdAsync(final ServiceCallback<ApplicationRecordListApiModel> serviceCallback);
-
-    /**
-     * Query applications by id.
-     * A query model which supports the OPC UA Global Discovery Server query.
-     *
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the ApplicationRecordListApiModel object
-     */
-    Observable<ApplicationRecordListApiModel> queryApplicationsByIdAsync();
-
-    /**
-     * Query applications by id.
-     * A query model which supports the OPC UA Global Discovery Server query.
-     *
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the ApplicationRecordListApiModel object
-     */
-    Observable<ServiceResponse<ApplicationRecordListApiModel>> queryApplicationsByIdWithServiceResponseAsync();
-    /**
-     * Query applications by id.
-     * A query model which supports the OPC UA Global Discovery Server query.
-     *
-     * @param query the ApplicationRecordQueryApiModel value
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the ApplicationRecordListApiModel object if successful.
-     */
-    ApplicationRecordListApiModel queryApplicationsById(ApplicationRecordQueryApiModel query);
-
-    /**
-     * Query applications by id.
-     * A query model which supports the OPC UA Global Discovery Server query.
-     *
-     * @param query the ApplicationRecordQueryApiModel value
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    ServiceFuture<ApplicationRecordListApiModel> queryApplicationsByIdAsync(ApplicationRecordQueryApiModel query, final ServiceCallback<ApplicationRecordListApiModel> serviceCallback);
-
-    /**
-     * Query applications by id.
-     * A query model which supports the OPC UA Global Discovery Server query.
-     *
-     * @param query the ApplicationRecordQueryApiModel value
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the ApplicationRecordListApiModel object
-     */
-    Observable<ApplicationRecordListApiModel> queryApplicationsByIdAsync(ApplicationRecordQueryApiModel query);
-
-    /**
-     * Query applications by id.
-     * A query model which supports the OPC UA Global Discovery Server query.
-     *
-     * @param query the ApplicationRecordQueryApiModel value
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the ApplicationRecordListApiModel object
-     */
-    Observable<ServiceResponse<ApplicationRecordListApiModel>> queryApplicationsByIdWithServiceResponseAsync(ApplicationRecordQueryApiModel query);
-
-    /**
-     * Activate endpoint.
-     * Activates an endpoint for subsequent use in twin service.
-     All endpoints must be activated using this API or through a
-     activation filter during application registration or discovery.
-     *
-     * @param endpointId endpoint identifier
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     */
-    void activateEndpoint(String endpointId);
-
-    /**
-     * Activate endpoint.
-     * Activates an endpoint for subsequent use in twin service.
-     All endpoints must be activated using this API or through a
-     activation filter during application registration or discovery.
-     *
-     * @param endpointId endpoint identifier
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    ServiceFuture<Void> activateEndpointAsync(String endpointId, final ServiceCallback<Void> serviceCallback);
-
-    /**
-     * Activate endpoint.
-     * Activates an endpoint for subsequent use in twin service.
-     All endpoints must be activated using this API or through a
-     activation filter during application registration or discovery.
-     *
-     * @param endpointId endpoint identifier
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceResponse} object if successful.
-     */
-    Observable<Void> activateEndpointAsync(String endpointId);
-
-    /**
-     * Activate endpoint.
-     * Activates an endpoint for subsequent use in twin service.
-     All endpoints must be activated using this API or through a
-     activation filter during application registration or discovery.
-     *
-     * @param endpointId endpoint identifier
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceResponse} object if successful.
-     */
-    Observable<ServiceResponse<Void>> activateEndpointWithServiceResponseAsync(String endpointId);
-
-    /**
-     * Get endpoint information.
-     * Gets information about an endpoint.
-     *
-     * @param endpointId endpoint identifier
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the EndpointInfoApiModel object if successful.
-     */
-    EndpointInfoApiModel getEndpoint(String endpointId);
-
-    /**
-     * Get endpoint information.
-     * Gets information about an endpoint.
-     *
-     * @param endpointId endpoint identifier
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    ServiceFuture<EndpointInfoApiModel> getEndpointAsync(String endpointId, final ServiceCallback<EndpointInfoApiModel> serviceCallback);
-
-    /**
-     * Get endpoint information.
-     * Gets information about an endpoint.
-     *
-     * @param endpointId endpoint identifier
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the EndpointInfoApiModel object
-     */
-    Observable<EndpointInfoApiModel> getEndpointAsync(String endpointId);
-
-    /**
-     * Get endpoint information.
-     * Gets information about an endpoint.
-     *
-     * @param endpointId endpoint identifier
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the EndpointInfoApiModel object
-     */
-    Observable<ServiceResponse<EndpointInfoApiModel>> getEndpointWithServiceResponseAsync(String endpointId);
-    /**
-     * Get endpoint information.
-     * Gets information about an endpoint.
-     *
-     * @param endpointId endpoint identifier
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if
-                 available
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the EndpointInfoApiModel object if successful.
-     */
-    EndpointInfoApiModel getEndpoint(String endpointId, Boolean onlyServerState);
-
-    /**
-     * Get endpoint information.
-     * Gets information about an endpoint.
-     *
-     * @param endpointId endpoint identifier
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if
-                 available
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    ServiceFuture<EndpointInfoApiModel> getEndpointAsync(String endpointId, Boolean onlyServerState, final ServiceCallback<EndpointInfoApiModel> serviceCallback);
-
-    /**
-     * Get endpoint information.
-     * Gets information about an endpoint.
-     *
-     * @param endpointId endpoint identifier
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if
-                 available
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the EndpointInfoApiModel object
-     */
-    Observable<EndpointInfoApiModel> getEndpointAsync(String endpointId, Boolean onlyServerState);
-
-    /**
-     * Get endpoint information.
-     * Gets information about an endpoint.
-     *
-     * @param endpointId endpoint identifier
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if
-                 available
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the EndpointInfoApiModel object
-     */
-    Observable<ServiceResponse<EndpointInfoApiModel>> getEndpointWithServiceResponseAsync(String endpointId, Boolean onlyServerState);
-
-    /**
-     * Update endpoint information.
-     *
-     * @param endpointId endpoint identifier
-     * @param request Endpoint update request
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     */
-    void updateEndpoint(String endpointId, EndpointRegistrationUpdateApiModel request);
-
-    /**
-     * Update endpoint information.
-     *
-     * @param endpointId endpoint identifier
-     * @param request Endpoint update request
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    ServiceFuture<Void> updateEndpointAsync(String endpointId, EndpointRegistrationUpdateApiModel request, final ServiceCallback<Void> serviceCallback);
-
-    /**
-     * Update endpoint information.
-     *
-     * @param endpointId endpoint identifier
-     * @param request Endpoint update request
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceResponse} object if successful.
-     */
-    Observable<Void> updateEndpointAsync(String endpointId, EndpointRegistrationUpdateApiModel request);
-
-    /**
-     * Update endpoint information.
-     *
-     * @param endpointId endpoint identifier
-     * @param request Endpoint update request
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceResponse} object if successful.
-     */
-    Observable<ServiceResponse<Void>> updateEndpointWithServiceResponseAsync(String endpointId, EndpointRegistrationUpdateApiModel request);
-
-    /**
-     * Get list of endpoints.
-     * Get all registered endpoints in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
-     *
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the EndpointInfoListApiModel object if successful.
-     */
-    EndpointInfoListApiModel getListOfEndpoints();
-
-    /**
-     * Get list of endpoints.
-     * Get all registered endpoints in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
-     *
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    ServiceFuture<EndpointInfoListApiModel> getListOfEndpointsAsync(final ServiceCallback<EndpointInfoListApiModel> serviceCallback);
-
-    /**
-     * Get list of endpoints.
-     * Get all registered endpoints in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
-     *
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the EndpointInfoListApiModel object
-     */
-    Observable<EndpointInfoListApiModel> getListOfEndpointsAsync();
-
-    /**
-     * Get list of endpoints.
-     * Get all registered endpoints in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
-     *
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the EndpointInfoListApiModel object
-     */
-    Observable<ServiceResponse<EndpointInfoListApiModel>> getListOfEndpointsWithServiceResponseAsync();
-    /**
-     * Get list of endpoints.
-     * Get all registered endpoints in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
-     *
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if available
-     * @param continuationToken Optional Continuation token
-     * @param pageSize Optional number of results to return
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the EndpointInfoListApiModel object if successful.
-     */
-    EndpointInfoListApiModel getListOfEndpoints(Boolean onlyServerState, String continuationToken, Integer pageSize);
-
-    /**
-     * Get list of endpoints.
-     * Get all registered endpoints in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
-     *
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if available
-     * @param continuationToken Optional Continuation token
-     * @param pageSize Optional number of results to return
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    ServiceFuture<EndpointInfoListApiModel> getListOfEndpointsAsync(Boolean onlyServerState, String continuationToken, Integer pageSize, final ServiceCallback<EndpointInfoListApiModel> serviceCallback);
-
-    /**
-     * Get list of endpoints.
-     * Get all registered endpoints in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
-     *
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if available
-     * @param continuationToken Optional Continuation token
-     * @param pageSize Optional number of results to return
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the EndpointInfoListApiModel object
-     */
-    Observable<EndpointInfoListApiModel> getListOfEndpointsAsync(Boolean onlyServerState, String continuationToken, Integer pageSize);
-
-    /**
-     * Get list of endpoints.
-     * Get all registered endpoints in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
-     *
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if available
-     * @param continuationToken Optional Continuation token
-     * @param pageSize Optional number of results to return
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the EndpointInfoListApiModel object
-     */
-    Observable<ServiceResponse<EndpointInfoListApiModel>> getListOfEndpointsWithServiceResponseAsync(Boolean onlyServerState, String continuationToken, Integer pageSize);
-
-    /**
-     * Get filtered list of endpoints.
-     * Get a list of endpoints filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfEndpoints operation using the token to retrieve
-     more results.
-     *
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the EndpointInfoListApiModel object if successful.
-     */
-    EndpointInfoListApiModel getFilteredListOfEndpoints();
-
-    /**
-     * Get filtered list of endpoints.
-     * Get a list of endpoints filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfEndpoints operation using the token to retrieve
-     more results.
-     *
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    ServiceFuture<EndpointInfoListApiModel> getFilteredListOfEndpointsAsync(final ServiceCallback<EndpointInfoListApiModel> serviceCallback);
-
-    /**
-     * Get filtered list of endpoints.
-     * Get a list of endpoints filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfEndpoints operation using the token to retrieve
-     more results.
-     *
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the EndpointInfoListApiModel object
-     */
-    Observable<EndpointInfoListApiModel> getFilteredListOfEndpointsAsync();
-
-    /**
-     * Get filtered list of endpoints.
-     * Get a list of endpoints filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfEndpoints operation using the token to retrieve
-     more results.
-     *
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the EndpointInfoListApiModel object
-     */
-    Observable<ServiceResponse<EndpointInfoListApiModel>> getFilteredListOfEndpointsWithServiceResponseAsync();
-    /**
-     * Get filtered list of endpoints.
-     * Get a list of endpoints filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfEndpoints operation using the token to retrieve
-     more results.
-     *
-     * @param url Endoint url for direct server access
-     * @param userAuthentication Type of credential selected for authentication. Possible values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
-     * @param certificate Certificate of the endpoint
-     * @param securityMode Security Mode. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
-     * @param securityPolicy Security policy uri
-     * @param activated Whether the endpoint was activated
-     * @param connected Whether the endpoint is connected on supervisor.
-     * @param endpointState The last state of the the activated endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
-     * @param includeNotSeenSince Whether to include endpoints that were soft deleted
-     * @param onlyServerState Whether to include only server state, or display
-                 current client state of the endpoint if available
-     * @param pageSize Optional number of results to
-                 return
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the EndpointInfoListApiModel object if successful.
-     */
-    EndpointInfoListApiModel getFilteredListOfEndpoints(String url, String userAuthentication, byte[] certificate, String securityMode, String securityPolicy, Boolean activated, Boolean connected, String endpointState, Boolean includeNotSeenSince, Boolean onlyServerState, Integer pageSize);
-
-    /**
-     * Get filtered list of endpoints.
-     * Get a list of endpoints filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfEndpoints operation using the token to retrieve
-     more results.
-     *
-     * @param url Endoint url for direct server access
-     * @param userAuthentication Type of credential selected for authentication. Possible values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
-     * @param certificate Certificate of the endpoint
-     * @param securityMode Security Mode. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
-     * @param securityPolicy Security policy uri
-     * @param activated Whether the endpoint was activated
-     * @param connected Whether the endpoint is connected on supervisor.
-     * @param endpointState The last state of the the activated endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
-     * @param includeNotSeenSince Whether to include endpoints that were soft deleted
-     * @param onlyServerState Whether to include only server state, or display
-                 current client state of the endpoint if available
-     * @param pageSize Optional number of results to
-                 return
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    ServiceFuture<EndpointInfoListApiModel> getFilteredListOfEndpointsAsync(String url, String userAuthentication, byte[] certificate, String securityMode, String securityPolicy, Boolean activated, Boolean connected, String endpointState, Boolean includeNotSeenSince, Boolean onlyServerState, Integer pageSize, final ServiceCallback<EndpointInfoListApiModel> serviceCallback);
-
-    /**
-     * Get filtered list of endpoints.
-     * Get a list of endpoints filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfEndpoints operation using the token to retrieve
-     more results.
-     *
-     * @param url Endoint url for direct server access
-     * @param userAuthentication Type of credential selected for authentication. Possible values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
-     * @param certificate Certificate of the endpoint
-     * @param securityMode Security Mode. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
-     * @param securityPolicy Security policy uri
-     * @param activated Whether the endpoint was activated
-     * @param connected Whether the endpoint is connected on supervisor.
-     * @param endpointState The last state of the the activated endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
-     * @param includeNotSeenSince Whether to include endpoints that were soft deleted
-     * @param onlyServerState Whether to include only server state, or display
-                 current client state of the endpoint if available
-     * @param pageSize Optional number of results to
-                 return
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the EndpointInfoListApiModel object
-     */
-    Observable<EndpointInfoListApiModel> getFilteredListOfEndpointsAsync(String url, String userAuthentication, byte[] certificate, String securityMode, String securityPolicy, Boolean activated, Boolean connected, String endpointState, Boolean includeNotSeenSince, Boolean onlyServerState, Integer pageSize);
-
-    /**
-     * Get filtered list of endpoints.
-     * Get a list of endpoints filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfEndpoints operation using the token to retrieve
-     more results.
-     *
-     * @param url Endoint url for direct server access
-     * @param userAuthentication Type of credential selected for authentication. Possible values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
-     * @param certificate Certificate of the endpoint
-     * @param securityMode Security Mode. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
-     * @param securityPolicy Security policy uri
-     * @param activated Whether the endpoint was activated
-     * @param connected Whether the endpoint is connected on supervisor.
-     * @param endpointState The last state of the the activated endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
-     * @param includeNotSeenSince Whether to include endpoints that were soft deleted
-     * @param onlyServerState Whether to include only server state, or display
-                 current client state of the endpoint if available
-     * @param pageSize Optional number of results to
-                 return
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the EndpointInfoListApiModel object
-     */
-    Observable<ServiceResponse<EndpointInfoListApiModel>> getFilteredListOfEndpointsWithServiceResponseAsync(String url, String userAuthentication, byte[] certificate, String securityMode, String securityPolicy, Boolean activated, Boolean connected, String endpointState, Boolean includeNotSeenSince, Boolean onlyServerState, Integer pageSize);
-
-    /**
-     * Query endpoints.
-     * Return endpoints that match the specified query.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfEndpoints operation using the token to retrieve
-     more results.
-     *
-     * @param query Query to match
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the EndpointInfoListApiModel object if successful.
-     */
-    EndpointInfoListApiModel queryEndpoints(EndpointRegistrationQueryApiModel query);
-
-    /**
-     * Query endpoints.
-     * Return endpoints that match the specified query.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfEndpoints operation using the token to retrieve
-     more results.
-     *
-     * @param query Query to match
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    ServiceFuture<EndpointInfoListApiModel> queryEndpointsAsync(EndpointRegistrationQueryApiModel query, final ServiceCallback<EndpointInfoListApiModel> serviceCallback);
-
-    /**
-     * Query endpoints.
-     * Return endpoints that match the specified query.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfEndpoints operation using the token to retrieve
-     more results.
-     *
-     * @param query Query to match
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the EndpointInfoListApiModel object
-     */
-    Observable<EndpointInfoListApiModel> queryEndpointsAsync(EndpointRegistrationQueryApiModel query);
-
-    /**
-     * Query endpoints.
-     * Return endpoints that match the specified query.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfEndpoints operation using the token to retrieve
-     more results.
-     *
-     * @param query Query to match
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the EndpointInfoListApiModel object
-     */
-    Observable<ServiceResponse<EndpointInfoListApiModel>> queryEndpointsWithServiceResponseAsync(EndpointRegistrationQueryApiModel query);
-    /**
-     * Query endpoints.
-     * Return endpoints that match the specified query.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfEndpoints operation using the token to retrieve
-     more results.
-     *
-     * @param query Query to match
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if available
-     * @param pageSize Optional number of results to return
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the EndpointInfoListApiModel object if successful.
-     */
-    EndpointInfoListApiModel queryEndpoints(EndpointRegistrationQueryApiModel query, Boolean onlyServerState, Integer pageSize);
-
-    /**
-     * Query endpoints.
-     * Return endpoints that match the specified query.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfEndpoints operation using the token to retrieve
-     more results.
-     *
-     * @param query Query to match
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if available
-     * @param pageSize Optional number of results to return
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    ServiceFuture<EndpointInfoListApiModel> queryEndpointsAsync(EndpointRegistrationQueryApiModel query, Boolean onlyServerState, Integer pageSize, final ServiceCallback<EndpointInfoListApiModel> serviceCallback);
-
-    /**
-     * Query endpoints.
-     * Return endpoints that match the specified query.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfEndpoints operation using the token to retrieve
-     more results.
-     *
-     * @param query Query to match
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if available
-     * @param pageSize Optional number of results to return
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the EndpointInfoListApiModel object
-     */
-    Observable<EndpointInfoListApiModel> queryEndpointsAsync(EndpointRegistrationQueryApiModel query, Boolean onlyServerState, Integer pageSize);
-
-    /**
-     * Query endpoints.
-     * Return endpoints that match the specified query.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfEndpoints operation using the token to retrieve
-     more results.
-     *
-     * @param query Query to match
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if available
-     * @param pageSize Optional number of results to return
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the EndpointInfoListApiModel object
-     */
-    Observable<ServiceResponse<EndpointInfoListApiModel>> queryEndpointsWithServiceResponseAsync(EndpointRegistrationQueryApiModel query, Boolean onlyServerState, Integer pageSize);
-
-    /**
-     * Deactivate endpoint.
-     * Deactivates the endpoint and disable access through twin service.
-     *
-     * @param endpointId endpoint identifier
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     */
-    void deactivateEndpoint(String endpointId);
-
-    /**
-     * Deactivate endpoint.
-     * Deactivates the endpoint and disable access through twin service.
-     *
-     * @param endpointId endpoint identifier
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    ServiceFuture<Void> deactivateEndpointAsync(String endpointId, final ServiceCallback<Void> serviceCallback);
-
-    /**
-     * Deactivate endpoint.
-     * Deactivates the endpoint and disable access through twin service.
-     *
-     * @param endpointId endpoint identifier
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceResponse} object if successful.
-     */
-    Observable<Void> deactivateEndpointAsync(String endpointId);
-
-    /**
-     * Deactivate endpoint.
-     * Deactivates the endpoint and disable access through twin service.
-     *
-     * @param endpointId endpoint identifier
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceResponse} object if successful.
-     */
-    Observable<ServiceResponse<Void>> deactivateEndpointWithServiceResponseAsync(String endpointId);
+    Observable<ServiceResponse<HistoryUpdateResponseApiModel>> historyReplaceEventsWithServiceResponseAsync(String endpointId, HistoryUpdateRequestApiModelReplaceEventsDetailsApiModel request);
 
     /**
      * Return the service status in the form of the service status
@@ -1939,636 +1086,5 @@ public interface AzureOpcHistoryClient {
      * @return the observable to the StatusResponseApiModel object
      */
     Observable<ServiceResponse<StatusResponseApiModel>> getStatusWithServiceResponseAsync();
-
-    /**
-     * Get supervisor registration information.
-     * Returns a supervisor's registration and connectivity information.
-     A supervisor id corresponds to the twin modules module identity.
-     *
-     * @param supervisorId Supervisor identifier
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the SupervisorApiModel object if successful.
-     */
-    SupervisorApiModel getSupervisor(String supervisorId);
-
-    /**
-     * Get supervisor registration information.
-     * Returns a supervisor's registration and connectivity information.
-     A supervisor id corresponds to the twin modules module identity.
-     *
-     * @param supervisorId Supervisor identifier
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    ServiceFuture<SupervisorApiModel> getSupervisorAsync(String supervisorId, final ServiceCallback<SupervisorApiModel> serviceCallback);
-
-    /**
-     * Get supervisor registration information.
-     * Returns a supervisor's registration and connectivity information.
-     A supervisor id corresponds to the twin modules module identity.
-     *
-     * @param supervisorId Supervisor identifier
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the SupervisorApiModel object
-     */
-    Observable<SupervisorApiModel> getSupervisorAsync(String supervisorId);
-
-    /**
-     * Get supervisor registration information.
-     * Returns a supervisor's registration and connectivity information.
-     A supervisor id corresponds to the twin modules module identity.
-     *
-     * @param supervisorId Supervisor identifier
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the SupervisorApiModel object
-     */
-    Observable<ServiceResponse<SupervisorApiModel>> getSupervisorWithServiceResponseAsync(String supervisorId);
-    /**
-     * Get supervisor registration information.
-     * Returns a supervisor's registration and connectivity information.
-     A supervisor id corresponds to the twin modules module identity.
-     *
-     * @param supervisorId Supervisor identifier
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if
-                 available
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the SupervisorApiModel object if successful.
-     */
-    SupervisorApiModel getSupervisor(String supervisorId, Boolean onlyServerState);
-
-    /**
-     * Get supervisor registration information.
-     * Returns a supervisor's registration and connectivity information.
-     A supervisor id corresponds to the twin modules module identity.
-     *
-     * @param supervisorId Supervisor identifier
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if
-                 available
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    ServiceFuture<SupervisorApiModel> getSupervisorAsync(String supervisorId, Boolean onlyServerState, final ServiceCallback<SupervisorApiModel> serviceCallback);
-
-    /**
-     * Get supervisor registration information.
-     * Returns a supervisor's registration and connectivity information.
-     A supervisor id corresponds to the twin modules module identity.
-     *
-     * @param supervisorId Supervisor identifier
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if
-                 available
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the SupervisorApiModel object
-     */
-    Observable<SupervisorApiModel> getSupervisorAsync(String supervisorId, Boolean onlyServerState);
-
-    /**
-     * Get supervisor registration information.
-     * Returns a supervisor's registration and connectivity information.
-     A supervisor id corresponds to the twin modules module identity.
-     *
-     * @param supervisorId Supervisor identifier
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if
-                 available
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the SupervisorApiModel object
-     */
-    Observable<ServiceResponse<SupervisorApiModel>> getSupervisorWithServiceResponseAsync(String supervisorId, Boolean onlyServerState);
-
-    /**
-     * Update supervisor information.
-     * Allows a caller to configure recurring discovery runs on the twin module
-     identified by the supervisor id or update site information.
-     *
-     * @param supervisorId supervisor identifier
-     * @param request Patch request
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     */
-    void updateSupervisor(String supervisorId, SupervisorUpdateApiModel request);
-
-    /**
-     * Update supervisor information.
-     * Allows a caller to configure recurring discovery runs on the twin module
-     identified by the supervisor id or update site information.
-     *
-     * @param supervisorId supervisor identifier
-     * @param request Patch request
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    ServiceFuture<Void> updateSupervisorAsync(String supervisorId, SupervisorUpdateApiModel request, final ServiceCallback<Void> serviceCallback);
-
-    /**
-     * Update supervisor information.
-     * Allows a caller to configure recurring discovery runs on the twin module
-     identified by the supervisor id or update site information.
-     *
-     * @param supervisorId supervisor identifier
-     * @param request Patch request
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceResponse} object if successful.
-     */
-    Observable<Void> updateSupervisorAsync(String supervisorId, SupervisorUpdateApiModel request);
-
-    /**
-     * Update supervisor information.
-     * Allows a caller to configure recurring discovery runs on the twin module
-     identified by the supervisor id or update site information.
-     *
-     * @param supervisorId supervisor identifier
-     * @param request Patch request
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceResponse} object if successful.
-     */
-    Observable<ServiceResponse<Void>> updateSupervisorWithServiceResponseAsync(String supervisorId, SupervisorUpdateApiModel request);
-
-    /**
-     * Get runtime status of supervisor.
-     * Allows a caller to get runtime status for a supervisor.
-     *
-     * @param supervisorId supervisor identifier
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the SupervisorStatusApiModel object if successful.
-     */
-    SupervisorStatusApiModel getSupervisorStatus(String supervisorId);
-
-    /**
-     * Get runtime status of supervisor.
-     * Allows a caller to get runtime status for a supervisor.
-     *
-     * @param supervisorId supervisor identifier
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    ServiceFuture<SupervisorStatusApiModel> getSupervisorStatusAsync(String supervisorId, final ServiceCallback<SupervisorStatusApiModel> serviceCallback);
-
-    /**
-     * Get runtime status of supervisor.
-     * Allows a caller to get runtime status for a supervisor.
-     *
-     * @param supervisorId supervisor identifier
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the SupervisorStatusApiModel object
-     */
-    Observable<SupervisorStatusApiModel> getSupervisorStatusAsync(String supervisorId);
-
-    /**
-     * Get runtime status of supervisor.
-     * Allows a caller to get runtime status for a supervisor.
-     *
-     * @param supervisorId supervisor identifier
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the SupervisorStatusApiModel object
-     */
-    Observable<ServiceResponse<SupervisorStatusApiModel>> getSupervisorStatusWithServiceResponseAsync(String supervisorId);
-
-    /**
-     * Reset supervisor.
-     * Allows a caller to reset the twin module using its supervisor
-     identity identifier.
-     *
-     * @param supervisorId supervisor identifier
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     */
-    void resetSupervisor(String supervisorId);
-
-    /**
-     * Reset supervisor.
-     * Allows a caller to reset the twin module using its supervisor
-     identity identifier.
-     *
-     * @param supervisorId supervisor identifier
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    ServiceFuture<Void> resetSupervisorAsync(String supervisorId, final ServiceCallback<Void> serviceCallback);
-
-    /**
-     * Reset supervisor.
-     * Allows a caller to reset the twin module using its supervisor
-     identity identifier.
-     *
-     * @param supervisorId supervisor identifier
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceResponse} object if successful.
-     */
-    Observable<Void> resetSupervisorAsync(String supervisorId);
-
-    /**
-     * Reset supervisor.
-     * Allows a caller to reset the twin module using its supervisor
-     identity identifier.
-     *
-     * @param supervisorId supervisor identifier
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceResponse} object if successful.
-     */
-    Observable<ServiceResponse<Void>> resetSupervisorWithServiceResponseAsync(String supervisorId);
-
-    /**
-     * Get list of supervisors.
-     * Get all registered supervisors and therefore twin modules in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
-     *
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the SupervisorListApiModel object if successful.
-     */
-    SupervisorListApiModel getListOfSupervisors();
-
-    /**
-     * Get list of supervisors.
-     * Get all registered supervisors and therefore twin modules in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
-     *
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    ServiceFuture<SupervisorListApiModel> getListOfSupervisorsAsync(final ServiceCallback<SupervisorListApiModel> serviceCallback);
-
-    /**
-     * Get list of supervisors.
-     * Get all registered supervisors and therefore twin modules in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
-     *
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the SupervisorListApiModel object
-     */
-    Observable<SupervisorListApiModel> getListOfSupervisorsAsync();
-
-    /**
-     * Get list of supervisors.
-     * Get all registered supervisors and therefore twin modules in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
-     *
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the SupervisorListApiModel object
-     */
-    Observable<ServiceResponse<SupervisorListApiModel>> getListOfSupervisorsWithServiceResponseAsync();
-    /**
-     * Get list of supervisors.
-     * Get all registered supervisors and therefore twin modules in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
-     *
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if available
-     * @param continuationToken Optional Continuation token
-     * @param pageSize Optional number of results to return
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the SupervisorListApiModel object if successful.
-     */
-    SupervisorListApiModel getListOfSupervisors(Boolean onlyServerState, String continuationToken, Integer pageSize);
-
-    /**
-     * Get list of supervisors.
-     * Get all registered supervisors and therefore twin modules in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
-     *
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if available
-     * @param continuationToken Optional Continuation token
-     * @param pageSize Optional number of results to return
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    ServiceFuture<SupervisorListApiModel> getListOfSupervisorsAsync(Boolean onlyServerState, String continuationToken, Integer pageSize, final ServiceCallback<SupervisorListApiModel> serviceCallback);
-
-    /**
-     * Get list of supervisors.
-     * Get all registered supervisors and therefore twin modules in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
-     *
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if available
-     * @param continuationToken Optional Continuation token
-     * @param pageSize Optional number of results to return
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the SupervisorListApiModel object
-     */
-    Observable<SupervisorListApiModel> getListOfSupervisorsAsync(Boolean onlyServerState, String continuationToken, Integer pageSize);
-
-    /**
-     * Get list of supervisors.
-     * Get all registered supervisors and therefore twin modules in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
-     *
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if available
-     * @param continuationToken Optional Continuation token
-     * @param pageSize Optional number of results to return
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the SupervisorListApiModel object
-     */
-    Observable<ServiceResponse<SupervisorListApiModel>> getListOfSupervisorsWithServiceResponseAsync(Boolean onlyServerState, String continuationToken, Integer pageSize);
-
-    /**
-     * Get filtered list of supervisors.
-     * Get a list of supervisors filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfSupervisors operation using the token to retrieve
-     more results.
-     *
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the SupervisorListApiModel object if successful.
-     */
-    SupervisorListApiModel getFilteredListOfSupervisors();
-
-    /**
-     * Get filtered list of supervisors.
-     * Get a list of supervisors filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfSupervisors operation using the token to retrieve
-     more results.
-     *
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    ServiceFuture<SupervisorListApiModel> getFilteredListOfSupervisorsAsync(final ServiceCallback<SupervisorListApiModel> serviceCallback);
-
-    /**
-     * Get filtered list of supervisors.
-     * Get a list of supervisors filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfSupervisors operation using the token to retrieve
-     more results.
-     *
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the SupervisorListApiModel object
-     */
-    Observable<SupervisorListApiModel> getFilteredListOfSupervisorsAsync();
-
-    /**
-     * Get filtered list of supervisors.
-     * Get a list of supervisors filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfSupervisors operation using the token to retrieve
-     more results.
-     *
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the SupervisorListApiModel object
-     */
-    Observable<ServiceResponse<SupervisorListApiModel>> getFilteredListOfSupervisorsWithServiceResponseAsync();
-    /**
-     * Get filtered list of supervisors.
-     * Get a list of supervisors filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfSupervisors operation using the token to retrieve
-     more results.
-     *
-     * @param siteId Site of the supervisor
-     * @param discovery Discovery mode of supervisor. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
-     * @param connected Included connected or disconnected
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if
-                 available
-     * @param pageSize Number of results to return
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the SupervisorListApiModel object if successful.
-     */
-    SupervisorListApiModel getFilteredListOfSupervisors(String siteId, String discovery, Boolean connected, Boolean onlyServerState, Integer pageSize);
-
-    /**
-     * Get filtered list of supervisors.
-     * Get a list of supervisors filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfSupervisors operation using the token to retrieve
-     more results.
-     *
-     * @param siteId Site of the supervisor
-     * @param discovery Discovery mode of supervisor. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
-     * @param connected Included connected or disconnected
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if
-                 available
-     * @param pageSize Number of results to return
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    ServiceFuture<SupervisorListApiModel> getFilteredListOfSupervisorsAsync(String siteId, String discovery, Boolean connected, Boolean onlyServerState, Integer pageSize, final ServiceCallback<SupervisorListApiModel> serviceCallback);
-
-    /**
-     * Get filtered list of supervisors.
-     * Get a list of supervisors filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfSupervisors operation using the token to retrieve
-     more results.
-     *
-     * @param siteId Site of the supervisor
-     * @param discovery Discovery mode of supervisor. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
-     * @param connected Included connected or disconnected
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if
-                 available
-     * @param pageSize Number of results to return
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the SupervisorListApiModel object
-     */
-    Observable<SupervisorListApiModel> getFilteredListOfSupervisorsAsync(String siteId, String discovery, Boolean connected, Boolean onlyServerState, Integer pageSize);
-
-    /**
-     * Get filtered list of supervisors.
-     * Get a list of supervisors filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfSupervisors operation using the token to retrieve
-     more results.
-     *
-     * @param siteId Site of the supervisor
-     * @param discovery Discovery mode of supervisor. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
-     * @param connected Included connected or disconnected
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if
-                 available
-     * @param pageSize Number of results to return
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the SupervisorListApiModel object
-     */
-    Observable<ServiceResponse<SupervisorListApiModel>> getFilteredListOfSupervisorsWithServiceResponseAsync(String siteId, String discovery, Boolean connected, Boolean onlyServerState, Integer pageSize);
-
-    /**
-     * Query supervisors.
-     * Get all supervisors that match a specified query.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfSupervisors operation using the token to retrieve
-     more results.
-     *
-     * @param query Supervisors query model
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the SupervisorListApiModel object if successful.
-     */
-    SupervisorListApiModel querySupervisors(SupervisorQueryApiModel query);
-
-    /**
-     * Query supervisors.
-     * Get all supervisors that match a specified query.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfSupervisors operation using the token to retrieve
-     more results.
-     *
-     * @param query Supervisors query model
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    ServiceFuture<SupervisorListApiModel> querySupervisorsAsync(SupervisorQueryApiModel query, final ServiceCallback<SupervisorListApiModel> serviceCallback);
-
-    /**
-     * Query supervisors.
-     * Get all supervisors that match a specified query.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfSupervisors operation using the token to retrieve
-     more results.
-     *
-     * @param query Supervisors query model
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the SupervisorListApiModel object
-     */
-    Observable<SupervisorListApiModel> querySupervisorsAsync(SupervisorQueryApiModel query);
-
-    /**
-     * Query supervisors.
-     * Get all supervisors that match a specified query.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfSupervisors operation using the token to retrieve
-     more results.
-     *
-     * @param query Supervisors query model
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the SupervisorListApiModel object
-     */
-    Observable<ServiceResponse<SupervisorListApiModel>> querySupervisorsWithServiceResponseAsync(SupervisorQueryApiModel query);
-    /**
-     * Query supervisors.
-     * Get all supervisors that match a specified query.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfSupervisors operation using the token to retrieve
-     more results.
-     *
-     * @param query Supervisors query model
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if
-                 available
-     * @param pageSize Number of results to return
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the SupervisorListApiModel object if successful.
-     */
-    SupervisorListApiModel querySupervisors(SupervisorQueryApiModel query, Boolean onlyServerState, Integer pageSize);
-
-    /**
-     * Query supervisors.
-     * Get all supervisors that match a specified query.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfSupervisors operation using the token to retrieve
-     more results.
-     *
-     * @param query Supervisors query model
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if
-                 available
-     * @param pageSize Number of results to return
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    ServiceFuture<SupervisorListApiModel> querySupervisorsAsync(SupervisorQueryApiModel query, Boolean onlyServerState, Integer pageSize, final ServiceCallback<SupervisorListApiModel> serviceCallback);
-
-    /**
-     * Query supervisors.
-     * Get all supervisors that match a specified query.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfSupervisors operation using the token to retrieve
-     more results.
-     *
-     * @param query Supervisors query model
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if
-                 available
-     * @param pageSize Number of results to return
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the SupervisorListApiModel object
-     */
-    Observable<SupervisorListApiModel> querySupervisorsAsync(SupervisorQueryApiModel query, Boolean onlyServerState, Integer pageSize);
-
-    /**
-     * Query supervisors.
-     * Get all supervisors that match a specified query.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfSupervisors operation using the token to retrieve
-     more results.
-     *
-     * @param query Supervisors query model
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if
-                 available
-     * @param pageSize Number of results to return
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the SupervisorListApiModel object
-     */
-    Observable<ServiceResponse<SupervisorListApiModel>> querySupervisorsWithServiceResponseAsync(SupervisorQueryApiModel query, Boolean onlyServerState, Integer pageSize);
 
 }

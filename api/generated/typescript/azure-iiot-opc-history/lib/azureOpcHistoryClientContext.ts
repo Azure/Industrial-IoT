@@ -38,7 +38,7 @@ export class AzureOpcHistoryClientContext extends msRest.ServiceClient {
     super(credentials, options);
 
     this.baseUri = options.baseUri || this.baseUri || "http://localhost";
-    this.requestContentType = "application/json; charset=utf-8";
+    this.requestContentType = "application/json-patch+json; charset=utf-8";
     this.credentials = credentials;
 
   }
