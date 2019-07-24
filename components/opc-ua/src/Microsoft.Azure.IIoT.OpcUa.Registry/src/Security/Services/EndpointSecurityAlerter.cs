@@ -9,6 +9,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Security.Services {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Models;
+    using Microsoft.Azure.IIoT.Diagnostics;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
     using Serilog;
@@ -28,10 +29,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Security.Services {
         /// create security notification service
         /// </summary>
         /// <param name="client"></param>
+        /// <param name="metrics"></param>
         /// <param name="logger"></param>
-        public EndpointSecurityAlerter(IIoTHubTelemetryServices client, ILogger logger) {
+        public EndpointSecurityAlerter(IIoTHubTelemetryServices client,
+            IMetricLogger metrics, ILogger logger) {
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _metrics = metrics ?? throw new ArgumentNullException(nameof(metrics));
         }
 
         /// <inheritdoc/>
@@ -127,12 +131,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Security.Services {
             var mode = endpoint.Registration.Endpoint.SecurityMode ?? SecurityMode.None;
             var policy = endpoint.Registration.Endpoint.SecurityPolicy ?? "None";
 
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
             var unsecure = mode.Equals(SecurityMode.None) || policy.Contains("None");
             if (unsecure) {
                 await SendEndpointAlertAsync(endpoint, "Unsecured endpoint found.");
-            }
-            else {
-                _logger.Verbose("Endpoint is secure.");
+                _metrics.Count("endpointSecurityPolicyNone");
             }
 
             // Test endpoint certificate
@@ -140,22 +143,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Security.Services {
             if (certEncoded == null && !unsecure) {
                 await SendEndpointAlertAsync(endpoint,
                     "Secured endpoint without certificate found.");
+                _metrics.Count("endpointWithoutCertificate");
             }
             else {
                 using (var cert = new X509Certificate2(certEncoded)) {
                     if (cert.SubjectName.RawData.SequenceEqual(cert.IssuerName.RawData)) {
                         await SendEndpointAlertAsync(endpoint,
                             "Secured endpoint with self-signed certificate found.");
+                        _metrics.Count("endpointWithSelfSignedCert");
                     }
                     else if (cert.NotAfter < DateTime.UtcNow || cert.NotBefore > DateTime.UtcNow) {
                         await SendEndpointAlertAsync(endpoint,
                             "Endpoint with expired certificate found.");
+                        _metrics.Count("endpointWithExpiredCert");
                     }
                     else {
                         _logger.Verbose("Endpoint certificate is valid.");
                     }
                 }
             }
+            stopwatch.Stop();
+            _metrics.TimeIt("sendSecurityMessage", stopwatch.Elapsed.TotalMilliseconds);
         }
 
         /// <summary>
@@ -279,5 +287,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Security.Services {
 
         private readonly IIoTHubTelemetryServices _client;
         private readonly ILogger _logger;
+        private readonly IMetricLogger _metrics;
     }
 }
