@@ -8,7 +8,7 @@ The azure-iiot-components repository includes all Azure Industrial IoT component
   * [OPC Publisher module](https://github.com/Azure/iot-edge-opc-publisher)
   * [OPC Twin module](https://github.com/Azure/azure-iiot-opc-twin-module)
 * [Microservices](https://github.com/Azure/azure-iiot-services)
-  * [OPC Twin Microservices](docs/twin/readme.md)  and the complete architecture is [here](architecture.md)
+  * [OPC Twin Microservices](services/twin.md)  and the complete architecture is [here](architecture.md)
     * [Registry Service](services/registry.md), [OPC Twin Service](services/twin.md), [OPC Onboarding Agent](services/onboarding.md), [OPC Gateway (preview)](services/gateway.md), OPC Historic Access Service
   * [OPC Vault Microservice](https://github.com/Azure/azure-iiot-opc-vault-service)
 * [API](api/readme.md)

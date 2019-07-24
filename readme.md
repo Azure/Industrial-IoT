@@ -25,7 +25,7 @@ The [REST API](docs/api/readme.md) can be used with any programming language thr
 The repository (azure-iiot-components) includes all Azure Industrial IoT component repositories as its submodules which are:
 
 * [Micro services](https://github.com/Azure/azure-iiot-services)
-  * [OPC  Twin](docs/twin/readme.md) Microservices provide discovery, registration, and remote control of industrial devices through REST APIs.  
+  * [OPC  Twin](docs/services/twin.md) Microservices provide discovery, registration, and remote control of industrial devices through REST APIs.  
   * [OPC Vault](https://github.com/Azure/azure-iiot-opc-vault-service) Microservices enable secure communication among OPC UA enabled devices and the cloud.
 * [API](docs/api/readme.md)
 * IoT Edge modules

@@ -12,5 +12,5 @@ For concrete examples as to how to deploy the Azure Industrial IoT Edge Modules 
 
 ## Learn More
 
-* [Explore OPC Twin repository](https://github.com/Azure/azure-iiot-opc-twin-module) and for more info about OPC Twin check [here](docs/twin/readme.md)
+* [Explore OPC Twin repository](https://github.com/Azure/azure-iiot-opc-twin-module) and for more info about OPC Twin check [here](services/twin.md)
 * [Explore OPC Publisher repository](https://github.com/Azure/iot-edge-opc-publisher)
