@@ -1,6 +1,6 @@
 # Deploy OPC Twin and OPC Publisher Edge Modules
 
-This article explains how to deploy the Industrial IoT Edge modules to [Azure IoT Edge](https://azure.microsoft.com/en-us/services/iot-edge/). 
+This article explains how to deploy the Industrial IoT Edge modules to [Azure IoT Edge](https://azure.microsoft.com/services/iot-edge/).
 
 ## Deployment manifest
 
@@ -86,7 +86,7 @@ The easiest way to deploy the modules to an Azure IoT Edge gateway device is thr
 
 1. Deploy the OPC Twin [dependencies](../services/dependencies.md) and obtained the resulting `.env` file. Note the deployed `hub name` of the `PCS_IOTHUBREACT_HUB_NAME` variable in the `.env` file.
 
-2. Register and start a [Linux](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-install-iot-edge-linux) or [Windows](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-install-iot-edge-windows) IoT Edge gateway and note its `device id`.
+2. Register and start a [Linux](https://docs.microsoft.com/azure/iot-edge/how-to-install-iot-edge-linux) or [Windows](https://docs.microsoft.com/azure/iot-edge/how-to-install-iot-edge-windows) IoT Edge gateway and note its `device id`.
 
 ### Deploy to Edge device
 
@@ -112,11 +112,11 @@ The easiest way to deploy the modules to an Azure IoT Edge gateway device is thr
    {"NetworkingConfig":{"EndpointsConfig":{"host":{}}},"HostConfig":{"NetworkMode":"host","CapAdd":["NET_ADMIN"]}}
    ```
 
-   Fill out the optional fields if necessary. For more information about container create options, restart policy, and desired status see [EdgeAgent desired properties](https://docs.microsoft.com/en-us/azure/iot-edge/module-edgeagent-edgehub#edgeagent-desired-properties). For more information about the module twin see [Define or update desired properties](https://docs.microsoft.com/en-us/azure/iot-edge/module-composition#define-or-update-desired-properties).
+   Fill out the optional fields if necessary. For more information about container create options, restart policy, and desired status see [EdgeAgent desired properties](https://docs.microsoft.com/azure/iot-edge/module-edgeagent-edgehub#edgeagent-desired-properties). For more information about the module twin see [Define or update desired properties](https://docs.microsoft.com/azure/iot-edge/module-composition#define-or-update-desired-properties).
 
 7. Select **Save** and repeat step **5**.  
 
-8. In the IoT Edge Custom Module dialog, use `opcpublisher` as name for the module and the container *image URI* as 
+8. In the IoT Edge Custom Module dialog, use `opcpublisher` as name for the module and the container *image URI* as
 
    ```bash
    mcr.microsoft.com/iotedge/opc-publisher:latest
@@ -130,7 +130,7 @@ The easiest way to deploy the modules to an Azure IoT Edge gateway device is thr
 
 9. Select **Save** and then **Next** to continue to the routes section.
 
-10. In the routes tab, paste the following 
+10. In the routes tab, paste the following
 
     ```json
     {
@@ -153,9 +153,9 @@ The easiest way to deploy the modules to an Azure IoT Edge gateway device is thr
 
 1. Ensure you have the prerequisites for [deploying modules using Azure portal](#Deploying-from-Azure-Portal).
 
-2. Install the [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli).  You must have at least `v2.0.24`, which you can verify with `az --version`.
+2. Install the [Azure CLI](https://docs.microsoft.com/cli/azure/install-azure-cli).  You must have at least `v2.0.24`, which you can verify with `az --version`.
 
-3. Add the [IoT Edge Extension](https://github.com/Azure/azure-iot-cli-extension/) with the following commands: 
+3. Add the [IoT Edge Extension](https://github.com/Azure/azure-iot-cli-extension/) with the following commands:
 
     ```bash
     az extension add --name azure-cli-iot-ext
@@ -171,16 +171,16 @@ The easiest way to deploy the modules to an Azure IoT Edge gateway device is thr
    az iot edge set-modules --device-id [device id] --hub-name [hub name] --content ./deployment.json
    ```
 
-   The `device id` parameter is case-sensitive. The content parameter points to the deployment manifest file that you saved. 
-    ![az iot edge set-modules output](https://docs.microsoft.com/en-us/azure/iot-edge/media/how-to-deploy-cli/set-modules.png)
+   The `device id` parameter is case-sensitive. The content parameter points to the deployment manifest file that you saved.
+    ![az iot edge set-modules output](https://docs.microsoft.com/azure/iot-edge/media/how-to-deploy-cli/set-modules.png)
 
-3. Once you've deployed modules to your device, you can view all of them with the following command: 
+3. Once you've deployed modules to your device, you can view all of them with the following command:
 
    ```bash
    az iot hub module-identity list --device-id [device id] --hub-name [hub name]
    ```
 
-   The device id parameter is case-sensitive. ![az iot hub module-identity list output](https://docs.microsoft.com/en-us/azure/iot-edge/media/how-to-deploy-cli/list-modules.png)
+   The device id parameter is case-sensitive. ![az iot hub module-identity list output](https://docs.microsoft.com/azure/iot-edge/media/how-to-deploy-cli/list-modules.png)
 
 ## Run and debug locally
 
@@ -208,7 +208,7 @@ For trouble shooting and debugging it is useful to run the Edge modules locally 
 
 ### Quick start
 
-1. Follow the instructions to [create a Edge Device in the Azure Portal](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-register-device-portal).  Copy the edge device connection string.
+1. Follow the instructions to [create a Edge Device in the Azure Portal](https://docs.microsoft.com/azure/iot-edge/how-to-register-device-portal).  Copy the edge device connection string.
 
 2. Setup the simulator using the edge connection string.
 
@@ -222,7 +222,7 @@ For trouble shooting and debugging it is useful to run the Edge modules locally 
     iotedgehubdev start -d deployment.json
     ```
 
-> Note: https://github.com/Azure/iotedgehubdev/issues/183 currently prevents you from specifying `"NetworkingMode""` as `"host"`. As a workaround, specify empty `"createOptions": {}` for the twin module until the issue has been addressed. 
+    > Note: [Issue #183](https://github.com/Azure/iotedgehubdev/issues/183) currently prevents you from specifying `"NetworkingMode""` as `"host"`. As a workaround, specify empty `"createOptions": {}` for the twin module until the issue has been addressed.
 
 4. Stop the simulator using
 
@@ -246,12 +246,12 @@ For trouble shooting and debugging it is useful to run the Edge modules locally 
     iotedgehubdev modulecred
     ```
 
-3. Send message to the module through RESTful API. 
+3. Send message to the module through RESTful API.
 
     For example:
     `curl --header "Content-Type: application/json" --request POST --data '{"inputName": "input1","data": "hello world"}' http://localhost:53000/api/v1/messages`
 
 ## Next steps
 
-- [Deploy and monitor Edge modules at scale](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-deploy-monitor)
-- [Learn more about Azure IoT Edge for Visual Studio Code](https://github.com/microsoft/vscode-azure-iot-edge)
+* [Deploy and monitor Edge modules at scale](https://docs.microsoft.com/azure/iot-edge/how-to-deploy-monitor)
+* [Learn more about Azure IoT Edge for Visual Studio Code](https://github.com/microsoft/vscode-azure-iot-edge)

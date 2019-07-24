@@ -1,6 +1,7 @@
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments
 
 # OPC Publisher
+
 This reference implementation demonstrates how to connect to existing OPC UA servers and publishes JSON encoded telemetry data from these servers in OPC UA "Pub/Sub" format (using a JSON payload) to Azure IoT Hub. All transport protocols supported by the Azure IoTHub client SDK can be used, i.e. HTTPS, AMQP and MQTT.
 
 This application, apart from including an OPC UA *client* for connecting to existing OPC UA servers you have on your network, also includes an OPC UA *server* on port 62222 that can be used to manage what gets published and offers IoTHub direct methods to do the same.
@@ -13,16 +14,18 @@ For each distinct publishing interval to an OPC UA server it creates a separate 
 
 OPC Publisher supports batching of the data sent to IoTHub, to reduce network load. This batching is sending a packet to IoTHub only if the configured package size is reached.
 
-This application uses the OPC Foundations's OPC UA reference stack as nuget packages and therefore licensing of their nuget packages apply. Visit https://opcfoundation.org/license/redistributables/1.3/ for the licensing terms.
+This application uses the OPC Foundation's OPC UA reference stack as nuget packages and therefore licensing of their nuget packages apply. Visit https://opcfoundation.org/license/redistributables/1.3/ for the licensing terms.
 
 |Branch|Status|
 |------|-------------|
 |master|[![Build status](https://ci.appveyor.com/api/projects/status/6t7ru6ow7t9uv74r/branch/master?svg=true)](https://ci.appveyor.com/project/marcschier/iot-gateway-opc-ua-r4ba5/branch/master) [![Build Status](https://travis-ci.org/Azure/iot-gateway-opc-ua.svg?branch=master)](https://travis-ci.org/Azure/iot-gateway-opc-ua)|
 
 # Building the application
+
 The application requires the .NET Core SDK 2.1.
 
 ## As native Windows application
+
 Open the opcpublisher.sln project with Visual Studio 2017 and build the solution by hitting F7.
 
 ## As Docker container
@@ -39,7 +42,9 @@ The `-f` option for `docker build` is optional and the default is to use Dockerf
 Note: if you want to have correct version information, please install [gitversion](https://gitversion.readthedocs.io/en/latest/) and run it with the following command line in the root of the repository: `gitversion  . /updateassemblyinfo /ensureassemblyinfo updateassemblyinfofilename opcpublisher/AssemblyInfo.cs`
 
 ## Configuration of the OPC UA nodes to publish
+
 ### Configuration via configuration file
+
 The easiest way to configure the OPC UA nodes to publish is via configuration file. The configuration file format is documented in `publishednodes.json` in this repository.
 Configuration file syntax has changed over time and OPC Publisher still can read old formats, but converts them into the latest format when persisting the configuration.
 An example for the format of the configuration file is:
@@ -59,7 +64,7 @@ An example for the format of the configuration file is:
           }
         ]
 
-If you want to publish node values even they have not changed after a certain amount of time (with this you can also publish static node values regularily), then you can add the `HeartbeatInterval` key to a node configuration. This specifies a value in seconds
+If you want to publish node values even they have not changed after a certain amount of time (with this you can also publish static node values regularly), then you can add the `HeartbeatInterval` key to a node configuration. This specifies a value in seconds
  where the last value should be resent, even it has not changed:
 
                 "HeartbeatInterval": 3600,
@@ -70,34 +75,37 @@ To prevent sending the value of a node at startup, you can add the `SkipFirst` k
 
 Both configurations settings can be enabled for all nodes in your configuration file via command line options as well.
 
-
 ### Configuration via OPC UA method calls
+
 OPC Publisher has an OPC UA Server integrated, which can be accessed on port 62222. If the hostname is `publisher`, then the URI of the endpoint is: `opc.tcp://publisher:62222/UA/Publisher`
 This endpoint exposes five methods:
-  - PublishNode
-  - UnpublishNode
-  - GetPublishedNodes
-  - IoTHubDirectMethod (see below)
+
+* PublishNode
+* UnpublishNode
+* GetPublishedNodes
+* IoTHubDirectMethod (see below)
 
 ### Configuration via IoTHub direct function calls
+
 OPC Publisher implements the following IoTHub direct method calls, which can be called when OPC Publisher runs standalone or in IoT Edge:
-  - PublishNodes
-  - UnpublishNodes
-  - UnpublishAllNodes
-  - GetConfiguredEndpoints
-  - GetConfiguredNodesOnEndpoint
-  - GetDiagnosticInfo
-  - GetDiagnosticLog
-  - GetDiagnosticStartupLog
-  - ExitApplication
-  - GetInfo
+
+* PublishNodes
+* UnpublishNodes
+* UnpublishAllNodes
+* GetConfiguredEndpoints
+* GetConfiguredNodesOnEndpoint
+* GetDiagnosticInfo
+* GetDiagnosticLog
+* GetDiagnosticStartupLog
+* ExitApplication
+* GetInfo
 
 The format of the JSON payload of the method request and responses are defined in the file `opcpublisher/HubMethodModels.cs`.
 
 If you call a unknown method on the module, it responds with a string, saying the method is not implemented. This can be used to ping the module.
 
-
 # Configuring the telemetry published to IoTHub
+
 When OPC Publisher gets notified about a value change in one of the configured published nodes, it generates a JSON formatted message, which is sent to IoTHub.
 The content of this JSON formatted message can be configured via a configuration file. If no configuration file is specified via the `--tc` option a default configuration is used,
 which is compatible with the [Connected factory Preconfigured Solution](https://github.com/Azure/azure-iot-connected-factory).
@@ -105,6 +113,7 @@ which is compatible with the [Connected factory Preconfigured Solution](https://
 If OPC Publisher is configured to batch messages, then they are sent as a valid JSON array.
 
 The data which is ingested is taken from three sources:
+
 * the OPC Publisher node configuration for the node
 * the MonitoredItem object of the OPC UA stack for which OPC Publisher got a notification
 * the argument passed to this notification, which provides details on the data value change
@@ -304,6 +313,7 @@ The syntax of the configuration file is as follows:
 # Running the application
 
 ## Command line options
+
 The complete usage of the application can be shown using the `--help` command line option and is as follows:
 
         Current directory is: /appdata
@@ -615,24 +625,23 @@ The complete usage of the application can be shown using the `--help` command li
                                         the trusted issuer cert store will always
                                        reside in a directory.
 
-
-
 Typically you specify the IoTHub owner connectionstring only on the first start of the application. The connectionstring will be encrypted and stored in the platforms certificiate store.
 On subsequent calls it will be read from there and reused. If you specify the connectionstring on each start, the device which is created for the application in the IoTHub device registry will be removed and recreated each time.
 
-
 ## Native on Windows
+
 Open the opcpublisher.sln project with Visual Studio 2017, build the solution and publish it. You can start the application in the 'Target directory' you have published to with:
 
     dotnet opcpublisher.dll <applicationname> [<iothubconnectionstring>] [options]
 
-
 ## Using a self-built container
+
 Build your own container and then start the container:
 
     docker run <your-container-name> <applicationname> [<iothubconnectionstring>] [options]
 
 ## Using a container from Microsoft Container Registry
+
 There is a prebuilt container available on docker hub. To start it, just do:
 
     docker run mcr.microsoft.com/iotedge/opc-publisher <applicationname> [<iothubconnectionstring>] [options]
@@ -641,11 +650,13 @@ Check [docker Hub](https://hub.docker.com/_/microsoft-iotedge-opc-publisher) to 
 The right container for your OS and CPU architecture (if supported) will be automatically selected and used.
 
 ## Using it as a module in Azure IoT Edge
-OPC Publisher is ready to be used as a module to run in [Azure IoT Edge](https://docs.microsoft.com/en-us/azure/iot-edge) Microsoft's Intelligent Edge framework.
+
+OPC Publisher is ready to be used as a module to run in [Azure IoT Edge](https://docs.microsoft.com/azure/iot-edge) Microsoft's Intelligent Edge framework.
 We recommend to take a look on the information available on the beforementioned link and use then the information provided here. When using
 OPC Publisher as IoT Edge module only Amqp_Tcp_Only and Mqtt_Tcp_Only are supported as transport protocols.
 
 To add OPC Publisher as module to your IoT Edge deployment, you go to the Azure portal and navigate to your IoTHub and:
+
 * Go to IoT Edge and create or select your IoT Edge device.
 * Select `Set Modules`.
 * Select `Add`under `Deployment Modules`and then `IoT Edge Module`.
@@ -660,7 +671,7 @@ To add OPC Publisher as module to your IoT Edge deployment, you go to the Azure 
                 "--aa"
             ]
         }
-    This configuration will configure IoT Edge to start a container named `publisher` with OPC Publisher as the image. 
+    This configuration will configure IoT Edge to start a container named `publisher` with OPC Publisher as the image.
     The hostname of the container's system will be set to `publisher`.
     OPC Publisher is called with the following command line: `--aa`.
     With this option OPC Publisher trusts those OPC UA server's certificates it is connecting to.
@@ -680,16 +691,16 @@ To add OPC Publisher as module to your IoT Edge deployment, you go to the Azure 
 * When you have started IoT Edge on your edge device and the docker container `publisher` is started, you can check out the log output of OPC Publisher either by
   using `docker logs -f publisher` or by checking the logfile (in our example above `d:\iiotegde\publisher-publisher.log` content or by using the diagnostic tool [here](https://github.com/Azure-Samples/iot-edge-opc-publisher-diagnostics).
 
-
-
 ## Important when using a container
 
 ### Access to the OPC Publisher OPC UA server
+
 The OPC Publisher OPC UA server listens by default on port 62222. To expose this inbound port in a container, you need to use `docker run` option `-p`:
 
     docker run -p 62222:62222 mcr.microsoft.com/iotedge/opc-publisher <applicationname> [<iothubconnectionstring>] [options]
 
 ### Enable intercontainer nameresolution
+
 To enable name resolution from within the container to other containers, you need to create a user define docker bridge network and connect the container to this network using the `--network` option.
 Additionally you need to assign the container a name using the `--name` option as in this example:
 
@@ -699,6 +710,7 @@ Additionally you need to assign the container a name using the `--name` option a
 The container can now be reached by other containers via the name `publisher`over the network.
 
 ### Access other systems from within the container
+
 Other containers, can be reached using the parameters described in the "Enable intercontainer nameresolution" paragraph.
 If operating system on which docker is hosted is DNS enabled, then accessing all systems which are known by DNS will work..
 A problems occurs in a network which does use NetBIOS name resolution. To enable access to other systems (including the one on which docker is hosted) you need to start your container using the `--add-host` option,
@@ -707,15 +719,18 @@ which effectevly is adding an entry to the containers host file.
     docker run --add-host mydevbox:192.168.178.23  mcr.microsoft.com/iotedge/opc-publisher <applicationname> [<iothubconnectionstring>] [options]
 
 ### Assigning a hostname
+
 OPC Publisher uses the hostname of the machine is running on for certificate and endpoint generation. docker chooses a random hostname if there is none set by the `-h` option. Here an example to set the internal hostname of the container to `publisher`:
 
     docker run -h publisher mcr.microsoft.com/iotedge/opc-publisher <applicationname> [<iothubconnectionstring>] [options]
 
 ### Using bind mounts (shared filesystem)
-In certain use cases it may make sense to read configuration information from or write log files to locations on the host and not keep 
+
+In certain use cases it may make sense to read configuration information from or write log files to locations on the host and not keep
 them in the container file system only. To achieve this you need to use the `-v` option of `docker run` in the bind mount mode.
 
 ### Using IoT Edge
+
 The description in **Using it as a module in Azure IoT Edge** above is the simplest configuration. Very common is that you want to use the configuration files accessible in the host file system.
 Here is a set of `Container Create Options`which allow you to achieve this (be aware that the following example is of a deployment using Linux Containers for Windows):
 
@@ -756,7 +771,7 @@ That means if you specify the following mapping in the `HostConfig`, then the co
                 ]
             }
 
-If you need to connect to an OPC UA server using the hostname of the OPC UA server and have no DNS configured, you can enable resolving 
+If you need to connect to an OPC UA server using the hostname of the OPC UA server and have no DNS configured, you can enable resolving
 the hostname by adding an `ExtraHosts` configuration to the `HostConfig` object:
 
             "HostConfig": {
@@ -765,19 +780,20 @@ the hostname by adding an `ExtraHosts` configuration to the `HostConfig` object:
                 ]
             }
 
-This setting will allow OPC Publisher running in the IoT Edge module to resolve the hostname `opctestsvr` to the IP Address `192.168.178.26`. 
+This setting will allow OPC Publisher running in the IoT Edge module to resolve the hostname `opctestsvr` to the IP Address `192.168.178.26`.
 This is equivilant as using `--add-host opctestsvr:192.168.178.26` as parameter to the `docker run` command.
 
-
 ## OPC UA X.509 certificates
-As you know, OPC UA is using X.509 certificates to authenticate OPC UA client and server during establishment of a connection and 
+
+As you know, OPC UA is using X.509 certificates to authenticate OPC UA client and server during establishment of a connection and
 to encrypt the communication between the two parties.
 OPC Publisher does use certificate stores maintained by the OPC UA stack to manage all certificates.
-On startup OPC Publisher checks if there is a certificate for itself (see `InitApplicationSecurityAsync` 
+On startup OPC Publisher checks if there is a certificate for itself (see `InitApplicationSecurityAsync`
 in `OpcApplicationConfigurationSecurity.cs`) and creates a self-signed certificate if there is none or if there is not one passed in
 via command line options.
 Self-signed certificates do not provide any security, since they are not signed by a trusted CA.
 OPC Publisher does provide several command line options to:
+
 * retrieve CSR information of the current application certificate used by OPC Publisher
 * provision OPC Publisher with a CA signed certificate
 * provision OPC Publisher with a new key pair and matching CA signed certificate
@@ -794,27 +810,32 @@ data via base64 encoded strings.
 
 If you want to see how a CA signed certificate can be used, please open an issue on this repo and we follow up.
 
-You need to take special care how certificate stores are handled. Especially for the application certificate the runtime 
+You need to take special care how certificate stores are handled. Especially for the application certificate the runtime
 environment has impact and you want to make sure that it is persisted and not created new on each start:
+
 * Running on Windows natively, you can not use an application certificate store of type `Directory`, since the access to the private key fails. Please use the option `--at X509Store` in this case.
 * Running as Linux docker container, you can map the certificate stores to the host file system by using the docker run option `-v <hostdirectory>:/appdata`. This will make the certificate persistent over starts.
 * Running as Linux docker container and want to use an X509Store for the application certificate, you need to use the docker run option `-v x509certstores:/root/.dotnet/corefx/cryptography/x509stores` and the application option `--at X509Store`
 
-
-
 ## Performance and memory considerations
+
 ### Commandline parameters contolling performance and memory
+
 When running OPC Publisher you need to be aware of your performance requirements and the memory resources you have available on your platform.
 Since both are interdependent and both depend on the configuration of how many nodes are configured to publish, you should ensure that the parameters you are using for:
+
 * IoTHub send interval (`--si`)
 * IoTHub message size (`--ms`)
 * Monitored Items queue capacity (`--mq`)
+
 do meet your requirements.
 
 The `--mq` parameter controls the upper bound of the capacity of the internal queue, which buffers all notifications if a value of an OPC node changes. If OPC Publisher is not able to send messages to IoTHub fast enough,
 then this queue buffers those notifications. The parameter sets the number of notifications which can be buffered. If you seen the number of items in this queue increasing in your test runs, you need to:
+
 * decrease the IoTHub send interval (`--si`)
 * increase the IoTHub message size (`--ms`)
+
 otherwise you will loose the data values of those OPC node changes. The `--mq` parameter at the same time allows to prevent controlling the upper bound of the memory resources used by OPC Publisher.
 
 The `--si` parameter enforces OPC Publisher to send messages to IoTHub as the specified interval. If there is an IoTHub message size specified via the `--ms` parameter (or by the default value for it),
@@ -828,11 +849,12 @@ Before you use OPC Publisher in production scenarios, you need to test the perfo
 which will trigger the output of diagnostic information at this interval.
 
 ### Test measurements
+
 Here are some measurements with different values for `--si` and `--ms` parameters publishing 500 nodes with an OPC publishing interval of 1 second.
 OPC Publisher was used as debug build on Windows 10 natively for 120 seconds. The IoTHub protocol was the default MQTT protocol.
 
 #### Default configuration (--si 10 --ms 262144)
- 
+
         ==========================================================================
         OpcPublisher status @ 26.10.2017 15:33:05 (started @ 26.10.2017 15:31:09)
         ---------------------------------
@@ -977,6 +999,7 @@ If you need to access the OPC UA server in the OPC Publisher, you should ensure 
 As already mentioned above the configuration of nodes to be published can be configured via IoTHub direct methods.
 
 Beyond this OPC Publisher implements a few IoTHub direct method calls, which allow to read:
+
 * general Information
 * diagnostic information on OPC sessions, subscriptions and monitored items
 * diagnostic information on IoTHub messages and events
@@ -985,7 +1008,7 @@ Beyond this OPC Publisher implements a few IoTHub direct method calls, which all
 
 In addition to this is implements a direct method to exit the application.
 
-In the following github repos there are tools to [configure the nodes to publish](https://github.com/Azure-Samples/iot-edge-opc-publisher-nodeconfiguration) 
+In the following github repos there are tools to [configure the nodes to publish](https://github.com/Azure-Samples/iot-edge-opc-publisher-nodeconfiguration)
 and [read the diagnostic information](https://github.com/Azure-Samples/iot-edge-opc-publisher-diagnostics). Both tools are also available as containers in Docker Hub.
 
 # As OPC UA server to start
@@ -993,11 +1016,3 @@ and [read the diagnostic information](https://github.com/Azure-Samples/iot-edge-
 If you do not have a real OPC UA server, you can use this [sample OPC UA PLC](https://github.com/Azure-Samples/iot-edge-opc-plc) to start. This sample PLC is also available on Docker Hub.
 
 It implements a couple of tags, which generate random data and tags with anomalies and can be extended easily if you need to simulate any tag values.
-
-
-
-
-
-
-
-

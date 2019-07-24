@@ -4,15 +4,15 @@
 
 OPC Twin Microservice in cloud exposes a [REST API](../api/twin/readme.md) to call the following OPC UA services on activated endpoints in an OPC Twin edge module:
 
-- **Read** and **Write** a “Value” on a Variable node
+* **Read** and **Write** a “Value” on a Variable node
   Write is also exposed as Desired/Reported Property on the endpoint identity
-- **Call** a “Method Node”
-- **Read** and **Write** Node “Attributes
-- **History Read** and **Update** service calls to interact with Historians
-- **Batching** of any of the above calls.
-- **Browse** first / next (with and without reading the browsed target nodes)
-- Get **meta data** of methods (to display input arguments to a user)
-- **Publish/Unpublish** variable and event (see OPC Publisher integration)
+* **Call** a “Method Node”
+* **Read** and **Write** Node “Attributes
+* **History Read** and **Update** service calls to interact with Historians
+* **Batching** of any of the above calls.
+* **Browse** first / next (with and without reading the browsed target nodes)
+* Get **meta data** of methods (to display input arguments to a user)
+* **Publish/Unpublish** variable and event (see OPC Publisher integration)
 
 ## OPC UA JSON
 
@@ -26,13 +26,13 @@ The Twin Microservice REST API uses OPC UA JSON reversible encoding as per stand
    <namespace-uri>#<id-type>=<URL-encoded-id-value>
    ```
 
-   Examples are: `http://opcfoundation.org/UA/#i=3523` or `http://opcfoundation.org/UA/#s=tag1`. 
+   Examples are: `http://opcfoundation.org/UA/#i=3523` or `http://opcfoundation.org/UA/#s=tag1`.
 
    The API itself does not support specifying JSON Object encoded Node Id, however, values can contain them.  All responses include node identifiers in the Uri format.
 
    It is recommended to always use the URI form of Node Id since it is independent of the server and session's namespace table state.
 
-3. Expanded Node Identifiers can also be encoded using the OPC UA defined syntax (e.g. `src=opc.tcp://test;nsu=http://opcfoundation.org/UA/;i=3523`).  However, all requests accept and responses return a URI encoded Expanded Node Id, which differs from the regular Node Id URI format only if a server URI is specified.  In this case the server URI is appended as 
+3. Expanded Node Identifiers can also be encoded using the OPC UA defined syntax (e.g. `src=opc.tcp://test;nsu=http://opcfoundation.org/UA/;i=3523`).  However, all requests accept and responses return a URI encoded Expanded Node Id, which differs from the regular Node Id URI format only if a server URI is specified.  In this case the server URI is appended as
 
    ```bash
    <namespace-uri>&srv=<URL-encoded-server-uri>#<id-type>=<URL-encoded-id-value>
@@ -48,6 +48,6 @@ While not always enforced, ensure you **URL encode** the id value or name of Qua
 
 ## Next steps
 
-- [Learn more about the OPC Twin module](../modules/module.md)
-- [Learn more about the overall Architecture](../architecture.md)
-- [Explore the Twin Microservice REST API](../api/twin/readme.md)
+* [Learn more about the OPC Twin module](../modules/module.md)
+* [Learn more about the overall Architecture](../architecture.md)
+* [Explore the Twin Microservice REST API](../api/twin/readme.md)

@@ -7,7 +7,7 @@ This article explains how to deploy the Azure Industrial IoT Microservices in Az
 > [!NOTE]
 > Note: Due to the dependency on the AzureRM module, deployment currently is only supported on Windows.  We will add support for Linux soon.
 
-1. Make sure you have PowerShell and [Azure PowerShell](https://docs.microsoft.com/en-us/powershell/azure/install-az-ps?view=azps-1.1.0) extensions installed.  If not, first install PowerShell, then open PowerShell as Administrator and run
+1. Make sure you have PowerShell and [AzureRM PowerShell](https://docs.microsoft.com/powershell/azure/azurerm/install-azurerm-ps) extensions installed.  If not, first install PowerShell, then open PowerShell as Administrator and run
 
    ```powershell
    Install-Module -Name AzureRM -AllowClobber
@@ -17,7 +17,7 @@ This article explains how to deploy the Azure Industrial IoT Microservices in Az
 2. If you have not done so yet, clone this GitHub repository.  Open a command prompt or terminal and run:
 
    ```bash
-   git clone --recursive https://github.com/Azure/azure-iiot-components 
+   git clone --recursive https://github.com/Azure/azure-iiot-components
    cd azure-iiot-components
    ```
 
@@ -35,9 +35,9 @@ This article explains how to deploy the Azure Industrial IoT Microservices in Az
 
    The output includes the  URL of the public endpoint.  
 
-   In case you run into issues please follow the steps [below](#Troubleshooting-deployment-failures).
+   In case you run into issues please follow the steps [below](#troubleshooting-deployment-failures).
 
-3. Once the script completes successfully, select whether you want to save the .env file.  You need the .env environment file if you want to connect to the cloud endpoint using tools such as the [Console](twin/howto-use-cli.md) or [deploy modules](howto-deploy-modules.md) for development and debugging.
+3. Once the script completes successfully, select whether you want to save the .env file.  You need the .env environment file if you want to connect to the cloud endpoint using tools such as the [Console](services/howto-use-cli.md) or [deploy modules](howto-deploy-modules.md) for development and debugging.
 
 ## Troubleshooting deployment failures
 
@@ -68,7 +68,7 @@ Instead of just the Microservices and dependencies you can also deploy an all-in
    deploy -type demo
    ```
 
-2. Follow the prompts to assign a new name to the resource group and a name to the website.  Once deployed successfully, the script will display the URL of the web application endpoint.  Follow the steps [above](#Troubleshooting-deployment-failures) if you run into any deployment failures.
+2. Follow the prompts to assign a new name to the resource group and a name to the website.  Once deployed successfully, the script will display the URL of the web application endpoint.  Follow the steps [above](#troubleshooting-deployment-failures) if you run into any deployment failures.
 
 ## Deployment script options
 
@@ -108,7 +108,7 @@ Optional, a resource group location. If specified, will try to create a new reso
 -aadApplicationName
 ```
 
-A name for the AAD application to register under. 
+A name for the AAD application to register under.
 
 ```bash
 -tenantId
@@ -124,6 +124,6 @@ AAD tenant to use.
 
 Now that you have successfully deployed the Microservices to an existing project, here are the suggested next steps:
 
-- [Deploy Industrial IoT modules to IoT Edge](howto-deploy-modules.md)
-- [Learn more about OPC Twin](twin/readme.md)
-- [OPC Twin Dependencies](twin/dependencies.md)
+* [Deploy Industrial IoT modules to IoT Edge](howto-deploy-modules.md)
+* [Learn more about OPC Twin](services/twin.md)
+* [OPC Twin Dependencies](services/dependencies.md)

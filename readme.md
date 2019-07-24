@@ -2,7 +2,6 @@
 | ------------------------- | ------------------------------------------------------------ |
 | **master** (Release)      | [![Build Status](https://msazure.visualstudio.com/One/_apis/build/status/Custom/Azure_IOT/Industrial/Components/ci-azure-iiot-components?branchName=master)](https://msazure.visualstudio.com/One/_build/latest?definitionId=33971&branchName=master) |
 
-
 # Azure Industrial IoT Components
 
 ### Discover, register and manage your Industrial Assets in Azure
@@ -25,17 +24,17 @@ The [REST API](docs/api/readme.md) can be used with any programming language thr
 
 The repository (azure-iiot-components) includes all Azure Industrial IoT component repositories as its submodules which are:
 
--  [Micro services](https://github.com/Azure/azure-iiot-services)
-   - [OPC  Twin](docs/twin/readme.md) Microservices provide discovery, registration, and remote control of industrial devices through REST APIs.  
-   - [OPC Vault](https://github.com/Azure/azure-iiot-opc-vault-service) Microservices enable secure communication among OPC UA enabled devices and the cloud. 
-- [API](docs/api/readme.md)
--  IoT Edge modules
-  - [OPC Twin module](docs/twin/module/module.md)
-  - [OPC Publisher module](https://github.com/Azure/iot-edge-opc-publisher)
-- Components and protocol stacks including
-  - [OPC Unified Architecture (OPC UA)](https://github.com/Azure/azure-iiot-opc-ua)
+* [Micro services](https://github.com/Azure/azure-iiot-services)
+  * [OPC  Twin](docs/services/twin.md) Microservices provide discovery, registration, and remote control of industrial devices through REST APIs.  
+  * [OPC Vault](https://github.com/Azure/azure-iiot-opc-vault-service) Microservices enable secure communication among OPC UA enabled devices and the cloud.
+* [API](docs/api/readme.md)
+* IoT Edge modules
+  * [OPC Twin module](docs/modules/module.md)
+  * [OPC Publisher module](https://github.com/Azure/iot-edge-opc-publisher)
+* Components and protocol stacks including
+  * [OPC Unified Architecture (OPC UA)](https://github.com/Azure/azure-iiot-opc-ua)
 
-## Learn more 
+## Learn more
 
 * [Deploy Azure Industrial IoT](docs/readme.md)
 * [Deploy the Microservices](docs/howto-deploy-microservices.md)
@@ -43,7 +42,7 @@ The repository (azure-iiot-components) includes all Azure Industrial IoT compone
   * [OPC Vault Dashboard](https://github.com/Azure/azure-iiot-opc-vault-service/tree/master/app)
   * [OPC Twin Browser](https://github.com/Azure/azure-iiot-opc-twin-webui)
 * Read more about Industrial IoT Components [here](docs/industrial-iot-components.md)
-* See the complete code structure [here](docs/code-structure)
+* See the complete code structure [here](docs/code-structure.md)
 
 ### Give Feedback
 
@@ -53,7 +52,7 @@ Please enter issues, bugs, or suggestions for any of the components and services
 
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct).  For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
 
-If you want/plan to contribute, we ask you to sign a [CLA](https://cla.microsoft.com/) (Contribution License Agreement) and follow the project 's [code submission guidelines](docs/contributing.md). A friendly bot will remind you about it when you submit a pull-request. ? 
+If you want/plan to contribute, we ask you to sign a [CLA](https://cla.microsoft.com/) (Contribution License Agreement) and follow the project 's [code submission guidelines](docs/contributing.md). A friendly bot will remind you about it when you submit a pull-request. ?
 
 ## License
 
