@@ -13,5 +13,5 @@ All soft deleted applications and their endpoints can be purged using the [OPC R
 
 ## Next steps
 
-* [Learn about OPC Twin module discovery](../modules/module.md)
+* [Learn about OPC Twin module discovery](../modules/twin.md)
 * [Learn about OPC Registry](registry.md)

@@ -17,8 +17,8 @@ This article explains how to deploy the Azure Industrial IoT Microservices in Az
 2. If you have not done so yet, clone this GitHub repository.  Open a command prompt or terminal and run:
 
    ```bash
-   git clone --recursive https://github.com/Azure/azure-iiot-components
-   cd azure-iiot-components
+   git clone --recursive https://github.com/Azure/Industrial-IoT
+   cd Industrial-IoT
    ```
 
 ## Deploy Industrial IoT Microservices to Azure
@@ -125,5 +125,5 @@ AAD tenant to use.
 Now that you have successfully deployed the Microservices to an existing project, here are the suggested next steps:
 
 * [Deploy Industrial IoT modules to IoT Edge](howto-deploy-modules.md)
-* [Learn more about OPC Twin](services/twin.md)
+* [Learn more about OPC Twin](services/readme.md)
 * [OPC Twin Dependencies](services/dependencies.md)

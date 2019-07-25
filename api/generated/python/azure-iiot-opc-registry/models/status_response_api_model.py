@@ -18,8 +18,8 @@ class StatusResponseApiModel(Model):
     Variables are only populated by the server, and will be ignored when
     sending a request.
 
-    :ivar name: Name of this service
-    :vartype name: str
+    :param name: Name of this service
+    :type name: str
     :param status: Operational status
     :type status: str
     :ivar current_time: Current time
@@ -43,7 +43,6 @@ class StatusResponseApiModel(Model):
     """
 
     _validation = {
-        'name': {'readonly': True},
         'current_time': {'readonly': True},
         'start_time': {'readonly': True},
         'up_time': {'readonly': True},
@@ -65,9 +64,9 @@ class StatusResponseApiModel(Model):
         'metadata': {'key': '$metadata', 'type': '{str}'},
     }
 
-    def __init__(self, status=None):
+    def __init__(self, name=None, status=None):
         super(StatusResponseApiModel, self).__init__()
-        self.name = None
+        self.name = name
         self.status = status
         self.current_time = None
         self.start_time = None

@@ -15,319 +15,349 @@ final class AzureOpcHistoryClient
             self::_SWAGGER_OBJECT_DATA,
             ['subscriptionId' => $subscriptionId]
         );
-        $this->_GetListOfApplications_operation = $_client->createOperation('GetListOfApplications');
-        $this->_CreateApplication_operation = $_client->createOperation('CreateApplication');
-        $this->_RegisterServer_operation = $_client->createOperation('RegisterServer');
-        $this->_DeleteAllDisabledApplications_operation = $_client->createOperation('DeleteAllDisabledApplications');
-        $this->_DiscoverServer_operation = $_client->createOperation('DiscoverServer');
-        $this->_GetApplicationRegistration_operation = $_client->createOperation('GetApplicationRegistration');
-        $this->_DeleteApplication_operation = $_client->createOperation('DeleteApplication');
-        $this->_UpdateApplicationRegistration_operation = $_client->createOperation('UpdateApplicationRegistration');
-        $this->_GetListOfSites_operation = $_client->createOperation('GetListOfSites');
-        $this->_GetFilteredListOfApplications_operation = $_client->createOperation('GetFilteredListOfApplications');
-        $this->_QueryApplications_operation = $_client->createOperation('QueryApplications');
-        $this->_ActivateEndpoint_operation = $_client->createOperation('ActivateEndpoint');
-        $this->_GetEndpoint_operation = $_client->createOperation('GetEndpoint');
-        $this->_UpdateEndpoint_operation = $_client->createOperation('UpdateEndpoint');
-        $this->_GetListOfEndpoints_operation = $_client->createOperation('GetListOfEndpoints');
-        $this->_GetFilteredListOfEndpoints_operation = $_client->createOperation('GetFilteredListOfEndpoints');
-        $this->_QueryEndpoints_operation = $_client->createOperation('QueryEndpoints');
-        $this->_DeactivateEndpoint_operation = $_client->createOperation('DeactivateEndpoint');
+        $this->_HistoryDeleteValuesAtTimes_operation = $_client->createOperation('HistoryDeleteValuesAtTimes');
+        $this->_HistoryDeleteValues_operation = $_client->createOperation('HistoryDeleteValues');
+        $this->_HistoryDeleteModifiedValues_operation = $_client->createOperation('HistoryDeleteModifiedValues');
+        $this->_HistoryDeleteEvents_operation = $_client->createOperation('HistoryDeleteEvents');
+        $this->_HistoryReadRaw_operation = $_client->createOperation('HistoryReadRaw');
+        $this->_HistoryReadRawNext_operation = $_client->createOperation('HistoryReadRawNext');
+        $this->_HistoryUpdateRaw_operation = $_client->createOperation('HistoryUpdateRaw');
+        $this->_HistoryInsertValues_operation = $_client->createOperation('HistoryInsertValues');
+        $this->_HistoryInsertEvents_operation = $_client->createOperation('HistoryInsertEvents');
+        $this->_HistoryReadEvents_operation = $_client->createOperation('HistoryReadEvents');
+        $this->_HistoryReadEventsNext_operation = $_client->createOperation('HistoryReadEventsNext');
+        $this->_HistoryReadValues_operation = $_client->createOperation('HistoryReadValues');
+        $this->_HistoryReadValuesAtTimes_operation = $_client->createOperation('HistoryReadValuesAtTimes');
+        $this->_HistoryReadProcessedValues_operation = $_client->createOperation('HistoryReadProcessedValues');
+        $this->_HistoryReadModifiedValues_operation = $_client->createOperation('HistoryReadModifiedValues');
+        $this->_HistoryReadValueNext_operation = $_client->createOperation('HistoryReadValueNext');
+        $this->_HistoryReplaceValues_operation = $_client->createOperation('HistoryReplaceValues');
+        $this->_HistoryReplaceEvents_operation = $_client->createOperation('HistoryReplaceEvents');
         $this->_GetStatus_operation = $_client->createOperation('GetStatus');
-        $this->_GetSupervisor_operation = $_client->createOperation('GetSupervisor');
-        $this->_UpdateSupervisor_operation = $_client->createOperation('UpdateSupervisor');
-        $this->_GetSupervisorStatus_operation = $_client->createOperation('GetSupervisorStatus');
-        $this->_ResetSupervisor_operation = $_client->createOperation('ResetSupervisor');
-        $this->_GetListOfSupervisors_operation = $_client->createOperation('GetListOfSupervisors');
-        $this->_GetFilteredListOfSupervisors_operation = $_client->createOperation('GetFilteredListOfSupervisors');
-        $this->_QuerySupervisors_operation = $_client->createOperation('QuerySupervisors');
     }
     /**
-     * Get all registered applications in paged form.
-The returned model can contain a continuation token if more results are
-available.
-Call this operation again using the token to retrieve more results.
-     * @param string|null $continuationToken
-     * @param integer|null $pageSize
-     * @return array
-     */
-    public function getListOfApplications(
-        $continuationToken = null,
-        $pageSize = null
-    )
-    {
-        return $this->_GetListOfApplications_operation->call([
-            'continuationToken' => $continuationToken,
-            'pageSize' => $pageSize
-        ]);
-    }
-    /**
-     * The application is registered using the provided information, but it
-is not associated with a supervisor.  This is useful for when you need
-to register clients or you want to register a server that is located
-in a network not reachable through a Twin module.
-     * @param array $request
-     * @return array
-     */
-    public function createApplication(array $request)
-    {
-        return $this->_CreateApplication_operation->call(['request' => $request]);
-    }
-    /**
-     * Registers a server solely using a discovery url. Requires that
-the onboarding agent service is running and the server can be
-located by a supervisor in its network using the discovery url.
-     * @param array $request
-     */
-    public function registerServer(array $request)
-    {
-        return $this->_RegisterServer_operation->call(['request' => $request]);
-    }
-    /**
-     * Purges all applications that have not been seen for a specified amount of time.
-     * @param string|null $notSeenFor
-     */
-    public function deleteAllDisabledApplications($notSeenFor = null)
-    {
-        return $this->_DeleteAllDisabledApplications_operation->call(['notSeenFor' => $notSeenFor]);
-    }
-    /**
-     * Registers servers by running a discovery scan in a supervisor's
-network. Requires that the onboarding agent service is running.
-     * @param array $request
-     */
-    public function discoverServer(array $request)
-    {
-        return $this->_DiscoverServer_operation->call(['request' => $request]);
-    }
-    /**
-     * @param string $applicationId
-     * @return array
-     */
-    public function getApplicationRegistration($applicationId)
-    {
-        return $this->_GetApplicationRegistration_operation->call(['applicationId' => $applicationId]);
-    }
-    /**
-     * Unregisters and deletes application and all its associated endpoints.
-     * @param string $applicationId
-     */
-    public function deleteApplication($applicationId)
-    {
-        return $this->_DeleteApplication_operation->call(['applicationId' => $applicationId]);
-    }
-    /**
-     * The application information is updated with new properties.  Note that
-this information might be overridden if the application is re-discovered
-during a discovery run (recurring or one-time).
-     * @param string $applicationId
-     * @param array $request
-     */
-    public function updateApplicationRegistration(
-        $applicationId,
-        array $request
-    )
-    {
-        return $this->_UpdateApplicationRegistration_operation->call([
-            'applicationId' => $applicationId,
-            'request' => $request
-        ]);
-    }
-    /**
-     * List all sites applications are registered in.
-     * @param string|null $continuationToken
-     * @param integer|null $pageSize
-     * @return array
-     */
-    public function getListOfSites(
-        $continuationToken = null,
-        $pageSize = null
-    )
-    {
-        return $this->_GetListOfSites_operation->call([
-            'continuationToken' => $continuationToken,
-            'pageSize' => $pageSize
-        ]);
-    }
-    /**
-     * Get a list of applications filtered using the specified query parameters.
-The returned model can contain a continuation token if more results are
-available.
-Call the GetListOfApplications operation using the token to retrieve
-more results.
-     * @param array $query
-     * @param integer|null $pageSize
-     * @return array
-     */
-    public function getFilteredListOfApplications(
-        array $query,
-        $pageSize = null
-    )
-    {
-        return $this->_GetFilteredListOfApplications_operation->call([
-            'query' => $query,
-            'pageSize' => $pageSize
-        ]);
-    }
-    /**
-     * List applications that match a query model.
-The returned model can contain a continuation token if more results are
-available.
-Call the GetListOfApplications operation using the token to retrieve
-more results.
-     * @param array $query
-     * @param integer|null $pageSize
-     * @return array
-     */
-    public function queryApplications(
-        array $query,
-        $pageSize = null
-    )
-    {
-        return $this->_QueryApplications_operation->call([
-            'query' => $query,
-            'pageSize' => $pageSize
-        ]);
-    }
-    /**
-     * Activates an endpoint for subsequent use in twin service.
-All endpoints must be activated using this API or through a
-activation filter during application registration or discovery.
-     * @param string $endpointId
-     */
-    public function activateEndpoint($endpointId)
-    {
-        return $this->_ActivateEndpoint_operation->call(['endpointId' => $endpointId]);
-    }
-    /**
-     * Gets information about an endpoint.
-     * @param string $endpointId
-     * @param boolean|null $onlyServerState
-     * @return array
-     */
-    public function getEndpoint(
-        $endpointId,
-        $onlyServerState = null
-    )
-    {
-        return $this->_GetEndpoint_operation->call([
-            'endpointId' => $endpointId,
-            'onlyServerState' => $onlyServerState
-        ]);
-    }
-    /**
+     * Delete value history using historic access.
+The endpoint must be activated and connected and the module client
+and server must trust each other.
      * @param string $endpointId
      * @param array $request
+     * @return array
      */
-    public function updateEndpoint(
+    public function historyDeleteValuesAtTimes(
         $endpointId,
         array $request
     )
     {
-        return $this->_UpdateEndpoint_operation->call([
+        return $this->_HistoryDeleteValuesAtTimes_operation->call([
             'endpointId' => $endpointId,
             'request' => $request
         ]);
     }
     /**
-     * Get all registered endpoints in paged form.
-The returned model can contain a continuation token if more results are
-available.
-Call this operation again using the token to retrieve more results.
-     * @param boolean|null $onlyServerState
-     * @param string|null $continuationToken
-     * @param integer|null $pageSize
-     * @return array
-     */
-    public function getListOfEndpoints(
-        $onlyServerState = null,
-        $continuationToken = null,
-        $pageSize = null
-    )
-    {
-        return $this->_GetListOfEndpoints_operation->call([
-            'onlyServerState' => $onlyServerState,
-            'continuationToken' => $continuationToken,
-            'pageSize' => $pageSize
-        ]);
-    }
-    /**
-     * Get a list of endpoints filtered using the specified query parameters.
-The returned model can contain a continuation token if more results are
-available.
-Call the GetListOfEndpoints operation using the token to retrieve
-more results.
-     * @param string|null $url
-     * @param string|null $userAuthentication
-     * @param string|null $certificate
-     * @param string|null $securityMode
-     * @param string|null $securityPolicy
-     * @param boolean|null $activated
-     * @param boolean|null $connected
-     * @param string|null $endpointState
-     * @param boolean|null $includeNotSeenSince
-     * @param boolean|null $onlyServerState
-     * @param integer|null $pageSize
-     * @return array
-     */
-    public function getFilteredListOfEndpoints(
-        $url = null,
-        $userAuthentication = null,
-        $certificate = null,
-        $securityMode = null,
-        $securityPolicy = null,
-        $activated = null,
-        $connected = null,
-        $endpointState = null,
-        $includeNotSeenSince = null,
-        $onlyServerState = null,
-        $pageSize = null
-    )
-    {
-        return $this->_GetFilteredListOfEndpoints_operation->call([
-            'Url' => $url,
-            'UserAuthentication' => $userAuthentication,
-            'Certificate' => $certificate,
-            'SecurityMode' => $securityMode,
-            'SecurityPolicy' => $securityPolicy,
-            'Activated' => $activated,
-            'Connected' => $connected,
-            'EndpointState' => $endpointState,
-            'IncludeNotSeenSince' => $includeNotSeenSince,
-            'onlyServerState' => $onlyServerState,
-            'pageSize' => $pageSize
-        ]);
-    }
-    /**
-     * Return endpoints that match the specified query.
-The returned model can contain a continuation token if more results are
-available.
-Call the GetListOfEndpoints operation using the token to retrieve
-more results.
-     * @param array $query
-     * @param boolean|null $onlyServerState
-     * @param integer|null $pageSize
-     * @return array
-     */
-    public function queryEndpoints(
-        array $query,
-        $onlyServerState = null,
-        $pageSize = null
-    )
-    {
-        return $this->_QueryEndpoints_operation->call([
-            'query' => $query,
-            'onlyServerState' => $onlyServerState,
-            'pageSize' => $pageSize
-        ]);
-    }
-    /**
-     * Deactivates the endpoint and disable access through twin service.
+     * Delete historic values using historic access.
+The endpoint must be activated and connected and the module client
+and server must trust each other.
      * @param string $endpointId
+     * @param array $request
+     * @return array
      */
-    public function deactivateEndpoint($endpointId)
+    public function historyDeleteValues(
+        $endpointId,
+        array $request
+    )
     {
-        return $this->_DeactivateEndpoint_operation->call(['endpointId' => $endpointId]);
+        return $this->_HistoryDeleteValues_operation->call([
+            'endpointId' => $endpointId,
+            'request' => $request
+        ]);
+    }
+    /**
+     * Delete historic values using historic access.
+The endpoint must be activated and connected and the module client
+and server must trust each other.
+     * @param string $endpointId
+     * @param array $request
+     * @return array
+     */
+    public function historyDeleteModifiedValues(
+        $endpointId,
+        array $request
+    )
+    {
+        return $this->_HistoryDeleteModifiedValues_operation->call([
+            'endpointId' => $endpointId,
+            'request' => $request
+        ]);
+    }
+    /**
+     * Delete historic events using historic access.
+The endpoint must be activated and connected and the module client
+and server must trust each other.
+     * @param string $endpointId
+     * @param array $request
+     * @return array
+     */
+    public function historyDeleteEvents(
+        $endpointId,
+        array $request
+    )
+    {
+        return $this->_HistoryDeleteEvents_operation->call([
+            'endpointId' => $endpointId,
+            'request' => $request
+        ]);
+    }
+    /**
+     * Read node history if available using historic access.
+The endpoint must be activated and connected and the module client
+and server must trust each other.
+     * @param string $endpointId
+     * @param array $request
+     * @return array
+     */
+    public function historyReadRaw(
+        $endpointId,
+        array $request
+    )
+    {
+        return $this->_HistoryReadRaw_operation->call([
+            'endpointId' => $endpointId,
+            'request' => $request
+        ]);
+    }
+    /**
+     * Read next batch of node history values using historic access.
+The endpoint must be activated and connected and the module client
+and server must trust each other.
+     * @param string $endpointId
+     * @param array $request
+     * @return array
+     */
+    public function historyReadRawNext(
+        $endpointId,
+        array $request
+    )
+    {
+        return $this->_HistoryReadRawNext_operation->call([
+            'endpointId' => $endpointId,
+            'request' => $request
+        ]);
+    }
+    /**
+     * Update node history using historic access.
+The endpoint must be activated and connected and the module client
+and server must trust each other.
+     * @param string $endpointId
+     * @param array $request
+     * @return array
+     */
+    public function historyUpdateRaw(
+        $endpointId,
+        array $request
+    )
+    {
+        return $this->_HistoryUpdateRaw_operation->call([
+            'endpointId' => $endpointId,
+            'request' => $request
+        ]);
+    }
+    /**
+     * Insert historic values using historic access.
+The endpoint must be activated and connected and the module client
+and server must trust each other.
+     * @param string $endpointId
+     * @param array $request
+     * @return array
+     */
+    public function historyInsertValues(
+        $endpointId,
+        array $request
+    )
+    {
+        return $this->_HistoryInsertValues_operation->call([
+            'endpointId' => $endpointId,
+            'request' => $request
+        ]);
+    }
+    /**
+     * Insert historic events using historic access.
+The endpoint must be activated and connected and the module client
+and server must trust each other.
+     * @param string $endpointId
+     * @param array $request
+     * @return array
+     */
+    public function historyInsertEvents(
+        $endpointId,
+        array $request
+    )
+    {
+        return $this->_HistoryInsertEvents_operation->call([
+            'endpointId' => $endpointId,
+            'request' => $request
+        ]);
+    }
+    /**
+     * Read historic events of a node if available using historic access.
+The endpoint must be activated and connected and the module client
+and server must trust each other.
+     * @param string $endpointId
+     * @param array $request
+     * @return array
+     */
+    public function historyReadEvents(
+        $endpointId,
+        array $request
+    )
+    {
+        return $this->_HistoryReadEvents_operation->call([
+            'endpointId' => $endpointId,
+            'request' => $request
+        ]);
+    }
+    /**
+     * Read next batch of historic events of a node using historic access.
+The endpoint must be activated and connected and the module client
+and server must trust each other.
+     * @param string $endpointId
+     * @param array $request
+     * @return array
+     */
+    public function historyReadEventsNext(
+        $endpointId,
+        array $request
+    )
+    {
+        return $this->_HistoryReadEventsNext_operation->call([
+            'endpointId' => $endpointId,
+            'request' => $request
+        ]);
+    }
+    /**
+     * Read processed history values of a node if available using historic access.
+The endpoint must be activated and connected and the module client
+and server must trust each other.
+     * @param string $endpointId
+     * @param array $request
+     * @return array
+     */
+    public function historyReadValues(
+        $endpointId,
+        array $request
+    )
+    {
+        return $this->_HistoryReadValues_operation->call([
+            'endpointId' => $endpointId,
+            'request' => $request
+        ]);
+    }
+    /**
+     * Read historic values of a node if available using historic access.
+The endpoint must be activated and connected and the module client
+and server must trust each other.
+     * @param string $endpointId
+     * @param array $request
+     * @return array
+     */
+    public function historyReadValuesAtTimes(
+        $endpointId,
+        array $request
+    )
+    {
+        return $this->_HistoryReadValuesAtTimes_operation->call([
+            'endpointId' => $endpointId,
+            'request' => $request
+        ]);
+    }
+    /**
+     * Read processed history values of a node if available using historic access.
+The endpoint must be activated and connected and the module client
+and server must trust each other.
+     * @param string $endpointId
+     * @param array $request
+     * @return array
+     */
+    public function historyReadProcessedValues(
+        $endpointId,
+        array $request
+    )
+    {
+        return $this->_HistoryReadProcessedValues_operation->call([
+            'endpointId' => $endpointId,
+            'request' => $request
+        ]);
+    }
+    /**
+     * Read processed history values of a node if available using historic access.
+The endpoint must be activated and connected and the module client
+and server must trust each other.
+     * @param string $endpointId
+     * @param array $request
+     * @return array
+     */
+    public function historyReadModifiedValues(
+        $endpointId,
+        array $request
+    )
+    {
+        return $this->_HistoryReadModifiedValues_operation->call([
+            'endpointId' => $endpointId,
+            'request' => $request
+        ]);
+    }
+    /**
+     * Read next batch of historic values of a node using historic access.
+The endpoint must be activated and connected and the module client
+and server must trust each other.
+     * @param string $endpointId
+     * @param array $request
+     * @return array
+     */
+    public function historyReadValueNext(
+        $endpointId,
+        array $request
+    )
+    {
+        return $this->_HistoryReadValueNext_operation->call([
+            'endpointId' => $endpointId,
+            'request' => $request
+        ]);
+    }
+    /**
+     * Replace historic values using historic access.
+The endpoint must be activated and connected and the module client
+and server must trust each other.
+     * @param string $endpointId
+     * @param array $request
+     * @return array
+     */
+    public function historyReplaceValues(
+        $endpointId,
+        array $request
+    )
+    {
+        return $this->_HistoryReplaceValues_operation->call([
+            'endpointId' => $endpointId,
+            'request' => $request
+        ]);
+    }
+    /**
+     * Replace historic events using historic access.
+The endpoint must be activated and connected and the module client
+and server must trust each other.
+     * @param string $endpointId
+     * @param array $request
+     * @return array
+     */
+    public function historyReplaceEvents(
+        $endpointId,
+        array $request
+    )
+    {
+        return $this->_HistoryReplaceEvents_operation->call([
+            'endpointId' => $endpointId,
+            'request' => $request
+        ]);
     }
     /**
      * @return array
@@ -337,960 +367,425 @@ more results.
         return $this->_GetStatus_operation->call([]);
     }
     /**
-     * Returns a supervisor's registration and connectivity information.
-A supervisor id corresponds to the twin modules module identity.
-     * @param string $supervisorId
-     * @param boolean|null $onlyServerState
-     * @return array
+     * @var \Microsoft\Rest\OperationInterface
      */
-    public function getSupervisor(
-        $supervisorId,
-        $onlyServerState = null
-    )
-    {
-        return $this->_GetSupervisor_operation->call([
-            'supervisorId' => $supervisorId,
-            'onlyServerState' => $onlyServerState
-        ]);
-    }
-    /**
-     * Allows a caller to configure recurring discovery runs on the twin module
-identified by the supervisor id or update site information.
-     * @param string $supervisorId
-     * @param array $request
-     */
-    public function updateSupervisor(
-        $supervisorId,
-        array $request
-    )
-    {
-        return $this->_UpdateSupervisor_operation->call([
-            'supervisorId' => $supervisorId,
-            'request' => $request
-        ]);
-    }
-    /**
-     * Allows a caller to get runtime status for a supervisor.
-     * @param string $supervisorId
-     * @return array
-     */
-    public function getSupervisorStatus($supervisorId)
-    {
-        return $this->_GetSupervisorStatus_operation->call(['supervisorId' => $supervisorId]);
-    }
-    /**
-     * Allows a caller to reset the twin module using its supervisor
-identity identifier.
-     * @param string $supervisorId
-     */
-    public function resetSupervisor($supervisorId)
-    {
-        return $this->_ResetSupervisor_operation->call(['supervisorId' => $supervisorId]);
-    }
-    /**
-     * Get all registered supervisors and therefore twin modules in paged form.
-The returned model can contain a continuation token if more results are
-available.
-Call this operation again using the token to retrieve more results.
-     * @param boolean|null $onlyServerState
-     * @param string|null $continuationToken
-     * @param integer|null $pageSize
-     * @return array
-     */
-    public function getListOfSupervisors(
-        $onlyServerState = null,
-        $continuationToken = null,
-        $pageSize = null
-    )
-    {
-        return $this->_GetListOfSupervisors_operation->call([
-            'onlyServerState' => $onlyServerState,
-            'continuationToken' => $continuationToken,
-            'pageSize' => $pageSize
-        ]);
-    }
-    /**
-     * Get a list of supervisors filtered using the specified query parameters.
-The returned model can contain a continuation token if more results are
-available.
-Call the GetListOfSupervisors operation using the token to retrieve
-more results.
-     * @param string|null $siteId
-     * @param string|null $discovery
-     * @param boolean|null $connected
-     * @param boolean|null $onlyServerState
-     * @param integer|null $pageSize
-     * @return array
-     */
-    public function getFilteredListOfSupervisors(
-        $siteId = null,
-        $discovery = null,
-        $connected = null,
-        $onlyServerState = null,
-        $pageSize = null
-    )
-    {
-        return $this->_GetFilteredListOfSupervisors_operation->call([
-            'SiteId' => $siteId,
-            'Discovery' => $discovery,
-            'Connected' => $connected,
-            'onlyServerState' => $onlyServerState,
-            'pageSize' => $pageSize
-        ]);
-    }
-    /**
-     * Get all supervisors that match a specified query.
-The returned model can contain a continuation token if more results are
-available.
-Call the GetListOfSupervisors operation using the token to retrieve
-more results.
-     * @param array $query
-     * @param boolean|null $onlyServerState
-     * @param integer|null $pageSize
-     * @return array
-     */
-    public function querySupervisors(
-        array $query,
-        $onlyServerState = null,
-        $pageSize = null
-    )
-    {
-        return $this->_QuerySupervisors_operation->call([
-            'query' => $query,
-            'onlyServerState' => $onlyServerState,
-            'pageSize' => $pageSize
-        ]);
-    }
+    private $_HistoryDeleteValuesAtTimes_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
-    private $_GetListOfApplications_operation;
+    private $_HistoryDeleteValues_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
-    private $_CreateApplication_operation;
+    private $_HistoryDeleteModifiedValues_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
-    private $_RegisterServer_operation;
+    private $_HistoryDeleteEvents_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
-    private $_DeleteAllDisabledApplications_operation;
+    private $_HistoryReadRaw_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
-    private $_DiscoverServer_operation;
+    private $_HistoryReadRawNext_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
-    private $_GetApplicationRegistration_operation;
+    private $_HistoryUpdateRaw_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
-    private $_DeleteApplication_operation;
+    private $_HistoryInsertValues_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
-    private $_UpdateApplicationRegistration_operation;
+    private $_HistoryInsertEvents_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
-    private $_GetListOfSites_operation;
+    private $_HistoryReadEvents_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
-    private $_GetFilteredListOfApplications_operation;
+    private $_HistoryReadEventsNext_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
-    private $_QueryApplications_operation;
+    private $_HistoryReadValues_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
-    private $_ActivateEndpoint_operation;
+    private $_HistoryReadValuesAtTimes_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
-    private $_GetEndpoint_operation;
+    private $_HistoryReadProcessedValues_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
-    private $_UpdateEndpoint_operation;
+    private $_HistoryReadModifiedValues_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
-    private $_GetListOfEndpoints_operation;
+    private $_HistoryReadValueNext_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
-    private $_GetFilteredListOfEndpoints_operation;
+    private $_HistoryReplaceValues_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
-    private $_QueryEndpoints_operation;
-    /**
-     * @var \Microsoft\Rest\OperationInterface
-     */
-    private $_DeactivateEndpoint_operation;
+    private $_HistoryReplaceEvents_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
     private $_GetStatus_operation;
-    /**
-     * @var \Microsoft\Rest\OperationInterface
-     */
-    private $_GetSupervisor_operation;
-    /**
-     * @var \Microsoft\Rest\OperationInterface
-     */
-    private $_UpdateSupervisor_operation;
-    /**
-     * @var \Microsoft\Rest\OperationInterface
-     */
-    private $_GetSupervisorStatus_operation;
-    /**
-     * @var \Microsoft\Rest\OperationInterface
-     */
-    private $_ResetSupervisor_operation;
-    /**
-     * @var \Microsoft\Rest\OperationInterface
-     */
-    private $_GetListOfSupervisors_operation;
-    /**
-     * @var \Microsoft\Rest\OperationInterface
-     */
-    private $_GetFilteredListOfSupervisors_operation;
-    /**
-     * @var \Microsoft\Rest\OperationInterface
-     */
-    private $_QuerySupervisors_operation;
     const _SWAGGER_OBJECT_DATA = [
         'host' => 'localhost',
         'paths' => [
-            '/v2/applications' => [
-                'get' => [
-                    'operationId' => 'GetListOfApplications',
-                    'parameters' => [
-                        [
-                            'name' => 'continuationToken',
-                            'in' => 'query',
-                            'required' => FALSE,
-                            'type' => 'string'
-                        ],
-                        [
-                            'name' => 'pageSize',
-                            'in' => 'query',
-                            'required' => FALSE,
-                            'type' => 'integer',
-                            'format' => 'int32'
-                        ]
-                    ],
-                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/ApplicationInfoListApiModel']]]
-                ],
-                'put' => [
-                    'operationId' => 'CreateApplication',
-                    'parameters' => [[
-                        'name' => 'request',
-                        'in' => 'body',
-                        'required' => TRUE,
-                        'schema' => ['$ref' => '#/definitions/ApplicationRegistrationRequestApiModel']
-                    ]],
-                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/ApplicationRegistrationResponseApiModel']]]
-                ],
-                'post' => [
-                    'operationId' => 'RegisterServer',
-                    'parameters' => [[
-                        'name' => 'request',
-                        'in' => 'body',
-                        'required' => TRUE,
-                        'schema' => ['$ref' => '#/definitions/ServerRegistrationRequestApiModel']
-                    ]],
-                    'responses' => ['200' => []]
-                ],
-                'delete' => [
-                    'operationId' => 'DeleteAllDisabledApplications',
-                    'parameters' => [[
-                        'name' => 'notSeenFor',
-                        'in' => 'query',
-                        'required' => FALSE,
-                        'type' => 'string'
-                    ]],
-                    'responses' => ['200' => []]
-                ]
-            ],
-            '/v2/applications/discover' => ['post' => [
-                'operationId' => 'DiscoverServer',
-                'parameters' => [[
-                    'name' => 'request',
-                    'in' => 'body',
-                    'required' => TRUE,
-                    'schema' => ['$ref' => '#/definitions/DiscoveryRequestApiModel']
-                ]],
-                'responses' => ['200' => []]
-            ]],
-            '/v2/applications/{applicationId}' => [
-                'get' => [
-                    'operationId' => 'GetApplicationRegistration',
-                    'parameters' => [[
-                        'name' => 'applicationId',
+            '/v2/delete/{endpointId}/values/pick' => ['post' => [
+                'operationId' => 'HistoryDeleteValuesAtTimes',
+                'parameters' => [
+                    [
+                        'name' => 'endpointId',
                         'in' => 'path',
                         'required' => TRUE,
                         'type' => 'string'
-                    ]],
-                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/ApplicationRegistrationApiModel']]]
+                    ],
+                    [
+                        'name' => 'request',
+                        'in' => 'body',
+                        'required' => TRUE,
+                        'schema' => ['$ref' => '#/definitions/HistoryUpdateRequestApiModel[DeleteValuesAtTimesDetailsApiModel]']
+                    ]
                 ],
-                'delete' => [
-                    'operationId' => 'DeleteApplication',
-                    'parameters' => [[
-                        'name' => 'applicationId',
+                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/HistoryUpdateResponseApiModel']]]
+            ]],
+            '/v2/delete/{endpointId}/values' => ['post' => [
+                'operationId' => 'HistoryDeleteValues',
+                'parameters' => [
+                    [
+                        'name' => 'endpointId',
                         'in' => 'path',
                         'required' => TRUE,
                         'type' => 'string'
-                    ]],
-                    'responses' => ['200' => []]
-                ],
-                'patch' => [
-                    'operationId' => 'UpdateApplicationRegistration',
-                    'parameters' => [
-                        [
-                            'name' => 'applicationId',
-                            'in' => 'path',
-                            'required' => TRUE,
-                            'type' => 'string'
-                        ],
-                        [
-                            'name' => 'request',
-                            'in' => 'body',
-                            'required' => TRUE,
-                            'schema' => ['$ref' => '#/definitions/ApplicationRegistrationUpdateApiModel']
-                        ]
                     ],
-                    'responses' => ['200' => []]
-                ]
-            ],
-            '/v2/applications/sites' => ['get' => [
-                'operationId' => 'GetListOfSites',
+                    [
+                        'name' => 'request',
+                        'in' => 'body',
+                        'required' => TRUE,
+                        'schema' => ['$ref' => '#/definitions/HistoryUpdateRequestApiModel[DeleteValuesDetailsApiModel]']
+                    ]
+                ],
+                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/HistoryUpdateResponseApiModel']]]
+            ]],
+            '/v2/delete/{endpointId}/values/modified' => ['post' => [
+                'operationId' => 'HistoryDeleteModifiedValues',
                 'parameters' => [
                     [
-                        'name' => 'continuationToken',
-                        'in' => 'query',
-                        'required' => FALSE,
+                        'name' => 'endpointId',
+                        'in' => 'path',
+                        'required' => TRUE,
                         'type' => 'string'
                     ],
                     [
-                        'name' => 'pageSize',
-                        'in' => 'query',
-                        'required' => FALSE,
-                        'type' => 'integer',
-                        'format' => 'int32'
+                        'name' => 'request',
+                        'in' => 'body',
+                        'required' => TRUE,
+                        'schema' => ['$ref' => '#/definitions/HistoryUpdateRequestApiModel[DeleteModifiedValuesDetailsApiModel]']
                     ]
                 ],
-                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/ApplicationSiteListApiModel']]]
+                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/HistoryUpdateResponseApiModel']]]
             ]],
-            '/v2/applications/query' => [
-                'get' => [
-                    'operationId' => 'GetFilteredListOfApplications',
-                    'parameters' => [
-                        [
-                            'name' => 'query',
-                            'in' => 'body',
-                            'required' => TRUE,
-                            'schema' => ['$ref' => '#/definitions/ApplicationRegistrationQueryApiModel']
-                        ],
-                        [
-                            'name' => 'pageSize',
-                            'in' => 'query',
-                            'required' => FALSE,
-                            'type' => 'integer',
-                            'format' => 'int32'
-                        ]
-                    ],
-                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/ApplicationInfoListApiModel']]]
-                ],
-                'post' => [
-                    'operationId' => 'QueryApplications',
-                    'parameters' => [
-                        [
-                            'name' => 'query',
-                            'in' => 'body',
-                            'required' => TRUE,
-                            'schema' => ['$ref' => '#/definitions/ApplicationRegistrationQueryApiModel']
-                        ],
-                        [
-                            'name' => 'pageSize',
-                            'in' => 'query',
-                            'required' => FALSE,
-                            'type' => 'integer',
-                            'format' => 'int32'
-                        ]
-                    ],
-                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/ApplicationInfoListApiModel']]]
-                ]
-            ],
-            '/v2/endpoints/{endpointId}/activate' => ['post' => [
-                'operationId' => 'ActivateEndpoint',
-                'parameters' => [[
-                    'name' => 'endpointId',
-                    'in' => 'path',
-                    'required' => TRUE,
-                    'type' => 'string'
-                ]],
-                'responses' => ['200' => []]
-            ]],
-            '/v2/endpoints/{endpointId}' => [
-                'get' => [
-                    'operationId' => 'GetEndpoint',
-                    'parameters' => [
-                        [
-                            'name' => 'endpointId',
-                            'in' => 'path',
-                            'required' => TRUE,
-                            'type' => 'string'
-                        ],
-                        [
-                            'name' => 'onlyServerState',
-                            'in' => 'query',
-                            'required' => FALSE,
-                            'type' => 'boolean'
-                        ]
-                    ],
-                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/EndpointInfoApiModel']]]
-                ],
-                'patch' => [
-                    'operationId' => 'UpdateEndpoint',
-                    'parameters' => [
-                        [
-                            'name' => 'endpointId',
-                            'in' => 'path',
-                            'required' => TRUE,
-                            'type' => 'string'
-                        ],
-                        [
-                            'name' => 'request',
-                            'in' => 'body',
-                            'required' => TRUE,
-                            'schema' => ['$ref' => '#/definitions/EndpointRegistrationUpdateApiModel']
-                        ]
-                    ],
-                    'responses' => ['200' => []]
-                ]
-            ],
-            '/v2/endpoints' => ['get' => [
-                'operationId' => 'GetListOfEndpoints',
+            '/v2/delete/{endpointId}/events' => ['post' => [
+                'operationId' => 'HistoryDeleteEvents',
                 'parameters' => [
                     [
-                        'name' => 'onlyServerState',
-                        'in' => 'query',
-                        'required' => FALSE,
-                        'type' => 'boolean'
-                    ],
-                    [
-                        'name' => 'continuationToken',
-                        'in' => 'query',
-                        'required' => FALSE,
+                        'name' => 'endpointId',
+                        'in' => 'path',
+                        'required' => TRUE,
                         'type' => 'string'
                     ],
                     [
-                        'name' => 'pageSize',
-                        'in' => 'query',
-                        'required' => FALSE,
-                        'type' => 'integer',
-                        'format' => 'int32'
+                        'name' => 'request',
+                        'in' => 'body',
+                        'required' => TRUE,
+                        'schema' => ['$ref' => '#/definitions/HistoryUpdateRequestApiModel[DeleteEventsDetailsApiModel]']
                     ]
                 ],
-                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/EndpointInfoListApiModel']]]
+                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/HistoryUpdateResponseApiModel']]]
             ]],
-            '/v2/endpoints/query' => [
-                'get' => [
-                    'operationId' => 'GetFilteredListOfEndpoints',
-                    'parameters' => [
-                        [
-                            'name' => 'Url',
-                            'in' => 'query',
-                            'required' => FALSE,
-                            'type' => 'string'
-                        ],
-                        [
-                            'name' => 'UserAuthentication',
-                            'in' => 'query',
-                            'required' => FALSE,
-                            'type' => 'string',
-                            'enum' => [
-                                'None',
-                                'UserName',
-                                'X509Certificate',
-                                'JwtToken'
-                            ]
-                        ],
-                        [
-                            'name' => 'Certificate',
-                            'in' => 'query',
-                            'required' => FALSE,
-                            'type' => 'string',
-                            'format' => 'byte'
-                        ],
-                        [
-                            'name' => 'SecurityMode',
-                            'in' => 'query',
-                            'required' => FALSE,
-                            'type' => 'string',
-                            'enum' => [
-                                'Best',
-                                'Sign',
-                                'SignAndEncrypt',
-                                'None'
-                            ]
-                        ],
-                        [
-                            'name' => 'SecurityPolicy',
-                            'in' => 'query',
-                            'required' => FALSE,
-                            'type' => 'string'
-                        ],
-                        [
-                            'name' => 'Activated',
-                            'in' => 'query',
-                            'required' => FALSE,
-                            'type' => 'boolean'
-                        ],
-                        [
-                            'name' => 'Connected',
-                            'in' => 'query',
-                            'required' => FALSE,
-                            'type' => 'boolean'
-                        ],
-                        [
-                            'name' => 'EndpointState',
-                            'in' => 'query',
-                            'required' => FALSE,
-                            'type' => 'string',
-                            'enum' => [
-                                'Connecting',
-                                'NotReachable',
-                                'Busy',
-                                'NoTrust',
-                                'CertificateInvalid',
-                                'Ready',
-                                'Error'
-                            ]
-                        ],
-                        [
-                            'name' => 'IncludeNotSeenSince',
-                            'in' => 'query',
-                            'required' => FALSE,
-                            'type' => 'boolean'
-                        ],
-                        [
-                            'name' => 'onlyServerState',
-                            'in' => 'query',
-                            'required' => FALSE,
-                            'type' => 'boolean'
-                        ],
-                        [
-                            'name' => 'pageSize',
-                            'in' => 'query',
-                            'required' => FALSE,
-                            'type' => 'integer',
-                            'format' => 'int32'
-                        ]
+            '/v2/history/read/{endpointId}' => ['post' => [
+                'operationId' => 'HistoryReadRaw',
+                'parameters' => [
+                    [
+                        'name' => 'endpointId',
+                        'in' => 'path',
+                        'required' => TRUE,
+                        'type' => 'string'
                     ],
-                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/EndpointInfoListApiModel']]]
+                    [
+                        'name' => 'request',
+                        'in' => 'body',
+                        'required' => TRUE,
+                        'schema' => ['$ref' => '#/definitions/HistoryReadRequestApiModel[JToken]']
+                    ]
                 ],
-                'post' => [
-                    'operationId' => 'QueryEndpoints',
-                    'parameters' => [
-                        [
-                            'name' => 'query',
-                            'in' => 'body',
-                            'required' => TRUE,
-                            'schema' => ['$ref' => '#/definitions/EndpointRegistrationQueryApiModel']
-                        ],
-                        [
-                            'name' => 'onlyServerState',
-                            'in' => 'query',
-                            'required' => FALSE,
-                            'type' => 'boolean'
-                        ],
-                        [
-                            'name' => 'pageSize',
-                            'in' => 'query',
-                            'required' => FALSE,
-                            'type' => 'integer',
-                            'format' => 'int32'
-                        ]
+                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/HistoryReadResponseApiModel[JToken]']]]
+            ]],
+            '/v2/history/read/{endpointId}/next' => ['post' => [
+                'operationId' => 'HistoryReadRawNext',
+                'parameters' => [
+                    [
+                        'name' => 'endpointId',
+                        'in' => 'path',
+                        'required' => TRUE,
+                        'type' => 'string'
                     ],
-                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/EndpointInfoListApiModel']]]
-                ]
-            ],
-            '/v2/endpoints/{endpointId}/deactivate' => ['post' => [
-                'operationId' => 'DeactivateEndpoint',
-                'parameters' => [[
-                    'name' => 'endpointId',
-                    'in' => 'path',
-                    'required' => TRUE,
-                    'type' => 'string'
-                ]],
-                'responses' => ['200' => []]
+                    [
+                        'name' => 'request',
+                        'in' => 'body',
+                        'required' => TRUE,
+                        'schema' => ['$ref' => '#/definitions/HistoryReadNextRequestApiModel']
+                    ]
+                ],
+                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/HistoryReadNextResponseApiModel[JToken]']]]
+            ]],
+            '/v2/history/update/{endpointId}' => ['post' => [
+                'operationId' => 'HistoryUpdateRaw',
+                'parameters' => [
+                    [
+                        'name' => 'endpointId',
+                        'in' => 'path',
+                        'required' => TRUE,
+                        'type' => 'string'
+                    ],
+                    [
+                        'name' => 'request',
+                        'in' => 'body',
+                        'required' => TRUE,
+                        'schema' => ['$ref' => '#/definitions/HistoryUpdateRequestApiModel[JToken]']
+                    ]
+                ],
+                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/HistoryUpdateResponseApiModel']]]
+            ]],
+            '/v2/insert/{endpointId}/values' => ['post' => [
+                'operationId' => 'HistoryInsertValues',
+                'parameters' => [
+                    [
+                        'name' => 'endpointId',
+                        'in' => 'path',
+                        'required' => TRUE,
+                        'type' => 'string'
+                    ],
+                    [
+                        'name' => 'request',
+                        'in' => 'body',
+                        'required' => TRUE,
+                        'schema' => ['$ref' => '#/definitions/HistoryUpdateRequestApiModel[InsertValuesDetailsApiModel]']
+                    ]
+                ],
+                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/HistoryUpdateResponseApiModel']]]
+            ]],
+            '/v2/insert/{endpointId}/events' => ['post' => [
+                'operationId' => 'HistoryInsertEvents',
+                'parameters' => [
+                    [
+                        'name' => 'endpointId',
+                        'in' => 'path',
+                        'required' => TRUE,
+                        'type' => 'string'
+                    ],
+                    [
+                        'name' => 'request',
+                        'in' => 'body',
+                        'required' => TRUE,
+                        'schema' => ['$ref' => '#/definitions/HistoryUpdateRequestApiModel[InsertEventsDetailsApiModel]']
+                    ]
+                ],
+                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/HistoryUpdateResponseApiModel']]]
+            ]],
+            '/v2/read/{endpointId}/events' => ['post' => [
+                'operationId' => 'HistoryReadEvents',
+                'parameters' => [
+                    [
+                        'name' => 'endpointId',
+                        'in' => 'path',
+                        'required' => TRUE,
+                        'type' => 'string'
+                    ],
+                    [
+                        'name' => 'request',
+                        'in' => 'body',
+                        'required' => TRUE,
+                        'schema' => ['$ref' => '#/definitions/HistoryReadRequestApiModel[ReadEventsDetailsApiModel]']
+                    ]
+                ],
+                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/HistoryReadResponseApiModel[HistoricEventApiModel[]]']]]
+            ]],
+            '/v2/read/{endpointId}/events/next' => ['post' => [
+                'operationId' => 'HistoryReadEventsNext',
+                'parameters' => [
+                    [
+                        'name' => 'endpointId',
+                        'in' => 'path',
+                        'required' => TRUE,
+                        'type' => 'string'
+                    ],
+                    [
+                        'name' => 'request',
+                        'in' => 'body',
+                        'required' => TRUE,
+                        'schema' => ['$ref' => '#/definitions/HistoryReadNextRequestApiModel']
+                    ]
+                ],
+                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/HistoryReadNextResponseApiModel[HistoricEventApiModel[]]']]]
+            ]],
+            '/v2/read/{endpointId}/values' => ['post' => [
+                'operationId' => 'HistoryReadValues',
+                'parameters' => [
+                    [
+                        'name' => 'endpointId',
+                        'in' => 'path',
+                        'required' => TRUE,
+                        'type' => 'string'
+                    ],
+                    [
+                        'name' => 'request',
+                        'in' => 'body',
+                        'required' => TRUE,
+                        'schema' => ['$ref' => '#/definitions/HistoryReadRequestApiModel[ReadValuesDetailsApiModel]']
+                    ]
+                ],
+                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/HistoryReadResponseApiModel[HistoricValueApiModel[]]']]]
+            ]],
+            '/v2/read/{endpointId}/values/pick' => ['post' => [
+                'operationId' => 'HistoryReadValuesAtTimes',
+                'parameters' => [
+                    [
+                        'name' => 'endpointId',
+                        'in' => 'path',
+                        'required' => TRUE,
+                        'type' => 'string'
+                    ],
+                    [
+                        'name' => 'request',
+                        'in' => 'body',
+                        'required' => TRUE,
+                        'schema' => ['$ref' => '#/definitions/HistoryReadRequestApiModel[ReadValuesAtTimesDetailsApiModel]']
+                    ]
+                ],
+                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/HistoryReadResponseApiModel[HistoricValueApiModel[]]']]]
+            ]],
+            '/v2/read/{endpointId}/values/processed' => ['post' => [
+                'operationId' => 'HistoryReadProcessedValues',
+                'parameters' => [
+                    [
+                        'name' => 'endpointId',
+                        'in' => 'path',
+                        'required' => TRUE,
+                        'type' => 'string'
+                    ],
+                    [
+                        'name' => 'request',
+                        'in' => 'body',
+                        'required' => TRUE,
+                        'schema' => ['$ref' => '#/definitions/HistoryReadRequestApiModel[ReadProcessedValuesDetailsApiModel]']
+                    ]
+                ],
+                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/HistoryReadResponseApiModel[HistoricValueApiModel[]]']]]
+            ]],
+            '/v2/read/{endpointId}/values/modified' => ['post' => [
+                'operationId' => 'HistoryReadModifiedValues',
+                'parameters' => [
+                    [
+                        'name' => 'endpointId',
+                        'in' => 'path',
+                        'required' => TRUE,
+                        'type' => 'string'
+                    ],
+                    [
+                        'name' => 'request',
+                        'in' => 'body',
+                        'required' => TRUE,
+                        'schema' => ['$ref' => '#/definitions/HistoryReadRequestApiModel[ReadModifiedValuesDetailsApiModel]']
+                    ]
+                ],
+                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/HistoryReadResponseApiModel[HistoricValueApiModel[]]']]]
+            ]],
+            '/v2/read/{endpointId}/values/next' => ['post' => [
+                'operationId' => 'HistoryReadValueNext',
+                'parameters' => [
+                    [
+                        'name' => 'endpointId',
+                        'in' => 'path',
+                        'required' => TRUE,
+                        'type' => 'string'
+                    ],
+                    [
+                        'name' => 'request',
+                        'in' => 'body',
+                        'required' => TRUE,
+                        'schema' => ['$ref' => '#/definitions/HistoryReadNextRequestApiModel']
+                    ]
+                ],
+                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/HistoryReadNextResponseApiModel[HistoricValueApiModel[]]']]]
+            ]],
+            '/v2/replace/{endpointId}/values' => ['post' => [
+                'operationId' => 'HistoryReplaceValues',
+                'parameters' => [
+                    [
+                        'name' => 'endpointId',
+                        'in' => 'path',
+                        'required' => TRUE,
+                        'type' => 'string'
+                    ],
+                    [
+                        'name' => 'request',
+                        'in' => 'body',
+                        'required' => TRUE,
+                        'schema' => ['$ref' => '#/definitions/HistoryUpdateRequestApiModel[ReplaceValuesDetailsApiModel]']
+                    ]
+                ],
+                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/HistoryUpdateResponseApiModel']]]
+            ]],
+            '/v2/replace/{endpointId}/events' => ['post' => [
+                'operationId' => 'HistoryReplaceEvents',
+                'parameters' => [
+                    [
+                        'name' => 'endpointId',
+                        'in' => 'path',
+                        'required' => TRUE,
+                        'type' => 'string'
+                    ],
+                    [
+                        'name' => 'request',
+                        'in' => 'body',
+                        'required' => TRUE,
+                        'schema' => ['$ref' => '#/definitions/HistoryUpdateRequestApiModel[ReplaceEventsDetailsApiModel]']
+                    ]
+                ],
+                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/HistoryUpdateResponseApiModel']]]
             ]],
             '/v2/status' => ['get' => [
                 'operationId' => 'GetStatus',
                 'parameters' => [],
                 'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/StatusResponseApiModel']]]
-            ]],
-            '/v2/supervisors/{supervisorId}' => [
-                'get' => [
-                    'operationId' => 'GetSupervisor',
-                    'parameters' => [
-                        [
-                            'name' => 'supervisorId',
-                            'in' => 'path',
-                            'required' => TRUE,
-                            'type' => 'string'
-                        ],
-                        [
-                            'name' => 'onlyServerState',
-                            'in' => 'query',
-                            'required' => FALSE,
-                            'type' => 'boolean'
-                        ]
-                    ],
-                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/SupervisorApiModel']]]
-                ],
-                'patch' => [
-                    'operationId' => 'UpdateSupervisor',
-                    'parameters' => [
-                        [
-                            'name' => 'supervisorId',
-                            'in' => 'path',
-                            'required' => TRUE,
-                            'type' => 'string'
-                        ],
-                        [
-                            'name' => 'request',
-                            'in' => 'body',
-                            'required' => TRUE,
-                            'schema' => ['$ref' => '#/definitions/SupervisorUpdateApiModel']
-                        ]
-                    ],
-                    'responses' => ['200' => []]
-                ]
-            ],
-            '/v2/supervisors/{supervisorId}/status' => ['get' => [
-                'operationId' => 'GetSupervisorStatus',
-                'parameters' => [[
-                    'name' => 'supervisorId',
-                    'in' => 'path',
-                    'required' => TRUE,
-                    'type' => 'string'
-                ]],
-                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/SupervisorStatusApiModel']]]
-            ]],
-            '/v2/supervisors/{supervisorId}/reset' => ['post' => [
-                'operationId' => 'ResetSupervisor',
-                'parameters' => [[
-                    'name' => 'supervisorId',
-                    'in' => 'path',
-                    'required' => TRUE,
-                    'type' => 'string'
-                ]],
-                'responses' => ['200' => []]
-            ]],
-            '/v2/supervisors' => ['get' => [
-                'operationId' => 'GetListOfSupervisors',
-                'parameters' => [
-                    [
-                        'name' => 'onlyServerState',
-                        'in' => 'query',
-                        'required' => FALSE,
-                        'type' => 'boolean'
-                    ],
-                    [
-                        'name' => 'continuationToken',
-                        'in' => 'query',
-                        'required' => FALSE,
-                        'type' => 'string'
-                    ],
-                    [
-                        'name' => 'pageSize',
-                        'in' => 'query',
-                        'required' => FALSE,
-                        'type' => 'integer',
-                        'format' => 'int32'
-                    ]
-                ],
-                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/SupervisorListApiModel']]]
-            ]],
-            '/v2/supervisors/query' => [
-                'get' => [
-                    'operationId' => 'GetFilteredListOfSupervisors',
-                    'parameters' => [
-                        [
-                            'name' => 'SiteId',
-                            'in' => 'query',
-                            'required' => FALSE,
-                            'type' => 'string'
-                        ],
-                        [
-                            'name' => 'Discovery',
-                            'in' => 'query',
-                            'required' => FALSE,
-                            'type' => 'string',
-                            'enum' => [
-                                'Off',
-                                'Local',
-                                'Network',
-                                'Fast',
-                                'Scan'
-                            ]
-                        ],
-                        [
-                            'name' => 'Connected',
-                            'in' => 'query',
-                            'required' => FALSE,
-                            'type' => 'boolean'
-                        ],
-                        [
-                            'name' => 'onlyServerState',
-                            'in' => 'query',
-                            'required' => FALSE,
-                            'type' => 'boolean'
-                        ],
-                        [
-                            'name' => 'pageSize',
-                            'in' => 'query',
-                            'required' => FALSE,
-                            'type' => 'integer',
-                            'format' => 'int32'
-                        ]
-                    ],
-                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/SupervisorListApiModel']]]
-                ],
-                'post' => [
-                    'operationId' => 'QuerySupervisors',
-                    'parameters' => [
-                        [
-                            'name' => 'query',
-                            'in' => 'body',
-                            'required' => TRUE,
-                            'schema' => ['$ref' => '#/definitions/SupervisorQueryApiModel']
-                        ],
-                        [
-                            'name' => 'onlyServerState',
-                            'in' => 'query',
-                            'required' => FALSE,
-                            'type' => 'boolean'
-                        ],
-                        [
-                            'name' => 'pageSize',
-                            'in' => 'query',
-                            'required' => FALSE,
-                            'type' => 'integer',
-                            'format' => 'int32'
-                        ]
-                    ],
-                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/SupervisorListApiModel']]]
-                ]
-            ]
+            ]]
         ],
         'definitions' => [
-            'CallbackApiModel' => [
-                'properties' => [
-                    'uri' => ['type' => 'string'],
-                    'method' => [
-                        'type' => 'string',
-                        'enum' => [
-                            'Get',
-                            'Post',
-                            'Put',
-                            'Delete'
-                        ]
-                    ],
-                    'authenticationHeader' => ['type' => 'string']
-                ],
-                'additionalProperties' => FALSE,
-                'required' => []
-            ],
-            'EndpointActivationFilterApiModel' => [
-                'properties' => [
-                    'trustLists' => [
-                        'type' => 'array',
-                        'items' => ['type' => 'string']
-                    ],
-                    'securityPolicies' => [
-                        'type' => 'array',
-                        'items' => ['type' => 'string']
-                    ],
-                    'securityMode' => [
-                        'type' => 'string',
-                        'enum' => [
-                            'Best',
-                            'Sign',
-                            'SignAndEncrypt',
-                            'None'
-                        ]
-                    ]
-                ],
-                'additionalProperties' => FALSE,
-                'required' => []
-            ],
-            'ServerRegistrationRequestApiModel' => [
-                'properties' => [
-                    'discoveryUrl' => ['type' => 'string'],
-                    'id' => ['type' => 'string'],
-                    'callback' => ['$ref' => '#/definitions/CallbackApiModel'],
-                    'activationFilter' => ['$ref' => '#/definitions/EndpointActivationFilterApiModel']
-                ],
-                'additionalProperties' => FALSE,
-                'required' => ['discoveryUrl']
-            ],
-            'ApplicationRegistrationRequestApiModel' => [
-                'properties' => [
-                    'applicationUri' => ['type' => 'string'],
-                    'applicationType' => [
-                        'type' => 'string',
-                        'enum' => [
-                            'Server',
-                            'Client',
-                            'ClientAndServer'
-                        ]
-                    ],
-                    'productUri' => ['type' => 'string'],
-                    'applicationName' => ['type' => 'string'],
-                    'locale' => ['type' => 'string'],
-                    'capabilities' => [
-                        'type' => 'array',
-                        'items' => ['type' => 'string']
-                    ],
-                    'discoveryUrls' => [
-                        'type' => 'array',
-                        'items' => ['type' => 'string']
-                    ],
-                    'discoveryProfileUri' => ['type' => 'string']
-                ],
-                'additionalProperties' => FALSE,
-                'required' => ['applicationUri']
-            ],
-            'ApplicationRegistrationResponseApiModel' => [
-                'properties' => ['id' => ['type' => 'string']],
-                'additionalProperties' => FALSE,
-                'required' => []
-            ],
-            'ApplicationInfoApiModel' => [
-                'properties' => [
-                    'applicationId' => ['type' => 'string'],
-                    'applicationType' => [
-                        'type' => 'string',
-                        'enum' => [
-                            'Server',
-                            'Client',
-                            'ClientAndServer'
-                        ]
-                    ],
-                    'applicationUri' => ['type' => 'string'],
-                    'productUri' => ['type' => 'string'],
-                    'applicationName' => ['type' => 'string'],
-                    'locale' => ['type' => 'string'],
-                    'certificate' => [
-                        'type' => 'string',
-                        'format' => 'byte'
-                    ],
-                    'capabilities' => [
-                        'type' => 'array',
-                        'items' => ['type' => 'string']
-                    ],
-                    'discoveryUrls' => [
-                        'type' => 'array',
-                        'items' => ['type' => 'string']
-                    ],
-                    'discoveryProfileUri' => ['type' => 'string'],
-                    'hostAddresses' => [
-                        'type' => 'array',
-                        'items' => ['type' => 'string']
-                    ],
-                    'siteId' => ['type' => 'string'],
-                    'supervisorId' => ['type' => 'string'],
-                    'notSeenSince' => [
+            'DeleteValuesAtTimesDetailsApiModel' => [
+                'properties' => ['reqTimes' => [
+                    'type' => 'array',
+                    'items' => [
                         'type' => 'string',
                         'format' => 'date-time'
                     ]
-                ],
+                ]],
                 'additionalProperties' => FALSE,
-                'required' => []
-            ],
-            'ApplicationInfoListApiModel' => [
-                'properties' => [
-                    'items' => [
-                        'type' => 'array',
-                        'items' => ['$ref' => '#/definitions/ApplicationInfoApiModel']
-                    ],
-                    'continuationToken' => ['type' => 'string']
-                ],
-                'additionalProperties' => FALSE,
-                'required' => []
-            ],
-            'DiscoveryConfigApiModel' => [
-                'properties' => [
-                    'addressRangesToScan' => ['type' => 'string'],
-                    'networkProbeTimeoutMs' => [
-                        'type' => 'integer',
-                        'format' => 'int32'
-                    ],
-                    'maxNetworkProbes' => [
-                        'type' => 'integer',
-                        'format' => 'int32'
-                    ],
-                    'portRangesToScan' => ['type' => 'string'],
-                    'portProbeTimeoutMs' => [
-                        'type' => 'integer',
-                        'format' => 'int32'
-                    ],
-                    'maxPortProbes' => [
-                        'type' => 'integer',
-                        'format' => 'int32'
-                    ],
-                    'minPortProbesPercent' => [
-                        'type' => 'integer',
-                        'format' => 'int32'
-                    ],
-                    'idleTimeBetweenScansSec' => [
-                        'type' => 'integer',
-                        'format' => 'int32'
-                    ],
-                    'discoveryUrls' => [
-                        'type' => 'array',
-                        'items' => ['type' => 'string']
-                    ],
-                    'locales' => [
-                        'type' => 'array',
-                        'items' => ['type' => 'string']
-                    ],
-                    'callbacks' => [
-                        'type' => 'array',
-                        'items' => ['$ref' => '#/definitions/CallbackApiModel']
-                    ],
-                    'activationFilter' => ['$ref' => '#/definitions/EndpointActivationFilterApiModel']
-                ],
-                'additionalProperties' => FALSE,
-                'required' => []
-            ],
-            'DiscoveryRequestApiModel' => [
-                'properties' => [
-                    'id' => ['type' => 'string'],
-                    'discovery' => [
-                        'type' => 'string',
-                        'enum' => [
-                            'Off',
-                            'Local',
-                            'Network',
-                            'Fast',
-                            'Scan'
-                        ]
-                    ],
-                    'configuration' => ['$ref' => '#/definitions/DiscoveryConfigApiModel']
-                ],
-                'additionalProperties' => FALSE,
-                'required' => []
+                'required' => ['reqTimes']
             ],
             'CredentialApiModel' => [
                 'properties' => [
@@ -1308,245 +803,577 @@ more results.
                 'additionalProperties' => FALSE,
                 'required' => []
             ],
-            'EndpointApiModel' => [
+            'DiagnosticsApiModel' => [
                 'properties' => [
-                    'url' => ['type' => 'string'],
-                    'alternativeUrls' => [
-                        'type' => 'array',
-                        'items' => ['type' => 'string']
-                    ],
-                    'user' => ['$ref' => '#/definitions/CredentialApiModel'],
-                    'securityMode' => [
-                        'type' => 'string',
-                        'enum' => [
-                            'Best',
-                            'Sign',
-                            'SignAndEncrypt',
-                            'None'
-                        ]
-                    ],
-                    'securityPolicy' => ['type' => 'string'],
-                    'serverThumbprint' => [
-                        'type' => 'string',
-                        'format' => 'byte'
-                    ]
-                ],
-                'additionalProperties' => FALSE,
-                'required' => ['url']
-            ],
-            'AuthenticationMethodApiModel' => [
-                'properties' => [
-                    'id' => ['type' => 'string'],
-                    'credentialType' => [
+                    'level' => [
                         'type' => 'string',
                         'enum' => [
                             'None',
-                            'UserName',
-                            'X509Certificate',
-                            'JwtToken'
+                            'Status',
+                            'Operations',
+                            'Diagnostics',
+                            'Verbose'
                         ]
                     ],
-                    'securityPolicy' => ['type' => 'string'],
-                    'configuration' => ['type' => 'object']
-                ],
-                'additionalProperties' => FALSE,
-                'required' => ['id']
-            ],
-            'EndpointRegistrationApiModel' => [
-                'properties' => [
-                    'id' => ['type' => 'string'],
-                    'endpointUrl' => ['type' => 'string'],
-                    'siteId' => ['type' => 'string'],
-                    'endpoint' => ['$ref' => '#/definitions/EndpointApiModel'],
-                    'securityLevel' => [
-                        'type' => 'integer',
-                        'format' => 'int32'
-                    ],
-                    'certificate' => [
-                        'type' => 'string',
-                        'format' => 'byte'
-                    ],
-                    'authenticationMethods' => [
-                        'type' => 'array',
-                        'items' => ['$ref' => '#/definitions/AuthenticationMethodApiModel']
-                    ]
-                ],
-                'additionalProperties' => FALSE,
-                'required' => [
-                    'id',
-                    'endpoint'
-                ]
-            ],
-            'ApplicationRegistrationApiModel' => [
-                'properties' => [
-                    'application' => ['$ref' => '#/definitions/ApplicationInfoApiModel'],
-                    'endpoints' => [
-                        'type' => 'array',
-                        'items' => ['$ref' => '#/definitions/EndpointRegistrationApiModel']
-                    ],
-                    'securityAssessment' => [
-                        'type' => 'string',
-                        'enum' => [
-                            'Unknown',
-                            'Low',
-                            'Medium',
-                            'High'
-                        ]
-                    ]
-                ],
-                'additionalProperties' => FALSE,
-                'required' => ['application']
-            ],
-            'ApplicationRegistrationUpdateApiModel' => [
-                'properties' => [
-                    'productUri' => ['type' => 'string'],
-                    'applicationName' => ['type' => 'string'],
-                    'locale' => ['type' => 'string'],
-                    'certificate' => [
-                        'type' => 'string',
-                        'format' => 'byte'
-                    ],
-                    'capabilities' => [
-                        'type' => 'array',
-                        'items' => ['type' => 'string']
-                    ],
-                    'discoveryUrls' => [
-                        'type' => 'array',
-                        'items' => ['type' => 'string']
-                    ],
-                    'discoveryProfileUri' => ['type' => 'string']
-                ],
-                'additionalProperties' => FALSE,
-                'required' => []
-            ],
-            'ApplicationSiteListApiModel' => [
-                'properties' => [
-                    'sites' => [
-                        'type' => 'array',
-                        'items' => ['type' => 'string']
-                    ],
-                    'continuationToken' => ['type' => 'string']
-                ],
-                'additionalProperties' => FALSE,
-                'required' => []
-            ],
-            'ApplicationRegistrationQueryApiModel' => [
-                'properties' => [
-                    'applicationType' => [
-                        'type' => 'string',
-                        'enum' => [
-                            'Server',
-                            'Client',
-                            'ClientAndServer'
-                        ]
-                    ],
-                    'applicationUri' => ['type' => 'string'],
-                    'productUri' => ['type' => 'string'],
-                    'applicationName' => ['type' => 'string'],
-                    'locale' => ['type' => 'string'],
-                    'capability' => ['type' => 'string'],
-                    'siteOrSupervisorId' => ['type' => 'string'],
-                    'includeNotSeenSince' => ['type' => 'boolean']
-                ],
-                'additionalProperties' => FALSE,
-                'required' => []
-            ],
-            'EndpointRegistrationUpdateApiModel' => [
-                'properties' => ['user' => ['$ref' => '#/definitions/CredentialApiModel']],
-                'additionalProperties' => FALSE,
-                'required' => []
-            ],
-            'EndpointInfoApiModel' => [
-                'properties' => [
-                    'registration' => ['$ref' => '#/definitions/EndpointRegistrationApiModel'],
-                    'applicationId' => ['type' => 'string'],
-                    'activationState' => [
-                        'type' => 'string',
-                        'enum' => [
-                            'Deactivated',
-                            'Activated',
-                            'ActivatedAndConnected'
-                        ]
-                    ],
-                    'endpointState' => [
-                        'type' => 'string',
-                        'enum' => [
-                            'Connecting',
-                            'NotReachable',
-                            'Busy',
-                            'NoTrust',
-                            'CertificateInvalid',
-                            'Ready',
-                            'Error'
-                        ]
-                    ],
-                    'outOfSync' => ['type' => 'boolean'],
-                    'notSeenSince' => [
+                    'auditId' => ['type' => 'string'],
+                    'timeStamp' => [
                         'type' => 'string',
                         'format' => 'date-time'
                     ]
                 ],
                 'additionalProperties' => FALSE,
-                'required' => [
-                    'registration',
-                    'applicationId'
-                ]
+                'required' => []
             ],
-            'EndpointInfoListApiModel' => [
+            'RequestHeaderApiModel' => [
                 'properties' => [
-                    'items' => [
+                    'elevation' => ['$ref' => '#/definitions/CredentialApiModel'],
+                    'locales' => [
                         'type' => 'array',
-                        'items' => ['$ref' => '#/definitions/EndpointInfoApiModel']
+                        'items' => ['type' => 'string']
                     ],
-                    'continuationToken' => ['type' => 'string']
+                    'diagnostics' => ['$ref' => '#/definitions/DiagnosticsApiModel']
                 ],
                 'additionalProperties' => FALSE,
                 'required' => []
             ],
-            'EndpointRegistrationQueryApiModel' => [
+            'HistoryUpdateRequestApiModel[DeleteValuesAtTimesDetailsApiModel]' => [
                 'properties' => [
-                    'url' => ['type' => 'string'],
-                    'userAuthentication' => [
-                        'type' => 'string',
-                        'enum' => [
-                            'None',
-                            'UserName',
-                            'X509Certificate',
-                            'JwtToken'
-                        ]
+                    'nodeId' => ['type' => 'string'],
+                    'browsePath' => [
+                        'type' => 'array',
+                        'items' => ['type' => 'string']
                     ],
-                    'certificate' => [
+                    'details' => ['$ref' => '#/definitions/DeleteValuesAtTimesDetailsApiModel'],
+                    'header' => ['$ref' => '#/definitions/RequestHeaderApiModel']
+                ],
+                'additionalProperties' => FALSE,
+                'required' => ['details']
+            ],
+            'ServiceResultApiModel' => [
+                'properties' => [
+                    'statusCode' => [
+                        'type' => 'integer',
+                        'format' => 'int32'
+                    ],
+                    'errorMessage' => ['type' => 'string'],
+                    'diagnostics' => ['type' => 'object']
+                ],
+                'additionalProperties' => FALSE,
+                'required' => []
+            ],
+            'HistoryUpdateResponseApiModel' => [
+                'properties' => [
+                    'results' => [
+                        'type' => 'array',
+                        'items' => ['$ref' => '#/definitions/ServiceResultApiModel']
+                    ],
+                    'errorInfo' => ['$ref' => '#/definitions/ServiceResultApiModel']
+                ],
+                'additionalProperties' => FALSE,
+                'required' => []
+            ],
+            'DeleteValuesDetailsApiModel' => [
+                'properties' => [
+                    'startTime' => [
+                        'type' => 'string',
+                        'format' => 'date-time'
+                    ],
+                    'endTime' => [
+                        'type' => 'string',
+                        'format' => 'date-time'
+                    ]
+                ],
+                'additionalProperties' => FALSE,
+                'required' => []
+            ],
+            'HistoryUpdateRequestApiModel[DeleteValuesDetailsApiModel]' => [
+                'properties' => [
+                    'nodeId' => ['type' => 'string'],
+                    'browsePath' => [
+                        'type' => 'array',
+                        'items' => ['type' => 'string']
+                    ],
+                    'details' => ['$ref' => '#/definitions/DeleteValuesDetailsApiModel'],
+                    'header' => ['$ref' => '#/definitions/RequestHeaderApiModel']
+                ],
+                'additionalProperties' => FALSE,
+                'required' => ['details']
+            ],
+            'DeleteModifiedValuesDetailsApiModel' => [
+                'properties' => [
+                    'startTime' => [
+                        'type' => 'string',
+                        'format' => 'date-time'
+                    ],
+                    'endTime' => [
+                        'type' => 'string',
+                        'format' => 'date-time'
+                    ]
+                ],
+                'additionalProperties' => FALSE,
+                'required' => []
+            ],
+            'HistoryUpdateRequestApiModel[DeleteModifiedValuesDetailsApiModel]' => [
+                'properties' => [
+                    'nodeId' => ['type' => 'string'],
+                    'browsePath' => [
+                        'type' => 'array',
+                        'items' => ['type' => 'string']
+                    ],
+                    'details' => ['$ref' => '#/definitions/DeleteModifiedValuesDetailsApiModel'],
+                    'header' => ['$ref' => '#/definitions/RequestHeaderApiModel']
+                ],
+                'additionalProperties' => FALSE,
+                'required' => ['details']
+            ],
+            'DeleteEventsDetailsApiModel' => [
+                'properties' => ['eventIds' => [
+                    'type' => 'array',
+                    'items' => [
                         'type' => 'string',
                         'format' => 'byte'
+                    ]
+                ]],
+                'additionalProperties' => FALSE,
+                'required' => ['eventIds']
+            ],
+            'HistoryUpdateRequestApiModel[DeleteEventsDetailsApiModel]' => [
+                'properties' => [
+                    'nodeId' => ['type' => 'string'],
+                    'browsePath' => [
+                        'type' => 'array',
+                        'items' => ['type' => 'string']
                     ],
-                    'securityMode' => [
-                        'type' => 'string',
-                        'enum' => [
-                            'Best',
-                            'Sign',
-                            'SignAndEncrypt',
-                            'None'
-                        ]
+                    'details' => ['$ref' => '#/definitions/DeleteEventsDetailsApiModel'],
+                    'header' => ['$ref' => '#/definitions/RequestHeaderApiModel']
+                ],
+                'additionalProperties' => FALSE,
+                'required' => ['details']
+            ],
+            'HistoryReadRequestApiModel[JToken]' => [
+                'properties' => [
+                    'nodeId' => ['type' => 'string'],
+                    'browsePath' => [
+                        'type' => 'array',
+                        'items' => ['type' => 'string']
                     ],
-                    'securityPolicy' => ['type' => 'string'],
-                    'activated' => ['type' => 'boolean'],
-                    'connected' => ['type' => 'boolean'],
-                    'endpointState' => [
-                        'type' => 'string',
-                        'enum' => [
-                            'Connecting',
-                            'NotReachable',
-                            'Busy',
-                            'NoTrust',
-                            'CertificateInvalid',
-                            'Ready',
-                            'Error'
-                        ]
-                    ],
-                    'includeNotSeenSince' => ['type' => 'boolean']
+                    'details' => ['type' => 'object'],
+                    'indexRange' => ['type' => 'string'],
+                    'header' => ['$ref' => '#/definitions/RequestHeaderApiModel']
                 ],
                 'additionalProperties' => FALSE,
                 'required' => []
+            ],
+            'HistoryReadResponseApiModel[JToken]' => [
+                'properties' => [
+                    'history' => ['type' => 'object'],
+                    'continuationToken' => ['type' => 'string'],
+                    'errorInfo' => ['$ref' => '#/definitions/ServiceResultApiModel']
+                ],
+                'additionalProperties' => FALSE,
+                'required' => []
+            ],
+            'HistoryReadNextRequestApiModel' => [
+                'properties' => [
+                    'continuationToken' => ['type' => 'string'],
+                    'abort' => ['type' => 'boolean'],
+                    'header' => ['$ref' => '#/definitions/RequestHeaderApiModel']
+                ],
+                'additionalProperties' => FALSE,
+                'required' => ['continuationToken']
+            ],
+            'HistoryReadNextResponseApiModel[JToken]' => [
+                'properties' => [
+                    'history' => ['type' => 'object'],
+                    'continuationToken' => ['type' => 'string'],
+                    'errorInfo' => ['$ref' => '#/definitions/ServiceResultApiModel']
+                ],
+                'additionalProperties' => FALSE,
+                'required' => []
+            ],
+            'HistoryUpdateRequestApiModel[JToken]' => [
+                'properties' => [
+                    'nodeId' => ['type' => 'string'],
+                    'browsePath' => [
+                        'type' => 'array',
+                        'items' => ['type' => 'string']
+                    ],
+                    'details' => ['type' => 'object'],
+                    'header' => ['$ref' => '#/definitions/RequestHeaderApiModel']
+                ],
+                'additionalProperties' => FALSE,
+                'required' => ['details']
+            ],
+            'ModificationInfoApiModel' => [
+                'properties' => [
+                    'modificationTime' => [
+                        'type' => 'string',
+                        'format' => 'date-time'
+                    ],
+                    'updateType' => [
+                        'type' => 'string',
+                        'enum' => [
+                            'Insert',
+                            'Replace',
+                            'Update',
+                            'Delete'
+                        ]
+                    ],
+                    'userName' => ['type' => 'string']
+                ],
+                'additionalProperties' => FALSE,
+                'required' => []
+            ],
+            'HistoricValueApiModel' => [
+                'properties' => [
+                    'value' => ['type' => 'object'],
+                    'statusCode' => [
+                        'type' => 'integer',
+                        'format' => 'int32'
+                    ],
+                    'sourceTimestamp' => [
+                        'type' => 'string',
+                        'format' => 'date-time'
+                    ],
+                    'sourcePicoseconds' => [
+                        'type' => 'integer',
+                        'format' => 'int32'
+                    ],
+                    'serverTimestamp' => [
+                        'type' => 'string',
+                        'format' => 'date-time'
+                    ],
+                    'serverPicoseconds' => [
+                        'type' => 'integer',
+                        'format' => 'int32'
+                    ],
+                    'modificationInfo' => ['$ref' => '#/definitions/ModificationInfoApiModel']
+                ],
+                'additionalProperties' => FALSE,
+                'required' => []
+            ],
+            'InsertValuesDetailsApiModel' => [
+                'properties' => ['values' => [
+                    'type' => 'array',
+                    'items' => ['$ref' => '#/definitions/HistoricValueApiModel']
+                ]],
+                'additionalProperties' => FALSE,
+                'required' => ['values']
+            ],
+            'HistoryUpdateRequestApiModel[InsertValuesDetailsApiModel]' => [
+                'properties' => [
+                    'nodeId' => ['type' => 'string'],
+                    'browsePath' => [
+                        'type' => 'array',
+                        'items' => ['type' => 'string']
+                    ],
+                    'details' => ['$ref' => '#/definitions/InsertValuesDetailsApiModel'],
+                    'header' => ['$ref' => '#/definitions/RequestHeaderApiModel']
+                ],
+                'additionalProperties' => FALSE,
+                'required' => ['details']
+            ],
+            'HistoricEventApiModel' => [
+                'properties' => ['eventFields' => [
+                    'type' => 'array',
+                    'items' => ['type' => 'object']
+                ]],
+                'additionalProperties' => FALSE,
+                'required' => []
+            ],
+            'InsertEventsDetailsApiModel' => [
+                'properties' => [
+                    'filter' => ['type' => 'object'],
+                    'events' => [
+                        'type' => 'array',
+                        'items' => ['$ref' => '#/definitions/HistoricEventApiModel']
+                    ]
+                ],
+                'additionalProperties' => FALSE,
+                'required' => ['events']
+            ],
+            'HistoryUpdateRequestApiModel[InsertEventsDetailsApiModel]' => [
+                'properties' => [
+                    'nodeId' => ['type' => 'string'],
+                    'browsePath' => [
+                        'type' => 'array',
+                        'items' => ['type' => 'string']
+                    ],
+                    'details' => ['$ref' => '#/definitions/InsertEventsDetailsApiModel'],
+                    'header' => ['$ref' => '#/definitions/RequestHeaderApiModel']
+                ],
+                'additionalProperties' => FALSE,
+                'required' => ['details']
+            ],
+            'ReadEventsDetailsApiModel' => [
+                'properties' => [
+                    'startTime' => [
+                        'type' => 'string',
+                        'format' => 'date-time'
+                    ],
+                    'endTime' => [
+                        'type' => 'string',
+                        'format' => 'date-time'
+                    ],
+                    'numEvents' => [
+                        'type' => 'integer',
+                        'format' => 'int32'
+                    ],
+                    'filter' => ['type' => 'object']
+                ],
+                'additionalProperties' => FALSE,
+                'required' => []
+            ],
+            'HistoryReadRequestApiModel[ReadEventsDetailsApiModel]' => [
+                'properties' => [
+                    'nodeId' => ['type' => 'string'],
+                    'browsePath' => [
+                        'type' => 'array',
+                        'items' => ['type' => 'string']
+                    ],
+                    'details' => ['$ref' => '#/definitions/ReadEventsDetailsApiModel'],
+                    'indexRange' => ['type' => 'string'],
+                    'header' => ['$ref' => '#/definitions/RequestHeaderApiModel']
+                ],
+                'additionalProperties' => FALSE,
+                'required' => []
+            ],
+            'HistoryReadResponseApiModel[HistoricEventApiModel[]]' => [
+                'properties' => [
+                    'history' => [
+                        'type' => 'array',
+                        'items' => ['$ref' => '#/definitions/HistoricEventApiModel']
+                    ],
+                    'continuationToken' => ['type' => 'string'],
+                    'errorInfo' => ['$ref' => '#/definitions/ServiceResultApiModel']
+                ],
+                'additionalProperties' => FALSE,
+                'required' => []
+            ],
+            'HistoryReadNextResponseApiModel[HistoricEventApiModel[]]' => [
+                'properties' => [
+                    'history' => [
+                        'type' => 'array',
+                        'items' => ['$ref' => '#/definitions/HistoricEventApiModel']
+                    ],
+                    'continuationToken' => ['type' => 'string'],
+                    'errorInfo' => ['$ref' => '#/definitions/ServiceResultApiModel']
+                ],
+                'additionalProperties' => FALSE,
+                'required' => []
+            ],
+            'ReadValuesDetailsApiModel' => [
+                'properties' => [
+                    'startTime' => [
+                        'type' => 'string',
+                        'format' => 'date-time'
+                    ],
+                    'endTime' => [
+                        'type' => 'string',
+                        'format' => 'date-time'
+                    ],
+                    'numValues' => [
+                        'type' => 'integer',
+                        'format' => 'int32'
+                    ],
+                    'returnBounds' => ['type' => 'boolean']
+                ],
+                'additionalProperties' => FALSE,
+                'required' => []
+            ],
+            'HistoryReadRequestApiModel[ReadValuesDetailsApiModel]' => [
+                'properties' => [
+                    'nodeId' => ['type' => 'string'],
+                    'browsePath' => [
+                        'type' => 'array',
+                        'items' => ['type' => 'string']
+                    ],
+                    'details' => ['$ref' => '#/definitions/ReadValuesDetailsApiModel'],
+                    'indexRange' => ['type' => 'string'],
+                    'header' => ['$ref' => '#/definitions/RequestHeaderApiModel']
+                ],
+                'additionalProperties' => FALSE,
+                'required' => []
+            ],
+            'HistoryReadResponseApiModel[HistoricValueApiModel[]]' => [
+                'properties' => [
+                    'history' => [
+                        'type' => 'array',
+                        'items' => ['$ref' => '#/definitions/HistoricValueApiModel']
+                    ],
+                    'continuationToken' => ['type' => 'string'],
+                    'errorInfo' => ['$ref' => '#/definitions/ServiceResultApiModel']
+                ],
+                'additionalProperties' => FALSE,
+                'required' => []
+            ],
+            'ReadValuesAtTimesDetailsApiModel' => [
+                'properties' => [
+                    'reqTimes' => [
+                        'type' => 'array',
+                        'items' => [
+                            'type' => 'string',
+                            'format' => 'date-time'
+                        ]
+                    ],
+                    'useSimpleBounds' => ['type' => 'boolean']
+                ],
+                'additionalProperties' => FALSE,
+                'required' => ['reqTimes']
+            ],
+            'HistoryReadRequestApiModel[ReadValuesAtTimesDetailsApiModel]' => [
+                'properties' => [
+                    'nodeId' => ['type' => 'string'],
+                    'browsePath' => [
+                        'type' => 'array',
+                        'items' => ['type' => 'string']
+                    ],
+                    'details' => ['$ref' => '#/definitions/ReadValuesAtTimesDetailsApiModel'],
+                    'indexRange' => ['type' => 'string'],
+                    'header' => ['$ref' => '#/definitions/RequestHeaderApiModel']
+                ],
+                'additionalProperties' => FALSE,
+                'required' => []
+            ],
+            'AggregateConfigApiModel' => [
+                'properties' => [
+                    'useServerCapabilitiesDefaults' => ['type' => 'boolean'],
+                    'treatUncertainAsBad' => ['type' => 'boolean'],
+                    'percentDataBad' => [
+                        'type' => 'integer',
+                        'format' => 'int32'
+                    ],
+                    'percentDataGood' => [
+                        'type' => 'integer',
+                        'format' => 'int32'
+                    ],
+                    'useSlopedExtrapolation' => ['type' => 'boolean']
+                ],
+                'additionalProperties' => FALSE,
+                'required' => []
+            ],
+            'ReadProcessedValuesDetailsApiModel' => [
+                'properties' => [
+                    'startTime' => [
+                        'type' => 'string',
+                        'format' => 'date-time'
+                    ],
+                    'endTime' => [
+                        'type' => 'string',
+                        'format' => 'date-time'
+                    ],
+                    'processingInterval' => [
+                        'type' => 'number',
+                        'format' => 'double'
+                    ],
+                    'aggregateTypeId' => ['type' => 'string'],
+                    'aggregateConfiguration' => ['$ref' => '#/definitions/AggregateConfigApiModel']
+                ],
+                'additionalProperties' => FALSE,
+                'required' => []
+            ],
+            'HistoryReadRequestApiModel[ReadProcessedValuesDetailsApiModel]' => [
+                'properties' => [
+                    'nodeId' => ['type' => 'string'],
+                    'browsePath' => [
+                        'type' => 'array',
+                        'items' => ['type' => 'string']
+                    ],
+                    'details' => ['$ref' => '#/definitions/ReadProcessedValuesDetailsApiModel'],
+                    'indexRange' => ['type' => 'string'],
+                    'header' => ['$ref' => '#/definitions/RequestHeaderApiModel']
+                ],
+                'additionalProperties' => FALSE,
+                'required' => []
+            ],
+            'ReadModifiedValuesDetailsApiModel' => [
+                'properties' => [
+                    'startTime' => [
+                        'type' => 'string',
+                        'format' => 'date-time'
+                    ],
+                    'endTime' => [
+                        'type' => 'string',
+                        'format' => 'date-time'
+                    ],
+                    'numValues' => [
+                        'type' => 'integer',
+                        'format' => 'int32'
+                    ]
+                ],
+                'additionalProperties' => FALSE,
+                'required' => []
+            ],
+            'HistoryReadRequestApiModel[ReadModifiedValuesDetailsApiModel]' => [
+                'properties' => [
+                    'nodeId' => ['type' => 'string'],
+                    'browsePath' => [
+                        'type' => 'array',
+                        'items' => ['type' => 'string']
+                    ],
+                    'details' => ['$ref' => '#/definitions/ReadModifiedValuesDetailsApiModel'],
+                    'indexRange' => ['type' => 'string'],
+                    'header' => ['$ref' => '#/definitions/RequestHeaderApiModel']
+                ],
+                'additionalProperties' => FALSE,
+                'required' => []
+            ],
+            'HistoryReadNextResponseApiModel[HistoricValueApiModel[]]' => [
+                'properties' => [
+                    'history' => [
+                        'type' => 'array',
+                        'items' => ['$ref' => '#/definitions/HistoricValueApiModel']
+                    ],
+                    'continuationToken' => ['type' => 'string'],
+                    'errorInfo' => ['$ref' => '#/definitions/ServiceResultApiModel']
+                ],
+                'additionalProperties' => FALSE,
+                'required' => []
+            ],
+            'ReplaceValuesDetailsApiModel' => [
+                'properties' => ['values' => [
+                    'type' => 'array',
+                    'items' => ['$ref' => '#/definitions/HistoricValueApiModel']
+                ]],
+                'additionalProperties' => FALSE,
+                'required' => ['values']
+            ],
+            'HistoryUpdateRequestApiModel[ReplaceValuesDetailsApiModel]' => [
+                'properties' => [
+                    'nodeId' => ['type' => 'string'],
+                    'browsePath' => [
+                        'type' => 'array',
+                        'items' => ['type' => 'string']
+                    ],
+                    'details' => ['$ref' => '#/definitions/ReplaceValuesDetailsApiModel'],
+                    'header' => ['$ref' => '#/definitions/RequestHeaderApiModel']
+                ],
+                'additionalProperties' => FALSE,
+                'required' => ['details']
+            ],
+            'ReplaceEventsDetailsApiModel' => [
+                'properties' => [
+                    'filter' => ['type' => 'object'],
+                    'events' => [
+                        'type' => 'array',
+                        'items' => ['$ref' => '#/definitions/HistoricEventApiModel']
+                    ]
+                ],
+                'additionalProperties' => FALSE,
+                'required' => ['events']
+            ],
+            'HistoryUpdateRequestApiModel[ReplaceEventsDetailsApiModel]' => [
+                'properties' => [
+                    'nodeId' => ['type' => 'string'],
+                    'browsePath' => [
+                        'type' => 'array',
+                        'items' => ['type' => 'string']
+                    ],
+                    'details' => ['$ref' => '#/definitions/ReplaceEventsDetailsApiModel'],
+                    'header' => ['$ref' => '#/definitions/RequestHeaderApiModel']
+                ],
+                'additionalProperties' => FALSE,
+                'required' => ['details']
             ],
             'StatusResponseApiModel' => [
                 'properties' => [
@@ -1571,129 +1398,6 @@ more results.
                         'type' => 'object',
                         'additionalProperties' => ['type' => 'string']
                     ]
-                ],
-                'additionalProperties' => FALSE,
-                'required' => []
-            ],
-            'SupervisorApiModel' => [
-                'properties' => [
-                    'id' => ['type' => 'string'],
-                    'siteId' => ['type' => 'string'],
-                    'discovery' => [
-                        'type' => 'string',
-                        'enum' => [
-                            'Off',
-                            'Local',
-                            'Network',
-                            'Fast',
-                            'Scan'
-                        ]
-                    ],
-                    'discoveryConfig' => ['$ref' => '#/definitions/DiscoveryConfigApiModel'],
-                    'certificate' => [
-                        'type' => 'string',
-                        'format' => 'byte'
-                    ],
-                    'logLevel' => [
-                        'type' => 'string',
-                        'enum' => [
-                            'Error',
-                            'Information',
-                            'Debug',
-                            'Verbose'
-                        ]
-                    ],
-                    'outOfSync' => ['type' => 'boolean'],
-                    'connected' => ['type' => 'boolean']
-                ],
-                'additionalProperties' => FALSE,
-                'required' => ['id']
-            ],
-            'SupervisorUpdateApiModel' => [
-                'properties' => [
-                    'siteId' => ['type' => 'string'],
-                    'discovery' => [
-                        'type' => 'string',
-                        'enum' => [
-                            'Off',
-                            'Local',
-                            'Network',
-                            'Fast',
-                            'Scan'
-                        ]
-                    ],
-                    'discoveryConfig' => ['$ref' => '#/definitions/DiscoveryConfigApiModel'],
-                    'discoveryCallbacks' => [
-                        'type' => 'array',
-                        'items' => ['$ref' => '#/definitions/CallbackApiModel']
-                    ],
-                    'removeDiscoveryCallbacks' => ['type' => 'boolean'],
-                    'logLevel' => [
-                        'type' => 'string',
-                        'enum' => [
-                            'Error',
-                            'Information',
-                            'Debug',
-                            'Verbose'
-                        ]
-                    ]
-                ],
-                'additionalProperties' => FALSE,
-                'required' => []
-            ],
-            'EndpointActivationStatusApiModel' => [
-                'properties' => [
-                    'id' => ['type' => 'string'],
-                    'activationState' => [
-                        'type' => 'string',
-                        'enum' => [
-                            'Deactivated',
-                            'Activated',
-                            'ActivatedAndConnected'
-                        ]
-                    ]
-                ],
-                'additionalProperties' => FALSE,
-                'required' => ['id']
-            ],
-            'SupervisorStatusApiModel' => [
-                'properties' => [
-                    'deviceId' => ['type' => 'string'],
-                    'moduleId' => ['type' => 'string'],
-                    'siteId' => ['type' => 'string'],
-                    'endpoints' => [
-                        'type' => 'array',
-                        'items' => ['$ref' => '#/definitions/EndpointActivationStatusApiModel']
-                    ]
-                ],
-                'additionalProperties' => FALSE,
-                'required' => ['deviceId']
-            ],
-            'SupervisorListApiModel' => [
-                'properties' => [
-                    'items' => [
-                        'type' => 'array',
-                        'items' => ['$ref' => '#/definitions/SupervisorApiModel']
-                    ],
-                    'continuationToken' => ['type' => 'string']
-                ],
-                'additionalProperties' => FALSE,
-                'required' => []
-            ],
-            'SupervisorQueryApiModel' => [
-                'properties' => [
-                    'siteId' => ['type' => 'string'],
-                    'discovery' => [
-                        'type' => 'string',
-                        'enum' => [
-                            'Off',
-                            'Local',
-                            'Network',
-                            'Fast',
-                            'Scan'
-                        ]
-                    ],
-                    'connected' => ['type' => 'boolean']
                 ],
                 'additionalProperties' => FALSE,
                 'required' => []

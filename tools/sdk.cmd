@@ -9,8 +9,12 @@ rem // remove trailing slash
 set current-path=%current-path:~0,-1%
 set build_root=%current-path%\..
 
+set clean=
+
 :args-loop
 if "%1" equ "" goto :args-done
+if "%1" equ "--clean" goto :arg-clean
+if "%1" equ  "-c" goto :arg-clean
 if "%1" equ "--xtrace" goto :arg-trace
 if "%1" equ  "-x" goto :arg-trace
 goto :usage
@@ -21,11 +25,16 @@ goto :args-loop
 :usage
 echo sdk.cmd [options]
 echo options:
-echo -x --xtrace                  print a trace of each command.
+echo -c --clean         Rebuild all containers before generating sdk.
+echo -x --xtrace        print a trace of each command.
 exit /b 1
 
 :arg-trace
 echo on
+goto :args-continue
+
+:arg-clean
+set clean=1
 goto :args-continue
 
 :args-done
@@ -91,7 +100,7 @@ if exist history\paths.md type history\paths.md >> history\readme.md
 if exist history\paths.md del /f history\paths.md
 
 if exist vault\security.md move vault\security.md vault\security_save.md
-%convert% -i http://%_hostname%:9044/v1/swagger.json -d /opt/vault -c /opt/config.properties
+%convert% -i http://%_hostname%:9044/v2/swagger.json -d /opt/vault -c /opt/config.properties
 if exist vault\security_save.md move vault\security_save.md vault\security.md
 if exist vault\paths.md type vault\paths.md >> vault\readme.md
 if exist vault\paths.md del /f vault\paths.md
@@ -120,11 +129,11 @@ set args=--input-file=http://%_hostname%:9042/v2/swagger.json
 docker run --rm --mount type=bind,source=%cd%,target=/opt -w /opt azuresdk/autorest:latest %args%
 rem generate history sdk
 copy %build_root%\docs\api\history\autorest.md readme.md
-set args=--input-file=http://%_hostname%:9042/v2/swagger.json
+set args=--input-file=http://%_hostname%:9043/v2/swagger.json
 docker run --rm --mount type=bind,source=%cd%,target=/opt -w /opt azuresdk/autorest:latest %args%
 rem generate vault sdk
 copy %build_root%\docs\api\vault\autorest.md readme.md
-set args=--input-file=http://%_hostname%:9044/v1/swagger.json
+set args=--input-file=http://%_hostname%:9044/v2/swagger.json
 docker run --rm --mount type=bind,source=%cd%,target=/opt -w /opt azuresdk/autorest:latest %args%
 
 set args=
@@ -133,12 +142,12 @@ popd
 goto :eof
 
 :retrieve_spec
-if not exist %build_root%\swagger mkdir %build_root%\swagger
-pushd %build_root%\swagger
+if not exist %build_root%\api\swagger mkdir %build_root%\api\swagger
+pushd %build_root%\api\swagger
 curl -o twin.json http://%_hostname%:9041/v2/swagger.json
 curl -o registry.json http://%_hostname%:9042/v2/swagger.json
 curl -o history.json http://%_hostname%:9043/v2/swagger.json
-curl -o vault.json http://%_hostname%:9044/v1/swagger.json
+curl -o vault.json http://%_hostname%:9044/v2/swagger.json
 popd
 goto :eof
 
@@ -148,10 +157,11 @@ goto :eof
 :main
 pushd %build_root%
 rem start services
+if "%clean%" == "" goto :start
 echo Rebuilding...
 docker-compose build --no-cache > %TMP%\sdk_build.log 2>&1
 if not !ERRORLEVEL! == 0 type %TMP%\sdk_build.log && goto :done
-
+:start
 echo Starting...
 rem force https scheme only
 set PCS_AUTH_HTTPSREDIRECTPORT=443

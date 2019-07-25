@@ -8,7 +8,7 @@
 // regenerated.
 // </auto-generated>
 
-namespace Microsoft.Azure.IIoT.Opc.History.Models
+namespace Microsoft.Azure.IIoT.Opc.Registry.Models
 {
     using Microsoft.Rest;
     using Newtonsoft.Json;
@@ -35,22 +35,29 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
         /// ApplicationRegistrationUpdateApiModel class.
         /// </summary>
         /// <param name="productUri">Product uri</param>
-        /// <param name="applicationName">Application name</param>
-        /// <param name="locale">Locale of name - defaults to "en"</param>
+        /// <param name="applicationName">Default name of the server or
+        /// client.</param>
+        /// <param name="locale">Locale of default name - defaults to
+        /// "en"</param>
+        /// <param name="localizedNames">Localized names keyed off locale id.
+        /// To remove entry, set value for locale id to null.</param>
         /// <param name="certificate">Application public cert</param>
         /// <param name="capabilities">Capabilities of the application</param>
         /// <param name="discoveryUrls">Discovery urls of the
         /// application</param>
         /// <param name="discoveryProfileUri">Discovery profile uri</param>
-        public ApplicationRegistrationUpdateApiModel(string productUri = default(string), string applicationName = default(string), string locale = default(string), byte[] certificate = default(byte[]), IList<string> capabilities = default(IList<string>), IList<string> discoveryUrls = default(IList<string>), string discoveryProfileUri = default(string))
+        /// <param name="gatewayServerUri">Gateway server uri</param>
+        public ApplicationRegistrationUpdateApiModel(string productUri = default(string), string applicationName = default(string), string locale = default(string), IDictionary<string, string> localizedNames = default(IDictionary<string, string>), byte[] certificate = default(byte[]), IList<string> capabilities = default(IList<string>), IList<string> discoveryUrls = default(IList<string>), string discoveryProfileUri = default(string), string gatewayServerUri = default(string))
         {
             ProductUri = productUri;
             ApplicationName = applicationName;
             Locale = locale;
+            LocalizedNames = localizedNames;
             Certificate = certificate;
             Capabilities = capabilities;
             DiscoveryUrls = discoveryUrls;
             DiscoveryProfileUri = discoveryProfileUri;
+            GatewayServerUri = gatewayServerUri;
             CustomInit();
         }
 
@@ -66,16 +73,23 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
         public string ProductUri { get; set; }
 
         /// <summary>
-        /// Gets or sets application name
+        /// Gets or sets default name of the server or client.
         /// </summary>
         [JsonProperty(PropertyName = "applicationName")]
         public string ApplicationName { get; set; }
 
         /// <summary>
-        /// Gets or sets locale of name - defaults to "en"
+        /// Gets or sets locale of default name - defaults to "en"
         /// </summary>
         [JsonProperty(PropertyName = "locale")]
         public string Locale { get; set; }
+
+        /// <summary>
+        /// Gets or sets localized names keyed off locale id.
+        /// To remove entry, set value for locale id to null.
+        /// </summary>
+        [JsonProperty(PropertyName = "localizedNames")]
+        public IDictionary<string, string> LocalizedNames { get; set; }
 
         /// <summary>
         /// Gets or sets application public cert
@@ -100,6 +114,12 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
         /// </summary>
         [JsonProperty(PropertyName = "discoveryProfileUri")]
         public string DiscoveryProfileUri { get; set; }
+
+        /// <summary>
+        /// Gets or sets gateway server uri
+        /// </summary>
+        [JsonProperty(PropertyName = "gatewayServerUri")]
+        public string GatewayServerUri { get; set; }
 
         /// <summary>
         /// Validate the object.

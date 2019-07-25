@@ -8,7 +8,7 @@
 // regenerated.
 // </auto-generated>
 
-namespace Microsoft.Azure.IIoT.Opc.History.Models
+namespace Microsoft.Azure.IIoT.Opc.Registry.Models
 {
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
@@ -26,7 +26,9 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
         [EnumMember(Value = "Client")]
         Client,
         [EnumMember(Value = "ClientAndServer")]
-        ClientAndServer
+        ClientAndServer,
+        [EnumMember(Value = "DiscoveryServer")]
+        DiscoveryServer
     }
     internal static class ApplicationTypeEnumExtension
     {
@@ -45,6 +47,8 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
                     return "Client";
                 case ApplicationType.ClientAndServer:
                     return "ClientAndServer";
+                case ApplicationType.DiscoveryServer:
+                    return "DiscoveryServer";
             }
             return null;
         }
@@ -59,6 +63,8 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
                     return ApplicationType.Client;
                 case "ClientAndServer":
                     return ApplicationType.ClientAndServer;
+                case "DiscoveryServer":
+                    return ApplicationType.DiscoveryServer;
             }
             return null;
         }

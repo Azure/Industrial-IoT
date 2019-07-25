@@ -141,6 +141,128 @@ class AzureOpcRegistryClient extends AzureOpcRegistryClientContext {
   }
 
   /**
+   * A manager can approve a new application or force an application
+   * from any state.
+   * After approval the application is in the 'Approved' state.
+   * Requires Manager role.
+   * @summary Approve a new application.
+   * @param applicationId The application id
+   * @param [options] The optional parameters
+   * @returns Promise<msRest.RestResponse>
+   */
+  approveApplication(applicationId: string, options?: Models.AzureOpcRegistryClientApproveApplicationOptionalParams): Promise<msRest.RestResponse>;
+  /**
+   * @param applicationId The application id
+   * @param callback The callback
+   */
+  approveApplication(applicationId: string, callback: msRest.ServiceCallback<void>): void;
+  /**
+   * @param applicationId The application id
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  approveApplication(applicationId: string, options: Models.AzureOpcRegistryClientApproveApplicationOptionalParams, callback: msRest.ServiceCallback<void>): void;
+  approveApplication(applicationId: string, options?: Models.AzureOpcRegistryClientApproveApplicationOptionalParams | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
+    return this.sendOperationRequest(
+      {
+        applicationId,
+        options
+      },
+      approveApplicationOperationSpec,
+      callback);
+  }
+
+  /**
+   * A manager can approve a new application or force an application
+   * from any state.
+   * After approval the application is in the 'Rejected' state.
+   * Requires Manager role.
+   * @summary Reject a new application.
+   * @param applicationId The application id
+   * @param [options] The optional parameters
+   * @returns Promise<msRest.RestResponse>
+   */
+  rejectApplication(applicationId: string, options?: Models.AzureOpcRegistryClientRejectApplicationOptionalParams): Promise<msRest.RestResponse>;
+  /**
+   * @param applicationId The application id
+   * @param callback The callback
+   */
+  rejectApplication(applicationId: string, callback: msRest.ServiceCallback<void>): void;
+  /**
+   * @param applicationId The application id
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  rejectApplication(applicationId: string, options: Models.AzureOpcRegistryClientRejectApplicationOptionalParams, callback: msRest.ServiceCallback<void>): void;
+  rejectApplication(applicationId: string, options?: Models.AzureOpcRegistryClientRejectApplicationOptionalParams | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
+    return this.sendOperationRequest(
+      {
+        applicationId,
+        options
+      },
+      rejectApplicationOperationSpec,
+      callback);
+  }
+
+  /**
+   * A manager can disable an application.
+   * @summary Disable an enabled application.
+   * @param applicationId The application id
+   * @param [options] The optional parameters
+   * @returns Promise<msRest.RestResponse>
+   */
+  disableApplication(applicationId: string, options?: msRest.RequestOptionsBase): Promise<msRest.RestResponse>;
+  /**
+   * @param applicationId The application id
+   * @param callback The callback
+   */
+  disableApplication(applicationId: string, callback: msRest.ServiceCallback<void>): void;
+  /**
+   * @param applicationId The application id
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  disableApplication(applicationId: string, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<void>): void;
+  disableApplication(applicationId: string, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
+    return this.sendOperationRequest(
+      {
+        applicationId,
+        options
+      },
+      disableApplicationOperationSpec,
+      callback);
+  }
+
+  /**
+   * A manager can enable an application.
+   * @summary Re-enable a disabled application.
+   * @param applicationId The application id
+   * @param [options] The optional parameters
+   * @returns Promise<msRest.RestResponse>
+   */
+  enableApplication(applicationId: string, options?: msRest.RequestOptionsBase): Promise<msRest.RestResponse>;
+  /**
+   * @param applicationId The application id
+   * @param callback The callback
+   */
+  enableApplication(applicationId: string, callback: msRest.ServiceCallback<void>): void;
+  /**
+   * @param applicationId The application id
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  enableApplication(applicationId: string, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<void>): void;
+  enableApplication(applicationId: string, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
+    return this.sendOperationRequest(
+      {
+        applicationId,
+        options
+      },
+      enableApplicationOperationSpec,
+      callback);
+  }
+
+  /**
    * Registers servers by running a discovery scan in a supervisor's
    * network. Requires that the onboarding agent service is running.
    * @summary Discover servers
@@ -351,6 +473,31 @@ class AzureOpcRegistryClient extends AzureOpcRegistryClientContext {
       },
       queryApplicationsOperationSpec,
       callback) as Promise<Models.QueryApplicationsResponse>;
+  }
+
+  /**
+   * A query model which supports the OPC UA Global Discovery Server query.
+   * @summary Query applications by id.
+   * @param [options] The optional parameters
+   * @returns Promise<Models.QueryApplicationsByIdResponse>
+   */
+  queryApplicationsById(options?: Models.AzureOpcRegistryClientQueryApplicationsByIdOptionalParams): Promise<Models.QueryApplicationsByIdResponse>;
+  /**
+   * @param callback The callback
+   */
+  queryApplicationsById(callback: msRest.ServiceCallback<Models.ApplicationRecordListApiModel>): void;
+  /**
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  queryApplicationsById(options: Models.AzureOpcRegistryClientQueryApplicationsByIdOptionalParams, callback: msRest.ServiceCallback<Models.ApplicationRecordListApiModel>): void;
+  queryApplicationsById(options?: Models.AzureOpcRegistryClientQueryApplicationsByIdOptionalParams | msRest.ServiceCallback<Models.ApplicationRecordListApiModel>, callback?: msRest.ServiceCallback<Models.ApplicationRecordListApiModel>): Promise<Models.QueryApplicationsByIdResponse> {
+    return this.sendOperationRequest(
+      {
+        options
+      },
+      queryApplicationsByIdOperationSpec,
+      callback) as Promise<Models.QueryApplicationsByIdResponse>;
   }
 
   /**
@@ -872,6 +1019,64 @@ const deleteAllDisabledApplicationsOperationSpec: msRest.OperationSpec = {
   serializer
 };
 
+const approveApplicationOperationSpec: msRest.OperationSpec = {
+  httpMethod: "POST",
+  path: "v2/applications/{applicationId}/approve",
+  urlParameters: [
+    Parameters.applicationId
+  ],
+  queryParameters: [
+    Parameters.force
+  ],
+  responses: {
+    200: {},
+    default: {}
+  },
+  serializer
+};
+
+const rejectApplicationOperationSpec: msRest.OperationSpec = {
+  httpMethod: "POST",
+  path: "v2/applications/{applicationId}/reject",
+  urlParameters: [
+    Parameters.applicationId
+  ],
+  queryParameters: [
+    Parameters.force
+  ],
+  responses: {
+    200: {},
+    default: {}
+  },
+  serializer
+};
+
+const disableApplicationOperationSpec: msRest.OperationSpec = {
+  httpMethod: "POST",
+  path: "v2/applications/{applicationId}/disable",
+  urlParameters: [
+    Parameters.applicationId
+  ],
+  responses: {
+    200: {},
+    default: {}
+  },
+  serializer
+};
+
+const enableApplicationOperationSpec: msRest.OperationSpec = {
+  httpMethod: "POST",
+  path: "v2/applications/{applicationId}/enable",
+  urlParameters: [
+    Parameters.applicationId
+  ],
+  responses: {
+    200: {},
+    default: {}
+  },
+  serializer
+};
+
 const discoverServerOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
   path: "v2/applications/discover",
@@ -995,6 +1200,26 @@ const queryApplicationsOperationSpec: msRest.OperationSpec = {
   responses: {
     200: {
       bodyMapper: Mappers.ApplicationInfoListApiModel
+    },
+    default: {}
+  },
+  serializer
+};
+
+const queryApplicationsByIdOperationSpec: msRest.OperationSpec = {
+  httpMethod: "POST",
+  path: "v2/applications/querybyid",
+  requestBody: {
+    parameterPath: [
+      "options",
+      "query"
+    ],
+    mapper: Mappers.ApplicationRecordQueryApiModel
+  },
+  contentType: "application/json-patch+json; charset=utf-8",
+  responses: {
+    200: {
+      bodyMapper: Mappers.ApplicationRecordListApiModel
     },
     default: {}
   },

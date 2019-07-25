@@ -19,6 +19,10 @@ final class AzureOpcRegistryClient
         $this->_CreateApplication_operation = $_client->createOperation('CreateApplication');
         $this->_RegisterServer_operation = $_client->createOperation('RegisterServer');
         $this->_DeleteAllDisabledApplications_operation = $_client->createOperation('DeleteAllDisabledApplications');
+        $this->_ApproveApplication_operation = $_client->createOperation('ApproveApplication');
+        $this->_RejectApplication_operation = $_client->createOperation('RejectApplication');
+        $this->_DisableApplication_operation = $_client->createOperation('DisableApplication');
+        $this->_EnableApplication_operation = $_client->createOperation('EnableApplication');
         $this->_DiscoverServer_operation = $_client->createOperation('DiscoverServer');
         $this->_GetApplicationRegistration_operation = $_client->createOperation('GetApplicationRegistration');
         $this->_DeleteApplication_operation = $_client->createOperation('DeleteApplication');
@@ -26,6 +30,7 @@ final class AzureOpcRegistryClient
         $this->_GetListOfSites_operation = $_client->createOperation('GetListOfSites');
         $this->_GetFilteredListOfApplications_operation = $_client->createOperation('GetFilteredListOfApplications');
         $this->_QueryApplications_operation = $_client->createOperation('QueryApplications');
+        $this->_QueryApplicationsById_operation = $_client->createOperation('QueryApplicationsById');
         $this->_ActivateEndpoint_operation = $_client->createOperation('ActivateEndpoint');
         $this->_GetEndpoint_operation = $_client->createOperation('GetEndpoint');
         $this->_UpdateEndpoint_operation = $_client->createOperation('UpdateEndpoint');
@@ -90,6 +95,58 @@ located by a supervisor in its network using the discovery url.
     public function deleteAllDisabledApplications($notSeenFor = null)
     {
         return $this->_DeleteAllDisabledApplications_operation->call(['notSeenFor' => $notSeenFor]);
+    }
+    /**
+     * A manager can approve a new application or force an application
+from any state.
+After approval the application is in the 'Approved' state.
+Requires Manager role.
+     * @param string $applicationId
+     * @param boolean|null $force
+     */
+    public function approveApplication(
+        $applicationId,
+        $force = null
+    )
+    {
+        return $this->_ApproveApplication_operation->call([
+            'applicationId' => $applicationId,
+            'force' => $force
+        ]);
+    }
+    /**
+     * A manager can approve a new application or force an application
+from any state.
+After approval the application is in the 'Rejected' state.
+Requires Manager role.
+     * @param string $applicationId
+     * @param boolean|null $force
+     */
+    public function rejectApplication(
+        $applicationId,
+        $force = null
+    )
+    {
+        return $this->_RejectApplication_operation->call([
+            'applicationId' => $applicationId,
+            'force' => $force
+        ]);
+    }
+    /**
+     * A manager can disable an application.
+     * @param string $applicationId
+     */
+    public function disableApplication($applicationId)
+    {
+        return $this->_DisableApplication_operation->call(['applicationId' => $applicationId]);
+    }
+    /**
+     * A manager can enable an application.
+     * @param string $applicationId
+     */
+    public function enableApplication($applicationId)
+    {
+        return $this->_EnableApplication_operation->call(['applicationId' => $applicationId]);
     }
     /**
      * Registers servers by running a discovery scan in a supervisor's
@@ -188,6 +245,15 @@ more results.
             'query' => $query,
             'pageSize' => $pageSize
         ]);
+    }
+    /**
+     * A query model which supports the OPC UA Global Discovery Server query.
+     * @param array|null $query
+     * @return array
+     */
+    public function queryApplicationsById(array $query = null)
+    {
+        return $this->_QueryApplicationsById_operation->call(['query' => $query]);
     }
     /**
      * Activates an endpoint for subsequent use in twin service.
@@ -480,6 +546,22 @@ more results.
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
+    private $_ApproveApplication_operation;
+    /**
+     * @var \Microsoft\Rest\OperationInterface
+     */
+    private $_RejectApplication_operation;
+    /**
+     * @var \Microsoft\Rest\OperationInterface
+     */
+    private $_DisableApplication_operation;
+    /**
+     * @var \Microsoft\Rest\OperationInterface
+     */
+    private $_EnableApplication_operation;
+    /**
+     * @var \Microsoft\Rest\OperationInterface
+     */
     private $_DiscoverServer_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
@@ -505,6 +587,10 @@ more results.
      * @var \Microsoft\Rest\OperationInterface
      */
     private $_QueryApplications_operation;
+    /**
+     * @var \Microsoft\Rest\OperationInterface
+     */
+    private $_QueryApplicationsById_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
@@ -619,6 +705,62 @@ more results.
                     'responses' => ['200' => []]
                 ]
             ],
+            '/v2/applications/{applicationId}/approve' => ['post' => [
+                'operationId' => 'ApproveApplication',
+                'parameters' => [
+                    [
+                        'name' => 'applicationId',
+                        'in' => 'path',
+                        'required' => TRUE,
+                        'type' => 'string'
+                    ],
+                    [
+                        'name' => 'force',
+                        'in' => 'query',
+                        'required' => FALSE,
+                        'type' => 'boolean'
+                    ]
+                ],
+                'responses' => ['200' => []]
+            ]],
+            '/v2/applications/{applicationId}/reject' => ['post' => [
+                'operationId' => 'RejectApplication',
+                'parameters' => [
+                    [
+                        'name' => 'applicationId',
+                        'in' => 'path',
+                        'required' => TRUE,
+                        'type' => 'string'
+                    ],
+                    [
+                        'name' => 'force',
+                        'in' => 'query',
+                        'required' => FALSE,
+                        'type' => 'boolean'
+                    ]
+                ],
+                'responses' => ['200' => []]
+            ]],
+            '/v2/applications/{applicationId}/disable' => ['post' => [
+                'operationId' => 'DisableApplication',
+                'parameters' => [[
+                    'name' => 'applicationId',
+                    'in' => 'path',
+                    'required' => TRUE,
+                    'type' => 'string'
+                ]],
+                'responses' => ['200' => []]
+            ]],
+            '/v2/applications/{applicationId}/enable' => ['post' => [
+                'operationId' => 'EnableApplication',
+                'parameters' => [[
+                    'name' => 'applicationId',
+                    'in' => 'path',
+                    'required' => TRUE,
+                    'type' => 'string'
+                ]],
+                'responses' => ['200' => []]
+            ]],
             '/v2/applications/discover' => ['post' => [
                 'operationId' => 'DiscoverServer',
                 'parameters' => [[
@@ -728,6 +870,16 @@ more results.
                     'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/ApplicationInfoListApiModel']]]
                 ]
             ],
+            '/v2/applications/querybyid' => ['post' => [
+                'operationId' => 'QueryApplicationsById',
+                'parameters' => [[
+                    'name' => 'query',
+                    'in' => 'body',
+                    'required' => FALSE,
+                    'schema' => ['$ref' => '#/definitions/ApplicationRecordQueryApiModel']
+                ]],
+                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/ApplicationRecordListApiModel']]]
+            ]],
             '/v2/endpoints/{endpointId}/activate' => ['post' => [
                 'operationId' => 'ActivateEndpoint',
                 'parameters' => [[
@@ -1152,12 +1304,18 @@ more results.
                         'enum' => [
                             'Server',
                             'Client',
-                            'ClientAndServer'
+                            'ClientAndServer',
+                            'DiscoveryServer'
                         ]
                     ],
                     'productUri' => ['type' => 'string'],
                     'applicationName' => ['type' => 'string'],
                     'locale' => ['type' => 'string'],
+                    'siteId' => ['type' => 'string'],
+                    'localizedNames' => [
+                        'type' => 'object',
+                        'additionalProperties' => ['type' => 'string']
+                    ],
                     'capabilities' => [
                         'type' => 'array',
                         'items' => ['type' => 'string']
@@ -1166,7 +1324,8 @@ more results.
                         'type' => 'array',
                         'items' => ['type' => 'string']
                     ],
-                    'discoveryProfileUri' => ['type' => 'string']
+                    'discoveryProfileUri' => ['type' => 'string'],
+                    'gatewayServerUri' => ['type' => 'string']
                 ],
                 'additionalProperties' => FALSE,
                 'required' => ['applicationUri']
@@ -1176,21 +1335,48 @@ more results.
                 'additionalProperties' => FALSE,
                 'required' => []
             ],
+            'RegistryOperationApiModel' => [
+                'properties' => [
+                    'authorityId' => ['type' => 'string'],
+                    'time' => [
+                        'type' => 'string',
+                        'format' => 'date-time'
+                    ]
+                ],
+                'additionalProperties' => FALSE,
+                'required' => [
+                    'authorityId',
+                    'time'
+                ]
+            ],
             'ApplicationInfoApiModel' => [
                 'properties' => [
+                    'state' => [
+                        'type' => 'string',
+                        'enum' => [
+                            'New',
+                            'Approved',
+                            'Rejected'
+                        ]
+                    ],
                     'applicationId' => ['type' => 'string'],
                     'applicationType' => [
                         'type' => 'string',
                         'enum' => [
                             'Server',
                             'Client',
-                            'ClientAndServer'
+                            'ClientAndServer',
+                            'DiscoveryServer'
                         ]
                     ],
                     'applicationUri' => ['type' => 'string'],
                     'productUri' => ['type' => 'string'],
                     'applicationName' => ['type' => 'string'],
                     'locale' => ['type' => 'string'],
+                    'localizedNames' => [
+                        'type' => 'object',
+                        'additionalProperties' => ['type' => 'string']
+                    ],
                     'certificate' => [
                         'type' => 'string',
                         'format' => 'byte'
@@ -1204,6 +1390,7 @@ more results.
                         'items' => ['type' => 'string']
                     ],
                     'discoveryProfileUri' => ['type' => 'string'],
+                    'gatewayServerUri' => ['type' => 'string'],
                     'hostAddresses' => [
                         'type' => 'array',
                         'items' => ['type' => 'string']
@@ -1213,7 +1400,10 @@ more results.
                     'notSeenSince' => [
                         'type' => 'string',
                         'format' => 'date-time'
-                    ]
+                    ],
+                    'created' => ['$ref' => '#/definitions/RegistryOperationApiModel'],
+                    'approved' => ['$ref' => '#/definitions/RegistryOperationApiModel'],
+                    'updated' => ['$ref' => '#/definitions/RegistryOperationApiModel']
                 ],
                 'additionalProperties' => FALSE,
                 'required' => []
@@ -1326,7 +1516,7 @@ more results.
                         ]
                     ],
                     'securityPolicy' => ['type' => 'string'],
-                    'serverThumbprint' => [
+                    'certificate' => [
                         'type' => 'string',
                         'format' => 'byte'
                     ]
@@ -1361,10 +1551,6 @@ more results.
                     'securityLevel' => [
                         'type' => 'integer',
                         'format' => 'int32'
-                    ],
-                    'certificate' => [
-                        'type' => 'string',
-                        'format' => 'byte'
                     ],
                     'authenticationMethods' => [
                         'type' => 'array',
@@ -1402,6 +1588,10 @@ more results.
                     'productUri' => ['type' => 'string'],
                     'applicationName' => ['type' => 'string'],
                     'locale' => ['type' => 'string'],
+                    'localizedNames' => [
+                        'type' => 'object',
+                        'additionalProperties' => ['type' => 'string']
+                    ],
                     'certificate' => [
                         'type' => 'string',
                         'format' => 'byte'
@@ -1414,7 +1604,8 @@ more results.
                         'type' => 'array',
                         'items' => ['type' => 'string']
                     ],
-                    'discoveryProfileUri' => ['type' => 'string']
+                    'discoveryProfileUri' => ['type' => 'string'],
+                    'gatewayServerUri' => ['type' => 'string']
                 ],
                 'additionalProperties' => FALSE,
                 'required' => []
@@ -1437,7 +1628,8 @@ more results.
                         'enum' => [
                             'Server',
                             'Client',
-                            'ClientAndServer'
+                            'ClientAndServer',
+                            'DiscoveryServer'
                         ]
                     ],
                     'applicationUri' => ['type' => 'string'],
@@ -1445,11 +1637,89 @@ more results.
                     'applicationName' => ['type' => 'string'],
                     'locale' => ['type' => 'string'],
                     'capability' => ['type' => 'string'],
+                    'discoveryProfileUri' => ['type' => 'string'],
+                    'gatewayServerUri' => ['type' => 'string'],
                     'siteOrSupervisorId' => ['type' => 'string'],
+                    'state' => [
+                        'type' => 'string',
+                        'enum' => [
+                            'Any',
+                            'New',
+                            'Approved',
+                            'Rejected',
+                            'Unregistered',
+                            'Deleted'
+                        ]
+                    ],
                     'includeNotSeenSince' => ['type' => 'boolean']
                 ],
                 'additionalProperties' => FALSE,
                 'required' => []
+            ],
+            'ApplicationRecordQueryApiModel' => [
+                'properties' => [
+                    'startingRecordId' => [
+                        'type' => 'integer',
+                        'format' => 'int32'
+                    ],
+                    'maxRecordsToReturn' => [
+                        'type' => 'integer',
+                        'format' => 'int32'
+                    ],
+                    'applicationName' => ['type' => 'string'],
+                    'applicationUri' => ['type' => 'string'],
+                    'applicationType' => [
+                        'type' => 'string',
+                        'enum' => [
+                            'Server',
+                            'Client',
+                            'ClientAndServer',
+                            'DiscoveryServer'
+                        ]
+                    ],
+                    'productUri' => ['type' => 'string'],
+                    'serverCapabilities' => [
+                        'type' => 'array',
+                        'items' => ['type' => 'string']
+                    ]
+                ],
+                'additionalProperties' => FALSE,
+                'required' => []
+            ],
+            'ApplicationRecordApiModel' => [
+                'properties' => [
+                    'recordId' => [
+                        'type' => 'integer',
+                        'format' => 'int32'
+                    ],
+                    'application' => ['$ref' => '#/definitions/ApplicationInfoApiModel']
+                ],
+                'additionalProperties' => FALSE,
+                'required' => [
+                    'recordId',
+                    'application'
+                ]
+            ],
+            'ApplicationRecordListApiModel' => [
+                'properties' => [
+                    'applications' => [
+                        'type' => 'array',
+                        'items' => ['$ref' => '#/definitions/ApplicationRecordApiModel']
+                    ],
+                    'lastCounterResetTime' => [
+                        'type' => 'string',
+                        'format' => 'date-time'
+                    ],
+                    'nextRecordId' => [
+                        'type' => 'integer',
+                        'format' => 'int32'
+                    ]
+                ],
+                'additionalProperties' => FALSE,
+                'required' => [
+                    'lastCounterResetTime',
+                    'nextRecordId'
+                ]
             ],
             'EndpointRegistrationUpdateApiModel' => [
                 'properties' => ['user' => ['$ref' => '#/definitions/CredentialApiModel']],

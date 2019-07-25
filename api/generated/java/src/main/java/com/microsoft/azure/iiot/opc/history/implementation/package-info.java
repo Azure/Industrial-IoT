@@ -8,6 +8,6 @@
 
 /**
  * This package contains the implementation classes for AzureOpcHistoryClient.
- * Azure Industrial IoT OPC UA Registry Service.
+ * Azure Industrial IoT OPC UA Historic Access Service.
  */
 package com.microsoft.azure.iiot.opc.history.implementation;

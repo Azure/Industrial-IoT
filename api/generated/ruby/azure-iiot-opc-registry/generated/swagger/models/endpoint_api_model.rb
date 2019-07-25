@@ -32,9 +32,8 @@ module azure.iiot.opc.registry
       # default to best.
       attr_accessor :security_policy
 
-      # @return [Array<Integer>] Thumbprint to validate against or null to
-      # trust any.
-      attr_accessor :server_thumbprint
+      # @return [Array<Integer>] Endpoint certificate that was registered.
+      attr_accessor :certificate
 
 
       #
@@ -104,10 +103,10 @@ module azure.iiot.opc.registry
                   name: 'String'
                 }
               },
-              server_thumbprint: {
+              certificate: {
                 client_side_validation: true,
                 required: false,
-                serialized_name: 'serverThumbprint',
+                serialized_name: 'certificate',
                 type: {
                   name: 'ByteArray'
                 }

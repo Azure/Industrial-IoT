@@ -13,11 +13,15 @@ module azure.iiot.opc.registry
     # Application info model
     #
     class ApplicationInfoApiModel
+      # @return [ApplicationState] State. Possible values include: 'New',
+      # 'Approved', 'Rejected'. Default value: 'New' .
+      attr_accessor :state
+
       # @return [String] Unique application id
       attr_accessor :application_id
 
       # @return [ApplicationType] Type of application. Possible values include:
-      # 'Server', 'Client', 'ClientAndServer'
+      # 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
       attr_accessor :application_type
 
       # @return [String] Unique application uri
@@ -26,11 +30,15 @@ module azure.iiot.opc.registry
       # @return [String] Product uri
       attr_accessor :product_uri
 
-      # @return [String] Name of server
+      # @return [String] Default name of application
       attr_accessor :application_name
 
-      # @return [String] Locale of name - defaults to "en"
+      # @return [String] Locale of default name - defaults to "en"
       attr_accessor :locale
+
+      # @return [Hash{String => String}] Localized Names of application keyed
+      # on locale
+      attr_accessor :localized_names
 
       # @return [Array<Integer>] Application public cert
       attr_accessor :certificate
@@ -44,6 +52,9 @@ module azure.iiot.opc.registry
       # @return [String] Discovery profile uri
       attr_accessor :discovery_profile_uri
 
+      # @return [String] Gateway server uri
+      attr_accessor :gateway_server_uri
+
       # @return [Array<String>] Host addresses of server application or null
       attr_accessor :host_addresses
 
@@ -55,6 +66,15 @@ module azure.iiot.opc.registry
 
       # @return [DateTime] Last time application was seen
       attr_accessor :not_seen_since
+
+      # @return [RegistryOperationApiModel] Created
+      attr_accessor :created
+
+      # @return [RegistryOperationApiModel] Approved
+      attr_accessor :approved
+
+      # @return [RegistryOperationApiModel] Updated
+      attr_accessor :updated
 
 
       #
@@ -70,6 +90,16 @@ module azure.iiot.opc.registry
             name: 'Composite',
             class_name: 'ApplicationInfoApiModel',
             model_properties: {
+              state: {
+                client_side_validation: true,
+                required: false,
+                serialized_name: 'state',
+                default_value: 'New',
+                type: {
+                  name: 'Enum',
+                  module: 'ApplicationState'
+                }
+              },
               application_id: {
                 client_side_validation: true,
                 required: false,
@@ -117,6 +147,22 @@ module azure.iiot.opc.registry
                 serialized_name: 'locale',
                 type: {
                   name: 'String'
+                }
+              },
+              localized_names: {
+                client_side_validation: true,
+                required: false,
+                serialized_name: 'localizedNames',
+                type: {
+                  name: 'Dictionary',
+                  value: {
+                      client_side_validation: true,
+                      required: false,
+                      serialized_name: 'StringElementType',
+                      type: {
+                        name: 'String'
+                      }
+                  }
                 }
               },
               certificate: {
@@ -173,6 +219,14 @@ module azure.iiot.opc.registry
                   name: 'String'
                 }
               },
+              gateway_server_uri: {
+                client_side_validation: true,
+                required: false,
+                serialized_name: 'gatewayServerUri',
+                type: {
+                  name: 'String'
+                }
+              },
               host_addresses: {
                 client_side_validation: true,
                 required: false,
@@ -214,6 +268,33 @@ module azure.iiot.opc.registry
                 serialized_name: 'notSeenSince',
                 type: {
                   name: 'DateTime'
+                }
+              },
+              created: {
+                client_side_validation: true,
+                required: false,
+                serialized_name: 'created',
+                type: {
+                  name: 'Composite',
+                  class_name: 'RegistryOperationApiModel'
+                }
+              },
+              approved: {
+                client_side_validation: true,
+                required: false,
+                serialized_name: 'approved',
+                type: {
+                  name: 'Composite',
+                  class_name: 'RegistryOperationApiModel'
+                }
+              },
+              updated: {
+                client_side_validation: true,
+                required: false,
+                serialized_name: 'updated',
+                type: {
+                  name: 'Composite',
+                  class_name: 'RegistryOperationApiModel'
                 }
               }
             }

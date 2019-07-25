@@ -8,7 +8,7 @@
 // regenerated.
 // </auto-generated>
 
-namespace Microsoft.Azure.IIoT.Opc.History.Models
+namespace Microsoft.Azure.IIoT.Opc.Registry.Models
 {
     using Microsoft.Rest;
     using Newtonsoft.Json;
@@ -43,16 +43,16 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
         /// <param name="securityPolicy">Security policy uri to use for
         /// communication
         /// default to best.</param>
-        /// <param name="serverThumbprint">Thumbprint to validate against or
-        /// null to trust any.</param>
-        public EndpointApiModel(string url, IList<string> alternativeUrls = default(IList<string>), CredentialApiModel user = default(CredentialApiModel), SecurityMode? securityMode = default(SecurityMode?), string securityPolicy = default(string), byte[] serverThumbprint = default(byte[]))
+        /// <param name="certificate">Endpoint certificate that was
+        /// registered.</param>
+        public EndpointApiModel(string url, IList<string> alternativeUrls = default(IList<string>), CredentialApiModel user = default(CredentialApiModel), SecurityMode? securityMode = default(SecurityMode?), string securityPolicy = default(string), byte[] certificate = default(byte[]))
         {
             Url = url;
             AlternativeUrls = alternativeUrls;
             User = user;
             SecurityMode = securityMode;
             SecurityPolicy = securityPolicy;
-            ServerThumbprint = serverThumbprint;
+            Certificate = certificate;
             CustomInit();
         }
 
@@ -96,10 +96,10 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
         public string SecurityPolicy { get; set; }
 
         /// <summary>
-        /// Gets or sets thumbprint to validate against or null to trust any.
+        /// Gets or sets endpoint certificate that was registered.
         /// </summary>
-        [JsonProperty(PropertyName = "serverThumbprint")]
-        public byte[] ServerThumbprint { get; set; }
+        [JsonProperty(PropertyName = "certificate")]
+        public byte[] Certificate { get; set; }
 
         /// <summary>
         /// Validate the object.

@@ -18,7 +18,7 @@ The following diagrams illustrate the OPC Twin architecture and how its componen
 
    ![How OPC Twin works](media/twin3.png)
 
-1. The [OPC Twin Microservice](services/twin.md) REST interface can also be used to create monitored items and subscriptions inside the OPC Publisher module. The OPC Publisher sends variable changes and events in the OPC UA server as telemetry to Azure IoT Hub. For more information about OPC Publisher, see the [OPC Publisher](https://github.com/Azure/iot-edge-opc-publisher) repository on GitHub.
+1. The [OPC Twin Microservice](services/twin.md) REST interface can also be used to create monitored items and subscriptions inside the [OPC Publisher](publisher.md) module. The OPC Publisher sends variable changes and events in the OPC UA server as telemetry to Azure IoT Hub.  
 
    ![How OPC Twin works](media/twin4.png)
 

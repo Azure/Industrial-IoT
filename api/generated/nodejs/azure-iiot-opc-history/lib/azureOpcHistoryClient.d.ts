@@ -37,47 +37,119 @@ export default class AzureOpcHistoryClient extends ServiceClient {
 
 
   /**
-   * @summary Get list of applications
+   * @summary Delete value history at specified times
    *
-   * Get all registered applications in paged form.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call this operation again using the token to retrieve more results.
+   * Delete value history using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history update request
+   *
+   * @param {string} [request.nodeId] Node to update
+   *
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
+   *
+   * @param {object} request.details The HistoryUpdateDetailsType extension
+   * object
+   * encoded as json Variant and containing the tunneled
+   * update request for the Historian server. The value
+   * is updated at edge using above node address.
+   *
+   * @param {array} request.details.reqTimes The timestamps to delete
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
-   *
-   * @param {string} [options.continuationToken] Optional Continuation
-   * token
-   *
-   * @param {number} [options.pageSize] Optional number of results to
-   * return
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
    * request
    *
    * @returns {Promise} A promise is returned
    *
-   * @resolve {HttpOperationResponse<ApplicationInfoListApiModel>} - The deserialized result object.
+   * @resolve {HttpOperationResponse<HistoryUpdateResponseApiModel>} - The deserialized result object.
    *
    * @reject {Error|ServiceError} - The error object.
    */
-  getListOfApplicationsWithHttpOperationResponse(options?: { continuationToken? : string, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.ApplicationInfoListApiModel>>;
+  historyDeleteValuesAtTimesWithHttpOperationResponse(endpointId: string, request: models.HistoryUpdateRequestApiModelDeleteValuesAtTimesDetailsApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.HistoryUpdateResponseApiModel>>;
 
   /**
-   * @summary Get list of applications
+   * @summary Delete value history at specified times
    *
-   * Get all registered applications in paged form.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call this operation again using the token to retrieve more results.
+   * Delete value history using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history update request
+   *
+   * @param {string} [request.nodeId] Node to update
+   *
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
+   *
+   * @param {object} request.details The HistoryUpdateDetailsType extension
+   * object
+   * encoded as json Variant and containing the tunneled
+   * update request for the Historian server. The value
+   * is updated at edge using above node address.
+   *
+   * @param {array} request.details.reqTimes The timestamps to delete
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
-   *
-   * @param {string} [options.continuationToken] Optional Continuation
-   * token
-   *
-   * @param {number} [options.pageSize] Optional number of results to
-   * return
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
    * request
@@ -89,7 +161,7 @@ export default class AzureOpcHistoryClient extends ServiceClient {
    *
    * {Promise} A promise is returned.
    *
-   *                      @resolve {ApplicationInfoListApiModel} - The deserialized result object.
+   *                      @resolve {HistoryUpdateResponseApiModel} - The deserialized result object.
    *
    *                      @reject {Error|ServiceError} - The error object.
    *
@@ -97,47 +169,70 @@ export default class AzureOpcHistoryClient extends ServiceClient {
    *
    *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
    *
-   *                      {ApplicationInfoListApiModel} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link ApplicationInfoListApiModel} for more
+   *                      {HistoryUpdateResponseApiModel} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link HistoryUpdateResponseApiModel} for more
    *                      information.
    *
    *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
    *
    *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
    */
-  getListOfApplications(options?: { continuationToken? : string, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<models.ApplicationInfoListApiModel>;
-  getListOfApplications(callback: ServiceCallback<models.ApplicationInfoListApiModel>): void;
-  getListOfApplications(options: { continuationToken? : string, pageSize? : number, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.ApplicationInfoListApiModel>): void;
+  historyDeleteValuesAtTimes(endpointId: string, request: models.HistoryUpdateRequestApiModelDeleteValuesAtTimesDetailsApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.HistoryUpdateResponseApiModel>;
+  historyDeleteValuesAtTimes(endpointId: string, request: models.HistoryUpdateRequestApiModelDeleteValuesAtTimesDetailsApiModel, callback: ServiceCallback<models.HistoryUpdateResponseApiModel>): void;
+  historyDeleteValuesAtTimes(endpointId: string, request: models.HistoryUpdateRequestApiModelDeleteValuesAtTimesDetailsApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.HistoryUpdateResponseApiModel>): void;
 
 
   /**
-   * @summary Create new application
+   * @summary Delete historic values
    *
-   * The application is registered using the provided information, but it
-   * is not associated with a supervisor.  This is useful for when you need
-   * to register clients or you want to register a server that is located
-   * in a network not reachable through a Twin module.
+   * Delete historic values using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
    *
-   * @param {object} request Application registration request
+   * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {string} request.applicationUri Unique application uri
+   * @param {object} request The history update request
    *
-   * @param {string} [request.applicationType] Type of application. Possible
-   * values include: 'Server', 'Client', 'ClientAndServer'
+   * @param {string} [request.nodeId] Node to update
    *
-   * @param {string} [request.productUri] Product uri of the application.
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
    *
-   * @param {string} [request.applicationName] Name of the server or client.
+   * @param {object} request.details The HistoryUpdateDetailsType extension
+   * object
+   * encoded as json Variant and containing the tunneled
+   * update request for the Historian server. The value
+   * is updated at edge using above node address.
    *
-   * @param {string} [request.locale] Locale of name
+   * @param {date} [request.details.startTime] Start time
    *
-   * @param {array} [request.capabilities] The OPC UA defined capabilities of the
-   * server.
+   * @param {date} [request.details.endTime] End time to delete until
    *
-   * @param {array} [request.discoveryUrls] Discovery urls of the server.
+   * @param {object} [request.header] Optional request header
    *
-   * @param {string} [request.discoveryProfileUri] The discovery profile uri of
-   * the server.
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -146,40 +241,63 @@ export default class AzureOpcHistoryClient extends ServiceClient {
    *
    * @returns {Promise} A promise is returned
    *
-   * @resolve {HttpOperationResponse<ApplicationRegistrationResponseApiModel>} - The deserialized result object.
+   * @resolve {HttpOperationResponse<HistoryUpdateResponseApiModel>} - The deserialized result object.
    *
    * @reject {Error|ServiceError} - The error object.
    */
-  createApplicationWithHttpOperationResponse(request: models.ApplicationRegistrationRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.ApplicationRegistrationResponseApiModel>>;
+  historyDeleteValuesWithHttpOperationResponse(endpointId: string, request: models.HistoryUpdateRequestApiModelDeleteValuesDetailsApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.HistoryUpdateResponseApiModel>>;
 
   /**
-   * @summary Create new application
+   * @summary Delete historic values
    *
-   * The application is registered using the provided information, but it
-   * is not associated with a supervisor.  This is useful for when you need
-   * to register clients or you want to register a server that is located
-   * in a network not reachable through a Twin module.
+   * Delete historic values using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
    *
-   * @param {object} request Application registration request
+   * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {string} request.applicationUri Unique application uri
+   * @param {object} request The history update request
    *
-   * @param {string} [request.applicationType] Type of application. Possible
-   * values include: 'Server', 'Client', 'ClientAndServer'
+   * @param {string} [request.nodeId] Node to update
    *
-   * @param {string} [request.productUri] Product uri of the application.
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
    *
-   * @param {string} [request.applicationName] Name of the server or client.
+   * @param {object} request.details The HistoryUpdateDetailsType extension
+   * object
+   * encoded as json Variant and containing the tunneled
+   * update request for the Historian server. The value
+   * is updated at edge using above node address.
    *
-   * @param {string} [request.locale] Locale of name
+   * @param {date} [request.details.startTime] Start time
    *
-   * @param {array} [request.capabilities] The OPC UA defined capabilities of the
-   * server.
+   * @param {date} [request.details.endTime] End time to delete until
    *
-   * @param {array} [request.discoveryUrls] Discovery urls of the server.
+   * @param {object} [request.header] Optional request header
    *
-   * @param {string} [request.discoveryProfileUri] The discovery profile uri of
-   * the server.
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -193,7 +311,7 @@ export default class AzureOpcHistoryClient extends ServiceClient {
    *
    * {Promise} A promise is returned.
    *
-   *                      @resolve {ApplicationRegistrationResponseApiModel} - The deserialized result object.
+   *                      @resolve {HistoryUpdateResponseApiModel} - The deserialized result object.
    *
    *                      @reject {Error|ServiceError} - The error object.
    *
@@ -201,61 +319,646 @@ export default class AzureOpcHistoryClient extends ServiceClient {
    *
    *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
    *
-   *                      {ApplicationRegistrationResponseApiModel} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link ApplicationRegistrationResponseApiModel} for
+   *                      {HistoryUpdateResponseApiModel} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link HistoryUpdateResponseApiModel} for more
+   *                      information.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  historyDeleteValues(endpointId: string, request: models.HistoryUpdateRequestApiModelDeleteValuesDetailsApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.HistoryUpdateResponseApiModel>;
+  historyDeleteValues(endpointId: string, request: models.HistoryUpdateRequestApiModelDeleteValuesDetailsApiModel, callback: ServiceCallback<models.HistoryUpdateResponseApiModel>): void;
+  historyDeleteValues(endpointId: string, request: models.HistoryUpdateRequestApiModelDeleteValuesDetailsApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.HistoryUpdateResponseApiModel>): void;
+
+
+  /**
+   * @summary Delete historic values
+   *
+   * Delete historic values using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history update request
+   *
+   * @param {string} [request.nodeId] Node to update
+   *
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
+   *
+   * @param {object} request.details The HistoryUpdateDetailsType extension
+   * object
+   * encoded as json Variant and containing the tunneled
+   * update request for the Historian server. The value
+   * is updated at edge using above node address.
+   *
+   * @param {date} [request.details.startTime] Start time
+   *
+   * @param {date} [request.details.endTime] End time to delete until
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<HistoryUpdateResponseApiModel>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  historyDeleteModifiedValuesWithHttpOperationResponse(endpointId: string, request: models.HistoryUpdateRequestApiModelDeleteModifiedValuesDetailsApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.HistoryUpdateResponseApiModel>>;
+
+  /**
+   * @summary Delete historic values
+   *
+   * Delete historic values using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history update request
+   *
+   * @param {string} [request.nodeId] Node to update
+   *
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
+   *
+   * @param {object} request.details The HistoryUpdateDetailsType extension
+   * object
+   * encoded as json Variant and containing the tunneled
+   * update request for the Historian server. The value
+   * is updated at edge using above node address.
+   *
+   * @param {date} [request.details.startTime] Start time
+   *
+   * @param {date} [request.details.endTime] End time to delete until
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {HistoryUpdateResponseApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {HistoryUpdateResponseApiModel} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link HistoryUpdateResponseApiModel} for more
+   *                      information.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  historyDeleteModifiedValues(endpointId: string, request: models.HistoryUpdateRequestApiModelDeleteModifiedValuesDetailsApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.HistoryUpdateResponseApiModel>;
+  historyDeleteModifiedValues(endpointId: string, request: models.HistoryUpdateRequestApiModelDeleteModifiedValuesDetailsApiModel, callback: ServiceCallback<models.HistoryUpdateResponseApiModel>): void;
+  historyDeleteModifiedValues(endpointId: string, request: models.HistoryUpdateRequestApiModelDeleteModifiedValuesDetailsApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.HistoryUpdateResponseApiModel>): void;
+
+
+  /**
+   * @summary Delete historic events
+   *
+   * Delete historic events using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history update request
+   *
+   * @param {string} [request.nodeId] Node to update
+   *
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
+   *
+   * @param {object} request.details The HistoryUpdateDetailsType extension
+   * object
+   * encoded as json Variant and containing the tunneled
+   * update request for the Historian server. The value
+   * is updated at edge using above node address.
+   *
+   * @param {array} request.details.eventIds Events to delete
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<HistoryUpdateResponseApiModel>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  historyDeleteEventsWithHttpOperationResponse(endpointId: string, request: models.HistoryUpdateRequestApiModelDeleteEventsDetailsApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.HistoryUpdateResponseApiModel>>;
+
+  /**
+   * @summary Delete historic events
+   *
+   * Delete historic events using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history update request
+   *
+   * @param {string} [request.nodeId] Node to update
+   *
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
+   *
+   * @param {object} request.details The HistoryUpdateDetailsType extension
+   * object
+   * encoded as json Variant and containing the tunneled
+   * update request for the Historian server. The value
+   * is updated at edge using above node address.
+   *
+   * @param {array} request.details.eventIds Events to delete
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {HistoryUpdateResponseApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {HistoryUpdateResponseApiModel} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link HistoryUpdateResponseApiModel} for more
+   *                      information.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  historyDeleteEvents(endpointId: string, request: models.HistoryUpdateRequestApiModelDeleteEventsDetailsApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.HistoryUpdateResponseApiModel>;
+  historyDeleteEvents(endpointId: string, request: models.HistoryUpdateRequestApiModelDeleteEventsDetailsApiModel, callback: ServiceCallback<models.HistoryUpdateResponseApiModel>): void;
+  historyDeleteEvents(endpointId: string, request: models.HistoryUpdateRequestApiModelDeleteEventsDetailsApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.HistoryUpdateResponseApiModel>): void;
+
+
+  /**
+   * @summary Read history using json details
+   *
+   * Read node history if available using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history read request
+   *
+   * @param {string} [request.nodeId] Node to read from (mandatory)
+   *
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
+   *
+   * @param {object} [request.details] The HistoryReadDetailsType extension
+   * object
+   * encoded in json and containing the tunneled
+   * Historian reader request.
+   *
+   * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
+   * slices
+   * out of a matrix or 0:1 for the first item in
+   * an array, string or bytestring.
+   * See 7.22 of part 4: NumericRange.
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<HistoryReadResponseApiModelJToken>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  historyReadRawWithHttpOperationResponse(endpointId: string, request: models.HistoryReadRequestApiModelJToken, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.HistoryReadResponseApiModelJToken>>;
+
+  /**
+   * @summary Read history using json details
+   *
+   * Read node history if available using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history read request
+   *
+   * @param {string} [request.nodeId] Node to read from (mandatory)
+   *
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
+   *
+   * @param {object} [request.details] The HistoryReadDetailsType extension
+   * object
+   * encoded in json and containing the tunneled
+   * Historian reader request.
+   *
+   * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
+   * slices
+   * out of a matrix or 0:1 for the first item in
+   * an array, string or bytestring.
+   * See 7.22 of part 4: NumericRange.
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {HistoryReadResponseApiModelJToken} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {HistoryReadResponseApiModelJToken} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link HistoryReadResponseApiModelJToken} for more
+   *                      information.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  historyReadRaw(endpointId: string, request: models.HistoryReadRequestApiModelJToken, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.HistoryReadResponseApiModelJToken>;
+  historyReadRaw(endpointId: string, request: models.HistoryReadRequestApiModelJToken, callback: ServiceCallback<models.HistoryReadResponseApiModelJToken>): void;
+  historyReadRaw(endpointId: string, request: models.HistoryReadRequestApiModelJToken, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.HistoryReadResponseApiModelJToken>): void;
+
+
+  /**
+   * @summary Read next batch of history as json
+   *
+   * Read next batch of node history values using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history read next request
+   *
+   * @param {string} request.continuationToken Continuation token to continue
+   * reading more
+   * results.
+   *
+   * @param {boolean} [request.abort] Abort reading after this read
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<HistoryReadNextResponseApiModelJToken>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  historyReadRawNextWithHttpOperationResponse(endpointId: string, request: models.HistoryReadNextRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.HistoryReadNextResponseApiModelJToken>>;
+
+  /**
+   * @summary Read next batch of history as json
+   *
+   * Read next batch of node history values using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history read next request
+   *
+   * @param {string} request.continuationToken Continuation token to continue
+   * reading more
+   * results.
+   *
+   * @param {boolean} [request.abort] Abort reading after this read
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {HistoryReadNextResponseApiModelJToken} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {HistoryReadNextResponseApiModelJToken} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link HistoryReadNextResponseApiModelJToken} for
    *                      more information.
    *
    *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
    *
    *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
    */
-  createApplication(request: models.ApplicationRegistrationRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.ApplicationRegistrationResponseApiModel>;
-  createApplication(request: models.ApplicationRegistrationRequestApiModel, callback: ServiceCallback<models.ApplicationRegistrationResponseApiModel>): void;
-  createApplication(request: models.ApplicationRegistrationRequestApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.ApplicationRegistrationResponseApiModel>): void;
+  historyReadRawNext(endpointId: string, request: models.HistoryReadNextRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.HistoryReadNextResponseApiModelJToken>;
+  historyReadRawNext(endpointId: string, request: models.HistoryReadNextRequestApiModel, callback: ServiceCallback<models.HistoryReadNextResponseApiModelJToken>): void;
+  historyReadRawNext(endpointId: string, request: models.HistoryReadNextRequestApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.HistoryReadNextResponseApiModelJToken>): void;
 
 
   /**
-   * @summary Register new server
+   * @summary Update node history using raw json
    *
-   * Registers a server solely using a discovery url. Requires that
-   * the onboarding agent service is running and the server can be
-   * located by a supervisor in its network using the discovery url.
+   * Update node history using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
    *
-   * @param {object} request Server registration request
+   * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {string} request.discoveryUrl Discovery url to use for registration
+   * @param {object} request The history update request
    *
-   * @param {string} [request.id] Registration id
+   * @param {string} [request.nodeId] Node to update
    *
-   * @param {object} [request.callback] An optional callback hook to register.
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
    *
-   * @param {string} [request.callback.uri] Uri to call - should use https scheme
-   * in which
-   * case security is enforced.
+   * @param {object} request.details The HistoryUpdateDetailsType extension
+   * object
+   * encoded as json Variant and containing the tunneled
+   * update request for the Historian server. The value
+   * is updated at edge using above node address.
    *
-   * @param {string} [request.callback.method] Http Method to use for callback.
-   * Possible values include: 'Get', 'Post', 'Put', 'Delete'
+   * @param {object} [request.header] Optional request header
    *
-   * @param {string} [request.callback.authenticationHeader] Authentication
-   * header to add or null if not needed
+   * @param {object} [request.header.elevation] Optional User elevation
    *
-   * @param {object} [request.activationFilter] Upon discovery, activate all
-   * endpoints with this filter.
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {array} [request.activationFilter.trustLists] Certificate trust list
-   * identifiers to use for
-   * activation, if null, all certificates are
-   * trusted.  If empty list, no certificates are
-   * trusted which is equal to no filter.
+   * @param {object} [request.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.activationFilter.securityPolicies] Endpoint security
-   * policies to filter against.
-   * If set to null, all policies are in scope.
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
    *
-   * @param {string} [request.activationFilter.securityMode] Security mode level
-   * to activate. If null,
-   * then Microsoft.Azure.IIoT.OpcUa.Registry.Models.SecurityMode.Best is
-   * assumed. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -264,54 +967,59 @@ export default class AzureOpcHistoryClient extends ServiceClient {
    *
    * @returns {Promise} A promise is returned
    *
-   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   * @resolve {HttpOperationResponse<HistoryUpdateResponseApiModel>} - The deserialized result object.
    *
    * @reject {Error|ServiceError} - The error object.
    */
-  registerServerWithHttpOperationResponse(request: models.ServerRegistrationRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<void>>;
+  historyUpdateRawWithHttpOperationResponse(endpointId: string, request: models.HistoryUpdateRequestApiModelJToken, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.HistoryUpdateResponseApiModel>>;
 
   /**
-   * @summary Register new server
+   * @summary Update node history using raw json
    *
-   * Registers a server solely using a discovery url. Requires that
-   * the onboarding agent service is running and the server can be
-   * located by a supervisor in its network using the discovery url.
+   * Update node history using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
    *
-   * @param {object} request Server registration request
+   * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {string} request.discoveryUrl Discovery url to use for registration
+   * @param {object} request The history update request
    *
-   * @param {string} [request.id] Registration id
+   * @param {string} [request.nodeId] Node to update
    *
-   * @param {object} [request.callback] An optional callback hook to register.
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
    *
-   * @param {string} [request.callback.uri] Uri to call - should use https scheme
-   * in which
-   * case security is enforced.
+   * @param {object} request.details The HistoryUpdateDetailsType extension
+   * object
+   * encoded as json Variant and containing the tunneled
+   * update request for the Historian server. The value
+   * is updated at edge using above node address.
    *
-   * @param {string} [request.callback.method] Http Method to use for callback.
-   * Possible values include: 'Get', 'Post', 'Put', 'Delete'
+   * @param {object} [request.header] Optional request header
    *
-   * @param {string} [request.callback.authenticationHeader] Authentication
-   * header to add or null if not needed
+   * @param {object} [request.header.elevation] Optional User elevation
    *
-   * @param {object} [request.activationFilter] Upon discovery, activate all
-   * endpoints with this filter.
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {array} [request.activationFilter.trustLists] Certificate trust list
-   * identifiers to use for
-   * activation, if null, all certificates are
-   * trusted.  If empty list, no certificates are
-   * trusted which is equal to no filter.
+   * @param {object} [request.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.activationFilter.securityPolicies] Endpoint security
-   * policies to filter against.
-   * If set to null, all policies are in scope.
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
    *
-   * @param {string} [request.activationFilter.securityMode] Security mode level
-   * to activate. If null,
-   * then Microsoft.Azure.IIoT.OpcUa.Registry.Models.SecurityMode.Best is
-   * assumed. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -325,7 +1033,7 @@ export default class AzureOpcHistoryClient extends ServiceClient {
    *
    * {Promise} A promise is returned.
    *
-   *                      @resolve {null} - The deserialized result object.
+   *                      @resolve {HistoryUpdateResponseApiModel} - The deserialized result object.
    *
    *                      @reject {Error|ServiceError} - The error object.
    *
@@ -333,315 +1041,68 @@ export default class AzureOpcHistoryClient extends ServiceClient {
    *
    *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
    *
-   *                      {null} [result]   - The deserialized result object if an error did not occur.
-   *
-   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
-   */
-  registerServer(request: models.ServerRegistrationRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<void>;
-  registerServer(request: models.ServerRegistrationRequestApiModel, callback: ServiceCallback<void>): void;
-  registerServer(request: models.ServerRegistrationRequestApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
-
-
-  /**
-   * @summary Purge applications
-   *
-   * Purges all applications that have not been seen for a specified amount of
-   * time.
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {string} [options.notSeenFor] A duration in milliseconds
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
-   *
-   * @reject {Error|ServiceError} - The error object.
-   */
-  deleteAllDisabledApplicationsWithHttpOperationResponse(options?: { notSeenFor? : string, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<void>>;
-
-  /**
-   * @summary Purge applications
-   *
-   * Purges all applications that have not been seen for a specified amount of
-   * time.
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {string} [options.notSeenFor] A duration in milliseconds
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {ServiceCallback} [optionalCallback] - The optional callback.
-   *
-   * @returns {ServiceCallback|Promise} If a callback was passed as the last
-   * parameter then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned.
-   *
-   *                      @resolve {null} - The deserialized result object.
-   *
-   *                      @reject {Error|ServiceError} - The error object.
-   *
-   * {ServiceCallback} optionalCallback(err, result, request, response)
-   *
-   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {null} [result]   - The deserialized result object if an error did not occur.
-   *
-   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
-   */
-  deleteAllDisabledApplications(options?: { notSeenFor? : string, customHeaders? : { [headerName: string]: string; } }): Promise<void>;
-  deleteAllDisabledApplications(callback: ServiceCallback<void>): void;
-  deleteAllDisabledApplications(options: { notSeenFor? : string, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
-
-
-  /**
-   * @summary Discover servers
-   *
-   * Registers servers by running a discovery scan in a supervisor's
-   * network. Requires that the onboarding agent service is running.
-   *
-   * @param {object} request Discovery request
-   *
-   * @param {string} [request.id] Id of discovery request
-   *
-   * @param {string} [request.discovery] Discovery mode to use. Possible values
-   * include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
-   *
-   * @param {object} [request.configuration] Scan configuration to use
-   *
-   * @param {string} [request.configuration.addressRangesToScan] Address ranges
-   * to scan (null == all wired nics)
-   *
-   * @param {number} [request.configuration.networkProbeTimeoutMs] Network probe
-   * timeout
-   *
-   * @param {number} [request.configuration.maxNetworkProbes] Max network probes
-   * that should ever run.
-   *
-   * @param {string} [request.configuration.portRangesToScan] Port ranges to scan
-   * (null == all unassigned)
-   *
-   * @param {number} [request.configuration.portProbeTimeoutMs] Port probe
-   * timeout
-   *
-   * @param {number} [request.configuration.maxPortProbes] Max port probes that
-   * should ever run.
-   *
-   * @param {number} [request.configuration.minPortProbesPercent] Probes that
-   * must always be there as percent of max.
-   *
-   * @param {number} [request.configuration.idleTimeBetweenScansSec] Delay time
-   * between discovery sweeps in seconds
-   *
-   * @param {array} [request.configuration.discoveryUrls] List of preset
-   * discovery urls to use
-   *
-   * @param {array} [request.configuration.locales] List of locales to filter
-   * with during discovery
-   *
-   * @param {array} [request.configuration.callbacks] Callbacks to invoke once
-   * onboarding finishes
-   *
-   * @param {object} [request.configuration.activationFilter] Activate all twins
-   * with this filter during onboarding.
-   *
-   * @param {array} [request.configuration.activationFilter.trustLists]
-   * Certificate trust list identifiers to use for
-   * activation, if null, all certificates are
-   * trusted.  If empty list, no certificates are
-   * trusted which is equal to no filter.
-   *
-   * @param {array} [request.configuration.activationFilter.securityPolicies]
-   * Endpoint security policies to filter against.
-   * If set to null, all policies are in scope.
-   *
-   * @param {string} [request.configuration.activationFilter.securityMode]
-   * Security mode level to activate. If null,
-   * then Microsoft.Azure.IIoT.OpcUa.Registry.Models.SecurityMode.Best is
-   * assumed. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
-   *
-   * @reject {Error|ServiceError} - The error object.
-   */
-  discoverServerWithHttpOperationResponse(request: models.DiscoveryRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<void>>;
-
-  /**
-   * @summary Discover servers
-   *
-   * Registers servers by running a discovery scan in a supervisor's
-   * network. Requires that the onboarding agent service is running.
-   *
-   * @param {object} request Discovery request
-   *
-   * @param {string} [request.id] Id of discovery request
-   *
-   * @param {string} [request.discovery] Discovery mode to use. Possible values
-   * include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
-   *
-   * @param {object} [request.configuration] Scan configuration to use
-   *
-   * @param {string} [request.configuration.addressRangesToScan] Address ranges
-   * to scan (null == all wired nics)
-   *
-   * @param {number} [request.configuration.networkProbeTimeoutMs] Network probe
-   * timeout
-   *
-   * @param {number} [request.configuration.maxNetworkProbes] Max network probes
-   * that should ever run.
-   *
-   * @param {string} [request.configuration.portRangesToScan] Port ranges to scan
-   * (null == all unassigned)
-   *
-   * @param {number} [request.configuration.portProbeTimeoutMs] Port probe
-   * timeout
-   *
-   * @param {number} [request.configuration.maxPortProbes] Max port probes that
-   * should ever run.
-   *
-   * @param {number} [request.configuration.minPortProbesPercent] Probes that
-   * must always be there as percent of max.
-   *
-   * @param {number} [request.configuration.idleTimeBetweenScansSec] Delay time
-   * between discovery sweeps in seconds
-   *
-   * @param {array} [request.configuration.discoveryUrls] List of preset
-   * discovery urls to use
-   *
-   * @param {array} [request.configuration.locales] List of locales to filter
-   * with during discovery
-   *
-   * @param {array} [request.configuration.callbacks] Callbacks to invoke once
-   * onboarding finishes
-   *
-   * @param {object} [request.configuration.activationFilter] Activate all twins
-   * with this filter during onboarding.
-   *
-   * @param {array} [request.configuration.activationFilter.trustLists]
-   * Certificate trust list identifiers to use for
-   * activation, if null, all certificates are
-   * trusted.  If empty list, no certificates are
-   * trusted which is equal to no filter.
-   *
-   * @param {array} [request.configuration.activationFilter.securityPolicies]
-   * Endpoint security policies to filter against.
-   * If set to null, all policies are in scope.
-   *
-   * @param {string} [request.configuration.activationFilter.securityMode]
-   * Security mode level to activate. If null,
-   * then Microsoft.Azure.IIoT.OpcUa.Registry.Models.SecurityMode.Best is
-   * assumed. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {ServiceCallback} [optionalCallback] - The optional callback.
-   *
-   * @returns {ServiceCallback|Promise} If a callback was passed as the last
-   * parameter then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned.
-   *
-   *                      @resolve {null} - The deserialized result object.
-   *
-   *                      @reject {Error|ServiceError} - The error object.
-   *
-   * {ServiceCallback} optionalCallback(err, result, request, response)
-   *
-   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {null} [result]   - The deserialized result object if an error did not occur.
-   *
-   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
-   */
-  discoverServer(request: models.DiscoveryRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<void>;
-  discoverServer(request: models.DiscoveryRequestApiModel, callback: ServiceCallback<void>): void;
-  discoverServer(request: models.DiscoveryRequestApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
-
-
-  /**
-   * @summary Get application registration
-   *
-   * @param {string} applicationId Application id for the server
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<ApplicationRegistrationApiModel>} - The deserialized result object.
-   *
-   * @reject {Error|ServiceError} - The error object.
-   */
-  getApplicationRegistrationWithHttpOperationResponse(applicationId: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.ApplicationRegistrationApiModel>>;
-
-  /**
-   * @summary Get application registration
-   *
-   * @param {string} applicationId Application id for the server
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {ServiceCallback} [optionalCallback] - The optional callback.
-   *
-   * @returns {ServiceCallback|Promise} If a callback was passed as the last
-   * parameter then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned.
-   *
-   *                      @resolve {ApplicationRegistrationApiModel} - The deserialized result object.
-   *
-   *                      @reject {Error|ServiceError} - The error object.
-   *
-   * {ServiceCallback} optionalCallback(err, result, request, response)
-   *
-   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {ApplicationRegistrationApiModel} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link ApplicationRegistrationApiModel} for more
+   *                      {HistoryUpdateResponseApiModel} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link HistoryUpdateResponseApiModel} for more
    *                      information.
    *
    *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
    *
    *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
    */
-  getApplicationRegistration(applicationId: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.ApplicationRegistrationApiModel>;
-  getApplicationRegistration(applicationId: string, callback: ServiceCallback<models.ApplicationRegistrationApiModel>): void;
-  getApplicationRegistration(applicationId: string, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.ApplicationRegistrationApiModel>): void;
+  historyUpdateRaw(endpointId: string, request: models.HistoryUpdateRequestApiModelJToken, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.HistoryUpdateResponseApiModel>;
+  historyUpdateRaw(endpointId: string, request: models.HistoryUpdateRequestApiModelJToken, callback: ServiceCallback<models.HistoryUpdateResponseApiModel>): void;
+  historyUpdateRaw(endpointId: string, request: models.HistoryUpdateRequestApiModelJToken, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.HistoryUpdateResponseApiModel>): void;
 
 
   /**
-   * @summary Unregister application
+   * @summary Insert historic values
    *
-   * Unregisters and deletes application and all its associated endpoints.
+   * Insert historic values using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
    *
-   * @param {string} applicationId The identifier of the application
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history insert request
+   *
+   * @param {string} [request.nodeId] Node to update
+   *
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
+   *
+   * @param {object} request.details The HistoryUpdateDetailsType extension
+   * object
+   * encoded as json Variant and containing the tunneled
+   * update request for the Historian server. The value
+   * is updated at edge using above node address.
+   *
+   * @param {array} request.details.values Values to insert
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -650,18 +1111,61 @@ export default class AzureOpcHistoryClient extends ServiceClient {
    *
    * @returns {Promise} A promise is returned
    *
-   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   * @resolve {HttpOperationResponse<HistoryUpdateResponseApiModel>} - The deserialized result object.
    *
    * @reject {Error|ServiceError} - The error object.
    */
-  deleteApplicationWithHttpOperationResponse(applicationId: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<void>>;
+  historyInsertValuesWithHttpOperationResponse(endpointId: string, request: models.HistoryUpdateRequestApiModelInsertValuesDetailsApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.HistoryUpdateResponseApiModel>>;
 
   /**
-   * @summary Unregister application
+   * @summary Insert historic values
    *
-   * Unregisters and deletes application and all its associated endpoints.
+   * Insert historic values using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
    *
-   * @param {string} applicationId The identifier of the application
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history insert request
+   *
+   * @param {string} [request.nodeId] Node to update
+   *
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
+   *
+   * @param {object} request.details The HistoryUpdateDetailsType extension
+   * object
+   * encoded as json Variant and containing the tunneled
+   * update request for the Historian server. The value
+   * is updated at edge using above node address.
+   *
+   * @param {array} request.details.values Values to insert
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -675,7 +1179,7 @@ export default class AzureOpcHistoryClient extends ServiceClient {
    *
    * {Promise} A promise is returned.
    *
-   *                      @resolve {null} - The deserialized result object.
+   *                      @resolve {HistoryUpdateResponseApiModel} - The deserialized result object.
    *
    *                      @reject {Error|ServiceError} - The error object.
    *
@@ -683,257 +1187,139 @@ export default class AzureOpcHistoryClient extends ServiceClient {
    *
    *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
    *
-   *                      {null} [result]   - The deserialized result object if an error did not occur.
-   *
-   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
-   */
-  deleteApplication(applicationId: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<void>;
-  deleteApplication(applicationId: string, callback: ServiceCallback<void>): void;
-  deleteApplication(applicationId: string, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
-
-
-  /**
-   * @summary Update application registration
-   *
-   * The application information is updated with new properties.  Note that
-   * this information might be overridden if the application is re-discovered
-   * during a discovery run (recurring or one-time).
-   *
-   * @param {string} applicationId The identifier of the application
-   *
-   * @param {object} request Application update request
-   *
-   * @param {string} [request.productUri] Product uri
-   *
-   * @param {string} [request.applicationName] Application name
-   *
-   * @param {string} [request.locale] Locale of name - defaults to "en"
-   *
-   * @param {buffer} [request.certificate] Application public cert
-   *
-   * @param {array} [request.capabilities] Capabilities of the application
-   *
-   * @param {array} [request.discoveryUrls] Discovery urls of the application
-   *
-   * @param {string} [request.discoveryProfileUri] Discovery profile uri
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
-   *
-   * @reject {Error|ServiceError} - The error object.
-   */
-  updateApplicationRegistrationWithHttpOperationResponse(applicationId: string, request: models.ApplicationRegistrationUpdateApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<void>>;
-
-  /**
-   * @summary Update application registration
-   *
-   * The application information is updated with new properties.  Note that
-   * this information might be overridden if the application is re-discovered
-   * during a discovery run (recurring or one-time).
-   *
-   * @param {string} applicationId The identifier of the application
-   *
-   * @param {object} request Application update request
-   *
-   * @param {string} [request.productUri] Product uri
-   *
-   * @param {string} [request.applicationName] Application name
-   *
-   * @param {string} [request.locale] Locale of name - defaults to "en"
-   *
-   * @param {buffer} [request.certificate] Application public cert
-   *
-   * @param {array} [request.capabilities] Capabilities of the application
-   *
-   * @param {array} [request.discoveryUrls] Discovery urls of the application
-   *
-   * @param {string} [request.discoveryProfileUri] Discovery profile uri
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {ServiceCallback} [optionalCallback] - The optional callback.
-   *
-   * @returns {ServiceCallback|Promise} If a callback was passed as the last
-   * parameter then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned.
-   *
-   *                      @resolve {null} - The deserialized result object.
-   *
-   *                      @reject {Error|ServiceError} - The error object.
-   *
-   * {ServiceCallback} optionalCallback(err, result, request, response)
-   *
-   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {null} [result]   - The deserialized result object if an error did not occur.
-   *
-   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
-   */
-  updateApplicationRegistration(applicationId: string, request: models.ApplicationRegistrationUpdateApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<void>;
-  updateApplicationRegistration(applicationId: string, request: models.ApplicationRegistrationUpdateApiModel, callback: ServiceCallback<void>): void;
-  updateApplicationRegistration(applicationId: string, request: models.ApplicationRegistrationUpdateApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
-
-
-  /**
-   * @summary Get list of sites
-   *
-   * List all sites applications are registered in.
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {string} [options.continuationToken] Optional Continuation
-   * token
-   *
-   * @param {number} [options.pageSize] Optional number of results to
-   * return
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<ApplicationSiteListApiModel>} - The deserialized result object.
-   *
-   * @reject {Error|ServiceError} - The error object.
-   */
-  getListOfSitesWithHttpOperationResponse(options?: { continuationToken? : string, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.ApplicationSiteListApiModel>>;
-
-  /**
-   * @summary Get list of sites
-   *
-   * List all sites applications are registered in.
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {string} [options.continuationToken] Optional Continuation
-   * token
-   *
-   * @param {number} [options.pageSize] Optional number of results to
-   * return
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {ServiceCallback} [optionalCallback] - The optional callback.
-   *
-   * @returns {ServiceCallback|Promise} If a callback was passed as the last
-   * parameter then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned.
-   *
-   *                      @resolve {ApplicationSiteListApiModel} - The deserialized result object.
-   *
-   *                      @reject {Error|ServiceError} - The error object.
-   *
-   * {ServiceCallback} optionalCallback(err, result, request, response)
-   *
-   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {ApplicationSiteListApiModel} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link ApplicationSiteListApiModel} for more
+   *                      {HistoryUpdateResponseApiModel} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link HistoryUpdateResponseApiModel} for more
    *                      information.
    *
    *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
    *
    *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
    */
-  getListOfSites(options?: { continuationToken? : string, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<models.ApplicationSiteListApiModel>;
-  getListOfSites(callback: ServiceCallback<models.ApplicationSiteListApiModel>): void;
-  getListOfSites(options: { continuationToken? : string, pageSize? : number, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.ApplicationSiteListApiModel>): void;
+  historyInsertValues(endpointId: string, request: models.HistoryUpdateRequestApiModelInsertValuesDetailsApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.HistoryUpdateResponseApiModel>;
+  historyInsertValues(endpointId: string, request: models.HistoryUpdateRequestApiModelInsertValuesDetailsApiModel, callback: ServiceCallback<models.HistoryUpdateResponseApiModel>): void;
+  historyInsertValues(endpointId: string, request: models.HistoryUpdateRequestApiModelInsertValuesDetailsApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.HistoryUpdateResponseApiModel>): void;
 
 
   /**
-   * @summary Get filtered list of applications
+   * @summary Insert historic events
    *
-   * Get a list of applications filtered using the specified query parameters.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfApplications operation using the token to retrieve
-   * more results.
+   * Insert historic events using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
    *
-   * @param {object} query Applications Query model
+   * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {string} [query.applicationType] Type of application. Possible values
-   * include: 'Server', 'Client', 'ClientAndServer'
+   * @param {object} request The history insert request
    *
-   * @param {string} [query.applicationUri] Application uri
+   * @param {string} [request.nodeId] Node to update
    *
-   * @param {string} [query.productUri] Product uri
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
    *
-   * @param {string} [query.applicationName] Name of application
+   * @param {object} request.details The HistoryUpdateDetailsType extension
+   * object
+   * encoded as json Variant and containing the tunneled
+   * update request for the Historian server. The value
+   * is updated at edge using above node address.
    *
-   * @param {string} [query.locale] Locale of application name - default is "en"
+   * @param {object} [request.details.filter] The filter to use to select the
+   * events
    *
-   * @param {string} [query.capability] Application capability to query with
+   * @param {array} request.details.events The new events to insert
    *
-   * @param {string} [query.siteOrSupervisorId] Supervisor or site the
-   * application belongs to.
+   * @param {object} [request.header] Optional request header
    *
-   * @param {boolean} [query.includeNotSeenSince] Whether to include apps that
-   * were soft deleted
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
-   *
-   * @param {number} [options.pageSize] Number of results to return
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
    * request
    *
    * @returns {Promise} A promise is returned
    *
-   * @resolve {HttpOperationResponse<ApplicationInfoListApiModel>} - The deserialized result object.
+   * @resolve {HttpOperationResponse<HistoryUpdateResponseApiModel>} - The deserialized result object.
    *
    * @reject {Error|ServiceError} - The error object.
    */
-  getFilteredListOfApplicationsWithHttpOperationResponse(query: models.ApplicationRegistrationQueryApiModel, options?: { pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.ApplicationInfoListApiModel>>;
+  historyInsertEventsWithHttpOperationResponse(endpointId: string, request: models.HistoryUpdateRequestApiModelInsertEventsDetailsApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.HistoryUpdateResponseApiModel>>;
 
   /**
-   * @summary Get filtered list of applications
+   * @summary Insert historic events
    *
-   * Get a list of applications filtered using the specified query parameters.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfApplications operation using the token to retrieve
-   * more results.
+   * Insert historic events using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
    *
-   * @param {object} query Applications Query model
+   * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {string} [query.applicationType] Type of application. Possible values
-   * include: 'Server', 'Client', 'ClientAndServer'
+   * @param {object} request The history insert request
    *
-   * @param {string} [query.applicationUri] Application uri
+   * @param {string} [request.nodeId] Node to update
    *
-   * @param {string} [query.productUri] Product uri
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
    *
-   * @param {string} [query.applicationName] Name of application
+   * @param {object} request.details The HistoryUpdateDetailsType extension
+   * object
+   * encoded as json Variant and containing the tunneled
+   * update request for the Historian server. The value
+   * is updated at edge using above node address.
    *
-   * @param {string} [query.locale] Locale of application name - default is "en"
+   * @param {object} [request.details.filter] The filter to use to select the
+   * events
    *
-   * @param {string} [query.capability] Application capability to query with
+   * @param {array} request.details.events The new events to insert
    *
-   * @param {string} [query.siteOrSupervisorId] Supervisor or site the
-   * application belongs to.
+   * @param {object} [request.header] Optional request header
    *
-   * @param {boolean} [query.includeNotSeenSince] Whether to include apps that
-   * were soft deleted
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
-   *
-   * @param {number} [options.pageSize] Number of results to return
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
    * request
@@ -945,7 +1331,7 @@ export default class AzureOpcHistoryClient extends ServiceClient {
    *
    * {Promise} A promise is returned.
    *
-   *                      @resolve {ApplicationInfoListApiModel} - The deserialized result object.
+   *                      @resolve {HistoryUpdateResponseApiModel} - The deserialized result object.
    *
    *                      @reject {Error|ServiceError} - The error object.
    *
@@ -953,99 +1339,157 @@ export default class AzureOpcHistoryClient extends ServiceClient {
    *
    *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
    *
-   *                      {ApplicationInfoListApiModel} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link ApplicationInfoListApiModel} for more
+   *                      {HistoryUpdateResponseApiModel} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link HistoryUpdateResponseApiModel} for more
    *                      information.
    *
    *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
    *
    *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
    */
-  getFilteredListOfApplications(query: models.ApplicationRegistrationQueryApiModel, options?: { pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<models.ApplicationInfoListApiModel>;
-  getFilteredListOfApplications(query: models.ApplicationRegistrationQueryApiModel, callback: ServiceCallback<models.ApplicationInfoListApiModel>): void;
-  getFilteredListOfApplications(query: models.ApplicationRegistrationQueryApiModel, options: { pageSize? : number, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.ApplicationInfoListApiModel>): void;
+  historyInsertEvents(endpointId: string, request: models.HistoryUpdateRequestApiModelInsertEventsDetailsApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.HistoryUpdateResponseApiModel>;
+  historyInsertEvents(endpointId: string, request: models.HistoryUpdateRequestApiModelInsertEventsDetailsApiModel, callback: ServiceCallback<models.HistoryUpdateResponseApiModel>): void;
+  historyInsertEvents(endpointId: string, request: models.HistoryUpdateRequestApiModelInsertEventsDetailsApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.HistoryUpdateResponseApiModel>): void;
 
 
   /**
-   * @summary Query applications
+   * @summary Read historic events
    *
-   * List applications that match a query model.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfApplications operation using the token to retrieve
-   * more results.
+   * Read historic events of a node if available using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
    *
-   * @param {object} query Application query
+   * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {string} [query.applicationType] Type of application. Possible values
-   * include: 'Server', 'Client', 'ClientAndServer'
+   * @param {object} request The history read request
    *
-   * @param {string} [query.applicationUri] Application uri
+   * @param {string} [request.nodeId] Node to read from (mandatory)
    *
-   * @param {string} [query.productUri] Product uri
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
    *
-   * @param {string} [query.applicationName] Name of application
+   * @param {object} [request.details] The HistoryReadDetailsType extension
+   * object
+   * encoded in json and containing the tunneled
+   * Historian reader request.
    *
-   * @param {string} [query.locale] Locale of application name - default is "en"
+   * @param {date} [request.details.startTime] Start time to read from
    *
-   * @param {string} [query.capability] Application capability to query with
+   * @param {date} [request.details.endTime] End time to read to
    *
-   * @param {string} [query.siteOrSupervisorId] Supervisor or site the
-   * application belongs to.
+   * @param {number} [request.details.numEvents] Number of events to read
    *
-   * @param {boolean} [query.includeNotSeenSince] Whether to include apps that
-   * were soft deleted
+   * @param {object} [request.details.filter] The filter to use to select the
+   * event fields
+   *
+   * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
+   * slices
+   * out of a matrix or 0:1 for the first item in
+   * an array, string or bytestring.
+   * See 7.22 of part 4: NumericRange.
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
-   *
-   * @param {number} [options.pageSize] Optional number of results to
-   * return
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
    * request
    *
    * @returns {Promise} A promise is returned
    *
-   * @resolve {HttpOperationResponse<ApplicationInfoListApiModel>} - The deserialized result object.
+   * @resolve {HttpOperationResponse<HistoryReadResponseApiModelHistoricEventApiModel>} - The deserialized result object.
    *
    * @reject {Error|ServiceError} - The error object.
    */
-  queryApplicationsWithHttpOperationResponse(query: models.ApplicationRegistrationQueryApiModel, options?: { pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.ApplicationInfoListApiModel>>;
+  historyReadEventsWithHttpOperationResponse(endpointId: string, request: models.HistoryReadRequestApiModelReadEventsDetailsApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.HistoryReadResponseApiModelHistoricEventApiModel>>;
 
   /**
-   * @summary Query applications
+   * @summary Read historic events
    *
-   * List applications that match a query model.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfApplications operation using the token to retrieve
-   * more results.
+   * Read historic events of a node if available using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
    *
-   * @param {object} query Application query
+   * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {string} [query.applicationType] Type of application. Possible values
-   * include: 'Server', 'Client', 'ClientAndServer'
+   * @param {object} request The history read request
    *
-   * @param {string} [query.applicationUri] Application uri
+   * @param {string} [request.nodeId] Node to read from (mandatory)
    *
-   * @param {string} [query.productUri] Product uri
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
    *
-   * @param {string} [query.applicationName] Name of application
+   * @param {object} [request.details] The HistoryReadDetailsType extension
+   * object
+   * encoded in json and containing the tunneled
+   * Historian reader request.
    *
-   * @param {string} [query.locale] Locale of application name - default is "en"
+   * @param {date} [request.details.startTime] Start time to read from
    *
-   * @param {string} [query.capability] Application capability to query with
+   * @param {date} [request.details.endTime] End time to read to
    *
-   * @param {string} [query.siteOrSupervisorId] Supervisor or site the
-   * application belongs to.
+   * @param {number} [request.details.numEvents] Number of events to read
    *
-   * @param {boolean} [query.includeNotSeenSince] Whether to include apps that
-   * were soft deleted
+   * @param {object} [request.details.filter] The filter to use to select the
+   * event fields
+   *
+   * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
+   * slices
+   * out of a matrix or 0:1 for the first item in
+   * an array, string or bytestring.
+   * See 7.22 of part 4: NumericRange.
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
-   *
-   * @param {number} [options.pageSize] Optional number of results to
-   * return
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
    * request
@@ -1057,7 +1501,7 @@ export default class AzureOpcHistoryClient extends ServiceClient {
    *
    * {Promise} A promise is returned.
    *
-   *                      @resolve {ApplicationInfoListApiModel} - The deserialized result object.
+   *                      @resolve {HistoryReadResponseApiModelHistoricEventApiModel} - The deserialized result object.
    *
    *                      @reject {Error|ServiceError} - The error object.
    *
@@ -1065,27 +1509,1214 @@ export default class AzureOpcHistoryClient extends ServiceClient {
    *
    *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
    *
-   *                      {ApplicationInfoListApiModel} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link ApplicationInfoListApiModel} for more
+   *                      {HistoryReadResponseApiModelHistoricEventApiModel} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link
+   *                      HistoryReadResponseApiModelHistoricEventApiModel} for
+   *                      more information.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  historyReadEvents(endpointId: string, request: models.HistoryReadRequestApiModelReadEventsDetailsApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.HistoryReadResponseApiModelHistoricEventApiModel>;
+  historyReadEvents(endpointId: string, request: models.HistoryReadRequestApiModelReadEventsDetailsApiModel, callback: ServiceCallback<models.HistoryReadResponseApiModelHistoricEventApiModel>): void;
+  historyReadEvents(endpointId: string, request: models.HistoryReadRequestApiModelReadEventsDetailsApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.HistoryReadResponseApiModelHistoricEventApiModel>): void;
+
+
+  /**
+   * @summary Read next batch of historic events
+   *
+   * Read next batch of historic events of a node using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history read next request
+   *
+   * @param {string} request.continuationToken Continuation token to continue
+   * reading more
+   * results.
+   *
+   * @param {boolean} [request.abort] Abort reading after this read
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<HistoryReadNextResponseApiModelHistoricEventApiModel>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  historyReadEventsNextWithHttpOperationResponse(endpointId: string, request: models.HistoryReadNextRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.HistoryReadNextResponseApiModelHistoricEventApiModel>>;
+
+  /**
+   * @summary Read next batch of historic events
+   *
+   * Read next batch of historic events of a node using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history read next request
+   *
+   * @param {string} request.continuationToken Continuation token to continue
+   * reading more
+   * results.
+   *
+   * @param {boolean} [request.abort] Abort reading after this read
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {HistoryReadNextResponseApiModelHistoricEventApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {HistoryReadNextResponseApiModelHistoricEventApiModel} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link
+   *                      HistoryReadNextResponseApiModelHistoricEventApiModel}
+   *                      for more information.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  historyReadEventsNext(endpointId: string, request: models.HistoryReadNextRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.HistoryReadNextResponseApiModelHistoricEventApiModel>;
+  historyReadEventsNext(endpointId: string, request: models.HistoryReadNextRequestApiModel, callback: ServiceCallback<models.HistoryReadNextResponseApiModelHistoricEventApiModel>): void;
+  historyReadEventsNext(endpointId: string, request: models.HistoryReadNextRequestApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.HistoryReadNextResponseApiModelHistoricEventApiModel>): void;
+
+
+  /**
+   * @summary Read historic processed values at specified times
+   *
+   * Read processed history values of a node if available using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history read request
+   *
+   * @param {string} [request.nodeId] Node to read from (mandatory)
+   *
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
+   *
+   * @param {object} [request.details] The HistoryReadDetailsType extension
+   * object
+   * encoded in json and containing the tunneled
+   * Historian reader request.
+   *
+   * @param {date} [request.details.startTime] Beginning of period to read. Set
+   * to null
+   * if no specific start time is specified.
+   *
+   * @param {date} [request.details.endTime] End of period to read. Set to null
+   * if no
+   * specific end time is specified.
+   *
+   * @param {number} [request.details.numValues] The maximum number of values
+   * returned for any Node
+   * over the time range. If only one time is specified,
+   * the time range shall extend to return this number
+   * of values. 0 or null indicates that there is no
+   * maximum.
+   *
+   * @param {boolean} [request.details.returnBounds] Whether to return the
+   * bounding values or not.
+   *
+   * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
+   * slices
+   * out of a matrix or 0:1 for the first item in
+   * an array, string or bytestring.
+   * See 7.22 of part 4: NumericRange.
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<HistoryReadResponseApiModelHistoricValueApiModel>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  historyReadValuesWithHttpOperationResponse(endpointId: string, request: models.HistoryReadRequestApiModelReadValuesDetailsApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.HistoryReadResponseApiModelHistoricValueApiModel>>;
+
+  /**
+   * @summary Read historic processed values at specified times
+   *
+   * Read processed history values of a node if available using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history read request
+   *
+   * @param {string} [request.nodeId] Node to read from (mandatory)
+   *
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
+   *
+   * @param {object} [request.details] The HistoryReadDetailsType extension
+   * object
+   * encoded in json and containing the tunneled
+   * Historian reader request.
+   *
+   * @param {date} [request.details.startTime] Beginning of period to read. Set
+   * to null
+   * if no specific start time is specified.
+   *
+   * @param {date} [request.details.endTime] End of period to read. Set to null
+   * if no
+   * specific end time is specified.
+   *
+   * @param {number} [request.details.numValues] The maximum number of values
+   * returned for any Node
+   * over the time range. If only one time is specified,
+   * the time range shall extend to return this number
+   * of values. 0 or null indicates that there is no
+   * maximum.
+   *
+   * @param {boolean} [request.details.returnBounds] Whether to return the
+   * bounding values or not.
+   *
+   * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
+   * slices
+   * out of a matrix or 0:1 for the first item in
+   * an array, string or bytestring.
+   * See 7.22 of part 4: NumericRange.
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {HistoryReadResponseApiModelHistoricValueApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {HistoryReadResponseApiModelHistoricValueApiModel} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link
+   *                      HistoryReadResponseApiModelHistoricValueApiModel} for
+   *                      more information.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  historyReadValues(endpointId: string, request: models.HistoryReadRequestApiModelReadValuesDetailsApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.HistoryReadResponseApiModelHistoricValueApiModel>;
+  historyReadValues(endpointId: string, request: models.HistoryReadRequestApiModelReadValuesDetailsApiModel, callback: ServiceCallback<models.HistoryReadResponseApiModelHistoricValueApiModel>): void;
+  historyReadValues(endpointId: string, request: models.HistoryReadRequestApiModelReadValuesDetailsApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.HistoryReadResponseApiModelHistoricValueApiModel>): void;
+
+
+  /**
+   * @summary Read historic values at specified times
+   *
+   * Read historic values of a node if available using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history read request
+   *
+   * @param {string} [request.nodeId] Node to read from (mandatory)
+   *
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
+   *
+   * @param {object} [request.details] The HistoryReadDetailsType extension
+   * object
+   * encoded in json and containing the tunneled
+   * Historian reader request.
+   *
+   * @param {array} request.details.reqTimes Requested datums
+   *
+   * @param {boolean} [request.details.useSimpleBounds] Whether to use simple
+   * bounds
+   *
+   * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
+   * slices
+   * out of a matrix or 0:1 for the first item in
+   * an array, string or bytestring.
+   * See 7.22 of part 4: NumericRange.
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<HistoryReadResponseApiModelHistoricValueApiModel>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  historyReadValuesAtTimesWithHttpOperationResponse(endpointId: string, request: models.HistoryReadRequestApiModelReadValuesAtTimesDetailsApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.HistoryReadResponseApiModelHistoricValueApiModel>>;
+
+  /**
+   * @summary Read historic values at specified times
+   *
+   * Read historic values of a node if available using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history read request
+   *
+   * @param {string} [request.nodeId] Node to read from (mandatory)
+   *
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
+   *
+   * @param {object} [request.details] The HistoryReadDetailsType extension
+   * object
+   * encoded in json and containing the tunneled
+   * Historian reader request.
+   *
+   * @param {array} request.details.reqTimes Requested datums
+   *
+   * @param {boolean} [request.details.useSimpleBounds] Whether to use simple
+   * bounds
+   *
+   * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
+   * slices
+   * out of a matrix or 0:1 for the first item in
+   * an array, string or bytestring.
+   * See 7.22 of part 4: NumericRange.
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {HistoryReadResponseApiModelHistoricValueApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {HistoryReadResponseApiModelHistoricValueApiModel} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link
+   *                      HistoryReadResponseApiModelHistoricValueApiModel} for
+   *                      more information.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  historyReadValuesAtTimes(endpointId: string, request: models.HistoryReadRequestApiModelReadValuesAtTimesDetailsApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.HistoryReadResponseApiModelHistoricValueApiModel>;
+  historyReadValuesAtTimes(endpointId: string, request: models.HistoryReadRequestApiModelReadValuesAtTimesDetailsApiModel, callback: ServiceCallback<models.HistoryReadResponseApiModelHistoricValueApiModel>): void;
+  historyReadValuesAtTimes(endpointId: string, request: models.HistoryReadRequestApiModelReadValuesAtTimesDetailsApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.HistoryReadResponseApiModelHistoricValueApiModel>): void;
+
+
+  /**
+   * @summary Read historic processed values at specified times
+   *
+   * Read processed history values of a node if available using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history read request
+   *
+   * @param {string} [request.nodeId] Node to read from (mandatory)
+   *
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
+   *
+   * @param {object} [request.details] The HistoryReadDetailsType extension
+   * object
+   * encoded in json and containing the tunneled
+   * Historian reader request.
+   *
+   * @param {date} [request.details.startTime] Start time to read from.
+   *
+   * @param {date} [request.details.endTime] End time to read until
+   *
+   * @param {number} [request.details.processingInterval] Interval to process
+   *
+   * @param {string} [request.details.aggregateTypeId] The aggregate type node
+   * ids
+   *
+   * @param {object} [request.details.aggregateConfiguration] A configuration for
+   * the aggregate
+   *
+   * @param {boolean}
+   * [request.details.aggregateConfiguration.useServerCapabilitiesDefaults]
+   * Whether to use the default server caps
+   *
+   * @param {boolean}
+   * [request.details.aggregateConfiguration.treatUncertainAsBad] Whether to
+   * treat uncertain as bad
+   *
+   * @param {number} [request.details.aggregateConfiguration.percentDataBad]
+   * Percent of data that is bad
+   *
+   * @param {number} [request.details.aggregateConfiguration.percentDataGood]
+   * Percent of data that is good
+   *
+   * @param {boolean}
+   * [request.details.aggregateConfiguration.useSlopedExtrapolation] Whether to
+   * use sloped extrapolation.
+   *
+   * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
+   * slices
+   * out of a matrix or 0:1 for the first item in
+   * an array, string or bytestring.
+   * See 7.22 of part 4: NumericRange.
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<HistoryReadResponseApiModelHistoricValueApiModel>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  historyReadProcessedValuesWithHttpOperationResponse(endpointId: string, request: models.HistoryReadRequestApiModelReadProcessedValuesDetailsApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.HistoryReadResponseApiModelHistoricValueApiModel>>;
+
+  /**
+   * @summary Read historic processed values at specified times
+   *
+   * Read processed history values of a node if available using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history read request
+   *
+   * @param {string} [request.nodeId] Node to read from (mandatory)
+   *
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
+   *
+   * @param {object} [request.details] The HistoryReadDetailsType extension
+   * object
+   * encoded in json and containing the tunneled
+   * Historian reader request.
+   *
+   * @param {date} [request.details.startTime] Start time to read from.
+   *
+   * @param {date} [request.details.endTime] End time to read until
+   *
+   * @param {number} [request.details.processingInterval] Interval to process
+   *
+   * @param {string} [request.details.aggregateTypeId] The aggregate type node
+   * ids
+   *
+   * @param {object} [request.details.aggregateConfiguration] A configuration for
+   * the aggregate
+   *
+   * @param {boolean}
+   * [request.details.aggregateConfiguration.useServerCapabilitiesDefaults]
+   * Whether to use the default server caps
+   *
+   * @param {boolean}
+   * [request.details.aggregateConfiguration.treatUncertainAsBad] Whether to
+   * treat uncertain as bad
+   *
+   * @param {number} [request.details.aggregateConfiguration.percentDataBad]
+   * Percent of data that is bad
+   *
+   * @param {number} [request.details.aggregateConfiguration.percentDataGood]
+   * Percent of data that is good
+   *
+   * @param {boolean}
+   * [request.details.aggregateConfiguration.useSlopedExtrapolation] Whether to
+   * use sloped extrapolation.
+   *
+   * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
+   * slices
+   * out of a matrix or 0:1 for the first item in
+   * an array, string or bytestring.
+   * See 7.22 of part 4: NumericRange.
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {HistoryReadResponseApiModelHistoricValueApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {HistoryReadResponseApiModelHistoricValueApiModel} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link
+   *                      HistoryReadResponseApiModelHistoricValueApiModel} for
+   *                      more information.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  historyReadProcessedValues(endpointId: string, request: models.HistoryReadRequestApiModelReadProcessedValuesDetailsApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.HistoryReadResponseApiModelHistoricValueApiModel>;
+  historyReadProcessedValues(endpointId: string, request: models.HistoryReadRequestApiModelReadProcessedValuesDetailsApiModel, callback: ServiceCallback<models.HistoryReadResponseApiModelHistoricValueApiModel>): void;
+  historyReadProcessedValues(endpointId: string, request: models.HistoryReadRequestApiModelReadProcessedValuesDetailsApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.HistoryReadResponseApiModelHistoricValueApiModel>): void;
+
+
+  /**
+   * @summary Read historic modified values at specified times
+   *
+   * Read processed history values of a node if available using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history read request
+   *
+   * @param {string} [request.nodeId] Node to read from (mandatory)
+   *
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
+   *
+   * @param {object} [request.details] The HistoryReadDetailsType extension
+   * object
+   * encoded in json and containing the tunneled
+   * Historian reader request.
+   *
+   * @param {date} [request.details.startTime] The start time to read from
+   *
+   * @param {date} [request.details.endTime] The end time to read to
+   *
+   * @param {number} [request.details.numValues] The number of values to read
+   *
+   * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
+   * slices
+   * out of a matrix or 0:1 for the first item in
+   * an array, string or bytestring.
+   * See 7.22 of part 4: NumericRange.
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<HistoryReadResponseApiModelHistoricValueApiModel>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  historyReadModifiedValuesWithHttpOperationResponse(endpointId: string, request: models.HistoryReadRequestApiModelReadModifiedValuesDetailsApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.HistoryReadResponseApiModelHistoricValueApiModel>>;
+
+  /**
+   * @summary Read historic modified values at specified times
+   *
+   * Read processed history values of a node if available using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history read request
+   *
+   * @param {string} [request.nodeId] Node to read from (mandatory)
+   *
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
+   *
+   * @param {object} [request.details] The HistoryReadDetailsType extension
+   * object
+   * encoded in json and containing the tunneled
+   * Historian reader request.
+   *
+   * @param {date} [request.details.startTime] The start time to read from
+   *
+   * @param {date} [request.details.endTime] The end time to read to
+   *
+   * @param {number} [request.details.numValues] The number of values to read
+   *
+   * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
+   * slices
+   * out of a matrix or 0:1 for the first item in
+   * an array, string or bytestring.
+   * See 7.22 of part 4: NumericRange.
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {HistoryReadResponseApiModelHistoricValueApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {HistoryReadResponseApiModelHistoricValueApiModel} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link
+   *                      HistoryReadResponseApiModelHistoricValueApiModel} for
+   *                      more information.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  historyReadModifiedValues(endpointId: string, request: models.HistoryReadRequestApiModelReadModifiedValuesDetailsApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.HistoryReadResponseApiModelHistoricValueApiModel>;
+  historyReadModifiedValues(endpointId: string, request: models.HistoryReadRequestApiModelReadModifiedValuesDetailsApiModel, callback: ServiceCallback<models.HistoryReadResponseApiModelHistoricValueApiModel>): void;
+  historyReadModifiedValues(endpointId: string, request: models.HistoryReadRequestApiModelReadModifiedValuesDetailsApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.HistoryReadResponseApiModelHistoricValueApiModel>): void;
+
+
+  /**
+   * @summary Read next batch of historic values
+   *
+   * Read next batch of historic values of a node using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history read next request
+   *
+   * @param {string} request.continuationToken Continuation token to continue
+   * reading more
+   * results.
+   *
+   * @param {boolean} [request.abort] Abort reading after this read
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<HistoryReadNextResponseApiModelHistoricValueApiModel>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  historyReadValueNextWithHttpOperationResponse(endpointId: string, request: models.HistoryReadNextRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.HistoryReadNextResponseApiModelHistoricValueApiModel>>;
+
+  /**
+   * @summary Read next batch of historic values
+   *
+   * Read next batch of historic values of a node using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history read next request
+   *
+   * @param {string} request.continuationToken Continuation token to continue
+   * reading more
+   * results.
+   *
+   * @param {boolean} [request.abort] Abort reading after this read
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {HistoryReadNextResponseApiModelHistoricValueApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {HistoryReadNextResponseApiModelHistoricValueApiModel} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link
+   *                      HistoryReadNextResponseApiModelHistoricValueApiModel}
+   *                      for more information.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  historyReadValueNext(endpointId: string, request: models.HistoryReadNextRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.HistoryReadNextResponseApiModelHistoricValueApiModel>;
+  historyReadValueNext(endpointId: string, request: models.HistoryReadNextRequestApiModel, callback: ServiceCallback<models.HistoryReadNextResponseApiModelHistoricValueApiModel>): void;
+  historyReadValueNext(endpointId: string, request: models.HistoryReadNextRequestApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.HistoryReadNextResponseApiModelHistoricValueApiModel>): void;
+
+
+  /**
+   * @summary Replace historic values
+   *
+   * Replace historic values using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history replace request
+   *
+   * @param {string} [request.nodeId] Node to update
+   *
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
+   *
+   * @param {object} request.details The HistoryUpdateDetailsType extension
+   * object
+   * encoded as json Variant and containing the tunneled
+   * update request for the Historian server. The value
+   * is updated at edge using above node address.
+   *
+   * @param {array} request.details.values Values to replace
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<HistoryUpdateResponseApiModel>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  historyReplaceValuesWithHttpOperationResponse(endpointId: string, request: models.HistoryUpdateRequestApiModelReplaceValuesDetailsApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.HistoryUpdateResponseApiModel>>;
+
+  /**
+   * @summary Replace historic values
+   *
+   * Replace historic values using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history replace request
+   *
+   * @param {string} [request.nodeId] Node to update
+   *
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
+   *
+   * @param {object} request.details The HistoryUpdateDetailsType extension
+   * object
+   * encoded as json Variant and containing the tunneled
+   * update request for the Historian server. The value
+   * is updated at edge using above node address.
+   *
+   * @param {array} request.details.values Values to replace
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {HistoryUpdateResponseApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {HistoryUpdateResponseApiModel} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link HistoryUpdateResponseApiModel} for more
    *                      information.
    *
    *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
    *
    *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
    */
-  queryApplications(query: models.ApplicationRegistrationQueryApiModel, options?: { pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<models.ApplicationInfoListApiModel>;
-  queryApplications(query: models.ApplicationRegistrationQueryApiModel, callback: ServiceCallback<models.ApplicationInfoListApiModel>): void;
-  queryApplications(query: models.ApplicationRegistrationQueryApiModel, options: { pageSize? : number, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.ApplicationInfoListApiModel>): void;
+  historyReplaceValues(endpointId: string, request: models.HistoryUpdateRequestApiModelReplaceValuesDetailsApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.HistoryUpdateResponseApiModel>;
+  historyReplaceValues(endpointId: string, request: models.HistoryUpdateRequestApiModelReplaceValuesDetailsApiModel, callback: ServiceCallback<models.HistoryUpdateResponseApiModel>): void;
+  historyReplaceValues(endpointId: string, request: models.HistoryUpdateRequestApiModelReplaceValuesDetailsApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.HistoryUpdateResponseApiModel>): void;
 
 
   /**
-   * @summary Activate endpoint
+   * @summary Replace historic events
    *
-   * Activates an endpoint for subsequent use in twin service.
-   * All endpoints must be activated using this API or through a
-   * activation filter during application registration or discovery.
+   * Replace historic events using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
    *
-   * @param {string} endpointId endpoint identifier
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history replace request
+   *
+   * @param {string} [request.nodeId] Node to update
+   *
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
+   *
+   * @param {object} request.details The HistoryUpdateDetailsType extension
+   * object
+   * encoded as json Variant and containing the tunneled
+   * update request for the Historian server. The value
+   * is updated at edge using above node address.
+   *
+   * @param {object} [request.details.filter] The filter to use to select the
+   * events
+   *
+   * @param {array} request.details.events The events to replace
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -1094,20 +2725,64 @@ export default class AzureOpcHistoryClient extends ServiceClient {
    *
    * @returns {Promise} A promise is returned
    *
-   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   * @resolve {HttpOperationResponse<HistoryUpdateResponseApiModel>} - The deserialized result object.
    *
    * @reject {Error|ServiceError} - The error object.
    */
-  activateEndpointWithHttpOperationResponse(endpointId: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<void>>;
+  historyReplaceEventsWithHttpOperationResponse(endpointId: string, request: models.HistoryUpdateRequestApiModelReplaceEventsDetailsApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.HistoryUpdateResponseApiModel>>;
 
   /**
-   * @summary Activate endpoint
+   * @summary Replace historic events
    *
-   * Activates an endpoint for subsequent use in twin service.
-   * All endpoints must be activated using this API or through a
-   * activation filter during application registration or discovery.
+   * Replace historic events using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
    *
-   * @param {string} endpointId endpoint identifier
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history replace request
+   *
+   * @param {string} [request.nodeId] Node to update
+   *
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
+   *
+   * @param {object} request.details The HistoryUpdateDetailsType extension
+   * object
+   * encoded as json Variant and containing the tunneled
+   * update request for the Historian server. The value
+   * is updated at edge using above node address.
+   *
+   * @param {object} [request.details.filter] The filter to use to select the
+   * events
+   *
+   * @param {array} request.details.events The events to replace
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -1121,7 +2796,7 @@ export default class AzureOpcHistoryClient extends ServiceClient {
    *
    * {Promise} A promise is returned.
    *
-   *                      @resolve {null} - The deserialized result object.
+   *                      @resolve {HistoryUpdateResponseApiModel} - The deserialized result object.
    *
    *                      @reject {Error|ServiceError} - The error object.
    *
@@ -1129,546 +2804,17 @@ export default class AzureOpcHistoryClient extends ServiceClient {
    *
    *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
    *
-   *                      {null} [result]   - The deserialized result object if an error did not occur.
-   *
-   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
-   */
-  activateEndpoint(endpointId: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<void>;
-  activateEndpoint(endpointId: string, callback: ServiceCallback<void>): void;
-  activateEndpoint(endpointId: string, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
-
-
-  /**
-   * @summary Get endpoint information
-   *
-   * Gets information about an endpoint.
-   *
-   * @param {string} endpointId endpoint identifier
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display current client state of the endpoint if
-   * available
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<EndpointInfoApiModel>} - The deserialized result object.
-   *
-   * @reject {Error|ServiceError} - The error object.
-   */
-  getEndpointWithHttpOperationResponse(endpointId: string, options?: { onlyServerState? : boolean, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.EndpointInfoApiModel>>;
-
-  /**
-   * @summary Get endpoint information
-   *
-   * Gets information about an endpoint.
-   *
-   * @param {string} endpointId endpoint identifier
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display current client state of the endpoint if
-   * available
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {ServiceCallback} [optionalCallback] - The optional callback.
-   *
-   * @returns {ServiceCallback|Promise} If a callback was passed as the last
-   * parameter then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned.
-   *
-   *                      @resolve {EndpointInfoApiModel} - The deserialized result object.
-   *
-   *                      @reject {Error|ServiceError} - The error object.
-   *
-   * {ServiceCallback} optionalCallback(err, result, request, response)
-   *
-   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {EndpointInfoApiModel} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link EndpointInfoApiModel} for more information.
-   *
-   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
-   */
-  getEndpoint(endpointId: string, options?: { onlyServerState? : boolean, customHeaders? : { [headerName: string]: string; } }): Promise<models.EndpointInfoApiModel>;
-  getEndpoint(endpointId: string, callback: ServiceCallback<models.EndpointInfoApiModel>): void;
-  getEndpoint(endpointId: string, options: { onlyServerState? : boolean, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.EndpointInfoApiModel>): void;
-
-
-  /**
-   * @summary Update endpoint information
-   *
-   * @param {string} endpointId endpoint identifier
-   *
-   * @param {object} request Endpoint update request
-   *
-   * @param {object} [request.user] User authentication to change on the
-   * endpoint.
-   *
-   * @param {string} [request.user.type] Type of credential. Possible values
-   * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
-   *
-   * @param {object} [request.user.value] Value to pass to server
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
-   *
-   * @reject {Error|ServiceError} - The error object.
-   */
-  updateEndpointWithHttpOperationResponse(endpointId: string, request: models.EndpointRegistrationUpdateApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<void>>;
-
-  /**
-   * @summary Update endpoint information
-   *
-   * @param {string} endpointId endpoint identifier
-   *
-   * @param {object} request Endpoint update request
-   *
-   * @param {object} [request.user] User authentication to change on the
-   * endpoint.
-   *
-   * @param {string} [request.user.type] Type of credential. Possible values
-   * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
-   *
-   * @param {object} [request.user.value] Value to pass to server
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {ServiceCallback} [optionalCallback] - The optional callback.
-   *
-   * @returns {ServiceCallback|Promise} If a callback was passed as the last
-   * parameter then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned.
-   *
-   *                      @resolve {null} - The deserialized result object.
-   *
-   *                      @reject {Error|ServiceError} - The error object.
-   *
-   * {ServiceCallback} optionalCallback(err, result, request, response)
-   *
-   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {null} [result]   - The deserialized result object if an error did not occur.
-   *
-   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
-   */
-  updateEndpoint(endpointId: string, request: models.EndpointRegistrationUpdateApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<void>;
-  updateEndpoint(endpointId: string, request: models.EndpointRegistrationUpdateApiModel, callback: ServiceCallback<void>): void;
-  updateEndpoint(endpointId: string, request: models.EndpointRegistrationUpdateApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
-
-
-  /**
-   * @summary Get list of endpoints
-   *
-   * Get all registered endpoints in paged form.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call this operation again using the token to retrieve more results.
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display current client state of the endpoint if available
-   *
-   * @param {string} [options.continuationToken] Optional Continuation token
-   *
-   * @param {number} [options.pageSize] Optional number of results to return
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<EndpointInfoListApiModel>} - The deserialized result object.
-   *
-   * @reject {Error|ServiceError} - The error object.
-   */
-  getListOfEndpointsWithHttpOperationResponse(options?: { onlyServerState? : boolean, continuationToken? : string, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.EndpointInfoListApiModel>>;
-
-  /**
-   * @summary Get list of endpoints
-   *
-   * Get all registered endpoints in paged form.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call this operation again using the token to retrieve more results.
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display current client state of the endpoint if available
-   *
-   * @param {string} [options.continuationToken] Optional Continuation token
-   *
-   * @param {number} [options.pageSize] Optional number of results to return
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {ServiceCallback} [optionalCallback] - The optional callback.
-   *
-   * @returns {ServiceCallback|Promise} If a callback was passed as the last
-   * parameter then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned.
-   *
-   *                      @resolve {EndpointInfoListApiModel} - The deserialized result object.
-   *
-   *                      @reject {Error|ServiceError} - The error object.
-   *
-   * {ServiceCallback} optionalCallback(err, result, request, response)
-   *
-   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {EndpointInfoListApiModel} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link EndpointInfoListApiModel} for more
+   *                      {HistoryUpdateResponseApiModel} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link HistoryUpdateResponseApiModel} for more
    *                      information.
    *
    *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
    *
    *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
    */
-  getListOfEndpoints(options?: { onlyServerState? : boolean, continuationToken? : string, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<models.EndpointInfoListApiModel>;
-  getListOfEndpoints(callback: ServiceCallback<models.EndpointInfoListApiModel>): void;
-  getListOfEndpoints(options: { onlyServerState? : boolean, continuationToken? : string, pageSize? : number, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.EndpointInfoListApiModel>): void;
-
-
-  /**
-   * @summary Get filtered list of endpoints
-   *
-   * Get a list of endpoints filtered using the specified query parameters.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfEndpoints operation using the token to retrieve
-   * more results.
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {string} [options.url] Endoint url for direct server access
-   *
-   * @param {string} [options.userAuthentication] Type of credential selected for
-   * authentication. Possible values include: 'None', 'UserName',
-   * 'X509Certificate', 'JwtToken'
-   *
-   * @param {buffer} [options.certificate] Certificate of the endpoint
-   *
-   * @param {string} [options.securityMode] Security Mode. Possible values
-   * include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
-   *
-   * @param {string} [options.securityPolicy] Security policy uri
-   *
-   * @param {boolean} [options.activated] Whether the endpoint was activated
-   *
-   * @param {boolean} [options.connected] Whether the endpoint is connected on
-   * supervisor.
-   *
-   * @param {string} [options.endpointState] The last state of the the activated
-   * endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy',
-   * 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
-   *
-   * @param {boolean} [options.includeNotSeenSince] Whether to include endpoints
-   * that were soft deleted
-   *
-   * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display
-   * current client state of the endpoint if available
-   *
-   * @param {number} [options.pageSize] Optional number of results to
-   * return
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<EndpointInfoListApiModel>} - The deserialized result object.
-   *
-   * @reject {Error|ServiceError} - The error object.
-   */
-  getFilteredListOfEndpointsWithHttpOperationResponse(options?: { url? : string, userAuthentication? : string, certificate? : Buffer, securityMode? : string, securityPolicy? : string, activated? : boolean, connected? : boolean, endpointState? : string, includeNotSeenSince? : boolean, onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.EndpointInfoListApiModel>>;
-
-  /**
-   * @summary Get filtered list of endpoints
-   *
-   * Get a list of endpoints filtered using the specified query parameters.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfEndpoints operation using the token to retrieve
-   * more results.
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {string} [options.url] Endoint url for direct server access
-   *
-   * @param {string} [options.userAuthentication] Type of credential selected for
-   * authentication. Possible values include: 'None', 'UserName',
-   * 'X509Certificate', 'JwtToken'
-   *
-   * @param {buffer} [options.certificate] Certificate of the endpoint
-   *
-   * @param {string} [options.securityMode] Security Mode. Possible values
-   * include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
-   *
-   * @param {string} [options.securityPolicy] Security policy uri
-   *
-   * @param {boolean} [options.activated] Whether the endpoint was activated
-   *
-   * @param {boolean} [options.connected] Whether the endpoint is connected on
-   * supervisor.
-   *
-   * @param {string} [options.endpointState] The last state of the the activated
-   * endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy',
-   * 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
-   *
-   * @param {boolean} [options.includeNotSeenSince] Whether to include endpoints
-   * that were soft deleted
-   *
-   * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display
-   * current client state of the endpoint if available
-   *
-   * @param {number} [options.pageSize] Optional number of results to
-   * return
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {ServiceCallback} [optionalCallback] - The optional callback.
-   *
-   * @returns {ServiceCallback|Promise} If a callback was passed as the last
-   * parameter then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned.
-   *
-   *                      @resolve {EndpointInfoListApiModel} - The deserialized result object.
-   *
-   *                      @reject {Error|ServiceError} - The error object.
-   *
-   * {ServiceCallback} optionalCallback(err, result, request, response)
-   *
-   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {EndpointInfoListApiModel} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link EndpointInfoListApiModel} for more
-   *                      information.
-   *
-   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
-   */
-  getFilteredListOfEndpoints(options?: { url? : string, userAuthentication? : string, certificate? : Buffer, securityMode? : string, securityPolicy? : string, activated? : boolean, connected? : boolean, endpointState? : string, includeNotSeenSince? : boolean, onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<models.EndpointInfoListApiModel>;
-  getFilteredListOfEndpoints(callback: ServiceCallback<models.EndpointInfoListApiModel>): void;
-  getFilteredListOfEndpoints(options: { url? : string, userAuthentication? : string, certificate? : Buffer, securityMode? : string, securityPolicy? : string, activated? : boolean, connected? : boolean, endpointState? : string, includeNotSeenSince? : boolean, onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.EndpointInfoListApiModel>): void;
-
-
-  /**
-   * @summary Query endpoints
-   *
-   * Return endpoints that match the specified query.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfEndpoints operation using the token to retrieve
-   * more results.
-   *
-   * @param {object} query Query to match
-   *
-   * @param {string} [query.url] Endoint url for direct server access
-   *
-   * @param {string} [query.userAuthentication] Type of credential selected for
-   * authentication. Possible values include: 'None', 'UserName',
-   * 'X509Certificate', 'JwtToken'
-   *
-   * @param {buffer} [query.certificate] Certificate of the endpoint
-   *
-   * @param {string} [query.securityMode] Security Mode. Possible values include:
-   * 'Best', 'Sign', 'SignAndEncrypt', 'None'
-   *
-   * @param {string} [query.securityPolicy] Security policy uri
-   *
-   * @param {boolean} [query.activated] Whether the endpoint was activated
-   *
-   * @param {boolean} [query.connected] Whether the endpoint is connected on
-   * supervisor.
-   *
-   * @param {string} [query.endpointState] The last state of the the activated
-   * endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy',
-   * 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
-   *
-   * @param {boolean} [query.includeNotSeenSince] Whether to include endpoints
-   * that were soft deleted
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display current client state of the endpoint if available
-   *
-   * @param {number} [options.pageSize] Optional number of results to return
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<EndpointInfoListApiModel>} - The deserialized result object.
-   *
-   * @reject {Error|ServiceError} - The error object.
-   */
-  queryEndpointsWithHttpOperationResponse(query: models.EndpointRegistrationQueryApiModel, options?: { onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.EndpointInfoListApiModel>>;
-
-  /**
-   * @summary Query endpoints
-   *
-   * Return endpoints that match the specified query.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfEndpoints operation using the token to retrieve
-   * more results.
-   *
-   * @param {object} query Query to match
-   *
-   * @param {string} [query.url] Endoint url for direct server access
-   *
-   * @param {string} [query.userAuthentication] Type of credential selected for
-   * authentication. Possible values include: 'None', 'UserName',
-   * 'X509Certificate', 'JwtToken'
-   *
-   * @param {buffer} [query.certificate] Certificate of the endpoint
-   *
-   * @param {string} [query.securityMode] Security Mode. Possible values include:
-   * 'Best', 'Sign', 'SignAndEncrypt', 'None'
-   *
-   * @param {string} [query.securityPolicy] Security policy uri
-   *
-   * @param {boolean} [query.activated] Whether the endpoint was activated
-   *
-   * @param {boolean} [query.connected] Whether the endpoint is connected on
-   * supervisor.
-   *
-   * @param {string} [query.endpointState] The last state of the the activated
-   * endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy',
-   * 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
-   *
-   * @param {boolean} [query.includeNotSeenSince] Whether to include endpoints
-   * that were soft deleted
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display current client state of the endpoint if available
-   *
-   * @param {number} [options.pageSize] Optional number of results to return
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {ServiceCallback} [optionalCallback] - The optional callback.
-   *
-   * @returns {ServiceCallback|Promise} If a callback was passed as the last
-   * parameter then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned.
-   *
-   *                      @resolve {EndpointInfoListApiModel} - The deserialized result object.
-   *
-   *                      @reject {Error|ServiceError} - The error object.
-   *
-   * {ServiceCallback} optionalCallback(err, result, request, response)
-   *
-   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {EndpointInfoListApiModel} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link EndpointInfoListApiModel} for more
-   *                      information.
-   *
-   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
-   */
-  queryEndpoints(query: models.EndpointRegistrationQueryApiModel, options?: { onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<models.EndpointInfoListApiModel>;
-  queryEndpoints(query: models.EndpointRegistrationQueryApiModel, callback: ServiceCallback<models.EndpointInfoListApiModel>): void;
-  queryEndpoints(query: models.EndpointRegistrationQueryApiModel, options: { onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.EndpointInfoListApiModel>): void;
-
-
-  /**
-   * @summary Deactivate endpoint
-   *
-   * Deactivates the endpoint and disable access through twin service.
-   *
-   * @param {string} endpointId endpoint identifier
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
-   *
-   * @reject {Error|ServiceError} - The error object.
-   */
-  deactivateEndpointWithHttpOperationResponse(endpointId: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<void>>;
-
-  /**
-   * @summary Deactivate endpoint
-   *
-   * Deactivates the endpoint and disable access through twin service.
-   *
-   * @param {string} endpointId endpoint identifier
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {ServiceCallback} [optionalCallback] - The optional callback.
-   *
-   * @returns {ServiceCallback|Promise} If a callback was passed as the last
-   * parameter then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned.
-   *
-   *                      @resolve {null} - The deserialized result object.
-   *
-   *                      @reject {Error|ServiceError} - The error object.
-   *
-   * {ServiceCallback} optionalCallback(err, result, request, response)
-   *
-   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {null} [result]   - The deserialized result object if an error did not occur.
-   *
-   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
-   */
-  deactivateEndpoint(endpointId: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<void>;
-  deactivateEndpoint(endpointId: string, callback: ServiceCallback<void>): void;
-  deactivateEndpoint(endpointId: string, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
+  historyReplaceEvents(endpointId: string, request: models.HistoryUpdateRequestApiModelReplaceEventsDetailsApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.HistoryUpdateResponseApiModel>;
+  historyReplaceEvents(endpointId: string, request: models.HistoryUpdateRequestApiModelReplaceEventsDetailsApiModel, callback: ServiceCallback<models.HistoryUpdateResponseApiModel>): void;
+  historyReplaceEvents(endpointId: string, request: models.HistoryUpdateRequestApiModelReplaceEventsDetailsApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.HistoryUpdateResponseApiModel>): void;
 
 
   /**
@@ -1723,657 +2869,6 @@ export default class AzureOpcHistoryClient extends ServiceClient {
   getStatus(options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.StatusResponseApiModel>;
   getStatus(callback: ServiceCallback<models.StatusResponseApiModel>): void;
   getStatus(options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.StatusResponseApiModel>): void;
-
-
-  /**
-   * @summary Get supervisor registration information
-   *
-   * Returns a supervisor's registration and connectivity information.
-   * A supervisor id corresponds to the twin modules module identity.
-   *
-   * @param {string} supervisorId Supervisor identifier
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display current client state of the endpoint if
-   * available
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<SupervisorApiModel>} - The deserialized result object.
-   *
-   * @reject {Error|ServiceError} - The error object.
-   */
-  getSupervisorWithHttpOperationResponse(supervisorId: string, options?: { onlyServerState? : boolean, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.SupervisorApiModel>>;
-
-  /**
-   * @summary Get supervisor registration information
-   *
-   * Returns a supervisor's registration and connectivity information.
-   * A supervisor id corresponds to the twin modules module identity.
-   *
-   * @param {string} supervisorId Supervisor identifier
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display current client state of the endpoint if
-   * available
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {ServiceCallback} [optionalCallback] - The optional callback.
-   *
-   * @returns {ServiceCallback|Promise} If a callback was passed as the last
-   * parameter then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned.
-   *
-   *                      @resolve {SupervisorApiModel} - The deserialized result object.
-   *
-   *                      @reject {Error|ServiceError} - The error object.
-   *
-   * {ServiceCallback} optionalCallback(err, result, request, response)
-   *
-   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {SupervisorApiModel} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link SupervisorApiModel} for more information.
-   *
-   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
-   */
-  getSupervisor(supervisorId: string, options?: { onlyServerState? : boolean, customHeaders? : { [headerName: string]: string; } }): Promise<models.SupervisorApiModel>;
-  getSupervisor(supervisorId: string, callback: ServiceCallback<models.SupervisorApiModel>): void;
-  getSupervisor(supervisorId: string, options: { onlyServerState? : boolean, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.SupervisorApiModel>): void;
-
-
-  /**
-   * @summary Update supervisor information
-   *
-   * Allows a caller to configure recurring discovery runs on the twin module
-   * identified by the supervisor id or update site information.
-   *
-   * @param {string} supervisorId supervisor identifier
-   *
-   * @param {object} request Patch request
-   *
-   * @param {string} [request.siteId] Site of the supervisor
-   *
-   * @param {string} [request.discovery] Whether the supervisor is in discovery
-   * mode.
-   * If null, does not change. Possible values include: 'Off', 'Local',
-   * 'Network', 'Fast', 'Scan'
-   *
-   * @param {object} [request.discoveryConfig] Supervisor discovery configuration
-   *
-   * @param {string} [request.discoveryConfig.addressRangesToScan] Address ranges
-   * to scan (null == all wired nics)
-   *
-   * @param {number} [request.discoveryConfig.networkProbeTimeoutMs] Network
-   * probe timeout
-   *
-   * @param {number} [request.discoveryConfig.maxNetworkProbes] Max network
-   * probes that should ever run.
-   *
-   * @param {string} [request.discoveryConfig.portRangesToScan] Port ranges to
-   * scan (null == all unassigned)
-   *
-   * @param {number} [request.discoveryConfig.portProbeTimeoutMs] Port probe
-   * timeout
-   *
-   * @param {number} [request.discoveryConfig.maxPortProbes] Max port probes that
-   * should ever run.
-   *
-   * @param {number} [request.discoveryConfig.minPortProbesPercent] Probes that
-   * must always be there as percent of max.
-   *
-   * @param {number} [request.discoveryConfig.idleTimeBetweenScansSec] Delay time
-   * between discovery sweeps in seconds
-   *
-   * @param {array} [request.discoveryConfig.discoveryUrls] List of preset
-   * discovery urls to use
-   *
-   * @param {array} [request.discoveryConfig.locales] List of locales to filter
-   * with during discovery
-   *
-   * @param {array} [request.discoveryConfig.callbacks] Callbacks to invoke once
-   * onboarding finishes
-   *
-   * @param {object} [request.discoveryConfig.activationFilter] Activate all
-   * twins with this filter during onboarding.
-   *
-   * @param {array} [request.discoveryConfig.activationFilter.trustLists]
-   * Certificate trust list identifiers to use for
-   * activation, if null, all certificates are
-   * trusted.  If empty list, no certificates are
-   * trusted which is equal to no filter.
-   *
-   * @param {array} [request.discoveryConfig.activationFilter.securityPolicies]
-   * Endpoint security policies to filter against.
-   * If set to null, all policies are in scope.
-   *
-   * @param {string} [request.discoveryConfig.activationFilter.securityMode]
-   * Security mode level to activate. If null,
-   * then Microsoft.Azure.IIoT.OpcUa.Registry.Models.SecurityMode.Best is
-   * assumed. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
-   *
-   * @param {array} [request.discoveryCallbacks] Callbacks to add or remove (see
-   * below)
-   *
-   * @param {boolean} [request.removeDiscoveryCallbacks] Whether to add or remove
-   * callbacks
-   *
-   * @param {string} [request.logLevel] Current log level. Possible values
-   * include: 'Error', 'Information', 'Debug', 'Verbose'
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
-   *
-   * @reject {Error|ServiceError} - The error object.
-   */
-  updateSupervisorWithHttpOperationResponse(supervisorId: string, request: models.SupervisorUpdateApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<void>>;
-
-  /**
-   * @summary Update supervisor information
-   *
-   * Allows a caller to configure recurring discovery runs on the twin module
-   * identified by the supervisor id or update site information.
-   *
-   * @param {string} supervisorId supervisor identifier
-   *
-   * @param {object} request Patch request
-   *
-   * @param {string} [request.siteId] Site of the supervisor
-   *
-   * @param {string} [request.discovery] Whether the supervisor is in discovery
-   * mode.
-   * If null, does not change. Possible values include: 'Off', 'Local',
-   * 'Network', 'Fast', 'Scan'
-   *
-   * @param {object} [request.discoveryConfig] Supervisor discovery configuration
-   *
-   * @param {string} [request.discoveryConfig.addressRangesToScan] Address ranges
-   * to scan (null == all wired nics)
-   *
-   * @param {number} [request.discoveryConfig.networkProbeTimeoutMs] Network
-   * probe timeout
-   *
-   * @param {number} [request.discoveryConfig.maxNetworkProbes] Max network
-   * probes that should ever run.
-   *
-   * @param {string} [request.discoveryConfig.portRangesToScan] Port ranges to
-   * scan (null == all unassigned)
-   *
-   * @param {number} [request.discoveryConfig.portProbeTimeoutMs] Port probe
-   * timeout
-   *
-   * @param {number} [request.discoveryConfig.maxPortProbes] Max port probes that
-   * should ever run.
-   *
-   * @param {number} [request.discoveryConfig.minPortProbesPercent] Probes that
-   * must always be there as percent of max.
-   *
-   * @param {number} [request.discoveryConfig.idleTimeBetweenScansSec] Delay time
-   * between discovery sweeps in seconds
-   *
-   * @param {array} [request.discoveryConfig.discoveryUrls] List of preset
-   * discovery urls to use
-   *
-   * @param {array} [request.discoveryConfig.locales] List of locales to filter
-   * with during discovery
-   *
-   * @param {array} [request.discoveryConfig.callbacks] Callbacks to invoke once
-   * onboarding finishes
-   *
-   * @param {object} [request.discoveryConfig.activationFilter] Activate all
-   * twins with this filter during onboarding.
-   *
-   * @param {array} [request.discoveryConfig.activationFilter.trustLists]
-   * Certificate trust list identifiers to use for
-   * activation, if null, all certificates are
-   * trusted.  If empty list, no certificates are
-   * trusted which is equal to no filter.
-   *
-   * @param {array} [request.discoveryConfig.activationFilter.securityPolicies]
-   * Endpoint security policies to filter against.
-   * If set to null, all policies are in scope.
-   *
-   * @param {string} [request.discoveryConfig.activationFilter.securityMode]
-   * Security mode level to activate. If null,
-   * then Microsoft.Azure.IIoT.OpcUa.Registry.Models.SecurityMode.Best is
-   * assumed. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
-   *
-   * @param {array} [request.discoveryCallbacks] Callbacks to add or remove (see
-   * below)
-   *
-   * @param {boolean} [request.removeDiscoveryCallbacks] Whether to add or remove
-   * callbacks
-   *
-   * @param {string} [request.logLevel] Current log level. Possible values
-   * include: 'Error', 'Information', 'Debug', 'Verbose'
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {ServiceCallback} [optionalCallback] - The optional callback.
-   *
-   * @returns {ServiceCallback|Promise} If a callback was passed as the last
-   * parameter then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned.
-   *
-   *                      @resolve {null} - The deserialized result object.
-   *
-   *                      @reject {Error|ServiceError} - The error object.
-   *
-   * {ServiceCallback} optionalCallback(err, result, request, response)
-   *
-   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {null} [result]   - The deserialized result object if an error did not occur.
-   *
-   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
-   */
-  updateSupervisor(supervisorId: string, request: models.SupervisorUpdateApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<void>;
-  updateSupervisor(supervisorId: string, request: models.SupervisorUpdateApiModel, callback: ServiceCallback<void>): void;
-  updateSupervisor(supervisorId: string, request: models.SupervisorUpdateApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
-
-
-  /**
-   * @summary Get runtime status of supervisor
-   *
-   * Allows a caller to get runtime status for a supervisor.
-   *
-   * @param {string} supervisorId supervisor identifier
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<SupervisorStatusApiModel>} - The deserialized result object.
-   *
-   * @reject {Error|ServiceError} - The error object.
-   */
-  getSupervisorStatusWithHttpOperationResponse(supervisorId: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.SupervisorStatusApiModel>>;
-
-  /**
-   * @summary Get runtime status of supervisor
-   *
-   * Allows a caller to get runtime status for a supervisor.
-   *
-   * @param {string} supervisorId supervisor identifier
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {ServiceCallback} [optionalCallback] - The optional callback.
-   *
-   * @returns {ServiceCallback|Promise} If a callback was passed as the last
-   * parameter then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned.
-   *
-   *                      @resolve {SupervisorStatusApiModel} - The deserialized result object.
-   *
-   *                      @reject {Error|ServiceError} - The error object.
-   *
-   * {ServiceCallback} optionalCallback(err, result, request, response)
-   *
-   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {SupervisorStatusApiModel} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link SupervisorStatusApiModel} for more
-   *                      information.
-   *
-   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
-   */
-  getSupervisorStatus(supervisorId: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.SupervisorStatusApiModel>;
-  getSupervisorStatus(supervisorId: string, callback: ServiceCallback<models.SupervisorStatusApiModel>): void;
-  getSupervisorStatus(supervisorId: string, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.SupervisorStatusApiModel>): void;
-
-
-  /**
-   * @summary Reset supervisor
-   *
-   * Allows a caller to reset the twin module using its supervisor
-   * identity identifier.
-   *
-   * @param {string} supervisorId supervisor identifier
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
-   *
-   * @reject {Error|ServiceError} - The error object.
-   */
-  resetSupervisorWithHttpOperationResponse(supervisorId: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<void>>;
-
-  /**
-   * @summary Reset supervisor
-   *
-   * Allows a caller to reset the twin module using its supervisor
-   * identity identifier.
-   *
-   * @param {string} supervisorId supervisor identifier
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {ServiceCallback} [optionalCallback] - The optional callback.
-   *
-   * @returns {ServiceCallback|Promise} If a callback was passed as the last
-   * parameter then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned.
-   *
-   *                      @resolve {null} - The deserialized result object.
-   *
-   *                      @reject {Error|ServiceError} - The error object.
-   *
-   * {ServiceCallback} optionalCallback(err, result, request, response)
-   *
-   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {null} [result]   - The deserialized result object if an error did not occur.
-   *
-   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
-   */
-  resetSupervisor(supervisorId: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<void>;
-  resetSupervisor(supervisorId: string, callback: ServiceCallback<void>): void;
-  resetSupervisor(supervisorId: string, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
-
-
-  /**
-   * @summary Get list of supervisors
-   *
-   * Get all registered supervisors and therefore twin modules in paged form.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call this operation again using the token to retrieve more results.
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display current client state of the endpoint if available
-   *
-   * @param {string} [options.continuationToken] Optional Continuation token
-   *
-   * @param {number} [options.pageSize] Optional number of results to return
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<SupervisorListApiModel>} - The deserialized result object.
-   *
-   * @reject {Error|ServiceError} - The error object.
-   */
-  getListOfSupervisorsWithHttpOperationResponse(options?: { onlyServerState? : boolean, continuationToken? : string, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.SupervisorListApiModel>>;
-
-  /**
-   * @summary Get list of supervisors
-   *
-   * Get all registered supervisors and therefore twin modules in paged form.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call this operation again using the token to retrieve more results.
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display current client state of the endpoint if available
-   *
-   * @param {string} [options.continuationToken] Optional Continuation token
-   *
-   * @param {number} [options.pageSize] Optional number of results to return
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {ServiceCallback} [optionalCallback] - The optional callback.
-   *
-   * @returns {ServiceCallback|Promise} If a callback was passed as the last
-   * parameter then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned.
-   *
-   *                      @resolve {SupervisorListApiModel} - The deserialized result object.
-   *
-   *                      @reject {Error|ServiceError} - The error object.
-   *
-   * {ServiceCallback} optionalCallback(err, result, request, response)
-   *
-   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {SupervisorListApiModel} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link SupervisorListApiModel} for more
-   *                      information.
-   *
-   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
-   */
-  getListOfSupervisors(options?: { onlyServerState? : boolean, continuationToken? : string, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<models.SupervisorListApiModel>;
-  getListOfSupervisors(callback: ServiceCallback<models.SupervisorListApiModel>): void;
-  getListOfSupervisors(options: { onlyServerState? : boolean, continuationToken? : string, pageSize? : number, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.SupervisorListApiModel>): void;
-
-
-  /**
-   * @summary Get filtered list of supervisors
-   *
-   * Get a list of supervisors filtered using the specified query parameters.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfSupervisors operation using the token to retrieve
-   * more results.
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {string} [options.siteId] Site of the supervisor
-   *
-   * @param {string} [options.discovery] Discovery mode of supervisor. Possible
-   * values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
-   *
-   * @param {boolean} [options.connected] Included connected or disconnected
-   *
-   * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display current client state of the endpoint if
-   * available
-   *
-   * @param {number} [options.pageSize] Number of results to return
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<SupervisorListApiModel>} - The deserialized result object.
-   *
-   * @reject {Error|ServiceError} - The error object.
-   */
-  getFilteredListOfSupervisorsWithHttpOperationResponse(options?: { siteId? : string, discovery? : string, connected? : boolean, onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.SupervisorListApiModel>>;
-
-  /**
-   * @summary Get filtered list of supervisors
-   *
-   * Get a list of supervisors filtered using the specified query parameters.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfSupervisors operation using the token to retrieve
-   * more results.
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {string} [options.siteId] Site of the supervisor
-   *
-   * @param {string} [options.discovery] Discovery mode of supervisor. Possible
-   * values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
-   *
-   * @param {boolean} [options.connected] Included connected or disconnected
-   *
-   * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display current client state of the endpoint if
-   * available
-   *
-   * @param {number} [options.pageSize] Number of results to return
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {ServiceCallback} [optionalCallback] - The optional callback.
-   *
-   * @returns {ServiceCallback|Promise} If a callback was passed as the last
-   * parameter then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned.
-   *
-   *                      @resolve {SupervisorListApiModel} - The deserialized result object.
-   *
-   *                      @reject {Error|ServiceError} - The error object.
-   *
-   * {ServiceCallback} optionalCallback(err, result, request, response)
-   *
-   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {SupervisorListApiModel} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link SupervisorListApiModel} for more
-   *                      information.
-   *
-   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
-   */
-  getFilteredListOfSupervisors(options?: { siteId? : string, discovery? : string, connected? : boolean, onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<models.SupervisorListApiModel>;
-  getFilteredListOfSupervisors(callback: ServiceCallback<models.SupervisorListApiModel>): void;
-  getFilteredListOfSupervisors(options: { siteId? : string, discovery? : string, connected? : boolean, onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.SupervisorListApiModel>): void;
-
-
-  /**
-   * @summary Query supervisors
-   *
-   * Get all supervisors that match a specified query.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfSupervisors operation using the token to retrieve
-   * more results.
-   *
-   * @param {object} query Supervisors query model
-   *
-   * @param {string} [query.siteId] Site of the supervisor
-   *
-   * @param {string} [query.discovery] Discovery mode of supervisor. Possible
-   * values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
-   *
-   * @param {boolean} [query.connected] Included connected or disconnected
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display current client state of the endpoint if
-   * available
-   *
-   * @param {number} [options.pageSize] Number of results to return
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<SupervisorListApiModel>} - The deserialized result object.
-   *
-   * @reject {Error|ServiceError} - The error object.
-   */
-  querySupervisorsWithHttpOperationResponse(query: models.SupervisorQueryApiModel, options?: { onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.SupervisorListApiModel>>;
-
-  /**
-   * @summary Query supervisors
-   *
-   * Get all supervisors that match a specified query.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfSupervisors operation using the token to retrieve
-   * more results.
-   *
-   * @param {object} query Supervisors query model
-   *
-   * @param {string} [query.siteId] Site of the supervisor
-   *
-   * @param {string} [query.discovery] Discovery mode of supervisor. Possible
-   * values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
-   *
-   * @param {boolean} [query.connected] Included connected or disconnected
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display current client state of the endpoint if
-   * available
-   *
-   * @param {number} [options.pageSize] Number of results to return
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {ServiceCallback} [optionalCallback] - The optional callback.
-   *
-   * @returns {ServiceCallback|Promise} If a callback was passed as the last
-   * parameter then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned.
-   *
-   *                      @resolve {SupervisorListApiModel} - The deserialized result object.
-   *
-   *                      @reject {Error|ServiceError} - The error object.
-   *
-   * {ServiceCallback} optionalCallback(err, result, request, response)
-   *
-   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {SupervisorListApiModel} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link SupervisorListApiModel} for more
-   *                      information.
-   *
-   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
-   */
-  querySupervisors(query: models.SupervisorQueryApiModel, options?: { onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<models.SupervisorListApiModel>;
-  querySupervisors(query: models.SupervisorQueryApiModel, callback: ServiceCallback<models.SupervisorListApiModel>): void;
-  querySupervisors(query: models.SupervisorQueryApiModel, options: { onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.SupervisorListApiModel>): void;
 }
 
 export { AzureOpcHistoryClient, models as AzureOpcHistoryModels };

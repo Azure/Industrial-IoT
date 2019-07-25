@@ -48,6 +48,7 @@ While not always enforced, ensure you **URL encode** the id value or name of Qua
 
 ## Next steps
 
-* [Learn more about the OPC Twin module](../modules/module.md)
+* [Learn more about the OPC Twin module](../modules/twin.md)
 * [Learn more about the overall Architecture](../architecture.md)
 * [Explore the Twin Microservice REST API](../api/twin/readme.md)
+

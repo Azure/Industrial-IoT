@@ -33,5 +33,5 @@ When registered in OPC Registry (and thus Azure IoT Hub) Server endpoints are by
 ## Next steps
 
 * [Learn about OPC Registry Onboarding](onboarding.md)
-* [Learn about the OPC Twin module](../modules/module.md)
+* [Learn about the OPC Twin module](../modules/twin.md)
 * [Explore the OPC Registry REST API](../api/registry/readme.md)

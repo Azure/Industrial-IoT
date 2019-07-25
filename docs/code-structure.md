@@ -1,19 +1,24 @@
 # Code Structure
 
-The azure-iiot-components repository includes all Azure Industrial IoT component repositories as its submodules which are:
+The Industrial-IoT repository includes all Azure Industrial IoT platform components:
 
-* Components and protocol stacks including
-  * [OPC Unified Architecture (OPC UA)](https://github.com/Azure/azure-iiot-opc-ua)
-* IoT Edge modules
-  * [OPC Publisher module](https://github.com/Azure/iot-edge-opc-publisher)
-  * [OPC Twin module](https://github.com/Azure/azure-iiot-opc-twin-module)
-* [Microservices](https://github.com/Azure/azure-iiot-services)
-  * [OPC Twin Microservices](services/twin.md)  and the complete architecture is [here](architecture.md)
-    * [Registry Service](services/registry.md), [OPC Twin Service](services/twin.md), [OPC Onboarding Agent](services/onboarding.md), [OPC Gateway (preview)](services/gateway.md), OPC Historic Access Service
-  * [OPC Vault Microservice](https://github.com/Azure/azure-iiot-opc-vault-service)
-* [API](api/readme.md)
+* **Api** 
+  The Api folder contains projects and nuget packages that represent the API of the included Microservices.   It also includes a handy Command Line Interface to excercise these APIs.
+* **Common**
+  The common folder includes utility functionality and abstractions used across the entire platform.  This includes tools and functionality for Diagnostics, Networking, Crypto, Storage, Messaging as well as IoT Hub functionality and IoT Edge framework code.
+* **Components**
+  * **OPCUA**
+    The OPC UA folder contains OPC UA abstractions and the wrapper around the OPC Foundation .net Standard stack.   It also provides the business logic for the OPC UA related services.
+* **Modules**
+  * **OPC-Twin**
+    The OPC Twin is an edge module that provides support for discovery and remote OPC UA service calls.   It uses the edge and protocol components in the `Components/OPC UA` folder.
+  * **OPC-Publisher**
+    The OPC Publisher is an IoT Edge module that streams OPC UA data in the form of Pub/Sub to IoT Hub for processing in downstream services.   It uses the edge and protocol components in the `Components/OPC UA` folder.
+* **Services**
+  The services folder includes the Microservices and Agents running in Azure Cloud and communicating with the Edge modules.  They utilize the business logic contained in the `Components` folder
 
-## Learn more
 
-* [Deploy Azure Industrial IoT](readme.md)
-* [Deploy the Microservices](howto-deploy-microservices.md)
+## Learn more 
+
+* [Deploy Azure Industrial IoT](docs/readme.md)
+* [Deploy the Microservices](docs/howto-deploy-microservices.md)

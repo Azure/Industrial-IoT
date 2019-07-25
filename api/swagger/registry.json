@@ -1,0 +1,2589 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "v2",
+    "title": "Opc-Registry-Service",
+    "description": "Azure Industrial IoT OPC UA Registry Service"
+  },
+  "schemes": [
+    "https",
+    "http"
+  ],
+  "paths": {
+    "/v2/applications": {
+      "get": {
+        "tags": [
+          "Applications"
+        ],
+        "summary": "Get list of applications",
+        "description": "Get all registered applications in paged form.\r\nThe returned model can contain a continuation token if more results are\r\navailable.\r\nCall this operation again using the token to retrieve more results.",
+        "operationId": "GetListOfApplications",
+        "consumes": [],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "continuationToken",
+            "in": "query",
+            "description": "Optional Continuation\r\n            token",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "Optional number of results to\r\n            return",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/ApplicationInfoListApiModel"
+            }
+          }
+        },
+        "x-ms-pageable": {
+          "nextLinkName": "continuationToken"
+        }
+      },
+      "put": {
+        "tags": [
+          "Applications"
+        ],
+        "summary": "Create new application",
+        "description": "The application is registered using the provided information, but it\r\nis not associated with a supervisor.  This is useful for when you need\r\nto register clients or you want to register a server that is located\r\nin a network not reachable through a Twin module.",
+        "operationId": "CreateApplication",
+        "consumes": [
+          "application/json-patch+json",
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "request",
+            "in": "body",
+            "description": "Application registration request",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ApplicationRegistrationRequestApiModel"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/ApplicationRegistrationResponseApiModel"
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Applications"
+        ],
+        "summary": "Register new server",
+        "description": "Registers a server solely using a discovery url. Requires that\r\nthe onboarding agent service is running and the server can be\r\nlocated by a supervisor in its network using the discovery url.",
+        "operationId": "RegisterServer",
+        "consumes": [
+          "application/json-patch+json",
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "request",
+            "in": "body",
+            "description": "Server registration request",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ServerRegistrationRequestApiModel"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Applications"
+        ],
+        "summary": "Purge applications",
+        "description": "Purges all applications that have not been seen for a specified amount of time.",
+        "operationId": "DeleteAllDisabledApplications",
+        "consumes": [],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "notSeenFor",
+            "in": "query",
+            "description": "A duration in milliseconds",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/v2/applications/{applicationId}/approve": {
+      "post": {
+        "tags": [
+          "Applications"
+        ],
+        "summary": "Approve a new application.",
+        "description": "A manager can approve a new application or force an application\r\nfrom any state.\r\nAfter approval the application is in the 'Approved' state.\r\nRequires Manager role.",
+        "operationId": "ApproveApplication",
+        "consumes": [],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "applicationId",
+            "in": "path",
+            "description": "The application id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "force",
+            "in": "query",
+            "description": "optional, force application in new state",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/v2/applications/{applicationId}/reject": {
+      "post": {
+        "tags": [
+          "Applications"
+        ],
+        "summary": "Reject a new application.",
+        "description": "A manager can approve a new application or force an application\r\nfrom any state.\r\nAfter approval the application is in the 'Rejected' state.\r\nRequires Manager role.",
+        "operationId": "RejectApplication",
+        "consumes": [],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "applicationId",
+            "in": "path",
+            "description": "The application id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "force",
+            "in": "query",
+            "description": "optional, force application in new state",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/v2/applications/{applicationId}/disable": {
+      "post": {
+        "tags": [
+          "Applications"
+        ],
+        "summary": "Disable an enabled application.",
+        "description": "A manager can disable an application.",
+        "operationId": "DisableApplication",
+        "consumes": [],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "applicationId",
+            "in": "path",
+            "description": "The application id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/v2/applications/{applicationId}/enable": {
+      "post": {
+        "tags": [
+          "Applications"
+        ],
+        "summary": "Re-enable a disabled application.",
+        "description": "A manager can enable an application.",
+        "operationId": "EnableApplication",
+        "consumes": [],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "applicationId",
+            "in": "path",
+            "description": "The application id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/v2/applications/discover": {
+      "post": {
+        "tags": [
+          "Applications"
+        ],
+        "summary": "Discover servers",
+        "description": "Registers servers by running a discovery scan in a supervisor's\r\nnetwork. Requires that the onboarding agent service is running.",
+        "operationId": "DiscoverServer",
+        "consumes": [
+          "application/json-patch+json",
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "request",
+            "in": "body",
+            "description": "Discovery request",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/DiscoveryRequestApiModel"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/v2/applications/{applicationId}": {
+      "get": {
+        "tags": [
+          "Applications"
+        ],
+        "summary": "Get application registration",
+        "operationId": "GetApplicationRegistration",
+        "consumes": [],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "applicationId",
+            "in": "path",
+            "description": "Application id for the server",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/ApplicationRegistrationApiModel"
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Applications"
+        ],
+        "summary": "Unregister application",
+        "description": "Unregisters and deletes application and all its associated endpoints.",
+        "operationId": "DeleteApplication",
+        "consumes": [],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "applicationId",
+            "in": "path",
+            "description": "The identifier of the application",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Applications"
+        ],
+        "summary": "Update application registration",
+        "description": "The application information is updated with new properties.  Note that\r\nthis information might be overridden if the application is re-discovered\r\nduring a discovery run (recurring or one-time).",
+        "operationId": "UpdateApplicationRegistration",
+        "consumes": [
+          "application/json-patch+json",
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "applicationId",
+            "in": "path",
+            "description": "The identifier of the application",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "request",
+            "in": "body",
+            "description": "Application update request",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ApplicationRegistrationUpdateApiModel"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/v2/applications/sites": {
+      "get": {
+        "tags": [
+          "Applications"
+        ],
+        "summary": "Get list of sites",
+        "description": "List all sites applications are registered in.",
+        "operationId": "GetListOfSites",
+        "consumes": [],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "continuationToken",
+            "in": "query",
+            "description": "Optional Continuation\r\n            token",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "Optional number of results to\r\n            return",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/ApplicationSiteListApiModel"
+            }
+          }
+        },
+        "x-ms-pageable": {
+          "nextLinkName": "continuationToken"
+        }
+      }
+    },
+    "/v2/applications/query": {
+      "get": {
+        "tags": [
+          "Applications"
+        ],
+        "summary": "Get filtered list of applications",
+        "description": "Get a list of applications filtered using the specified query parameters.\r\nThe returned model can contain a continuation token if more results are\r\navailable.\r\nCall the GetListOfApplications operation using the token to retrieve\r\nmore results.",
+        "operationId": "GetFilteredListOfApplications",
+        "consumes": [
+          "application/json-patch+json",
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "query",
+            "in": "body",
+            "description": "Applications Query model",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ApplicationRegistrationQueryApiModel"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "Number of results to return",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/ApplicationInfoListApiModel"
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Applications"
+        ],
+        "summary": "Query applications",
+        "description": "List applications that match a query model.\r\nThe returned model can contain a continuation token if more results are\r\navailable.\r\nCall the GetListOfApplications operation using the token to retrieve\r\nmore results.",
+        "operationId": "QueryApplications",
+        "consumes": [
+          "application/json-patch+json",
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "query",
+            "in": "body",
+            "description": "Application query",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ApplicationRegistrationQueryApiModel"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "Optional number of results to\r\n            return",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/ApplicationInfoListApiModel"
+            }
+          }
+        }
+      }
+    },
+    "/v2/applications/querybyid": {
+      "post": {
+        "tags": [
+          "Applications"
+        ],
+        "summary": "Query applications by id.",
+        "description": "A query model which supports the OPC UA Global Discovery Server query.",
+        "operationId": "QueryApplicationsById",
+        "consumes": [
+          "application/json-patch+json",
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "query",
+            "in": "body",
+            "description": "",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/ApplicationRecordQueryApiModel"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/ApplicationRecordListApiModel"
+            }
+          }
+        }
+      }
+    },
+    "/v2/endpoints/{endpointId}/activate": {
+      "post": {
+        "tags": [
+          "Endpoints"
+        ],
+        "summary": "Activate endpoint",
+        "description": "Activates an endpoint for subsequent use in twin service.\r\nAll endpoints must be activated using this API or through a\r\nactivation filter during application registration or discovery.",
+        "operationId": "ActivateEndpoint",
+        "consumes": [],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "endpointId",
+            "in": "path",
+            "description": "endpoint identifier",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/v2/endpoints/{endpointId}": {
+      "get": {
+        "tags": [
+          "Endpoints"
+        ],
+        "summary": "Get endpoint information",
+        "description": "Gets information about an endpoint.",
+        "operationId": "GetEndpoint",
+        "consumes": [],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "endpointId",
+            "in": "path",
+            "description": "endpoint identifier",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "onlyServerState",
+            "in": "query",
+            "description": "Whether to include only server\r\n            state, or display current client state of the endpoint if\r\n            available",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/EndpointInfoApiModel"
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Endpoints"
+        ],
+        "summary": "Update endpoint information",
+        "operationId": "UpdateEndpoint",
+        "consumes": [
+          "application/json-patch+json",
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "endpointId",
+            "in": "path",
+            "description": "endpoint identifier",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "request",
+            "in": "body",
+            "description": "Endpoint update request",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/EndpointRegistrationUpdateApiModel"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/v2/endpoints": {
+      "get": {
+        "tags": [
+          "Endpoints"
+        ],
+        "summary": "Get list of endpoints",
+        "description": "Get all registered endpoints in paged form.\r\nThe returned model can contain a continuation token if more results are\r\navailable.\r\nCall this operation again using the token to retrieve more results.",
+        "operationId": "GetListOfEndpoints",
+        "consumes": [],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "onlyServerState",
+            "in": "query",
+            "description": "Whether to include only server\r\n            state, or display current client state of the endpoint if available",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "continuationToken",
+            "in": "query",
+            "description": "Optional Continuation token",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "Optional number of results to return",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/EndpointInfoListApiModel"
+            }
+          }
+        },
+        "x-ms-pageable": {
+          "nextLinkName": "continuationToken"
+        }
+      }
+    },
+    "/v2/endpoints/query": {
+      "get": {
+        "tags": [
+          "Endpoints"
+        ],
+        "summary": "Get filtered list of endpoints",
+        "description": "Get a list of endpoints filtered using the specified query parameters.\r\nThe returned model can contain a continuation token if more results are\r\navailable.\r\nCall the GetListOfEndpoints operation using the token to retrieve\r\nmore results.",
+        "operationId": "GetFilteredListOfEndpoints",
+        "consumes": [],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "Url",
+            "in": "query",
+            "description": "Endoint url for direct server access",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "UserAuthentication",
+            "in": "query",
+            "description": "Type of credential selected for authentication",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "None",
+              "UserName",
+              "X509Certificate",
+              "JwtToken"
+            ]
+          },
+          {
+            "name": "Certificate",
+            "in": "query",
+            "description": "Certificate of the endpoint",
+            "required": false,
+            "type": "string",
+            "format": "byte"
+          },
+          {
+            "name": "SecurityMode",
+            "in": "query",
+            "description": "Security Mode",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "Best",
+              "Sign",
+              "SignAndEncrypt",
+              "None"
+            ]
+          },
+          {
+            "name": "SecurityPolicy",
+            "in": "query",
+            "description": "Security policy uri",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "Activated",
+            "in": "query",
+            "description": "Whether the endpoint was activated",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "Connected",
+            "in": "query",
+            "description": "Whether the endpoint is connected on supervisor.",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "EndpointState",
+            "in": "query",
+            "description": "The last state of the the activated endpoint",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "Connecting",
+              "NotReachable",
+              "Busy",
+              "NoTrust",
+              "CertificateInvalid",
+              "Ready",
+              "Error"
+            ]
+          },
+          {
+            "name": "IncludeNotSeenSince",
+            "in": "query",
+            "description": "Whether to include endpoints that were soft deleted",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "onlyServerState",
+            "in": "query",
+            "description": "Whether to include only server state, or display\r\n            current client state of the endpoint if available",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "Optional number of results to\r\n            return",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/EndpointInfoListApiModel"
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Endpoints"
+        ],
+        "summary": "Query endpoints",
+        "description": "Return endpoints that match the specified query.\r\nThe returned model can contain a continuation token if more results are\r\navailable.\r\nCall the GetListOfEndpoints operation using the token to retrieve\r\nmore results.",
+        "operationId": "QueryEndpoints",
+        "consumes": [
+          "application/json-patch+json",
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "query",
+            "in": "body",
+            "description": "Query to match",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/EndpointRegistrationQueryApiModel"
+            }
+          },
+          {
+            "name": "onlyServerState",
+            "in": "query",
+            "description": "Whether to include only server\r\n            state, or display current client state of the endpoint if available",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "Optional number of results to return",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/EndpointInfoListApiModel"
+            }
+          }
+        }
+      }
+    },
+    "/v2/endpoints/{endpointId}/deactivate": {
+      "post": {
+        "tags": [
+          "Endpoints"
+        ],
+        "summary": "Deactivate endpoint",
+        "description": "Deactivates the endpoint and disable access through twin service.",
+        "operationId": "DeactivateEndpoint",
+        "consumes": [],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "endpointId",
+            "in": "path",
+            "description": "endpoint identifier",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/v2/status": {
+      "get": {
+        "tags": [
+          "Status"
+        ],
+        "summary": "Return the service status in the form of the service status\r\napi model.",
+        "operationId": "GetStatus",
+        "consumes": [],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/StatusResponseApiModel"
+            }
+          }
+        }
+      }
+    },
+    "/v2/supervisors/{supervisorId}": {
+      "get": {
+        "tags": [
+          "Supervisors"
+        ],
+        "summary": "Get supervisor registration information",
+        "description": "Returns a supervisor's registration and connectivity information.\r\nA supervisor id corresponds to the twin modules module identity.",
+        "operationId": "GetSupervisor",
+        "consumes": [],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "supervisorId",
+            "in": "path",
+            "description": "Supervisor identifier",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "onlyServerState",
+            "in": "query",
+            "description": "Whether to include only server\r\n            state, or display current client state of the endpoint if\r\n            available",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/SupervisorApiModel"
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Supervisors"
+        ],
+        "summary": "Update supervisor information",
+        "description": "Allows a caller to configure recurring discovery runs on the twin module\r\nidentified by the supervisor id or update site information.",
+        "operationId": "UpdateSupervisor",
+        "consumes": [
+          "application/json-patch+json",
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "supervisorId",
+            "in": "path",
+            "description": "supervisor identifier",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "request",
+            "in": "body",
+            "description": "Patch request",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/SupervisorUpdateApiModel"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/v2/supervisors/{supervisorId}/status": {
+      "get": {
+        "tags": [
+          "Supervisors"
+        ],
+        "summary": "Get runtime status of supervisor",
+        "description": "Allows a caller to get runtime status for a supervisor.",
+        "operationId": "GetSupervisorStatus",
+        "consumes": [],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "supervisorId",
+            "in": "path",
+            "description": "supervisor identifier",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/SupervisorStatusApiModel"
+            }
+          }
+        }
+      }
+    },
+    "/v2/supervisors/{supervisorId}/reset": {
+      "post": {
+        "tags": [
+          "Supervisors"
+        ],
+        "summary": "Reset supervisor",
+        "description": "Allows a caller to reset the twin module using its supervisor\r\nidentity identifier.",
+        "operationId": "ResetSupervisor",
+        "consumes": [],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "supervisorId",
+            "in": "path",
+            "description": "supervisor identifier",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/v2/supervisors": {
+      "get": {
+        "tags": [
+          "Supervisors"
+        ],
+        "summary": "Get list of supervisors",
+        "description": "Get all registered supervisors and therefore twin modules in paged form.\r\nThe returned model can contain a continuation token if more results are\r\navailable.\r\nCall this operation again using the token to retrieve more results.",
+        "operationId": "GetListOfSupervisors",
+        "consumes": [],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "onlyServerState",
+            "in": "query",
+            "description": "Whether to include only server\r\n            state, or display current client state of the endpoint if available",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "continuationToken",
+            "in": "query",
+            "description": "Optional Continuation token",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "Optional number of results to return",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/SupervisorListApiModel"
+            }
+          }
+        },
+        "x-ms-pageable": {
+          "nextLinkName": "continuationToken"
+        }
+      }
+    },
+    "/v2/supervisors/query": {
+      "get": {
+        "tags": [
+          "Supervisors"
+        ],
+        "summary": "Get filtered list of supervisors",
+        "description": "Get a list of supervisors filtered using the specified query parameters.\r\nThe returned model can contain a continuation token if more results are\r\navailable.\r\nCall the GetListOfSupervisors operation using the token to retrieve\r\nmore results.",
+        "operationId": "GetFilteredListOfSupervisors",
+        "consumes": [],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "SiteId",
+            "in": "query",
+            "description": "Site of the supervisor",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "Discovery",
+            "in": "query",
+            "description": "Discovery mode of supervisor",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "Off",
+              "Local",
+              "Network",
+              "Fast",
+              "Scan"
+            ]
+          },
+          {
+            "name": "Connected",
+            "in": "query",
+            "description": "Included connected or disconnected",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "onlyServerState",
+            "in": "query",
+            "description": "Whether to include only server\r\n            state, or display current client state of the endpoint if\r\n            available",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "Number of results to return",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/SupervisorListApiModel"
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Supervisors"
+        ],
+        "summary": "Query supervisors",
+        "description": "Get all supervisors that match a specified query.\r\nThe returned model can contain a continuation token if more results are\r\navailable.\r\nCall the GetListOfSupervisors operation using the token to retrieve\r\nmore results.",
+        "operationId": "QuerySupervisors",
+        "consumes": [
+          "application/json-patch+json",
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "query",
+            "in": "body",
+            "description": "Supervisors query model",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/SupervisorQueryApiModel"
+            }
+          },
+          {
+            "name": "onlyServerState",
+            "in": "query",
+            "description": "Whether to include only server\r\n            state, or display current client state of the endpoint if\r\n            available",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "Number of results to return",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/SupervisorListApiModel"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "ServerRegistrationRequestApiModel": {
+      "description": "Application registration request",
+      "required": [
+        "discoveryUrl"
+      ],
+      "type": "object",
+      "properties": {
+        "discoveryUrl": {
+          "description": "Discovery url to use for registration",
+          "type": "string"
+        },
+        "id": {
+          "description": "Registration id",
+          "type": "string"
+        },
+        "callback": {
+          "$ref": "#/definitions/CallbackApiModel",
+          "description": "An optional callback hook to register."
+        },
+        "activationFilter": {
+          "$ref": "#/definitions/EndpointActivationFilterApiModel",
+          "description": "Upon discovery, activate all endpoints with this filter."
+        }
+      }
+    },
+    "CallbackApiModel": {
+      "description": "A registered callback",
+      "type": "object",
+      "properties": {
+        "uri": {
+          "description": "Uri to call - should use https scheme in which\r\ncase security is enforced.",
+          "type": "string"
+        },
+        "method": {
+          "description": "Http Method to use for callback",
+          "enum": [
+            "Get",
+            "Post",
+            "Put",
+            "Delete"
+          ],
+          "type": "string",
+          "x-ms-enum": {
+            "name": "CallbackMethodType",
+            "modelAsString": false
+          }
+        },
+        "authenticationHeader": {
+          "description": "Authentication header to add or null if not needed",
+          "type": "string"
+        }
+      }
+    },
+    "EndpointActivationFilterApiModel": {
+      "description": "Endpoint Activation Filter model",
+      "type": "object",
+      "properties": {
+        "trustLists": {
+          "description": "Certificate trust list identifiers to use for\r\nactivation, if null, all certificates are\r\ntrusted.  If empty list, no certificates are\r\ntrusted which is equal to no filter.",
+          "uniqueItems": false,
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "securityPolicies": {
+          "description": "Endpoint security policies to filter against.\r\nIf set to null, all policies are in scope.",
+          "uniqueItems": false,
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "securityMode": {
+          "description": "Security mode level to activate. If null,\r\nthen Microsoft.Azure.IIoT.OpcUa.Registry.Models.SecurityMode.Best is assumed.",
+          "enum": [
+            "Best",
+            "Sign",
+            "SignAndEncrypt",
+            "None"
+          ],
+          "type": "string",
+          "x-ms-enum": {
+            "name": "SecurityMode",
+            "modelAsString": false
+          }
+        }
+      }
+    },
+    "ApplicationRegistrationRequestApiModel": {
+      "description": "Application information",
+      "required": [
+        "applicationUri"
+      ],
+      "type": "object",
+      "properties": {
+        "applicationUri": {
+          "description": "Unique application uri",
+          "type": "string"
+        },
+        "applicationType": {
+          "description": "Type of application",
+          "enum": [
+            "Server",
+            "Client",
+            "ClientAndServer",
+            "DiscoveryServer"
+          ],
+          "type": "string",
+          "example": "Server",
+          "x-ms-enum": {
+            "name": "ApplicationType",
+            "modelAsString": false
+          }
+        },
+        "productUri": {
+          "description": "Product uri of the application.",
+          "type": "string",
+          "example": "http://contoso.com/fridge/1.0"
+        },
+        "applicationName": {
+          "description": "Default name of the server or client.",
+          "type": "string"
+        },
+        "locale": {
+          "description": "Locale of default name",
+          "type": "string"
+        },
+        "siteId": {
+          "description": "Site of the application",
+          "type": "string"
+        },
+        "localizedNames": {
+          "description": "Localized names key off locale id.",
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "capabilities": {
+          "description": "The OPC UA defined capabilities of the server.",
+          "uniqueItems": true,
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "example": "LDS"
+        },
+        "discoveryUrls": {
+          "description": "Discovery urls of the server.",
+          "uniqueItems": true,
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "discoveryProfileUri": {
+          "description": "The discovery profile uri of the server.",
+          "type": "string"
+        },
+        "gatewayServerUri": {
+          "description": "Gateway server uri",
+          "type": "string"
+        }
+      }
+    },
+    "ApplicationRegistrationResponseApiModel": {
+      "description": "Result of an application registration",
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "New id application was registered under",
+          "type": "string"
+        }
+      }
+    },
+    "ApplicationInfoListApiModel": {
+      "description": "List of registered applications",
+      "type": "object",
+      "properties": {
+        "items": {
+          "description": "Application infos",
+          "uniqueItems": false,
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ApplicationInfoApiModel"
+          }
+        },
+        "continuationToken": {
+          "description": "Continuation or null if final",
+          "type": "string"
+        }
+      }
+    },
+    "ApplicationInfoApiModel": {
+      "description": "Application info model",
+      "type": "object",
+      "properties": {
+        "state": {
+          "description": "State",
+          "default": "New",
+          "enum": [
+            "New",
+            "Approved",
+            "Rejected"
+          ],
+          "type": "string",
+          "x-ms-enum": {
+            "name": "ApplicationState",
+            "modelAsString": false
+          }
+        },
+        "applicationId": {
+          "description": "Unique application id",
+          "type": "string"
+        },
+        "applicationType": {
+          "description": "Type of application",
+          "enum": [
+            "Server",
+            "Client",
+            "ClientAndServer",
+            "DiscoveryServer"
+          ],
+          "type": "string",
+          "example": "Server",
+          "x-ms-enum": {
+            "name": "ApplicationType",
+            "modelAsString": false
+          }
+        },
+        "applicationUri": {
+          "description": "Unique application uri",
+          "type": "string"
+        },
+        "productUri": {
+          "description": "Product uri",
+          "type": "string"
+        },
+        "applicationName": {
+          "description": "Default name of application",
+          "type": "string"
+        },
+        "locale": {
+          "description": "Locale of default name - defaults to \"en\"",
+          "type": "string"
+        },
+        "localizedNames": {
+          "description": "Localized Names of application keyed on locale",
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "certificate": {
+          "format": "byte",
+          "description": "Application public cert",
+          "type": "string"
+        },
+        "capabilities": {
+          "description": "The capabilities advertised by the server.",
+          "uniqueItems": true,
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "example": "LDS"
+        },
+        "discoveryUrls": {
+          "description": "Discovery urls of the server",
+          "uniqueItems": true,
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "discoveryProfileUri": {
+          "description": "Discovery profile uri",
+          "type": "string"
+        },
+        "gatewayServerUri": {
+          "description": "Gateway server uri",
+          "type": "string"
+        },
+        "hostAddresses": {
+          "description": "Host addresses of server application or null",
+          "uniqueItems": true,
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "siteId": {
+          "description": "Site of the application",
+          "type": "string",
+          "example": "productionlineA"
+        },
+        "supervisorId": {
+          "description": "Supervisor having registered the application",
+          "type": "string"
+        },
+        "notSeenSince": {
+          "format": "date-time",
+          "description": "Last time application was seen",
+          "type": "string"
+        },
+        "created": {
+          "$ref": "#/definitions/RegistryOperationApiModel",
+          "description": "Created"
+        },
+        "approved": {
+          "$ref": "#/definitions/RegistryOperationApiModel",
+          "description": "Approved"
+        },
+        "updated": {
+          "$ref": "#/definitions/RegistryOperationApiModel",
+          "description": "Updated"
+        }
+      }
+    },
+    "RegistryOperationApiModel": {
+      "description": "Registry operation log model",
+      "required": [
+        "authorityId",
+        "time"
+      ],
+      "type": "object",
+      "properties": {
+        "authorityId": {
+          "description": "Operation User",
+          "type": "string"
+        },
+        "time": {
+          "format": "date-time",
+          "description": "Operation time",
+          "type": "string"
+        }
+      }
+    },
+    "DiscoveryRequestApiModel": {
+      "description": "Discovery request",
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "Id of discovery request",
+          "type": "string"
+        },
+        "discovery": {
+          "description": "Discovery mode to use",
+          "enum": [
+            "Off",
+            "Local",
+            "Network",
+            "Fast",
+            "Scan"
+          ],
+          "type": "string",
+          "x-ms-enum": {
+            "name": "DiscoveryMode",
+            "modelAsString": false
+          }
+        },
+        "configuration": {
+          "$ref": "#/definitions/DiscoveryConfigApiModel",
+          "description": "Scan configuration to use"
+        }
+      }
+    },
+    "DiscoveryConfigApiModel": {
+      "description": "Discovery configuration",
+      "type": "object",
+      "properties": {
+        "addressRangesToScan": {
+          "description": "Address ranges to scan (null == all wired nics)",
+          "type": "string"
+        },
+        "networkProbeTimeoutMs": {
+          "format": "int32",
+          "description": "Network probe timeout",
+          "type": "integer"
+        },
+        "maxNetworkProbes": {
+          "format": "int32",
+          "description": "Max network probes that should ever run.",
+          "type": "integer"
+        },
+        "portRangesToScan": {
+          "description": "Port ranges to scan (null == all unassigned)",
+          "type": "string"
+        },
+        "portProbeTimeoutMs": {
+          "format": "int32",
+          "description": "Port probe timeout",
+          "type": "integer"
+        },
+        "maxPortProbes": {
+          "format": "int32",
+          "description": "Max port probes that should ever run.",
+          "type": "integer"
+        },
+        "minPortProbesPercent": {
+          "format": "int32",
+          "description": "Probes that must always be there as percent of max.",
+          "type": "integer"
+        },
+        "idleTimeBetweenScansSec": {
+          "format": "int32",
+          "description": "Delay time between discovery sweeps in seconds",
+          "type": "integer"
+        },
+        "discoveryUrls": {
+          "description": "List of preset discovery urls to use",
+          "uniqueItems": false,
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "locales": {
+          "description": "List of locales to filter with during discovery",
+          "uniqueItems": false,
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "callbacks": {
+          "description": "Callbacks to invoke once onboarding finishes",
+          "uniqueItems": false,
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/CallbackApiModel"
+          }
+        },
+        "activationFilter": {
+          "$ref": "#/definitions/EndpointActivationFilterApiModel",
+          "description": "Activate all twins with this filter during onboarding."
+        }
+      }
+    },
+    "ApplicationRegistrationApiModel": {
+      "description": "Application with list of endpoints",
+      "required": [
+        "application"
+      ],
+      "type": "object",
+      "properties": {
+        "application": {
+          "$ref": "#/definitions/ApplicationInfoApiModel",
+          "description": "Application information"
+        },
+        "endpoints": {
+          "description": "List of endpoint twins",
+          "uniqueItems": false,
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/EndpointRegistrationApiModel"
+          }
+        },
+        "securityAssessment": {
+          "description": "Application security assessment",
+          "enum": [
+            "Unknown",
+            "Low",
+            "Medium",
+            "High"
+          ],
+          "type": "string",
+          "x-ms-enum": {
+            "name": "SecurityAssessment",
+            "modelAsString": false
+          }
+        }
+      }
+    },
+    "EndpointRegistrationApiModel": {
+      "description": "Endpoint registration model",
+      "required": [
+        "id",
+        "endpoint"
+      ],
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "Registered identifier of the endpoint",
+          "type": "string"
+        },
+        "endpointUrl": {
+          "description": "Original endpoint url of the endpoint",
+          "type": "string"
+        },
+        "siteId": {
+          "description": "Registered site of the endpoint",
+          "type": "string"
+        },
+        "endpoint": {
+          "$ref": "#/definitions/EndpointApiModel",
+          "description": "Endpoint information of the registration"
+        },
+        "securityLevel": {
+          "format": "int32",
+          "description": "Security level of the endpoint",
+          "type": "integer"
+        },
+        "authenticationMethods": {
+          "description": "Supported authentication methods that can be selected to\r\nobtain a credential and used to interact with the endpoint.",
+          "uniqueItems": false,
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AuthenticationMethodApiModel"
+          }
+        }
+      }
+    },
+    "EndpointApiModel": {
+      "description": "Endpoint model",
+      "required": [
+        "url"
+      ],
+      "type": "object",
+      "properties": {
+        "url": {
+          "description": "Endpoint url to use to connect with",
+          "type": "string"
+        },
+        "alternativeUrls": {
+          "description": "Alternative endpoint urls that can be used for\r\naccessing and validating the server",
+          "uniqueItems": true,
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "user": {
+          "$ref": "#/definitions/CredentialApiModel",
+          "description": "User Authentication"
+        },
+        "securityMode": {
+          "description": "Security Mode to use for communication\r\ndefault to best.",
+          "default": "Best",
+          "enum": [
+            "Best",
+            "Sign",
+            "SignAndEncrypt",
+            "None"
+          ],
+          "type": "string",
+          "x-ms-enum": {
+            "name": "SecurityMode",
+            "modelAsString": false
+          }
+        },
+        "securityPolicy": {
+          "description": "Security policy uri to use for communication\r\ndefault to best.",
+          "type": "string"
+        },
+        "certificate": {
+          "format": "byte",
+          "description": "Endpoint certificate that was registered.",
+          "type": "string"
+        }
+      }
+    },
+    "AuthenticationMethodApiModel": {
+      "description": "Authentication Method model",
+      "required": [
+        "id"
+      ],
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "Method id",
+          "type": "string"
+        },
+        "credentialType": {
+          "description": "Type of credential",
+          "default": "None",
+          "enum": [
+            "None",
+            "UserName",
+            "X509Certificate",
+            "JwtToken"
+          ],
+          "type": "string",
+          "x-ms-enum": {
+            "name": "CredentialType",
+            "modelAsString": false
+          }
+        },
+        "securityPolicy": {
+          "description": "Security policy to use when passing credential.",
+          "type": "string"
+        },
+        "configuration": {
+          "description": "Method specific configuration",
+          "type": "object"
+        }
+      }
+    },
+    "CredentialApiModel": {
+      "description": "Credential model",
+      "type": "object",
+      "properties": {
+        "type": {
+          "description": "Type of credential",
+          "default": "None",
+          "enum": [
+            "None",
+            "UserName",
+            "X509Certificate",
+            "JwtToken"
+          ],
+          "type": "string",
+          "x-ms-enum": {
+            "name": "CredentialType",
+            "modelAsString": false
+          }
+        },
+        "value": {
+          "description": "Value to pass to server",
+          "type": "object"
+        }
+      }
+    },
+    "ApplicationRegistrationUpdateApiModel": {
+      "description": "Application registration update request",
+      "type": "object",
+      "properties": {
+        "productUri": {
+          "description": "Product uri",
+          "type": "string"
+        },
+        "applicationName": {
+          "description": "Default name of the server or client.",
+          "type": "string"
+        },
+        "locale": {
+          "description": "Locale of default name - defaults to \"en\"",
+          "type": "string"
+        },
+        "localizedNames": {
+          "description": "Localized names keyed off locale id.\r\nTo remove entry, set value for locale id to null.",
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "certificate": {
+          "format": "byte",
+          "description": "Application public cert",
+          "type": "string"
+        },
+        "capabilities": {
+          "description": "Capabilities of the application",
+          "uniqueItems": true,
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "discoveryUrls": {
+          "description": "Discovery urls of the application",
+          "uniqueItems": true,
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "discoveryProfileUri": {
+          "description": "Discovery profile uri",
+          "type": "string"
+        },
+        "gatewayServerUri": {
+          "description": "Gateway server uri",
+          "type": "string"
+        }
+      }
+    },
+    "ApplicationSiteListApiModel": {
+      "description": "List of application sites",
+      "type": "object",
+      "properties": {
+        "sites": {
+          "description": "Distinct list of sites applications were registered in.",
+          "uniqueItems": false,
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "continuationToken": {
+          "description": "Continuation or null if final",
+          "type": "string"
+        }
+      }
+    },
+    "ApplicationRegistrationQueryApiModel": {
+      "description": "Application information",
+      "type": "object",
+      "properties": {
+        "applicationType": {
+          "description": "Type of application",
+          "enum": [
+            "Server",
+            "Client",
+            "ClientAndServer",
+            "DiscoveryServer"
+          ],
+          "type": "string",
+          "x-ms-enum": {
+            "name": "ApplicationType",
+            "modelAsString": false
+          }
+        },
+        "applicationUri": {
+          "description": "Application uri",
+          "type": "string"
+        },
+        "productUri": {
+          "description": "Product uri",
+          "type": "string"
+        },
+        "applicationName": {
+          "description": "Name of application",
+          "type": "string"
+        },
+        "locale": {
+          "description": "Locale of application name - default is \"en\"",
+          "type": "string"
+        },
+        "capability": {
+          "description": "Application capability to query with",
+          "type": "string"
+        },
+        "discoveryProfileUri": {
+          "description": "Discovery profile uri",
+          "type": "string"
+        },
+        "gatewayServerUri": {
+          "description": "Gateway server uri",
+          "type": "string"
+        },
+        "siteOrSupervisorId": {
+          "description": "Supervisor or site the application belongs to.",
+          "type": "string"
+        },
+        "state": {
+          "description": "State of application",
+          "enum": [
+            "Any",
+            "New",
+            "Approved",
+            "Rejected",
+            "Unregistered",
+            "Deleted"
+          ],
+          "type": "string",
+          "x-ms-enum": {
+            "name": "ApplicationStateMask",
+            "modelAsString": false
+          }
+        },
+        "includeNotSeenSince": {
+          "description": "Whether to include apps that were soft deleted",
+          "type": "boolean"
+        }
+      }
+    },
+    "ApplicationRecordQueryApiModel": {
+      "description": "Query by id",
+      "type": "object",
+      "properties": {
+        "startingRecordId": {
+          "format": "int32",
+          "description": "Starting record id",
+          "type": "integer"
+        },
+        "maxRecordsToReturn": {
+          "format": "int32",
+          "description": "Max records to return",
+          "type": "integer"
+        },
+        "applicationName": {
+          "description": "Application name",
+          "type": "string"
+        },
+        "applicationUri": {
+          "description": "Application uri",
+          "type": "string"
+        },
+        "applicationType": {
+          "description": "Application type",
+          "enum": [
+            "Server",
+            "Client",
+            "ClientAndServer",
+            "DiscoveryServer"
+          ],
+          "type": "string",
+          "x-ms-enum": {
+            "name": "ApplicationType",
+            "modelAsString": false
+          }
+        },
+        "productUri": {
+          "description": "Product uri",
+          "type": "string"
+        },
+        "serverCapabilities": {
+          "description": "Server capabilities",
+          "uniqueItems": false,
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "ApplicationRecordListApiModel": {
+      "description": "Create response",
+      "required": [
+        "lastCounterResetTime",
+        "nextRecordId"
+      ],
+      "type": "object",
+      "properties": {
+        "applications": {
+          "description": "Applications found",
+          "uniqueItems": false,
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ApplicationRecordApiModel"
+          }
+        },
+        "lastCounterResetTime": {
+          "format": "date-time",
+          "description": "Last counter reset",
+          "type": "string"
+        },
+        "nextRecordId": {
+          "format": "int32",
+          "description": "Next record id",
+          "type": "integer"
+        }
+      }
+    },
+    "ApplicationRecordApiModel": {
+      "description": "Application with optional list of endpoints",
+      "required": [
+        "recordId",
+        "application"
+      ],
+      "type": "object",
+      "properties": {
+        "recordId": {
+          "format": "int32",
+          "description": "Record id",
+          "type": "integer"
+        },
+        "application": {
+          "$ref": "#/definitions/ApplicationInfoApiModel",
+          "description": "Application information"
+        }
+      }
+    },
+    "EndpointRegistrationUpdateApiModel": {
+      "description": "Endpoint registration update request",
+      "type": "object",
+      "properties": {
+        "user": {
+          "$ref": "#/definitions/CredentialApiModel",
+          "description": "User authentication to change on the endpoint."
+        }
+      }
+    },
+    "EndpointInfoApiModel": {
+      "description": "Endpoint registration model",
+      "required": [
+        "registration",
+        "applicationId"
+      ],
+      "type": "object",
+      "properties": {
+        "registration": {
+          "$ref": "#/definitions/EndpointRegistrationApiModel",
+          "description": "Endpoint registration"
+        },
+        "applicationId": {
+          "description": "Application id endpoint is registered under.",
+          "type": "string"
+        },
+        "activationState": {
+          "description": "Activation state of endpoint",
+          "enum": [
+            "Deactivated",
+            "Activated",
+            "ActivatedAndConnected"
+          ],
+          "type": "string",
+          "x-ms-enum": {
+            "name": "EndpointActivationState",
+            "modelAsString": false
+          }
+        },
+        "endpointState": {
+          "description": "Last state of the activated endpoint",
+          "enum": [
+            "Connecting",
+            "NotReachable",
+            "Busy",
+            "NoTrust",
+            "CertificateInvalid",
+            "Ready",
+            "Error"
+          ],
+          "type": "string",
+          "x-ms-enum": {
+            "name": "EndpointConnectivityState",
+            "modelAsString": false
+          }
+        },
+        "outOfSync": {
+          "description": "Whether the registration is out of sync",
+          "type": "boolean"
+        },
+        "notSeenSince": {
+          "format": "date-time",
+          "description": "Last time endpoint was seen",
+          "type": "string"
+        }
+      }
+    },
+    "EndpointInfoListApiModel": {
+      "description": "Endpoint registration list",
+      "type": "object",
+      "properties": {
+        "items": {
+          "description": "Endpoint registrations",
+          "uniqueItems": false,
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/EndpointInfoApiModel"
+          }
+        },
+        "continuationToken": {
+          "description": "Continuation or null if final",
+          "type": "string"
+        }
+      }
+    },
+    "EndpointRegistrationQueryApiModel": {
+      "description": "Endpoint query",
+      "type": "object",
+      "properties": {
+        "url": {
+          "description": "Endoint url for direct server access",
+          "type": "string"
+        },
+        "userAuthentication": {
+          "description": "Type of credential selected for authentication",
+          "enum": [
+            "None",
+            "UserName",
+            "X509Certificate",
+            "JwtToken"
+          ],
+          "type": "string",
+          "x-ms-enum": {
+            "name": "CredentialType",
+            "modelAsString": false
+          }
+        },
+        "certificate": {
+          "format": "byte",
+          "description": "Certificate of the endpoint",
+          "type": "string"
+        },
+        "securityMode": {
+          "description": "Security Mode",
+          "enum": [
+            "Best",
+            "Sign",
+            "SignAndEncrypt",
+            "None"
+          ],
+          "type": "string",
+          "x-ms-enum": {
+            "name": "SecurityMode",
+            "modelAsString": false
+          }
+        },
+        "securityPolicy": {
+          "description": "Security policy uri",
+          "type": "string"
+        },
+        "activated": {
+          "description": "Whether the endpoint was activated",
+          "type": "boolean"
+        },
+        "connected": {
+          "description": "Whether the endpoint is connected on supervisor.",
+          "type": "boolean"
+        },
+        "endpointState": {
+          "description": "The last state of the the activated endpoint",
+          "enum": [
+            "Connecting",
+            "NotReachable",
+            "Busy",
+            "NoTrust",
+            "CertificateInvalid",
+            "Ready",
+            "Error"
+          ],
+          "type": "string",
+          "x-ms-enum": {
+            "name": "EndpointConnectivityState",
+            "modelAsString": false
+          }
+        },
+        "includeNotSeenSince": {
+          "description": "Whether to include endpoints that were soft deleted",
+          "type": "boolean"
+        }
+      }
+    },
+    "StatusResponseApiModel": {
+      "description": "Status response model",
+      "type": "object",
+      "properties": {
+        "name": {
+          "description": "Name of this service",
+          "type": "string"
+        },
+        "status": {
+          "description": "Operational status",
+          "type": "string"
+        },
+        "currentTime": {
+          "description": "Current time",
+          "type": "string",
+          "readOnly": true
+        },
+        "startTime": {
+          "description": "Start time of service",
+          "type": "string",
+          "readOnly": true
+        },
+        "upTime": {
+          "format": "int64",
+          "description": "Up time of service",
+          "type": "integer",
+          "readOnly": true
+        },
+        "uid": {
+          "description": "Value generated at bootstrap by each instance of the service and\r\nused to correlate logs coming from the same instance. The value\r\nchanges every time the service starts.",
+          "type": "string",
+          "readOnly": true
+        },
+        "properties": {
+          "description": "A property bag with details about the service",
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "readOnly": true
+        },
+        "dependencies": {
+          "description": "A property bag with details about the internal dependencies",
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "readOnly": true
+        },
+        "$metadata": {
+          "description": "Optional meta data.",
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "readOnly": true
+        }
+      }
+    },
+    "SupervisorApiModel": {
+      "description": "Supervisor registration model",
+      "required": [
+        "id"
+      ],
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "Supervisor id",
+          "type": "string"
+        },
+        "siteId": {
+          "description": "Site of the supervisor",
+          "type": "string"
+        },
+        "discovery": {
+          "description": "Whether the supervisor is in discovery mode",
+          "default": "Off",
+          "enum": [
+            "Off",
+            "Local",
+            "Network",
+            "Fast",
+            "Scan"
+          ],
+          "type": "string",
+          "x-ms-enum": {
+            "name": "DiscoveryMode",
+            "modelAsString": false
+          }
+        },
+        "discoveryConfig": {
+          "$ref": "#/definitions/DiscoveryConfigApiModel",
+          "description": "Supervisor configuration"
+        },
+        "certificate": {
+          "format": "byte",
+          "description": "Supervisor public client cert",
+          "type": "string"
+        },
+        "logLevel": {
+          "description": "Current log level",
+          "default": "Information",
+          "enum": [
+            "Error",
+            "Information",
+            "Debug",
+            "Verbose"
+          ],
+          "type": "string",
+          "x-ms-enum": {
+            "name": "SupervisorLogLevel",
+            "modelAsString": false
+          }
+        },
+        "outOfSync": {
+          "description": "Whether the registration is out of sync between\r\nclient (module) and server (service) (default: false).",
+          "type": "boolean"
+        },
+        "connected": {
+          "description": "Whether supervisor is connected on this registration",
+          "type": "boolean"
+        }
+      }
+    },
+    "SupervisorUpdateApiModel": {
+      "description": "Supervisor registration update request",
+      "type": "object",
+      "properties": {
+        "siteId": {
+          "description": "Site of the supervisor",
+          "type": "string"
+        },
+        "discovery": {
+          "description": "Whether the supervisor is in discovery mode.\r\nIf null, does not change.",
+          "default": "Off",
+          "enum": [
+            "Off",
+            "Local",
+            "Network",
+            "Fast",
+            "Scan"
+          ],
+          "type": "string",
+          "x-ms-enum": {
+            "name": "DiscoveryMode",
+            "modelAsString": false
+          }
+        },
+        "discoveryConfig": {
+          "$ref": "#/definitions/DiscoveryConfigApiModel",
+          "description": "Supervisor discovery configuration"
+        },
+        "discoveryCallbacks": {
+          "description": "Callbacks to add or remove (see below)",
+          "uniqueItems": false,
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/CallbackApiModel"
+          }
+        },
+        "removeDiscoveryCallbacks": {
+          "description": "Whether to add or remove callbacks",
+          "type": "boolean"
+        },
+        "logLevel": {
+          "description": "Current log level",
+          "enum": [
+            "Error",
+            "Information",
+            "Debug",
+            "Verbose"
+          ],
+          "type": "string",
+          "x-ms-enum": {
+            "name": "SupervisorLogLevel",
+            "modelAsString": false
+          }
+        }
+      }
+    },
+    "SupervisorStatusApiModel": {
+      "description": "Supervisor runtime status",
+      "required": [
+        "deviceId"
+      ],
+      "type": "object",
+      "properties": {
+        "deviceId": {
+          "description": "Edge device id",
+          "type": "string"
+        },
+        "moduleId": {
+          "description": "Module id",
+          "type": "string"
+        },
+        "siteId": {
+          "description": "Site id",
+          "type": "string"
+        },
+        "endpoints": {
+          "description": "Endpoint activation status",
+          "uniqueItems": false,
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/EndpointActivationStatusApiModel"
+          }
+        }
+      }
+    },
+    "EndpointActivationStatusApiModel": {
+      "description": "Endpoint Activation status model",
+      "required": [
+        "id"
+      ],
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "Identifier of the endoint",
+          "type": "string"
+        },
+        "activationState": {
+          "description": "Activation state",
+          "enum": [
+            "Deactivated",
+            "Activated",
+            "ActivatedAndConnected"
+          ],
+          "type": "string",
+          "x-ms-enum": {
+            "name": "EndpointActivationState",
+            "modelAsString": false
+          }
+        }
+      }
+    },
+    "SupervisorListApiModel": {
+      "description": "Supervisor registration list",
+      "type": "object",
+      "properties": {
+        "items": {
+          "description": "Registrations",
+          "uniqueItems": false,
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/SupervisorApiModel"
+          }
+        },
+        "continuationToken": {
+          "description": "Continuation or null if final",
+          "type": "string"
+        }
+      }
+    },
+    "SupervisorQueryApiModel": {
+      "description": "Supervisor registration query",
+      "type": "object",
+      "properties": {
+        "siteId": {
+          "description": "Site of the supervisor",
+          "type": "string"
+        },
+        "discovery": {
+          "description": "Discovery mode of supervisor",
+          "enum": [
+            "Off",
+            "Local",
+            "Network",
+            "Fast",
+            "Scan"
+          ],
+          "type": "string",
+          "x-ms-enum": {
+            "name": "DiscoveryMode",
+            "modelAsString": false
+          }
+        },
+        "connected": {
+          "description": "Included connected or disconnected",
+          "type": "boolean"
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Applications",
+      "description": "CRUD and Query application resources"
+    },
+    {
+      "name": "Endpoints",
+      "description": "Activate, Deactivate and Query endpoint resources"
+    },
+    {
+      "name": "Status",
+      "description": "Status checks"
+    },
+    {
+      "name": "Supervisors",
+      "description": "Read, Update and Query supervisor resources"
+    }
+  ]
+}

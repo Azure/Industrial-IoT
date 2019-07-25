@@ -17,8 +17,8 @@ This article explains how to deploy only the Azure Platform Microservices need t
 2. If you have not done so yet, clone this GitHub repository.  Open a command prompt or terminal and run:
 
    ```bash
-   git clone --recursive https://github.com/Azure/azure-iiot-components
-   cd azure-iiot-components
+   git clone --recursive https://github.com/Azure/Industrial-IoT
+   cd Industrial-IoT
    ```
 
 ## Deploy Azure Platform Microservices

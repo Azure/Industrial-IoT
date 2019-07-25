@@ -202,6 +202,178 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             }
 
             /// <summary>
+            /// Approve a new application.
+            /// </summary>
+            /// <remarks>
+            /// A manager can approve a new application or force an application
+            /// from any state.
+            /// After approval the application is in the 'Approved' state.
+            /// Requires Manager role.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='applicationId'>
+            /// The application id
+            /// </param>
+            /// <param name='force'>
+            /// optional, force application in new state
+            /// </param>
+            public static void ApproveApplication(this IAzureOpcRegistryClient operations, string applicationId, bool? force = default(bool?))
+            {
+                operations.ApproveApplicationAsync(applicationId, force).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Approve a new application.
+            /// </summary>
+            /// <remarks>
+            /// A manager can approve a new application or force an application
+            /// from any state.
+            /// After approval the application is in the 'Approved' state.
+            /// Requires Manager role.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='applicationId'>
+            /// The application id
+            /// </param>
+            /// <param name='force'>
+            /// optional, force application in new state
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task ApproveApplicationAsync(this IAzureOpcRegistryClient operations, string applicationId, bool? force = default(bool?), CancellationToken cancellationToken = default(CancellationToken))
+            {
+                (await operations.ApproveApplicationWithHttpMessagesAsync(applicationId, force, null, cancellationToken).ConfigureAwait(false)).Dispose();
+            }
+
+            /// <summary>
+            /// Reject a new application.
+            /// </summary>
+            /// <remarks>
+            /// A manager can approve a new application or force an application
+            /// from any state.
+            /// After approval the application is in the 'Rejected' state.
+            /// Requires Manager role.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='applicationId'>
+            /// The application id
+            /// </param>
+            /// <param name='force'>
+            /// optional, force application in new state
+            /// </param>
+            public static void RejectApplication(this IAzureOpcRegistryClient operations, string applicationId, bool? force = default(bool?))
+            {
+                operations.RejectApplicationAsync(applicationId, force).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Reject a new application.
+            /// </summary>
+            /// <remarks>
+            /// A manager can approve a new application or force an application
+            /// from any state.
+            /// After approval the application is in the 'Rejected' state.
+            /// Requires Manager role.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='applicationId'>
+            /// The application id
+            /// </param>
+            /// <param name='force'>
+            /// optional, force application in new state
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task RejectApplicationAsync(this IAzureOpcRegistryClient operations, string applicationId, bool? force = default(bool?), CancellationToken cancellationToken = default(CancellationToken))
+            {
+                (await operations.RejectApplicationWithHttpMessagesAsync(applicationId, force, null, cancellationToken).ConfigureAwait(false)).Dispose();
+            }
+
+            /// <summary>
+            /// Disable an enabled application.
+            /// </summary>
+            /// <remarks>
+            /// A manager can disable an application.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='applicationId'>
+            /// The application id
+            /// </param>
+            public static void DisableApplication(this IAzureOpcRegistryClient operations, string applicationId)
+            {
+                operations.DisableApplicationAsync(applicationId).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Disable an enabled application.
+            /// </summary>
+            /// <remarks>
+            /// A manager can disable an application.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='applicationId'>
+            /// The application id
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task DisableApplicationAsync(this IAzureOpcRegistryClient operations, string applicationId, CancellationToken cancellationToken = default(CancellationToken))
+            {
+                (await operations.DisableApplicationWithHttpMessagesAsync(applicationId, null, cancellationToken).ConfigureAwait(false)).Dispose();
+            }
+
+            /// <summary>
+            /// Re-enable a disabled application.
+            /// </summary>
+            /// <remarks>
+            /// A manager can enable an application.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='applicationId'>
+            /// The application id
+            /// </param>
+            public static void EnableApplication(this IAzureOpcRegistryClient operations, string applicationId)
+            {
+                operations.EnableApplicationAsync(applicationId).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Re-enable a disabled application.
+            /// </summary>
+            /// <remarks>
+            /// A manager can enable an application.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='applicationId'>
+            /// The application id
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task EnableApplicationAsync(this IAzureOpcRegistryClient operations, string applicationId, CancellationToken cancellationToken = default(CancellationToken))
+            {
+                (await operations.EnableApplicationWithHttpMessagesAsync(applicationId, null, cancellationToken).ConfigureAwait(false)).Dispose();
+            }
+
+            /// <summary>
             /// Discover servers
             /// </summary>
             /// <remarks>
@@ -513,6 +685,44 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             public static async Task<ApplicationInfoListApiModel> QueryApplicationsAsync(this IAzureOpcRegistryClient operations, ApplicationRegistrationQueryApiModel query, int? pageSize = default(int?), CancellationToken cancellationToken = default(CancellationToken))
             {
                 using (var _result = await operations.QueryApplicationsWithHttpMessagesAsync(query, pageSize, null, cancellationToken).ConfigureAwait(false))
+                {
+                    return _result.Body;
+                }
+            }
+
+            /// <summary>
+            /// Query applications by id.
+            /// </summary>
+            /// <remarks>
+            /// A query model which supports the OPC UA Global Discovery Server query.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='query'>
+            /// </param>
+            public static ApplicationRecordListApiModel QueryApplicationsById(this IAzureOpcRegistryClient operations, ApplicationRecordQueryApiModel query = default(ApplicationRecordQueryApiModel))
+            {
+                return operations.QueryApplicationsByIdAsync(query).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Query applications by id.
+            /// </summary>
+            /// <remarks>
+            /// A query model which supports the OPC UA Global Discovery Server query.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='query'>
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task<ApplicationRecordListApiModel> QueryApplicationsByIdAsync(this IAzureOpcRegistryClient operations, ApplicationRecordQueryApiModel query = default(ApplicationRecordQueryApiModel), CancellationToken cancellationToken = default(CancellationToken))
+            {
+                using (var _result = await operations.QueryApplicationsByIdWithHttpMessagesAsync(query, null, cancellationToken).ConfigureAwait(false))
                 {
                     return _result.Body;
                 }

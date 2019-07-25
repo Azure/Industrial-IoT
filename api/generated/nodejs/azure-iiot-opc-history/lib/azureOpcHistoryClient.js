@@ -22,20 +22,56 @@ const models = require('./models');
 
 
 /**
- * @summary Get list of applications
+ * @summary Delete value history at specified times
  *
- * Get all registered applications in paged form.
- * The returned model can contain a continuation token if more results are
- * available.
- * Call this operation again using the token to retrieve more results.
+ * Delete value history using historic access.
+ * The endpoint must be activated and connected and the module client
+ * and server must trust each other.
+ *
+ * @param {string} endpointId The identifier of the activated endpoint.
+ *
+ * @param {object} request The history update request
+ *
+ * @param {string} [request.nodeId] Node to update
+ *
+ * @param {array} [request.browsePath] An optional path from NodeId instance to
+ * the actual node.
+ *
+ * @param {object} request.details The HistoryUpdateDetailsType extension
+ * object
+ * encoded as json Variant and containing the tunneled
+ * update request for the Historian server. The value
+ * is updated at edge using above node address.
+ *
+ * @param {array} request.details.reqTimes The timestamps to delete
+ *
+ * @param {object} [request.header] Optional request header
+ *
+ * @param {object} [request.header.elevation] Optional User elevation
+ *
+ * @param {string} [request.header.elevation.type] Type of credential. Possible
+ * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ *
+ * @param {object} [request.header.elevation.value] Value to pass to server
+ *
+ * @param {array} [request.header.locales] Optional list of locales in
+ * preference order.
+ *
+ * @param {object} [request.header.diagnostics] Optional diagnostics
+ * configuration
+ *
+ * @param {string} [request.header.diagnostics.level] Requested level of
+ * response diagnostics.
+ * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+ * 'Diagnostics', 'Verbose'
+ *
+ * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+ * (default: client generated)
+ *
+ * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+ * (default: client generated)
  *
  * @param {object} [options] Optional Parameters.
- *
- * @param {string} [options.continuationToken] Optional Continuation
- * token
- *
- * @param {number} [options.pageSize] Optional number of results to
- * return
  *
  * @param {object} [options.customHeaders] Headers that will be added to the
  * request
@@ -47,14 +83,14 @@ const models = require('./models');
  *                      {Error}  err        - The Error object if an error occurred, null otherwise.
  *
  *                      {object} [result]   - The deserialized result object if an error did not occur.
- *                      See {@link ApplicationInfoListApiModel} for more
+ *                      See {@link HistoryUpdateResponseApiModel} for more
  *                      information.
  *
  *                      {object} [request]  - The HTTP Request object if an error did not occur.
  *
  *                      {stream} [response] - The HTTP Response stream if an error did not occur.
  */
-function _getListOfApplications(options, callback) {
+function _historyDeleteValuesAtTimes(endpointId, request, options, callback) {
    /* jshint validthis: true */
   let client = this;
   if(!callback && typeof options === 'function') {
@@ -64,15 +100,13 @@ function _getListOfApplications(options, callback) {
   if (!callback) {
     throw new Error('callback cannot be null.');
   }
-  let continuationToken = (options && options.continuationToken !== undefined) ? options.continuationToken : undefined;
-  let pageSize = (options && options.pageSize !== undefined) ? options.pageSize : undefined;
   // Validate
   try {
-    if (continuationToken !== null && continuationToken !== undefined && typeof continuationToken.valueOf() !== 'string') {
-      throw new Error('continuationToken must be of type string.');
+    if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
+      throw new Error('endpointId cannot be null or undefined and it must be of type string.');
     }
-    if (pageSize !== null && pageSize !== undefined && typeof pageSize !== 'number') {
-      throw new Error('pageSize must be of type number.');
+    if (request === null || request === undefined) {
+      throw new Error('request cannot be null or undefined.');
     }
   } catch (error) {
     return callback(error);
@@ -80,25 +114,16 @@ function _getListOfApplications(options, callback) {
 
   // Construct URL
   let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/applications';
-  let queryParameters = [];
-  if (continuationToken !== null && continuationToken !== undefined) {
-    queryParameters.push('continuationToken=' + encodeURIComponent(continuationToken));
-  }
-  if (pageSize !== null && pageSize !== undefined) {
-    queryParameters.push('pageSize=' + encodeURIComponent(pageSize.toString()));
-  }
-  if (queryParameters.length > 0) {
-    requestUrl += '?' + queryParameters.join('&');
-  }
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/delete/{endpointId}/values/pick';
+  requestUrl = requestUrl.replace('{endpointId}', encodeURIComponent(endpointId));
 
   // Create HTTP transport objects
   let httpRequest = new WebResource();
-  httpRequest.method = 'GET';
+  httpRequest.method = 'POST';
   httpRequest.url = requestUrl;
   httpRequest.headers = {};
   // Set Headers
-  httpRequest.headers['Content-Type'] = 'application/json; charset=utf-8';
+  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
   if(options) {
     for(let headerName in options['customHeaders']) {
       if (options['customHeaders'].hasOwnProperty(headerName)) {
@@ -106,7 +131,21 @@ function _getListOfApplications(options, callback) {
       }
     }
   }
-  httpRequest.body = null;
+  // Serialize Request
+  let requestContent = null;
+  let requestModel = null;
+  try {
+    if (request !== null && request !== undefined) {
+      let requestModelMapper = new client.models['HistoryUpdateRequestApiModelDeleteValuesAtTimesDetailsApiModel']().mapper();
+      requestModel = client.serialize(requestModelMapper, request, 'request');
+      requestContent = JSON.stringify(requestModel);
+    }
+  } catch (error) {
+    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
+        `payload - ${JSON.stringify(request, null, 2)}.`);
+    return callback(serializationError);
+  }
+  httpRequest.body = requestContent;
   // Send Request
   return client.pipeline(httpRequest, (err, response, responseBody) => {
     if (err) {
@@ -145,7 +184,7 @@ function _getListOfApplications(options, callback) {
         parsedResponse = JSON.parse(responseBody);
         result = JSON.parse(responseBody);
         if (parsedResponse !== null && parsedResponse !== undefined) {
-          let resultMapper = new client.models['ApplicationInfoListApiModel']().mapper();
+          let resultMapper = new client.models['HistoryUpdateResponseApiModel']().mapper();
           result = client.deserialize(resultMapper, parsedResponse, 'result');
         }
       } catch (error) {
@@ -161,33 +200,56 @@ function _getListOfApplications(options, callback) {
 }
 
 /**
- * @summary Create new application
+ * @summary Delete historic values
  *
- * The application is registered using the provided information, but it
- * is not associated with a supervisor.  This is useful for when you need
- * to register clients or you want to register a server that is located
- * in a network not reachable through a Twin module.
+ * Delete historic values using historic access.
+ * The endpoint must be activated and connected and the module client
+ * and server must trust each other.
  *
- * @param {object} request Application registration request
+ * @param {string} endpointId The identifier of the activated endpoint.
  *
- * @param {string} request.applicationUri Unique application uri
+ * @param {object} request The history update request
  *
- * @param {string} [request.applicationType] Type of application. Possible
- * values include: 'Server', 'Client', 'ClientAndServer'
+ * @param {string} [request.nodeId] Node to update
  *
- * @param {string} [request.productUri] Product uri of the application.
+ * @param {array} [request.browsePath] An optional path from NodeId instance to
+ * the actual node.
  *
- * @param {string} [request.applicationName] Name of the server or client.
+ * @param {object} request.details The HistoryUpdateDetailsType extension
+ * object
+ * encoded as json Variant and containing the tunneled
+ * update request for the Historian server. The value
+ * is updated at edge using above node address.
  *
- * @param {string} [request.locale] Locale of name
+ * @param {date} [request.details.startTime] Start time
  *
- * @param {array} [request.capabilities] The OPC UA defined capabilities of the
- * server.
+ * @param {date} [request.details.endTime] End time to delete until
  *
- * @param {array} [request.discoveryUrls] Discovery urls of the server.
+ * @param {object} [request.header] Optional request header
  *
- * @param {string} [request.discoveryProfileUri] The discovery profile uri of
- * the server.
+ * @param {object} [request.header.elevation] Optional User elevation
+ *
+ * @param {string} [request.header.elevation.type] Type of credential. Possible
+ * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ *
+ * @param {object} [request.header.elevation.value] Value to pass to server
+ *
+ * @param {array} [request.header.locales] Optional list of locales in
+ * preference order.
+ *
+ * @param {object} [request.header.diagnostics] Optional diagnostics
+ * configuration
+ *
+ * @param {string} [request.header.diagnostics.level] Requested level of
+ * response diagnostics.
+ * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+ * 'Diagnostics', 'Verbose'
+ *
+ * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+ * (default: client generated)
+ *
+ * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+ * (default: client generated)
  *
  * @param {object} [options] Optional Parameters.
  *
@@ -201,1630 +263,724 @@ function _getListOfApplications(options, callback) {
  *                      {Error}  err        - The Error object if an error occurred, null otherwise.
  *
  *                      {object} [result]   - The deserialized result object if an error did not occur.
- *                      See {@link ApplicationRegistrationResponseApiModel} for
+ *                      See {@link HistoryUpdateResponseApiModel} for more
+ *                      information.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _historyDeleteValues(endpointId, request, options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  // Validate
+  try {
+    if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
+      throw new Error('endpointId cannot be null or undefined and it must be of type string.');
+    }
+    if (request === null || request === undefined) {
+      throw new Error('request cannot be null or undefined.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/delete/{endpointId}/values';
+  requestUrl = requestUrl.replace('{endpointId}', encodeURIComponent(endpointId));
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'POST';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  // Serialize Request
+  let requestContent = null;
+  let requestModel = null;
+  try {
+    if (request !== null && request !== undefined) {
+      let requestModelMapper = new client.models['HistoryUpdateRequestApiModelDeleteValuesDetailsApiModel']().mapper();
+      requestModel = client.serialize(requestModelMapper, request, 'request');
+      requestContent = JSON.stringify(requestModel);
+    }
+  } catch (error) {
+    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
+        `payload - ${JSON.stringify(request, null, 2)}.`);
+    return callback(serializationError);
+  }
+  httpRequest.body = requestContent;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+    // Deserialize Response
+    if (statusCode === 200) {
+      let parsedResponse = null;
+      try {
+        parsedResponse = JSON.parse(responseBody);
+        result = JSON.parse(responseBody);
+        if (parsedResponse !== null && parsedResponse !== undefined) {
+          let resultMapper = new client.models['HistoryUpdateResponseApiModel']().mapper();
+          result = client.deserialize(resultMapper, parsedResponse, 'result');
+        }
+      } catch (error) {
+        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
+        deserializationError.request = msRest.stripRequest(httpRequest);
+        deserializationError.response = msRest.stripResponse(response);
+        return callback(deserializationError);
+      }
+    }
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
+ * @summary Delete historic values
+ *
+ * Delete historic values using historic access.
+ * The endpoint must be activated and connected and the module client
+ * and server must trust each other.
+ *
+ * @param {string} endpointId The identifier of the activated endpoint.
+ *
+ * @param {object} request The history update request
+ *
+ * @param {string} [request.nodeId] Node to update
+ *
+ * @param {array} [request.browsePath] An optional path from NodeId instance to
+ * the actual node.
+ *
+ * @param {object} request.details The HistoryUpdateDetailsType extension
+ * object
+ * encoded as json Variant and containing the tunneled
+ * update request for the Historian server. The value
+ * is updated at edge using above node address.
+ *
+ * @param {date} [request.details.startTime] Start time
+ *
+ * @param {date} [request.details.endTime] End time to delete until
+ *
+ * @param {object} [request.header] Optional request header
+ *
+ * @param {object} [request.header.elevation] Optional User elevation
+ *
+ * @param {string} [request.header.elevation.type] Type of credential. Possible
+ * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ *
+ * @param {object} [request.header.elevation.value] Value to pass to server
+ *
+ * @param {array} [request.header.locales] Optional list of locales in
+ * preference order.
+ *
+ * @param {object} [request.header.diagnostics] Optional diagnostics
+ * configuration
+ *
+ * @param {string} [request.header.diagnostics.level] Requested level of
+ * response diagnostics.
+ * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+ * 'Diagnostics', 'Verbose'
+ *
+ * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+ * (default: client generated)
+ *
+ * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+ * (default: client generated)
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {object} [result]   - The deserialized result object if an error did not occur.
+ *                      See {@link HistoryUpdateResponseApiModel} for more
+ *                      information.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _historyDeleteModifiedValues(endpointId, request, options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  // Validate
+  try {
+    if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
+      throw new Error('endpointId cannot be null or undefined and it must be of type string.');
+    }
+    if (request === null || request === undefined) {
+      throw new Error('request cannot be null or undefined.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/delete/{endpointId}/values/modified';
+  requestUrl = requestUrl.replace('{endpointId}', encodeURIComponent(endpointId));
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'POST';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  // Serialize Request
+  let requestContent = null;
+  let requestModel = null;
+  try {
+    if (request !== null && request !== undefined) {
+      let requestModelMapper = new client.models['HistoryUpdateRequestApiModelDeleteModifiedValuesDetailsApiModel']().mapper();
+      requestModel = client.serialize(requestModelMapper, request, 'request');
+      requestContent = JSON.stringify(requestModel);
+    }
+  } catch (error) {
+    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
+        `payload - ${JSON.stringify(request, null, 2)}.`);
+    return callback(serializationError);
+  }
+  httpRequest.body = requestContent;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+    // Deserialize Response
+    if (statusCode === 200) {
+      let parsedResponse = null;
+      try {
+        parsedResponse = JSON.parse(responseBody);
+        result = JSON.parse(responseBody);
+        if (parsedResponse !== null && parsedResponse !== undefined) {
+          let resultMapper = new client.models['HistoryUpdateResponseApiModel']().mapper();
+          result = client.deserialize(resultMapper, parsedResponse, 'result');
+        }
+      } catch (error) {
+        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
+        deserializationError.request = msRest.stripRequest(httpRequest);
+        deserializationError.response = msRest.stripResponse(response);
+        return callback(deserializationError);
+      }
+    }
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
+ * @summary Delete historic events
+ *
+ * Delete historic events using historic access.
+ * The endpoint must be activated and connected and the module client
+ * and server must trust each other.
+ *
+ * @param {string} endpointId The identifier of the activated endpoint.
+ *
+ * @param {object} request The history update request
+ *
+ * @param {string} [request.nodeId] Node to update
+ *
+ * @param {array} [request.browsePath] An optional path from NodeId instance to
+ * the actual node.
+ *
+ * @param {object} request.details The HistoryUpdateDetailsType extension
+ * object
+ * encoded as json Variant and containing the tunneled
+ * update request for the Historian server. The value
+ * is updated at edge using above node address.
+ *
+ * @param {array} request.details.eventIds Events to delete
+ *
+ * @param {object} [request.header] Optional request header
+ *
+ * @param {object} [request.header.elevation] Optional User elevation
+ *
+ * @param {string} [request.header.elevation.type] Type of credential. Possible
+ * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ *
+ * @param {object} [request.header.elevation.value] Value to pass to server
+ *
+ * @param {array} [request.header.locales] Optional list of locales in
+ * preference order.
+ *
+ * @param {object} [request.header.diagnostics] Optional diagnostics
+ * configuration
+ *
+ * @param {string} [request.header.diagnostics.level] Requested level of
+ * response diagnostics.
+ * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+ * 'Diagnostics', 'Verbose'
+ *
+ * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+ * (default: client generated)
+ *
+ * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+ * (default: client generated)
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {object} [result]   - The deserialized result object if an error did not occur.
+ *                      See {@link HistoryUpdateResponseApiModel} for more
+ *                      information.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _historyDeleteEvents(endpointId, request, options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  // Validate
+  try {
+    if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
+      throw new Error('endpointId cannot be null or undefined and it must be of type string.');
+    }
+    if (request === null || request === undefined) {
+      throw new Error('request cannot be null or undefined.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/delete/{endpointId}/events';
+  requestUrl = requestUrl.replace('{endpointId}', encodeURIComponent(endpointId));
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'POST';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  // Serialize Request
+  let requestContent = null;
+  let requestModel = null;
+  try {
+    if (request !== null && request !== undefined) {
+      let requestModelMapper = new client.models['HistoryUpdateRequestApiModelDeleteEventsDetailsApiModel']().mapper();
+      requestModel = client.serialize(requestModelMapper, request, 'request');
+      requestContent = JSON.stringify(requestModel);
+    }
+  } catch (error) {
+    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
+        `payload - ${JSON.stringify(request, null, 2)}.`);
+    return callback(serializationError);
+  }
+  httpRequest.body = requestContent;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+    // Deserialize Response
+    if (statusCode === 200) {
+      let parsedResponse = null;
+      try {
+        parsedResponse = JSON.parse(responseBody);
+        result = JSON.parse(responseBody);
+        if (parsedResponse !== null && parsedResponse !== undefined) {
+          let resultMapper = new client.models['HistoryUpdateResponseApiModel']().mapper();
+          result = client.deserialize(resultMapper, parsedResponse, 'result');
+        }
+      } catch (error) {
+        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
+        deserializationError.request = msRest.stripRequest(httpRequest);
+        deserializationError.response = msRest.stripResponse(response);
+        return callback(deserializationError);
+      }
+    }
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
+ * @summary Read history using json details
+ *
+ * Read node history if available using historic access.
+ * The endpoint must be activated and connected and the module client
+ * and server must trust each other.
+ *
+ * @param {string} endpointId The identifier of the activated endpoint.
+ *
+ * @param {object} request The history read request
+ *
+ * @param {string} [request.nodeId] Node to read from (mandatory)
+ *
+ * @param {array} [request.browsePath] An optional path from NodeId instance to
+ * the actual node.
+ *
+ * @param {object} [request.details] The HistoryReadDetailsType extension
+ * object
+ * encoded in json and containing the tunneled
+ * Historian reader request.
+ *
+ * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
+ * slices
+ * out of a matrix or 0:1 for the first item in
+ * an array, string or bytestring.
+ * See 7.22 of part 4: NumericRange.
+ *
+ * @param {object} [request.header] Optional request header
+ *
+ * @param {object} [request.header.elevation] Optional User elevation
+ *
+ * @param {string} [request.header.elevation.type] Type of credential. Possible
+ * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ *
+ * @param {object} [request.header.elevation.value] Value to pass to server
+ *
+ * @param {array} [request.header.locales] Optional list of locales in
+ * preference order.
+ *
+ * @param {object} [request.header.diagnostics] Optional diagnostics
+ * configuration
+ *
+ * @param {string} [request.header.diagnostics.level] Requested level of
+ * response diagnostics.
+ * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+ * 'Diagnostics', 'Verbose'
+ *
+ * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+ * (default: client generated)
+ *
+ * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+ * (default: client generated)
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {object} [result]   - The deserialized result object if an error did not occur.
+ *                      See {@link HistoryReadResponseApiModelJToken} for more
+ *                      information.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _historyReadRaw(endpointId, request, options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  // Validate
+  try {
+    if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
+      throw new Error('endpointId cannot be null or undefined and it must be of type string.');
+    }
+    if (request === null || request === undefined) {
+      throw new Error('request cannot be null or undefined.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/history/read/{endpointId}';
+  requestUrl = requestUrl.replace('{endpointId}', encodeURIComponent(endpointId));
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'POST';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  // Serialize Request
+  let requestContent = null;
+  let requestModel = null;
+  try {
+    if (request !== null && request !== undefined) {
+      let requestModelMapper = new client.models['HistoryReadRequestApiModelJToken']().mapper();
+      requestModel = client.serialize(requestModelMapper, request, 'request');
+      requestContent = JSON.stringify(requestModel);
+    }
+  } catch (error) {
+    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
+        `payload - ${JSON.stringify(request, null, 2)}.`);
+    return callback(serializationError);
+  }
+  httpRequest.body = requestContent;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+    // Deserialize Response
+    if (statusCode === 200) {
+      let parsedResponse = null;
+      try {
+        parsedResponse = JSON.parse(responseBody);
+        result = JSON.parse(responseBody);
+        if (parsedResponse !== null && parsedResponse !== undefined) {
+          let resultMapper = new client.models['HistoryReadResponseApiModelJToken']().mapper();
+          result = client.deserialize(resultMapper, parsedResponse, 'result');
+        }
+      } catch (error) {
+        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
+        deserializationError.request = msRest.stripRequest(httpRequest);
+        deserializationError.response = msRest.stripResponse(response);
+        return callback(deserializationError);
+      }
+    }
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
+ * @summary Read next batch of history as json
+ *
+ * Read next batch of node history values using historic access.
+ * The endpoint must be activated and connected and the module client
+ * and server must trust each other.
+ *
+ * @param {string} endpointId The identifier of the activated endpoint.
+ *
+ * @param {object} request The history read next request
+ *
+ * @param {string} request.continuationToken Continuation token to continue
+ * reading more
+ * results.
+ *
+ * @param {boolean} [request.abort] Abort reading after this read
+ *
+ * @param {object} [request.header] Optional request header
+ *
+ * @param {object} [request.header.elevation] Optional User elevation
+ *
+ * @param {string} [request.header.elevation.type] Type of credential. Possible
+ * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ *
+ * @param {object} [request.header.elevation.value] Value to pass to server
+ *
+ * @param {array} [request.header.locales] Optional list of locales in
+ * preference order.
+ *
+ * @param {object} [request.header.diagnostics] Optional diagnostics
+ * configuration
+ *
+ * @param {string} [request.header.diagnostics.level] Requested level of
+ * response diagnostics.
+ * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+ * 'Diagnostics', 'Verbose'
+ *
+ * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+ * (default: client generated)
+ *
+ * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+ * (default: client generated)
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {object} [result]   - The deserialized result object if an error did not occur.
+ *                      See {@link HistoryReadNextResponseApiModelJToken} for
  *                      more information.
  *
  *                      {object} [request]  - The HTTP Request object if an error did not occur.
  *
  *                      {stream} [response] - The HTTP Response stream if an error did not occur.
  */
-function _createApplication(request, options, callback) {
-   /* jshint validthis: true */
-  let client = this;
-  if(!callback && typeof options === 'function') {
-    callback = options;
-    options = null;
-  }
-  if (!callback) {
-    throw new Error('callback cannot be null.');
-  }
-  // Validate
-  try {
-    if (request === null || request === undefined) {
-      throw new Error('request cannot be null or undefined.');
-    }
-  } catch (error) {
-    return callback(error);
-  }
-
-  // Construct URL
-  let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/applications';
-
-  // Create HTTP transport objects
-  let httpRequest = new WebResource();
-  httpRequest.method = 'PUT';
-  httpRequest.url = requestUrl;
-  httpRequest.headers = {};
-  // Set Headers
-  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
-  if(options) {
-    for(let headerName in options['customHeaders']) {
-      if (options['customHeaders'].hasOwnProperty(headerName)) {
-        httpRequest.headers[headerName] = options['customHeaders'][headerName];
-      }
-    }
-  }
-  // Serialize Request
-  let requestContent = null;
-  let requestModel = null;
-  try {
-    if (request !== null && request !== undefined) {
-      let requestModelMapper = new client.models['ApplicationRegistrationRequestApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, request, 'request');
-      requestContent = JSON.stringify(requestModel);
-    }
-  } catch (error) {
-    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(request, null, 2)}.`);
-    return callback(serializationError);
-  }
-  httpRequest.body = requestContent;
-  // Send Request
-  return client.pipeline(httpRequest, (err, response, responseBody) => {
-    if (err) {
-      return callback(err);
-    }
-    let statusCode = response.statusCode;
-    if (statusCode !== 200) {
-      let error = new Error(responseBody);
-      error.statusCode = response.statusCode;
-      error.request = msRest.stripRequest(httpRequest);
-      error.response = msRest.stripResponse(response);
-      if (responseBody === '') responseBody = null;
-      let parsedErrorResponse;
-      try {
-        parsedErrorResponse = JSON.parse(responseBody);
-        if (parsedErrorResponse) {
-          let internalError = null;
-          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
-          error.code = internalError ? internalError.code : parsedErrorResponse.code;
-          error.message = internalError ? internalError.message : parsedErrorResponse.message;
-        }
-      } catch (defaultError) {
-        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
-                         `- "${responseBody}" for the default response.`;
-        return callback(error);
-      }
-      return callback(error);
-    }
-    // Create Result
-    let result = null;
-    if (responseBody === '') responseBody = null;
-    // Deserialize Response
-    if (statusCode === 200) {
-      let parsedResponse = null;
-      try {
-        parsedResponse = JSON.parse(responseBody);
-        result = JSON.parse(responseBody);
-        if (parsedResponse !== null && parsedResponse !== undefined) {
-          let resultMapper = new client.models['ApplicationRegistrationResponseApiModel']().mapper();
-          result = client.deserialize(resultMapper, parsedResponse, 'result');
-        }
-      } catch (error) {
-        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
-        deserializationError.request = msRest.stripRequest(httpRequest);
-        deserializationError.response = msRest.stripResponse(response);
-        return callback(deserializationError);
-      }
-    }
-
-    return callback(null, result, httpRequest, response);
-  });
-}
-
-/**
- * @summary Register new server
- *
- * Registers a server solely using a discovery url. Requires that
- * the onboarding agent service is running and the server can be
- * located by a supervisor in its network using the discovery url.
- *
- * @param {object} request Server registration request
- *
- * @param {string} request.discoveryUrl Discovery url to use for registration
- *
- * @param {string} [request.id] Registration id
- *
- * @param {object} [request.callback] An optional callback hook to register.
- *
- * @param {string} [request.callback.uri] Uri to call - should use https scheme
- * in which
- * case security is enforced.
- *
- * @param {string} [request.callback.method] Http Method to use for callback.
- * Possible values include: 'Get', 'Post', 'Put', 'Delete'
- *
- * @param {string} [request.callback.authenticationHeader] Authentication
- * header to add or null if not needed
- *
- * @param {object} [request.activationFilter] Upon discovery, activate all
- * endpoints with this filter.
- *
- * @param {array} [request.activationFilter.trustLists] Certificate trust list
- * identifiers to use for
- * activation, if null, all certificates are
- * trusted.  If empty list, no certificates are
- * trusted which is equal to no filter.
- *
- * @param {array} [request.activationFilter.securityPolicies] Endpoint security
- * policies to filter against.
- * If set to null, all policies are in scope.
- *
- * @param {string} [request.activationFilter.securityMode] Security mode level
- * to activate. If null,
- * then Microsoft.Azure.IIoT.OpcUa.Registry.Models.SecurityMode.Best is
- * assumed. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
- *
- * @param {object} [options] Optional Parameters.
- *
- * @param {object} [options.customHeaders] Headers that will be added to the
- * request
- *
- * @param {function} callback - The callback.
- *
- * @returns {function} callback(err, result, request, response)
- *
- *                      {Error}  err        - The Error object if an error occurred, null otherwise.
- *
- *                      {null} [result]   - The deserialized result object if an error did not occur.
- *
- *                      {object} [request]  - The HTTP Request object if an error did not occur.
- *
- *                      {stream} [response] - The HTTP Response stream if an error did not occur.
- */
-function _registerServer(request, options, callback) {
-   /* jshint validthis: true */
-  let client = this;
-  if(!callback && typeof options === 'function') {
-    callback = options;
-    options = null;
-  }
-  if (!callback) {
-    throw new Error('callback cannot be null.');
-  }
-  // Validate
-  try {
-    if (request === null || request === undefined) {
-      throw new Error('request cannot be null or undefined.');
-    }
-  } catch (error) {
-    return callback(error);
-  }
-
-  // Construct URL
-  let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/applications';
-
-  // Create HTTP transport objects
-  let httpRequest = new WebResource();
-  httpRequest.method = 'POST';
-  httpRequest.url = requestUrl;
-  httpRequest.headers = {};
-  // Set Headers
-  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
-  if(options) {
-    for(let headerName in options['customHeaders']) {
-      if (options['customHeaders'].hasOwnProperty(headerName)) {
-        httpRequest.headers[headerName] = options['customHeaders'][headerName];
-      }
-    }
-  }
-  // Serialize Request
-  let requestContent = null;
-  let requestModel = null;
-  try {
-    if (request !== null && request !== undefined) {
-      let requestModelMapper = new client.models['ServerRegistrationRequestApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, request, 'request');
-      requestContent = JSON.stringify(requestModel);
-    }
-  } catch (error) {
-    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(request, null, 2)}.`);
-    return callback(serializationError);
-  }
-  httpRequest.body = requestContent;
-  // Send Request
-  return client.pipeline(httpRequest, (err, response, responseBody) => {
-    if (err) {
-      return callback(err);
-    }
-    let statusCode = response.statusCode;
-    if (statusCode !== 200) {
-      let error = new Error(responseBody);
-      error.statusCode = response.statusCode;
-      error.request = msRest.stripRequest(httpRequest);
-      error.response = msRest.stripResponse(response);
-      if (responseBody === '') responseBody = null;
-      let parsedErrorResponse;
-      try {
-        parsedErrorResponse = JSON.parse(responseBody);
-        if (parsedErrorResponse) {
-          let internalError = null;
-          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
-          error.code = internalError ? internalError.code : parsedErrorResponse.code;
-          error.message = internalError ? internalError.message : parsedErrorResponse.message;
-        }
-      } catch (defaultError) {
-        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
-                         `- "${responseBody}" for the default response.`;
-        return callback(error);
-      }
-      return callback(error);
-    }
-    // Create Result
-    let result = null;
-    if (responseBody === '') responseBody = null;
-
-    return callback(null, result, httpRequest, response);
-  });
-}
-
-/**
- * @summary Purge applications
- *
- * Purges all applications that have not been seen for a specified amount of
- * time.
- *
- * @param {object} [options] Optional Parameters.
- *
- * @param {string} [options.notSeenFor] A duration in milliseconds
- *
- * @param {object} [options.customHeaders] Headers that will be added to the
- * request
- *
- * @param {function} callback - The callback.
- *
- * @returns {function} callback(err, result, request, response)
- *
- *                      {Error}  err        - The Error object if an error occurred, null otherwise.
- *
- *                      {null} [result]   - The deserialized result object if an error did not occur.
- *
- *                      {object} [request]  - The HTTP Request object if an error did not occur.
- *
- *                      {stream} [response] - The HTTP Response stream if an error did not occur.
- */
-function _deleteAllDisabledApplications(options, callback) {
-   /* jshint validthis: true */
-  let client = this;
-  if(!callback && typeof options === 'function') {
-    callback = options;
-    options = null;
-  }
-  if (!callback) {
-    throw new Error('callback cannot be null.');
-  }
-  let notSeenFor = (options && options.notSeenFor !== undefined) ? options.notSeenFor : undefined;
-  // Validate
-  try {
-    if (notSeenFor !== null && notSeenFor !== undefined && typeof notSeenFor.valueOf() !== 'string') {
-      throw new Error('notSeenFor must be of type string.');
-    }
-  } catch (error) {
-    return callback(error);
-  }
-
-  // Construct URL
-  let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/applications';
-  let queryParameters = [];
-  if (notSeenFor !== null && notSeenFor !== undefined) {
-    queryParameters.push('notSeenFor=' + encodeURIComponent(notSeenFor));
-  }
-  if (queryParameters.length > 0) {
-    requestUrl += '?' + queryParameters.join('&');
-  }
-
-  // Create HTTP transport objects
-  let httpRequest = new WebResource();
-  httpRequest.method = 'DELETE';
-  httpRequest.url = requestUrl;
-  httpRequest.headers = {};
-  // Set Headers
-  httpRequest.headers['Content-Type'] = 'application/json; charset=utf-8';
-  if(options) {
-    for(let headerName in options['customHeaders']) {
-      if (options['customHeaders'].hasOwnProperty(headerName)) {
-        httpRequest.headers[headerName] = options['customHeaders'][headerName];
-      }
-    }
-  }
-  httpRequest.body = null;
-  // Send Request
-  return client.pipeline(httpRequest, (err, response, responseBody) => {
-    if (err) {
-      return callback(err);
-    }
-    let statusCode = response.statusCode;
-    if (statusCode !== 200) {
-      let error = new Error(responseBody);
-      error.statusCode = response.statusCode;
-      error.request = msRest.stripRequest(httpRequest);
-      error.response = msRest.stripResponse(response);
-      if (responseBody === '') responseBody = null;
-      let parsedErrorResponse;
-      try {
-        parsedErrorResponse = JSON.parse(responseBody);
-        if (parsedErrorResponse) {
-          let internalError = null;
-          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
-          error.code = internalError ? internalError.code : parsedErrorResponse.code;
-          error.message = internalError ? internalError.message : parsedErrorResponse.message;
-        }
-      } catch (defaultError) {
-        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
-                         `- "${responseBody}" for the default response.`;
-        return callback(error);
-      }
-      return callback(error);
-    }
-    // Create Result
-    let result = null;
-    if (responseBody === '') responseBody = null;
-
-    return callback(null, result, httpRequest, response);
-  });
-}
-
-/**
- * @summary Discover servers
- *
- * Registers servers by running a discovery scan in a supervisor's
- * network. Requires that the onboarding agent service is running.
- *
- * @param {object} request Discovery request
- *
- * @param {string} [request.id] Id of discovery request
- *
- * @param {string} [request.discovery] Discovery mode to use. Possible values
- * include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
- *
- * @param {object} [request.configuration] Scan configuration to use
- *
- * @param {string} [request.configuration.addressRangesToScan] Address ranges
- * to scan (null == all wired nics)
- *
- * @param {number} [request.configuration.networkProbeTimeoutMs] Network probe
- * timeout
- *
- * @param {number} [request.configuration.maxNetworkProbes] Max network probes
- * that should ever run.
- *
- * @param {string} [request.configuration.portRangesToScan] Port ranges to scan
- * (null == all unassigned)
- *
- * @param {number} [request.configuration.portProbeTimeoutMs] Port probe
- * timeout
- *
- * @param {number} [request.configuration.maxPortProbes] Max port probes that
- * should ever run.
- *
- * @param {number} [request.configuration.minPortProbesPercent] Probes that
- * must always be there as percent of max.
- *
- * @param {number} [request.configuration.idleTimeBetweenScansSec] Delay time
- * between discovery sweeps in seconds
- *
- * @param {array} [request.configuration.discoveryUrls] List of preset
- * discovery urls to use
- *
- * @param {array} [request.configuration.locales] List of locales to filter
- * with during discovery
- *
- * @param {array} [request.configuration.callbacks] Callbacks to invoke once
- * onboarding finishes
- *
- * @param {object} [request.configuration.activationFilter] Activate all twins
- * with this filter during onboarding.
- *
- * @param {array} [request.configuration.activationFilter.trustLists]
- * Certificate trust list identifiers to use for
- * activation, if null, all certificates are
- * trusted.  If empty list, no certificates are
- * trusted which is equal to no filter.
- *
- * @param {array} [request.configuration.activationFilter.securityPolicies]
- * Endpoint security policies to filter against.
- * If set to null, all policies are in scope.
- *
- * @param {string} [request.configuration.activationFilter.securityMode]
- * Security mode level to activate. If null,
- * then Microsoft.Azure.IIoT.OpcUa.Registry.Models.SecurityMode.Best is
- * assumed. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
- *
- * @param {object} [options] Optional Parameters.
- *
- * @param {object} [options.customHeaders] Headers that will be added to the
- * request
- *
- * @param {function} callback - The callback.
- *
- * @returns {function} callback(err, result, request, response)
- *
- *                      {Error}  err        - The Error object if an error occurred, null otherwise.
- *
- *                      {null} [result]   - The deserialized result object if an error did not occur.
- *
- *                      {object} [request]  - The HTTP Request object if an error did not occur.
- *
- *                      {stream} [response] - The HTTP Response stream if an error did not occur.
- */
-function _discoverServer(request, options, callback) {
-   /* jshint validthis: true */
-  let client = this;
-  if(!callback && typeof options === 'function') {
-    callback = options;
-    options = null;
-  }
-  if (!callback) {
-    throw new Error('callback cannot be null.');
-  }
-  // Validate
-  try {
-    if (request === null || request === undefined) {
-      throw new Error('request cannot be null or undefined.');
-    }
-  } catch (error) {
-    return callback(error);
-  }
-
-  // Construct URL
-  let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/applications/discover';
-
-  // Create HTTP transport objects
-  let httpRequest = new WebResource();
-  httpRequest.method = 'POST';
-  httpRequest.url = requestUrl;
-  httpRequest.headers = {};
-  // Set Headers
-  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
-  if(options) {
-    for(let headerName in options['customHeaders']) {
-      if (options['customHeaders'].hasOwnProperty(headerName)) {
-        httpRequest.headers[headerName] = options['customHeaders'][headerName];
-      }
-    }
-  }
-  // Serialize Request
-  let requestContent = null;
-  let requestModel = null;
-  try {
-    if (request !== null && request !== undefined) {
-      let requestModelMapper = new client.models['DiscoveryRequestApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, request, 'request');
-      requestContent = JSON.stringify(requestModel);
-    }
-  } catch (error) {
-    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(request, null, 2)}.`);
-    return callback(serializationError);
-  }
-  httpRequest.body = requestContent;
-  // Send Request
-  return client.pipeline(httpRequest, (err, response, responseBody) => {
-    if (err) {
-      return callback(err);
-    }
-    let statusCode = response.statusCode;
-    if (statusCode !== 200) {
-      let error = new Error(responseBody);
-      error.statusCode = response.statusCode;
-      error.request = msRest.stripRequest(httpRequest);
-      error.response = msRest.stripResponse(response);
-      if (responseBody === '') responseBody = null;
-      let parsedErrorResponse;
-      try {
-        parsedErrorResponse = JSON.parse(responseBody);
-        if (parsedErrorResponse) {
-          let internalError = null;
-          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
-          error.code = internalError ? internalError.code : parsedErrorResponse.code;
-          error.message = internalError ? internalError.message : parsedErrorResponse.message;
-        }
-      } catch (defaultError) {
-        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
-                         `- "${responseBody}" for the default response.`;
-        return callback(error);
-      }
-      return callback(error);
-    }
-    // Create Result
-    let result = null;
-    if (responseBody === '') responseBody = null;
-
-    return callback(null, result, httpRequest, response);
-  });
-}
-
-/**
- * @summary Get application registration
- *
- * @param {string} applicationId Application id for the server
- *
- * @param {object} [options] Optional Parameters.
- *
- * @param {object} [options.customHeaders] Headers that will be added to the
- * request
- *
- * @param {function} callback - The callback.
- *
- * @returns {function} callback(err, result, request, response)
- *
- *                      {Error}  err        - The Error object if an error occurred, null otherwise.
- *
- *                      {object} [result]   - The deserialized result object if an error did not occur.
- *                      See {@link ApplicationRegistrationApiModel} for more
- *                      information.
- *
- *                      {object} [request]  - The HTTP Request object if an error did not occur.
- *
- *                      {stream} [response] - The HTTP Response stream if an error did not occur.
- */
-function _getApplicationRegistration(applicationId, options, callback) {
-   /* jshint validthis: true */
-  let client = this;
-  if(!callback && typeof options === 'function') {
-    callback = options;
-    options = null;
-  }
-  if (!callback) {
-    throw new Error('callback cannot be null.');
-  }
-  // Validate
-  try {
-    if (applicationId === null || applicationId === undefined || typeof applicationId.valueOf() !== 'string') {
-      throw new Error('applicationId cannot be null or undefined and it must be of type string.');
-    }
-  } catch (error) {
-    return callback(error);
-  }
-
-  // Construct URL
-  let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/applications/{applicationId}';
-  requestUrl = requestUrl.replace('{applicationId}', encodeURIComponent(applicationId));
-
-  // Create HTTP transport objects
-  let httpRequest = new WebResource();
-  httpRequest.method = 'GET';
-  httpRequest.url = requestUrl;
-  httpRequest.headers = {};
-  // Set Headers
-  httpRequest.headers['Content-Type'] = 'application/json; charset=utf-8';
-  if(options) {
-    for(let headerName in options['customHeaders']) {
-      if (options['customHeaders'].hasOwnProperty(headerName)) {
-        httpRequest.headers[headerName] = options['customHeaders'][headerName];
-      }
-    }
-  }
-  httpRequest.body = null;
-  // Send Request
-  return client.pipeline(httpRequest, (err, response, responseBody) => {
-    if (err) {
-      return callback(err);
-    }
-    let statusCode = response.statusCode;
-    if (statusCode !== 200) {
-      let error = new Error(responseBody);
-      error.statusCode = response.statusCode;
-      error.request = msRest.stripRequest(httpRequest);
-      error.response = msRest.stripResponse(response);
-      if (responseBody === '') responseBody = null;
-      let parsedErrorResponse;
-      try {
-        parsedErrorResponse = JSON.parse(responseBody);
-        if (parsedErrorResponse) {
-          let internalError = null;
-          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
-          error.code = internalError ? internalError.code : parsedErrorResponse.code;
-          error.message = internalError ? internalError.message : parsedErrorResponse.message;
-        }
-      } catch (defaultError) {
-        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
-                         `- "${responseBody}" for the default response.`;
-        return callback(error);
-      }
-      return callback(error);
-    }
-    // Create Result
-    let result = null;
-    if (responseBody === '') responseBody = null;
-    // Deserialize Response
-    if (statusCode === 200) {
-      let parsedResponse = null;
-      try {
-        parsedResponse = JSON.parse(responseBody);
-        result = JSON.parse(responseBody);
-        if (parsedResponse !== null && parsedResponse !== undefined) {
-          let resultMapper = new client.models['ApplicationRegistrationApiModel']().mapper();
-          result = client.deserialize(resultMapper, parsedResponse, 'result');
-        }
-      } catch (error) {
-        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
-        deserializationError.request = msRest.stripRequest(httpRequest);
-        deserializationError.response = msRest.stripResponse(response);
-        return callback(deserializationError);
-      }
-    }
-
-    return callback(null, result, httpRequest, response);
-  });
-}
-
-/**
- * @summary Unregister application
- *
- * Unregisters and deletes application and all its associated endpoints.
- *
- * @param {string} applicationId The identifier of the application
- *
- * @param {object} [options] Optional Parameters.
- *
- * @param {object} [options.customHeaders] Headers that will be added to the
- * request
- *
- * @param {function} callback - The callback.
- *
- * @returns {function} callback(err, result, request, response)
- *
- *                      {Error}  err        - The Error object if an error occurred, null otherwise.
- *
- *                      {null} [result]   - The deserialized result object if an error did not occur.
- *
- *                      {object} [request]  - The HTTP Request object if an error did not occur.
- *
- *                      {stream} [response] - The HTTP Response stream if an error did not occur.
- */
-function _deleteApplication(applicationId, options, callback) {
-   /* jshint validthis: true */
-  let client = this;
-  if(!callback && typeof options === 'function') {
-    callback = options;
-    options = null;
-  }
-  if (!callback) {
-    throw new Error('callback cannot be null.');
-  }
-  // Validate
-  try {
-    if (applicationId === null || applicationId === undefined || typeof applicationId.valueOf() !== 'string') {
-      throw new Error('applicationId cannot be null or undefined and it must be of type string.');
-    }
-  } catch (error) {
-    return callback(error);
-  }
-
-  // Construct URL
-  let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/applications/{applicationId}';
-  requestUrl = requestUrl.replace('{applicationId}', encodeURIComponent(applicationId));
-
-  // Create HTTP transport objects
-  let httpRequest = new WebResource();
-  httpRequest.method = 'DELETE';
-  httpRequest.url = requestUrl;
-  httpRequest.headers = {};
-  // Set Headers
-  httpRequest.headers['Content-Type'] = 'application/json; charset=utf-8';
-  if(options) {
-    for(let headerName in options['customHeaders']) {
-      if (options['customHeaders'].hasOwnProperty(headerName)) {
-        httpRequest.headers[headerName] = options['customHeaders'][headerName];
-      }
-    }
-  }
-  httpRequest.body = null;
-  // Send Request
-  return client.pipeline(httpRequest, (err, response, responseBody) => {
-    if (err) {
-      return callback(err);
-    }
-    let statusCode = response.statusCode;
-    if (statusCode !== 200) {
-      let error = new Error(responseBody);
-      error.statusCode = response.statusCode;
-      error.request = msRest.stripRequest(httpRequest);
-      error.response = msRest.stripResponse(response);
-      if (responseBody === '') responseBody = null;
-      let parsedErrorResponse;
-      try {
-        parsedErrorResponse = JSON.parse(responseBody);
-        if (parsedErrorResponse) {
-          let internalError = null;
-          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
-          error.code = internalError ? internalError.code : parsedErrorResponse.code;
-          error.message = internalError ? internalError.message : parsedErrorResponse.message;
-        }
-      } catch (defaultError) {
-        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
-                         `- "${responseBody}" for the default response.`;
-        return callback(error);
-      }
-      return callback(error);
-    }
-    // Create Result
-    let result = null;
-    if (responseBody === '') responseBody = null;
-
-    return callback(null, result, httpRequest, response);
-  });
-}
-
-/**
- * @summary Update application registration
- *
- * The application information is updated with new properties.  Note that
- * this information might be overridden if the application is re-discovered
- * during a discovery run (recurring or one-time).
- *
- * @param {string} applicationId The identifier of the application
- *
- * @param {object} request Application update request
- *
- * @param {string} [request.productUri] Product uri
- *
- * @param {string} [request.applicationName] Application name
- *
- * @param {string} [request.locale] Locale of name - defaults to "en"
- *
- * @param {buffer} [request.certificate] Application public cert
- *
- * @param {array} [request.capabilities] Capabilities of the application
- *
- * @param {array} [request.discoveryUrls] Discovery urls of the application
- *
- * @param {string} [request.discoveryProfileUri] Discovery profile uri
- *
- * @param {object} [options] Optional Parameters.
- *
- * @param {object} [options.customHeaders] Headers that will be added to the
- * request
- *
- * @param {function} callback - The callback.
- *
- * @returns {function} callback(err, result, request, response)
- *
- *                      {Error}  err        - The Error object if an error occurred, null otherwise.
- *
- *                      {null} [result]   - The deserialized result object if an error did not occur.
- *
- *                      {object} [request]  - The HTTP Request object if an error did not occur.
- *
- *                      {stream} [response] - The HTTP Response stream if an error did not occur.
- */
-function _updateApplicationRegistration(applicationId, request, options, callback) {
-   /* jshint validthis: true */
-  let client = this;
-  if(!callback && typeof options === 'function') {
-    callback = options;
-    options = null;
-  }
-  if (!callback) {
-    throw new Error('callback cannot be null.');
-  }
-  // Validate
-  try {
-    if (applicationId === null || applicationId === undefined || typeof applicationId.valueOf() !== 'string') {
-      throw new Error('applicationId cannot be null or undefined and it must be of type string.');
-    }
-    if (request === null || request === undefined) {
-      throw new Error('request cannot be null or undefined.');
-    }
-  } catch (error) {
-    return callback(error);
-  }
-
-  // Construct URL
-  let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/applications/{applicationId}';
-  requestUrl = requestUrl.replace('{applicationId}', encodeURIComponent(applicationId));
-
-  // Create HTTP transport objects
-  let httpRequest = new WebResource();
-  httpRequest.method = 'PATCH';
-  httpRequest.url = requestUrl;
-  httpRequest.headers = {};
-  // Set Headers
-  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
-  if(options) {
-    for(let headerName in options['customHeaders']) {
-      if (options['customHeaders'].hasOwnProperty(headerName)) {
-        httpRequest.headers[headerName] = options['customHeaders'][headerName];
-      }
-    }
-  }
-  // Serialize Request
-  let requestContent = null;
-  let requestModel = null;
-  try {
-    if (request !== null && request !== undefined) {
-      let requestModelMapper = new client.models['ApplicationRegistrationUpdateApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, request, 'request');
-      requestContent = JSON.stringify(requestModel);
-    }
-  } catch (error) {
-    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(request, null, 2)}.`);
-    return callback(serializationError);
-  }
-  httpRequest.body = requestContent;
-  // Send Request
-  return client.pipeline(httpRequest, (err, response, responseBody) => {
-    if (err) {
-      return callback(err);
-    }
-    let statusCode = response.statusCode;
-    if (statusCode !== 200) {
-      let error = new Error(responseBody);
-      error.statusCode = response.statusCode;
-      error.request = msRest.stripRequest(httpRequest);
-      error.response = msRest.stripResponse(response);
-      if (responseBody === '') responseBody = null;
-      let parsedErrorResponse;
-      try {
-        parsedErrorResponse = JSON.parse(responseBody);
-        if (parsedErrorResponse) {
-          let internalError = null;
-          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
-          error.code = internalError ? internalError.code : parsedErrorResponse.code;
-          error.message = internalError ? internalError.message : parsedErrorResponse.message;
-        }
-      } catch (defaultError) {
-        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
-                         `- "${responseBody}" for the default response.`;
-        return callback(error);
-      }
-      return callback(error);
-    }
-    // Create Result
-    let result = null;
-    if (responseBody === '') responseBody = null;
-
-    return callback(null, result, httpRequest, response);
-  });
-}
-
-/**
- * @summary Get list of sites
- *
- * List all sites applications are registered in.
- *
- * @param {object} [options] Optional Parameters.
- *
- * @param {string} [options.continuationToken] Optional Continuation
- * token
- *
- * @param {number} [options.pageSize] Optional number of results to
- * return
- *
- * @param {object} [options.customHeaders] Headers that will be added to the
- * request
- *
- * @param {function} callback - The callback.
- *
- * @returns {function} callback(err, result, request, response)
- *
- *                      {Error}  err        - The Error object if an error occurred, null otherwise.
- *
- *                      {object} [result]   - The deserialized result object if an error did not occur.
- *                      See {@link ApplicationSiteListApiModel} for more
- *                      information.
- *
- *                      {object} [request]  - The HTTP Request object if an error did not occur.
- *
- *                      {stream} [response] - The HTTP Response stream if an error did not occur.
- */
-function _getListOfSites(options, callback) {
-   /* jshint validthis: true */
-  let client = this;
-  if(!callback && typeof options === 'function') {
-    callback = options;
-    options = null;
-  }
-  if (!callback) {
-    throw new Error('callback cannot be null.');
-  }
-  let continuationToken = (options && options.continuationToken !== undefined) ? options.continuationToken : undefined;
-  let pageSize = (options && options.pageSize !== undefined) ? options.pageSize : undefined;
-  // Validate
-  try {
-    if (continuationToken !== null && continuationToken !== undefined && typeof continuationToken.valueOf() !== 'string') {
-      throw new Error('continuationToken must be of type string.');
-    }
-    if (pageSize !== null && pageSize !== undefined && typeof pageSize !== 'number') {
-      throw new Error('pageSize must be of type number.');
-    }
-  } catch (error) {
-    return callback(error);
-  }
-
-  // Construct URL
-  let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/applications/sites';
-  let queryParameters = [];
-  if (continuationToken !== null && continuationToken !== undefined) {
-    queryParameters.push('continuationToken=' + encodeURIComponent(continuationToken));
-  }
-  if (pageSize !== null && pageSize !== undefined) {
-    queryParameters.push('pageSize=' + encodeURIComponent(pageSize.toString()));
-  }
-  if (queryParameters.length > 0) {
-    requestUrl += '?' + queryParameters.join('&');
-  }
-
-  // Create HTTP transport objects
-  let httpRequest = new WebResource();
-  httpRequest.method = 'GET';
-  httpRequest.url = requestUrl;
-  httpRequest.headers = {};
-  // Set Headers
-  httpRequest.headers['Content-Type'] = 'application/json; charset=utf-8';
-  if(options) {
-    for(let headerName in options['customHeaders']) {
-      if (options['customHeaders'].hasOwnProperty(headerName)) {
-        httpRequest.headers[headerName] = options['customHeaders'][headerName];
-      }
-    }
-  }
-  httpRequest.body = null;
-  // Send Request
-  return client.pipeline(httpRequest, (err, response, responseBody) => {
-    if (err) {
-      return callback(err);
-    }
-    let statusCode = response.statusCode;
-    if (statusCode !== 200) {
-      let error = new Error(responseBody);
-      error.statusCode = response.statusCode;
-      error.request = msRest.stripRequest(httpRequest);
-      error.response = msRest.stripResponse(response);
-      if (responseBody === '') responseBody = null;
-      let parsedErrorResponse;
-      try {
-        parsedErrorResponse = JSON.parse(responseBody);
-        if (parsedErrorResponse) {
-          let internalError = null;
-          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
-          error.code = internalError ? internalError.code : parsedErrorResponse.code;
-          error.message = internalError ? internalError.message : parsedErrorResponse.message;
-        }
-      } catch (defaultError) {
-        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
-                         `- "${responseBody}" for the default response.`;
-        return callback(error);
-      }
-      return callback(error);
-    }
-    // Create Result
-    let result = null;
-    if (responseBody === '') responseBody = null;
-    // Deserialize Response
-    if (statusCode === 200) {
-      let parsedResponse = null;
-      try {
-        parsedResponse = JSON.parse(responseBody);
-        result = JSON.parse(responseBody);
-        if (parsedResponse !== null && parsedResponse !== undefined) {
-          let resultMapper = new client.models['ApplicationSiteListApiModel']().mapper();
-          result = client.deserialize(resultMapper, parsedResponse, 'result');
-        }
-      } catch (error) {
-        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
-        deserializationError.request = msRest.stripRequest(httpRequest);
-        deserializationError.response = msRest.stripResponse(response);
-        return callback(deserializationError);
-      }
-    }
-
-    return callback(null, result, httpRequest, response);
-  });
-}
-
-/**
- * @summary Get filtered list of applications
- *
- * Get a list of applications filtered using the specified query parameters.
- * The returned model can contain a continuation token if more results are
- * available.
- * Call the GetListOfApplications operation using the token to retrieve
- * more results.
- *
- * @param {object} query Applications Query model
- *
- * @param {string} [query.applicationType] Type of application. Possible values
- * include: 'Server', 'Client', 'ClientAndServer'
- *
- * @param {string} [query.applicationUri] Application uri
- *
- * @param {string} [query.productUri] Product uri
- *
- * @param {string} [query.applicationName] Name of application
- *
- * @param {string} [query.locale] Locale of application name - default is "en"
- *
- * @param {string} [query.capability] Application capability to query with
- *
- * @param {string} [query.siteOrSupervisorId] Supervisor or site the
- * application belongs to.
- *
- * @param {boolean} [query.includeNotSeenSince] Whether to include apps that
- * were soft deleted
- *
- * @param {object} [options] Optional Parameters.
- *
- * @param {number} [options.pageSize] Number of results to return
- *
- * @param {object} [options.customHeaders] Headers that will be added to the
- * request
- *
- * @param {function} callback - The callback.
- *
- * @returns {function} callback(err, result, request, response)
- *
- *                      {Error}  err        - The Error object if an error occurred, null otherwise.
- *
- *                      {object} [result]   - The deserialized result object if an error did not occur.
- *                      See {@link ApplicationInfoListApiModel} for more
- *                      information.
- *
- *                      {object} [request]  - The HTTP Request object if an error did not occur.
- *
- *                      {stream} [response] - The HTTP Response stream if an error did not occur.
- */
-function _getFilteredListOfApplications(query, options, callback) {
-   /* jshint validthis: true */
-  let client = this;
-  if(!callback && typeof options === 'function') {
-    callback = options;
-    options = null;
-  }
-  if (!callback) {
-    throw new Error('callback cannot be null.');
-  }
-  let pageSize = (options && options.pageSize !== undefined) ? options.pageSize : undefined;
-  // Validate
-  try {
-    if (query === null || query === undefined) {
-      throw new Error('query cannot be null or undefined.');
-    }
-    if (pageSize !== null && pageSize !== undefined && typeof pageSize !== 'number') {
-      throw new Error('pageSize must be of type number.');
-    }
-  } catch (error) {
-    return callback(error);
-  }
-
-  // Construct URL
-  let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/applications/query';
-  let queryParameters = [];
-  if (pageSize !== null && pageSize !== undefined) {
-    queryParameters.push('pageSize=' + encodeURIComponent(pageSize.toString()));
-  }
-  if (queryParameters.length > 0) {
-    requestUrl += '?' + queryParameters.join('&');
-  }
-
-  // Create HTTP transport objects
-  let httpRequest = new WebResource();
-  httpRequest.method = 'GET';
-  httpRequest.url = requestUrl;
-  httpRequest.headers = {};
-  // Set Headers
-  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
-  if(options) {
-    for(let headerName in options['customHeaders']) {
-      if (options['customHeaders'].hasOwnProperty(headerName)) {
-        httpRequest.headers[headerName] = options['customHeaders'][headerName];
-      }
-    }
-  }
-  // Serialize Request
-  let requestContent = null;
-  let requestModel = null;
-  try {
-    if (query !== null && query !== undefined) {
-      let requestModelMapper = new client.models['ApplicationRegistrationQueryApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, query, 'query');
-      requestContent = JSON.stringify(requestModel);
-    }
-  } catch (error) {
-    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(query, null, 2)}.`);
-    return callback(serializationError);
-  }
-  httpRequest.body = requestContent;
-  // Send Request
-  return client.pipeline(httpRequest, (err, response, responseBody) => {
-    if (err) {
-      return callback(err);
-    }
-    let statusCode = response.statusCode;
-    if (statusCode !== 200) {
-      let error = new Error(responseBody);
-      error.statusCode = response.statusCode;
-      error.request = msRest.stripRequest(httpRequest);
-      error.response = msRest.stripResponse(response);
-      if (responseBody === '') responseBody = null;
-      let parsedErrorResponse;
-      try {
-        parsedErrorResponse = JSON.parse(responseBody);
-        if (parsedErrorResponse) {
-          let internalError = null;
-          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
-          error.code = internalError ? internalError.code : parsedErrorResponse.code;
-          error.message = internalError ? internalError.message : parsedErrorResponse.message;
-        }
-      } catch (defaultError) {
-        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
-                         `- "${responseBody}" for the default response.`;
-        return callback(error);
-      }
-      return callback(error);
-    }
-    // Create Result
-    let result = null;
-    if (responseBody === '') responseBody = null;
-    // Deserialize Response
-    if (statusCode === 200) {
-      let parsedResponse = null;
-      try {
-        parsedResponse = JSON.parse(responseBody);
-        result = JSON.parse(responseBody);
-        if (parsedResponse !== null && parsedResponse !== undefined) {
-          let resultMapper = new client.models['ApplicationInfoListApiModel']().mapper();
-          result = client.deserialize(resultMapper, parsedResponse, 'result');
-        }
-      } catch (error) {
-        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
-        deserializationError.request = msRest.stripRequest(httpRequest);
-        deserializationError.response = msRest.stripResponse(response);
-        return callback(deserializationError);
-      }
-    }
-
-    return callback(null, result, httpRequest, response);
-  });
-}
-
-/**
- * @summary Query applications
- *
- * List applications that match a query model.
- * The returned model can contain a continuation token if more results are
- * available.
- * Call the GetListOfApplications operation using the token to retrieve
- * more results.
- *
- * @param {object} query Application query
- *
- * @param {string} [query.applicationType] Type of application. Possible values
- * include: 'Server', 'Client', 'ClientAndServer'
- *
- * @param {string} [query.applicationUri] Application uri
- *
- * @param {string} [query.productUri] Product uri
- *
- * @param {string} [query.applicationName] Name of application
- *
- * @param {string} [query.locale] Locale of application name - default is "en"
- *
- * @param {string} [query.capability] Application capability to query with
- *
- * @param {string} [query.siteOrSupervisorId] Supervisor or site the
- * application belongs to.
- *
- * @param {boolean} [query.includeNotSeenSince] Whether to include apps that
- * were soft deleted
- *
- * @param {object} [options] Optional Parameters.
- *
- * @param {number} [options.pageSize] Optional number of results to
- * return
- *
- * @param {object} [options.customHeaders] Headers that will be added to the
- * request
- *
- * @param {function} callback - The callback.
- *
- * @returns {function} callback(err, result, request, response)
- *
- *                      {Error}  err        - The Error object if an error occurred, null otherwise.
- *
- *                      {object} [result]   - The deserialized result object if an error did not occur.
- *                      See {@link ApplicationInfoListApiModel} for more
- *                      information.
- *
- *                      {object} [request]  - The HTTP Request object if an error did not occur.
- *
- *                      {stream} [response] - The HTTP Response stream if an error did not occur.
- */
-function _queryApplications(query, options, callback) {
-   /* jshint validthis: true */
-  let client = this;
-  if(!callback && typeof options === 'function') {
-    callback = options;
-    options = null;
-  }
-  if (!callback) {
-    throw new Error('callback cannot be null.');
-  }
-  let pageSize = (options && options.pageSize !== undefined) ? options.pageSize : undefined;
-  // Validate
-  try {
-    if (query === null || query === undefined) {
-      throw new Error('query cannot be null or undefined.');
-    }
-    if (pageSize !== null && pageSize !== undefined && typeof pageSize !== 'number') {
-      throw new Error('pageSize must be of type number.');
-    }
-  } catch (error) {
-    return callback(error);
-  }
-
-  // Construct URL
-  let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/applications/query';
-  let queryParameters = [];
-  if (pageSize !== null && pageSize !== undefined) {
-    queryParameters.push('pageSize=' + encodeURIComponent(pageSize.toString()));
-  }
-  if (queryParameters.length > 0) {
-    requestUrl += '?' + queryParameters.join('&');
-  }
-
-  // Create HTTP transport objects
-  let httpRequest = new WebResource();
-  httpRequest.method = 'POST';
-  httpRequest.url = requestUrl;
-  httpRequest.headers = {};
-  // Set Headers
-  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
-  if(options) {
-    for(let headerName in options['customHeaders']) {
-      if (options['customHeaders'].hasOwnProperty(headerName)) {
-        httpRequest.headers[headerName] = options['customHeaders'][headerName];
-      }
-    }
-  }
-  // Serialize Request
-  let requestContent = null;
-  let requestModel = null;
-  try {
-    if (query !== null && query !== undefined) {
-      let requestModelMapper = new client.models['ApplicationRegistrationQueryApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, query, 'query');
-      requestContent = JSON.stringify(requestModel);
-    }
-  } catch (error) {
-    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(query, null, 2)}.`);
-    return callback(serializationError);
-  }
-  httpRequest.body = requestContent;
-  // Send Request
-  return client.pipeline(httpRequest, (err, response, responseBody) => {
-    if (err) {
-      return callback(err);
-    }
-    let statusCode = response.statusCode;
-    if (statusCode !== 200) {
-      let error = new Error(responseBody);
-      error.statusCode = response.statusCode;
-      error.request = msRest.stripRequest(httpRequest);
-      error.response = msRest.stripResponse(response);
-      if (responseBody === '') responseBody = null;
-      let parsedErrorResponse;
-      try {
-        parsedErrorResponse = JSON.parse(responseBody);
-        if (parsedErrorResponse) {
-          let internalError = null;
-          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
-          error.code = internalError ? internalError.code : parsedErrorResponse.code;
-          error.message = internalError ? internalError.message : parsedErrorResponse.message;
-        }
-      } catch (defaultError) {
-        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
-                         `- "${responseBody}" for the default response.`;
-        return callback(error);
-      }
-      return callback(error);
-    }
-    // Create Result
-    let result = null;
-    if (responseBody === '') responseBody = null;
-    // Deserialize Response
-    if (statusCode === 200) {
-      let parsedResponse = null;
-      try {
-        parsedResponse = JSON.parse(responseBody);
-        result = JSON.parse(responseBody);
-        if (parsedResponse !== null && parsedResponse !== undefined) {
-          let resultMapper = new client.models['ApplicationInfoListApiModel']().mapper();
-          result = client.deserialize(resultMapper, parsedResponse, 'result');
-        }
-      } catch (error) {
-        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
-        deserializationError.request = msRest.stripRequest(httpRequest);
-        deserializationError.response = msRest.stripResponse(response);
-        return callback(deserializationError);
-      }
-    }
-
-    return callback(null, result, httpRequest, response);
-  });
-}
-
-/**
- * @summary Activate endpoint
- *
- * Activates an endpoint for subsequent use in twin service.
- * All endpoints must be activated using this API or through a
- * activation filter during application registration or discovery.
- *
- * @param {string} endpointId endpoint identifier
- *
- * @param {object} [options] Optional Parameters.
- *
- * @param {object} [options.customHeaders] Headers that will be added to the
- * request
- *
- * @param {function} callback - The callback.
- *
- * @returns {function} callback(err, result, request, response)
- *
- *                      {Error}  err        - The Error object if an error occurred, null otherwise.
- *
- *                      {null} [result]   - The deserialized result object if an error did not occur.
- *
- *                      {object} [request]  - The HTTP Request object if an error did not occur.
- *
- *                      {stream} [response] - The HTTP Response stream if an error did not occur.
- */
-function _activateEndpoint(endpointId, options, callback) {
-   /* jshint validthis: true */
-  let client = this;
-  if(!callback && typeof options === 'function') {
-    callback = options;
-    options = null;
-  }
-  if (!callback) {
-    throw new Error('callback cannot be null.');
-  }
-  // Validate
-  try {
-    if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
-      throw new Error('endpointId cannot be null or undefined and it must be of type string.');
-    }
-  } catch (error) {
-    return callback(error);
-  }
-
-  // Construct URL
-  let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/endpoints/{endpointId}/activate';
-  requestUrl = requestUrl.replace('{endpointId}', encodeURIComponent(endpointId));
-
-  // Create HTTP transport objects
-  let httpRequest = new WebResource();
-  httpRequest.method = 'POST';
-  httpRequest.url = requestUrl;
-  httpRequest.headers = {};
-  // Set Headers
-  httpRequest.headers['Content-Type'] = 'application/json; charset=utf-8';
-  if(options) {
-    for(let headerName in options['customHeaders']) {
-      if (options['customHeaders'].hasOwnProperty(headerName)) {
-        httpRequest.headers[headerName] = options['customHeaders'][headerName];
-      }
-    }
-  }
-  httpRequest.body = null;
-  // Send Request
-  return client.pipeline(httpRequest, (err, response, responseBody) => {
-    if (err) {
-      return callback(err);
-    }
-    let statusCode = response.statusCode;
-    if (statusCode !== 200) {
-      let error = new Error(responseBody);
-      error.statusCode = response.statusCode;
-      error.request = msRest.stripRequest(httpRequest);
-      error.response = msRest.stripResponse(response);
-      if (responseBody === '') responseBody = null;
-      let parsedErrorResponse;
-      try {
-        parsedErrorResponse = JSON.parse(responseBody);
-        if (parsedErrorResponse) {
-          let internalError = null;
-          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
-          error.code = internalError ? internalError.code : parsedErrorResponse.code;
-          error.message = internalError ? internalError.message : parsedErrorResponse.message;
-        }
-      } catch (defaultError) {
-        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
-                         `- "${responseBody}" for the default response.`;
-        return callback(error);
-      }
-      return callback(error);
-    }
-    // Create Result
-    let result = null;
-    if (responseBody === '') responseBody = null;
-
-    return callback(null, result, httpRequest, response);
-  });
-}
-
-/**
- * @summary Get endpoint information
- *
- * Gets information about an endpoint.
- *
- * @param {string} endpointId endpoint identifier
- *
- * @param {object} [options] Optional Parameters.
- *
- * @param {boolean} [options.onlyServerState] Whether to include only server
- * state, or display current client state of the endpoint if
- * available
- *
- * @param {object} [options.customHeaders] Headers that will be added to the
- * request
- *
- * @param {function} callback - The callback.
- *
- * @returns {function} callback(err, result, request, response)
- *
- *                      {Error}  err        - The Error object if an error occurred, null otherwise.
- *
- *                      {object} [result]   - The deserialized result object if an error did not occur.
- *                      See {@link EndpointInfoApiModel} for more information.
- *
- *                      {object} [request]  - The HTTP Request object if an error did not occur.
- *
- *                      {stream} [response] - The HTTP Response stream if an error did not occur.
- */
-function _getEndpoint(endpointId, options, callback) {
-   /* jshint validthis: true */
-  let client = this;
-  if(!callback && typeof options === 'function') {
-    callback = options;
-    options = null;
-  }
-  if (!callback) {
-    throw new Error('callback cannot be null.');
-  }
-  let onlyServerState = (options && options.onlyServerState !== undefined) ? options.onlyServerState : undefined;
-  // Validate
-  try {
-    if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
-      throw new Error('endpointId cannot be null or undefined and it must be of type string.');
-    }
-    if (onlyServerState !== null && onlyServerState !== undefined && typeof onlyServerState !== 'boolean') {
-      throw new Error('onlyServerState must be of type boolean.');
-    }
-  } catch (error) {
-    return callback(error);
-  }
-
-  // Construct URL
-  let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/endpoints/{endpointId}';
-  requestUrl = requestUrl.replace('{endpointId}', encodeURIComponent(endpointId));
-  let queryParameters = [];
-  if (onlyServerState !== null && onlyServerState !== undefined) {
-    queryParameters.push('onlyServerState=' + encodeURIComponent(onlyServerState.toString()));
-  }
-  if (queryParameters.length > 0) {
-    requestUrl += '?' + queryParameters.join('&');
-  }
-
-  // Create HTTP transport objects
-  let httpRequest = new WebResource();
-  httpRequest.method = 'GET';
-  httpRequest.url = requestUrl;
-  httpRequest.headers = {};
-  // Set Headers
-  httpRequest.headers['Content-Type'] = 'application/json; charset=utf-8';
-  if(options) {
-    for(let headerName in options['customHeaders']) {
-      if (options['customHeaders'].hasOwnProperty(headerName)) {
-        httpRequest.headers[headerName] = options['customHeaders'][headerName];
-      }
-    }
-  }
-  httpRequest.body = null;
-  // Send Request
-  return client.pipeline(httpRequest, (err, response, responseBody) => {
-    if (err) {
-      return callback(err);
-    }
-    let statusCode = response.statusCode;
-    if (statusCode !== 200) {
-      let error = new Error(responseBody);
-      error.statusCode = response.statusCode;
-      error.request = msRest.stripRequest(httpRequest);
-      error.response = msRest.stripResponse(response);
-      if (responseBody === '') responseBody = null;
-      let parsedErrorResponse;
-      try {
-        parsedErrorResponse = JSON.parse(responseBody);
-        if (parsedErrorResponse) {
-          let internalError = null;
-          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
-          error.code = internalError ? internalError.code : parsedErrorResponse.code;
-          error.message = internalError ? internalError.message : parsedErrorResponse.message;
-        }
-      } catch (defaultError) {
-        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
-                         `- "${responseBody}" for the default response.`;
-        return callback(error);
-      }
-      return callback(error);
-    }
-    // Create Result
-    let result = null;
-    if (responseBody === '') responseBody = null;
-    // Deserialize Response
-    if (statusCode === 200) {
-      let parsedResponse = null;
-      try {
-        parsedResponse = JSON.parse(responseBody);
-        result = JSON.parse(responseBody);
-        if (parsedResponse !== null && parsedResponse !== undefined) {
-          let resultMapper = new client.models['EndpointInfoApiModel']().mapper();
-          result = client.deserialize(resultMapper, parsedResponse, 'result');
-        }
-      } catch (error) {
-        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
-        deserializationError.request = msRest.stripRequest(httpRequest);
-        deserializationError.response = msRest.stripResponse(response);
-        return callback(deserializationError);
-      }
-    }
-
-    return callback(null, result, httpRequest, response);
-  });
-}
-
-/**
- * @summary Update endpoint information
- *
- * @param {string} endpointId endpoint identifier
- *
- * @param {object} request Endpoint update request
- *
- * @param {object} [request.user] User authentication to change on the
- * endpoint.
- *
- * @param {string} [request.user.type] Type of credential. Possible values
- * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
- *
- * @param {object} [request.user.value] Value to pass to server
- *
- * @param {object} [options] Optional Parameters.
- *
- * @param {object} [options.customHeaders] Headers that will be added to the
- * request
- *
- * @param {function} callback - The callback.
- *
- * @returns {function} callback(err, result, request, response)
- *
- *                      {Error}  err        - The Error object if an error occurred, null otherwise.
- *
- *                      {null} [result]   - The deserialized result object if an error did not occur.
- *
- *                      {object} [request]  - The HTTP Request object if an error did not occur.
- *
- *                      {stream} [response] - The HTTP Response stream if an error did not occur.
- */
-function _updateEndpoint(endpointId, request, options, callback) {
+function _historyReadRawNext(endpointId, request, options, callback) {
    /* jshint validthis: true */
   let client = this;
   if(!callback && typeof options === 'function') {
@@ -1848,12 +1004,12 @@ function _updateEndpoint(endpointId, request, options, callback) {
 
   // Construct URL
   let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/endpoints/{endpointId}';
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/history/read/{endpointId}/next';
   requestUrl = requestUrl.replace('{endpointId}', encodeURIComponent(endpointId));
 
   // Create HTTP transport objects
   let httpRequest = new WebResource();
-  httpRequest.method = 'PATCH';
+  httpRequest.method = 'POST';
   httpRequest.url = requestUrl;
   httpRequest.headers = {};
   // Set Headers
@@ -1870,7 +1026,7 @@ function _updateEndpoint(endpointId, request, options, callback) {
   let requestModel = null;
   try {
     if (request !== null && request !== undefined) {
-      let requestModelMapper = new client.models['EndpointRegistrationUpdateApiModel']().mapper();
+      let requestModelMapper = new client.models['HistoryReadNextRequestApiModel']().mapper();
       requestModel = client.serialize(requestModelMapper, request, 'request');
       requestContent = JSON.stringify(requestModel);
     }
@@ -1911,136 +1067,6 @@ function _updateEndpoint(endpointId, request, options, callback) {
     // Create Result
     let result = null;
     if (responseBody === '') responseBody = null;
-
-    return callback(null, result, httpRequest, response);
-  });
-}
-
-/**
- * @summary Get list of endpoints
- *
- * Get all registered endpoints in paged form.
- * The returned model can contain a continuation token if more results are
- * available.
- * Call this operation again using the token to retrieve more results.
- *
- * @param {object} [options] Optional Parameters.
- *
- * @param {boolean} [options.onlyServerState] Whether to include only server
- * state, or display current client state of the endpoint if available
- *
- * @param {string} [options.continuationToken] Optional Continuation token
- *
- * @param {number} [options.pageSize] Optional number of results to return
- *
- * @param {object} [options.customHeaders] Headers that will be added to the
- * request
- *
- * @param {function} callback - The callback.
- *
- * @returns {function} callback(err, result, request, response)
- *
- *                      {Error}  err        - The Error object if an error occurred, null otherwise.
- *
- *                      {object} [result]   - The deserialized result object if an error did not occur.
- *                      See {@link EndpointInfoListApiModel} for more
- *                      information.
- *
- *                      {object} [request]  - The HTTP Request object if an error did not occur.
- *
- *                      {stream} [response] - The HTTP Response stream if an error did not occur.
- */
-function _getListOfEndpoints(options, callback) {
-   /* jshint validthis: true */
-  let client = this;
-  if(!callback && typeof options === 'function') {
-    callback = options;
-    options = null;
-  }
-  if (!callback) {
-    throw new Error('callback cannot be null.');
-  }
-  let onlyServerState = (options && options.onlyServerState !== undefined) ? options.onlyServerState : undefined;
-  let continuationToken = (options && options.continuationToken !== undefined) ? options.continuationToken : undefined;
-  let pageSize = (options && options.pageSize !== undefined) ? options.pageSize : undefined;
-  // Validate
-  try {
-    if (onlyServerState !== null && onlyServerState !== undefined && typeof onlyServerState !== 'boolean') {
-      throw new Error('onlyServerState must be of type boolean.');
-    }
-    if (continuationToken !== null && continuationToken !== undefined && typeof continuationToken.valueOf() !== 'string') {
-      throw new Error('continuationToken must be of type string.');
-    }
-    if (pageSize !== null && pageSize !== undefined && typeof pageSize !== 'number') {
-      throw new Error('pageSize must be of type number.');
-    }
-  } catch (error) {
-    return callback(error);
-  }
-
-  // Construct URL
-  let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/endpoints';
-  let queryParameters = [];
-  if (onlyServerState !== null && onlyServerState !== undefined) {
-    queryParameters.push('onlyServerState=' + encodeURIComponent(onlyServerState.toString()));
-  }
-  if (continuationToken !== null && continuationToken !== undefined) {
-    queryParameters.push('continuationToken=' + encodeURIComponent(continuationToken));
-  }
-  if (pageSize !== null && pageSize !== undefined) {
-    queryParameters.push('pageSize=' + encodeURIComponent(pageSize.toString()));
-  }
-  if (queryParameters.length > 0) {
-    requestUrl += '?' + queryParameters.join('&');
-  }
-
-  // Create HTTP transport objects
-  let httpRequest = new WebResource();
-  httpRequest.method = 'GET';
-  httpRequest.url = requestUrl;
-  httpRequest.headers = {};
-  // Set Headers
-  httpRequest.headers['Content-Type'] = 'application/json; charset=utf-8';
-  if(options) {
-    for(let headerName in options['customHeaders']) {
-      if (options['customHeaders'].hasOwnProperty(headerName)) {
-        httpRequest.headers[headerName] = options['customHeaders'][headerName];
-      }
-    }
-  }
-  httpRequest.body = null;
-  // Send Request
-  return client.pipeline(httpRequest, (err, response, responseBody) => {
-    if (err) {
-      return callback(err);
-    }
-    let statusCode = response.statusCode;
-    if (statusCode !== 200) {
-      let error = new Error(responseBody);
-      error.statusCode = response.statusCode;
-      error.request = msRest.stripRequest(httpRequest);
-      error.response = msRest.stripResponse(response);
-      if (responseBody === '') responseBody = null;
-      let parsedErrorResponse;
-      try {
-        parsedErrorResponse = JSON.parse(responseBody);
-        if (parsedErrorResponse) {
-          let internalError = null;
-          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
-          error.code = internalError ? internalError.code : parsedErrorResponse.code;
-          error.message = internalError ? internalError.message : parsedErrorResponse.message;
-        }
-      } catch (defaultError) {
-        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
-                         `- "${responseBody}" for the default response.`;
-        return callback(error);
-      }
-      return callback(error);
-    }
-    // Create Result
-    let result = null;
-    if (responseBody === '') responseBody = null;
     // Deserialize Response
     if (statusCode === 200) {
       let parsedResponse = null;
@@ -2048,7 +1074,7 @@ function _getListOfEndpoints(options, callback) {
         parsedResponse = JSON.parse(responseBody);
         result = JSON.parse(responseBody);
         if (parsedResponse !== null && parsedResponse !== undefined) {
-          let resultMapper = new client.models['EndpointInfoListApiModel']().mapper();
+          let resultMapper = new client.models['HistoryReadNextResponseApiModelJToken']().mapper();
           result = client.deserialize(resultMapper, parsedResponse, 'result');
         }
       } catch (error) {
@@ -2064,47 +1090,54 @@ function _getListOfEndpoints(options, callback) {
 }
 
 /**
- * @summary Get filtered list of endpoints
+ * @summary Update node history using raw json
  *
- * Get a list of endpoints filtered using the specified query parameters.
- * The returned model can contain a continuation token if more results are
- * available.
- * Call the GetListOfEndpoints operation using the token to retrieve
- * more results.
+ * Update node history using historic access.
+ * The endpoint must be activated and connected and the module client
+ * and server must trust each other.
+ *
+ * @param {string} endpointId The identifier of the activated endpoint.
+ *
+ * @param {object} request The history update request
+ *
+ * @param {string} [request.nodeId] Node to update
+ *
+ * @param {array} [request.browsePath] An optional path from NodeId instance to
+ * the actual node.
+ *
+ * @param {object} request.details The HistoryUpdateDetailsType extension
+ * object
+ * encoded as json Variant and containing the tunneled
+ * update request for the Historian server. The value
+ * is updated at edge using above node address.
+ *
+ * @param {object} [request.header] Optional request header
+ *
+ * @param {object} [request.header.elevation] Optional User elevation
+ *
+ * @param {string} [request.header.elevation.type] Type of credential. Possible
+ * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ *
+ * @param {object} [request.header.elevation.value] Value to pass to server
+ *
+ * @param {array} [request.header.locales] Optional list of locales in
+ * preference order.
+ *
+ * @param {object} [request.header.diagnostics] Optional diagnostics
+ * configuration
+ *
+ * @param {string} [request.header.diagnostics.level] Requested level of
+ * response diagnostics.
+ * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+ * 'Diagnostics', 'Verbose'
+ *
+ * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+ * (default: client generated)
+ *
+ * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+ * (default: client generated)
  *
  * @param {object} [options] Optional Parameters.
- *
- * @param {string} [options.url] Endoint url for direct server access
- *
- * @param {string} [options.userAuthentication] Type of credential selected for
- * authentication. Possible values include: 'None', 'UserName',
- * 'X509Certificate', 'JwtToken'
- *
- * @param {buffer} [options.certificate] Certificate of the endpoint
- *
- * @param {string} [options.securityMode] Security Mode. Possible values
- * include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
- *
- * @param {string} [options.securityPolicy] Security policy uri
- *
- * @param {boolean} [options.activated] Whether the endpoint was activated
- *
- * @param {boolean} [options.connected] Whether the endpoint is connected on
- * supervisor.
- *
- * @param {string} [options.endpointState] The last state of the the activated
- * endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy',
- * 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
- *
- * @param {boolean} [options.includeNotSeenSince] Whether to include endpoints
- * that were soft deleted
- *
- * @param {boolean} [options.onlyServerState] Whether to include only server
- * state, or display
- * current client state of the endpoint if available
- *
- * @param {number} [options.pageSize] Optional number of results to
- * return
  *
  * @param {object} [options.customHeaders] Headers that will be added to the
  * request
@@ -2116,14 +1149,14 @@ function _getListOfEndpoints(options, callback) {
  *                      {Error}  err        - The Error object if an error occurred, null otherwise.
  *
  *                      {object} [result]   - The deserialized result object if an error did not occur.
- *                      See {@link EndpointInfoListApiModel} for more
+ *                      See {@link HistoryUpdateResponseApiModel} for more
  *                      information.
  *
  *                      {object} [request]  - The HTTP Request object if an error did not occur.
  *
  *                      {stream} [response] - The HTTP Response stream if an error did not occur.
  */
-function _getFilteredListOfEndpoints(options, callback) {
+function _historyUpdateRaw(endpointId, request, options, callback) {
    /* jshint validthis: true */
   let client = this;
   if(!callback && typeof options === 'function') {
@@ -2133,51 +1166,13 @@ function _getFilteredListOfEndpoints(options, callback) {
   if (!callback) {
     throw new Error('callback cannot be null.');
   }
-  let url = (options && options.url !== undefined) ? options.url : undefined;
-  let userAuthentication = (options && options.userAuthentication !== undefined) ? options.userAuthentication : undefined;
-  let certificate = (options && options.certificate !== undefined) ? options.certificate : undefined;
-  let securityMode = (options && options.securityMode !== undefined) ? options.securityMode : undefined;
-  let securityPolicy = (options && options.securityPolicy !== undefined) ? options.securityPolicy : undefined;
-  let activated = (options && options.activated !== undefined) ? options.activated : undefined;
-  let connected = (options && options.connected !== undefined) ? options.connected : undefined;
-  let endpointState = (options && options.endpointState !== undefined) ? options.endpointState : undefined;
-  let includeNotSeenSince = (options && options.includeNotSeenSince !== undefined) ? options.includeNotSeenSince : undefined;
-  let onlyServerState = (options && options.onlyServerState !== undefined) ? options.onlyServerState : undefined;
-  let pageSize = (options && options.pageSize !== undefined) ? options.pageSize : undefined;
   // Validate
   try {
-    if (url !== null && url !== undefined && typeof url.valueOf() !== 'string') {
-      throw new Error('url must be of type string.');
+    if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
+      throw new Error('endpointId cannot be null or undefined and it must be of type string.');
     }
-    if (userAuthentication !== null && userAuthentication !== undefined && typeof userAuthentication.valueOf() !== 'string') {
-      throw new Error('userAuthentication must be of type string.');
-    }
-    if (certificate && !Buffer.isBuffer(certificate)) {
-      throw new Error('certificate must be of type buffer.');
-    }
-    if (securityMode !== null && securityMode !== undefined && typeof securityMode.valueOf() !== 'string') {
-      throw new Error('securityMode must be of type string.');
-    }
-    if (securityPolicy !== null && securityPolicy !== undefined && typeof securityPolicy.valueOf() !== 'string') {
-      throw new Error('securityPolicy must be of type string.');
-    }
-    if (activated !== null && activated !== undefined && typeof activated !== 'boolean') {
-      throw new Error('activated must be of type boolean.');
-    }
-    if (connected !== null && connected !== undefined && typeof connected !== 'boolean') {
-      throw new Error('connected must be of type boolean.');
-    }
-    if (endpointState !== null && endpointState !== undefined && typeof endpointState.valueOf() !== 'string') {
-      throw new Error('endpointState must be of type string.');
-    }
-    if (includeNotSeenSince !== null && includeNotSeenSince !== undefined && typeof includeNotSeenSince !== 'boolean') {
-      throw new Error('includeNotSeenSince must be of type boolean.');
-    }
-    if (onlyServerState !== null && onlyServerState !== undefined && typeof onlyServerState !== 'boolean') {
-      throw new Error('onlyServerState must be of type boolean.');
-    }
-    if (pageSize !== null && pageSize !== undefined && typeof pageSize !== 'number') {
-      throw new Error('pageSize must be of type number.');
+    if (request === null || request === undefined) {
+      throw new Error('request cannot be null or undefined.');
     }
   } catch (error) {
     return callback(error);
@@ -2185,213 +1180,8 @@ function _getFilteredListOfEndpoints(options, callback) {
 
   // Construct URL
   let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/endpoints/query';
-  let queryParameters = [];
-  if (url !== null && url !== undefined) {
-    queryParameters.push('Url=' + encodeURIComponent(url));
-  }
-  if (userAuthentication !== null && userAuthentication !== undefined) {
-    queryParameters.push('UserAuthentication=' + encodeURIComponent(userAuthentication));
-  }
-  if (certificate !== null && certificate !== undefined) {
-    queryParameters.push('Certificate=' + encodeURIComponent(client.serializeObject(certificate)));
-  }
-  if (securityMode !== null && securityMode !== undefined) {
-    queryParameters.push('SecurityMode=' + encodeURIComponent(securityMode));
-  }
-  if (securityPolicy !== null && securityPolicy !== undefined) {
-    queryParameters.push('SecurityPolicy=' + encodeURIComponent(securityPolicy));
-  }
-  if (activated !== null && activated !== undefined) {
-    queryParameters.push('Activated=' + encodeURIComponent(activated.toString()));
-  }
-  if (connected !== null && connected !== undefined) {
-    queryParameters.push('Connected=' + encodeURIComponent(connected.toString()));
-  }
-  if (endpointState !== null && endpointState !== undefined) {
-    queryParameters.push('EndpointState=' + encodeURIComponent(endpointState));
-  }
-  if (includeNotSeenSince !== null && includeNotSeenSince !== undefined) {
-    queryParameters.push('IncludeNotSeenSince=' + encodeURIComponent(includeNotSeenSince.toString()));
-  }
-  if (onlyServerState !== null && onlyServerState !== undefined) {
-    queryParameters.push('onlyServerState=' + encodeURIComponent(onlyServerState.toString()));
-  }
-  if (pageSize !== null && pageSize !== undefined) {
-    queryParameters.push('pageSize=' + encodeURIComponent(pageSize.toString()));
-  }
-  if (queryParameters.length > 0) {
-    requestUrl += '?' + queryParameters.join('&');
-  }
-
-  // Create HTTP transport objects
-  let httpRequest = new WebResource();
-  httpRequest.method = 'GET';
-  httpRequest.url = requestUrl;
-  httpRequest.headers = {};
-  // Set Headers
-  httpRequest.headers['Content-Type'] = 'application/json; charset=utf-8';
-  if(options) {
-    for(let headerName in options['customHeaders']) {
-      if (options['customHeaders'].hasOwnProperty(headerName)) {
-        httpRequest.headers[headerName] = options['customHeaders'][headerName];
-      }
-    }
-  }
-  httpRequest.body = null;
-  // Send Request
-  return client.pipeline(httpRequest, (err, response, responseBody) => {
-    if (err) {
-      return callback(err);
-    }
-    let statusCode = response.statusCode;
-    if (statusCode !== 200) {
-      let error = new Error(responseBody);
-      error.statusCode = response.statusCode;
-      error.request = msRest.stripRequest(httpRequest);
-      error.response = msRest.stripResponse(response);
-      if (responseBody === '') responseBody = null;
-      let parsedErrorResponse;
-      try {
-        parsedErrorResponse = JSON.parse(responseBody);
-        if (parsedErrorResponse) {
-          let internalError = null;
-          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
-          error.code = internalError ? internalError.code : parsedErrorResponse.code;
-          error.message = internalError ? internalError.message : parsedErrorResponse.message;
-        }
-      } catch (defaultError) {
-        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
-                         `- "${responseBody}" for the default response.`;
-        return callback(error);
-      }
-      return callback(error);
-    }
-    // Create Result
-    let result = null;
-    if (responseBody === '') responseBody = null;
-    // Deserialize Response
-    if (statusCode === 200) {
-      let parsedResponse = null;
-      try {
-        parsedResponse = JSON.parse(responseBody);
-        result = JSON.parse(responseBody);
-        if (parsedResponse !== null && parsedResponse !== undefined) {
-          let resultMapper = new client.models['EndpointInfoListApiModel']().mapper();
-          result = client.deserialize(resultMapper, parsedResponse, 'result');
-        }
-      } catch (error) {
-        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
-        deserializationError.request = msRest.stripRequest(httpRequest);
-        deserializationError.response = msRest.stripResponse(response);
-        return callback(deserializationError);
-      }
-    }
-
-    return callback(null, result, httpRequest, response);
-  });
-}
-
-/**
- * @summary Query endpoints
- *
- * Return endpoints that match the specified query.
- * The returned model can contain a continuation token if more results are
- * available.
- * Call the GetListOfEndpoints operation using the token to retrieve
- * more results.
- *
- * @param {object} query Query to match
- *
- * @param {string} [query.url] Endoint url for direct server access
- *
- * @param {string} [query.userAuthentication] Type of credential selected for
- * authentication. Possible values include: 'None', 'UserName',
- * 'X509Certificate', 'JwtToken'
- *
- * @param {buffer} [query.certificate] Certificate of the endpoint
- *
- * @param {string} [query.securityMode] Security Mode. Possible values include:
- * 'Best', 'Sign', 'SignAndEncrypt', 'None'
- *
- * @param {string} [query.securityPolicy] Security policy uri
- *
- * @param {boolean} [query.activated] Whether the endpoint was activated
- *
- * @param {boolean} [query.connected] Whether the endpoint is connected on
- * supervisor.
- *
- * @param {string} [query.endpointState] The last state of the the activated
- * endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy',
- * 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
- *
- * @param {boolean} [query.includeNotSeenSince] Whether to include endpoints
- * that were soft deleted
- *
- * @param {object} [options] Optional Parameters.
- *
- * @param {boolean} [options.onlyServerState] Whether to include only server
- * state, or display current client state of the endpoint if available
- *
- * @param {number} [options.pageSize] Optional number of results to return
- *
- * @param {object} [options.customHeaders] Headers that will be added to the
- * request
- *
- * @param {function} callback - The callback.
- *
- * @returns {function} callback(err, result, request, response)
- *
- *                      {Error}  err        - The Error object if an error occurred, null otherwise.
- *
- *                      {object} [result]   - The deserialized result object if an error did not occur.
- *                      See {@link EndpointInfoListApiModel} for more
- *                      information.
- *
- *                      {object} [request]  - The HTTP Request object if an error did not occur.
- *
- *                      {stream} [response] - The HTTP Response stream if an error did not occur.
- */
-function _queryEndpoints(query, options, callback) {
-   /* jshint validthis: true */
-  let client = this;
-  if(!callback && typeof options === 'function') {
-    callback = options;
-    options = null;
-  }
-  if (!callback) {
-    throw new Error('callback cannot be null.');
-  }
-  let onlyServerState = (options && options.onlyServerState !== undefined) ? options.onlyServerState : undefined;
-  let pageSize = (options && options.pageSize !== undefined) ? options.pageSize : undefined;
-  // Validate
-  try {
-    if (query === null || query === undefined) {
-      throw new Error('query cannot be null or undefined.');
-    }
-    if (onlyServerState !== null && onlyServerState !== undefined && typeof onlyServerState !== 'boolean') {
-      throw new Error('onlyServerState must be of type boolean.');
-    }
-    if (pageSize !== null && pageSize !== undefined && typeof pageSize !== 'number') {
-      throw new Error('pageSize must be of type number.');
-    }
-  } catch (error) {
-    return callback(error);
-  }
-
-  // Construct URL
-  let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/endpoints/query';
-  let queryParameters = [];
-  if (onlyServerState !== null && onlyServerState !== undefined) {
-    queryParameters.push('onlyServerState=' + encodeURIComponent(onlyServerState.toString()));
-  }
-  if (pageSize !== null && pageSize !== undefined) {
-    queryParameters.push('pageSize=' + encodeURIComponent(pageSize.toString()));
-  }
-  if (queryParameters.length > 0) {
-    requestUrl += '?' + queryParameters.join('&');
-  }
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/history/update/{endpointId}';
+  requestUrl = requestUrl.replace('{endpointId}', encodeURIComponent(endpointId));
 
   // Create HTTP transport objects
   let httpRequest = new WebResource();
@@ -2411,14 +1201,14 @@ function _queryEndpoints(query, options, callback) {
   let requestContent = null;
   let requestModel = null;
   try {
-    if (query !== null && query !== undefined) {
-      let requestModelMapper = new client.models['EndpointRegistrationQueryApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, query, 'query');
+    if (request !== null && request !== undefined) {
+      let requestModelMapper = new client.models['HistoryUpdateRequestApiModelJToken']().mapper();
+      requestModel = client.serialize(requestModelMapper, request, 'request');
       requestContent = JSON.stringify(requestModel);
     }
   } catch (error) {
     let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(query, null, 2)}.`);
+        `payload - ${JSON.stringify(request, null, 2)}.`);
     return callback(serializationError);
   }
   httpRequest.body = requestContent;
@@ -2460,7 +1250,7 @@ function _queryEndpoints(query, options, callback) {
         parsedResponse = JSON.parse(responseBody);
         result = JSON.parse(responseBody);
         if (parsedResponse !== null && parsedResponse !== undefined) {
-          let resultMapper = new client.models['EndpointInfoListApiModel']().mapper();
+          let resultMapper = new client.models['HistoryUpdateResponseApiModel']().mapper();
           result = client.deserialize(resultMapper, parsedResponse, 'result');
         }
       } catch (error) {
@@ -2476,11 +1266,54 @@ function _queryEndpoints(query, options, callback) {
 }
 
 /**
- * @summary Deactivate endpoint
+ * @summary Insert historic values
  *
- * Deactivates the endpoint and disable access through twin service.
+ * Insert historic values using historic access.
+ * The endpoint must be activated and connected and the module client
+ * and server must trust each other.
  *
- * @param {string} endpointId endpoint identifier
+ * @param {string} endpointId The identifier of the activated endpoint.
+ *
+ * @param {object} request The history insert request
+ *
+ * @param {string} [request.nodeId] Node to update
+ *
+ * @param {array} [request.browsePath] An optional path from NodeId instance to
+ * the actual node.
+ *
+ * @param {object} request.details The HistoryUpdateDetailsType extension
+ * object
+ * encoded as json Variant and containing the tunneled
+ * update request for the Historian server. The value
+ * is updated at edge using above node address.
+ *
+ * @param {array} request.details.values Values to insert
+ *
+ * @param {object} [request.header] Optional request header
+ *
+ * @param {object} [request.header.elevation] Optional User elevation
+ *
+ * @param {string} [request.header.elevation.type] Type of credential. Possible
+ * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ *
+ * @param {object} [request.header.elevation.value] Value to pass to server
+ *
+ * @param {array} [request.header.locales] Optional list of locales in
+ * preference order.
+ *
+ * @param {object} [request.header.diagnostics] Optional diagnostics
+ * configuration
+ *
+ * @param {string} [request.header.diagnostics.level] Requested level of
+ * response diagnostics.
+ * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+ * 'Diagnostics', 'Verbose'
+ *
+ * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+ * (default: client generated)
+ *
+ * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+ * (default: client generated)
  *
  * @param {object} [options] Optional Parameters.
  *
@@ -2493,13 +1326,15 @@ function _queryEndpoints(query, options, callback) {
  *
  *                      {Error}  err        - The Error object if an error occurred, null otherwise.
  *
- *                      {null} [result]   - The deserialized result object if an error did not occur.
+ *                      {object} [result]   - The deserialized result object if an error did not occur.
+ *                      See {@link HistoryUpdateResponseApiModel} for more
+ *                      information.
  *
  *                      {object} [request]  - The HTTP Request object if an error did not occur.
  *
  *                      {stream} [response] - The HTTP Response stream if an error did not occur.
  */
-function _deactivateEndpoint(endpointId, options, callback) {
+function _historyInsertValues(endpointId, request, options, callback) {
    /* jshint validthis: true */
   let client = this;
   if(!callback && typeof options === 'function') {
@@ -2514,13 +1349,16 @@ function _deactivateEndpoint(endpointId, options, callback) {
     if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
       throw new Error('endpointId cannot be null or undefined and it must be of type string.');
     }
+    if (request === null || request === undefined) {
+      throw new Error('request cannot be null or undefined.');
+    }
   } catch (error) {
     return callback(error);
   }
 
   // Construct URL
   let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/endpoints/{endpointId}/deactivate';
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/insert/{endpointId}/values';
   requestUrl = requestUrl.replace('{endpointId}', encodeURIComponent(endpointId));
 
   // Create HTTP transport objects
@@ -2529,7 +1367,7 @@ function _deactivateEndpoint(endpointId, options, callback) {
   httpRequest.url = requestUrl;
   httpRequest.headers = {};
   // Set Headers
-  httpRequest.headers['Content-Type'] = 'application/json; charset=utf-8';
+  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
   if(options) {
     for(let headerName in options['customHeaders']) {
       if (options['customHeaders'].hasOwnProperty(headerName)) {
@@ -2537,7 +1375,21 @@ function _deactivateEndpoint(endpointId, options, callback) {
       }
     }
   }
-  httpRequest.body = null;
+  // Serialize Request
+  let requestContent = null;
+  let requestModel = null;
+  try {
+    if (request !== null && request !== undefined) {
+      let requestModelMapper = new client.models['HistoryUpdateRequestApiModelInsertValuesDetailsApiModel']().mapper();
+      requestModel = client.serialize(requestModelMapper, request, 'request');
+      requestContent = JSON.stringify(requestModel);
+    }
+  } catch (error) {
+    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
+        `payload - ${JSON.stringify(request, null, 2)}.`);
+    return callback(serializationError);
+  }
+  httpRequest.body = requestContent;
   // Send Request
   return client.pipeline(httpRequest, (err, response, responseBody) => {
     if (err) {
@@ -2569,6 +1421,1885 @@ function _deactivateEndpoint(endpointId, options, callback) {
     // Create Result
     let result = null;
     if (responseBody === '') responseBody = null;
+    // Deserialize Response
+    if (statusCode === 200) {
+      let parsedResponse = null;
+      try {
+        parsedResponse = JSON.parse(responseBody);
+        result = JSON.parse(responseBody);
+        if (parsedResponse !== null && parsedResponse !== undefined) {
+          let resultMapper = new client.models['HistoryUpdateResponseApiModel']().mapper();
+          result = client.deserialize(resultMapper, parsedResponse, 'result');
+        }
+      } catch (error) {
+        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
+        deserializationError.request = msRest.stripRequest(httpRequest);
+        deserializationError.response = msRest.stripResponse(response);
+        return callback(deserializationError);
+      }
+    }
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
+ * @summary Insert historic events
+ *
+ * Insert historic events using historic access.
+ * The endpoint must be activated and connected and the module client
+ * and server must trust each other.
+ *
+ * @param {string} endpointId The identifier of the activated endpoint.
+ *
+ * @param {object} request The history insert request
+ *
+ * @param {string} [request.nodeId] Node to update
+ *
+ * @param {array} [request.browsePath] An optional path from NodeId instance to
+ * the actual node.
+ *
+ * @param {object} request.details The HistoryUpdateDetailsType extension
+ * object
+ * encoded as json Variant and containing the tunneled
+ * update request for the Historian server. The value
+ * is updated at edge using above node address.
+ *
+ * @param {object} [request.details.filter] The filter to use to select the
+ * events
+ *
+ * @param {array} request.details.events The new events to insert
+ *
+ * @param {object} [request.header] Optional request header
+ *
+ * @param {object} [request.header.elevation] Optional User elevation
+ *
+ * @param {string} [request.header.elevation.type] Type of credential. Possible
+ * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ *
+ * @param {object} [request.header.elevation.value] Value to pass to server
+ *
+ * @param {array} [request.header.locales] Optional list of locales in
+ * preference order.
+ *
+ * @param {object} [request.header.diagnostics] Optional diagnostics
+ * configuration
+ *
+ * @param {string} [request.header.diagnostics.level] Requested level of
+ * response diagnostics.
+ * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+ * 'Diagnostics', 'Verbose'
+ *
+ * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+ * (default: client generated)
+ *
+ * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+ * (default: client generated)
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {object} [result]   - The deserialized result object if an error did not occur.
+ *                      See {@link HistoryUpdateResponseApiModel} for more
+ *                      information.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _historyInsertEvents(endpointId, request, options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  // Validate
+  try {
+    if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
+      throw new Error('endpointId cannot be null or undefined and it must be of type string.');
+    }
+    if (request === null || request === undefined) {
+      throw new Error('request cannot be null or undefined.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/insert/{endpointId}/events';
+  requestUrl = requestUrl.replace('{endpointId}', encodeURIComponent(endpointId));
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'POST';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  // Serialize Request
+  let requestContent = null;
+  let requestModel = null;
+  try {
+    if (request !== null && request !== undefined) {
+      let requestModelMapper = new client.models['HistoryUpdateRequestApiModelInsertEventsDetailsApiModel']().mapper();
+      requestModel = client.serialize(requestModelMapper, request, 'request');
+      requestContent = JSON.stringify(requestModel);
+    }
+  } catch (error) {
+    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
+        `payload - ${JSON.stringify(request, null, 2)}.`);
+    return callback(serializationError);
+  }
+  httpRequest.body = requestContent;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+    // Deserialize Response
+    if (statusCode === 200) {
+      let parsedResponse = null;
+      try {
+        parsedResponse = JSON.parse(responseBody);
+        result = JSON.parse(responseBody);
+        if (parsedResponse !== null && parsedResponse !== undefined) {
+          let resultMapper = new client.models['HistoryUpdateResponseApiModel']().mapper();
+          result = client.deserialize(resultMapper, parsedResponse, 'result');
+        }
+      } catch (error) {
+        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
+        deserializationError.request = msRest.stripRequest(httpRequest);
+        deserializationError.response = msRest.stripResponse(response);
+        return callback(deserializationError);
+      }
+    }
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
+ * @summary Read historic events
+ *
+ * Read historic events of a node if available using historic access.
+ * The endpoint must be activated and connected and the module client
+ * and server must trust each other.
+ *
+ * @param {string} endpointId The identifier of the activated endpoint.
+ *
+ * @param {object} request The history read request
+ *
+ * @param {string} [request.nodeId] Node to read from (mandatory)
+ *
+ * @param {array} [request.browsePath] An optional path from NodeId instance to
+ * the actual node.
+ *
+ * @param {object} [request.details] The HistoryReadDetailsType extension
+ * object
+ * encoded in json and containing the tunneled
+ * Historian reader request.
+ *
+ * @param {date} [request.details.startTime] Start time to read from
+ *
+ * @param {date} [request.details.endTime] End time to read to
+ *
+ * @param {number} [request.details.numEvents] Number of events to read
+ *
+ * @param {object} [request.details.filter] The filter to use to select the
+ * event fields
+ *
+ * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
+ * slices
+ * out of a matrix or 0:1 for the first item in
+ * an array, string or bytestring.
+ * See 7.22 of part 4: NumericRange.
+ *
+ * @param {object} [request.header] Optional request header
+ *
+ * @param {object} [request.header.elevation] Optional User elevation
+ *
+ * @param {string} [request.header.elevation.type] Type of credential. Possible
+ * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ *
+ * @param {object} [request.header.elevation.value] Value to pass to server
+ *
+ * @param {array} [request.header.locales] Optional list of locales in
+ * preference order.
+ *
+ * @param {object} [request.header.diagnostics] Optional diagnostics
+ * configuration
+ *
+ * @param {string} [request.header.diagnostics.level] Requested level of
+ * response diagnostics.
+ * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+ * 'Diagnostics', 'Verbose'
+ *
+ * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+ * (default: client generated)
+ *
+ * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+ * (default: client generated)
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {object} [result]   - The deserialized result object if an error did not occur.
+ *                      See {@link
+ *                      HistoryReadResponseApiModelHistoricEventApiModel} for
+ *                      more information.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _historyReadEvents(endpointId, request, options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  // Validate
+  try {
+    if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
+      throw new Error('endpointId cannot be null or undefined and it must be of type string.');
+    }
+    if (request === null || request === undefined) {
+      throw new Error('request cannot be null or undefined.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/read/{endpointId}/events';
+  requestUrl = requestUrl.replace('{endpointId}', encodeURIComponent(endpointId));
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'POST';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  // Serialize Request
+  let requestContent = null;
+  let requestModel = null;
+  try {
+    if (request !== null && request !== undefined) {
+      let requestModelMapper = new client.models['HistoryReadRequestApiModelReadEventsDetailsApiModel']().mapper();
+      requestModel = client.serialize(requestModelMapper, request, 'request');
+      requestContent = JSON.stringify(requestModel);
+    }
+  } catch (error) {
+    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
+        `payload - ${JSON.stringify(request, null, 2)}.`);
+    return callback(serializationError);
+  }
+  httpRequest.body = requestContent;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+    // Deserialize Response
+    if (statusCode === 200) {
+      let parsedResponse = null;
+      try {
+        parsedResponse = JSON.parse(responseBody);
+        result = JSON.parse(responseBody);
+        if (parsedResponse !== null && parsedResponse !== undefined) {
+          let resultMapper = new client.models['HistoryReadResponseApiModelHistoricEventApiModel']().mapper();
+          result = client.deserialize(resultMapper, parsedResponse, 'result');
+        }
+      } catch (error) {
+        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
+        deserializationError.request = msRest.stripRequest(httpRequest);
+        deserializationError.response = msRest.stripResponse(response);
+        return callback(deserializationError);
+      }
+    }
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
+ * @summary Read next batch of historic events
+ *
+ * Read next batch of historic events of a node using historic access.
+ * The endpoint must be activated and connected and the module client
+ * and server must trust each other.
+ *
+ * @param {string} endpointId The identifier of the activated endpoint.
+ *
+ * @param {object} request The history read next request
+ *
+ * @param {string} request.continuationToken Continuation token to continue
+ * reading more
+ * results.
+ *
+ * @param {boolean} [request.abort] Abort reading after this read
+ *
+ * @param {object} [request.header] Optional request header
+ *
+ * @param {object} [request.header.elevation] Optional User elevation
+ *
+ * @param {string} [request.header.elevation.type] Type of credential. Possible
+ * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ *
+ * @param {object} [request.header.elevation.value] Value to pass to server
+ *
+ * @param {array} [request.header.locales] Optional list of locales in
+ * preference order.
+ *
+ * @param {object} [request.header.diagnostics] Optional diagnostics
+ * configuration
+ *
+ * @param {string} [request.header.diagnostics.level] Requested level of
+ * response diagnostics.
+ * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+ * 'Diagnostics', 'Verbose'
+ *
+ * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+ * (default: client generated)
+ *
+ * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+ * (default: client generated)
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {object} [result]   - The deserialized result object if an error did not occur.
+ *                      See {@link
+ *                      HistoryReadNextResponseApiModelHistoricEventApiModel}
+ *                      for more information.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _historyReadEventsNext(endpointId, request, options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  // Validate
+  try {
+    if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
+      throw new Error('endpointId cannot be null or undefined and it must be of type string.');
+    }
+    if (request === null || request === undefined) {
+      throw new Error('request cannot be null or undefined.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/read/{endpointId}/events/next';
+  requestUrl = requestUrl.replace('{endpointId}', encodeURIComponent(endpointId));
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'POST';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  // Serialize Request
+  let requestContent = null;
+  let requestModel = null;
+  try {
+    if (request !== null && request !== undefined) {
+      let requestModelMapper = new client.models['HistoryReadNextRequestApiModel']().mapper();
+      requestModel = client.serialize(requestModelMapper, request, 'request');
+      requestContent = JSON.stringify(requestModel);
+    }
+  } catch (error) {
+    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
+        `payload - ${JSON.stringify(request, null, 2)}.`);
+    return callback(serializationError);
+  }
+  httpRequest.body = requestContent;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+    // Deserialize Response
+    if (statusCode === 200) {
+      let parsedResponse = null;
+      try {
+        parsedResponse = JSON.parse(responseBody);
+        result = JSON.parse(responseBody);
+        if (parsedResponse !== null && parsedResponse !== undefined) {
+          let resultMapper = new client.models['HistoryReadNextResponseApiModelHistoricEventApiModel']().mapper();
+          result = client.deserialize(resultMapper, parsedResponse, 'result');
+        }
+      } catch (error) {
+        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
+        deserializationError.request = msRest.stripRequest(httpRequest);
+        deserializationError.response = msRest.stripResponse(response);
+        return callback(deserializationError);
+      }
+    }
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
+ * @summary Read historic processed values at specified times
+ *
+ * Read processed history values of a node if available using historic access.
+ * The endpoint must be activated and connected and the module client
+ * and server must trust each other.
+ *
+ * @param {string} endpointId The identifier of the activated endpoint.
+ *
+ * @param {object} request The history read request
+ *
+ * @param {string} [request.nodeId] Node to read from (mandatory)
+ *
+ * @param {array} [request.browsePath] An optional path from NodeId instance to
+ * the actual node.
+ *
+ * @param {object} [request.details] The HistoryReadDetailsType extension
+ * object
+ * encoded in json and containing the tunneled
+ * Historian reader request.
+ *
+ * @param {date} [request.details.startTime] Beginning of period to read. Set
+ * to null
+ * if no specific start time is specified.
+ *
+ * @param {date} [request.details.endTime] End of period to read. Set to null
+ * if no
+ * specific end time is specified.
+ *
+ * @param {number} [request.details.numValues] The maximum number of values
+ * returned for any Node
+ * over the time range. If only one time is specified,
+ * the time range shall extend to return this number
+ * of values. 0 or null indicates that there is no
+ * maximum.
+ *
+ * @param {boolean} [request.details.returnBounds] Whether to return the
+ * bounding values or not.
+ *
+ * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
+ * slices
+ * out of a matrix or 0:1 for the first item in
+ * an array, string or bytestring.
+ * See 7.22 of part 4: NumericRange.
+ *
+ * @param {object} [request.header] Optional request header
+ *
+ * @param {object} [request.header.elevation] Optional User elevation
+ *
+ * @param {string} [request.header.elevation.type] Type of credential. Possible
+ * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ *
+ * @param {object} [request.header.elevation.value] Value to pass to server
+ *
+ * @param {array} [request.header.locales] Optional list of locales in
+ * preference order.
+ *
+ * @param {object} [request.header.diagnostics] Optional diagnostics
+ * configuration
+ *
+ * @param {string} [request.header.diagnostics.level] Requested level of
+ * response diagnostics.
+ * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+ * 'Diagnostics', 'Verbose'
+ *
+ * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+ * (default: client generated)
+ *
+ * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+ * (default: client generated)
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {object} [result]   - The deserialized result object if an error did not occur.
+ *                      See {@link
+ *                      HistoryReadResponseApiModelHistoricValueApiModel} for
+ *                      more information.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _historyReadValues(endpointId, request, options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  // Validate
+  try {
+    if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
+      throw new Error('endpointId cannot be null or undefined and it must be of type string.');
+    }
+    if (request === null || request === undefined) {
+      throw new Error('request cannot be null or undefined.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/read/{endpointId}/values';
+  requestUrl = requestUrl.replace('{endpointId}', encodeURIComponent(endpointId));
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'POST';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  // Serialize Request
+  let requestContent = null;
+  let requestModel = null;
+  try {
+    if (request !== null && request !== undefined) {
+      let requestModelMapper = new client.models['HistoryReadRequestApiModelReadValuesDetailsApiModel']().mapper();
+      requestModel = client.serialize(requestModelMapper, request, 'request');
+      requestContent = JSON.stringify(requestModel);
+    }
+  } catch (error) {
+    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
+        `payload - ${JSON.stringify(request, null, 2)}.`);
+    return callback(serializationError);
+  }
+  httpRequest.body = requestContent;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+    // Deserialize Response
+    if (statusCode === 200) {
+      let parsedResponse = null;
+      try {
+        parsedResponse = JSON.parse(responseBody);
+        result = JSON.parse(responseBody);
+        if (parsedResponse !== null && parsedResponse !== undefined) {
+          let resultMapper = new client.models['HistoryReadResponseApiModelHistoricValueApiModel']().mapper();
+          result = client.deserialize(resultMapper, parsedResponse, 'result');
+        }
+      } catch (error) {
+        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
+        deserializationError.request = msRest.stripRequest(httpRequest);
+        deserializationError.response = msRest.stripResponse(response);
+        return callback(deserializationError);
+      }
+    }
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
+ * @summary Read historic values at specified times
+ *
+ * Read historic values of a node if available using historic access.
+ * The endpoint must be activated and connected and the module client
+ * and server must trust each other.
+ *
+ * @param {string} endpointId The identifier of the activated endpoint.
+ *
+ * @param {object} request The history read request
+ *
+ * @param {string} [request.nodeId] Node to read from (mandatory)
+ *
+ * @param {array} [request.browsePath] An optional path from NodeId instance to
+ * the actual node.
+ *
+ * @param {object} [request.details] The HistoryReadDetailsType extension
+ * object
+ * encoded in json and containing the tunneled
+ * Historian reader request.
+ *
+ * @param {array} request.details.reqTimes Requested datums
+ *
+ * @param {boolean} [request.details.useSimpleBounds] Whether to use simple
+ * bounds
+ *
+ * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
+ * slices
+ * out of a matrix or 0:1 for the first item in
+ * an array, string or bytestring.
+ * See 7.22 of part 4: NumericRange.
+ *
+ * @param {object} [request.header] Optional request header
+ *
+ * @param {object} [request.header.elevation] Optional User elevation
+ *
+ * @param {string} [request.header.elevation.type] Type of credential. Possible
+ * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ *
+ * @param {object} [request.header.elevation.value] Value to pass to server
+ *
+ * @param {array} [request.header.locales] Optional list of locales in
+ * preference order.
+ *
+ * @param {object} [request.header.diagnostics] Optional diagnostics
+ * configuration
+ *
+ * @param {string} [request.header.diagnostics.level] Requested level of
+ * response diagnostics.
+ * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+ * 'Diagnostics', 'Verbose'
+ *
+ * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+ * (default: client generated)
+ *
+ * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+ * (default: client generated)
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {object} [result]   - The deserialized result object if an error did not occur.
+ *                      See {@link
+ *                      HistoryReadResponseApiModelHistoricValueApiModel} for
+ *                      more information.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _historyReadValuesAtTimes(endpointId, request, options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  // Validate
+  try {
+    if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
+      throw new Error('endpointId cannot be null or undefined and it must be of type string.');
+    }
+    if (request === null || request === undefined) {
+      throw new Error('request cannot be null or undefined.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/read/{endpointId}/values/pick';
+  requestUrl = requestUrl.replace('{endpointId}', encodeURIComponent(endpointId));
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'POST';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  // Serialize Request
+  let requestContent = null;
+  let requestModel = null;
+  try {
+    if (request !== null && request !== undefined) {
+      let requestModelMapper = new client.models['HistoryReadRequestApiModelReadValuesAtTimesDetailsApiModel']().mapper();
+      requestModel = client.serialize(requestModelMapper, request, 'request');
+      requestContent = JSON.stringify(requestModel);
+    }
+  } catch (error) {
+    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
+        `payload - ${JSON.stringify(request, null, 2)}.`);
+    return callback(serializationError);
+  }
+  httpRequest.body = requestContent;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+    // Deserialize Response
+    if (statusCode === 200) {
+      let parsedResponse = null;
+      try {
+        parsedResponse = JSON.parse(responseBody);
+        result = JSON.parse(responseBody);
+        if (parsedResponse !== null && parsedResponse !== undefined) {
+          let resultMapper = new client.models['HistoryReadResponseApiModelHistoricValueApiModel']().mapper();
+          result = client.deserialize(resultMapper, parsedResponse, 'result');
+        }
+      } catch (error) {
+        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
+        deserializationError.request = msRest.stripRequest(httpRequest);
+        deserializationError.response = msRest.stripResponse(response);
+        return callback(deserializationError);
+      }
+    }
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
+ * @summary Read historic processed values at specified times
+ *
+ * Read processed history values of a node if available using historic access.
+ * The endpoint must be activated and connected and the module client
+ * and server must trust each other.
+ *
+ * @param {string} endpointId The identifier of the activated endpoint.
+ *
+ * @param {object} request The history read request
+ *
+ * @param {string} [request.nodeId] Node to read from (mandatory)
+ *
+ * @param {array} [request.browsePath] An optional path from NodeId instance to
+ * the actual node.
+ *
+ * @param {object} [request.details] The HistoryReadDetailsType extension
+ * object
+ * encoded in json and containing the tunneled
+ * Historian reader request.
+ *
+ * @param {date} [request.details.startTime] Start time to read from.
+ *
+ * @param {date} [request.details.endTime] End time to read until
+ *
+ * @param {number} [request.details.processingInterval] Interval to process
+ *
+ * @param {string} [request.details.aggregateTypeId] The aggregate type node
+ * ids
+ *
+ * @param {object} [request.details.aggregateConfiguration] A configuration for
+ * the aggregate
+ *
+ * @param {boolean}
+ * [request.details.aggregateConfiguration.useServerCapabilitiesDefaults]
+ * Whether to use the default server caps
+ *
+ * @param {boolean}
+ * [request.details.aggregateConfiguration.treatUncertainAsBad] Whether to
+ * treat uncertain as bad
+ *
+ * @param {number} [request.details.aggregateConfiguration.percentDataBad]
+ * Percent of data that is bad
+ *
+ * @param {number} [request.details.aggregateConfiguration.percentDataGood]
+ * Percent of data that is good
+ *
+ * @param {boolean}
+ * [request.details.aggregateConfiguration.useSlopedExtrapolation] Whether to
+ * use sloped extrapolation.
+ *
+ * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
+ * slices
+ * out of a matrix or 0:1 for the first item in
+ * an array, string or bytestring.
+ * See 7.22 of part 4: NumericRange.
+ *
+ * @param {object} [request.header] Optional request header
+ *
+ * @param {object} [request.header.elevation] Optional User elevation
+ *
+ * @param {string} [request.header.elevation.type] Type of credential. Possible
+ * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ *
+ * @param {object} [request.header.elevation.value] Value to pass to server
+ *
+ * @param {array} [request.header.locales] Optional list of locales in
+ * preference order.
+ *
+ * @param {object} [request.header.diagnostics] Optional diagnostics
+ * configuration
+ *
+ * @param {string} [request.header.diagnostics.level] Requested level of
+ * response diagnostics.
+ * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+ * 'Diagnostics', 'Verbose'
+ *
+ * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+ * (default: client generated)
+ *
+ * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+ * (default: client generated)
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {object} [result]   - The deserialized result object if an error did not occur.
+ *                      See {@link
+ *                      HistoryReadResponseApiModelHistoricValueApiModel} for
+ *                      more information.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _historyReadProcessedValues(endpointId, request, options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  // Validate
+  try {
+    if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
+      throw new Error('endpointId cannot be null or undefined and it must be of type string.');
+    }
+    if (request === null || request === undefined) {
+      throw new Error('request cannot be null or undefined.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/read/{endpointId}/values/processed';
+  requestUrl = requestUrl.replace('{endpointId}', encodeURIComponent(endpointId));
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'POST';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  // Serialize Request
+  let requestContent = null;
+  let requestModel = null;
+  try {
+    if (request !== null && request !== undefined) {
+      let requestModelMapper = new client.models['HistoryReadRequestApiModelReadProcessedValuesDetailsApiModel']().mapper();
+      requestModel = client.serialize(requestModelMapper, request, 'request');
+      requestContent = JSON.stringify(requestModel);
+    }
+  } catch (error) {
+    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
+        `payload - ${JSON.stringify(request, null, 2)}.`);
+    return callback(serializationError);
+  }
+  httpRequest.body = requestContent;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+    // Deserialize Response
+    if (statusCode === 200) {
+      let parsedResponse = null;
+      try {
+        parsedResponse = JSON.parse(responseBody);
+        result = JSON.parse(responseBody);
+        if (parsedResponse !== null && parsedResponse !== undefined) {
+          let resultMapper = new client.models['HistoryReadResponseApiModelHistoricValueApiModel']().mapper();
+          result = client.deserialize(resultMapper, parsedResponse, 'result');
+        }
+      } catch (error) {
+        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
+        deserializationError.request = msRest.stripRequest(httpRequest);
+        deserializationError.response = msRest.stripResponse(response);
+        return callback(deserializationError);
+      }
+    }
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
+ * @summary Read historic modified values at specified times
+ *
+ * Read processed history values of a node if available using historic access.
+ * The endpoint must be activated and connected and the module client
+ * and server must trust each other.
+ *
+ * @param {string} endpointId The identifier of the activated endpoint.
+ *
+ * @param {object} request The history read request
+ *
+ * @param {string} [request.nodeId] Node to read from (mandatory)
+ *
+ * @param {array} [request.browsePath] An optional path from NodeId instance to
+ * the actual node.
+ *
+ * @param {object} [request.details] The HistoryReadDetailsType extension
+ * object
+ * encoded in json and containing the tunneled
+ * Historian reader request.
+ *
+ * @param {date} [request.details.startTime] The start time to read from
+ *
+ * @param {date} [request.details.endTime] The end time to read to
+ *
+ * @param {number} [request.details.numValues] The number of values to read
+ *
+ * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
+ * slices
+ * out of a matrix or 0:1 for the first item in
+ * an array, string or bytestring.
+ * See 7.22 of part 4: NumericRange.
+ *
+ * @param {object} [request.header] Optional request header
+ *
+ * @param {object} [request.header.elevation] Optional User elevation
+ *
+ * @param {string} [request.header.elevation.type] Type of credential. Possible
+ * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ *
+ * @param {object} [request.header.elevation.value] Value to pass to server
+ *
+ * @param {array} [request.header.locales] Optional list of locales in
+ * preference order.
+ *
+ * @param {object} [request.header.diagnostics] Optional diagnostics
+ * configuration
+ *
+ * @param {string} [request.header.diagnostics.level] Requested level of
+ * response diagnostics.
+ * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+ * 'Diagnostics', 'Verbose'
+ *
+ * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+ * (default: client generated)
+ *
+ * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+ * (default: client generated)
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {object} [result]   - The deserialized result object if an error did not occur.
+ *                      See {@link
+ *                      HistoryReadResponseApiModelHistoricValueApiModel} for
+ *                      more information.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _historyReadModifiedValues(endpointId, request, options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  // Validate
+  try {
+    if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
+      throw new Error('endpointId cannot be null or undefined and it must be of type string.');
+    }
+    if (request === null || request === undefined) {
+      throw new Error('request cannot be null or undefined.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/read/{endpointId}/values/modified';
+  requestUrl = requestUrl.replace('{endpointId}', encodeURIComponent(endpointId));
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'POST';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  // Serialize Request
+  let requestContent = null;
+  let requestModel = null;
+  try {
+    if (request !== null && request !== undefined) {
+      let requestModelMapper = new client.models['HistoryReadRequestApiModelReadModifiedValuesDetailsApiModel']().mapper();
+      requestModel = client.serialize(requestModelMapper, request, 'request');
+      requestContent = JSON.stringify(requestModel);
+    }
+  } catch (error) {
+    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
+        `payload - ${JSON.stringify(request, null, 2)}.`);
+    return callback(serializationError);
+  }
+  httpRequest.body = requestContent;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+    // Deserialize Response
+    if (statusCode === 200) {
+      let parsedResponse = null;
+      try {
+        parsedResponse = JSON.parse(responseBody);
+        result = JSON.parse(responseBody);
+        if (parsedResponse !== null && parsedResponse !== undefined) {
+          let resultMapper = new client.models['HistoryReadResponseApiModelHistoricValueApiModel']().mapper();
+          result = client.deserialize(resultMapper, parsedResponse, 'result');
+        }
+      } catch (error) {
+        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
+        deserializationError.request = msRest.stripRequest(httpRequest);
+        deserializationError.response = msRest.stripResponse(response);
+        return callback(deserializationError);
+      }
+    }
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
+ * @summary Read next batch of historic values
+ *
+ * Read next batch of historic values of a node using historic access.
+ * The endpoint must be activated and connected and the module client
+ * and server must trust each other.
+ *
+ * @param {string} endpointId The identifier of the activated endpoint.
+ *
+ * @param {object} request The history read next request
+ *
+ * @param {string} request.continuationToken Continuation token to continue
+ * reading more
+ * results.
+ *
+ * @param {boolean} [request.abort] Abort reading after this read
+ *
+ * @param {object} [request.header] Optional request header
+ *
+ * @param {object} [request.header.elevation] Optional User elevation
+ *
+ * @param {string} [request.header.elevation.type] Type of credential. Possible
+ * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ *
+ * @param {object} [request.header.elevation.value] Value to pass to server
+ *
+ * @param {array} [request.header.locales] Optional list of locales in
+ * preference order.
+ *
+ * @param {object} [request.header.diagnostics] Optional diagnostics
+ * configuration
+ *
+ * @param {string} [request.header.diagnostics.level] Requested level of
+ * response diagnostics.
+ * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+ * 'Diagnostics', 'Verbose'
+ *
+ * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+ * (default: client generated)
+ *
+ * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+ * (default: client generated)
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {object} [result]   - The deserialized result object if an error did not occur.
+ *                      See {@link
+ *                      HistoryReadNextResponseApiModelHistoricValueApiModel}
+ *                      for more information.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _historyReadValueNext(endpointId, request, options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  // Validate
+  try {
+    if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
+      throw new Error('endpointId cannot be null or undefined and it must be of type string.');
+    }
+    if (request === null || request === undefined) {
+      throw new Error('request cannot be null or undefined.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/read/{endpointId}/values/next';
+  requestUrl = requestUrl.replace('{endpointId}', encodeURIComponent(endpointId));
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'POST';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  // Serialize Request
+  let requestContent = null;
+  let requestModel = null;
+  try {
+    if (request !== null && request !== undefined) {
+      let requestModelMapper = new client.models['HistoryReadNextRequestApiModel']().mapper();
+      requestModel = client.serialize(requestModelMapper, request, 'request');
+      requestContent = JSON.stringify(requestModel);
+    }
+  } catch (error) {
+    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
+        `payload - ${JSON.stringify(request, null, 2)}.`);
+    return callback(serializationError);
+  }
+  httpRequest.body = requestContent;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+    // Deserialize Response
+    if (statusCode === 200) {
+      let parsedResponse = null;
+      try {
+        parsedResponse = JSON.parse(responseBody);
+        result = JSON.parse(responseBody);
+        if (parsedResponse !== null && parsedResponse !== undefined) {
+          let resultMapper = new client.models['HistoryReadNextResponseApiModelHistoricValueApiModel']().mapper();
+          result = client.deserialize(resultMapper, parsedResponse, 'result');
+        }
+      } catch (error) {
+        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
+        deserializationError.request = msRest.stripRequest(httpRequest);
+        deserializationError.response = msRest.stripResponse(response);
+        return callback(deserializationError);
+      }
+    }
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
+ * @summary Replace historic values
+ *
+ * Replace historic values using historic access.
+ * The endpoint must be activated and connected and the module client
+ * and server must trust each other.
+ *
+ * @param {string} endpointId The identifier of the activated endpoint.
+ *
+ * @param {object} request The history replace request
+ *
+ * @param {string} [request.nodeId] Node to update
+ *
+ * @param {array} [request.browsePath] An optional path from NodeId instance to
+ * the actual node.
+ *
+ * @param {object} request.details The HistoryUpdateDetailsType extension
+ * object
+ * encoded as json Variant and containing the tunneled
+ * update request for the Historian server. The value
+ * is updated at edge using above node address.
+ *
+ * @param {array} request.details.values Values to replace
+ *
+ * @param {object} [request.header] Optional request header
+ *
+ * @param {object} [request.header.elevation] Optional User elevation
+ *
+ * @param {string} [request.header.elevation.type] Type of credential. Possible
+ * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ *
+ * @param {object} [request.header.elevation.value] Value to pass to server
+ *
+ * @param {array} [request.header.locales] Optional list of locales in
+ * preference order.
+ *
+ * @param {object} [request.header.diagnostics] Optional diagnostics
+ * configuration
+ *
+ * @param {string} [request.header.diagnostics.level] Requested level of
+ * response diagnostics.
+ * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+ * 'Diagnostics', 'Verbose'
+ *
+ * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+ * (default: client generated)
+ *
+ * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+ * (default: client generated)
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {object} [result]   - The deserialized result object if an error did not occur.
+ *                      See {@link HistoryUpdateResponseApiModel} for more
+ *                      information.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _historyReplaceValues(endpointId, request, options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  // Validate
+  try {
+    if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
+      throw new Error('endpointId cannot be null or undefined and it must be of type string.');
+    }
+    if (request === null || request === undefined) {
+      throw new Error('request cannot be null or undefined.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/replace/{endpointId}/values';
+  requestUrl = requestUrl.replace('{endpointId}', encodeURIComponent(endpointId));
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'POST';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  // Serialize Request
+  let requestContent = null;
+  let requestModel = null;
+  try {
+    if (request !== null && request !== undefined) {
+      let requestModelMapper = new client.models['HistoryUpdateRequestApiModelReplaceValuesDetailsApiModel']().mapper();
+      requestModel = client.serialize(requestModelMapper, request, 'request');
+      requestContent = JSON.stringify(requestModel);
+    }
+  } catch (error) {
+    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
+        `payload - ${JSON.stringify(request, null, 2)}.`);
+    return callback(serializationError);
+  }
+  httpRequest.body = requestContent;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+    // Deserialize Response
+    if (statusCode === 200) {
+      let parsedResponse = null;
+      try {
+        parsedResponse = JSON.parse(responseBody);
+        result = JSON.parse(responseBody);
+        if (parsedResponse !== null && parsedResponse !== undefined) {
+          let resultMapper = new client.models['HistoryUpdateResponseApiModel']().mapper();
+          result = client.deserialize(resultMapper, parsedResponse, 'result');
+        }
+      } catch (error) {
+        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
+        deserializationError.request = msRest.stripRequest(httpRequest);
+        deserializationError.response = msRest.stripResponse(response);
+        return callback(deserializationError);
+      }
+    }
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
+ * @summary Replace historic events
+ *
+ * Replace historic events using historic access.
+ * The endpoint must be activated and connected and the module client
+ * and server must trust each other.
+ *
+ * @param {string} endpointId The identifier of the activated endpoint.
+ *
+ * @param {object} request The history replace request
+ *
+ * @param {string} [request.nodeId] Node to update
+ *
+ * @param {array} [request.browsePath] An optional path from NodeId instance to
+ * the actual node.
+ *
+ * @param {object} request.details The HistoryUpdateDetailsType extension
+ * object
+ * encoded as json Variant and containing the tunneled
+ * update request for the Historian server. The value
+ * is updated at edge using above node address.
+ *
+ * @param {object} [request.details.filter] The filter to use to select the
+ * events
+ *
+ * @param {array} request.details.events The events to replace
+ *
+ * @param {object} [request.header] Optional request header
+ *
+ * @param {object} [request.header.elevation] Optional User elevation
+ *
+ * @param {string} [request.header.elevation.type] Type of credential. Possible
+ * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ *
+ * @param {object} [request.header.elevation.value] Value to pass to server
+ *
+ * @param {array} [request.header.locales] Optional list of locales in
+ * preference order.
+ *
+ * @param {object} [request.header.diagnostics] Optional diagnostics
+ * configuration
+ *
+ * @param {string} [request.header.diagnostics.level] Requested level of
+ * response diagnostics.
+ * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+ * 'Diagnostics', 'Verbose'
+ *
+ * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+ * (default: client generated)
+ *
+ * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+ * (default: client generated)
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {object} [result]   - The deserialized result object if an error did not occur.
+ *                      See {@link HistoryUpdateResponseApiModel} for more
+ *                      information.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _historyReplaceEvents(endpointId, request, options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  // Validate
+  try {
+    if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
+      throw new Error('endpointId cannot be null or undefined and it must be of type string.');
+    }
+    if (request === null || request === undefined) {
+      throw new Error('request cannot be null or undefined.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/replace/{endpointId}/events';
+  requestUrl = requestUrl.replace('{endpointId}', encodeURIComponent(endpointId));
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'POST';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  // Serialize Request
+  let requestContent = null;
+  let requestModel = null;
+  try {
+    if (request !== null && request !== undefined) {
+      let requestModelMapper = new client.models['HistoryUpdateRequestApiModelReplaceEventsDetailsApiModel']().mapper();
+      requestModel = client.serialize(requestModelMapper, request, 'request');
+      requestContent = JSON.stringify(requestModel);
+    }
+  } catch (error) {
+    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
+        `payload - ${JSON.stringify(request, null, 2)}.`);
+    return callback(serializationError);
+  }
+  httpRequest.body = requestContent;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+    // Deserialize Response
+    if (statusCode === 200) {
+      let parsedResponse = null;
+      try {
+        parsedResponse = JSON.parse(responseBody);
+        result = JSON.parse(responseBody);
+        if (parsedResponse !== null && parsedResponse !== undefined) {
+          let resultMapper = new client.models['HistoryUpdateResponseApiModel']().mapper();
+          result = client.deserialize(resultMapper, parsedResponse, 'result');
+        }
+      } catch (error) {
+        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
+        deserializationError.request = msRest.stripRequest(httpRequest);
+        deserializationError.response = msRest.stripResponse(response);
+        return callback(deserializationError);
+      }
+    }
 
     return callback(null, result, httpRequest, response);
   });
@@ -2680,1026 +3411,6 @@ function _getStatus(options, callback) {
   });
 }
 
-/**
- * @summary Get supervisor registration information
- *
- * Returns a supervisor's registration and connectivity information.
- * A supervisor id corresponds to the twin modules module identity.
- *
- * @param {string} supervisorId Supervisor identifier
- *
- * @param {object} [options] Optional Parameters.
- *
- * @param {boolean} [options.onlyServerState] Whether to include only server
- * state, or display current client state of the endpoint if
- * available
- *
- * @param {object} [options.customHeaders] Headers that will be added to the
- * request
- *
- * @param {function} callback - The callback.
- *
- * @returns {function} callback(err, result, request, response)
- *
- *                      {Error}  err        - The Error object if an error occurred, null otherwise.
- *
- *                      {object} [result]   - The deserialized result object if an error did not occur.
- *                      See {@link SupervisorApiModel} for more information.
- *
- *                      {object} [request]  - The HTTP Request object if an error did not occur.
- *
- *                      {stream} [response] - The HTTP Response stream if an error did not occur.
- */
-function _getSupervisor(supervisorId, options, callback) {
-   /* jshint validthis: true */
-  let client = this;
-  if(!callback && typeof options === 'function') {
-    callback = options;
-    options = null;
-  }
-  if (!callback) {
-    throw new Error('callback cannot be null.');
-  }
-  let onlyServerState = (options && options.onlyServerState !== undefined) ? options.onlyServerState : undefined;
-  // Validate
-  try {
-    if (supervisorId === null || supervisorId === undefined || typeof supervisorId.valueOf() !== 'string') {
-      throw new Error('supervisorId cannot be null or undefined and it must be of type string.');
-    }
-    if (onlyServerState !== null && onlyServerState !== undefined && typeof onlyServerState !== 'boolean') {
-      throw new Error('onlyServerState must be of type boolean.');
-    }
-  } catch (error) {
-    return callback(error);
-  }
-
-  // Construct URL
-  let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/supervisors/{supervisorId}';
-  requestUrl = requestUrl.replace('{supervisorId}', encodeURIComponent(supervisorId));
-  let queryParameters = [];
-  if (onlyServerState !== null && onlyServerState !== undefined) {
-    queryParameters.push('onlyServerState=' + encodeURIComponent(onlyServerState.toString()));
-  }
-  if (queryParameters.length > 0) {
-    requestUrl += '?' + queryParameters.join('&');
-  }
-
-  // Create HTTP transport objects
-  let httpRequest = new WebResource();
-  httpRequest.method = 'GET';
-  httpRequest.url = requestUrl;
-  httpRequest.headers = {};
-  // Set Headers
-  httpRequest.headers['Content-Type'] = 'application/json; charset=utf-8';
-  if(options) {
-    for(let headerName in options['customHeaders']) {
-      if (options['customHeaders'].hasOwnProperty(headerName)) {
-        httpRequest.headers[headerName] = options['customHeaders'][headerName];
-      }
-    }
-  }
-  httpRequest.body = null;
-  // Send Request
-  return client.pipeline(httpRequest, (err, response, responseBody) => {
-    if (err) {
-      return callback(err);
-    }
-    let statusCode = response.statusCode;
-    if (statusCode !== 200) {
-      let error = new Error(responseBody);
-      error.statusCode = response.statusCode;
-      error.request = msRest.stripRequest(httpRequest);
-      error.response = msRest.stripResponse(response);
-      if (responseBody === '') responseBody = null;
-      let parsedErrorResponse;
-      try {
-        parsedErrorResponse = JSON.parse(responseBody);
-        if (parsedErrorResponse) {
-          let internalError = null;
-          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
-          error.code = internalError ? internalError.code : parsedErrorResponse.code;
-          error.message = internalError ? internalError.message : parsedErrorResponse.message;
-        }
-      } catch (defaultError) {
-        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
-                         `- "${responseBody}" for the default response.`;
-        return callback(error);
-      }
-      return callback(error);
-    }
-    // Create Result
-    let result = null;
-    if (responseBody === '') responseBody = null;
-    // Deserialize Response
-    if (statusCode === 200) {
-      let parsedResponse = null;
-      try {
-        parsedResponse = JSON.parse(responseBody);
-        result = JSON.parse(responseBody);
-        if (parsedResponse !== null && parsedResponse !== undefined) {
-          let resultMapper = new client.models['SupervisorApiModel']().mapper();
-          result = client.deserialize(resultMapper, parsedResponse, 'result');
-        }
-      } catch (error) {
-        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
-        deserializationError.request = msRest.stripRequest(httpRequest);
-        deserializationError.response = msRest.stripResponse(response);
-        return callback(deserializationError);
-      }
-    }
-
-    return callback(null, result, httpRequest, response);
-  });
-}
-
-/**
- * @summary Update supervisor information
- *
- * Allows a caller to configure recurring discovery runs on the twin module
- * identified by the supervisor id or update site information.
- *
- * @param {string} supervisorId supervisor identifier
- *
- * @param {object} request Patch request
- *
- * @param {string} [request.siteId] Site of the supervisor
- *
- * @param {string} [request.discovery] Whether the supervisor is in discovery
- * mode.
- * If null, does not change. Possible values include: 'Off', 'Local',
- * 'Network', 'Fast', 'Scan'
- *
- * @param {object} [request.discoveryConfig] Supervisor discovery configuration
- *
- * @param {string} [request.discoveryConfig.addressRangesToScan] Address ranges
- * to scan (null == all wired nics)
- *
- * @param {number} [request.discoveryConfig.networkProbeTimeoutMs] Network
- * probe timeout
- *
- * @param {number} [request.discoveryConfig.maxNetworkProbes] Max network
- * probes that should ever run.
- *
- * @param {string} [request.discoveryConfig.portRangesToScan] Port ranges to
- * scan (null == all unassigned)
- *
- * @param {number} [request.discoveryConfig.portProbeTimeoutMs] Port probe
- * timeout
- *
- * @param {number} [request.discoveryConfig.maxPortProbes] Max port probes that
- * should ever run.
- *
- * @param {number} [request.discoveryConfig.minPortProbesPercent] Probes that
- * must always be there as percent of max.
- *
- * @param {number} [request.discoveryConfig.idleTimeBetweenScansSec] Delay time
- * between discovery sweeps in seconds
- *
- * @param {array} [request.discoveryConfig.discoveryUrls] List of preset
- * discovery urls to use
- *
- * @param {array} [request.discoveryConfig.locales] List of locales to filter
- * with during discovery
- *
- * @param {array} [request.discoveryConfig.callbacks] Callbacks to invoke once
- * onboarding finishes
- *
- * @param {object} [request.discoveryConfig.activationFilter] Activate all
- * twins with this filter during onboarding.
- *
- * @param {array} [request.discoveryConfig.activationFilter.trustLists]
- * Certificate trust list identifiers to use for
- * activation, if null, all certificates are
- * trusted.  If empty list, no certificates are
- * trusted which is equal to no filter.
- *
- * @param {array} [request.discoveryConfig.activationFilter.securityPolicies]
- * Endpoint security policies to filter against.
- * If set to null, all policies are in scope.
- *
- * @param {string} [request.discoveryConfig.activationFilter.securityMode]
- * Security mode level to activate. If null,
- * then Microsoft.Azure.IIoT.OpcUa.Registry.Models.SecurityMode.Best is
- * assumed. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
- *
- * @param {array} [request.discoveryCallbacks] Callbacks to add or remove (see
- * below)
- *
- * @param {boolean} [request.removeDiscoveryCallbacks] Whether to add or remove
- * callbacks
- *
- * @param {string} [request.logLevel] Current log level. Possible values
- * include: 'Error', 'Information', 'Debug', 'Verbose'
- *
- * @param {object} [options] Optional Parameters.
- *
- * @param {object} [options.customHeaders] Headers that will be added to the
- * request
- *
- * @param {function} callback - The callback.
- *
- * @returns {function} callback(err, result, request, response)
- *
- *                      {Error}  err        - The Error object if an error occurred, null otherwise.
- *
- *                      {null} [result]   - The deserialized result object if an error did not occur.
- *
- *                      {object} [request]  - The HTTP Request object if an error did not occur.
- *
- *                      {stream} [response] - The HTTP Response stream if an error did not occur.
- */
-function _updateSupervisor(supervisorId, request, options, callback) {
-   /* jshint validthis: true */
-  let client = this;
-  if(!callback && typeof options === 'function') {
-    callback = options;
-    options = null;
-  }
-  if (!callback) {
-    throw new Error('callback cannot be null.');
-  }
-  // Validate
-  try {
-    if (supervisorId === null || supervisorId === undefined || typeof supervisorId.valueOf() !== 'string') {
-      throw new Error('supervisorId cannot be null or undefined and it must be of type string.');
-    }
-    if (request === null || request === undefined) {
-      throw new Error('request cannot be null or undefined.');
-    }
-  } catch (error) {
-    return callback(error);
-  }
-
-  // Construct URL
-  let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/supervisors/{supervisorId}';
-  requestUrl = requestUrl.replace('{supervisorId}', encodeURIComponent(supervisorId));
-
-  // Create HTTP transport objects
-  let httpRequest = new WebResource();
-  httpRequest.method = 'PATCH';
-  httpRequest.url = requestUrl;
-  httpRequest.headers = {};
-  // Set Headers
-  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
-  if(options) {
-    for(let headerName in options['customHeaders']) {
-      if (options['customHeaders'].hasOwnProperty(headerName)) {
-        httpRequest.headers[headerName] = options['customHeaders'][headerName];
-      }
-    }
-  }
-  // Serialize Request
-  let requestContent = null;
-  let requestModel = null;
-  try {
-    if (request !== null && request !== undefined) {
-      let requestModelMapper = new client.models['SupervisorUpdateApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, request, 'request');
-      requestContent = JSON.stringify(requestModel);
-    }
-  } catch (error) {
-    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(request, null, 2)}.`);
-    return callback(serializationError);
-  }
-  httpRequest.body = requestContent;
-  // Send Request
-  return client.pipeline(httpRequest, (err, response, responseBody) => {
-    if (err) {
-      return callback(err);
-    }
-    let statusCode = response.statusCode;
-    if (statusCode !== 200) {
-      let error = new Error(responseBody);
-      error.statusCode = response.statusCode;
-      error.request = msRest.stripRequest(httpRequest);
-      error.response = msRest.stripResponse(response);
-      if (responseBody === '') responseBody = null;
-      let parsedErrorResponse;
-      try {
-        parsedErrorResponse = JSON.parse(responseBody);
-        if (parsedErrorResponse) {
-          let internalError = null;
-          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
-          error.code = internalError ? internalError.code : parsedErrorResponse.code;
-          error.message = internalError ? internalError.message : parsedErrorResponse.message;
-        }
-      } catch (defaultError) {
-        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
-                         `- "${responseBody}" for the default response.`;
-        return callback(error);
-      }
-      return callback(error);
-    }
-    // Create Result
-    let result = null;
-    if (responseBody === '') responseBody = null;
-
-    return callback(null, result, httpRequest, response);
-  });
-}
-
-/**
- * @summary Get runtime status of supervisor
- *
- * Allows a caller to get runtime status for a supervisor.
- *
- * @param {string} supervisorId supervisor identifier
- *
- * @param {object} [options] Optional Parameters.
- *
- * @param {object} [options.customHeaders] Headers that will be added to the
- * request
- *
- * @param {function} callback - The callback.
- *
- * @returns {function} callback(err, result, request, response)
- *
- *                      {Error}  err        - The Error object if an error occurred, null otherwise.
- *
- *                      {object} [result]   - The deserialized result object if an error did not occur.
- *                      See {@link SupervisorStatusApiModel} for more
- *                      information.
- *
- *                      {object} [request]  - The HTTP Request object if an error did not occur.
- *
- *                      {stream} [response] - The HTTP Response stream if an error did not occur.
- */
-function _getSupervisorStatus(supervisorId, options, callback) {
-   /* jshint validthis: true */
-  let client = this;
-  if(!callback && typeof options === 'function') {
-    callback = options;
-    options = null;
-  }
-  if (!callback) {
-    throw new Error('callback cannot be null.');
-  }
-  // Validate
-  try {
-    if (supervisorId === null || supervisorId === undefined || typeof supervisorId.valueOf() !== 'string') {
-      throw new Error('supervisorId cannot be null or undefined and it must be of type string.');
-    }
-  } catch (error) {
-    return callback(error);
-  }
-
-  // Construct URL
-  let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/supervisors/{supervisorId}/status';
-  requestUrl = requestUrl.replace('{supervisorId}', encodeURIComponent(supervisorId));
-
-  // Create HTTP transport objects
-  let httpRequest = new WebResource();
-  httpRequest.method = 'GET';
-  httpRequest.url = requestUrl;
-  httpRequest.headers = {};
-  // Set Headers
-  httpRequest.headers['Content-Type'] = 'application/json; charset=utf-8';
-  if(options) {
-    for(let headerName in options['customHeaders']) {
-      if (options['customHeaders'].hasOwnProperty(headerName)) {
-        httpRequest.headers[headerName] = options['customHeaders'][headerName];
-      }
-    }
-  }
-  httpRequest.body = null;
-  // Send Request
-  return client.pipeline(httpRequest, (err, response, responseBody) => {
-    if (err) {
-      return callback(err);
-    }
-    let statusCode = response.statusCode;
-    if (statusCode !== 200) {
-      let error = new Error(responseBody);
-      error.statusCode = response.statusCode;
-      error.request = msRest.stripRequest(httpRequest);
-      error.response = msRest.stripResponse(response);
-      if (responseBody === '') responseBody = null;
-      let parsedErrorResponse;
-      try {
-        parsedErrorResponse = JSON.parse(responseBody);
-        if (parsedErrorResponse) {
-          let internalError = null;
-          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
-          error.code = internalError ? internalError.code : parsedErrorResponse.code;
-          error.message = internalError ? internalError.message : parsedErrorResponse.message;
-        }
-      } catch (defaultError) {
-        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
-                         `- "${responseBody}" for the default response.`;
-        return callback(error);
-      }
-      return callback(error);
-    }
-    // Create Result
-    let result = null;
-    if (responseBody === '') responseBody = null;
-    // Deserialize Response
-    if (statusCode === 200) {
-      let parsedResponse = null;
-      try {
-        parsedResponse = JSON.parse(responseBody);
-        result = JSON.parse(responseBody);
-        if (parsedResponse !== null && parsedResponse !== undefined) {
-          let resultMapper = new client.models['SupervisorStatusApiModel']().mapper();
-          result = client.deserialize(resultMapper, parsedResponse, 'result');
-        }
-      } catch (error) {
-        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
-        deserializationError.request = msRest.stripRequest(httpRequest);
-        deserializationError.response = msRest.stripResponse(response);
-        return callback(deserializationError);
-      }
-    }
-
-    return callback(null, result, httpRequest, response);
-  });
-}
-
-/**
- * @summary Reset supervisor
- *
- * Allows a caller to reset the twin module using its supervisor
- * identity identifier.
- *
- * @param {string} supervisorId supervisor identifier
- *
- * @param {object} [options] Optional Parameters.
- *
- * @param {object} [options.customHeaders] Headers that will be added to the
- * request
- *
- * @param {function} callback - The callback.
- *
- * @returns {function} callback(err, result, request, response)
- *
- *                      {Error}  err        - The Error object if an error occurred, null otherwise.
- *
- *                      {null} [result]   - The deserialized result object if an error did not occur.
- *
- *                      {object} [request]  - The HTTP Request object if an error did not occur.
- *
- *                      {stream} [response] - The HTTP Response stream if an error did not occur.
- */
-function _resetSupervisor(supervisorId, options, callback) {
-   /* jshint validthis: true */
-  let client = this;
-  if(!callback && typeof options === 'function') {
-    callback = options;
-    options = null;
-  }
-  if (!callback) {
-    throw new Error('callback cannot be null.');
-  }
-  // Validate
-  try {
-    if (supervisorId === null || supervisorId === undefined || typeof supervisorId.valueOf() !== 'string') {
-      throw new Error('supervisorId cannot be null or undefined and it must be of type string.');
-    }
-  } catch (error) {
-    return callback(error);
-  }
-
-  // Construct URL
-  let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/supervisors/{supervisorId}/reset';
-  requestUrl = requestUrl.replace('{supervisorId}', encodeURIComponent(supervisorId));
-
-  // Create HTTP transport objects
-  let httpRequest = new WebResource();
-  httpRequest.method = 'POST';
-  httpRequest.url = requestUrl;
-  httpRequest.headers = {};
-  // Set Headers
-  httpRequest.headers['Content-Type'] = 'application/json; charset=utf-8';
-  if(options) {
-    for(let headerName in options['customHeaders']) {
-      if (options['customHeaders'].hasOwnProperty(headerName)) {
-        httpRequest.headers[headerName] = options['customHeaders'][headerName];
-      }
-    }
-  }
-  httpRequest.body = null;
-  // Send Request
-  return client.pipeline(httpRequest, (err, response, responseBody) => {
-    if (err) {
-      return callback(err);
-    }
-    let statusCode = response.statusCode;
-    if (statusCode !== 200) {
-      let error = new Error(responseBody);
-      error.statusCode = response.statusCode;
-      error.request = msRest.stripRequest(httpRequest);
-      error.response = msRest.stripResponse(response);
-      if (responseBody === '') responseBody = null;
-      let parsedErrorResponse;
-      try {
-        parsedErrorResponse = JSON.parse(responseBody);
-        if (parsedErrorResponse) {
-          let internalError = null;
-          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
-          error.code = internalError ? internalError.code : parsedErrorResponse.code;
-          error.message = internalError ? internalError.message : parsedErrorResponse.message;
-        }
-      } catch (defaultError) {
-        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
-                         `- "${responseBody}" for the default response.`;
-        return callback(error);
-      }
-      return callback(error);
-    }
-    // Create Result
-    let result = null;
-    if (responseBody === '') responseBody = null;
-
-    return callback(null, result, httpRequest, response);
-  });
-}
-
-/**
- * @summary Get list of supervisors
- *
- * Get all registered supervisors and therefore twin modules in paged form.
- * The returned model can contain a continuation token if more results are
- * available.
- * Call this operation again using the token to retrieve more results.
- *
- * @param {object} [options] Optional Parameters.
- *
- * @param {boolean} [options.onlyServerState] Whether to include only server
- * state, or display current client state of the endpoint if available
- *
- * @param {string} [options.continuationToken] Optional Continuation token
- *
- * @param {number} [options.pageSize] Optional number of results to return
- *
- * @param {object} [options.customHeaders] Headers that will be added to the
- * request
- *
- * @param {function} callback - The callback.
- *
- * @returns {function} callback(err, result, request, response)
- *
- *                      {Error}  err        - The Error object if an error occurred, null otherwise.
- *
- *                      {object} [result]   - The deserialized result object if an error did not occur.
- *                      See {@link SupervisorListApiModel} for more
- *                      information.
- *
- *                      {object} [request]  - The HTTP Request object if an error did not occur.
- *
- *                      {stream} [response] - The HTTP Response stream if an error did not occur.
- */
-function _getListOfSupervisors(options, callback) {
-   /* jshint validthis: true */
-  let client = this;
-  if(!callback && typeof options === 'function') {
-    callback = options;
-    options = null;
-  }
-  if (!callback) {
-    throw new Error('callback cannot be null.');
-  }
-  let onlyServerState = (options && options.onlyServerState !== undefined) ? options.onlyServerState : undefined;
-  let continuationToken = (options && options.continuationToken !== undefined) ? options.continuationToken : undefined;
-  let pageSize = (options && options.pageSize !== undefined) ? options.pageSize : undefined;
-  // Validate
-  try {
-    if (onlyServerState !== null && onlyServerState !== undefined && typeof onlyServerState !== 'boolean') {
-      throw new Error('onlyServerState must be of type boolean.');
-    }
-    if (continuationToken !== null && continuationToken !== undefined && typeof continuationToken.valueOf() !== 'string') {
-      throw new Error('continuationToken must be of type string.');
-    }
-    if (pageSize !== null && pageSize !== undefined && typeof pageSize !== 'number') {
-      throw new Error('pageSize must be of type number.');
-    }
-  } catch (error) {
-    return callback(error);
-  }
-
-  // Construct URL
-  let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/supervisors';
-  let queryParameters = [];
-  if (onlyServerState !== null && onlyServerState !== undefined) {
-    queryParameters.push('onlyServerState=' + encodeURIComponent(onlyServerState.toString()));
-  }
-  if (continuationToken !== null && continuationToken !== undefined) {
-    queryParameters.push('continuationToken=' + encodeURIComponent(continuationToken));
-  }
-  if (pageSize !== null && pageSize !== undefined) {
-    queryParameters.push('pageSize=' + encodeURIComponent(pageSize.toString()));
-  }
-  if (queryParameters.length > 0) {
-    requestUrl += '?' + queryParameters.join('&');
-  }
-
-  // Create HTTP transport objects
-  let httpRequest = new WebResource();
-  httpRequest.method = 'GET';
-  httpRequest.url = requestUrl;
-  httpRequest.headers = {};
-  // Set Headers
-  httpRequest.headers['Content-Type'] = 'application/json; charset=utf-8';
-  if(options) {
-    for(let headerName in options['customHeaders']) {
-      if (options['customHeaders'].hasOwnProperty(headerName)) {
-        httpRequest.headers[headerName] = options['customHeaders'][headerName];
-      }
-    }
-  }
-  httpRequest.body = null;
-  // Send Request
-  return client.pipeline(httpRequest, (err, response, responseBody) => {
-    if (err) {
-      return callback(err);
-    }
-    let statusCode = response.statusCode;
-    if (statusCode !== 200) {
-      let error = new Error(responseBody);
-      error.statusCode = response.statusCode;
-      error.request = msRest.stripRequest(httpRequest);
-      error.response = msRest.stripResponse(response);
-      if (responseBody === '') responseBody = null;
-      let parsedErrorResponse;
-      try {
-        parsedErrorResponse = JSON.parse(responseBody);
-        if (parsedErrorResponse) {
-          let internalError = null;
-          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
-          error.code = internalError ? internalError.code : parsedErrorResponse.code;
-          error.message = internalError ? internalError.message : parsedErrorResponse.message;
-        }
-      } catch (defaultError) {
-        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
-                         `- "${responseBody}" for the default response.`;
-        return callback(error);
-      }
-      return callback(error);
-    }
-    // Create Result
-    let result = null;
-    if (responseBody === '') responseBody = null;
-    // Deserialize Response
-    if (statusCode === 200) {
-      let parsedResponse = null;
-      try {
-        parsedResponse = JSON.parse(responseBody);
-        result = JSON.parse(responseBody);
-        if (parsedResponse !== null && parsedResponse !== undefined) {
-          let resultMapper = new client.models['SupervisorListApiModel']().mapper();
-          result = client.deserialize(resultMapper, parsedResponse, 'result');
-        }
-      } catch (error) {
-        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
-        deserializationError.request = msRest.stripRequest(httpRequest);
-        deserializationError.response = msRest.stripResponse(response);
-        return callback(deserializationError);
-      }
-    }
-
-    return callback(null, result, httpRequest, response);
-  });
-}
-
-/**
- * @summary Get filtered list of supervisors
- *
- * Get a list of supervisors filtered using the specified query parameters.
- * The returned model can contain a continuation token if more results are
- * available.
- * Call the GetListOfSupervisors operation using the token to retrieve
- * more results.
- *
- * @param {object} [options] Optional Parameters.
- *
- * @param {string} [options.siteId] Site of the supervisor
- *
- * @param {string} [options.discovery] Discovery mode of supervisor. Possible
- * values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
- *
- * @param {boolean} [options.connected] Included connected or disconnected
- *
- * @param {boolean} [options.onlyServerState] Whether to include only server
- * state, or display current client state of the endpoint if
- * available
- *
- * @param {number} [options.pageSize] Number of results to return
- *
- * @param {object} [options.customHeaders] Headers that will be added to the
- * request
- *
- * @param {function} callback - The callback.
- *
- * @returns {function} callback(err, result, request, response)
- *
- *                      {Error}  err        - The Error object if an error occurred, null otherwise.
- *
- *                      {object} [result]   - The deserialized result object if an error did not occur.
- *                      See {@link SupervisorListApiModel} for more
- *                      information.
- *
- *                      {object} [request]  - The HTTP Request object if an error did not occur.
- *
- *                      {stream} [response] - The HTTP Response stream if an error did not occur.
- */
-function _getFilteredListOfSupervisors(options, callback) {
-   /* jshint validthis: true */
-  let client = this;
-  if(!callback && typeof options === 'function') {
-    callback = options;
-    options = null;
-  }
-  if (!callback) {
-    throw new Error('callback cannot be null.');
-  }
-  let siteId = (options && options.siteId !== undefined) ? options.siteId : undefined;
-  let discovery = (options && options.discovery !== undefined) ? options.discovery : undefined;
-  let connected = (options && options.connected !== undefined) ? options.connected : undefined;
-  let onlyServerState = (options && options.onlyServerState !== undefined) ? options.onlyServerState : undefined;
-  let pageSize = (options && options.pageSize !== undefined) ? options.pageSize : undefined;
-  // Validate
-  try {
-    if (siteId !== null && siteId !== undefined && typeof siteId.valueOf() !== 'string') {
-      throw new Error('siteId must be of type string.');
-    }
-    if (discovery !== null && discovery !== undefined && typeof discovery.valueOf() !== 'string') {
-      throw new Error('discovery must be of type string.');
-    }
-    if (connected !== null && connected !== undefined && typeof connected !== 'boolean') {
-      throw new Error('connected must be of type boolean.');
-    }
-    if (onlyServerState !== null && onlyServerState !== undefined && typeof onlyServerState !== 'boolean') {
-      throw new Error('onlyServerState must be of type boolean.');
-    }
-    if (pageSize !== null && pageSize !== undefined && typeof pageSize !== 'number') {
-      throw new Error('pageSize must be of type number.');
-    }
-  } catch (error) {
-    return callback(error);
-  }
-
-  // Construct URL
-  let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/supervisors/query';
-  let queryParameters = [];
-  if (siteId !== null && siteId !== undefined) {
-    queryParameters.push('SiteId=' + encodeURIComponent(siteId));
-  }
-  if (discovery !== null && discovery !== undefined) {
-    queryParameters.push('Discovery=' + encodeURIComponent(discovery));
-  }
-  if (connected !== null && connected !== undefined) {
-    queryParameters.push('Connected=' + encodeURIComponent(connected.toString()));
-  }
-  if (onlyServerState !== null && onlyServerState !== undefined) {
-    queryParameters.push('onlyServerState=' + encodeURIComponent(onlyServerState.toString()));
-  }
-  if (pageSize !== null && pageSize !== undefined) {
-    queryParameters.push('pageSize=' + encodeURIComponent(pageSize.toString()));
-  }
-  if (queryParameters.length > 0) {
-    requestUrl += '?' + queryParameters.join('&');
-  }
-
-  // Create HTTP transport objects
-  let httpRequest = new WebResource();
-  httpRequest.method = 'GET';
-  httpRequest.url = requestUrl;
-  httpRequest.headers = {};
-  // Set Headers
-  httpRequest.headers['Content-Type'] = 'application/json; charset=utf-8';
-  if(options) {
-    for(let headerName in options['customHeaders']) {
-      if (options['customHeaders'].hasOwnProperty(headerName)) {
-        httpRequest.headers[headerName] = options['customHeaders'][headerName];
-      }
-    }
-  }
-  httpRequest.body = null;
-  // Send Request
-  return client.pipeline(httpRequest, (err, response, responseBody) => {
-    if (err) {
-      return callback(err);
-    }
-    let statusCode = response.statusCode;
-    if (statusCode !== 200) {
-      let error = new Error(responseBody);
-      error.statusCode = response.statusCode;
-      error.request = msRest.stripRequest(httpRequest);
-      error.response = msRest.stripResponse(response);
-      if (responseBody === '') responseBody = null;
-      let parsedErrorResponse;
-      try {
-        parsedErrorResponse = JSON.parse(responseBody);
-        if (parsedErrorResponse) {
-          let internalError = null;
-          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
-          error.code = internalError ? internalError.code : parsedErrorResponse.code;
-          error.message = internalError ? internalError.message : parsedErrorResponse.message;
-        }
-      } catch (defaultError) {
-        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
-                         `- "${responseBody}" for the default response.`;
-        return callback(error);
-      }
-      return callback(error);
-    }
-    // Create Result
-    let result = null;
-    if (responseBody === '') responseBody = null;
-    // Deserialize Response
-    if (statusCode === 200) {
-      let parsedResponse = null;
-      try {
-        parsedResponse = JSON.parse(responseBody);
-        result = JSON.parse(responseBody);
-        if (parsedResponse !== null && parsedResponse !== undefined) {
-          let resultMapper = new client.models['SupervisorListApiModel']().mapper();
-          result = client.deserialize(resultMapper, parsedResponse, 'result');
-        }
-      } catch (error) {
-        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
-        deserializationError.request = msRest.stripRequest(httpRequest);
-        deserializationError.response = msRest.stripResponse(response);
-        return callback(deserializationError);
-      }
-    }
-
-    return callback(null, result, httpRequest, response);
-  });
-}
-
-/**
- * @summary Query supervisors
- *
- * Get all supervisors that match a specified query.
- * The returned model can contain a continuation token if more results are
- * available.
- * Call the GetListOfSupervisors operation using the token to retrieve
- * more results.
- *
- * @param {object} query Supervisors query model
- *
- * @param {string} [query.siteId] Site of the supervisor
- *
- * @param {string} [query.discovery] Discovery mode of supervisor. Possible
- * values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
- *
- * @param {boolean} [query.connected] Included connected or disconnected
- *
- * @param {object} [options] Optional Parameters.
- *
- * @param {boolean} [options.onlyServerState] Whether to include only server
- * state, or display current client state of the endpoint if
- * available
- *
- * @param {number} [options.pageSize] Number of results to return
- *
- * @param {object} [options.customHeaders] Headers that will be added to the
- * request
- *
- * @param {function} callback - The callback.
- *
- * @returns {function} callback(err, result, request, response)
- *
- *                      {Error}  err        - The Error object if an error occurred, null otherwise.
- *
- *                      {object} [result]   - The deserialized result object if an error did not occur.
- *                      See {@link SupervisorListApiModel} for more
- *                      information.
- *
- *                      {object} [request]  - The HTTP Request object if an error did not occur.
- *
- *                      {stream} [response] - The HTTP Response stream if an error did not occur.
- */
-function _querySupervisors(query, options, callback) {
-   /* jshint validthis: true */
-  let client = this;
-  if(!callback && typeof options === 'function') {
-    callback = options;
-    options = null;
-  }
-  if (!callback) {
-    throw new Error('callback cannot be null.');
-  }
-  let onlyServerState = (options && options.onlyServerState !== undefined) ? options.onlyServerState : undefined;
-  let pageSize = (options && options.pageSize !== undefined) ? options.pageSize : undefined;
-  // Validate
-  try {
-    if (query === null || query === undefined) {
-      throw new Error('query cannot be null or undefined.');
-    }
-    if (onlyServerState !== null && onlyServerState !== undefined && typeof onlyServerState !== 'boolean') {
-      throw new Error('onlyServerState must be of type boolean.');
-    }
-    if (pageSize !== null && pageSize !== undefined && typeof pageSize !== 'number') {
-      throw new Error('pageSize must be of type number.');
-    }
-  } catch (error) {
-    return callback(error);
-  }
-
-  // Construct URL
-  let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/supervisors/query';
-  let queryParameters = [];
-  if (onlyServerState !== null && onlyServerState !== undefined) {
-    queryParameters.push('onlyServerState=' + encodeURIComponent(onlyServerState.toString()));
-  }
-  if (pageSize !== null && pageSize !== undefined) {
-    queryParameters.push('pageSize=' + encodeURIComponent(pageSize.toString()));
-  }
-  if (queryParameters.length > 0) {
-    requestUrl += '?' + queryParameters.join('&');
-  }
-
-  // Create HTTP transport objects
-  let httpRequest = new WebResource();
-  httpRequest.method = 'POST';
-  httpRequest.url = requestUrl;
-  httpRequest.headers = {};
-  // Set Headers
-  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
-  if(options) {
-    for(let headerName in options['customHeaders']) {
-      if (options['customHeaders'].hasOwnProperty(headerName)) {
-        httpRequest.headers[headerName] = options['customHeaders'][headerName];
-      }
-    }
-  }
-  // Serialize Request
-  let requestContent = null;
-  let requestModel = null;
-  try {
-    if (query !== null && query !== undefined) {
-      let requestModelMapper = new client.models['SupervisorQueryApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, query, 'query');
-      requestContent = JSON.stringify(requestModel);
-    }
-  } catch (error) {
-    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(query, null, 2)}.`);
-    return callback(serializationError);
-  }
-  httpRequest.body = requestContent;
-  // Send Request
-  return client.pipeline(httpRequest, (err, response, responseBody) => {
-    if (err) {
-      return callback(err);
-    }
-    let statusCode = response.statusCode;
-    if (statusCode !== 200) {
-      let error = new Error(responseBody);
-      error.statusCode = response.statusCode;
-      error.request = msRest.stripRequest(httpRequest);
-      error.response = msRest.stripResponse(response);
-      if (responseBody === '') responseBody = null;
-      let parsedErrorResponse;
-      try {
-        parsedErrorResponse = JSON.parse(responseBody);
-        if (parsedErrorResponse) {
-          let internalError = null;
-          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
-          error.code = internalError ? internalError.code : parsedErrorResponse.code;
-          error.message = internalError ? internalError.message : parsedErrorResponse.message;
-        }
-      } catch (defaultError) {
-        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
-                         `- "${responseBody}" for the default response.`;
-        return callback(error);
-      }
-      return callback(error);
-    }
-    // Create Result
-    let result = null;
-    if (responseBody === '') responseBody = null;
-    // Deserialize Response
-    if (statusCode === 200) {
-      let parsedResponse = null;
-      try {
-        parsedResponse = JSON.parse(responseBody);
-        result = JSON.parse(responseBody);
-        if (parsedResponse !== null && parsedResponse !== undefined) {
-          let resultMapper = new client.models['SupervisorListApiModel']().mapper();
-          result = client.deserialize(resultMapper, parsedResponse, 'result');
-        }
-      } catch (error) {
-        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
-        deserializationError.request = msRest.stripRequest(httpRequest);
-        deserializationError.response = msRest.stripResponse(response);
-        return callback(deserializationError);
-      }
-    }
-
-    return callback(null, result, httpRequest, response);
-  });
-}
-
 /** Class representing a AzureOpcHistoryClient. */
 class AzureOpcHistoryClient extends ServiceClient {
   /**
@@ -3730,65 +3441,94 @@ class AzureOpcHistoryClient extends ServiceClient {
     let packageInfo = this.getPackageJsonInfo(__dirname);
     this.addUserAgentInfo(`${packageInfo.name}/${packageInfo.version}`);
     this.models = models;
-    this._getListOfApplications = _getListOfApplications;
-    this._createApplication = _createApplication;
-    this._registerServer = _registerServer;
-    this._deleteAllDisabledApplications = _deleteAllDisabledApplications;
-    this._discoverServer = _discoverServer;
-    this._getApplicationRegistration = _getApplicationRegistration;
-    this._deleteApplication = _deleteApplication;
-    this._updateApplicationRegistration = _updateApplicationRegistration;
-    this._getListOfSites = _getListOfSites;
-    this._getFilteredListOfApplications = _getFilteredListOfApplications;
-    this._queryApplications = _queryApplications;
-    this._activateEndpoint = _activateEndpoint;
-    this._getEndpoint = _getEndpoint;
-    this._updateEndpoint = _updateEndpoint;
-    this._getListOfEndpoints = _getListOfEndpoints;
-    this._getFilteredListOfEndpoints = _getFilteredListOfEndpoints;
-    this._queryEndpoints = _queryEndpoints;
-    this._deactivateEndpoint = _deactivateEndpoint;
+    this._historyDeleteValuesAtTimes = _historyDeleteValuesAtTimes;
+    this._historyDeleteValues = _historyDeleteValues;
+    this._historyDeleteModifiedValues = _historyDeleteModifiedValues;
+    this._historyDeleteEvents = _historyDeleteEvents;
+    this._historyReadRaw = _historyReadRaw;
+    this._historyReadRawNext = _historyReadRawNext;
+    this._historyUpdateRaw = _historyUpdateRaw;
+    this._historyInsertValues = _historyInsertValues;
+    this._historyInsertEvents = _historyInsertEvents;
+    this._historyReadEvents = _historyReadEvents;
+    this._historyReadEventsNext = _historyReadEventsNext;
+    this._historyReadValues = _historyReadValues;
+    this._historyReadValuesAtTimes = _historyReadValuesAtTimes;
+    this._historyReadProcessedValues = _historyReadProcessedValues;
+    this._historyReadModifiedValues = _historyReadModifiedValues;
+    this._historyReadValueNext = _historyReadValueNext;
+    this._historyReplaceValues = _historyReplaceValues;
+    this._historyReplaceEvents = _historyReplaceEvents;
     this._getStatus = _getStatus;
-    this._getSupervisor = _getSupervisor;
-    this._updateSupervisor = _updateSupervisor;
-    this._getSupervisorStatus = _getSupervisorStatus;
-    this._resetSupervisor = _resetSupervisor;
-    this._getListOfSupervisors = _getListOfSupervisors;
-    this._getFilteredListOfSupervisors = _getFilteredListOfSupervisors;
-    this._querySupervisors = _querySupervisors;
     msRest.addSerializationMixin(this);
   }
 
   /**
-   * @summary Get list of applications
+   * @summary Delete value history at specified times
    *
-   * Get all registered applications in paged form.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call this operation again using the token to retrieve more results.
+   * Delete value history using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history update request
+   *
+   * @param {string} [request.nodeId] Node to update
+   *
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
+   *
+   * @param {object} request.details The HistoryUpdateDetailsType extension
+   * object
+   * encoded as json Variant and containing the tunneled
+   * update request for the Historian server. The value
+   * is updated at edge using above node address.
+   *
+   * @param {array} request.details.reqTimes The timestamps to delete
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
-   *
-   * @param {string} [options.continuationToken] Optional Continuation
-   * token
-   *
-   * @param {number} [options.pageSize] Optional number of results to
-   * return
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
    * request
    *
    * @returns {Promise} A promise is returned
    *
-   * @resolve {HttpOperationResponse<ApplicationInfoListApiModel>} - The deserialized result object.
+   * @resolve {HttpOperationResponse<HistoryUpdateResponseApiModel>} - The deserialized result object.
    *
    * @reject {Error} - The error object.
    */
-  getListOfApplicationsWithHttpOperationResponse(options) {
+  historyDeleteValuesAtTimesWithHttpOperationResponse(endpointId, request, options) {
     let client = this;
     let self = this;
     return new Promise((resolve, reject) => {
-      self._getListOfApplications(options, (err, result, request, response) => {
+      self._historyDeleteValuesAtTimes(endpointId, request, options, (err, result, request, response) => {
         let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
         httpOperationResponse.body = result;
         if (err) { reject(err); }
@@ -3799,20 +3539,56 @@ class AzureOpcHistoryClient extends ServiceClient {
   }
 
   /**
-   * @summary Get list of applications
+   * @summary Delete value history at specified times
    *
-   * Get all registered applications in paged form.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call this operation again using the token to retrieve more results.
+   * Delete value history using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history update request
+   *
+   * @param {string} [request.nodeId] Node to update
+   *
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
+   *
+   * @param {object} request.details The HistoryUpdateDetailsType extension
+   * object
+   * encoded as json Variant and containing the tunneled
+   * update request for the Historian server. The value
+   * is updated at edge using above node address.
+   *
+   * @param {array} request.details.reqTimes The timestamps to delete
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
-   *
-   * @param {string} [options.continuationToken] Optional Continuation
-   * token
-   *
-   * @param {number} [options.pageSize] Optional number of results to
-   * return
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
    * request
@@ -3824,7 +3600,7 @@ class AzureOpcHistoryClient extends ServiceClient {
    *
    * {Promise} A promise is returned
    *
-   *                      @resolve {ApplicationInfoListApiModel} - The deserialized result object.
+   *                      @resolve {HistoryUpdateResponseApiModel} - The deserialized result object.
    *
    *                      @reject {Error} - The error object.
    *
@@ -3833,14 +3609,14 @@ class AzureOpcHistoryClient extends ServiceClient {
    *                      {Error}  err        - The Error object if an error occurred, null otherwise.
    *
    *                      {object} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link ApplicationInfoListApiModel} for more
+   *                      See {@link HistoryUpdateResponseApiModel} for more
    *                      information.
    *
    *                      {object} [request]  - The HTTP Request object if an error did not occur.
    *
    *                      {stream} [response] - The HTTP Response stream if an error did not occur.
    */
-  getListOfApplications(options, optionalCallback) {
+  historyDeleteValuesAtTimes(endpointId, request, options, optionalCallback) {
     let client = this;
     let self = this;
     if (!optionalCallback && typeof options === 'function') {
@@ -3849,45 +3625,68 @@ class AzureOpcHistoryClient extends ServiceClient {
     }
     if (!optionalCallback) {
       return new Promise((resolve, reject) => {
-        self._getListOfApplications(options, (err, result, request, response) => {
+        self._historyDeleteValuesAtTimes(endpointId, request, options, (err, result, request, response) => {
           if (err) { reject(err); }
           else { resolve(result); }
           return;
         });
       });
     } else {
-      return self._getListOfApplications(options, optionalCallback);
+      return self._historyDeleteValuesAtTimes(endpointId, request, options, optionalCallback);
     }
   }
 
   /**
-   * @summary Create new application
+   * @summary Delete historic values
    *
-   * The application is registered using the provided information, but it
-   * is not associated with a supervisor.  This is useful for when you need
-   * to register clients or you want to register a server that is located
-   * in a network not reachable through a Twin module.
+   * Delete historic values using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
    *
-   * @param {object} request Application registration request
+   * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {string} request.applicationUri Unique application uri
+   * @param {object} request The history update request
    *
-   * @param {string} [request.applicationType] Type of application. Possible
-   * values include: 'Server', 'Client', 'ClientAndServer'
+   * @param {string} [request.nodeId] Node to update
    *
-   * @param {string} [request.productUri] Product uri of the application.
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
    *
-   * @param {string} [request.applicationName] Name of the server or client.
+   * @param {object} request.details The HistoryUpdateDetailsType extension
+   * object
+   * encoded as json Variant and containing the tunneled
+   * update request for the Historian server. The value
+   * is updated at edge using above node address.
    *
-   * @param {string} [request.locale] Locale of name
+   * @param {date} [request.details.startTime] Start time
    *
-   * @param {array} [request.capabilities] The OPC UA defined capabilities of the
-   * server.
+   * @param {date} [request.details.endTime] End time to delete until
    *
-   * @param {array} [request.discoveryUrls] Discovery urls of the server.
+   * @param {object} [request.header] Optional request header
    *
-   * @param {string} [request.discoveryProfileUri] The discovery profile uri of
-   * the server.
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -3896,15 +3695,15 @@ class AzureOpcHistoryClient extends ServiceClient {
    *
    * @returns {Promise} A promise is returned
    *
-   * @resolve {HttpOperationResponse<ApplicationRegistrationResponseApiModel>} - The deserialized result object.
+   * @resolve {HttpOperationResponse<HistoryUpdateResponseApiModel>} - The deserialized result object.
    *
    * @reject {Error} - The error object.
    */
-  createApplicationWithHttpOperationResponse(request, options) {
+  historyDeleteValuesWithHttpOperationResponse(endpointId, request, options) {
     let client = this;
     let self = this;
     return new Promise((resolve, reject) => {
-      self._createApplication(request, options, (err, result, request, response) => {
+      self._historyDeleteValues(endpointId, request, options, (err, result, request, response) => {
         let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
         httpOperationResponse.body = result;
         if (err) { reject(err); }
@@ -3915,33 +3714,56 @@ class AzureOpcHistoryClient extends ServiceClient {
   }
 
   /**
-   * @summary Create new application
+   * @summary Delete historic values
    *
-   * The application is registered using the provided information, but it
-   * is not associated with a supervisor.  This is useful for when you need
-   * to register clients or you want to register a server that is located
-   * in a network not reachable through a Twin module.
+   * Delete historic values using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
    *
-   * @param {object} request Application registration request
+   * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {string} request.applicationUri Unique application uri
+   * @param {object} request The history update request
    *
-   * @param {string} [request.applicationType] Type of application. Possible
-   * values include: 'Server', 'Client', 'ClientAndServer'
+   * @param {string} [request.nodeId] Node to update
    *
-   * @param {string} [request.productUri] Product uri of the application.
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
    *
-   * @param {string} [request.applicationName] Name of the server or client.
+   * @param {object} request.details The HistoryUpdateDetailsType extension
+   * object
+   * encoded as json Variant and containing the tunneled
+   * update request for the Historian server. The value
+   * is updated at edge using above node address.
    *
-   * @param {string} [request.locale] Locale of name
+   * @param {date} [request.details.startTime] Start time
    *
-   * @param {array} [request.capabilities] The OPC UA defined capabilities of the
-   * server.
+   * @param {date} [request.details.endTime] End time to delete until
    *
-   * @param {array} [request.discoveryUrls] Discovery urls of the server.
+   * @param {object} [request.header] Optional request header
    *
-   * @param {string} [request.discoveryProfileUri] The discovery profile uri of
-   * the server.
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -3955,7 +3777,7 @@ class AzureOpcHistoryClient extends ServiceClient {
    *
    * {Promise} A promise is returned
    *
-   *                      @resolve {ApplicationRegistrationResponseApiModel} - The deserialized result object.
+   *                      @resolve {HistoryUpdateResponseApiModel} - The deserialized result object.
    *
    *                      @reject {Error} - The error object.
    *
@@ -3964,14 +3786,702 @@ class AzureOpcHistoryClient extends ServiceClient {
    *                      {Error}  err        - The Error object if an error occurred, null otherwise.
    *
    *                      {object} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link ApplicationRegistrationResponseApiModel} for
+   *                      See {@link HistoryUpdateResponseApiModel} for more
+   *                      information.
+   *
+   *                      {object} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+   */
+  historyDeleteValues(endpointId, request, options, optionalCallback) {
+    let client = this;
+    let self = this;
+    if (!optionalCallback && typeof options === 'function') {
+      optionalCallback = options;
+      options = null;
+    }
+    if (!optionalCallback) {
+      return new Promise((resolve, reject) => {
+        self._historyDeleteValues(endpointId, request, options, (err, result, request, response) => {
+          if (err) { reject(err); }
+          else { resolve(result); }
+          return;
+        });
+      });
+    } else {
+      return self._historyDeleteValues(endpointId, request, options, optionalCallback);
+    }
+  }
+
+  /**
+   * @summary Delete historic values
+   *
+   * Delete historic values using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history update request
+   *
+   * @param {string} [request.nodeId] Node to update
+   *
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
+   *
+   * @param {object} request.details The HistoryUpdateDetailsType extension
+   * object
+   * encoded as json Variant and containing the tunneled
+   * update request for the Historian server. The value
+   * is updated at edge using above node address.
+   *
+   * @param {date} [request.details.startTime] Start time
+   *
+   * @param {date} [request.details.endTime] End time to delete until
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<HistoryUpdateResponseApiModel>} - The deserialized result object.
+   *
+   * @reject {Error} - The error object.
+   */
+  historyDeleteModifiedValuesWithHttpOperationResponse(endpointId, request, options) {
+    let client = this;
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self._historyDeleteModifiedValues(endpointId, request, options, (err, result, request, response) => {
+        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
+        httpOperationResponse.body = result;
+        if (err) { reject(err); }
+        else { resolve(httpOperationResponse); }
+        return;
+      });
+    });
+  }
+
+  /**
+   * @summary Delete historic values
+   *
+   * Delete historic values using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history update request
+   *
+   * @param {string} [request.nodeId] Node to update
+   *
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
+   *
+   * @param {object} request.details The HistoryUpdateDetailsType extension
+   * object
+   * encoded as json Variant and containing the tunneled
+   * update request for the Historian server. The value
+   * is updated at edge using above node address.
+   *
+   * @param {date} [request.details.startTime] Start time
+   *
+   * @param {date} [request.details.endTime] End time to delete until
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {function} [optionalCallback] - The optional callback.
+   *
+   * @returns {function|Promise} If a callback was passed as the last parameter
+   * then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned
+   *
+   *                      @resolve {HistoryUpdateResponseApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error} - The error object.
+   *
+   * {function} optionalCallback(err, result, request, response)
+   *
+   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {object} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link HistoryUpdateResponseApiModel} for more
+   *                      information.
+   *
+   *                      {object} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+   */
+  historyDeleteModifiedValues(endpointId, request, options, optionalCallback) {
+    let client = this;
+    let self = this;
+    if (!optionalCallback && typeof options === 'function') {
+      optionalCallback = options;
+      options = null;
+    }
+    if (!optionalCallback) {
+      return new Promise((resolve, reject) => {
+        self._historyDeleteModifiedValues(endpointId, request, options, (err, result, request, response) => {
+          if (err) { reject(err); }
+          else { resolve(result); }
+          return;
+        });
+      });
+    } else {
+      return self._historyDeleteModifiedValues(endpointId, request, options, optionalCallback);
+    }
+  }
+
+  /**
+   * @summary Delete historic events
+   *
+   * Delete historic events using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history update request
+   *
+   * @param {string} [request.nodeId] Node to update
+   *
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
+   *
+   * @param {object} request.details The HistoryUpdateDetailsType extension
+   * object
+   * encoded as json Variant and containing the tunneled
+   * update request for the Historian server. The value
+   * is updated at edge using above node address.
+   *
+   * @param {array} request.details.eventIds Events to delete
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<HistoryUpdateResponseApiModel>} - The deserialized result object.
+   *
+   * @reject {Error} - The error object.
+   */
+  historyDeleteEventsWithHttpOperationResponse(endpointId, request, options) {
+    let client = this;
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self._historyDeleteEvents(endpointId, request, options, (err, result, request, response) => {
+        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
+        httpOperationResponse.body = result;
+        if (err) { reject(err); }
+        else { resolve(httpOperationResponse); }
+        return;
+      });
+    });
+  }
+
+  /**
+   * @summary Delete historic events
+   *
+   * Delete historic events using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history update request
+   *
+   * @param {string} [request.nodeId] Node to update
+   *
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
+   *
+   * @param {object} request.details The HistoryUpdateDetailsType extension
+   * object
+   * encoded as json Variant and containing the tunneled
+   * update request for the Historian server. The value
+   * is updated at edge using above node address.
+   *
+   * @param {array} request.details.eventIds Events to delete
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {function} [optionalCallback] - The optional callback.
+   *
+   * @returns {function|Promise} If a callback was passed as the last parameter
+   * then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned
+   *
+   *                      @resolve {HistoryUpdateResponseApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error} - The error object.
+   *
+   * {function} optionalCallback(err, result, request, response)
+   *
+   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {object} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link HistoryUpdateResponseApiModel} for more
+   *                      information.
+   *
+   *                      {object} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+   */
+  historyDeleteEvents(endpointId, request, options, optionalCallback) {
+    let client = this;
+    let self = this;
+    if (!optionalCallback && typeof options === 'function') {
+      optionalCallback = options;
+      options = null;
+    }
+    if (!optionalCallback) {
+      return new Promise((resolve, reject) => {
+        self._historyDeleteEvents(endpointId, request, options, (err, result, request, response) => {
+          if (err) { reject(err); }
+          else { resolve(result); }
+          return;
+        });
+      });
+    } else {
+      return self._historyDeleteEvents(endpointId, request, options, optionalCallback);
+    }
+  }
+
+  /**
+   * @summary Read history using json details
+   *
+   * Read node history if available using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history read request
+   *
+   * @param {string} [request.nodeId] Node to read from (mandatory)
+   *
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
+   *
+   * @param {object} [request.details] The HistoryReadDetailsType extension
+   * object
+   * encoded in json and containing the tunneled
+   * Historian reader request.
+   *
+   * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
+   * slices
+   * out of a matrix or 0:1 for the first item in
+   * an array, string or bytestring.
+   * See 7.22 of part 4: NumericRange.
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<HistoryReadResponseApiModelJToken>} - The deserialized result object.
+   *
+   * @reject {Error} - The error object.
+   */
+  historyReadRawWithHttpOperationResponse(endpointId, request, options) {
+    let client = this;
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self._historyReadRaw(endpointId, request, options, (err, result, request, response) => {
+        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
+        httpOperationResponse.body = result;
+        if (err) { reject(err); }
+        else { resolve(httpOperationResponse); }
+        return;
+      });
+    });
+  }
+
+  /**
+   * @summary Read history using json details
+   *
+   * Read node history if available using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history read request
+   *
+   * @param {string} [request.nodeId] Node to read from (mandatory)
+   *
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
+   *
+   * @param {object} [request.details] The HistoryReadDetailsType extension
+   * object
+   * encoded in json and containing the tunneled
+   * Historian reader request.
+   *
+   * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
+   * slices
+   * out of a matrix or 0:1 for the first item in
+   * an array, string or bytestring.
+   * See 7.22 of part 4: NumericRange.
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {function} [optionalCallback] - The optional callback.
+   *
+   * @returns {function|Promise} If a callback was passed as the last parameter
+   * then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned
+   *
+   *                      @resolve {HistoryReadResponseApiModelJToken} - The deserialized result object.
+   *
+   *                      @reject {Error} - The error object.
+   *
+   * {function} optionalCallback(err, result, request, response)
+   *
+   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {object} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link HistoryReadResponseApiModelJToken} for more
+   *                      information.
+   *
+   *                      {object} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+   */
+  historyReadRaw(endpointId, request, options, optionalCallback) {
+    let client = this;
+    let self = this;
+    if (!optionalCallback && typeof options === 'function') {
+      optionalCallback = options;
+      options = null;
+    }
+    if (!optionalCallback) {
+      return new Promise((resolve, reject) => {
+        self._historyReadRaw(endpointId, request, options, (err, result, request, response) => {
+          if (err) { reject(err); }
+          else { resolve(result); }
+          return;
+        });
+      });
+    } else {
+      return self._historyReadRaw(endpointId, request, options, optionalCallback);
+    }
+  }
+
+  /**
+   * @summary Read next batch of history as json
+   *
+   * Read next batch of node history values using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history read next request
+   *
+   * @param {string} request.continuationToken Continuation token to continue
+   * reading more
+   * results.
+   *
+   * @param {boolean} [request.abort] Abort reading after this read
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<HistoryReadNextResponseApiModelJToken>} - The deserialized result object.
+   *
+   * @reject {Error} - The error object.
+   */
+  historyReadRawNextWithHttpOperationResponse(endpointId, request, options) {
+    let client = this;
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self._historyReadRawNext(endpointId, request, options, (err, result, request, response) => {
+        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
+        httpOperationResponse.body = result;
+        if (err) { reject(err); }
+        else { resolve(httpOperationResponse); }
+        return;
+      });
+    });
+  }
+
+  /**
+   * @summary Read next batch of history as json
+   *
+   * Read next batch of node history values using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history read next request
+   *
+   * @param {string} request.continuationToken Continuation token to continue
+   * reading more
+   * results.
+   *
+   * @param {boolean} [request.abort] Abort reading after this read
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {function} [optionalCallback] - The optional callback.
+   *
+   * @returns {function|Promise} If a callback was passed as the last parameter
+   * then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned
+   *
+   *                      @resolve {HistoryReadNextResponseApiModelJToken} - The deserialized result object.
+   *
+   *                      @reject {Error} - The error object.
+   *
+   * {function} optionalCallback(err, result, request, response)
+   *
+   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {object} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link HistoryReadNextResponseApiModelJToken} for
    *                      more information.
    *
    *                      {object} [request]  - The HTTP Request object if an error did not occur.
    *
    *                      {stream} [response] - The HTTP Response stream if an error did not occur.
    */
-  createApplication(request, options, optionalCallback) {
+  historyReadRawNext(endpointId, request, options, optionalCallback) {
     let client = this;
     let self = this;
     if (!optionalCallback && typeof options === 'function') {
@@ -3980,59 +4490,64 @@ class AzureOpcHistoryClient extends ServiceClient {
     }
     if (!optionalCallback) {
       return new Promise((resolve, reject) => {
-        self._createApplication(request, options, (err, result, request, response) => {
+        self._historyReadRawNext(endpointId, request, options, (err, result, request, response) => {
           if (err) { reject(err); }
           else { resolve(result); }
           return;
         });
       });
     } else {
-      return self._createApplication(request, options, optionalCallback);
+      return self._historyReadRawNext(endpointId, request, options, optionalCallback);
     }
   }
 
   /**
-   * @summary Register new server
+   * @summary Update node history using raw json
    *
-   * Registers a server solely using a discovery url. Requires that
-   * the onboarding agent service is running and the server can be
-   * located by a supervisor in its network using the discovery url.
+   * Update node history using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
    *
-   * @param {object} request Server registration request
+   * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {string} request.discoveryUrl Discovery url to use for registration
+   * @param {object} request The history update request
    *
-   * @param {string} [request.id] Registration id
+   * @param {string} [request.nodeId] Node to update
    *
-   * @param {object} [request.callback] An optional callback hook to register.
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
    *
-   * @param {string} [request.callback.uri] Uri to call - should use https scheme
-   * in which
-   * case security is enforced.
+   * @param {object} request.details The HistoryUpdateDetailsType extension
+   * object
+   * encoded as json Variant and containing the tunneled
+   * update request for the Historian server. The value
+   * is updated at edge using above node address.
    *
-   * @param {string} [request.callback.method] Http Method to use for callback.
-   * Possible values include: 'Get', 'Post', 'Put', 'Delete'
+   * @param {object} [request.header] Optional request header
    *
-   * @param {string} [request.callback.authenticationHeader] Authentication
-   * header to add or null if not needed
+   * @param {object} [request.header.elevation] Optional User elevation
    *
-   * @param {object} [request.activationFilter] Upon discovery, activate all
-   * endpoints with this filter.
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {array} [request.activationFilter.trustLists] Certificate trust list
-   * identifiers to use for
-   * activation, if null, all certificates are
-   * trusted.  If empty list, no certificates are
-   * trusted which is equal to no filter.
+   * @param {object} [request.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.activationFilter.securityPolicies] Endpoint security
-   * policies to filter against.
-   * If set to null, all policies are in scope.
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
    *
-   * @param {string} [request.activationFilter.securityMode] Security mode level
-   * to activate. If null,
-   * then Microsoft.Azure.IIoT.OpcUa.Registry.Models.SecurityMode.Best is
-   * assumed. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -4041,15 +4556,15 @@ class AzureOpcHistoryClient extends ServiceClient {
    *
    * @returns {Promise} A promise is returned
    *
-   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   * @resolve {HttpOperationResponse<HistoryUpdateResponseApiModel>} - The deserialized result object.
    *
    * @reject {Error} - The error object.
    */
-  registerServerWithHttpOperationResponse(request, options) {
+  historyUpdateRawWithHttpOperationResponse(endpointId, request, options) {
     let client = this;
     let self = this;
     return new Promise((resolve, reject) => {
-      self._registerServer(request, options, (err, result, request, response) => {
+      self._historyUpdateRaw(endpointId, request, options, (err, result, request, response) => {
         let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
         httpOperationResponse.body = result;
         if (err) { reject(err); }
@@ -4060,47 +4575,52 @@ class AzureOpcHistoryClient extends ServiceClient {
   }
 
   /**
-   * @summary Register new server
+   * @summary Update node history using raw json
    *
-   * Registers a server solely using a discovery url. Requires that
-   * the onboarding agent service is running and the server can be
-   * located by a supervisor in its network using the discovery url.
+   * Update node history using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
    *
-   * @param {object} request Server registration request
+   * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {string} request.discoveryUrl Discovery url to use for registration
+   * @param {object} request The history update request
    *
-   * @param {string} [request.id] Registration id
+   * @param {string} [request.nodeId] Node to update
    *
-   * @param {object} [request.callback] An optional callback hook to register.
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
    *
-   * @param {string} [request.callback.uri] Uri to call - should use https scheme
-   * in which
-   * case security is enforced.
+   * @param {object} request.details The HistoryUpdateDetailsType extension
+   * object
+   * encoded as json Variant and containing the tunneled
+   * update request for the Historian server. The value
+   * is updated at edge using above node address.
    *
-   * @param {string} [request.callback.method] Http Method to use for callback.
-   * Possible values include: 'Get', 'Post', 'Put', 'Delete'
+   * @param {object} [request.header] Optional request header
    *
-   * @param {string} [request.callback.authenticationHeader] Authentication
-   * header to add or null if not needed
+   * @param {object} [request.header.elevation] Optional User elevation
    *
-   * @param {object} [request.activationFilter] Upon discovery, activate all
-   * endpoints with this filter.
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {array} [request.activationFilter.trustLists] Certificate trust list
-   * identifiers to use for
-   * activation, if null, all certificates are
-   * trusted.  If empty list, no certificates are
-   * trusted which is equal to no filter.
+   * @param {object} [request.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.activationFilter.securityPolicies] Endpoint security
-   * policies to filter against.
-   * If set to null, all policies are in scope.
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
    *
-   * @param {string} [request.activationFilter.securityMode] Security mode level
-   * to activate. If null,
-   * then Microsoft.Azure.IIoT.OpcUa.Registry.Models.SecurityMode.Best is
-   * assumed. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -4114,378 +4634,7 @@ class AzureOpcHistoryClient extends ServiceClient {
    *
    * {Promise} A promise is returned
    *
-   *                      @resolve {null} - The deserialized result object.
-   *
-   *                      @reject {Error} - The error object.
-   *
-   * {function} optionalCallback(err, result, request, response)
-   *
-   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {null} [result]   - The deserialized result object if an error did not occur.
-   *
-   *                      {object} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
-   */
-  registerServer(request, options, optionalCallback) {
-    let client = this;
-    let self = this;
-    if (!optionalCallback && typeof options === 'function') {
-      optionalCallback = options;
-      options = null;
-    }
-    if (!optionalCallback) {
-      return new Promise((resolve, reject) => {
-        self._registerServer(request, options, (err, result, request, response) => {
-          if (err) { reject(err); }
-          else { resolve(result); }
-          return;
-        });
-      });
-    } else {
-      return self._registerServer(request, options, optionalCallback);
-    }
-  }
-
-  /**
-   * @summary Purge applications
-   *
-   * Purges all applications that have not been seen for a specified amount of
-   * time.
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {string} [options.notSeenFor] A duration in milliseconds
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
-   *
-   * @reject {Error} - The error object.
-   */
-  deleteAllDisabledApplicationsWithHttpOperationResponse(options) {
-    let client = this;
-    let self = this;
-    return new Promise((resolve, reject) => {
-      self._deleteAllDisabledApplications(options, (err, result, request, response) => {
-        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
-        httpOperationResponse.body = result;
-        if (err) { reject(err); }
-        else { resolve(httpOperationResponse); }
-        return;
-      });
-    });
-  }
-
-  /**
-   * @summary Purge applications
-   *
-   * Purges all applications that have not been seen for a specified amount of
-   * time.
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {string} [options.notSeenFor] A duration in milliseconds
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {function} [optionalCallback] - The optional callback.
-   *
-   * @returns {function|Promise} If a callback was passed as the last parameter
-   * then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned
-   *
-   *                      @resolve {null} - The deserialized result object.
-   *
-   *                      @reject {Error} - The error object.
-   *
-   * {function} optionalCallback(err, result, request, response)
-   *
-   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {null} [result]   - The deserialized result object if an error did not occur.
-   *
-   *                      {object} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
-   */
-  deleteAllDisabledApplications(options, optionalCallback) {
-    let client = this;
-    let self = this;
-    if (!optionalCallback && typeof options === 'function') {
-      optionalCallback = options;
-      options = null;
-    }
-    if (!optionalCallback) {
-      return new Promise((resolve, reject) => {
-        self._deleteAllDisabledApplications(options, (err, result, request, response) => {
-          if (err) { reject(err); }
-          else { resolve(result); }
-          return;
-        });
-      });
-    } else {
-      return self._deleteAllDisabledApplications(options, optionalCallback);
-    }
-  }
-
-  /**
-   * @summary Discover servers
-   *
-   * Registers servers by running a discovery scan in a supervisor's
-   * network. Requires that the onboarding agent service is running.
-   *
-   * @param {object} request Discovery request
-   *
-   * @param {string} [request.id] Id of discovery request
-   *
-   * @param {string} [request.discovery] Discovery mode to use. Possible values
-   * include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
-   *
-   * @param {object} [request.configuration] Scan configuration to use
-   *
-   * @param {string} [request.configuration.addressRangesToScan] Address ranges
-   * to scan (null == all wired nics)
-   *
-   * @param {number} [request.configuration.networkProbeTimeoutMs] Network probe
-   * timeout
-   *
-   * @param {number} [request.configuration.maxNetworkProbes] Max network probes
-   * that should ever run.
-   *
-   * @param {string} [request.configuration.portRangesToScan] Port ranges to scan
-   * (null == all unassigned)
-   *
-   * @param {number} [request.configuration.portProbeTimeoutMs] Port probe
-   * timeout
-   *
-   * @param {number} [request.configuration.maxPortProbes] Max port probes that
-   * should ever run.
-   *
-   * @param {number} [request.configuration.minPortProbesPercent] Probes that
-   * must always be there as percent of max.
-   *
-   * @param {number} [request.configuration.idleTimeBetweenScansSec] Delay time
-   * between discovery sweeps in seconds
-   *
-   * @param {array} [request.configuration.discoveryUrls] List of preset
-   * discovery urls to use
-   *
-   * @param {array} [request.configuration.locales] List of locales to filter
-   * with during discovery
-   *
-   * @param {array} [request.configuration.callbacks] Callbacks to invoke once
-   * onboarding finishes
-   *
-   * @param {object} [request.configuration.activationFilter] Activate all twins
-   * with this filter during onboarding.
-   *
-   * @param {array} [request.configuration.activationFilter.trustLists]
-   * Certificate trust list identifiers to use for
-   * activation, if null, all certificates are
-   * trusted.  If empty list, no certificates are
-   * trusted which is equal to no filter.
-   *
-   * @param {array} [request.configuration.activationFilter.securityPolicies]
-   * Endpoint security policies to filter against.
-   * If set to null, all policies are in scope.
-   *
-   * @param {string} [request.configuration.activationFilter.securityMode]
-   * Security mode level to activate. If null,
-   * then Microsoft.Azure.IIoT.OpcUa.Registry.Models.SecurityMode.Best is
-   * assumed. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
-   *
-   * @reject {Error} - The error object.
-   */
-  discoverServerWithHttpOperationResponse(request, options) {
-    let client = this;
-    let self = this;
-    return new Promise((resolve, reject) => {
-      self._discoverServer(request, options, (err, result, request, response) => {
-        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
-        httpOperationResponse.body = result;
-        if (err) { reject(err); }
-        else { resolve(httpOperationResponse); }
-        return;
-      });
-    });
-  }
-
-  /**
-   * @summary Discover servers
-   *
-   * Registers servers by running a discovery scan in a supervisor's
-   * network. Requires that the onboarding agent service is running.
-   *
-   * @param {object} request Discovery request
-   *
-   * @param {string} [request.id] Id of discovery request
-   *
-   * @param {string} [request.discovery] Discovery mode to use. Possible values
-   * include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
-   *
-   * @param {object} [request.configuration] Scan configuration to use
-   *
-   * @param {string} [request.configuration.addressRangesToScan] Address ranges
-   * to scan (null == all wired nics)
-   *
-   * @param {number} [request.configuration.networkProbeTimeoutMs] Network probe
-   * timeout
-   *
-   * @param {number} [request.configuration.maxNetworkProbes] Max network probes
-   * that should ever run.
-   *
-   * @param {string} [request.configuration.portRangesToScan] Port ranges to scan
-   * (null == all unassigned)
-   *
-   * @param {number} [request.configuration.portProbeTimeoutMs] Port probe
-   * timeout
-   *
-   * @param {number} [request.configuration.maxPortProbes] Max port probes that
-   * should ever run.
-   *
-   * @param {number} [request.configuration.minPortProbesPercent] Probes that
-   * must always be there as percent of max.
-   *
-   * @param {number} [request.configuration.idleTimeBetweenScansSec] Delay time
-   * between discovery sweeps in seconds
-   *
-   * @param {array} [request.configuration.discoveryUrls] List of preset
-   * discovery urls to use
-   *
-   * @param {array} [request.configuration.locales] List of locales to filter
-   * with during discovery
-   *
-   * @param {array} [request.configuration.callbacks] Callbacks to invoke once
-   * onboarding finishes
-   *
-   * @param {object} [request.configuration.activationFilter] Activate all twins
-   * with this filter during onboarding.
-   *
-   * @param {array} [request.configuration.activationFilter.trustLists]
-   * Certificate trust list identifiers to use for
-   * activation, if null, all certificates are
-   * trusted.  If empty list, no certificates are
-   * trusted which is equal to no filter.
-   *
-   * @param {array} [request.configuration.activationFilter.securityPolicies]
-   * Endpoint security policies to filter against.
-   * If set to null, all policies are in scope.
-   *
-   * @param {string} [request.configuration.activationFilter.securityMode]
-   * Security mode level to activate. If null,
-   * then Microsoft.Azure.IIoT.OpcUa.Registry.Models.SecurityMode.Best is
-   * assumed. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {function} [optionalCallback] - The optional callback.
-   *
-   * @returns {function|Promise} If a callback was passed as the last parameter
-   * then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned
-   *
-   *                      @resolve {null} - The deserialized result object.
-   *
-   *                      @reject {Error} - The error object.
-   *
-   * {function} optionalCallback(err, result, request, response)
-   *
-   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {null} [result]   - The deserialized result object if an error did not occur.
-   *
-   *                      {object} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
-   */
-  discoverServer(request, options, optionalCallback) {
-    let client = this;
-    let self = this;
-    if (!optionalCallback && typeof options === 'function') {
-      optionalCallback = options;
-      options = null;
-    }
-    if (!optionalCallback) {
-      return new Promise((resolve, reject) => {
-        self._discoverServer(request, options, (err, result, request, response) => {
-          if (err) { reject(err); }
-          else { resolve(result); }
-          return;
-        });
-      });
-    } else {
-      return self._discoverServer(request, options, optionalCallback);
-    }
-  }
-
-  /**
-   * @summary Get application registration
-   *
-   * @param {string} applicationId Application id for the server
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<ApplicationRegistrationApiModel>} - The deserialized result object.
-   *
-   * @reject {Error} - The error object.
-   */
-  getApplicationRegistrationWithHttpOperationResponse(applicationId, options) {
-    let client = this;
-    let self = this;
-    return new Promise((resolve, reject) => {
-      self._getApplicationRegistration(applicationId, options, (err, result, request, response) => {
-        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
-        httpOperationResponse.body = result;
-        if (err) { reject(err); }
-        else { resolve(httpOperationResponse); }
-        return;
-      });
-    });
-  }
-
-  /**
-   * @summary Get application registration
-   *
-   * @param {string} applicationId Application id for the server
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {function} [optionalCallback] - The optional callback.
-   *
-   * @returns {function|Promise} If a callback was passed as the last parameter
-   * then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned
-   *
-   *                      @resolve {ApplicationRegistrationApiModel} - The deserialized result object.
+   *                      @resolve {HistoryUpdateResponseApiModel} - The deserialized result object.
    *
    *                      @reject {Error} - The error object.
    *
@@ -4494,14 +4643,14 @@ class AzureOpcHistoryClient extends ServiceClient {
    *                      {Error}  err        - The Error object if an error occurred, null otherwise.
    *
    *                      {object} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link ApplicationRegistrationApiModel} for more
+   *                      See {@link HistoryUpdateResponseApiModel} for more
    *                      information.
    *
    *                      {object} [request]  - The HTTP Request object if an error did not occur.
    *
    *                      {stream} [response] - The HTTP Response stream if an error did not occur.
    */
-  getApplicationRegistration(applicationId, options, optionalCallback) {
+  historyUpdateRaw(endpointId, request, options, optionalCallback) {
     let client = this;
     let self = this;
     if (!optionalCallback && typeof options === 'function') {
@@ -4510,23 +4659,66 @@ class AzureOpcHistoryClient extends ServiceClient {
     }
     if (!optionalCallback) {
       return new Promise((resolve, reject) => {
-        self._getApplicationRegistration(applicationId, options, (err, result, request, response) => {
+        self._historyUpdateRaw(endpointId, request, options, (err, result, request, response) => {
           if (err) { reject(err); }
           else { resolve(result); }
           return;
         });
       });
     } else {
-      return self._getApplicationRegistration(applicationId, options, optionalCallback);
+      return self._historyUpdateRaw(endpointId, request, options, optionalCallback);
     }
   }
 
   /**
-   * @summary Unregister application
+   * @summary Insert historic values
    *
-   * Unregisters and deletes application and all its associated endpoints.
+   * Insert historic values using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
    *
-   * @param {string} applicationId The identifier of the application
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history insert request
+   *
+   * @param {string} [request.nodeId] Node to update
+   *
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
+   *
+   * @param {object} request.details The HistoryUpdateDetailsType extension
+   * object
+   * encoded as json Variant and containing the tunneled
+   * update request for the Historian server. The value
+   * is updated at edge using above node address.
+   *
+   * @param {array} request.details.values Values to insert
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -4535,15 +4727,15 @@ class AzureOpcHistoryClient extends ServiceClient {
    *
    * @returns {Promise} A promise is returned
    *
-   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   * @resolve {HttpOperationResponse<HistoryUpdateResponseApiModel>} - The deserialized result object.
    *
    * @reject {Error} - The error object.
    */
-  deleteApplicationWithHttpOperationResponse(applicationId, options) {
+  historyInsertValuesWithHttpOperationResponse(endpointId, request, options) {
     let client = this;
     let self = this;
     return new Promise((resolve, reject) => {
-      self._deleteApplication(applicationId, options, (err, result, request, response) => {
+      self._historyInsertValues(endpointId, request, options, (err, result, request, response) => {
         let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
         httpOperationResponse.body = result;
         if (err) { reject(err); }
@@ -4554,11 +4746,54 @@ class AzureOpcHistoryClient extends ServiceClient {
   }
 
   /**
-   * @summary Unregister application
+   * @summary Insert historic values
    *
-   * Unregisters and deletes application and all its associated endpoints.
+   * Insert historic values using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
    *
-   * @param {string} applicationId The identifier of the application
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history insert request
+   *
+   * @param {string} [request.nodeId] Node to update
+   *
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
+   *
+   * @param {object} request.details The HistoryUpdateDetailsType extension
+   * object
+   * encoded as json Variant and containing the tunneled
+   * update request for the Historian server. The value
+   * is updated at edge using above node address.
+   *
+   * @param {array} request.details.values Values to insert
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -4572,221 +4807,7 @@ class AzureOpcHistoryClient extends ServiceClient {
    *
    * {Promise} A promise is returned
    *
-   *                      @resolve {null} - The deserialized result object.
-   *
-   *                      @reject {Error} - The error object.
-   *
-   * {function} optionalCallback(err, result, request, response)
-   *
-   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {null} [result]   - The deserialized result object if an error did not occur.
-   *
-   *                      {object} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
-   */
-  deleteApplication(applicationId, options, optionalCallback) {
-    let client = this;
-    let self = this;
-    if (!optionalCallback && typeof options === 'function') {
-      optionalCallback = options;
-      options = null;
-    }
-    if (!optionalCallback) {
-      return new Promise((resolve, reject) => {
-        self._deleteApplication(applicationId, options, (err, result, request, response) => {
-          if (err) { reject(err); }
-          else { resolve(result); }
-          return;
-        });
-      });
-    } else {
-      return self._deleteApplication(applicationId, options, optionalCallback);
-    }
-  }
-
-  /**
-   * @summary Update application registration
-   *
-   * The application information is updated with new properties.  Note that
-   * this information might be overridden if the application is re-discovered
-   * during a discovery run (recurring or one-time).
-   *
-   * @param {string} applicationId The identifier of the application
-   *
-   * @param {object} request Application update request
-   *
-   * @param {string} [request.productUri] Product uri
-   *
-   * @param {string} [request.applicationName] Application name
-   *
-   * @param {string} [request.locale] Locale of name - defaults to "en"
-   *
-   * @param {buffer} [request.certificate] Application public cert
-   *
-   * @param {array} [request.capabilities] Capabilities of the application
-   *
-   * @param {array} [request.discoveryUrls] Discovery urls of the application
-   *
-   * @param {string} [request.discoveryProfileUri] Discovery profile uri
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
-   *
-   * @reject {Error} - The error object.
-   */
-  updateApplicationRegistrationWithHttpOperationResponse(applicationId, request, options) {
-    let client = this;
-    let self = this;
-    return new Promise((resolve, reject) => {
-      self._updateApplicationRegistration(applicationId, request, options, (err, result, request, response) => {
-        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
-        httpOperationResponse.body = result;
-        if (err) { reject(err); }
-        else { resolve(httpOperationResponse); }
-        return;
-      });
-    });
-  }
-
-  /**
-   * @summary Update application registration
-   *
-   * The application information is updated with new properties.  Note that
-   * this information might be overridden if the application is re-discovered
-   * during a discovery run (recurring or one-time).
-   *
-   * @param {string} applicationId The identifier of the application
-   *
-   * @param {object} request Application update request
-   *
-   * @param {string} [request.productUri] Product uri
-   *
-   * @param {string} [request.applicationName] Application name
-   *
-   * @param {string} [request.locale] Locale of name - defaults to "en"
-   *
-   * @param {buffer} [request.certificate] Application public cert
-   *
-   * @param {array} [request.capabilities] Capabilities of the application
-   *
-   * @param {array} [request.discoveryUrls] Discovery urls of the application
-   *
-   * @param {string} [request.discoveryProfileUri] Discovery profile uri
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {function} [optionalCallback] - The optional callback.
-   *
-   * @returns {function|Promise} If a callback was passed as the last parameter
-   * then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned
-   *
-   *                      @resolve {null} - The deserialized result object.
-   *
-   *                      @reject {Error} - The error object.
-   *
-   * {function} optionalCallback(err, result, request, response)
-   *
-   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {null} [result]   - The deserialized result object if an error did not occur.
-   *
-   *                      {object} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
-   */
-  updateApplicationRegistration(applicationId, request, options, optionalCallback) {
-    let client = this;
-    let self = this;
-    if (!optionalCallback && typeof options === 'function') {
-      optionalCallback = options;
-      options = null;
-    }
-    if (!optionalCallback) {
-      return new Promise((resolve, reject) => {
-        self._updateApplicationRegistration(applicationId, request, options, (err, result, request, response) => {
-          if (err) { reject(err); }
-          else { resolve(result); }
-          return;
-        });
-      });
-    } else {
-      return self._updateApplicationRegistration(applicationId, request, options, optionalCallback);
-    }
-  }
-
-  /**
-   * @summary Get list of sites
-   *
-   * List all sites applications are registered in.
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {string} [options.continuationToken] Optional Continuation
-   * token
-   *
-   * @param {number} [options.pageSize] Optional number of results to
-   * return
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<ApplicationSiteListApiModel>} - The deserialized result object.
-   *
-   * @reject {Error} - The error object.
-   */
-  getListOfSitesWithHttpOperationResponse(options) {
-    let client = this;
-    let self = this;
-    return new Promise((resolve, reject) => {
-      self._getListOfSites(options, (err, result, request, response) => {
-        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
-        httpOperationResponse.body = result;
-        if (err) { reject(err); }
-        else { resolve(httpOperationResponse); }
-        return;
-      });
-    });
-  }
-
-  /**
-   * @summary Get list of sites
-   *
-   * List all sites applications are registered in.
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {string} [options.continuationToken] Optional Continuation
-   * token
-   *
-   * @param {number} [options.pageSize] Optional number of results to
-   * return
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {function} [optionalCallback] - The optional callback.
-   *
-   * @returns {function|Promise} If a callback was passed as the last parameter
-   * then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned
-   *
-   *                      @resolve {ApplicationSiteListApiModel} - The deserialized result object.
+   *                      @resolve {HistoryUpdateResponseApiModel} - The deserialized result object.
    *
    *                      @reject {Error} - The error object.
    *
@@ -4795,14 +4816,14 @@ class AzureOpcHistoryClient extends ServiceClient {
    *                      {Error}  err        - The Error object if an error occurred, null otherwise.
    *
    *                      {object} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link ApplicationSiteListApiModel} for more
+   *                      See {@link HistoryUpdateResponseApiModel} for more
    *                      information.
    *
    *                      {object} [request]  - The HTTP Request object if an error did not occur.
    *
    *                      {stream} [response] - The HTTP Response stream if an error did not occur.
    */
-  getListOfSites(options, optionalCallback) {
+  historyInsertValues(endpointId, request, options, optionalCallback) {
     let client = this;
     let self = this;
     if (!optionalCallback && typeof options === 'function') {
@@ -4811,65 +4832,86 @@ class AzureOpcHistoryClient extends ServiceClient {
     }
     if (!optionalCallback) {
       return new Promise((resolve, reject) => {
-        self._getListOfSites(options, (err, result, request, response) => {
+        self._historyInsertValues(endpointId, request, options, (err, result, request, response) => {
           if (err) { reject(err); }
           else { resolve(result); }
           return;
         });
       });
     } else {
-      return self._getListOfSites(options, optionalCallback);
+      return self._historyInsertValues(endpointId, request, options, optionalCallback);
     }
   }
 
   /**
-   * @summary Get filtered list of applications
+   * @summary Insert historic events
    *
-   * Get a list of applications filtered using the specified query parameters.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfApplications operation using the token to retrieve
-   * more results.
+   * Insert historic events using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
    *
-   * @param {object} query Applications Query model
+   * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {string} [query.applicationType] Type of application. Possible values
-   * include: 'Server', 'Client', 'ClientAndServer'
+   * @param {object} request The history insert request
    *
-   * @param {string} [query.applicationUri] Application uri
+   * @param {string} [request.nodeId] Node to update
    *
-   * @param {string} [query.productUri] Product uri
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
    *
-   * @param {string} [query.applicationName] Name of application
+   * @param {object} request.details The HistoryUpdateDetailsType extension
+   * object
+   * encoded as json Variant and containing the tunneled
+   * update request for the Historian server. The value
+   * is updated at edge using above node address.
    *
-   * @param {string} [query.locale] Locale of application name - default is "en"
+   * @param {object} [request.details.filter] The filter to use to select the
+   * events
    *
-   * @param {string} [query.capability] Application capability to query with
+   * @param {array} request.details.events The new events to insert
    *
-   * @param {string} [query.siteOrSupervisorId] Supervisor or site the
-   * application belongs to.
+   * @param {object} [request.header] Optional request header
    *
-   * @param {boolean} [query.includeNotSeenSince] Whether to include apps that
-   * were soft deleted
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
-   *
-   * @param {number} [options.pageSize] Number of results to return
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
    * request
    *
    * @returns {Promise} A promise is returned
    *
-   * @resolve {HttpOperationResponse<ApplicationInfoListApiModel>} - The deserialized result object.
+   * @resolve {HttpOperationResponse<HistoryUpdateResponseApiModel>} - The deserialized result object.
    *
    * @reject {Error} - The error object.
    */
-  getFilteredListOfApplicationsWithHttpOperationResponse(query, options) {
+  historyInsertEventsWithHttpOperationResponse(endpointId, request, options) {
     let client = this;
     let self = this;
     return new Promise((resolve, reject) => {
-      self._getFilteredListOfApplications(query, options, (err, result, request, response) => {
+      self._historyInsertEvents(endpointId, request, options, (err, result, request, response) => {
         let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
         httpOperationResponse.body = result;
         if (err) { reject(err); }
@@ -4880,38 +4922,59 @@ class AzureOpcHistoryClient extends ServiceClient {
   }
 
   /**
-   * @summary Get filtered list of applications
+   * @summary Insert historic events
    *
-   * Get a list of applications filtered using the specified query parameters.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfApplications operation using the token to retrieve
-   * more results.
+   * Insert historic events using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
    *
-   * @param {object} query Applications Query model
+   * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {string} [query.applicationType] Type of application. Possible values
-   * include: 'Server', 'Client', 'ClientAndServer'
+   * @param {object} request The history insert request
    *
-   * @param {string} [query.applicationUri] Application uri
+   * @param {string} [request.nodeId] Node to update
    *
-   * @param {string} [query.productUri] Product uri
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
    *
-   * @param {string} [query.applicationName] Name of application
+   * @param {object} request.details The HistoryUpdateDetailsType extension
+   * object
+   * encoded as json Variant and containing the tunneled
+   * update request for the Historian server. The value
+   * is updated at edge using above node address.
    *
-   * @param {string} [query.locale] Locale of application name - default is "en"
+   * @param {object} [request.details.filter] The filter to use to select the
+   * events
    *
-   * @param {string} [query.capability] Application capability to query with
+   * @param {array} request.details.events The new events to insert
    *
-   * @param {string} [query.siteOrSupervisorId] Supervisor or site the
-   * application belongs to.
+   * @param {object} [request.header] Optional request header
    *
-   * @param {boolean} [query.includeNotSeenSince] Whether to include apps that
-   * were soft deleted
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
-   *
-   * @param {number} [options.pageSize] Number of results to return
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
    * request
@@ -4923,7 +4986,7 @@ class AzureOpcHistoryClient extends ServiceClient {
    *
    * {Promise} A promise is returned
    *
-   *                      @resolve {ApplicationInfoListApiModel} - The deserialized result object.
+   *                      @resolve {HistoryUpdateResponseApiModel} - The deserialized result object.
    *
    *                      @reject {Error} - The error object.
    *
@@ -4932,14 +4995,14 @@ class AzureOpcHistoryClient extends ServiceClient {
    *                      {Error}  err        - The Error object if an error occurred, null otherwise.
    *
    *                      {object} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link ApplicationInfoListApiModel} for more
+   *                      See {@link HistoryUpdateResponseApiModel} for more
    *                      information.
    *
    *                      {object} [request]  - The HTTP Request object if an error did not occur.
    *
    *                      {stream} [response] - The HTTP Response stream if an error did not occur.
    */
-  getFilteredListOfApplications(query, options, optionalCallback) {
+  historyInsertEvents(endpointId, request, options, optionalCallback) {
     let client = this;
     let self = this;
     if (!optionalCallback && typeof options === 'function') {
@@ -4948,66 +5011,95 @@ class AzureOpcHistoryClient extends ServiceClient {
     }
     if (!optionalCallback) {
       return new Promise((resolve, reject) => {
-        self._getFilteredListOfApplications(query, options, (err, result, request, response) => {
+        self._historyInsertEvents(endpointId, request, options, (err, result, request, response) => {
           if (err) { reject(err); }
           else { resolve(result); }
           return;
         });
       });
     } else {
-      return self._getFilteredListOfApplications(query, options, optionalCallback);
+      return self._historyInsertEvents(endpointId, request, options, optionalCallback);
     }
   }
 
   /**
-   * @summary Query applications
+   * @summary Read historic events
    *
-   * List applications that match a query model.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfApplications operation using the token to retrieve
-   * more results.
+   * Read historic events of a node if available using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
    *
-   * @param {object} query Application query
+   * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {string} [query.applicationType] Type of application. Possible values
-   * include: 'Server', 'Client', 'ClientAndServer'
+   * @param {object} request The history read request
    *
-   * @param {string} [query.applicationUri] Application uri
+   * @param {string} [request.nodeId] Node to read from (mandatory)
    *
-   * @param {string} [query.productUri] Product uri
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
    *
-   * @param {string} [query.applicationName] Name of application
+   * @param {object} [request.details] The HistoryReadDetailsType extension
+   * object
+   * encoded in json and containing the tunneled
+   * Historian reader request.
    *
-   * @param {string} [query.locale] Locale of application name - default is "en"
+   * @param {date} [request.details.startTime] Start time to read from
    *
-   * @param {string} [query.capability] Application capability to query with
+   * @param {date} [request.details.endTime] End time to read to
    *
-   * @param {string} [query.siteOrSupervisorId] Supervisor or site the
-   * application belongs to.
+   * @param {number} [request.details.numEvents] Number of events to read
    *
-   * @param {boolean} [query.includeNotSeenSince] Whether to include apps that
-   * were soft deleted
+   * @param {object} [request.details.filter] The filter to use to select the
+   * event fields
+   *
+   * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
+   * slices
+   * out of a matrix or 0:1 for the first item in
+   * an array, string or bytestring.
+   * See 7.22 of part 4: NumericRange.
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
-   *
-   * @param {number} [options.pageSize] Optional number of results to
-   * return
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
    * request
    *
    * @returns {Promise} A promise is returned
    *
-   * @resolve {HttpOperationResponse<ApplicationInfoListApiModel>} - The deserialized result object.
+   * @resolve {HttpOperationResponse<HistoryReadResponseApiModelHistoricEventApiModel>} - The deserialized result object.
    *
    * @reject {Error} - The error object.
    */
-  queryApplicationsWithHttpOperationResponse(query, options) {
+  historyReadEventsWithHttpOperationResponse(endpointId, request, options) {
     let client = this;
     let self = this;
     return new Promise((resolve, reject) => {
-      self._queryApplications(query, options, (err, result, request, response) => {
+      self._historyReadEvents(endpointId, request, options, (err, result, request, response) => {
         let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
         httpOperationResponse.body = result;
         if (err) { reject(err); }
@@ -5018,39 +5110,68 @@ class AzureOpcHistoryClient extends ServiceClient {
   }
 
   /**
-   * @summary Query applications
+   * @summary Read historic events
    *
-   * List applications that match a query model.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfApplications operation using the token to retrieve
-   * more results.
+   * Read historic events of a node if available using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
    *
-   * @param {object} query Application query
+   * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {string} [query.applicationType] Type of application. Possible values
-   * include: 'Server', 'Client', 'ClientAndServer'
+   * @param {object} request The history read request
    *
-   * @param {string} [query.applicationUri] Application uri
+   * @param {string} [request.nodeId] Node to read from (mandatory)
    *
-   * @param {string} [query.productUri] Product uri
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
    *
-   * @param {string} [query.applicationName] Name of application
+   * @param {object} [request.details] The HistoryReadDetailsType extension
+   * object
+   * encoded in json and containing the tunneled
+   * Historian reader request.
    *
-   * @param {string} [query.locale] Locale of application name - default is "en"
+   * @param {date} [request.details.startTime] Start time to read from
    *
-   * @param {string} [query.capability] Application capability to query with
+   * @param {date} [request.details.endTime] End time to read to
    *
-   * @param {string} [query.siteOrSupervisorId] Supervisor or site the
-   * application belongs to.
+   * @param {number} [request.details.numEvents] Number of events to read
    *
-   * @param {boolean} [query.includeNotSeenSince] Whether to include apps that
-   * were soft deleted
+   * @param {object} [request.details.filter] The filter to use to select the
+   * event fields
+   *
+   * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
+   * slices
+   * out of a matrix or 0:1 for the first item in
+   * an array, string or bytestring.
+   * See 7.22 of part 4: NumericRange.
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
-   *
-   * @param {number} [options.pageSize] Optional number of results to
-   * return
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
    * request
@@ -5062,7 +5183,7 @@ class AzureOpcHistoryClient extends ServiceClient {
    *
    * {Promise} A promise is returned
    *
-   *                      @resolve {ApplicationInfoListApiModel} - The deserialized result object.
+   *                      @resolve {HistoryReadResponseApiModelHistoricEventApiModel} - The deserialized result object.
    *
    *                      @reject {Error} - The error object.
    *
@@ -5071,14 +5192,1346 @@ class AzureOpcHistoryClient extends ServiceClient {
    *                      {Error}  err        - The Error object if an error occurred, null otherwise.
    *
    *                      {object} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link ApplicationInfoListApiModel} for more
+   *                      See {@link
+   *                      HistoryReadResponseApiModelHistoricEventApiModel} for
+   *                      more information.
+   *
+   *                      {object} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+   */
+  historyReadEvents(endpointId, request, options, optionalCallback) {
+    let client = this;
+    let self = this;
+    if (!optionalCallback && typeof options === 'function') {
+      optionalCallback = options;
+      options = null;
+    }
+    if (!optionalCallback) {
+      return new Promise((resolve, reject) => {
+        self._historyReadEvents(endpointId, request, options, (err, result, request, response) => {
+          if (err) { reject(err); }
+          else { resolve(result); }
+          return;
+        });
+      });
+    } else {
+      return self._historyReadEvents(endpointId, request, options, optionalCallback);
+    }
+  }
+
+  /**
+   * @summary Read next batch of historic events
+   *
+   * Read next batch of historic events of a node using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history read next request
+   *
+   * @param {string} request.continuationToken Continuation token to continue
+   * reading more
+   * results.
+   *
+   * @param {boolean} [request.abort] Abort reading after this read
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<HistoryReadNextResponseApiModelHistoricEventApiModel>} - The deserialized result object.
+   *
+   * @reject {Error} - The error object.
+   */
+  historyReadEventsNextWithHttpOperationResponse(endpointId, request, options) {
+    let client = this;
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self._historyReadEventsNext(endpointId, request, options, (err, result, request, response) => {
+        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
+        httpOperationResponse.body = result;
+        if (err) { reject(err); }
+        else { resolve(httpOperationResponse); }
+        return;
+      });
+    });
+  }
+
+  /**
+   * @summary Read next batch of historic events
+   *
+   * Read next batch of historic events of a node using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history read next request
+   *
+   * @param {string} request.continuationToken Continuation token to continue
+   * reading more
+   * results.
+   *
+   * @param {boolean} [request.abort] Abort reading after this read
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {function} [optionalCallback] - The optional callback.
+   *
+   * @returns {function|Promise} If a callback was passed as the last parameter
+   * then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned
+   *
+   *                      @resolve {HistoryReadNextResponseApiModelHistoricEventApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error} - The error object.
+   *
+   * {function} optionalCallback(err, result, request, response)
+   *
+   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {object} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link
+   *                      HistoryReadNextResponseApiModelHistoricEventApiModel}
+   *                      for more information.
+   *
+   *                      {object} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+   */
+  historyReadEventsNext(endpointId, request, options, optionalCallback) {
+    let client = this;
+    let self = this;
+    if (!optionalCallback && typeof options === 'function') {
+      optionalCallback = options;
+      options = null;
+    }
+    if (!optionalCallback) {
+      return new Promise((resolve, reject) => {
+        self._historyReadEventsNext(endpointId, request, options, (err, result, request, response) => {
+          if (err) { reject(err); }
+          else { resolve(result); }
+          return;
+        });
+      });
+    } else {
+      return self._historyReadEventsNext(endpointId, request, options, optionalCallback);
+    }
+  }
+
+  /**
+   * @summary Read historic processed values at specified times
+   *
+   * Read processed history values of a node if available using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history read request
+   *
+   * @param {string} [request.nodeId] Node to read from (mandatory)
+   *
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
+   *
+   * @param {object} [request.details] The HistoryReadDetailsType extension
+   * object
+   * encoded in json and containing the tunneled
+   * Historian reader request.
+   *
+   * @param {date} [request.details.startTime] Beginning of period to read. Set
+   * to null
+   * if no specific start time is specified.
+   *
+   * @param {date} [request.details.endTime] End of period to read. Set to null
+   * if no
+   * specific end time is specified.
+   *
+   * @param {number} [request.details.numValues] The maximum number of values
+   * returned for any Node
+   * over the time range. If only one time is specified,
+   * the time range shall extend to return this number
+   * of values. 0 or null indicates that there is no
+   * maximum.
+   *
+   * @param {boolean} [request.details.returnBounds] Whether to return the
+   * bounding values or not.
+   *
+   * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
+   * slices
+   * out of a matrix or 0:1 for the first item in
+   * an array, string or bytestring.
+   * See 7.22 of part 4: NumericRange.
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<HistoryReadResponseApiModelHistoricValueApiModel>} - The deserialized result object.
+   *
+   * @reject {Error} - The error object.
+   */
+  historyReadValuesWithHttpOperationResponse(endpointId, request, options) {
+    let client = this;
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self._historyReadValues(endpointId, request, options, (err, result, request, response) => {
+        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
+        httpOperationResponse.body = result;
+        if (err) { reject(err); }
+        else { resolve(httpOperationResponse); }
+        return;
+      });
+    });
+  }
+
+  /**
+   * @summary Read historic processed values at specified times
+   *
+   * Read processed history values of a node if available using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history read request
+   *
+   * @param {string} [request.nodeId] Node to read from (mandatory)
+   *
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
+   *
+   * @param {object} [request.details] The HistoryReadDetailsType extension
+   * object
+   * encoded in json and containing the tunneled
+   * Historian reader request.
+   *
+   * @param {date} [request.details.startTime] Beginning of period to read. Set
+   * to null
+   * if no specific start time is specified.
+   *
+   * @param {date} [request.details.endTime] End of period to read. Set to null
+   * if no
+   * specific end time is specified.
+   *
+   * @param {number} [request.details.numValues] The maximum number of values
+   * returned for any Node
+   * over the time range. If only one time is specified,
+   * the time range shall extend to return this number
+   * of values. 0 or null indicates that there is no
+   * maximum.
+   *
+   * @param {boolean} [request.details.returnBounds] Whether to return the
+   * bounding values or not.
+   *
+   * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
+   * slices
+   * out of a matrix or 0:1 for the first item in
+   * an array, string or bytestring.
+   * See 7.22 of part 4: NumericRange.
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {function} [optionalCallback] - The optional callback.
+   *
+   * @returns {function|Promise} If a callback was passed as the last parameter
+   * then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned
+   *
+   *                      @resolve {HistoryReadResponseApiModelHistoricValueApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error} - The error object.
+   *
+   * {function} optionalCallback(err, result, request, response)
+   *
+   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {object} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link
+   *                      HistoryReadResponseApiModelHistoricValueApiModel} for
+   *                      more information.
+   *
+   *                      {object} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+   */
+  historyReadValues(endpointId, request, options, optionalCallback) {
+    let client = this;
+    let self = this;
+    if (!optionalCallback && typeof options === 'function') {
+      optionalCallback = options;
+      options = null;
+    }
+    if (!optionalCallback) {
+      return new Promise((resolve, reject) => {
+        self._historyReadValues(endpointId, request, options, (err, result, request, response) => {
+          if (err) { reject(err); }
+          else { resolve(result); }
+          return;
+        });
+      });
+    } else {
+      return self._historyReadValues(endpointId, request, options, optionalCallback);
+    }
+  }
+
+  /**
+   * @summary Read historic values at specified times
+   *
+   * Read historic values of a node if available using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history read request
+   *
+   * @param {string} [request.nodeId] Node to read from (mandatory)
+   *
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
+   *
+   * @param {object} [request.details] The HistoryReadDetailsType extension
+   * object
+   * encoded in json and containing the tunneled
+   * Historian reader request.
+   *
+   * @param {array} request.details.reqTimes Requested datums
+   *
+   * @param {boolean} [request.details.useSimpleBounds] Whether to use simple
+   * bounds
+   *
+   * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
+   * slices
+   * out of a matrix or 0:1 for the first item in
+   * an array, string or bytestring.
+   * See 7.22 of part 4: NumericRange.
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<HistoryReadResponseApiModelHistoricValueApiModel>} - The deserialized result object.
+   *
+   * @reject {Error} - The error object.
+   */
+  historyReadValuesAtTimesWithHttpOperationResponse(endpointId, request, options) {
+    let client = this;
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self._historyReadValuesAtTimes(endpointId, request, options, (err, result, request, response) => {
+        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
+        httpOperationResponse.body = result;
+        if (err) { reject(err); }
+        else { resolve(httpOperationResponse); }
+        return;
+      });
+    });
+  }
+
+  /**
+   * @summary Read historic values at specified times
+   *
+   * Read historic values of a node if available using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history read request
+   *
+   * @param {string} [request.nodeId] Node to read from (mandatory)
+   *
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
+   *
+   * @param {object} [request.details] The HistoryReadDetailsType extension
+   * object
+   * encoded in json and containing the tunneled
+   * Historian reader request.
+   *
+   * @param {array} request.details.reqTimes Requested datums
+   *
+   * @param {boolean} [request.details.useSimpleBounds] Whether to use simple
+   * bounds
+   *
+   * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
+   * slices
+   * out of a matrix or 0:1 for the first item in
+   * an array, string or bytestring.
+   * See 7.22 of part 4: NumericRange.
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {function} [optionalCallback] - The optional callback.
+   *
+   * @returns {function|Promise} If a callback was passed as the last parameter
+   * then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned
+   *
+   *                      @resolve {HistoryReadResponseApiModelHistoricValueApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error} - The error object.
+   *
+   * {function} optionalCallback(err, result, request, response)
+   *
+   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {object} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link
+   *                      HistoryReadResponseApiModelHistoricValueApiModel} for
+   *                      more information.
+   *
+   *                      {object} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+   */
+  historyReadValuesAtTimes(endpointId, request, options, optionalCallback) {
+    let client = this;
+    let self = this;
+    if (!optionalCallback && typeof options === 'function') {
+      optionalCallback = options;
+      options = null;
+    }
+    if (!optionalCallback) {
+      return new Promise((resolve, reject) => {
+        self._historyReadValuesAtTimes(endpointId, request, options, (err, result, request, response) => {
+          if (err) { reject(err); }
+          else { resolve(result); }
+          return;
+        });
+      });
+    } else {
+      return self._historyReadValuesAtTimes(endpointId, request, options, optionalCallback);
+    }
+  }
+
+  /**
+   * @summary Read historic processed values at specified times
+   *
+   * Read processed history values of a node if available using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history read request
+   *
+   * @param {string} [request.nodeId] Node to read from (mandatory)
+   *
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
+   *
+   * @param {object} [request.details] The HistoryReadDetailsType extension
+   * object
+   * encoded in json and containing the tunneled
+   * Historian reader request.
+   *
+   * @param {date} [request.details.startTime] Start time to read from.
+   *
+   * @param {date} [request.details.endTime] End time to read until
+   *
+   * @param {number} [request.details.processingInterval] Interval to process
+   *
+   * @param {string} [request.details.aggregateTypeId] The aggregate type node
+   * ids
+   *
+   * @param {object} [request.details.aggregateConfiguration] A configuration for
+   * the aggregate
+   *
+   * @param {boolean}
+   * [request.details.aggregateConfiguration.useServerCapabilitiesDefaults]
+   * Whether to use the default server caps
+   *
+   * @param {boolean}
+   * [request.details.aggregateConfiguration.treatUncertainAsBad] Whether to
+   * treat uncertain as bad
+   *
+   * @param {number} [request.details.aggregateConfiguration.percentDataBad]
+   * Percent of data that is bad
+   *
+   * @param {number} [request.details.aggregateConfiguration.percentDataGood]
+   * Percent of data that is good
+   *
+   * @param {boolean}
+   * [request.details.aggregateConfiguration.useSlopedExtrapolation] Whether to
+   * use sloped extrapolation.
+   *
+   * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
+   * slices
+   * out of a matrix or 0:1 for the first item in
+   * an array, string or bytestring.
+   * See 7.22 of part 4: NumericRange.
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<HistoryReadResponseApiModelHistoricValueApiModel>} - The deserialized result object.
+   *
+   * @reject {Error} - The error object.
+   */
+  historyReadProcessedValuesWithHttpOperationResponse(endpointId, request, options) {
+    let client = this;
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self._historyReadProcessedValues(endpointId, request, options, (err, result, request, response) => {
+        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
+        httpOperationResponse.body = result;
+        if (err) { reject(err); }
+        else { resolve(httpOperationResponse); }
+        return;
+      });
+    });
+  }
+
+  /**
+   * @summary Read historic processed values at specified times
+   *
+   * Read processed history values of a node if available using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history read request
+   *
+   * @param {string} [request.nodeId] Node to read from (mandatory)
+   *
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
+   *
+   * @param {object} [request.details] The HistoryReadDetailsType extension
+   * object
+   * encoded in json and containing the tunneled
+   * Historian reader request.
+   *
+   * @param {date} [request.details.startTime] Start time to read from.
+   *
+   * @param {date} [request.details.endTime] End time to read until
+   *
+   * @param {number} [request.details.processingInterval] Interval to process
+   *
+   * @param {string} [request.details.aggregateTypeId] The aggregate type node
+   * ids
+   *
+   * @param {object} [request.details.aggregateConfiguration] A configuration for
+   * the aggregate
+   *
+   * @param {boolean}
+   * [request.details.aggregateConfiguration.useServerCapabilitiesDefaults]
+   * Whether to use the default server caps
+   *
+   * @param {boolean}
+   * [request.details.aggregateConfiguration.treatUncertainAsBad] Whether to
+   * treat uncertain as bad
+   *
+   * @param {number} [request.details.aggregateConfiguration.percentDataBad]
+   * Percent of data that is bad
+   *
+   * @param {number} [request.details.aggregateConfiguration.percentDataGood]
+   * Percent of data that is good
+   *
+   * @param {boolean}
+   * [request.details.aggregateConfiguration.useSlopedExtrapolation] Whether to
+   * use sloped extrapolation.
+   *
+   * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
+   * slices
+   * out of a matrix or 0:1 for the first item in
+   * an array, string or bytestring.
+   * See 7.22 of part 4: NumericRange.
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {function} [optionalCallback] - The optional callback.
+   *
+   * @returns {function|Promise} If a callback was passed as the last parameter
+   * then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned
+   *
+   *                      @resolve {HistoryReadResponseApiModelHistoricValueApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error} - The error object.
+   *
+   * {function} optionalCallback(err, result, request, response)
+   *
+   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {object} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link
+   *                      HistoryReadResponseApiModelHistoricValueApiModel} for
+   *                      more information.
+   *
+   *                      {object} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+   */
+  historyReadProcessedValues(endpointId, request, options, optionalCallback) {
+    let client = this;
+    let self = this;
+    if (!optionalCallback && typeof options === 'function') {
+      optionalCallback = options;
+      options = null;
+    }
+    if (!optionalCallback) {
+      return new Promise((resolve, reject) => {
+        self._historyReadProcessedValues(endpointId, request, options, (err, result, request, response) => {
+          if (err) { reject(err); }
+          else { resolve(result); }
+          return;
+        });
+      });
+    } else {
+      return self._historyReadProcessedValues(endpointId, request, options, optionalCallback);
+    }
+  }
+
+  /**
+   * @summary Read historic modified values at specified times
+   *
+   * Read processed history values of a node if available using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history read request
+   *
+   * @param {string} [request.nodeId] Node to read from (mandatory)
+   *
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
+   *
+   * @param {object} [request.details] The HistoryReadDetailsType extension
+   * object
+   * encoded in json and containing the tunneled
+   * Historian reader request.
+   *
+   * @param {date} [request.details.startTime] The start time to read from
+   *
+   * @param {date} [request.details.endTime] The end time to read to
+   *
+   * @param {number} [request.details.numValues] The number of values to read
+   *
+   * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
+   * slices
+   * out of a matrix or 0:1 for the first item in
+   * an array, string or bytestring.
+   * See 7.22 of part 4: NumericRange.
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<HistoryReadResponseApiModelHistoricValueApiModel>} - The deserialized result object.
+   *
+   * @reject {Error} - The error object.
+   */
+  historyReadModifiedValuesWithHttpOperationResponse(endpointId, request, options) {
+    let client = this;
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self._historyReadModifiedValues(endpointId, request, options, (err, result, request, response) => {
+        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
+        httpOperationResponse.body = result;
+        if (err) { reject(err); }
+        else { resolve(httpOperationResponse); }
+        return;
+      });
+    });
+  }
+
+  /**
+   * @summary Read historic modified values at specified times
+   *
+   * Read processed history values of a node if available using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history read request
+   *
+   * @param {string} [request.nodeId] Node to read from (mandatory)
+   *
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
+   *
+   * @param {object} [request.details] The HistoryReadDetailsType extension
+   * object
+   * encoded in json and containing the tunneled
+   * Historian reader request.
+   *
+   * @param {date} [request.details.startTime] The start time to read from
+   *
+   * @param {date} [request.details.endTime] The end time to read to
+   *
+   * @param {number} [request.details.numValues] The number of values to read
+   *
+   * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
+   * slices
+   * out of a matrix or 0:1 for the first item in
+   * an array, string or bytestring.
+   * See 7.22 of part 4: NumericRange.
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {function} [optionalCallback] - The optional callback.
+   *
+   * @returns {function|Promise} If a callback was passed as the last parameter
+   * then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned
+   *
+   *                      @resolve {HistoryReadResponseApiModelHistoricValueApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error} - The error object.
+   *
+   * {function} optionalCallback(err, result, request, response)
+   *
+   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {object} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link
+   *                      HistoryReadResponseApiModelHistoricValueApiModel} for
+   *                      more information.
+   *
+   *                      {object} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+   */
+  historyReadModifiedValues(endpointId, request, options, optionalCallback) {
+    let client = this;
+    let self = this;
+    if (!optionalCallback && typeof options === 'function') {
+      optionalCallback = options;
+      options = null;
+    }
+    if (!optionalCallback) {
+      return new Promise((resolve, reject) => {
+        self._historyReadModifiedValues(endpointId, request, options, (err, result, request, response) => {
+          if (err) { reject(err); }
+          else { resolve(result); }
+          return;
+        });
+      });
+    } else {
+      return self._historyReadModifiedValues(endpointId, request, options, optionalCallback);
+    }
+  }
+
+  /**
+   * @summary Read next batch of historic values
+   *
+   * Read next batch of historic values of a node using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history read next request
+   *
+   * @param {string} request.continuationToken Continuation token to continue
+   * reading more
+   * results.
+   *
+   * @param {boolean} [request.abort] Abort reading after this read
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<HistoryReadNextResponseApiModelHistoricValueApiModel>} - The deserialized result object.
+   *
+   * @reject {Error} - The error object.
+   */
+  historyReadValueNextWithHttpOperationResponse(endpointId, request, options) {
+    let client = this;
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self._historyReadValueNext(endpointId, request, options, (err, result, request, response) => {
+        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
+        httpOperationResponse.body = result;
+        if (err) { reject(err); }
+        else { resolve(httpOperationResponse); }
+        return;
+      });
+    });
+  }
+
+  /**
+   * @summary Read next batch of historic values
+   *
+   * Read next batch of historic values of a node using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history read next request
+   *
+   * @param {string} request.continuationToken Continuation token to continue
+   * reading more
+   * results.
+   *
+   * @param {boolean} [request.abort] Abort reading after this read
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {function} [optionalCallback] - The optional callback.
+   *
+   * @returns {function|Promise} If a callback was passed as the last parameter
+   * then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned
+   *
+   *                      @resolve {HistoryReadNextResponseApiModelHistoricValueApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error} - The error object.
+   *
+   * {function} optionalCallback(err, result, request, response)
+   *
+   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {object} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link
+   *                      HistoryReadNextResponseApiModelHistoricValueApiModel}
+   *                      for more information.
+   *
+   *                      {object} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+   */
+  historyReadValueNext(endpointId, request, options, optionalCallback) {
+    let client = this;
+    let self = this;
+    if (!optionalCallback && typeof options === 'function') {
+      optionalCallback = options;
+      options = null;
+    }
+    if (!optionalCallback) {
+      return new Promise((resolve, reject) => {
+        self._historyReadValueNext(endpointId, request, options, (err, result, request, response) => {
+          if (err) { reject(err); }
+          else { resolve(result); }
+          return;
+        });
+      });
+    } else {
+      return self._historyReadValueNext(endpointId, request, options, optionalCallback);
+    }
+  }
+
+  /**
+   * @summary Replace historic values
+   *
+   * Replace historic values using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history replace request
+   *
+   * @param {string} [request.nodeId] Node to update
+   *
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
+   *
+   * @param {object} request.details The HistoryUpdateDetailsType extension
+   * object
+   * encoded as json Variant and containing the tunneled
+   * update request for the Historian server. The value
+   * is updated at edge using above node address.
+   *
+   * @param {array} request.details.values Values to replace
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<HistoryUpdateResponseApiModel>} - The deserialized result object.
+   *
+   * @reject {Error} - The error object.
+   */
+  historyReplaceValuesWithHttpOperationResponse(endpointId, request, options) {
+    let client = this;
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self._historyReplaceValues(endpointId, request, options, (err, result, request, response) => {
+        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
+        httpOperationResponse.body = result;
+        if (err) { reject(err); }
+        else { resolve(httpOperationResponse); }
+        return;
+      });
+    });
+  }
+
+  /**
+   * @summary Replace historic values
+   *
+   * Replace historic values using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history replace request
+   *
+   * @param {string} [request.nodeId] Node to update
+   *
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
+   *
+   * @param {object} request.details The HistoryUpdateDetailsType extension
+   * object
+   * encoded as json Variant and containing the tunneled
+   * update request for the Historian server. The value
+   * is updated at edge using above node address.
+   *
+   * @param {array} request.details.values Values to replace
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {function} [optionalCallback] - The optional callback.
+   *
+   * @returns {function|Promise} If a callback was passed as the last parameter
+   * then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned
+   *
+   *                      @resolve {HistoryUpdateResponseApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error} - The error object.
+   *
+   * {function} optionalCallback(err, result, request, response)
+   *
+   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {object} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link HistoryUpdateResponseApiModel} for more
    *                      information.
    *
    *                      {object} [request]  - The HTTP Request object if an error did not occur.
    *
    *                      {stream} [response] - The HTTP Response stream if an error did not occur.
    */
-  queryApplications(query, options, optionalCallback) {
+  historyReplaceValues(endpointId, request, options, optionalCallback) {
     let client = this;
     let self = this;
     if (!optionalCallback && typeof options === 'function') {
@@ -5087,25 +6540,69 @@ class AzureOpcHistoryClient extends ServiceClient {
     }
     if (!optionalCallback) {
       return new Promise((resolve, reject) => {
-        self._queryApplications(query, options, (err, result, request, response) => {
+        self._historyReplaceValues(endpointId, request, options, (err, result, request, response) => {
           if (err) { reject(err); }
           else { resolve(result); }
           return;
         });
       });
     } else {
-      return self._queryApplications(query, options, optionalCallback);
+      return self._historyReplaceValues(endpointId, request, options, optionalCallback);
     }
   }
 
   /**
-   * @summary Activate endpoint
+   * @summary Replace historic events
    *
-   * Activates an endpoint for subsequent use in twin service.
-   * All endpoints must be activated using this API or through a
-   * activation filter during application registration or discovery.
+   * Replace historic events using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
    *
-   * @param {string} endpointId endpoint identifier
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history replace request
+   *
+   * @param {string} [request.nodeId] Node to update
+   *
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
+   *
+   * @param {object} request.details The HistoryUpdateDetailsType extension
+   * object
+   * encoded as json Variant and containing the tunneled
+   * update request for the Historian server. The value
+   * is updated at edge using above node address.
+   *
+   * @param {object} [request.details.filter] The filter to use to select the
+   * events
+   *
+   * @param {array} request.details.events The events to replace
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -5114,15 +6611,15 @@ class AzureOpcHistoryClient extends ServiceClient {
    *
    * @returns {Promise} A promise is returned
    *
-   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   * @resolve {HttpOperationResponse<HistoryUpdateResponseApiModel>} - The deserialized result object.
    *
    * @reject {Error} - The error object.
    */
-  activateEndpointWithHttpOperationResponse(endpointId, options) {
+  historyReplaceEventsWithHttpOperationResponse(endpointId, request, options) {
     let client = this;
     let self = this;
     return new Promise((resolve, reject) => {
-      self._activateEndpoint(endpointId, options, (err, result, request, response) => {
+      self._historyReplaceEvents(endpointId, request, options, (err, result, request, response) => {
         let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
         httpOperationResponse.body = result;
         if (err) { reject(err); }
@@ -5133,13 +6630,57 @@ class AzureOpcHistoryClient extends ServiceClient {
   }
 
   /**
-   * @summary Activate endpoint
+   * @summary Replace historic events
    *
-   * Activates an endpoint for subsequent use in twin service.
-   * All endpoints must be activated using this API or through a
-   * activation filter during application registration or discovery.
+   * Replace historic events using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
    *
-   * @param {string} endpointId endpoint identifier
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} request The history replace request
+   *
+   * @param {string} [request.nodeId] Node to update
+   *
+   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * the actual node.
+   *
+   * @param {object} request.details The HistoryUpdateDetailsType extension
+   * object
+   * encoded as json Variant and containing the tunneled
+   * update request for the Historian server. The value
+   * is updated at edge using above node address.
+   *
+   * @param {object} [request.details.filter] The filter to use to select the
+   * events
+   *
+   * @param {array} request.details.events The events to replace
+   *
+   * @param {object} [request.header] Optional request header
+   *
+   * @param {object} [request.header.elevation] Optional User elevation
+   *
+   * @param {string} [request.header.elevation.type] Type of credential. Possible
+   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [request.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [request.header.locales] Optional list of locales in
+   * preference order.
+   *
+   * @param {object} [request.header.diagnostics] Optional diagnostics
+   * configuration
+   *
+   * @param {string} [request.header.diagnostics.level] Requested level of
+   * response diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
+   * 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -5153,303 +6694,7 @@ class AzureOpcHistoryClient extends ServiceClient {
    *
    * {Promise} A promise is returned
    *
-   *                      @resolve {null} - The deserialized result object.
-   *
-   *                      @reject {Error} - The error object.
-   *
-   * {function} optionalCallback(err, result, request, response)
-   *
-   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {null} [result]   - The deserialized result object if an error did not occur.
-   *
-   *                      {object} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
-   */
-  activateEndpoint(endpointId, options, optionalCallback) {
-    let client = this;
-    let self = this;
-    if (!optionalCallback && typeof options === 'function') {
-      optionalCallback = options;
-      options = null;
-    }
-    if (!optionalCallback) {
-      return new Promise((resolve, reject) => {
-        self._activateEndpoint(endpointId, options, (err, result, request, response) => {
-          if (err) { reject(err); }
-          else { resolve(result); }
-          return;
-        });
-      });
-    } else {
-      return self._activateEndpoint(endpointId, options, optionalCallback);
-    }
-  }
-
-  /**
-   * @summary Get endpoint information
-   *
-   * Gets information about an endpoint.
-   *
-   * @param {string} endpointId endpoint identifier
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display current client state of the endpoint if
-   * available
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<EndpointInfoApiModel>} - The deserialized result object.
-   *
-   * @reject {Error} - The error object.
-   */
-  getEndpointWithHttpOperationResponse(endpointId, options) {
-    let client = this;
-    let self = this;
-    return new Promise((resolve, reject) => {
-      self._getEndpoint(endpointId, options, (err, result, request, response) => {
-        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
-        httpOperationResponse.body = result;
-        if (err) { reject(err); }
-        else { resolve(httpOperationResponse); }
-        return;
-      });
-    });
-  }
-
-  /**
-   * @summary Get endpoint information
-   *
-   * Gets information about an endpoint.
-   *
-   * @param {string} endpointId endpoint identifier
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display current client state of the endpoint if
-   * available
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {function} [optionalCallback] - The optional callback.
-   *
-   * @returns {function|Promise} If a callback was passed as the last parameter
-   * then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned
-   *
-   *                      @resolve {EndpointInfoApiModel} - The deserialized result object.
-   *
-   *                      @reject {Error} - The error object.
-   *
-   * {function} optionalCallback(err, result, request, response)
-   *
-   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {object} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link EndpointInfoApiModel} for more information.
-   *
-   *                      {object} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
-   */
-  getEndpoint(endpointId, options, optionalCallback) {
-    let client = this;
-    let self = this;
-    if (!optionalCallback && typeof options === 'function') {
-      optionalCallback = options;
-      options = null;
-    }
-    if (!optionalCallback) {
-      return new Promise((resolve, reject) => {
-        self._getEndpoint(endpointId, options, (err, result, request, response) => {
-          if (err) { reject(err); }
-          else { resolve(result); }
-          return;
-        });
-      });
-    } else {
-      return self._getEndpoint(endpointId, options, optionalCallback);
-    }
-  }
-
-  /**
-   * @summary Update endpoint information
-   *
-   * @param {string} endpointId endpoint identifier
-   *
-   * @param {object} request Endpoint update request
-   *
-   * @param {object} [request.user] User authentication to change on the
-   * endpoint.
-   *
-   * @param {string} [request.user.type] Type of credential. Possible values
-   * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
-   *
-   * @param {object} [request.user.value] Value to pass to server
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
-   *
-   * @reject {Error} - The error object.
-   */
-  updateEndpointWithHttpOperationResponse(endpointId, request, options) {
-    let client = this;
-    let self = this;
-    return new Promise((resolve, reject) => {
-      self._updateEndpoint(endpointId, request, options, (err, result, request, response) => {
-        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
-        httpOperationResponse.body = result;
-        if (err) { reject(err); }
-        else { resolve(httpOperationResponse); }
-        return;
-      });
-    });
-  }
-
-  /**
-   * @summary Update endpoint information
-   *
-   * @param {string} endpointId endpoint identifier
-   *
-   * @param {object} request Endpoint update request
-   *
-   * @param {object} [request.user] User authentication to change on the
-   * endpoint.
-   *
-   * @param {string} [request.user.type] Type of credential. Possible values
-   * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
-   *
-   * @param {object} [request.user.value] Value to pass to server
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {function} [optionalCallback] - The optional callback.
-   *
-   * @returns {function|Promise} If a callback was passed as the last parameter
-   * then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned
-   *
-   *                      @resolve {null} - The deserialized result object.
-   *
-   *                      @reject {Error} - The error object.
-   *
-   * {function} optionalCallback(err, result, request, response)
-   *
-   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {null} [result]   - The deserialized result object if an error did not occur.
-   *
-   *                      {object} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
-   */
-  updateEndpoint(endpointId, request, options, optionalCallback) {
-    let client = this;
-    let self = this;
-    if (!optionalCallback && typeof options === 'function') {
-      optionalCallback = options;
-      options = null;
-    }
-    if (!optionalCallback) {
-      return new Promise((resolve, reject) => {
-        self._updateEndpoint(endpointId, request, options, (err, result, request, response) => {
-          if (err) { reject(err); }
-          else { resolve(result); }
-          return;
-        });
-      });
-    } else {
-      return self._updateEndpoint(endpointId, request, options, optionalCallback);
-    }
-  }
-
-  /**
-   * @summary Get list of endpoints
-   *
-   * Get all registered endpoints in paged form.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call this operation again using the token to retrieve more results.
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display current client state of the endpoint if available
-   *
-   * @param {string} [options.continuationToken] Optional Continuation token
-   *
-   * @param {number} [options.pageSize] Optional number of results to return
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<EndpointInfoListApiModel>} - The deserialized result object.
-   *
-   * @reject {Error} - The error object.
-   */
-  getListOfEndpointsWithHttpOperationResponse(options) {
-    let client = this;
-    let self = this;
-    return new Promise((resolve, reject) => {
-      self._getListOfEndpoints(options, (err, result, request, response) => {
-        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
-        httpOperationResponse.body = result;
-        if (err) { reject(err); }
-        else { resolve(httpOperationResponse); }
-        return;
-      });
-    });
-  }
-
-  /**
-   * @summary Get list of endpoints
-   *
-   * Get all registered endpoints in paged form.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call this operation again using the token to retrieve more results.
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display current client state of the endpoint if available
-   *
-   * @param {string} [options.continuationToken] Optional Continuation token
-   *
-   * @param {number} [options.pageSize] Optional number of results to return
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {function} [optionalCallback] - The optional callback.
-   *
-   * @returns {function|Promise} If a callback was passed as the last parameter
-   * then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned
-   *
-   *                      @resolve {EndpointInfoListApiModel} - The deserialized result object.
+   *                      @resolve {HistoryUpdateResponseApiModel} - The deserialized result object.
    *
    *                      @reject {Error} - The error object.
    *
@@ -5458,14 +6703,14 @@ class AzureOpcHistoryClient extends ServiceClient {
    *                      {Error}  err        - The Error object if an error occurred, null otherwise.
    *
    *                      {object} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link EndpointInfoListApiModel} for more
+   *                      See {@link HistoryUpdateResponseApiModel} for more
    *                      information.
    *
    *                      {object} [request]  - The HTTP Request object if an error did not occur.
    *
    *                      {stream} [response] - The HTTP Response stream if an error did not occur.
    */
-  getListOfEndpoints(options, optionalCallback) {
+  historyReplaceEvents(endpointId, request, options, optionalCallback) {
     let client = this;
     let self = this;
     if (!optionalCallback && typeof options === 'function') {
@@ -5474,409 +6719,14 @@ class AzureOpcHistoryClient extends ServiceClient {
     }
     if (!optionalCallback) {
       return new Promise((resolve, reject) => {
-        self._getListOfEndpoints(options, (err, result, request, response) => {
+        self._historyReplaceEvents(endpointId, request, options, (err, result, request, response) => {
           if (err) { reject(err); }
           else { resolve(result); }
           return;
         });
       });
     } else {
-      return self._getListOfEndpoints(options, optionalCallback);
-    }
-  }
-
-  /**
-   * @summary Get filtered list of endpoints
-   *
-   * Get a list of endpoints filtered using the specified query parameters.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfEndpoints operation using the token to retrieve
-   * more results.
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {string} [options.url] Endoint url for direct server access
-   *
-   * @param {string} [options.userAuthentication] Type of credential selected for
-   * authentication. Possible values include: 'None', 'UserName',
-   * 'X509Certificate', 'JwtToken'
-   *
-   * @param {buffer} [options.certificate] Certificate of the endpoint
-   *
-   * @param {string} [options.securityMode] Security Mode. Possible values
-   * include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
-   *
-   * @param {string} [options.securityPolicy] Security policy uri
-   *
-   * @param {boolean} [options.activated] Whether the endpoint was activated
-   *
-   * @param {boolean} [options.connected] Whether the endpoint is connected on
-   * supervisor.
-   *
-   * @param {string} [options.endpointState] The last state of the the activated
-   * endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy',
-   * 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
-   *
-   * @param {boolean} [options.includeNotSeenSince] Whether to include endpoints
-   * that were soft deleted
-   *
-   * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display
-   * current client state of the endpoint if available
-   *
-   * @param {number} [options.pageSize] Optional number of results to
-   * return
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<EndpointInfoListApiModel>} - The deserialized result object.
-   *
-   * @reject {Error} - The error object.
-   */
-  getFilteredListOfEndpointsWithHttpOperationResponse(options) {
-    let client = this;
-    let self = this;
-    return new Promise((resolve, reject) => {
-      self._getFilteredListOfEndpoints(options, (err, result, request, response) => {
-        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
-        httpOperationResponse.body = result;
-        if (err) { reject(err); }
-        else { resolve(httpOperationResponse); }
-        return;
-      });
-    });
-  }
-
-  /**
-   * @summary Get filtered list of endpoints
-   *
-   * Get a list of endpoints filtered using the specified query parameters.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfEndpoints operation using the token to retrieve
-   * more results.
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {string} [options.url] Endoint url for direct server access
-   *
-   * @param {string} [options.userAuthentication] Type of credential selected for
-   * authentication. Possible values include: 'None', 'UserName',
-   * 'X509Certificate', 'JwtToken'
-   *
-   * @param {buffer} [options.certificate] Certificate of the endpoint
-   *
-   * @param {string} [options.securityMode] Security Mode. Possible values
-   * include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
-   *
-   * @param {string} [options.securityPolicy] Security policy uri
-   *
-   * @param {boolean} [options.activated] Whether the endpoint was activated
-   *
-   * @param {boolean} [options.connected] Whether the endpoint is connected on
-   * supervisor.
-   *
-   * @param {string} [options.endpointState] The last state of the the activated
-   * endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy',
-   * 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
-   *
-   * @param {boolean} [options.includeNotSeenSince] Whether to include endpoints
-   * that were soft deleted
-   *
-   * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display
-   * current client state of the endpoint if available
-   *
-   * @param {number} [options.pageSize] Optional number of results to
-   * return
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {function} [optionalCallback] - The optional callback.
-   *
-   * @returns {function|Promise} If a callback was passed as the last parameter
-   * then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned
-   *
-   *                      @resolve {EndpointInfoListApiModel} - The deserialized result object.
-   *
-   *                      @reject {Error} - The error object.
-   *
-   * {function} optionalCallback(err, result, request, response)
-   *
-   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {object} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link EndpointInfoListApiModel} for more
-   *                      information.
-   *
-   *                      {object} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
-   */
-  getFilteredListOfEndpoints(options, optionalCallback) {
-    let client = this;
-    let self = this;
-    if (!optionalCallback && typeof options === 'function') {
-      optionalCallback = options;
-      options = null;
-    }
-    if (!optionalCallback) {
-      return new Promise((resolve, reject) => {
-        self._getFilteredListOfEndpoints(options, (err, result, request, response) => {
-          if (err) { reject(err); }
-          else { resolve(result); }
-          return;
-        });
-      });
-    } else {
-      return self._getFilteredListOfEndpoints(options, optionalCallback);
-    }
-  }
-
-  /**
-   * @summary Query endpoints
-   *
-   * Return endpoints that match the specified query.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfEndpoints operation using the token to retrieve
-   * more results.
-   *
-   * @param {object} query Query to match
-   *
-   * @param {string} [query.url] Endoint url for direct server access
-   *
-   * @param {string} [query.userAuthentication] Type of credential selected for
-   * authentication. Possible values include: 'None', 'UserName',
-   * 'X509Certificate', 'JwtToken'
-   *
-   * @param {buffer} [query.certificate] Certificate of the endpoint
-   *
-   * @param {string} [query.securityMode] Security Mode. Possible values include:
-   * 'Best', 'Sign', 'SignAndEncrypt', 'None'
-   *
-   * @param {string} [query.securityPolicy] Security policy uri
-   *
-   * @param {boolean} [query.activated] Whether the endpoint was activated
-   *
-   * @param {boolean} [query.connected] Whether the endpoint is connected on
-   * supervisor.
-   *
-   * @param {string} [query.endpointState] The last state of the the activated
-   * endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy',
-   * 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
-   *
-   * @param {boolean} [query.includeNotSeenSince] Whether to include endpoints
-   * that were soft deleted
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display current client state of the endpoint if available
-   *
-   * @param {number} [options.pageSize] Optional number of results to return
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<EndpointInfoListApiModel>} - The deserialized result object.
-   *
-   * @reject {Error} - The error object.
-   */
-  queryEndpointsWithHttpOperationResponse(query, options) {
-    let client = this;
-    let self = this;
-    return new Promise((resolve, reject) => {
-      self._queryEndpoints(query, options, (err, result, request, response) => {
-        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
-        httpOperationResponse.body = result;
-        if (err) { reject(err); }
-        else { resolve(httpOperationResponse); }
-        return;
-      });
-    });
-  }
-
-  /**
-   * @summary Query endpoints
-   *
-   * Return endpoints that match the specified query.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfEndpoints operation using the token to retrieve
-   * more results.
-   *
-   * @param {object} query Query to match
-   *
-   * @param {string} [query.url] Endoint url for direct server access
-   *
-   * @param {string} [query.userAuthentication] Type of credential selected for
-   * authentication. Possible values include: 'None', 'UserName',
-   * 'X509Certificate', 'JwtToken'
-   *
-   * @param {buffer} [query.certificate] Certificate of the endpoint
-   *
-   * @param {string} [query.securityMode] Security Mode. Possible values include:
-   * 'Best', 'Sign', 'SignAndEncrypt', 'None'
-   *
-   * @param {string} [query.securityPolicy] Security policy uri
-   *
-   * @param {boolean} [query.activated] Whether the endpoint was activated
-   *
-   * @param {boolean} [query.connected] Whether the endpoint is connected on
-   * supervisor.
-   *
-   * @param {string} [query.endpointState] The last state of the the activated
-   * endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy',
-   * 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
-   *
-   * @param {boolean} [query.includeNotSeenSince] Whether to include endpoints
-   * that were soft deleted
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display current client state of the endpoint if available
-   *
-   * @param {number} [options.pageSize] Optional number of results to return
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {function} [optionalCallback] - The optional callback.
-   *
-   * @returns {function|Promise} If a callback was passed as the last parameter
-   * then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned
-   *
-   *                      @resolve {EndpointInfoListApiModel} - The deserialized result object.
-   *
-   *                      @reject {Error} - The error object.
-   *
-   * {function} optionalCallback(err, result, request, response)
-   *
-   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {object} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link EndpointInfoListApiModel} for more
-   *                      information.
-   *
-   *                      {object} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
-   */
-  queryEndpoints(query, options, optionalCallback) {
-    let client = this;
-    let self = this;
-    if (!optionalCallback && typeof options === 'function') {
-      optionalCallback = options;
-      options = null;
-    }
-    if (!optionalCallback) {
-      return new Promise((resolve, reject) => {
-        self._queryEndpoints(query, options, (err, result, request, response) => {
-          if (err) { reject(err); }
-          else { resolve(result); }
-          return;
-        });
-      });
-    } else {
-      return self._queryEndpoints(query, options, optionalCallback);
-    }
-  }
-
-  /**
-   * @summary Deactivate endpoint
-   *
-   * Deactivates the endpoint and disable access through twin service.
-   *
-   * @param {string} endpointId endpoint identifier
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
-   *
-   * @reject {Error} - The error object.
-   */
-  deactivateEndpointWithHttpOperationResponse(endpointId, options) {
-    let client = this;
-    let self = this;
-    return new Promise((resolve, reject) => {
-      self._deactivateEndpoint(endpointId, options, (err, result, request, response) => {
-        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
-        httpOperationResponse.body = result;
-        if (err) { reject(err); }
-        else { resolve(httpOperationResponse); }
-        return;
-      });
-    });
-  }
-
-  /**
-   * @summary Deactivate endpoint
-   *
-   * Deactivates the endpoint and disable access through twin service.
-   *
-   * @param {string} endpointId endpoint identifier
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {function} [optionalCallback] - The optional callback.
-   *
-   * @returns {function|Promise} If a callback was passed as the last parameter
-   * then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned
-   *
-   *                      @resolve {null} - The deserialized result object.
-   *
-   *                      @reject {Error} - The error object.
-   *
-   * {function} optionalCallback(err, result, request, response)
-   *
-   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {null} [result]   - The deserialized result object if an error did not occur.
-   *
-   *                      {object} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
-   */
-  deactivateEndpoint(endpointId, options, optionalCallback) {
-    let client = this;
-    let self = this;
-    if (!optionalCallback && typeof options === 'function') {
-      optionalCallback = options;
-      options = null;
-    }
-    if (!optionalCallback) {
-      return new Promise((resolve, reject) => {
-        self._deactivateEndpoint(endpointId, options, (err, result, request, response) => {
-          if (err) { reject(err); }
-          else { resolve(result); }
-          return;
-        });
-      });
-    } else {
-      return self._deactivateEndpoint(endpointId, options, optionalCallback);
+      return self._historyReplaceEvents(endpointId, request, options, optionalCallback);
     }
   }
 
@@ -5958,846 +6808,6 @@ class AzureOpcHistoryClient extends ServiceClient {
       });
     } else {
       return self._getStatus(options, optionalCallback);
-    }
-  }
-
-  /**
-   * @summary Get supervisor registration information
-   *
-   * Returns a supervisor's registration and connectivity information.
-   * A supervisor id corresponds to the twin modules module identity.
-   *
-   * @param {string} supervisorId Supervisor identifier
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display current client state of the endpoint if
-   * available
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<SupervisorApiModel>} - The deserialized result object.
-   *
-   * @reject {Error} - The error object.
-   */
-  getSupervisorWithHttpOperationResponse(supervisorId, options) {
-    let client = this;
-    let self = this;
-    return new Promise((resolve, reject) => {
-      self._getSupervisor(supervisorId, options, (err, result, request, response) => {
-        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
-        httpOperationResponse.body = result;
-        if (err) { reject(err); }
-        else { resolve(httpOperationResponse); }
-        return;
-      });
-    });
-  }
-
-  /**
-   * @summary Get supervisor registration information
-   *
-   * Returns a supervisor's registration and connectivity information.
-   * A supervisor id corresponds to the twin modules module identity.
-   *
-   * @param {string} supervisorId Supervisor identifier
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display current client state of the endpoint if
-   * available
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {function} [optionalCallback] - The optional callback.
-   *
-   * @returns {function|Promise} If a callback was passed as the last parameter
-   * then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned
-   *
-   *                      @resolve {SupervisorApiModel} - The deserialized result object.
-   *
-   *                      @reject {Error} - The error object.
-   *
-   * {function} optionalCallback(err, result, request, response)
-   *
-   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {object} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link SupervisorApiModel} for more information.
-   *
-   *                      {object} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
-   */
-  getSupervisor(supervisorId, options, optionalCallback) {
-    let client = this;
-    let self = this;
-    if (!optionalCallback && typeof options === 'function') {
-      optionalCallback = options;
-      options = null;
-    }
-    if (!optionalCallback) {
-      return new Promise((resolve, reject) => {
-        self._getSupervisor(supervisorId, options, (err, result, request, response) => {
-          if (err) { reject(err); }
-          else { resolve(result); }
-          return;
-        });
-      });
-    } else {
-      return self._getSupervisor(supervisorId, options, optionalCallback);
-    }
-  }
-
-  /**
-   * @summary Update supervisor information
-   *
-   * Allows a caller to configure recurring discovery runs on the twin module
-   * identified by the supervisor id or update site information.
-   *
-   * @param {string} supervisorId supervisor identifier
-   *
-   * @param {object} request Patch request
-   *
-   * @param {string} [request.siteId] Site of the supervisor
-   *
-   * @param {string} [request.discovery] Whether the supervisor is in discovery
-   * mode.
-   * If null, does not change. Possible values include: 'Off', 'Local',
-   * 'Network', 'Fast', 'Scan'
-   *
-   * @param {object} [request.discoveryConfig] Supervisor discovery configuration
-   *
-   * @param {string} [request.discoveryConfig.addressRangesToScan] Address ranges
-   * to scan (null == all wired nics)
-   *
-   * @param {number} [request.discoveryConfig.networkProbeTimeoutMs] Network
-   * probe timeout
-   *
-   * @param {number} [request.discoveryConfig.maxNetworkProbes] Max network
-   * probes that should ever run.
-   *
-   * @param {string} [request.discoveryConfig.portRangesToScan] Port ranges to
-   * scan (null == all unassigned)
-   *
-   * @param {number} [request.discoveryConfig.portProbeTimeoutMs] Port probe
-   * timeout
-   *
-   * @param {number} [request.discoveryConfig.maxPortProbes] Max port probes that
-   * should ever run.
-   *
-   * @param {number} [request.discoveryConfig.minPortProbesPercent] Probes that
-   * must always be there as percent of max.
-   *
-   * @param {number} [request.discoveryConfig.idleTimeBetweenScansSec] Delay time
-   * between discovery sweeps in seconds
-   *
-   * @param {array} [request.discoveryConfig.discoveryUrls] List of preset
-   * discovery urls to use
-   *
-   * @param {array} [request.discoveryConfig.locales] List of locales to filter
-   * with during discovery
-   *
-   * @param {array} [request.discoveryConfig.callbacks] Callbacks to invoke once
-   * onboarding finishes
-   *
-   * @param {object} [request.discoveryConfig.activationFilter] Activate all
-   * twins with this filter during onboarding.
-   *
-   * @param {array} [request.discoveryConfig.activationFilter.trustLists]
-   * Certificate trust list identifiers to use for
-   * activation, if null, all certificates are
-   * trusted.  If empty list, no certificates are
-   * trusted which is equal to no filter.
-   *
-   * @param {array} [request.discoveryConfig.activationFilter.securityPolicies]
-   * Endpoint security policies to filter against.
-   * If set to null, all policies are in scope.
-   *
-   * @param {string} [request.discoveryConfig.activationFilter.securityMode]
-   * Security mode level to activate. If null,
-   * then Microsoft.Azure.IIoT.OpcUa.Registry.Models.SecurityMode.Best is
-   * assumed. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
-   *
-   * @param {array} [request.discoveryCallbacks] Callbacks to add or remove (see
-   * below)
-   *
-   * @param {boolean} [request.removeDiscoveryCallbacks] Whether to add or remove
-   * callbacks
-   *
-   * @param {string} [request.logLevel] Current log level. Possible values
-   * include: 'Error', 'Information', 'Debug', 'Verbose'
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
-   *
-   * @reject {Error} - The error object.
-   */
-  updateSupervisorWithHttpOperationResponse(supervisorId, request, options) {
-    let client = this;
-    let self = this;
-    return new Promise((resolve, reject) => {
-      self._updateSupervisor(supervisorId, request, options, (err, result, request, response) => {
-        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
-        httpOperationResponse.body = result;
-        if (err) { reject(err); }
-        else { resolve(httpOperationResponse); }
-        return;
-      });
-    });
-  }
-
-  /**
-   * @summary Update supervisor information
-   *
-   * Allows a caller to configure recurring discovery runs on the twin module
-   * identified by the supervisor id or update site information.
-   *
-   * @param {string} supervisorId supervisor identifier
-   *
-   * @param {object} request Patch request
-   *
-   * @param {string} [request.siteId] Site of the supervisor
-   *
-   * @param {string} [request.discovery] Whether the supervisor is in discovery
-   * mode.
-   * If null, does not change. Possible values include: 'Off', 'Local',
-   * 'Network', 'Fast', 'Scan'
-   *
-   * @param {object} [request.discoveryConfig] Supervisor discovery configuration
-   *
-   * @param {string} [request.discoveryConfig.addressRangesToScan] Address ranges
-   * to scan (null == all wired nics)
-   *
-   * @param {number} [request.discoveryConfig.networkProbeTimeoutMs] Network
-   * probe timeout
-   *
-   * @param {number} [request.discoveryConfig.maxNetworkProbes] Max network
-   * probes that should ever run.
-   *
-   * @param {string} [request.discoveryConfig.portRangesToScan] Port ranges to
-   * scan (null == all unassigned)
-   *
-   * @param {number} [request.discoveryConfig.portProbeTimeoutMs] Port probe
-   * timeout
-   *
-   * @param {number} [request.discoveryConfig.maxPortProbes] Max port probes that
-   * should ever run.
-   *
-   * @param {number} [request.discoveryConfig.minPortProbesPercent] Probes that
-   * must always be there as percent of max.
-   *
-   * @param {number} [request.discoveryConfig.idleTimeBetweenScansSec] Delay time
-   * between discovery sweeps in seconds
-   *
-   * @param {array} [request.discoveryConfig.discoveryUrls] List of preset
-   * discovery urls to use
-   *
-   * @param {array} [request.discoveryConfig.locales] List of locales to filter
-   * with during discovery
-   *
-   * @param {array} [request.discoveryConfig.callbacks] Callbacks to invoke once
-   * onboarding finishes
-   *
-   * @param {object} [request.discoveryConfig.activationFilter] Activate all
-   * twins with this filter during onboarding.
-   *
-   * @param {array} [request.discoveryConfig.activationFilter.trustLists]
-   * Certificate trust list identifiers to use for
-   * activation, if null, all certificates are
-   * trusted.  If empty list, no certificates are
-   * trusted which is equal to no filter.
-   *
-   * @param {array} [request.discoveryConfig.activationFilter.securityPolicies]
-   * Endpoint security policies to filter against.
-   * If set to null, all policies are in scope.
-   *
-   * @param {string} [request.discoveryConfig.activationFilter.securityMode]
-   * Security mode level to activate. If null,
-   * then Microsoft.Azure.IIoT.OpcUa.Registry.Models.SecurityMode.Best is
-   * assumed. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
-   *
-   * @param {array} [request.discoveryCallbacks] Callbacks to add or remove (see
-   * below)
-   *
-   * @param {boolean} [request.removeDiscoveryCallbacks] Whether to add or remove
-   * callbacks
-   *
-   * @param {string} [request.logLevel] Current log level. Possible values
-   * include: 'Error', 'Information', 'Debug', 'Verbose'
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {function} [optionalCallback] - The optional callback.
-   *
-   * @returns {function|Promise} If a callback was passed as the last parameter
-   * then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned
-   *
-   *                      @resolve {null} - The deserialized result object.
-   *
-   *                      @reject {Error} - The error object.
-   *
-   * {function} optionalCallback(err, result, request, response)
-   *
-   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {null} [result]   - The deserialized result object if an error did not occur.
-   *
-   *                      {object} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
-   */
-  updateSupervisor(supervisorId, request, options, optionalCallback) {
-    let client = this;
-    let self = this;
-    if (!optionalCallback && typeof options === 'function') {
-      optionalCallback = options;
-      options = null;
-    }
-    if (!optionalCallback) {
-      return new Promise((resolve, reject) => {
-        self._updateSupervisor(supervisorId, request, options, (err, result, request, response) => {
-          if (err) { reject(err); }
-          else { resolve(result); }
-          return;
-        });
-      });
-    } else {
-      return self._updateSupervisor(supervisorId, request, options, optionalCallback);
-    }
-  }
-
-  /**
-   * @summary Get runtime status of supervisor
-   *
-   * Allows a caller to get runtime status for a supervisor.
-   *
-   * @param {string} supervisorId supervisor identifier
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<SupervisorStatusApiModel>} - The deserialized result object.
-   *
-   * @reject {Error} - The error object.
-   */
-  getSupervisorStatusWithHttpOperationResponse(supervisorId, options) {
-    let client = this;
-    let self = this;
-    return new Promise((resolve, reject) => {
-      self._getSupervisorStatus(supervisorId, options, (err, result, request, response) => {
-        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
-        httpOperationResponse.body = result;
-        if (err) { reject(err); }
-        else { resolve(httpOperationResponse); }
-        return;
-      });
-    });
-  }
-
-  /**
-   * @summary Get runtime status of supervisor
-   *
-   * Allows a caller to get runtime status for a supervisor.
-   *
-   * @param {string} supervisorId supervisor identifier
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {function} [optionalCallback] - The optional callback.
-   *
-   * @returns {function|Promise} If a callback was passed as the last parameter
-   * then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned
-   *
-   *                      @resolve {SupervisorStatusApiModel} - The deserialized result object.
-   *
-   *                      @reject {Error} - The error object.
-   *
-   * {function} optionalCallback(err, result, request, response)
-   *
-   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {object} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link SupervisorStatusApiModel} for more
-   *                      information.
-   *
-   *                      {object} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
-   */
-  getSupervisorStatus(supervisorId, options, optionalCallback) {
-    let client = this;
-    let self = this;
-    if (!optionalCallback && typeof options === 'function') {
-      optionalCallback = options;
-      options = null;
-    }
-    if (!optionalCallback) {
-      return new Promise((resolve, reject) => {
-        self._getSupervisorStatus(supervisorId, options, (err, result, request, response) => {
-          if (err) { reject(err); }
-          else { resolve(result); }
-          return;
-        });
-      });
-    } else {
-      return self._getSupervisorStatus(supervisorId, options, optionalCallback);
-    }
-  }
-
-  /**
-   * @summary Reset supervisor
-   *
-   * Allows a caller to reset the twin module using its supervisor
-   * identity identifier.
-   *
-   * @param {string} supervisorId supervisor identifier
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
-   *
-   * @reject {Error} - The error object.
-   */
-  resetSupervisorWithHttpOperationResponse(supervisorId, options) {
-    let client = this;
-    let self = this;
-    return new Promise((resolve, reject) => {
-      self._resetSupervisor(supervisorId, options, (err, result, request, response) => {
-        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
-        httpOperationResponse.body = result;
-        if (err) { reject(err); }
-        else { resolve(httpOperationResponse); }
-        return;
-      });
-    });
-  }
-
-  /**
-   * @summary Reset supervisor
-   *
-   * Allows a caller to reset the twin module using its supervisor
-   * identity identifier.
-   *
-   * @param {string} supervisorId supervisor identifier
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {function} [optionalCallback] - The optional callback.
-   *
-   * @returns {function|Promise} If a callback was passed as the last parameter
-   * then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned
-   *
-   *                      @resolve {null} - The deserialized result object.
-   *
-   *                      @reject {Error} - The error object.
-   *
-   * {function} optionalCallback(err, result, request, response)
-   *
-   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {null} [result]   - The deserialized result object if an error did not occur.
-   *
-   *                      {object} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
-   */
-  resetSupervisor(supervisorId, options, optionalCallback) {
-    let client = this;
-    let self = this;
-    if (!optionalCallback && typeof options === 'function') {
-      optionalCallback = options;
-      options = null;
-    }
-    if (!optionalCallback) {
-      return new Promise((resolve, reject) => {
-        self._resetSupervisor(supervisorId, options, (err, result, request, response) => {
-          if (err) { reject(err); }
-          else { resolve(result); }
-          return;
-        });
-      });
-    } else {
-      return self._resetSupervisor(supervisorId, options, optionalCallback);
-    }
-  }
-
-  /**
-   * @summary Get list of supervisors
-   *
-   * Get all registered supervisors and therefore twin modules in paged form.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call this operation again using the token to retrieve more results.
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display current client state of the endpoint if available
-   *
-   * @param {string} [options.continuationToken] Optional Continuation token
-   *
-   * @param {number} [options.pageSize] Optional number of results to return
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<SupervisorListApiModel>} - The deserialized result object.
-   *
-   * @reject {Error} - The error object.
-   */
-  getListOfSupervisorsWithHttpOperationResponse(options) {
-    let client = this;
-    let self = this;
-    return new Promise((resolve, reject) => {
-      self._getListOfSupervisors(options, (err, result, request, response) => {
-        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
-        httpOperationResponse.body = result;
-        if (err) { reject(err); }
-        else { resolve(httpOperationResponse); }
-        return;
-      });
-    });
-  }
-
-  /**
-   * @summary Get list of supervisors
-   *
-   * Get all registered supervisors and therefore twin modules in paged form.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call this operation again using the token to retrieve more results.
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display current client state of the endpoint if available
-   *
-   * @param {string} [options.continuationToken] Optional Continuation token
-   *
-   * @param {number} [options.pageSize] Optional number of results to return
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {function} [optionalCallback] - The optional callback.
-   *
-   * @returns {function|Promise} If a callback was passed as the last parameter
-   * then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned
-   *
-   *                      @resolve {SupervisorListApiModel} - The deserialized result object.
-   *
-   *                      @reject {Error} - The error object.
-   *
-   * {function} optionalCallback(err, result, request, response)
-   *
-   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {object} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link SupervisorListApiModel} for more
-   *                      information.
-   *
-   *                      {object} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
-   */
-  getListOfSupervisors(options, optionalCallback) {
-    let client = this;
-    let self = this;
-    if (!optionalCallback && typeof options === 'function') {
-      optionalCallback = options;
-      options = null;
-    }
-    if (!optionalCallback) {
-      return new Promise((resolve, reject) => {
-        self._getListOfSupervisors(options, (err, result, request, response) => {
-          if (err) { reject(err); }
-          else { resolve(result); }
-          return;
-        });
-      });
-    } else {
-      return self._getListOfSupervisors(options, optionalCallback);
-    }
-  }
-
-  /**
-   * @summary Get filtered list of supervisors
-   *
-   * Get a list of supervisors filtered using the specified query parameters.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfSupervisors operation using the token to retrieve
-   * more results.
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {string} [options.siteId] Site of the supervisor
-   *
-   * @param {string} [options.discovery] Discovery mode of supervisor. Possible
-   * values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
-   *
-   * @param {boolean} [options.connected] Included connected or disconnected
-   *
-   * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display current client state of the endpoint if
-   * available
-   *
-   * @param {number} [options.pageSize] Number of results to return
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<SupervisorListApiModel>} - The deserialized result object.
-   *
-   * @reject {Error} - The error object.
-   */
-  getFilteredListOfSupervisorsWithHttpOperationResponse(options) {
-    let client = this;
-    let self = this;
-    return new Promise((resolve, reject) => {
-      self._getFilteredListOfSupervisors(options, (err, result, request, response) => {
-        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
-        httpOperationResponse.body = result;
-        if (err) { reject(err); }
-        else { resolve(httpOperationResponse); }
-        return;
-      });
-    });
-  }
-
-  /**
-   * @summary Get filtered list of supervisors
-   *
-   * Get a list of supervisors filtered using the specified query parameters.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfSupervisors operation using the token to retrieve
-   * more results.
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {string} [options.siteId] Site of the supervisor
-   *
-   * @param {string} [options.discovery] Discovery mode of supervisor. Possible
-   * values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
-   *
-   * @param {boolean} [options.connected] Included connected or disconnected
-   *
-   * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display current client state of the endpoint if
-   * available
-   *
-   * @param {number} [options.pageSize] Number of results to return
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {function} [optionalCallback] - The optional callback.
-   *
-   * @returns {function|Promise} If a callback was passed as the last parameter
-   * then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned
-   *
-   *                      @resolve {SupervisorListApiModel} - The deserialized result object.
-   *
-   *                      @reject {Error} - The error object.
-   *
-   * {function} optionalCallback(err, result, request, response)
-   *
-   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {object} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link SupervisorListApiModel} for more
-   *                      information.
-   *
-   *                      {object} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
-   */
-  getFilteredListOfSupervisors(options, optionalCallback) {
-    let client = this;
-    let self = this;
-    if (!optionalCallback && typeof options === 'function') {
-      optionalCallback = options;
-      options = null;
-    }
-    if (!optionalCallback) {
-      return new Promise((resolve, reject) => {
-        self._getFilteredListOfSupervisors(options, (err, result, request, response) => {
-          if (err) { reject(err); }
-          else { resolve(result); }
-          return;
-        });
-      });
-    } else {
-      return self._getFilteredListOfSupervisors(options, optionalCallback);
-    }
-  }
-
-  /**
-   * @summary Query supervisors
-   *
-   * Get all supervisors that match a specified query.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfSupervisors operation using the token to retrieve
-   * more results.
-   *
-   * @param {object} query Supervisors query model
-   *
-   * @param {string} [query.siteId] Site of the supervisor
-   *
-   * @param {string} [query.discovery] Discovery mode of supervisor. Possible
-   * values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
-   *
-   * @param {boolean} [query.connected] Included connected or disconnected
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display current client state of the endpoint if
-   * available
-   *
-   * @param {number} [options.pageSize] Number of results to return
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<SupervisorListApiModel>} - The deserialized result object.
-   *
-   * @reject {Error} - The error object.
-   */
-  querySupervisorsWithHttpOperationResponse(query, options) {
-    let client = this;
-    let self = this;
-    return new Promise((resolve, reject) => {
-      self._querySupervisors(query, options, (err, result, request, response) => {
-        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
-        httpOperationResponse.body = result;
-        if (err) { reject(err); }
-        else { resolve(httpOperationResponse); }
-        return;
-      });
-    });
-  }
-
-  /**
-   * @summary Query supervisors
-   *
-   * Get all supervisors that match a specified query.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfSupervisors operation using the token to retrieve
-   * more results.
-   *
-   * @param {object} query Supervisors query model
-   *
-   * @param {string} [query.siteId] Site of the supervisor
-   *
-   * @param {string} [query.discovery] Discovery mode of supervisor. Possible
-   * values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
-   *
-   * @param {boolean} [query.connected] Included connected or disconnected
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display current client state of the endpoint if
-   * available
-   *
-   * @param {number} [options.pageSize] Number of results to return
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {function} [optionalCallback] - The optional callback.
-   *
-   * @returns {function|Promise} If a callback was passed as the last parameter
-   * then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned
-   *
-   *                      @resolve {SupervisorListApiModel} - The deserialized result object.
-   *
-   *                      @reject {Error} - The error object.
-   *
-   * {function} optionalCallback(err, result, request, response)
-   *
-   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {object} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link SupervisorListApiModel} for more
-   *                      information.
-   *
-   *                      {object} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
-   */
-  querySupervisors(query, options, optionalCallback) {
-    let client = this;
-    let self = this;
-    if (!optionalCallback && typeof options === 'function') {
-      optionalCallback = options;
-      options = null;
-    }
-    if (!optionalCallback) {
-      return new Promise((resolve, reject) => {
-        self._querySupervisors(query, options, (err, result, request, response) => {
-          if (err) { reject(err); }
-          else { resolve(result); }
-          return;
-        });
-      });
-    } else {
-      return self._querySupervisors(query, options, optionalCallback);
     }
   }
 

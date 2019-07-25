@@ -106,7 +106,7 @@ export interface ApplicationRegistrationRequestApiModel {
   applicationUri: string;
   /**
    * @member {ApplicationType} [applicationType] Type of application. Possible
-   * values include: 'Server', 'Client', 'ClientAndServer'
+   * values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
    */
   applicationType?: ApplicationType;
   /**
@@ -114,13 +114,22 @@ export interface ApplicationRegistrationRequestApiModel {
    */
   productUri?: string;
   /**
-   * @member {string} [applicationName] Name of the server or client.
+   * @member {string} [applicationName] Default name of the server or client.
    */
   applicationName?: string;
   /**
-   * @member {string} [locale] Locale of name
+   * @member {string} [locale] Locale of default name
    */
   locale?: string;
+  /**
+   * @member {string} [siteId] Site of the application
+   */
+  siteId?: string;
+  /**
+   * @member {{ [propertyName: string]: string }} [localizedNames] Localized
+   * names key off locale id.
+   */
+  localizedNames?: { [propertyName: string]: string };
   /**
    * @member {string[]} [capabilities] The OPC UA defined capabilities of the
    * server.
@@ -135,6 +144,10 @@ export interface ApplicationRegistrationRequestApiModel {
    * server.
    */
   discoveryProfileUri?: string;
+  /**
+   * @member {string} [gatewayServerUri] Gateway server uri
+   */
+  gatewayServerUri?: string;
 }
 
 /**
@@ -152,18 +165,40 @@ export interface ApplicationRegistrationResponseApiModel {
 
 /**
  * @interface
+ * An interface representing RegistryOperationApiModel.
+ * Registry operation log model
+ *
+ */
+export interface RegistryOperationApiModel {
+  /**
+   * @member {string} authorityId Operation User
+   */
+  authorityId: string;
+  /**
+   * @member {Date} time Operation time
+   */
+  time: Date;
+}
+
+/**
+ * @interface
  * An interface representing ApplicationInfoApiModel.
  * Application info model
  *
  */
 export interface ApplicationInfoApiModel {
   /**
+   * @member {ApplicationState} [state] State. Possible values include: 'New',
+   * 'Approved', 'Rejected'. Default value: 'New' .
+   */
+  state?: ApplicationState;
+  /**
    * @member {string} [applicationId] Unique application id
    */
   applicationId?: string;
   /**
    * @member {ApplicationType} [applicationType] Type of application. Possible
-   * values include: 'Server', 'Client', 'ClientAndServer'
+   * values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
    */
   applicationType?: ApplicationType;
   /**
@@ -175,13 +210,18 @@ export interface ApplicationInfoApiModel {
    */
   productUri?: string;
   /**
-   * @member {string} [applicationName] Name of server
+   * @member {string} [applicationName] Default name of application
    */
   applicationName?: string;
   /**
-   * @member {string} [locale] Locale of name - defaults to "en"
+   * @member {string} [locale] Locale of default name - defaults to "en"
    */
   locale?: string;
+  /**
+   * @member {{ [propertyName: string]: string }} [localizedNames] Localized
+   * Names of application keyed on locale
+   */
+  localizedNames?: { [propertyName: string]: string };
   /**
    * @member {Uint8Array} [certificate] Application public cert
    */
@@ -200,6 +240,10 @@ export interface ApplicationInfoApiModel {
    */
   discoveryProfileUri?: string;
   /**
+   * @member {string} [gatewayServerUri] Gateway server uri
+   */
+  gatewayServerUri?: string;
+  /**
    * @member {string[]} [hostAddresses] Host addresses of server application or
    * null
    */
@@ -217,6 +261,18 @@ export interface ApplicationInfoApiModel {
    * @member {Date} [notSeenSince] Last time application was seen
    */
   notSeenSince?: Date;
+  /**
+   * @member {RegistryOperationApiModel} [created] Created
+   */
+  created?: RegistryOperationApiModel;
+  /**
+   * @member {RegistryOperationApiModel} [approved] Approved
+   */
+  approved?: RegistryOperationApiModel;
+  /**
+   * @member {RegistryOperationApiModel} [updated] Updated
+   */
+  updated?: RegistryOperationApiModel;
 }
 
 /**
@@ -378,10 +434,10 @@ export interface EndpointApiModel {
    */
   securityPolicy?: string;
   /**
-   * @member {Uint8Array} [serverThumbprint] Thumbprint to validate against or
-   * null to trust any.
+   * @member {Uint8Array} [certificate] Endpoint certificate that was
+   * registered.
    */
-  serverThumbprint?: Uint8Array;
+  certificate?: Uint8Array;
 }
 
 /**
@@ -441,10 +497,6 @@ export interface EndpointRegistrationApiModel {
    */
   securityLevel?: number;
   /**
-   * @member {Uint8Array} [certificate] Endpoint cert that was registered.
-   */
-  certificate?: Uint8Array;
-  /**
    * @member {AuthenticationMethodApiModel[]} [authenticationMethods] Supported
    * authentication methods that can be selected to
    * obtain a credential and used to interact with the endpoint.
@@ -487,13 +539,19 @@ export interface ApplicationRegistrationUpdateApiModel {
    */
   productUri?: string;
   /**
-   * @member {string} [applicationName] Application name
+   * @member {string} [applicationName] Default name of the server or client.
    */
   applicationName?: string;
   /**
-   * @member {string} [locale] Locale of name - defaults to "en"
+   * @member {string} [locale] Locale of default name - defaults to "en"
    */
   locale?: string;
+  /**
+   * @member {{ [propertyName: string]: string }} [localizedNames] Localized
+   * names keyed off locale id.
+   * To remove entry, set value for locale id to null.
+   */
+  localizedNames?: { [propertyName: string]: string };
   /**
    * @member {Uint8Array} [certificate] Application public cert
    */
@@ -510,6 +568,10 @@ export interface ApplicationRegistrationUpdateApiModel {
    * @member {string} [discoveryProfileUri] Discovery profile uri
    */
   discoveryProfileUri?: string;
+  /**
+   * @member {string} [gatewayServerUri] Gateway server uri
+   */
+  gatewayServerUri?: string;
 }
 
 /**
@@ -539,7 +601,7 @@ export interface ApplicationSiteListApiModel {
 export interface ApplicationRegistrationQueryApiModel {
   /**
    * @member {ApplicationType} [applicationType] Type of application. Possible
-   * values include: 'Server', 'Client', 'ClientAndServer'
+   * values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
    */
   applicationType?: ApplicationType;
   /**
@@ -563,15 +625,105 @@ export interface ApplicationRegistrationQueryApiModel {
    */
   capability?: string;
   /**
+   * @member {string} [discoveryProfileUri] Discovery profile uri
+   */
+  discoveryProfileUri?: string;
+  /**
+   * @member {string} [gatewayServerUri] Gateway server uri
+   */
+  gatewayServerUri?: string;
+  /**
    * @member {string} [siteOrSupervisorId] Supervisor or site the application
    * belongs to.
    */
   siteOrSupervisorId?: string;
   /**
+   * @member {ApplicationStateMask} [state] State of application. Possible
+   * values include: 'Any', 'New', 'Approved', 'Rejected', 'Unregistered',
+   * 'Deleted'
+   */
+  state?: ApplicationStateMask;
+  /**
    * @member {boolean} [includeNotSeenSince] Whether to include apps that were
    * soft deleted
    */
   includeNotSeenSince?: boolean;
+}
+
+/**
+ * @interface
+ * An interface representing ApplicationRecordQueryApiModel.
+ * Query by id
+ *
+ */
+export interface ApplicationRecordQueryApiModel {
+  /**
+   * @member {number} [startingRecordId] Starting record id
+   */
+  startingRecordId?: number;
+  /**
+   * @member {number} [maxRecordsToReturn] Max records to return
+   */
+  maxRecordsToReturn?: number;
+  /**
+   * @member {string} [applicationName] Application name
+   */
+  applicationName?: string;
+  /**
+   * @member {string} [applicationUri] Application uri
+   */
+  applicationUri?: string;
+  /**
+   * @member {ApplicationType} [applicationType] Application type. Possible
+   * values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
+   */
+  applicationType?: ApplicationType;
+  /**
+   * @member {string} [productUri] Product uri
+   */
+  productUri?: string;
+  /**
+   * @member {string[]} [serverCapabilities] Server capabilities
+   */
+  serverCapabilities?: string[];
+}
+
+/**
+ * @interface
+ * An interface representing ApplicationRecordApiModel.
+ * Application with optional list of endpoints
+ *
+ */
+export interface ApplicationRecordApiModel {
+  /**
+   * @member {number} recordId Record id
+   */
+  recordId: number;
+  /**
+   * @member {ApplicationInfoApiModel} application Application information
+   */
+  application: ApplicationInfoApiModel;
+}
+
+/**
+ * @interface
+ * An interface representing ApplicationRecordListApiModel.
+ * Create response
+ *
+ */
+export interface ApplicationRecordListApiModel {
+  /**
+   * @member {ApplicationRecordApiModel[]} [applications] Applications found
+   */
+  applications?: ApplicationRecordApiModel[];
+  /**
+   * @member {Date} lastCounterResetTime Last counter reset
+   */
+  lastCounterResetTime: Date;
+  /**
+   * @member {number} nextRecordId Next record id
+   */
+  nextRecordId: number;
 }
 
 /**
@@ -704,10 +856,8 @@ export interface EndpointRegistrationQueryApiModel {
 export interface StatusResponseApiModel {
   /**
    * @member {string} [name] Name of this service
-   * **NOTE: This property will not be serialized. It can only be populated by
-   * the server.**
    */
-  readonly name?: string;
+  name?: string;
   /**
    * @member {string} [status] Operational status
    */
@@ -983,6 +1133,34 @@ export interface AzureOpcRegistryClientDeleteAllDisabledApplicationsOptionalPara
 
 /**
  * @interface
+ * An interface representing AzureOpcRegistryClientApproveApplicationOptionalParams.
+ * Optional Parameters.
+ *
+ * @extends RequestOptionsBase
+ */
+export interface AzureOpcRegistryClientApproveApplicationOptionalParams extends msRest.RequestOptionsBase {
+  /**
+   * @member {boolean} [force] optional, force application in new state
+   */
+  force?: boolean;
+}
+
+/**
+ * @interface
+ * An interface representing AzureOpcRegistryClientRejectApplicationOptionalParams.
+ * Optional Parameters.
+ *
+ * @extends RequestOptionsBase
+ */
+export interface AzureOpcRegistryClientRejectApplicationOptionalParams extends msRest.RequestOptionsBase {
+  /**
+   * @member {boolean} [force] optional, force application in new state
+   */
+  force?: boolean;
+}
+
+/**
+ * @interface
  * An interface representing AzureOpcRegistryClientGetListOfSitesOptionalParams.
  * Optional Parameters.
  *
@@ -1028,6 +1206,20 @@ export interface AzureOpcRegistryClientQueryApplicationsOptionalParams extends m
    * return
    */
   pageSize?: number;
+}
+
+/**
+ * @interface
+ * An interface representing AzureOpcRegistryClientQueryApplicationsByIdOptionalParams.
+ * Optional Parameters.
+ *
+ * @extends RequestOptionsBase
+ */
+export interface AzureOpcRegistryClientQueryApplicationsByIdOptionalParams extends msRest.RequestOptionsBase {
+  /**
+   * @member {ApplicationRecordQueryApiModel} [query]
+   */
+  query?: ApplicationRecordQueryApiModel;
 }
 
 /**
@@ -1262,11 +1454,19 @@ export type SecurityMode = 'Best' | 'Sign' | 'SignAndEncrypt' | 'None';
 
 /**
  * Defines values for ApplicationType.
- * Possible values include: 'Server', 'Client', 'ClientAndServer'
+ * Possible values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
  * @readonly
  * @enum {string}
  */
-export type ApplicationType = 'Server' | 'Client' | 'ClientAndServer';
+export type ApplicationType = 'Server' | 'Client' | 'ClientAndServer' | 'DiscoveryServer';
+
+/**
+ * Defines values for ApplicationState.
+ * Possible values include: 'New', 'Approved', 'Rejected'
+ * @readonly
+ * @enum {string}
+ */
+export type ApplicationState = 'New' | 'Approved' | 'Rejected';
 
 /**
  * Defines values for DiscoveryMode.
@@ -1291,6 +1491,14 @@ export type CredentialType = 'None' | 'UserName' | 'X509Certificate' | 'JwtToken
  * @enum {string}
  */
 export type SecurityAssessment = 'Unknown' | 'Low' | 'Medium' | 'High';
+
+/**
+ * Defines values for ApplicationStateMask.
+ * Possible values include: 'Any', 'New', 'Approved', 'Rejected', 'Unregistered', 'Deleted'
+ * @readonly
+ * @enum {string}
+ */
+export type ApplicationStateMask = 'Any' | 'New' | 'Approved' | 'Rejected' | 'Unregistered' | 'Deleted';
 
 /**
  * Defines values for EndpointActivationState.
@@ -1461,6 +1669,25 @@ export type QueryApplicationsResponse = ApplicationInfoListApiModel & {
        * The response body as parsed JSON or XML
        */
       parsedBody: ApplicationInfoListApiModel;
+    };
+};
+
+/**
+ * Contains response data for the queryApplicationsById operation.
+ */
+export type QueryApplicationsByIdResponse = ApplicationRecordListApiModel & {
+  /**
+   * The underlying HTTP response.
+   */
+  _response: msRest.HttpResponse & {
+      /**
+       * The response body as text (string format)
+       */
+      bodyAsText: string;
+      /**
+       * The response body as parsed JSON or XML
+       */
+      parsedBody: ApplicationRecordListApiModel;
     };
 };
 

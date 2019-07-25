@@ -41,12 +41,10 @@ class EndpointInfoApiModel {
    * @property {string} [registration.endpoint.securityPolicy] Security policy
    * uri to use for communication
    * default to best.
-   * @property {buffer} [registration.endpoint.serverThumbprint] Thumbprint to
-   * validate against or null to trust any.
+   * @property {buffer} [registration.endpoint.certificate] Endpoint
+   * certificate that was registered.
    * @property {number} [registration.securityLevel] Security level of the
    * endpoint
-   * @property {buffer} [registration.certificate] Endpoint cert that was
-   * registered.
    * @property {array} [registration.authenticationMethods] Supported
    * authentication methods that can be selected to
    * obtain a credential and used to interact with the endpoint.

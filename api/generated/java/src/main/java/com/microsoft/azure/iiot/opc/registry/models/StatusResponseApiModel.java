@@ -20,7 +20,7 @@ public class StatusResponseApiModel {
     /**
      * Name of this service.
      */
-    @JsonProperty(value = "name", access = JsonProperty.Access.WRITE_ONLY)
+    @JsonProperty(value = "name")
     private String name;
 
     /**
@@ -80,6 +80,17 @@ public class StatusResponseApiModel {
      */
     public String name() {
         return this.name;
+    }
+
+    /**
+     * Set name of this service.
+     *
+     * @param name the name value to set
+     * @return the StatusResponseApiModel object itself.
+     */
+    public StatusResponseApiModel withName(String name) {
+        this.name = name;
+        return this;
     }
 
     /**

@@ -8,7 +8,7 @@
 // regenerated.
 // </auto-generated>
 
-namespace Microsoft.Azure.IIoT.Opc.History.Models
+namespace Microsoft.Azure.IIoT.Opc.Registry.Models
 {
     using Newtonsoft.Json;
     using System.Linq;
@@ -32,7 +32,8 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
         /// ApplicationRegistrationQueryApiModel class.
         /// </summary>
         /// <param name="applicationType">Type of application. Possible values
-        /// include: 'Server', 'Client', 'ClientAndServer'</param>
+        /// include: 'Server', 'Client', 'ClientAndServer',
+        /// 'DiscoveryServer'</param>
         /// <param name="applicationUri">Application uri</param>
         /// <param name="productUri">Product uri</param>
         /// <param name="applicationName">Name of application</param>
@@ -40,11 +41,16 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
         /// "en"</param>
         /// <param name="capability">Application capability to query
         /// with</param>
+        /// <param name="discoveryProfileUri">Discovery profile uri</param>
+        /// <param name="gatewayServerUri">Gateway server uri</param>
         /// <param name="siteOrSupervisorId">Supervisor or site the application
         /// belongs to.</param>
+        /// <param name="state">State of application. Possible values include:
+        /// 'Any', 'New', 'Approved', 'Rejected', 'Unregistered',
+        /// 'Deleted'</param>
         /// <param name="includeNotSeenSince">Whether to include apps that were
         /// soft deleted</param>
-        public ApplicationRegistrationQueryApiModel(ApplicationType? applicationType = default(ApplicationType?), string applicationUri = default(string), string productUri = default(string), string applicationName = default(string), string locale = default(string), string capability = default(string), string siteOrSupervisorId = default(string), bool? includeNotSeenSince = default(bool?))
+        public ApplicationRegistrationQueryApiModel(ApplicationType? applicationType = default(ApplicationType?), string applicationUri = default(string), string productUri = default(string), string applicationName = default(string), string locale = default(string), string capability = default(string), string discoveryProfileUri = default(string), string gatewayServerUri = default(string), string siteOrSupervisorId = default(string), ApplicationStateMask? state = default(ApplicationStateMask?), bool? includeNotSeenSince = default(bool?))
         {
             ApplicationType = applicationType;
             ApplicationUri = applicationUri;
@@ -52,7 +58,10 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
             ApplicationName = applicationName;
             Locale = locale;
             Capability = capability;
+            DiscoveryProfileUri = discoveryProfileUri;
+            GatewayServerUri = gatewayServerUri;
             SiteOrSupervisorId = siteOrSupervisorId;
+            State = state;
             IncludeNotSeenSince = includeNotSeenSince;
             CustomInit();
         }
@@ -64,7 +73,7 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
 
         /// <summary>
         /// Gets or sets type of application. Possible values include:
-        /// 'Server', 'Client', 'ClientAndServer'
+        /// 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
         /// </summary>
         [JsonProperty(PropertyName = "applicationType")]
         public ApplicationType? ApplicationType { get; set; }
@@ -100,10 +109,29 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
         public string Capability { get; set; }
 
         /// <summary>
+        /// Gets or sets discovery profile uri
+        /// </summary>
+        [JsonProperty(PropertyName = "discoveryProfileUri")]
+        public string DiscoveryProfileUri { get; set; }
+
+        /// <summary>
+        /// Gets or sets gateway server uri
+        /// </summary>
+        [JsonProperty(PropertyName = "gatewayServerUri")]
+        public string GatewayServerUri { get; set; }
+
+        /// <summary>
         /// Gets or sets supervisor or site the application belongs to.
         /// </summary>
         [JsonProperty(PropertyName = "siteOrSupervisorId")]
         public string SiteOrSupervisorId { get; set; }
+
+        /// <summary>
+        /// Gets or sets state of application. Possible values include: 'Any',
+        /// 'New', 'Approved', 'Rejected', 'Unregistered', 'Deleted'
+        /// </summary>
+        [JsonProperty(PropertyName = "state")]
+        public ApplicationStateMask? State { get; set; }
 
         /// <summary>
         /// Gets or sets whether to include apps that were soft deleted

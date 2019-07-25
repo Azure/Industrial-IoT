@@ -8,7 +8,7 @@
 // regenerated.
 // </auto-generated>
 
-namespace Microsoft.Azure.IIoT.Opc.History.Models
+namespace Microsoft.Azure.IIoT.Opc.Registry.Models
 {
     using Microsoft.Rest;
     using Newtonsoft.Json;
@@ -41,19 +41,16 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
         /// endpoint</param>
         /// <param name="siteId">Registered site of the endpoint</param>
         /// <param name="securityLevel">Security level of the endpoint</param>
-        /// <param name="certificate">Endpoint cert that was
-        /// registered.</param>
         /// <param name="authenticationMethods">Supported authentication
         /// methods that can be selected to
         /// obtain a credential and used to interact with the endpoint.</param>
-        public EndpointRegistrationApiModel(string id, EndpointApiModel endpoint, string endpointUrl = default(string), string siteId = default(string), int? securityLevel = default(int?), byte[] certificate = default(byte[]), IList<AuthenticationMethodApiModel> authenticationMethods = default(IList<AuthenticationMethodApiModel>))
+        public EndpointRegistrationApiModel(string id, EndpointApiModel endpoint, string endpointUrl = default(string), string siteId = default(string), int? securityLevel = default(int?), IList<AuthenticationMethodApiModel> authenticationMethods = default(IList<AuthenticationMethodApiModel>))
         {
             Id = id;
             EndpointUrl = endpointUrl;
             SiteId = siteId;
             Endpoint = endpoint;
             SecurityLevel = securityLevel;
-            Certificate = certificate;
             AuthenticationMethods = authenticationMethods;
             CustomInit();
         }
@@ -92,12 +89,6 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
         /// </summary>
         [JsonProperty(PropertyName = "securityLevel")]
         public int? SecurityLevel { get; set; }
-
-        /// <summary>
-        /// Gets or sets endpoint cert that was registered.
-        /// </summary>
-        [JsonProperty(PropertyName = "certificate")]
-        public byte[] Certificate { get; set; }
 
         /// <summary>
         /// Gets or sets supported authentication methods that can be selected

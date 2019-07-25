@@ -10,19 +10,25 @@ Application info model
 |Name|Description|Schema|
 |---|---|---|
 |**applicationId**  <br>*optional*|Unique application id|string|
-|**applicationName**  <br>*optional*|Name of server|string|
-|**applicationType**  <br>*optional*|Type of application  <br>**Example** : `"Server"`|enum (Server, Client, ClientAndServer)|
+|**applicationName**  <br>*optional*|Default name of application|string|
+|**applicationType**  <br>*optional*|Type of application  <br>**Example** : `"Server"`|enum (Server, Client, ClientAndServer, DiscoveryServer)|
 |**applicationUri**  <br>*optional*|Unique application uri|string|
+|**approved**  <br>*optional*|Approved|[RegistryOperationApiModel](definitions.md#registryoperationapimodel)|
 |**capabilities**  <br>*optional*|The capabilities advertised by the server.  <br>**Example** : `"LDS"`|< string > array|
 |**certificate**  <br>*optional*|Application public cert  <br>**Pattern** : `"^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==\|[A-Za-z0-9+/]{3}=)?$"`|string (byte)|
+|**created**  <br>*optional*|Created|[RegistryOperationApiModel](definitions.md#registryoperationapimodel)|
 |**discoveryProfileUri**  <br>*optional*|Discovery profile uri|string|
 |**discoveryUrls**  <br>*optional*|Discovery urls of the server|< string > array|
+|**gatewayServerUri**  <br>*optional*|Gateway server uri|string|
 |**hostAddresses**  <br>*optional*|Host addresses of server application or null|< string > array|
-|**locale**  <br>*optional*|Locale of name - defaults to "en"  <br>**Example** : `"en"`|string|
+|**locale**  <br>*optional*|Locale of default name - defaults to "en"|string|
+|**localizedNames**  <br>*optional*|Localized Names of application keyed on locale|< string, string > map|
 |**notSeenSince**  <br>*optional*|Last time application was seen|string (date-time)|
 |**productUri**  <br>*optional*|Product uri|string|
 |**siteId**  <br>*optional*|Site of the application  <br>**Example** : `"productionlineA"`|string|
+|**state**  <br>*optional*|State  <br>**Default** : `"New"`|enum (New, Approved, Rejected)|
 |**supervisorId**  <br>*optional*|Supervisor having registered the application|string|
+|**updated**  <br>*optional*|Updated|[RegistryOperationApiModel](definitions.md#registryoperationapimodel)|
 
 
 <a name="applicationinfolistapimodel"></a>
@@ -34,6 +40,45 @@ List of registered applications
 |---|---|---|
 |**continuationToken**  <br>*optional*|Continuation or null if final|string|
 |**items**  <br>*optional*|Application infos|< [ApplicationInfoApiModel](definitions.md#applicationinfoapimodel) > array|
+
+
+<a name="applicationrecordapimodel"></a>
+### ApplicationRecordApiModel
+Application with optional list of endpoints
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**application**  <br>*required*|Application information|[ApplicationInfoApiModel](definitions.md#applicationinfoapimodel)|
+|**recordId**  <br>*required*|Record id|integer (int32)|
+
+
+<a name="applicationrecordlistapimodel"></a>
+### ApplicationRecordListApiModel
+Create response
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**applications**  <br>*optional*|Applications found|< [ApplicationRecordApiModel](definitions.md#applicationrecordapimodel) > array|
+|**lastCounterResetTime**  <br>*required*|Last counter reset|string (date-time)|
+|**nextRecordId**  <br>*required*|Next record id|integer (int32)|
+
+
+<a name="applicationrecordqueryapimodel"></a>
+### ApplicationRecordQueryApiModel
+Query by id
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**applicationName**  <br>*optional*|Application name|string|
+|**applicationType**  <br>*optional*|Application type|enum (Server, Client, ClientAndServer, DiscoveryServer)|
+|**applicationUri**  <br>*optional*|Application uri|string|
+|**maxRecordsToReturn**  <br>*optional*|Max records to return|integer (int32)|
+|**productUri**  <br>*optional*|Product uri|string|
+|**serverCapabilities**  <br>*optional*|Server capabilities|< string > array|
+|**startingRecordId**  <br>*optional*|Starting record id|integer (int32)|
 
 
 <a name="applicationregistrationapimodel"></a>
@@ -56,13 +101,16 @@ Application information
 |Name|Description|Schema|
 |---|---|---|
 |**applicationName**  <br>*optional*|Name of application|string|
-|**applicationType**  <br>*optional*|Type of application|enum (Server, Client, ClientAndServer)|
+|**applicationType**  <br>*optional*|Type of application|enum (Server, Client, ClientAndServer, DiscoveryServer)|
 |**applicationUri**  <br>*optional*|Application uri|string|
 |**capability**  <br>*optional*|Application capability to query with|string|
+|**discoveryProfileUri**  <br>*optional*|Discovery profile uri|string|
+|**gatewayServerUri**  <br>*optional*|Gateway server uri|string|
 |**includeNotSeenSince**  <br>*optional*|Whether to include apps that were soft deleted|boolean|
 |**locale**  <br>*optional*|Locale of application name - default is "en"|string|
 |**productUri**  <br>*optional*|Product uri|string|
 |**siteOrSupervisorId**  <br>*optional*|Supervisor or site the application belongs to.|string|
+|**state**  <br>*optional*|State of application|enum (Any, New, Approved, Rejected, Unregistered, Deleted)|
 
 
 <a name="applicationregistrationrequestapimodel"></a>
@@ -72,14 +120,17 @@ Application information
 
 |Name|Description|Schema|
 |---|---|---|
-|**applicationName**  <br>*optional*|Name of the server or client.|string|
-|**applicationType**  <br>*optional*|Type of application  <br>**Example** : `"Server"`|enum (Server, Client, ClientAndServer)|
+|**applicationName**  <br>*optional*|Default name of the server or client.|string|
+|**applicationType**  <br>*optional*|Type of application  <br>**Example** : `"Server"`|enum (Server, Client, ClientAndServer, DiscoveryServer)|
 |**applicationUri**  <br>*required*|Unique application uri|string|
 |**capabilities**  <br>*optional*|The OPC UA defined capabilities of the server.  <br>**Example** : `"LDS"`|< string > array|
 |**discoveryProfileUri**  <br>*optional*|The discovery profile uri of the server.|string|
 |**discoveryUrls**  <br>*optional*|Discovery urls of the server.|< string > array|
-|**locale**  <br>*optional*|Locale of name  <br>**Example** : `"en"`|string|
+|**gatewayServerUri**  <br>*optional*|Gateway server uri|string|
+|**locale**  <br>*optional*|Locale of default name|string|
+|**localizedNames**  <br>*optional*|Localized names key off locale id.|< string, string > map|
 |**productUri**  <br>*optional*|Product uri of the application.  <br>**Example** : `"http://contoso.com/fridge/1.0"`|string|
+|**siteId**  <br>*optional*|Site of the application|string|
 
 
 <a name="applicationregistrationresponseapimodel"></a>
@@ -99,12 +150,14 @@ Application registration update request
 
 |Name|Description|Schema|
 |---|---|---|
-|**applicationName**  <br>*optional*|Application name|string|
+|**applicationName**  <br>*optional*|Default name of the server or client.|string|
 |**capabilities**  <br>*optional*|Capabilities of the application|< string > array|
 |**certificate**  <br>*optional*|Application public cert  <br>**Pattern** : `"^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==\|[A-Za-z0-9+/]{3}=)?$"`|string (byte)|
 |**discoveryProfileUri**  <br>*optional*|Discovery profile uri|string|
 |**discoveryUrls**  <br>*optional*|Discovery urls of the application|< string > array|
-|**locale**  <br>*optional*|Locale of name - defaults to "en"|string|
+|**gatewayServerUri**  <br>*optional*|Gateway server uri|string|
+|**locale**  <br>*optional*|Locale of default name - defaults to "en"|string|
+|**localizedNames**  <br>*optional*|Localized names keyed off locale id.<br>To remove entry, set value for locale id to null.|< string, string > map|
 |**productUri**  <br>*optional*|Product uri|string|
 
 
@@ -219,9 +272,9 @@ Endpoint model
 |Name|Description|Schema|
 |---|---|---|
 |**alternativeUrls**  <br>*optional*|Alternative endpoint urls that can be used for<br>accessing and validating the server|< string > array|
+|**certificate**  <br>*optional*|Endpoint certificate that was registered.  <br>**Pattern** : `"^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==\|[A-Za-z0-9+/]{3}=)?$"`|string (byte)|
 |**securityMode**  <br>*optional*|Security Mode to use for communication<br>default to best.  <br>**Default** : `"Best"`|enum (Best, Sign, SignAndEncrypt, None)|
 |**securityPolicy**  <br>*optional*|Security policy uri to use for communication<br>default to best.|string|
-|**serverThumbprint**  <br>*optional*|Thumbprint to validate against or null to trust any.  <br>**Pattern** : `"^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==\|[A-Za-z0-9+/]{3}=)?$"`|string (byte)|
 |**url**  <br>*required*|Endpoint url to use to connect with|string|
 |**user**  <br>*optional*|User Authentication|[CredentialApiModel](definitions.md#credentialapimodel)|
 
@@ -260,7 +313,6 @@ Endpoint registration model
 |Name|Description|Schema|
 |---|---|---|
 |**authenticationMethods**  <br>*optional*|Supported authentication methods that can be selected to<br>obtain a credential and used to interact with the endpoint.|< [AuthenticationMethodApiModel](definitions.md#authenticationmethodapimodel) > array|
-|**certificate**  <br>*optional*|Endpoint cert that was registered.  <br>**Pattern** : `"^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==\|[A-Za-z0-9+/]{3}=)?$"`|string (byte)|
 |**endpoint**  <br>*required*|Endpoint information of the registration|[EndpointApiModel](definitions.md#endpointapimodel)|
 |**endpointUrl**  <br>*optional*|Original endpoint url of the endpoint|string|
 |**id**  <br>*required*|Registered identifier of the endpoint|string|
@@ -296,6 +348,17 @@ Endpoint registration update request
 |**user**  <br>*optional*|User authentication to change on the endpoint.|[CredentialApiModel](definitions.md#credentialapimodel)|
 
 
+<a name="registryoperationapimodel"></a>
+### RegistryOperationApiModel
+Registry operation log model
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**authorityId**  <br>*required*|Operation User|string|
+|**time**  <br>*required*|Operation time|string (date-time)|
+
+
 <a name="serverregistrationrequestapimodel"></a>
 ### ServerRegistrationRequestApiModel
 Application registration request
@@ -319,7 +382,7 @@ Status response model
 |**$metadata**  <br>*optional*  <br>*read-only*|Optional meta data.|< string, string > map|
 |**currentTime**  <br>*optional*  <br>*read-only*|Current time|string|
 |**dependencies**  <br>*optional*  <br>*read-only*|A property bag with details about the internal dependencies|< string, string > map|
-|**name**  <br>*optional*  <br>*read-only*|Name of this service|string|
+|**name**  <br>*optional*|Name of this service|string|
 |**properties**  <br>*optional*  <br>*read-only*|A property bag with details about the service|< string, string > map|
 |**startTime**  <br>*optional*  <br>*read-only*|Start time of service|string|
 |**status**  <br>*optional*|Operational status|string|

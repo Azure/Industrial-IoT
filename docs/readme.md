@@ -10,5 +10,5 @@ Deploying Azure Industrial IoT includes deploying the Azure Industrial IoT Micro
 ## Learn more
 
 * [What is OPC Twin?](services/twin.md)
-* What is OPC Vault? (COMING SOON)
-* [Explore the REST API](api/readme.md)
+* [What is OPC Vault?](services/vault.md)
+* [Explore the REST API](api/readme.md) 

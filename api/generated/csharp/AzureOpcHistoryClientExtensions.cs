@@ -20,909 +20,903 @@ namespace Microsoft.Azure.IIoT.Opc.History
     public static partial class AzureOpcHistoryClientExtensions
     {
             /// <summary>
-            /// Get list of applications
+            /// Delete value history at specified times
             /// </summary>
             /// <remarks>
-            /// Get all registered applications in paged form.
-            /// The returned model can contain a continuation token if more results are
-            /// available.
-            /// Call this operation again using the token to retrieve more results.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='continuationToken'>
-            /// Optional Continuation
-            /// token
-            /// </param>
-            /// <param name='pageSize'>
-            /// Optional number of results to
-            /// return
-            /// </param>
-            public static ApplicationInfoListApiModel GetListOfApplications(this IAzureOpcHistoryClient operations, string continuationToken = default(string), int? pageSize = default(int?))
-            {
-                return operations.GetListOfApplicationsAsync(continuationToken, pageSize).GetAwaiter().GetResult();
-            }
-
-            /// <summary>
-            /// Get list of applications
-            /// </summary>
-            /// <remarks>
-            /// Get all registered applications in paged form.
-            /// The returned model can contain a continuation token if more results are
-            /// available.
-            /// Call this operation again using the token to retrieve more results.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='continuationToken'>
-            /// Optional Continuation
-            /// token
-            /// </param>
-            /// <param name='pageSize'>
-            /// Optional number of results to
-            /// return
-            /// </param>
-            /// <param name='cancellationToken'>
-            /// The cancellation token.
-            /// </param>
-            public static async Task<ApplicationInfoListApiModel> GetListOfApplicationsAsync(this IAzureOpcHistoryClient operations, string continuationToken = default(string), int? pageSize = default(int?), CancellationToken cancellationToken = default(CancellationToken))
-            {
-                using (var _result = await operations.GetListOfApplicationsWithHttpMessagesAsync(continuationToken, pageSize, null, cancellationToken).ConfigureAwait(false))
-                {
-                    return _result.Body;
-                }
-            }
-
-            /// <summary>
-            /// Create new application
-            /// </summary>
-            /// <remarks>
-            /// The application is registered using the provided information, but it
-            /// is not associated with a supervisor.  This is useful for when you need
-            /// to register clients or you want to register a server that is located
-            /// in a network not reachable through a Twin module.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='request'>
-            /// Application registration request
-            /// </param>
-            public static ApplicationRegistrationResponseApiModel CreateApplication(this IAzureOpcHistoryClient operations, ApplicationRegistrationRequestApiModel request)
-            {
-                return operations.CreateApplicationAsync(request).GetAwaiter().GetResult();
-            }
-
-            /// <summary>
-            /// Create new application
-            /// </summary>
-            /// <remarks>
-            /// The application is registered using the provided information, but it
-            /// is not associated with a supervisor.  This is useful for when you need
-            /// to register clients or you want to register a server that is located
-            /// in a network not reachable through a Twin module.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='request'>
-            /// Application registration request
-            /// </param>
-            /// <param name='cancellationToken'>
-            /// The cancellation token.
-            /// </param>
-            public static async Task<ApplicationRegistrationResponseApiModel> CreateApplicationAsync(this IAzureOpcHistoryClient operations, ApplicationRegistrationRequestApiModel request, CancellationToken cancellationToken = default(CancellationToken))
-            {
-                using (var _result = await operations.CreateApplicationWithHttpMessagesAsync(request, null, cancellationToken).ConfigureAwait(false))
-                {
-                    return _result.Body;
-                }
-            }
-
-            /// <summary>
-            /// Register new server
-            /// </summary>
-            /// <remarks>
-            /// Registers a server solely using a discovery url. Requires that
-            /// the onboarding agent service is running and the server can be
-            /// located by a supervisor in its network using the discovery url.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='request'>
-            /// Server registration request
-            /// </param>
-            public static void RegisterServer(this IAzureOpcHistoryClient operations, ServerRegistrationRequestApiModel request)
-            {
-                operations.RegisterServerAsync(request).GetAwaiter().GetResult();
-            }
-
-            /// <summary>
-            /// Register new server
-            /// </summary>
-            /// <remarks>
-            /// Registers a server solely using a discovery url. Requires that
-            /// the onboarding agent service is running and the server can be
-            /// located by a supervisor in its network using the discovery url.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='request'>
-            /// Server registration request
-            /// </param>
-            /// <param name='cancellationToken'>
-            /// The cancellation token.
-            /// </param>
-            public static async Task RegisterServerAsync(this IAzureOpcHistoryClient operations, ServerRegistrationRequestApiModel request, CancellationToken cancellationToken = default(CancellationToken))
-            {
-                (await operations.RegisterServerWithHttpMessagesAsync(request, null, cancellationToken).ConfigureAwait(false)).Dispose();
-            }
-
-            /// <summary>
-            /// Purge applications
-            /// </summary>
-            /// <remarks>
-            /// Purges all applications that have not been seen for a specified amount of
-            /// time.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='notSeenFor'>
-            /// A duration in milliseconds
-            /// </param>
-            public static void DeleteAllDisabledApplications(this IAzureOpcHistoryClient operations, string notSeenFor = default(string))
-            {
-                operations.DeleteAllDisabledApplicationsAsync(notSeenFor).GetAwaiter().GetResult();
-            }
-
-            /// <summary>
-            /// Purge applications
-            /// </summary>
-            /// <remarks>
-            /// Purges all applications that have not been seen for a specified amount of
-            /// time.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='notSeenFor'>
-            /// A duration in milliseconds
-            /// </param>
-            /// <param name='cancellationToken'>
-            /// The cancellation token.
-            /// </param>
-            public static async Task DeleteAllDisabledApplicationsAsync(this IAzureOpcHistoryClient operations, string notSeenFor = default(string), CancellationToken cancellationToken = default(CancellationToken))
-            {
-                (await operations.DeleteAllDisabledApplicationsWithHttpMessagesAsync(notSeenFor, null, cancellationToken).ConfigureAwait(false)).Dispose();
-            }
-
-            /// <summary>
-            /// Discover servers
-            /// </summary>
-            /// <remarks>
-            /// Registers servers by running a discovery scan in a supervisor's
-            /// network. Requires that the onboarding agent service is running.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='request'>
-            /// Discovery request
-            /// </param>
-            public static void DiscoverServer(this IAzureOpcHistoryClient operations, DiscoveryRequestApiModel request)
-            {
-                operations.DiscoverServerAsync(request).GetAwaiter().GetResult();
-            }
-
-            /// <summary>
-            /// Discover servers
-            /// </summary>
-            /// <remarks>
-            /// Registers servers by running a discovery scan in a supervisor's
-            /// network. Requires that the onboarding agent service is running.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='request'>
-            /// Discovery request
-            /// </param>
-            /// <param name='cancellationToken'>
-            /// The cancellation token.
-            /// </param>
-            public static async Task DiscoverServerAsync(this IAzureOpcHistoryClient operations, DiscoveryRequestApiModel request, CancellationToken cancellationToken = default(CancellationToken))
-            {
-                (await operations.DiscoverServerWithHttpMessagesAsync(request, null, cancellationToken).ConfigureAwait(false)).Dispose();
-            }
-
-            /// <summary>
-            /// Get application registration
-            /// </summary>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='applicationId'>
-            /// Application id for the server
-            /// </param>
-            public static ApplicationRegistrationApiModel GetApplicationRegistration(this IAzureOpcHistoryClient operations, string applicationId)
-            {
-                return operations.GetApplicationRegistrationAsync(applicationId).GetAwaiter().GetResult();
-            }
-
-            /// <summary>
-            /// Get application registration
-            /// </summary>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='applicationId'>
-            /// Application id for the server
-            /// </param>
-            /// <param name='cancellationToken'>
-            /// The cancellation token.
-            /// </param>
-            public static async Task<ApplicationRegistrationApiModel> GetApplicationRegistrationAsync(this IAzureOpcHistoryClient operations, string applicationId, CancellationToken cancellationToken = default(CancellationToken))
-            {
-                using (var _result = await operations.GetApplicationRegistrationWithHttpMessagesAsync(applicationId, null, cancellationToken).ConfigureAwait(false))
-                {
-                    return _result.Body;
-                }
-            }
-
-            /// <summary>
-            /// Unregister application
-            /// </summary>
-            /// <remarks>
-            /// Unregisters and deletes application and all its associated endpoints.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='applicationId'>
-            /// The identifier of the application
-            /// </param>
-            public static void DeleteApplication(this IAzureOpcHistoryClient operations, string applicationId)
-            {
-                operations.DeleteApplicationAsync(applicationId).GetAwaiter().GetResult();
-            }
-
-            /// <summary>
-            /// Unregister application
-            /// </summary>
-            /// <remarks>
-            /// Unregisters and deletes application and all its associated endpoints.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='applicationId'>
-            /// The identifier of the application
-            /// </param>
-            /// <param name='cancellationToken'>
-            /// The cancellation token.
-            /// </param>
-            public static async Task DeleteApplicationAsync(this IAzureOpcHistoryClient operations, string applicationId, CancellationToken cancellationToken = default(CancellationToken))
-            {
-                (await operations.DeleteApplicationWithHttpMessagesAsync(applicationId, null, cancellationToken).ConfigureAwait(false)).Dispose();
-            }
-
-            /// <summary>
-            /// Update application registration
-            /// </summary>
-            /// <remarks>
-            /// The application information is updated with new properties.  Note that
-            /// this information might be overridden if the application is re-discovered
-            /// during a discovery run (recurring or one-time).
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='applicationId'>
-            /// The identifier of the application
-            /// </param>
-            /// <param name='request'>
-            /// Application update request
-            /// </param>
-            public static void UpdateApplicationRegistration(this IAzureOpcHistoryClient operations, string applicationId, ApplicationRegistrationUpdateApiModel request)
-            {
-                operations.UpdateApplicationRegistrationAsync(applicationId, request).GetAwaiter().GetResult();
-            }
-
-            /// <summary>
-            /// Update application registration
-            /// </summary>
-            /// <remarks>
-            /// The application information is updated with new properties.  Note that
-            /// this information might be overridden if the application is re-discovered
-            /// during a discovery run (recurring or one-time).
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='applicationId'>
-            /// The identifier of the application
-            /// </param>
-            /// <param name='request'>
-            /// Application update request
-            /// </param>
-            /// <param name='cancellationToken'>
-            /// The cancellation token.
-            /// </param>
-            public static async Task UpdateApplicationRegistrationAsync(this IAzureOpcHistoryClient operations, string applicationId, ApplicationRegistrationUpdateApiModel request, CancellationToken cancellationToken = default(CancellationToken))
-            {
-                (await operations.UpdateApplicationRegistrationWithHttpMessagesAsync(applicationId, request, null, cancellationToken).ConfigureAwait(false)).Dispose();
-            }
-
-            /// <summary>
-            /// Get list of sites
-            /// </summary>
-            /// <remarks>
-            /// List all sites applications are registered in.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='continuationToken'>
-            /// Optional Continuation
-            /// token
-            /// </param>
-            /// <param name='pageSize'>
-            /// Optional number of results to
-            /// return
-            /// </param>
-            public static ApplicationSiteListApiModel GetListOfSites(this IAzureOpcHistoryClient operations, string continuationToken = default(string), int? pageSize = default(int?))
-            {
-                return operations.GetListOfSitesAsync(continuationToken, pageSize).GetAwaiter().GetResult();
-            }
-
-            /// <summary>
-            /// Get list of sites
-            /// </summary>
-            /// <remarks>
-            /// List all sites applications are registered in.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='continuationToken'>
-            /// Optional Continuation
-            /// token
-            /// </param>
-            /// <param name='pageSize'>
-            /// Optional number of results to
-            /// return
-            /// </param>
-            /// <param name='cancellationToken'>
-            /// The cancellation token.
-            /// </param>
-            public static async Task<ApplicationSiteListApiModel> GetListOfSitesAsync(this IAzureOpcHistoryClient operations, string continuationToken = default(string), int? pageSize = default(int?), CancellationToken cancellationToken = default(CancellationToken))
-            {
-                using (var _result = await operations.GetListOfSitesWithHttpMessagesAsync(continuationToken, pageSize, null, cancellationToken).ConfigureAwait(false))
-                {
-                    return _result.Body;
-                }
-            }
-
-            /// <summary>
-            /// Get filtered list of applications
-            /// </summary>
-            /// <remarks>
-            /// Get a list of applications filtered using the specified query parameters.
-            /// The returned model can contain a continuation token if more results are
-            /// available.
-            /// Call the GetListOfApplications operation using the token to retrieve
-            /// more results.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='query'>
-            /// Applications Query model
-            /// </param>
-            /// <param name='pageSize'>
-            /// Number of results to return
-            /// </param>
-            public static ApplicationInfoListApiModel GetFilteredListOfApplications(this IAzureOpcHistoryClient operations, ApplicationRegistrationQueryApiModel query, int? pageSize = default(int?))
-            {
-                return operations.GetFilteredListOfApplicationsAsync(query, pageSize).GetAwaiter().GetResult();
-            }
-
-            /// <summary>
-            /// Get filtered list of applications
-            /// </summary>
-            /// <remarks>
-            /// Get a list of applications filtered using the specified query parameters.
-            /// The returned model can contain a continuation token if more results are
-            /// available.
-            /// Call the GetListOfApplications operation using the token to retrieve
-            /// more results.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='query'>
-            /// Applications Query model
-            /// </param>
-            /// <param name='pageSize'>
-            /// Number of results to return
-            /// </param>
-            /// <param name='cancellationToken'>
-            /// The cancellation token.
-            /// </param>
-            public static async Task<ApplicationInfoListApiModel> GetFilteredListOfApplicationsAsync(this IAzureOpcHistoryClient operations, ApplicationRegistrationQueryApiModel query, int? pageSize = default(int?), CancellationToken cancellationToken = default(CancellationToken))
-            {
-                using (var _result = await operations.GetFilteredListOfApplicationsWithHttpMessagesAsync(query, pageSize, null, cancellationToken).ConfigureAwait(false))
-                {
-                    return _result.Body;
-                }
-            }
-
-            /// <summary>
-            /// Query applications
-            /// </summary>
-            /// <remarks>
-            /// List applications that match a query model.
-            /// The returned model can contain a continuation token if more results are
-            /// available.
-            /// Call the GetListOfApplications operation using the token to retrieve
-            /// more results.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='query'>
-            /// Application query
-            /// </param>
-            /// <param name='pageSize'>
-            /// Optional number of results to
-            /// return
-            /// </param>
-            public static ApplicationInfoListApiModel QueryApplications(this IAzureOpcHistoryClient operations, ApplicationRegistrationQueryApiModel query, int? pageSize = default(int?))
-            {
-                return operations.QueryApplicationsAsync(query, pageSize).GetAwaiter().GetResult();
-            }
-
-            /// <summary>
-            /// Query applications
-            /// </summary>
-            /// <remarks>
-            /// List applications that match a query model.
-            /// The returned model can contain a continuation token if more results are
-            /// available.
-            /// Call the GetListOfApplications operation using the token to retrieve
-            /// more results.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='query'>
-            /// Application query
-            /// </param>
-            /// <param name='pageSize'>
-            /// Optional number of results to
-            /// return
-            /// </param>
-            /// <param name='cancellationToken'>
-            /// The cancellation token.
-            /// </param>
-            public static async Task<ApplicationInfoListApiModel> QueryApplicationsAsync(this IAzureOpcHistoryClient operations, ApplicationRegistrationQueryApiModel query, int? pageSize = default(int?), CancellationToken cancellationToken = default(CancellationToken))
-            {
-                using (var _result = await operations.QueryApplicationsWithHttpMessagesAsync(query, pageSize, null, cancellationToken).ConfigureAwait(false))
-                {
-                    return _result.Body;
-                }
-            }
-
-            /// <summary>
-            /// Activate endpoint
-            /// </summary>
-            /// <remarks>
-            /// Activates an endpoint for subsequent use in twin service.
-            /// All endpoints must be activated using this API or through a
-            /// activation filter during application registration or discovery.
+            /// Delete value history using historic access.
+            /// The endpoint must be activated and connected and the module client
+            /// and server must trust each other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
             /// <param name='endpointId'>
-            /// endpoint identifier
-            /// </param>
-            public static void ActivateEndpoint(this IAzureOpcHistoryClient operations, string endpointId)
-            {
-                operations.ActivateEndpointAsync(endpointId).GetAwaiter().GetResult();
-            }
-
-            /// <summary>
-            /// Activate endpoint
-            /// </summary>
-            /// <remarks>
-            /// Activates an endpoint for subsequent use in twin service.
-            /// All endpoints must be activated using this API or through a
-            /// activation filter during application registration or discovery.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='endpointId'>
-            /// endpoint identifier
-            /// </param>
-            /// <param name='cancellationToken'>
-            /// The cancellation token.
-            /// </param>
-            public static async Task ActivateEndpointAsync(this IAzureOpcHistoryClient operations, string endpointId, CancellationToken cancellationToken = default(CancellationToken))
-            {
-                (await operations.ActivateEndpointWithHttpMessagesAsync(endpointId, null, cancellationToken).ConfigureAwait(false)).Dispose();
-            }
-
-            /// <summary>
-            /// Get endpoint information
-            /// </summary>
-            /// <remarks>
-            /// Gets information about an endpoint.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='endpointId'>
-            /// endpoint identifier
-            /// </param>
-            /// <param name='onlyServerState'>
-            /// Whether to include only server
-            /// state, or display current client state of the endpoint if
-            /// available
-            /// </param>
-            public static EndpointInfoApiModel GetEndpoint(this IAzureOpcHistoryClient operations, string endpointId, bool? onlyServerState = default(bool?))
-            {
-                return operations.GetEndpointAsync(endpointId, onlyServerState).GetAwaiter().GetResult();
-            }
-
-            /// <summary>
-            /// Get endpoint information
-            /// </summary>
-            /// <remarks>
-            /// Gets information about an endpoint.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='endpointId'>
-            /// endpoint identifier
-            /// </param>
-            /// <param name='onlyServerState'>
-            /// Whether to include only server
-            /// state, or display current client state of the endpoint if
-            /// available
-            /// </param>
-            /// <param name='cancellationToken'>
-            /// The cancellation token.
-            /// </param>
-            public static async Task<EndpointInfoApiModel> GetEndpointAsync(this IAzureOpcHistoryClient operations, string endpointId, bool? onlyServerState = default(bool?), CancellationToken cancellationToken = default(CancellationToken))
-            {
-                using (var _result = await operations.GetEndpointWithHttpMessagesAsync(endpointId, onlyServerState, null, cancellationToken).ConfigureAwait(false))
-                {
-                    return _result.Body;
-                }
-            }
-
-            /// <summary>
-            /// Update endpoint information
-            /// </summary>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='endpointId'>
-            /// endpoint identifier
+            /// The identifier of the activated endpoint.
             /// </param>
             /// <param name='request'>
-            /// Endpoint update request
+            /// The history update request
             /// </param>
-            public static void UpdateEndpoint(this IAzureOpcHistoryClient operations, string endpointId, EndpointRegistrationUpdateApiModel request)
+            public static HistoryUpdateResponseApiModel HistoryDeleteValuesAtTimes(this IAzureOpcHistoryClient operations, string endpointId, HistoryUpdateRequestApiModelDeleteValuesAtTimesDetailsApiModel request)
             {
-                operations.UpdateEndpointAsync(endpointId, request).GetAwaiter().GetResult();
+                return operations.HistoryDeleteValuesAtTimesAsync(endpointId, request).GetAwaiter().GetResult();
             }
 
             /// <summary>
-            /// Update endpoint information
+            /// Delete value history at specified times
             /// </summary>
+            /// <remarks>
+            /// Delete value history using historic access.
+            /// The endpoint must be activated and connected and the module client
+            /// and server must trust each other.
+            /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
             /// <param name='endpointId'>
-            /// endpoint identifier
+            /// The identifier of the activated endpoint.
             /// </param>
             /// <param name='request'>
-            /// Endpoint update request
+            /// The history update request
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task UpdateEndpointAsync(this IAzureOpcHistoryClient operations, string endpointId, EndpointRegistrationUpdateApiModel request, CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task<HistoryUpdateResponseApiModel> HistoryDeleteValuesAtTimesAsync(this IAzureOpcHistoryClient operations, string endpointId, HistoryUpdateRequestApiModelDeleteValuesAtTimesDetailsApiModel request, CancellationToken cancellationToken = default(CancellationToken))
             {
-                (await operations.UpdateEndpointWithHttpMessagesAsync(endpointId, request, null, cancellationToken).ConfigureAwait(false)).Dispose();
-            }
-
-            /// <summary>
-            /// Get list of endpoints
-            /// </summary>
-            /// <remarks>
-            /// Get all registered endpoints in paged form.
-            /// The returned model can contain a continuation token if more results are
-            /// available.
-            /// Call this operation again using the token to retrieve more results.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='onlyServerState'>
-            /// Whether to include only server
-            /// state, or display current client state of the endpoint if available
-            /// </param>
-            /// <param name='continuationToken'>
-            /// Optional Continuation token
-            /// </param>
-            /// <param name='pageSize'>
-            /// Optional number of results to return
-            /// </param>
-            public static EndpointInfoListApiModel GetListOfEndpoints(this IAzureOpcHistoryClient operations, bool? onlyServerState = default(bool?), string continuationToken = default(string), int? pageSize = default(int?))
-            {
-                return operations.GetListOfEndpointsAsync(onlyServerState, continuationToken, pageSize).GetAwaiter().GetResult();
-            }
-
-            /// <summary>
-            /// Get list of endpoints
-            /// </summary>
-            /// <remarks>
-            /// Get all registered endpoints in paged form.
-            /// The returned model can contain a continuation token if more results are
-            /// available.
-            /// Call this operation again using the token to retrieve more results.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='onlyServerState'>
-            /// Whether to include only server
-            /// state, or display current client state of the endpoint if available
-            /// </param>
-            /// <param name='continuationToken'>
-            /// Optional Continuation token
-            /// </param>
-            /// <param name='pageSize'>
-            /// Optional number of results to return
-            /// </param>
-            /// <param name='cancellationToken'>
-            /// The cancellation token.
-            /// </param>
-            public static async Task<EndpointInfoListApiModel> GetListOfEndpointsAsync(this IAzureOpcHistoryClient operations, bool? onlyServerState = default(bool?), string continuationToken = default(string), int? pageSize = default(int?), CancellationToken cancellationToken = default(CancellationToken))
-            {
-                using (var _result = await operations.GetListOfEndpointsWithHttpMessagesAsync(onlyServerState, continuationToken, pageSize, null, cancellationToken).ConfigureAwait(false))
+                using (var _result = await operations.HistoryDeleteValuesAtTimesWithHttpMessagesAsync(endpointId, request, null, cancellationToken).ConfigureAwait(false))
                 {
                     return _result.Body;
                 }
             }
 
             /// <summary>
-            /// Get filtered list of endpoints
+            /// Delete historic values
             /// </summary>
             /// <remarks>
-            /// Get a list of endpoints filtered using the specified query parameters.
-            /// The returned model can contain a continuation token if more results are
-            /// available.
-            /// Call the GetListOfEndpoints operation using the token to retrieve
-            /// more results.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='url'>
-            /// Endoint url for direct server access
-            /// </param>
-            /// <param name='userAuthentication'>
-            /// Type of credential selected for authentication. Possible values include:
-            /// 'None', 'UserName', 'X509Certificate', 'JwtToken'
-            /// </param>
-            /// <param name='certificate'>
-            /// Certificate of the endpoint
-            /// </param>
-            /// <param name='securityMode'>
-            /// Security Mode. Possible values include: 'Best', 'Sign', 'SignAndEncrypt',
-            /// 'None'
-            /// </param>
-            /// <param name='securityPolicy'>
-            /// Security policy uri
-            /// </param>
-            /// <param name='activated'>
-            /// Whether the endpoint was activated
-            /// </param>
-            /// <param name='connected'>
-            /// Whether the endpoint is connected on supervisor.
-            /// </param>
-            /// <param name='endpointState'>
-            /// The last state of the the activated endpoint. Possible values include:
-            /// 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid',
-            /// 'Ready', 'Error'
-            /// </param>
-            /// <param name='includeNotSeenSince'>
-            /// Whether to include endpoints that were soft deleted
-            /// </param>
-            /// <param name='onlyServerState'>
-            /// Whether to include only server state, or display
-            /// current client state of the endpoint if available
-            /// </param>
-            /// <param name='pageSize'>
-            /// Optional number of results to
-            /// return
-            /// </param>
-            public static EndpointInfoListApiModel GetFilteredListOfEndpoints(this IAzureOpcHistoryClient operations, string url = default(string), string userAuthentication = default(string), byte[] certificate = default(byte[]), string securityMode = default(string), string securityPolicy = default(string), bool? activated = default(bool?), bool? connected = default(bool?), string endpointState = default(string), bool? includeNotSeenSince = default(bool?), bool? onlyServerState = default(bool?), int? pageSize = default(int?))
-            {
-                return operations.GetFilteredListOfEndpointsAsync(url, userAuthentication, certificate, securityMode, securityPolicy, activated, connected, endpointState, includeNotSeenSince, onlyServerState, pageSize).GetAwaiter().GetResult();
-            }
-
-            /// <summary>
-            /// Get filtered list of endpoints
-            /// </summary>
-            /// <remarks>
-            /// Get a list of endpoints filtered using the specified query parameters.
-            /// The returned model can contain a continuation token if more results are
-            /// available.
-            /// Call the GetListOfEndpoints operation using the token to retrieve
-            /// more results.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='url'>
-            /// Endoint url for direct server access
-            /// </param>
-            /// <param name='userAuthentication'>
-            /// Type of credential selected for authentication. Possible values include:
-            /// 'None', 'UserName', 'X509Certificate', 'JwtToken'
-            /// </param>
-            /// <param name='certificate'>
-            /// Certificate of the endpoint
-            /// </param>
-            /// <param name='securityMode'>
-            /// Security Mode. Possible values include: 'Best', 'Sign', 'SignAndEncrypt',
-            /// 'None'
-            /// </param>
-            /// <param name='securityPolicy'>
-            /// Security policy uri
-            /// </param>
-            /// <param name='activated'>
-            /// Whether the endpoint was activated
-            /// </param>
-            /// <param name='connected'>
-            /// Whether the endpoint is connected on supervisor.
-            /// </param>
-            /// <param name='endpointState'>
-            /// The last state of the the activated endpoint. Possible values include:
-            /// 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid',
-            /// 'Ready', 'Error'
-            /// </param>
-            /// <param name='includeNotSeenSince'>
-            /// Whether to include endpoints that were soft deleted
-            /// </param>
-            /// <param name='onlyServerState'>
-            /// Whether to include only server state, or display
-            /// current client state of the endpoint if available
-            /// </param>
-            /// <param name='pageSize'>
-            /// Optional number of results to
-            /// return
-            /// </param>
-            /// <param name='cancellationToken'>
-            /// The cancellation token.
-            /// </param>
-            public static async Task<EndpointInfoListApiModel> GetFilteredListOfEndpointsAsync(this IAzureOpcHistoryClient operations, string url = default(string), string userAuthentication = default(string), byte[] certificate = default(byte[]), string securityMode = default(string), string securityPolicy = default(string), bool? activated = default(bool?), bool? connected = default(bool?), string endpointState = default(string), bool? includeNotSeenSince = default(bool?), bool? onlyServerState = default(bool?), int? pageSize = default(int?), CancellationToken cancellationToken = default(CancellationToken))
-            {
-                using (var _result = await operations.GetFilteredListOfEndpointsWithHttpMessagesAsync(url, userAuthentication, certificate, securityMode, securityPolicy, activated, connected, endpointState, includeNotSeenSince, onlyServerState, pageSize, null, cancellationToken).ConfigureAwait(false))
-                {
-                    return _result.Body;
-                }
-            }
-
-            /// <summary>
-            /// Query endpoints
-            /// </summary>
-            /// <remarks>
-            /// Return endpoints that match the specified query.
-            /// The returned model can contain a continuation token if more results are
-            /// available.
-            /// Call the GetListOfEndpoints operation using the token to retrieve
-            /// more results.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='query'>
-            /// Query to match
-            /// </param>
-            /// <param name='onlyServerState'>
-            /// Whether to include only server
-            /// state, or display current client state of the endpoint if available
-            /// </param>
-            /// <param name='pageSize'>
-            /// Optional number of results to return
-            /// </param>
-            public static EndpointInfoListApiModel QueryEndpoints(this IAzureOpcHistoryClient operations, EndpointRegistrationQueryApiModel query, bool? onlyServerState = default(bool?), int? pageSize = default(int?))
-            {
-                return operations.QueryEndpointsAsync(query, onlyServerState, pageSize).GetAwaiter().GetResult();
-            }
-
-            /// <summary>
-            /// Query endpoints
-            /// </summary>
-            /// <remarks>
-            /// Return endpoints that match the specified query.
-            /// The returned model can contain a continuation token if more results are
-            /// available.
-            /// Call the GetListOfEndpoints operation using the token to retrieve
-            /// more results.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='query'>
-            /// Query to match
-            /// </param>
-            /// <param name='onlyServerState'>
-            /// Whether to include only server
-            /// state, or display current client state of the endpoint if available
-            /// </param>
-            /// <param name='pageSize'>
-            /// Optional number of results to return
-            /// </param>
-            /// <param name='cancellationToken'>
-            /// The cancellation token.
-            /// </param>
-            public static async Task<EndpointInfoListApiModel> QueryEndpointsAsync(this IAzureOpcHistoryClient operations, EndpointRegistrationQueryApiModel query, bool? onlyServerState = default(bool?), int? pageSize = default(int?), CancellationToken cancellationToken = default(CancellationToken))
-            {
-                using (var _result = await operations.QueryEndpointsWithHttpMessagesAsync(query, onlyServerState, pageSize, null, cancellationToken).ConfigureAwait(false))
-                {
-                    return _result.Body;
-                }
-            }
-
-            /// <summary>
-            /// Deactivate endpoint
-            /// </summary>
-            /// <remarks>
-            /// Deactivates the endpoint and disable access through twin service.
+            /// Delete historic values using historic access.
+            /// The endpoint must be activated and connected and the module client
+            /// and server must trust each other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
             /// <param name='endpointId'>
-            /// endpoint identifier
+            /// The identifier of the activated endpoint.
             /// </param>
-            public static void DeactivateEndpoint(this IAzureOpcHistoryClient operations, string endpointId)
+            /// <param name='request'>
+            /// The history update request
+            /// </param>
+            public static HistoryUpdateResponseApiModel HistoryDeleteValues(this IAzureOpcHistoryClient operations, string endpointId, HistoryUpdateRequestApiModelDeleteValuesDetailsApiModel request)
             {
-                operations.DeactivateEndpointAsync(endpointId).GetAwaiter().GetResult();
+                return operations.HistoryDeleteValuesAsync(endpointId, request).GetAwaiter().GetResult();
             }
 
             /// <summary>
-            /// Deactivate endpoint
+            /// Delete historic values
             /// </summary>
             /// <remarks>
-            /// Deactivates the endpoint and disable access through twin service.
+            /// Delete historic values using historic access.
+            /// The endpoint must be activated and connected and the module client
+            /// and server must trust each other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
             /// <param name='endpointId'>
-            /// endpoint identifier
+            /// The identifier of the activated endpoint.
+            /// </param>
+            /// <param name='request'>
+            /// The history update request
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task DeactivateEndpointAsync(this IAzureOpcHistoryClient operations, string endpointId, CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task<HistoryUpdateResponseApiModel> HistoryDeleteValuesAsync(this IAzureOpcHistoryClient operations, string endpointId, HistoryUpdateRequestApiModelDeleteValuesDetailsApiModel request, CancellationToken cancellationToken = default(CancellationToken))
             {
-                (await operations.DeactivateEndpointWithHttpMessagesAsync(endpointId, null, cancellationToken).ConfigureAwait(false)).Dispose();
+                using (var _result = await operations.HistoryDeleteValuesWithHttpMessagesAsync(endpointId, request, null, cancellationToken).ConfigureAwait(false))
+                {
+                    return _result.Body;
+                }
+            }
+
+            /// <summary>
+            /// Delete historic values
+            /// </summary>
+            /// <remarks>
+            /// Delete historic values using historic access.
+            /// The endpoint must be activated and connected and the module client
+            /// and server must trust each other.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='endpointId'>
+            /// The identifier of the activated endpoint.
+            /// </param>
+            /// <param name='request'>
+            /// The history update request
+            /// </param>
+            public static HistoryUpdateResponseApiModel HistoryDeleteModifiedValues(this IAzureOpcHistoryClient operations, string endpointId, HistoryUpdateRequestApiModelDeleteModifiedValuesDetailsApiModel request)
+            {
+                return operations.HistoryDeleteModifiedValuesAsync(endpointId, request).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Delete historic values
+            /// </summary>
+            /// <remarks>
+            /// Delete historic values using historic access.
+            /// The endpoint must be activated and connected and the module client
+            /// and server must trust each other.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='endpointId'>
+            /// The identifier of the activated endpoint.
+            /// </param>
+            /// <param name='request'>
+            /// The history update request
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task<HistoryUpdateResponseApiModel> HistoryDeleteModifiedValuesAsync(this IAzureOpcHistoryClient operations, string endpointId, HistoryUpdateRequestApiModelDeleteModifiedValuesDetailsApiModel request, CancellationToken cancellationToken = default(CancellationToken))
+            {
+                using (var _result = await operations.HistoryDeleteModifiedValuesWithHttpMessagesAsync(endpointId, request, null, cancellationToken).ConfigureAwait(false))
+                {
+                    return _result.Body;
+                }
+            }
+
+            /// <summary>
+            /// Delete historic events
+            /// </summary>
+            /// <remarks>
+            /// Delete historic events using historic access.
+            /// The endpoint must be activated and connected and the module client
+            /// and server must trust each other.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='endpointId'>
+            /// The identifier of the activated endpoint.
+            /// </param>
+            /// <param name='request'>
+            /// The history update request
+            /// </param>
+            public static HistoryUpdateResponseApiModel HistoryDeleteEvents(this IAzureOpcHistoryClient operations, string endpointId, HistoryUpdateRequestApiModelDeleteEventsDetailsApiModel request)
+            {
+                return operations.HistoryDeleteEventsAsync(endpointId, request).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Delete historic events
+            /// </summary>
+            /// <remarks>
+            /// Delete historic events using historic access.
+            /// The endpoint must be activated and connected and the module client
+            /// and server must trust each other.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='endpointId'>
+            /// The identifier of the activated endpoint.
+            /// </param>
+            /// <param name='request'>
+            /// The history update request
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task<HistoryUpdateResponseApiModel> HistoryDeleteEventsAsync(this IAzureOpcHistoryClient operations, string endpointId, HistoryUpdateRequestApiModelDeleteEventsDetailsApiModel request, CancellationToken cancellationToken = default(CancellationToken))
+            {
+                using (var _result = await operations.HistoryDeleteEventsWithHttpMessagesAsync(endpointId, request, null, cancellationToken).ConfigureAwait(false))
+                {
+                    return _result.Body;
+                }
+            }
+
+            /// <summary>
+            /// Read history using json details
+            /// </summary>
+            /// <remarks>
+            /// Read node history if available using historic access.
+            /// The endpoint must be activated and connected and the module client
+            /// and server must trust each other.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='endpointId'>
+            /// The identifier of the activated endpoint.
+            /// </param>
+            /// <param name='request'>
+            /// The history read request
+            /// </param>
+            public static HistoryReadResponseApiModelJToken HistoryReadRaw(this IAzureOpcHistoryClient operations, string endpointId, HistoryReadRequestApiModelJToken request)
+            {
+                return operations.HistoryReadRawAsync(endpointId, request).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Read history using json details
+            /// </summary>
+            /// <remarks>
+            /// Read node history if available using historic access.
+            /// The endpoint must be activated and connected and the module client
+            /// and server must trust each other.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='endpointId'>
+            /// The identifier of the activated endpoint.
+            /// </param>
+            /// <param name='request'>
+            /// The history read request
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task<HistoryReadResponseApiModelJToken> HistoryReadRawAsync(this IAzureOpcHistoryClient operations, string endpointId, HistoryReadRequestApiModelJToken request, CancellationToken cancellationToken = default(CancellationToken))
+            {
+                using (var _result = await operations.HistoryReadRawWithHttpMessagesAsync(endpointId, request, null, cancellationToken).ConfigureAwait(false))
+                {
+                    return _result.Body;
+                }
+            }
+
+            /// <summary>
+            /// Read next batch of history as json
+            /// </summary>
+            /// <remarks>
+            /// Read next batch of node history values using historic access.
+            /// The endpoint must be activated and connected and the module client
+            /// and server must trust each other.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='endpointId'>
+            /// The identifier of the activated endpoint.
+            /// </param>
+            /// <param name='request'>
+            /// The history read next request
+            /// </param>
+            public static HistoryReadNextResponseApiModelJToken HistoryReadRawNext(this IAzureOpcHistoryClient operations, string endpointId, HistoryReadNextRequestApiModel request)
+            {
+                return operations.HistoryReadRawNextAsync(endpointId, request).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Read next batch of history as json
+            /// </summary>
+            /// <remarks>
+            /// Read next batch of node history values using historic access.
+            /// The endpoint must be activated and connected and the module client
+            /// and server must trust each other.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='endpointId'>
+            /// The identifier of the activated endpoint.
+            /// </param>
+            /// <param name='request'>
+            /// The history read next request
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task<HistoryReadNextResponseApiModelJToken> HistoryReadRawNextAsync(this IAzureOpcHistoryClient operations, string endpointId, HistoryReadNextRequestApiModel request, CancellationToken cancellationToken = default(CancellationToken))
+            {
+                using (var _result = await operations.HistoryReadRawNextWithHttpMessagesAsync(endpointId, request, null, cancellationToken).ConfigureAwait(false))
+                {
+                    return _result.Body;
+                }
+            }
+
+            /// <summary>
+            /// Update node history using raw json
+            /// </summary>
+            /// <remarks>
+            /// Update node history using historic access.
+            /// The endpoint must be activated and connected and the module client
+            /// and server must trust each other.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='endpointId'>
+            /// The identifier of the activated endpoint.
+            /// </param>
+            /// <param name='request'>
+            /// The history update request
+            /// </param>
+            public static HistoryUpdateResponseApiModel HistoryUpdateRaw(this IAzureOpcHistoryClient operations, string endpointId, HistoryUpdateRequestApiModelJToken request)
+            {
+                return operations.HistoryUpdateRawAsync(endpointId, request).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Update node history using raw json
+            /// </summary>
+            /// <remarks>
+            /// Update node history using historic access.
+            /// The endpoint must be activated and connected and the module client
+            /// and server must trust each other.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='endpointId'>
+            /// The identifier of the activated endpoint.
+            /// </param>
+            /// <param name='request'>
+            /// The history update request
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task<HistoryUpdateResponseApiModel> HistoryUpdateRawAsync(this IAzureOpcHistoryClient operations, string endpointId, HistoryUpdateRequestApiModelJToken request, CancellationToken cancellationToken = default(CancellationToken))
+            {
+                using (var _result = await operations.HistoryUpdateRawWithHttpMessagesAsync(endpointId, request, null, cancellationToken).ConfigureAwait(false))
+                {
+                    return _result.Body;
+                }
+            }
+
+            /// <summary>
+            /// Insert historic values
+            /// </summary>
+            /// <remarks>
+            /// Insert historic values using historic access.
+            /// The endpoint must be activated and connected and the module client
+            /// and server must trust each other.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='endpointId'>
+            /// The identifier of the activated endpoint.
+            /// </param>
+            /// <param name='request'>
+            /// The history insert request
+            /// </param>
+            public static HistoryUpdateResponseApiModel HistoryInsertValues(this IAzureOpcHistoryClient operations, string endpointId, HistoryUpdateRequestApiModelInsertValuesDetailsApiModel request)
+            {
+                return operations.HistoryInsertValuesAsync(endpointId, request).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Insert historic values
+            /// </summary>
+            /// <remarks>
+            /// Insert historic values using historic access.
+            /// The endpoint must be activated and connected and the module client
+            /// and server must trust each other.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='endpointId'>
+            /// The identifier of the activated endpoint.
+            /// </param>
+            /// <param name='request'>
+            /// The history insert request
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task<HistoryUpdateResponseApiModel> HistoryInsertValuesAsync(this IAzureOpcHistoryClient operations, string endpointId, HistoryUpdateRequestApiModelInsertValuesDetailsApiModel request, CancellationToken cancellationToken = default(CancellationToken))
+            {
+                using (var _result = await operations.HistoryInsertValuesWithHttpMessagesAsync(endpointId, request, null, cancellationToken).ConfigureAwait(false))
+                {
+                    return _result.Body;
+                }
+            }
+
+            /// <summary>
+            /// Insert historic events
+            /// </summary>
+            /// <remarks>
+            /// Insert historic events using historic access.
+            /// The endpoint must be activated and connected and the module client
+            /// and server must trust each other.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='endpointId'>
+            /// The identifier of the activated endpoint.
+            /// </param>
+            /// <param name='request'>
+            /// The history insert request
+            /// </param>
+            public static HistoryUpdateResponseApiModel HistoryInsertEvents(this IAzureOpcHistoryClient operations, string endpointId, HistoryUpdateRequestApiModelInsertEventsDetailsApiModel request)
+            {
+                return operations.HistoryInsertEventsAsync(endpointId, request).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Insert historic events
+            /// </summary>
+            /// <remarks>
+            /// Insert historic events using historic access.
+            /// The endpoint must be activated and connected and the module client
+            /// and server must trust each other.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='endpointId'>
+            /// The identifier of the activated endpoint.
+            /// </param>
+            /// <param name='request'>
+            /// The history insert request
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task<HistoryUpdateResponseApiModel> HistoryInsertEventsAsync(this IAzureOpcHistoryClient operations, string endpointId, HistoryUpdateRequestApiModelInsertEventsDetailsApiModel request, CancellationToken cancellationToken = default(CancellationToken))
+            {
+                using (var _result = await operations.HistoryInsertEventsWithHttpMessagesAsync(endpointId, request, null, cancellationToken).ConfigureAwait(false))
+                {
+                    return _result.Body;
+                }
+            }
+
+            /// <summary>
+            /// Read historic events
+            /// </summary>
+            /// <remarks>
+            /// Read historic events of a node if available using historic access.
+            /// The endpoint must be activated and connected and the module client
+            /// and server must trust each other.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='endpointId'>
+            /// The identifier of the activated endpoint.
+            /// </param>
+            /// <param name='request'>
+            /// The history read request
+            /// </param>
+            public static HistoryReadResponseApiModelHistoricEventApiModel HistoryReadEvents(this IAzureOpcHistoryClient operations, string endpointId, HistoryReadRequestApiModelReadEventsDetailsApiModel request)
+            {
+                return operations.HistoryReadEventsAsync(endpointId, request).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Read historic events
+            /// </summary>
+            /// <remarks>
+            /// Read historic events of a node if available using historic access.
+            /// The endpoint must be activated and connected and the module client
+            /// and server must trust each other.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='endpointId'>
+            /// The identifier of the activated endpoint.
+            /// </param>
+            /// <param name='request'>
+            /// The history read request
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task<HistoryReadResponseApiModelHistoricEventApiModel> HistoryReadEventsAsync(this IAzureOpcHistoryClient operations, string endpointId, HistoryReadRequestApiModelReadEventsDetailsApiModel request, CancellationToken cancellationToken = default(CancellationToken))
+            {
+                using (var _result = await operations.HistoryReadEventsWithHttpMessagesAsync(endpointId, request, null, cancellationToken).ConfigureAwait(false))
+                {
+                    return _result.Body;
+                }
+            }
+
+            /// <summary>
+            /// Read next batch of historic events
+            /// </summary>
+            /// <remarks>
+            /// Read next batch of historic events of a node using historic access.
+            /// The endpoint must be activated and connected and the module client
+            /// and server must trust each other.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='endpointId'>
+            /// The identifier of the activated endpoint.
+            /// </param>
+            /// <param name='request'>
+            /// The history read next request
+            /// </param>
+            public static HistoryReadNextResponseApiModelHistoricEventApiModel HistoryReadEventsNext(this IAzureOpcHistoryClient operations, string endpointId, HistoryReadNextRequestApiModel request)
+            {
+                return operations.HistoryReadEventsNextAsync(endpointId, request).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Read next batch of historic events
+            /// </summary>
+            /// <remarks>
+            /// Read next batch of historic events of a node using historic access.
+            /// The endpoint must be activated and connected and the module client
+            /// and server must trust each other.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='endpointId'>
+            /// The identifier of the activated endpoint.
+            /// </param>
+            /// <param name='request'>
+            /// The history read next request
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task<HistoryReadNextResponseApiModelHistoricEventApiModel> HistoryReadEventsNextAsync(this IAzureOpcHistoryClient operations, string endpointId, HistoryReadNextRequestApiModel request, CancellationToken cancellationToken = default(CancellationToken))
+            {
+                using (var _result = await operations.HistoryReadEventsNextWithHttpMessagesAsync(endpointId, request, null, cancellationToken).ConfigureAwait(false))
+                {
+                    return _result.Body;
+                }
+            }
+
+            /// <summary>
+            /// Read historic processed values at specified times
+            /// </summary>
+            /// <remarks>
+            /// Read processed history values of a node if available using historic access.
+            /// The endpoint must be activated and connected and the module client
+            /// and server must trust each other.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='endpointId'>
+            /// The identifier of the activated endpoint.
+            /// </param>
+            /// <param name='request'>
+            /// The history read request
+            /// </param>
+            public static HistoryReadResponseApiModelHistoricValueApiModel HistoryReadValues(this IAzureOpcHistoryClient operations, string endpointId, HistoryReadRequestApiModelReadValuesDetailsApiModel request)
+            {
+                return operations.HistoryReadValuesAsync(endpointId, request).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Read historic processed values at specified times
+            /// </summary>
+            /// <remarks>
+            /// Read processed history values of a node if available using historic access.
+            /// The endpoint must be activated and connected and the module client
+            /// and server must trust each other.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='endpointId'>
+            /// The identifier of the activated endpoint.
+            /// </param>
+            /// <param name='request'>
+            /// The history read request
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task<HistoryReadResponseApiModelHistoricValueApiModel> HistoryReadValuesAsync(this IAzureOpcHistoryClient operations, string endpointId, HistoryReadRequestApiModelReadValuesDetailsApiModel request, CancellationToken cancellationToken = default(CancellationToken))
+            {
+                using (var _result = await operations.HistoryReadValuesWithHttpMessagesAsync(endpointId, request, null, cancellationToken).ConfigureAwait(false))
+                {
+                    return _result.Body;
+                }
+            }
+
+            /// <summary>
+            /// Read historic values at specified times
+            /// </summary>
+            /// <remarks>
+            /// Read historic values of a node if available using historic access.
+            /// The endpoint must be activated and connected and the module client
+            /// and server must trust each other.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='endpointId'>
+            /// The identifier of the activated endpoint.
+            /// </param>
+            /// <param name='request'>
+            /// The history read request
+            /// </param>
+            public static HistoryReadResponseApiModelHistoricValueApiModel HistoryReadValuesAtTimes(this IAzureOpcHistoryClient operations, string endpointId, HistoryReadRequestApiModelReadValuesAtTimesDetailsApiModel request)
+            {
+                return operations.HistoryReadValuesAtTimesAsync(endpointId, request).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Read historic values at specified times
+            /// </summary>
+            /// <remarks>
+            /// Read historic values of a node if available using historic access.
+            /// The endpoint must be activated and connected and the module client
+            /// and server must trust each other.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='endpointId'>
+            /// The identifier of the activated endpoint.
+            /// </param>
+            /// <param name='request'>
+            /// The history read request
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task<HistoryReadResponseApiModelHistoricValueApiModel> HistoryReadValuesAtTimesAsync(this IAzureOpcHistoryClient operations, string endpointId, HistoryReadRequestApiModelReadValuesAtTimesDetailsApiModel request, CancellationToken cancellationToken = default(CancellationToken))
+            {
+                using (var _result = await operations.HistoryReadValuesAtTimesWithHttpMessagesAsync(endpointId, request, null, cancellationToken).ConfigureAwait(false))
+                {
+                    return _result.Body;
+                }
+            }
+
+            /// <summary>
+            /// Read historic processed values at specified times
+            /// </summary>
+            /// <remarks>
+            /// Read processed history values of a node if available using historic access.
+            /// The endpoint must be activated and connected and the module client
+            /// and server must trust each other.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='endpointId'>
+            /// The identifier of the activated endpoint.
+            /// </param>
+            /// <param name='request'>
+            /// The history read request
+            /// </param>
+            public static HistoryReadResponseApiModelHistoricValueApiModel HistoryReadProcessedValues(this IAzureOpcHistoryClient operations, string endpointId, HistoryReadRequestApiModelReadProcessedValuesDetailsApiModel request)
+            {
+                return operations.HistoryReadProcessedValuesAsync(endpointId, request).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Read historic processed values at specified times
+            /// </summary>
+            /// <remarks>
+            /// Read processed history values of a node if available using historic access.
+            /// The endpoint must be activated and connected and the module client
+            /// and server must trust each other.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='endpointId'>
+            /// The identifier of the activated endpoint.
+            /// </param>
+            /// <param name='request'>
+            /// The history read request
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task<HistoryReadResponseApiModelHistoricValueApiModel> HistoryReadProcessedValuesAsync(this IAzureOpcHistoryClient operations, string endpointId, HistoryReadRequestApiModelReadProcessedValuesDetailsApiModel request, CancellationToken cancellationToken = default(CancellationToken))
+            {
+                using (var _result = await operations.HistoryReadProcessedValuesWithHttpMessagesAsync(endpointId, request, null, cancellationToken).ConfigureAwait(false))
+                {
+                    return _result.Body;
+                }
+            }
+
+            /// <summary>
+            /// Read historic modified values at specified times
+            /// </summary>
+            /// <remarks>
+            /// Read processed history values of a node if available using historic access.
+            /// The endpoint must be activated and connected and the module client
+            /// and server must trust each other.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='endpointId'>
+            /// The identifier of the activated endpoint.
+            /// </param>
+            /// <param name='request'>
+            /// The history read request
+            /// </param>
+            public static HistoryReadResponseApiModelHistoricValueApiModel HistoryReadModifiedValues(this IAzureOpcHistoryClient operations, string endpointId, HistoryReadRequestApiModelReadModifiedValuesDetailsApiModel request)
+            {
+                return operations.HistoryReadModifiedValuesAsync(endpointId, request).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Read historic modified values at specified times
+            /// </summary>
+            /// <remarks>
+            /// Read processed history values of a node if available using historic access.
+            /// The endpoint must be activated and connected and the module client
+            /// and server must trust each other.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='endpointId'>
+            /// The identifier of the activated endpoint.
+            /// </param>
+            /// <param name='request'>
+            /// The history read request
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task<HistoryReadResponseApiModelHistoricValueApiModel> HistoryReadModifiedValuesAsync(this IAzureOpcHistoryClient operations, string endpointId, HistoryReadRequestApiModelReadModifiedValuesDetailsApiModel request, CancellationToken cancellationToken = default(CancellationToken))
+            {
+                using (var _result = await operations.HistoryReadModifiedValuesWithHttpMessagesAsync(endpointId, request, null, cancellationToken).ConfigureAwait(false))
+                {
+                    return _result.Body;
+                }
+            }
+
+            /// <summary>
+            /// Read next batch of historic values
+            /// </summary>
+            /// <remarks>
+            /// Read next batch of historic values of a node using historic access.
+            /// The endpoint must be activated and connected and the module client
+            /// and server must trust each other.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='endpointId'>
+            /// The identifier of the activated endpoint.
+            /// </param>
+            /// <param name='request'>
+            /// The history read next request
+            /// </param>
+            public static HistoryReadNextResponseApiModelHistoricValueApiModel HistoryReadValueNext(this IAzureOpcHistoryClient operations, string endpointId, HistoryReadNextRequestApiModel request)
+            {
+                return operations.HistoryReadValueNextAsync(endpointId, request).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Read next batch of historic values
+            /// </summary>
+            /// <remarks>
+            /// Read next batch of historic values of a node using historic access.
+            /// The endpoint must be activated and connected and the module client
+            /// and server must trust each other.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='endpointId'>
+            /// The identifier of the activated endpoint.
+            /// </param>
+            /// <param name='request'>
+            /// The history read next request
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task<HistoryReadNextResponseApiModelHistoricValueApiModel> HistoryReadValueNextAsync(this IAzureOpcHistoryClient operations, string endpointId, HistoryReadNextRequestApiModel request, CancellationToken cancellationToken = default(CancellationToken))
+            {
+                using (var _result = await operations.HistoryReadValueNextWithHttpMessagesAsync(endpointId, request, null, cancellationToken).ConfigureAwait(false))
+                {
+                    return _result.Body;
+                }
+            }
+
+            /// <summary>
+            /// Replace historic values
+            /// </summary>
+            /// <remarks>
+            /// Replace historic values using historic access.
+            /// The endpoint must be activated and connected and the module client
+            /// and server must trust each other.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='endpointId'>
+            /// The identifier of the activated endpoint.
+            /// </param>
+            /// <param name='request'>
+            /// The history replace request
+            /// </param>
+            public static HistoryUpdateResponseApiModel HistoryReplaceValues(this IAzureOpcHistoryClient operations, string endpointId, HistoryUpdateRequestApiModelReplaceValuesDetailsApiModel request)
+            {
+                return operations.HistoryReplaceValuesAsync(endpointId, request).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Replace historic values
+            /// </summary>
+            /// <remarks>
+            /// Replace historic values using historic access.
+            /// The endpoint must be activated and connected and the module client
+            /// and server must trust each other.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='endpointId'>
+            /// The identifier of the activated endpoint.
+            /// </param>
+            /// <param name='request'>
+            /// The history replace request
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task<HistoryUpdateResponseApiModel> HistoryReplaceValuesAsync(this IAzureOpcHistoryClient operations, string endpointId, HistoryUpdateRequestApiModelReplaceValuesDetailsApiModel request, CancellationToken cancellationToken = default(CancellationToken))
+            {
+                using (var _result = await operations.HistoryReplaceValuesWithHttpMessagesAsync(endpointId, request, null, cancellationToken).ConfigureAwait(false))
+                {
+                    return _result.Body;
+                }
+            }
+
+            /// <summary>
+            /// Replace historic events
+            /// </summary>
+            /// <remarks>
+            /// Replace historic events using historic access.
+            /// The endpoint must be activated and connected and the module client
+            /// and server must trust each other.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='endpointId'>
+            /// The identifier of the activated endpoint.
+            /// </param>
+            /// <param name='request'>
+            /// The history replace request
+            /// </param>
+            public static HistoryUpdateResponseApiModel HistoryReplaceEvents(this IAzureOpcHistoryClient operations, string endpointId, HistoryUpdateRequestApiModelReplaceEventsDetailsApiModel request)
+            {
+                return operations.HistoryReplaceEventsAsync(endpointId, request).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Replace historic events
+            /// </summary>
+            /// <remarks>
+            /// Replace historic events using historic access.
+            /// The endpoint must be activated and connected and the module client
+            /// and server must trust each other.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='endpointId'>
+            /// The identifier of the activated endpoint.
+            /// </param>
+            /// <param name='request'>
+            /// The history replace request
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task<HistoryUpdateResponseApiModel> HistoryReplaceEventsAsync(this IAzureOpcHistoryClient operations, string endpointId, HistoryUpdateRequestApiModelReplaceEventsDetailsApiModel request, CancellationToken cancellationToken = default(CancellationToken))
+            {
+                using (var _result = await operations.HistoryReplaceEventsWithHttpMessagesAsync(endpointId, request, null, cancellationToken).ConfigureAwait(false))
+                {
+                    return _result.Body;
+                }
             }
 
             /// <summary>
@@ -950,384 +944,6 @@ namespace Microsoft.Azure.IIoT.Opc.History
             public static async Task<StatusResponseApiModel> GetStatusAsync(this IAzureOpcHistoryClient operations, CancellationToken cancellationToken = default(CancellationToken))
             {
                 using (var _result = await operations.GetStatusWithHttpMessagesAsync(null, cancellationToken).ConfigureAwait(false))
-                {
-                    return _result.Body;
-                }
-            }
-
-            /// <summary>
-            /// Get supervisor registration information
-            /// </summary>
-            /// <remarks>
-            /// Returns a supervisor's registration and connectivity information.
-            /// A supervisor id corresponds to the twin modules module identity.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='supervisorId'>
-            /// Supervisor identifier
-            /// </param>
-            /// <param name='onlyServerState'>
-            /// Whether to include only server
-            /// state, or display current client state of the endpoint if
-            /// available
-            /// </param>
-            public static SupervisorApiModel GetSupervisor(this IAzureOpcHistoryClient operations, string supervisorId, bool? onlyServerState = default(bool?))
-            {
-                return operations.GetSupervisorAsync(supervisorId, onlyServerState).GetAwaiter().GetResult();
-            }
-
-            /// <summary>
-            /// Get supervisor registration information
-            /// </summary>
-            /// <remarks>
-            /// Returns a supervisor's registration and connectivity information.
-            /// A supervisor id corresponds to the twin modules module identity.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='supervisorId'>
-            /// Supervisor identifier
-            /// </param>
-            /// <param name='onlyServerState'>
-            /// Whether to include only server
-            /// state, or display current client state of the endpoint if
-            /// available
-            /// </param>
-            /// <param name='cancellationToken'>
-            /// The cancellation token.
-            /// </param>
-            public static async Task<SupervisorApiModel> GetSupervisorAsync(this IAzureOpcHistoryClient operations, string supervisorId, bool? onlyServerState = default(bool?), CancellationToken cancellationToken = default(CancellationToken))
-            {
-                using (var _result = await operations.GetSupervisorWithHttpMessagesAsync(supervisorId, onlyServerState, null, cancellationToken).ConfigureAwait(false))
-                {
-                    return _result.Body;
-                }
-            }
-
-            /// <summary>
-            /// Update supervisor information
-            /// </summary>
-            /// <remarks>
-            /// Allows a caller to configure recurring discovery runs on the twin module
-            /// identified by the supervisor id or update site information.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='supervisorId'>
-            /// supervisor identifier
-            /// </param>
-            /// <param name='request'>
-            /// Patch request
-            /// </param>
-            public static void UpdateSupervisor(this IAzureOpcHistoryClient operations, string supervisorId, SupervisorUpdateApiModel request)
-            {
-                operations.UpdateSupervisorAsync(supervisorId, request).GetAwaiter().GetResult();
-            }
-
-            /// <summary>
-            /// Update supervisor information
-            /// </summary>
-            /// <remarks>
-            /// Allows a caller to configure recurring discovery runs on the twin module
-            /// identified by the supervisor id or update site information.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='supervisorId'>
-            /// supervisor identifier
-            /// </param>
-            /// <param name='request'>
-            /// Patch request
-            /// </param>
-            /// <param name='cancellationToken'>
-            /// The cancellation token.
-            /// </param>
-            public static async Task UpdateSupervisorAsync(this IAzureOpcHistoryClient operations, string supervisorId, SupervisorUpdateApiModel request, CancellationToken cancellationToken = default(CancellationToken))
-            {
-                (await operations.UpdateSupervisorWithHttpMessagesAsync(supervisorId, request, null, cancellationToken).ConfigureAwait(false)).Dispose();
-            }
-
-            /// <summary>
-            /// Get runtime status of supervisor
-            /// </summary>
-            /// <remarks>
-            /// Allows a caller to get runtime status for a supervisor.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='supervisorId'>
-            /// supervisor identifier
-            /// </param>
-            public static SupervisorStatusApiModel GetSupervisorStatus(this IAzureOpcHistoryClient operations, string supervisorId)
-            {
-                return operations.GetSupervisorStatusAsync(supervisorId).GetAwaiter().GetResult();
-            }
-
-            /// <summary>
-            /// Get runtime status of supervisor
-            /// </summary>
-            /// <remarks>
-            /// Allows a caller to get runtime status for a supervisor.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='supervisorId'>
-            /// supervisor identifier
-            /// </param>
-            /// <param name='cancellationToken'>
-            /// The cancellation token.
-            /// </param>
-            public static async Task<SupervisorStatusApiModel> GetSupervisorStatusAsync(this IAzureOpcHistoryClient operations, string supervisorId, CancellationToken cancellationToken = default(CancellationToken))
-            {
-                using (var _result = await operations.GetSupervisorStatusWithHttpMessagesAsync(supervisorId, null, cancellationToken).ConfigureAwait(false))
-                {
-                    return _result.Body;
-                }
-            }
-
-            /// <summary>
-            /// Reset supervisor
-            /// </summary>
-            /// <remarks>
-            /// Allows a caller to reset the twin module using its supervisor
-            /// identity identifier.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='supervisorId'>
-            /// supervisor identifier
-            /// </param>
-            public static void ResetSupervisor(this IAzureOpcHistoryClient operations, string supervisorId)
-            {
-                operations.ResetSupervisorAsync(supervisorId).GetAwaiter().GetResult();
-            }
-
-            /// <summary>
-            /// Reset supervisor
-            /// </summary>
-            /// <remarks>
-            /// Allows a caller to reset the twin module using its supervisor
-            /// identity identifier.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='supervisorId'>
-            /// supervisor identifier
-            /// </param>
-            /// <param name='cancellationToken'>
-            /// The cancellation token.
-            /// </param>
-            public static async Task ResetSupervisorAsync(this IAzureOpcHistoryClient operations, string supervisorId, CancellationToken cancellationToken = default(CancellationToken))
-            {
-                (await operations.ResetSupervisorWithHttpMessagesAsync(supervisorId, null, cancellationToken).ConfigureAwait(false)).Dispose();
-            }
-
-            /// <summary>
-            /// Get list of supervisors
-            /// </summary>
-            /// <remarks>
-            /// Get all registered supervisors and therefore twin modules in paged form.
-            /// The returned model can contain a continuation token if more results are
-            /// available.
-            /// Call this operation again using the token to retrieve more results.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='onlyServerState'>
-            /// Whether to include only server
-            /// state, or display current client state of the endpoint if available
-            /// </param>
-            /// <param name='continuationToken'>
-            /// Optional Continuation token
-            /// </param>
-            /// <param name='pageSize'>
-            /// Optional number of results to return
-            /// </param>
-            public static SupervisorListApiModel GetListOfSupervisors(this IAzureOpcHistoryClient operations, bool? onlyServerState = default(bool?), string continuationToken = default(string), int? pageSize = default(int?))
-            {
-                return operations.GetListOfSupervisorsAsync(onlyServerState, continuationToken, pageSize).GetAwaiter().GetResult();
-            }
-
-            /// <summary>
-            /// Get list of supervisors
-            /// </summary>
-            /// <remarks>
-            /// Get all registered supervisors and therefore twin modules in paged form.
-            /// The returned model can contain a continuation token if more results are
-            /// available.
-            /// Call this operation again using the token to retrieve more results.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='onlyServerState'>
-            /// Whether to include only server
-            /// state, or display current client state of the endpoint if available
-            /// </param>
-            /// <param name='continuationToken'>
-            /// Optional Continuation token
-            /// </param>
-            /// <param name='pageSize'>
-            /// Optional number of results to return
-            /// </param>
-            /// <param name='cancellationToken'>
-            /// The cancellation token.
-            /// </param>
-            public static async Task<SupervisorListApiModel> GetListOfSupervisorsAsync(this IAzureOpcHistoryClient operations, bool? onlyServerState = default(bool?), string continuationToken = default(string), int? pageSize = default(int?), CancellationToken cancellationToken = default(CancellationToken))
-            {
-                using (var _result = await operations.GetListOfSupervisorsWithHttpMessagesAsync(onlyServerState, continuationToken, pageSize, null, cancellationToken).ConfigureAwait(false))
-                {
-                    return _result.Body;
-                }
-            }
-
-            /// <summary>
-            /// Get filtered list of supervisors
-            /// </summary>
-            /// <remarks>
-            /// Get a list of supervisors filtered using the specified query parameters.
-            /// The returned model can contain a continuation token if more results are
-            /// available.
-            /// Call the GetListOfSupervisors operation using the token to retrieve
-            /// more results.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='siteId'>
-            /// Site of the supervisor
-            /// </param>
-            /// <param name='discovery'>
-            /// Discovery mode of supervisor. Possible values include: 'Off', 'Local',
-            /// 'Network', 'Fast', 'Scan'
-            /// </param>
-            /// <param name='connected'>
-            /// Included connected or disconnected
-            /// </param>
-            /// <param name='onlyServerState'>
-            /// Whether to include only server
-            /// state, or display current client state of the endpoint if
-            /// available
-            /// </param>
-            /// <param name='pageSize'>
-            /// Number of results to return
-            /// </param>
-            public static SupervisorListApiModel GetFilteredListOfSupervisors(this IAzureOpcHistoryClient operations, string siteId = default(string), string discovery = default(string), bool? connected = default(bool?), bool? onlyServerState = default(bool?), int? pageSize = default(int?))
-            {
-                return operations.GetFilteredListOfSupervisorsAsync(siteId, discovery, connected, onlyServerState, pageSize).GetAwaiter().GetResult();
-            }
-
-            /// <summary>
-            /// Get filtered list of supervisors
-            /// </summary>
-            /// <remarks>
-            /// Get a list of supervisors filtered using the specified query parameters.
-            /// The returned model can contain a continuation token if more results are
-            /// available.
-            /// Call the GetListOfSupervisors operation using the token to retrieve
-            /// more results.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='siteId'>
-            /// Site of the supervisor
-            /// </param>
-            /// <param name='discovery'>
-            /// Discovery mode of supervisor. Possible values include: 'Off', 'Local',
-            /// 'Network', 'Fast', 'Scan'
-            /// </param>
-            /// <param name='connected'>
-            /// Included connected or disconnected
-            /// </param>
-            /// <param name='onlyServerState'>
-            /// Whether to include only server
-            /// state, or display current client state of the endpoint if
-            /// available
-            /// </param>
-            /// <param name='pageSize'>
-            /// Number of results to return
-            /// </param>
-            /// <param name='cancellationToken'>
-            /// The cancellation token.
-            /// </param>
-            public static async Task<SupervisorListApiModel> GetFilteredListOfSupervisorsAsync(this IAzureOpcHistoryClient operations, string siteId = default(string), string discovery = default(string), bool? connected = default(bool?), bool? onlyServerState = default(bool?), int? pageSize = default(int?), CancellationToken cancellationToken = default(CancellationToken))
-            {
-                using (var _result = await operations.GetFilteredListOfSupervisorsWithHttpMessagesAsync(siteId, discovery, connected, onlyServerState, pageSize, null, cancellationToken).ConfigureAwait(false))
-                {
-                    return _result.Body;
-                }
-            }
-
-            /// <summary>
-            /// Query supervisors
-            /// </summary>
-            /// <remarks>
-            /// Get all supervisors that match a specified query.
-            /// The returned model can contain a continuation token if more results are
-            /// available.
-            /// Call the GetListOfSupervisors operation using the token to retrieve
-            /// more results.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='query'>
-            /// Supervisors query model
-            /// </param>
-            /// <param name='onlyServerState'>
-            /// Whether to include only server
-            /// state, or display current client state of the endpoint if
-            /// available
-            /// </param>
-            /// <param name='pageSize'>
-            /// Number of results to return
-            /// </param>
-            public static SupervisorListApiModel QuerySupervisors(this IAzureOpcHistoryClient operations, SupervisorQueryApiModel query, bool? onlyServerState = default(bool?), int? pageSize = default(int?))
-            {
-                return operations.QuerySupervisorsAsync(query, onlyServerState, pageSize).GetAwaiter().GetResult();
-            }
-
-            /// <summary>
-            /// Query supervisors
-            /// </summary>
-            /// <remarks>
-            /// Get all supervisors that match a specified query.
-            /// The returned model can contain a continuation token if more results are
-            /// available.
-            /// Call the GetListOfSupervisors operation using the token to retrieve
-            /// more results.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='query'>
-            /// Supervisors query model
-            /// </param>
-            /// <param name='onlyServerState'>
-            /// Whether to include only server
-            /// state, or display current client state of the endpoint if
-            /// available
-            /// </param>
-            /// <param name='pageSize'>
-            /// Number of results to return
-            /// </param>
-            /// <param name='cancellationToken'>
-            /// The cancellation token.
-            /// </param>
-            public static async Task<SupervisorListApiModel> QuerySupervisorsAsync(this IAzureOpcHistoryClient operations, SupervisorQueryApiModel query, bool? onlyServerState = default(bool?), int? pageSize = default(int?), CancellationToken cancellationToken = default(CancellationToken))
-            {
-                using (var _result = await operations.QuerySupervisorsWithHttpMessagesAsync(query, onlyServerState, pageSize, null, cancellationToken).ConfigureAwait(false))
                 {
                     return _result.Body;
                 }

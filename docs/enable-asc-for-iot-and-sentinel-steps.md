@@ -1,31 +1,26 @@
-# Azure Security of Things for IoT and Sentinel Integration
+# Azure Security Center and Azure Sentinel Integration
 
 ### Pre-requites
 
 * Log Analytics workspace
   * Information is stored by default in your Log Analytics Workspace by ASC for IoT
-* IoT Hub
+* IoT Hub 
 * Supported service regions for ASC for IoT
   * Central US
   * Northern Europe
   * Southeast Asia
 * Azure Sentinel supports  workspaces created in the following regions only:
-  * Southeast, Canada Central, Central India, East U.S., East U.S. 2 EUAP (Canary), Japan  East, Southeast Asia, UK South, West Europe, and West U.S. 2
+  * Southeast, Canada Central, Central India, East U.S., East U.S. 2 EUAP (Canary), Japan  East, Southeast Asia, UK South, West Europe, and West U.S. 2.
 
 ### Steps
 
 1. Enable ASC for IoT
-
    * Open your IoT Hub in Azure portal
-
    * Under the Security menu, click Overview, then click Start preview
-
    * Choose Enable IoT Security
-
    * Provide your Log Analytics Workspace details (workspace should NOT be the default one)
      * Elect to store raw events in addition to the default information types of storage by leaving the raw event toggle On
      * Elect to enable twin collection by leaving the twin collection toggle On
-
    * Click Save
 
    ![enable](media/asc1.png)
@@ -33,13 +28,11 @@
    ![workspace](media/asc2.png)
 
 2. Add Azure Sentinel to Log Analytics Workspace
-
    * Go to Azure Sentinel and click New. This opens a new blade showing list of workspaces to add. Choose your workspace and click Add Azure Sentinel
 
    ![sentinel](media/asc3.png)
 
 3. Create Alert rules
-
    * Go to Azure Sentinel and select the workspace from Step 2
    * Go to Analytics and click Add
 

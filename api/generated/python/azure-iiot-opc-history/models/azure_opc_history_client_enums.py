@@ -12,38 +12,6 @@
 from enum import Enum
 
 
-class CallbackMethodType(Enum):
-
-    get = "Get"
-    post = "Post"
-    put = "Put"
-    delete = "Delete"
-
-
-class SecurityMode(Enum):
-
-    best = "Best"
-    sign = "Sign"
-    sign_and_encrypt = "SignAndEncrypt"
-    none = "None"
-
-
-class ApplicationType(Enum):
-
-    server = "Server"
-    client = "Client"
-    client_and_server = "ClientAndServer"
-
-
-class DiscoveryMode(Enum):
-
-    off = "Off"
-    local = "Local"
-    network = "Network"
-    fast = "Fast"
-    scan = "Scan"
-
-
 class CredentialType(Enum):
 
     none = "None"
@@ -52,35 +20,18 @@ class CredentialType(Enum):
     jwt_token = "JwtToken"
 
 
-class SecurityAssessment(Enum):
+class DiagnosticsLevel(Enum):
 
-    unknown = "Unknown"
-    low = "Low"
-    medium = "Medium"
-    high = "High"
-
-
-class EndpointActivationState(Enum):
-
-    deactivated = "Deactivated"
-    activated = "Activated"
-    activated_and_connected = "ActivatedAndConnected"
-
-
-class EndpointConnectivityState(Enum):
-
-    connecting = "Connecting"
-    not_reachable = "NotReachable"
-    busy = "Busy"
-    no_trust = "NoTrust"
-    certificate_invalid = "CertificateInvalid"
-    ready = "Ready"
-    error = "Error"
-
-
-class SupervisorLogLevel(Enum):
-
-    error = "Error"
-    information = "Information"
-    debug = "Debug"
+    none = "None"
+    status = "Status"
+    operations = "Operations"
+    diagnostics = "Diagnostics"
     verbose = "Verbose"
+
+
+class HistoryUpdateOperation(Enum):
+
+    insert = "Insert"
+    replace = "Replace"
+    update = "Update"
+    delete = "Delete"

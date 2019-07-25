@@ -9,82 +9,104 @@
 # regenerated.
 # --------------------------------------------------------------------------
 
-from .callback_api_model import CallbackApiModel
-from .endpoint_activation_filter_api_model import EndpointActivationFilterApiModel
-from .server_registration_request_api_model import ServerRegistrationRequestApiModel
-from .application_registration_request_api_model import ApplicationRegistrationRequestApiModel
-from .application_registration_response_api_model import ApplicationRegistrationResponseApiModel
-from .application_info_api_model import ApplicationInfoApiModel
-from .application_info_list_api_model import ApplicationInfoListApiModel
-from .discovery_config_api_model import DiscoveryConfigApiModel
-from .discovery_request_api_model import DiscoveryRequestApiModel
+from .delete_values_at_times_details_api_model import DeleteValuesAtTimesDetailsApiModel
 from .credential_api_model import CredentialApiModel
-from .endpoint_api_model import EndpointApiModel
-from .authentication_method_api_model import AuthenticationMethodApiModel
-from .endpoint_registration_api_model import EndpointRegistrationApiModel
-from .application_registration_api_model import ApplicationRegistrationApiModel
-from .application_registration_update_api_model import ApplicationRegistrationUpdateApiModel
-from .application_site_list_api_model import ApplicationSiteListApiModel
-from .application_registration_query_api_model import ApplicationRegistrationQueryApiModel
-from .endpoint_registration_update_api_model import EndpointRegistrationUpdateApiModel
-from .endpoint_info_api_model import EndpointInfoApiModel
-from .endpoint_info_list_api_model import EndpointInfoListApiModel
-from .endpoint_registration_query_api_model import EndpointRegistrationQueryApiModel
+from .diagnostics_api_model import DiagnosticsApiModel
+from .request_header_api_model import RequestHeaderApiModel
+from .service_result_api_model import ServiceResultApiModel
+from .history_update_response_api_model import HistoryUpdateResponseApiModel
+from .delete_values_details_api_model import DeleteValuesDetailsApiModel
+from .delete_modified_values_details_api_model import DeleteModifiedValuesDetailsApiModel
+from .delete_events_details_api_model import DeleteEventsDetailsApiModel
+from .history_read_next_request_api_model import HistoryReadNextRequestApiModel
+from .modification_info_api_model import ModificationInfoApiModel
+from .historic_value_api_model import HistoricValueApiModel
+from .insert_values_details_api_model import InsertValuesDetailsApiModel
+from .historic_event_api_model import HistoricEventApiModel
+from .insert_events_details_api_model import InsertEventsDetailsApiModel
+from .read_events_details_api_model import ReadEventsDetailsApiModel
+from .read_values_details_api_model import ReadValuesDetailsApiModel
+from .read_values_at_times_details_api_model import ReadValuesAtTimesDetailsApiModel
+from .aggregate_config_api_model import AggregateConfigApiModel
+from .read_processed_values_details_api_model import ReadProcessedValuesDetailsApiModel
+from .read_modified_values_details_api_model import ReadModifiedValuesDetailsApiModel
+from .replace_values_details_api_model import ReplaceValuesDetailsApiModel
+from .replace_events_details_api_model import ReplaceEventsDetailsApiModel
 from .status_response_api_model import StatusResponseApiModel
-from .supervisor_api_model import SupervisorApiModel
-from .supervisor_update_api_model import SupervisorUpdateApiModel
-from .endpoint_activation_status_api_model import EndpointActivationStatusApiModel
-from .supervisor_status_api_model import SupervisorStatusApiModel
-from .supervisor_list_api_model import SupervisorListApiModel
-from .supervisor_query_api_model import SupervisorQueryApiModel
+from .history_update_request_api_model_delete_values_at_times_details_api_model import HistoryUpdateRequestApiModelDeleteValuesAtTimesDetailsApiModel
+from .history_update_request_api_model_delete_values_details_api_model import HistoryUpdateRequestApiModelDeleteValuesDetailsApiModel
+from .history_update_request_api_model_delete_modified_values_details_api_model import HistoryUpdateRequestApiModelDeleteModifiedValuesDetailsApiModel
+from .history_update_request_api_model_delete_events_details_api_model import HistoryUpdateRequestApiModelDeleteEventsDetailsApiModel
+from .history_read_request_api_model_jtoken import HistoryReadRequestApiModelJToken
+from .history_read_response_api_model_jtoken import HistoryReadResponseApiModelJToken
+from .history_read_next_response_api_model_jtoken import HistoryReadNextResponseApiModelJToken
+from .history_update_request_api_model_jtoken import HistoryUpdateRequestApiModelJToken
+from .history_update_request_api_model_insert_values_details_api_model import HistoryUpdateRequestApiModelInsertValuesDetailsApiModel
+from .history_update_request_api_model_insert_events_details_api_model import HistoryUpdateRequestApiModelInsertEventsDetailsApiModel
+from .history_read_request_api_model_read_events_details_api_model import HistoryReadRequestApiModelReadEventsDetailsApiModel
+from .history_read_response_api_model_historic_event_api_model import HistoryReadResponseApiModelHistoricEventApiModel
+from .history_read_next_response_api_model_historic_event_api_model import HistoryReadNextResponseApiModelHistoricEventApiModel
+from .history_read_request_api_model_read_values_details_api_model import HistoryReadRequestApiModelReadValuesDetailsApiModel
+from .history_read_response_api_model_historic_value_api_model import HistoryReadResponseApiModelHistoricValueApiModel
+from .history_read_request_api_model_read_values_at_times_details_api_model import HistoryReadRequestApiModelReadValuesAtTimesDetailsApiModel
+from .history_read_request_api_model_read_processed_values_details_api_model import HistoryReadRequestApiModelReadProcessedValuesDetailsApiModel
+from .history_read_request_api_model_read_modified_values_details_api_model import HistoryReadRequestApiModelReadModifiedValuesDetailsApiModel
+from .history_read_next_response_api_model_historic_value_api_model import HistoryReadNextResponseApiModelHistoricValueApiModel
+from .history_update_request_api_model_replace_values_details_api_model import HistoryUpdateRequestApiModelReplaceValuesDetailsApiModel
+from .history_update_request_api_model_replace_events_details_api_model import HistoryUpdateRequestApiModelReplaceEventsDetailsApiModel
 from .azure_opc_history_client_enums import (
-    CallbackMethodType,
-    SecurityMode,
-    ApplicationType,
-    DiscoveryMode,
     CredentialType,
-    SecurityAssessment,
-    EndpointActivationState,
-    EndpointConnectivityState,
-    SupervisorLogLevel,
+    DiagnosticsLevel,
+    HistoryUpdateOperation,
 )
 
 __all__ = [
-    'CallbackApiModel',
-    'EndpointActivationFilterApiModel',
-    'ServerRegistrationRequestApiModel',
-    'ApplicationRegistrationRequestApiModel',
-    'ApplicationRegistrationResponseApiModel',
-    'ApplicationInfoApiModel',
-    'ApplicationInfoListApiModel',
-    'DiscoveryConfigApiModel',
-    'DiscoveryRequestApiModel',
+    'DeleteValuesAtTimesDetailsApiModel',
     'CredentialApiModel',
-    'EndpointApiModel',
-    'AuthenticationMethodApiModel',
-    'EndpointRegistrationApiModel',
-    'ApplicationRegistrationApiModel',
-    'ApplicationRegistrationUpdateApiModel',
-    'ApplicationSiteListApiModel',
-    'ApplicationRegistrationQueryApiModel',
-    'EndpointRegistrationUpdateApiModel',
-    'EndpointInfoApiModel',
-    'EndpointInfoListApiModel',
-    'EndpointRegistrationQueryApiModel',
+    'DiagnosticsApiModel',
+    'RequestHeaderApiModel',
+    'ServiceResultApiModel',
+    'HistoryUpdateResponseApiModel',
+    'DeleteValuesDetailsApiModel',
+    'DeleteModifiedValuesDetailsApiModel',
+    'DeleteEventsDetailsApiModel',
+    'HistoryReadNextRequestApiModel',
+    'ModificationInfoApiModel',
+    'HistoricValueApiModel',
+    'InsertValuesDetailsApiModel',
+    'HistoricEventApiModel',
+    'InsertEventsDetailsApiModel',
+    'ReadEventsDetailsApiModel',
+    'ReadValuesDetailsApiModel',
+    'ReadValuesAtTimesDetailsApiModel',
+    'AggregateConfigApiModel',
+    'ReadProcessedValuesDetailsApiModel',
+    'ReadModifiedValuesDetailsApiModel',
+    'ReplaceValuesDetailsApiModel',
+    'ReplaceEventsDetailsApiModel',
     'StatusResponseApiModel',
-    'SupervisorApiModel',
-    'SupervisorUpdateApiModel',
-    'EndpointActivationStatusApiModel',
-    'SupervisorStatusApiModel',
-    'SupervisorListApiModel',
-    'SupervisorQueryApiModel',
-    'CallbackMethodType',
-    'SecurityMode',
-    'ApplicationType',
-    'DiscoveryMode',
+    'HistoryUpdateRequestApiModelDeleteValuesAtTimesDetailsApiModel',
+    'HistoryUpdateRequestApiModelDeleteValuesDetailsApiModel',
+    'HistoryUpdateRequestApiModelDeleteModifiedValuesDetailsApiModel',
+    'HistoryUpdateRequestApiModelDeleteEventsDetailsApiModel',
+    'HistoryReadRequestApiModelJToken',
+    'HistoryReadResponseApiModelJToken',
+    'HistoryReadNextResponseApiModelJToken',
+    'HistoryUpdateRequestApiModelJToken',
+    'HistoryUpdateRequestApiModelInsertValuesDetailsApiModel',
+    'HistoryUpdateRequestApiModelInsertEventsDetailsApiModel',
+    'HistoryReadRequestApiModelReadEventsDetailsApiModel',
+    'HistoryReadResponseApiModelHistoricEventApiModel',
+    'HistoryReadNextResponseApiModelHistoricEventApiModel',
+    'HistoryReadRequestApiModelReadValuesDetailsApiModel',
+    'HistoryReadResponseApiModelHistoricValueApiModel',
+    'HistoryReadRequestApiModelReadValuesAtTimesDetailsApiModel',
+    'HistoryReadRequestApiModelReadProcessedValuesDetailsApiModel',
+    'HistoryReadRequestApiModelReadModifiedValuesDetailsApiModel',
+    'HistoryReadNextResponseApiModelHistoricValueApiModel',
+    'HistoryUpdateRequestApiModelReplaceValuesDetailsApiModel',
+    'HistoryUpdateRequestApiModelReplaceEventsDetailsApiModel',
     'CredentialType',
-    'SecurityAssessment',
-    'EndpointActivationState',
-    'EndpointConnectivityState',
-    'SupervisorLogLevel',
+    'DiagnosticsLevel',
+    'HistoryUpdateOperation',
 ]

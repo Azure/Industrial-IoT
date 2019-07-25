@@ -87,7 +87,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 "endpointId": autorest.Encode("path",endpointID),
                 }
 
-        preparer := autorest.CreatePreparer(
+            preparer := autorest.CreatePreparer(
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPathParameters("/v2/endpoints/{endpointId}/activate",pathParameters))
@@ -97,13 +97,92 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         // ActivateEndpointSender sends the ActivateEndpoint request. The method will close the
         // http.Response Body if it receives an error.
         func (client BaseClient) ActivateEndpointSender(req *http.Request) (*http.Response, error) {
-                return autorest.SendWithSender(client, req,
-                autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
                 }
 
     // ActivateEndpointResponder handles the response to the ActivateEndpoint request. The method always
     // closes the http.Response Body.
     func (client BaseClient) ActivateEndpointResponder(resp *http.Response) (result autorest.Response, err error) {
+        err = autorest.Respond(
+        resp,
+        client.ByInspecting(),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
+        autorest.ByClosing())
+        result.Response = resp
+            return
+        }
+
+    // ApproveApplication a manager can approve a new application or force an
+    // application
+    // from any state.
+    // After approval the application is in the 'Approved' state.
+    // Requires Manager role.
+        // Parameters:
+            // applicationID - the application id
+            // force - optional, force application in new state
+    func (client BaseClient) ApproveApplication(ctx context.Context, applicationID string, force *bool) (result autorest.Response, err error) {
+        if tracing.IsEnabled() {
+            ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.ApproveApplication")
+            defer func() {
+                sc := -1
+                if result.Response != nil {
+                    sc = result.Response.StatusCode
+                }
+                tracing.EndSpan(ctx, sc, err)
+            }()
+        }
+            req, err := client.ApproveApplicationPreparer(ctx, applicationID, force)
+        if err != nil {
+        err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "ApproveApplication", nil , "Failure preparing request")
+        return
+        }
+
+                resp, err := client.ApproveApplicationSender(req)
+                if err != nil {
+                result.Response = resp
+                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "ApproveApplication", resp, "Failure sending request")
+                return
+                }
+
+                result, err = client.ApproveApplicationResponder(resp)
+                if err != nil {
+                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "ApproveApplication", resp, "Failure responding to request")
+                }
+
+        return
+        }
+
+        // ApproveApplicationPreparer prepares the ApproveApplication request.
+        func (client BaseClient) ApproveApplicationPreparer(ctx context.Context, applicationID string, force *bool) (*http.Request, error) {
+                pathParameters := map[string]interface{} {
+                "applicationId": autorest.Encode("path",applicationID),
+                }
+
+                        queryParameters := map[string]interface{} {
+            }
+                if force != nil {
+                queryParameters["force"] = autorest.Encode("query",*force)
+                }
+
+            preparer := autorest.CreatePreparer(
+        autorest.AsPost(),
+        autorest.WithBaseURL(client.BaseURI),
+        autorest.WithPathParameters("/v2/applications/{applicationId}/approve",pathParameters),
+        autorest.WithQueryParameters(queryParameters))
+        return preparer.Prepare((&http.Request{}).WithContext(ctx))
+        }
+
+        // ApproveApplicationSender sends the ApproveApplication request. The method will close the
+        // http.Response Body if it receives an error.
+        func (client BaseClient) ApproveApplicationSender(req *http.Request) (*http.Response, error) {
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
+                }
+
+    // ApproveApplicationResponder handles the response to the ApproveApplication request. The method always
+    // closes the http.Response Body.
+    func (client BaseClient) ApproveApplicationResponder(resp *http.Response) (result autorest.Response, err error) {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
@@ -166,7 +245,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
 
         // CreateApplicationPreparer prepares the CreateApplication request.
         func (client BaseClient) CreateApplicationPreparer(ctx context.Context, request ApplicationRegistrationRequestAPIModel) (*http.Request, error) {
-        preparer := autorest.CreatePreparer(
+            preparer := autorest.CreatePreparer(
         autorest.AsContentType("application/json-patch+json; charset=utf-8"),
         autorest.AsPut(),
         autorest.WithBaseURL(client.BaseURI),
@@ -178,8 +257,8 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         // CreateApplicationSender sends the CreateApplication request. The method will close the
         // http.Response Body if it receives an error.
         func (client BaseClient) CreateApplicationSender(req *http.Request) (*http.Response, error) {
-                return autorest.SendWithSender(client, req,
-                autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
                 }
 
     // CreateApplicationResponder handles the response to the CreateApplication request. The method always
@@ -237,7 +316,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 "endpointId": autorest.Encode("path",endpointID),
                 }
 
-        preparer := autorest.CreatePreparer(
+            preparer := autorest.CreatePreparer(
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPathParameters("/v2/endpoints/{endpointId}/deactivate",pathParameters))
@@ -247,8 +326,8 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         // DeactivateEndpointSender sends the DeactivateEndpoint request. The method will close the
         // http.Response Body if it receives an error.
         func (client BaseClient) DeactivateEndpointSender(req *http.Request) (*http.Response, error) {
-                return autorest.SendWithSender(client, req,
-                autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
                 }
 
     // DeactivateEndpointResponder handles the response to the DeactivateEndpoint request. The method always
@@ -307,7 +386,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 queryParameters["notSeenFor"] = autorest.Encode("query",notSeenFor)
                 }
 
-        preparer := autorest.CreatePreparer(
+            preparer := autorest.CreatePreparer(
         autorest.AsDelete(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPath("/v2/applications"),
@@ -318,8 +397,8 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         // DeleteAllDisabledApplicationsSender sends the DeleteAllDisabledApplications request. The method will close the
         // http.Response Body if it receives an error.
         func (client BaseClient) DeleteAllDisabledApplicationsSender(req *http.Request) (*http.Response, error) {
-                return autorest.SendWithSender(client, req,
-                autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
                 }
 
     // DeleteAllDisabledApplicationsResponder handles the response to the DeleteAllDisabledApplications request. The method always
@@ -376,7 +455,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 "applicationId": autorest.Encode("path",applicationID),
                 }
 
-        preparer := autorest.CreatePreparer(
+            preparer := autorest.CreatePreparer(
         autorest.AsDelete(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPathParameters("/v2/applications/{applicationId}",pathParameters))
@@ -386,13 +465,80 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         // DeleteApplicationSender sends the DeleteApplication request. The method will close the
         // http.Response Body if it receives an error.
         func (client BaseClient) DeleteApplicationSender(req *http.Request) (*http.Response, error) {
-                return autorest.SendWithSender(client, req,
-                autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
                 }
 
     // DeleteApplicationResponder handles the response to the DeleteApplication request. The method always
     // closes the http.Response Body.
     func (client BaseClient) DeleteApplicationResponder(resp *http.Response) (result autorest.Response, err error) {
+        err = autorest.Respond(
+        resp,
+        client.ByInspecting(),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
+        autorest.ByClosing())
+        result.Response = resp
+            return
+        }
+
+    // DisableApplication a manager can disable an application.
+        // Parameters:
+            // applicationID - the application id
+    func (client BaseClient) DisableApplication(ctx context.Context, applicationID string) (result autorest.Response, err error) {
+        if tracing.IsEnabled() {
+            ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.DisableApplication")
+            defer func() {
+                sc := -1
+                if result.Response != nil {
+                    sc = result.Response.StatusCode
+                }
+                tracing.EndSpan(ctx, sc, err)
+            }()
+        }
+            req, err := client.DisableApplicationPreparer(ctx, applicationID)
+        if err != nil {
+        err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "DisableApplication", nil , "Failure preparing request")
+        return
+        }
+
+                resp, err := client.DisableApplicationSender(req)
+                if err != nil {
+                result.Response = resp
+                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "DisableApplication", resp, "Failure sending request")
+                return
+                }
+
+                result, err = client.DisableApplicationResponder(resp)
+                if err != nil {
+                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "DisableApplication", resp, "Failure responding to request")
+                }
+
+        return
+        }
+
+        // DisableApplicationPreparer prepares the DisableApplication request.
+        func (client BaseClient) DisableApplicationPreparer(ctx context.Context, applicationID string) (*http.Request, error) {
+                pathParameters := map[string]interface{} {
+                "applicationId": autorest.Encode("path",applicationID),
+                }
+
+            preparer := autorest.CreatePreparer(
+        autorest.AsPost(),
+        autorest.WithBaseURL(client.BaseURI),
+        autorest.WithPathParameters("/v2/applications/{applicationId}/disable",pathParameters))
+        return preparer.Prepare((&http.Request{}).WithContext(ctx))
+        }
+
+        // DisableApplicationSender sends the DisableApplication request. The method will close the
+        // http.Response Body if it receives an error.
+        func (client BaseClient) DisableApplicationSender(req *http.Request) (*http.Response, error) {
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
+                }
+
+    // DisableApplicationResponder handles the response to the DisableApplication request. The method always
+    // closes the http.Response Body.
+    func (client BaseClient) DisableApplicationResponder(resp *http.Response) (result autorest.Response, err error) {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
@@ -441,7 +587,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
 
         // DiscoverServerPreparer prepares the DiscoverServer request.
         func (client BaseClient) DiscoverServerPreparer(ctx context.Context, request DiscoveryRequestAPIModel) (*http.Request, error) {
-        preparer := autorest.CreatePreparer(
+            preparer := autorest.CreatePreparer(
         autorest.AsContentType("application/json-patch+json; charset=utf-8"),
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
@@ -453,13 +599,80 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         // DiscoverServerSender sends the DiscoverServer request. The method will close the
         // http.Response Body if it receives an error.
         func (client BaseClient) DiscoverServerSender(req *http.Request) (*http.Response, error) {
-                return autorest.SendWithSender(client, req,
-                autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
                 }
 
     // DiscoverServerResponder handles the response to the DiscoverServer request. The method always
     // closes the http.Response Body.
     func (client BaseClient) DiscoverServerResponder(resp *http.Response) (result autorest.Response, err error) {
+        err = autorest.Respond(
+        resp,
+        client.ByInspecting(),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
+        autorest.ByClosing())
+        result.Response = resp
+            return
+        }
+
+    // EnableApplication a manager can enable an application.
+        // Parameters:
+            // applicationID - the application id
+    func (client BaseClient) EnableApplication(ctx context.Context, applicationID string) (result autorest.Response, err error) {
+        if tracing.IsEnabled() {
+            ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.EnableApplication")
+            defer func() {
+                sc := -1
+                if result.Response != nil {
+                    sc = result.Response.StatusCode
+                }
+                tracing.EndSpan(ctx, sc, err)
+            }()
+        }
+            req, err := client.EnableApplicationPreparer(ctx, applicationID)
+        if err != nil {
+        err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "EnableApplication", nil , "Failure preparing request")
+        return
+        }
+
+                resp, err := client.EnableApplicationSender(req)
+                if err != nil {
+                result.Response = resp
+                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "EnableApplication", resp, "Failure sending request")
+                return
+                }
+
+                result, err = client.EnableApplicationResponder(resp)
+                if err != nil {
+                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "EnableApplication", resp, "Failure responding to request")
+                }
+
+        return
+        }
+
+        // EnableApplicationPreparer prepares the EnableApplication request.
+        func (client BaseClient) EnableApplicationPreparer(ctx context.Context, applicationID string) (*http.Request, error) {
+                pathParameters := map[string]interface{} {
+                "applicationId": autorest.Encode("path",applicationID),
+                }
+
+            preparer := autorest.CreatePreparer(
+        autorest.AsPost(),
+        autorest.WithBaseURL(client.BaseURI),
+        autorest.WithPathParameters("/v2/applications/{applicationId}/enable",pathParameters))
+        return preparer.Prepare((&http.Request{}).WithContext(ctx))
+        }
+
+        // EnableApplicationSender sends the EnableApplication request. The method will close the
+        // http.Response Body if it receives an error.
+        func (client BaseClient) EnableApplicationSender(req *http.Request) (*http.Response, error) {
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
+                }
+
+    // EnableApplicationResponder handles the response to the EnableApplication request. The method always
+    // closes the http.Response Body.
+    func (client BaseClient) EnableApplicationResponder(resp *http.Response) (result autorest.Response, err error) {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
@@ -510,7 +723,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 "applicationId": autorest.Encode("path",applicationID),
                 }
 
-        preparer := autorest.CreatePreparer(
+            preparer := autorest.CreatePreparer(
         autorest.AsGet(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPathParameters("/v2/applications/{applicationId}",pathParameters))
@@ -520,8 +733,8 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         // GetApplicationRegistrationSender sends the GetApplicationRegistration request. The method will close the
         // http.Response Body if it receives an error.
         func (client BaseClient) GetApplicationRegistrationSender(req *http.Request) (*http.Response, error) {
-                return autorest.SendWithSender(client, req,
-                autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
                 }
 
     // GetApplicationRegistrationResponder handles the response to the GetApplicationRegistration request. The method always
@@ -587,7 +800,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 queryParameters["onlyServerState"] = autorest.Encode("query",*onlyServerState)
                 }
 
-        preparer := autorest.CreatePreparer(
+            preparer := autorest.CreatePreparer(
         autorest.AsGet(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPathParameters("/v2/endpoints/{endpointId}",pathParameters),
@@ -598,8 +811,8 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         // GetEndpointSender sends the GetEndpoint request. The method will close the
         // http.Response Body if it receives an error.
         func (client BaseClient) GetEndpointSender(req *http.Request) (*http.Response, error) {
-                return autorest.SendWithSender(client, req,
-                autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
                 }
 
     // GetEndpointResponder handles the response to the GetEndpoint request. The method always
@@ -664,7 +877,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 queryParameters["pageSize"] = autorest.Encode("query",*pageSize)
                 }
 
-        preparer := autorest.CreatePreparer(
+            preparer := autorest.CreatePreparer(
         autorest.AsContentType("application/json-patch+json; charset=utf-8"),
         autorest.AsGet(),
         autorest.WithBaseURL(client.BaseURI),
@@ -677,8 +890,8 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         // GetFilteredListOfApplicationsSender sends the GetFilteredListOfApplications request. The method will close the
         // http.Response Body if it receives an error.
         func (client BaseClient) GetFilteredListOfApplicationsSender(req *http.Request) (*http.Response, error) {
-                return autorest.SendWithSender(client, req,
-                autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
                 }
 
     // GetFilteredListOfApplicationsResponder handles the response to the GetFilteredListOfApplications request. The method always
@@ -785,7 +998,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 queryParameters["pageSize"] = autorest.Encode("query",*pageSize)
                 }
 
-        preparer := autorest.CreatePreparer(
+            preparer := autorest.CreatePreparer(
         autorest.AsGet(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPath("/v2/endpoints/query"),
@@ -796,8 +1009,8 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         // GetFilteredListOfEndpointsSender sends the GetFilteredListOfEndpoints request. The method will close the
         // http.Response Body if it receives an error.
         func (client BaseClient) GetFilteredListOfEndpointsSender(req *http.Request) (*http.Response, error) {
-                return autorest.SendWithSender(client, req,
-                autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
                 }
 
     // GetFilteredListOfEndpointsResponder handles the response to the GetFilteredListOfEndpoints request. The method always
@@ -879,7 +1092,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 queryParameters["pageSize"] = autorest.Encode("query",*pageSize)
                 }
 
-        preparer := autorest.CreatePreparer(
+            preparer := autorest.CreatePreparer(
         autorest.AsGet(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPath("/v2/supervisors/query"),
@@ -890,8 +1103,8 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         // GetFilteredListOfSupervisorsSender sends the GetFilteredListOfSupervisors request. The method will close the
         // http.Response Body if it receives an error.
         func (client BaseClient) GetFilteredListOfSupervisorsSender(req *http.Request) (*http.Response, error) {
-                return autorest.SendWithSender(client, req,
-                autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
                 }
 
     // GetFilteredListOfSupervisorsResponder handles the response to the GetFilteredListOfSupervisors request. The method always
@@ -960,7 +1173,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 queryParameters["pageSize"] = autorest.Encode("query",*pageSize)
                 }
 
-        preparer := autorest.CreatePreparer(
+            preparer := autorest.CreatePreparer(
         autorest.AsGet(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPath("/v2/applications"),
@@ -971,8 +1184,8 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         // GetListOfApplicationsSender sends the GetListOfApplications request. The method will close the
         // http.Response Body if it receives an error.
         func (client BaseClient) GetListOfApplicationsSender(req *http.Request) (*http.Response, error) {
-                return autorest.SendWithSender(client, req,
-                autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
                 }
 
     // GetListOfApplicationsResponder handles the response to the GetListOfApplications request. The method always
@@ -1081,7 +1294,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 queryParameters["pageSize"] = autorest.Encode("query",*pageSize)
                 }
 
-        preparer := autorest.CreatePreparer(
+            preparer := autorest.CreatePreparer(
         autorest.AsGet(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPath("/v2/endpoints"),
@@ -1092,8 +1305,8 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         // GetListOfEndpointsSender sends the GetListOfEndpoints request. The method will close the
         // http.Response Body if it receives an error.
         func (client BaseClient) GetListOfEndpointsSender(req *http.Request) (*http.Response, error) {
-                return autorest.SendWithSender(client, req,
-                autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
                 }
 
     // GetListOfEndpointsResponder handles the response to the GetListOfEndpoints request. The method always
@@ -1196,7 +1409,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 queryParameters["pageSize"] = autorest.Encode("query",*pageSize)
                 }
 
-        preparer := autorest.CreatePreparer(
+            preparer := autorest.CreatePreparer(
         autorest.AsGet(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPath("/v2/applications/sites"),
@@ -1207,8 +1420,8 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         // GetListOfSitesSender sends the GetListOfSites request. The method will close the
         // http.Response Body if it receives an error.
         func (client BaseClient) GetListOfSitesSender(req *http.Request) (*http.Response, error) {
-                return autorest.SendWithSender(client, req,
-                autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
                 }
 
     // GetListOfSitesResponder handles the response to the GetListOfSites request. The method always
@@ -1318,7 +1531,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 queryParameters["pageSize"] = autorest.Encode("query",*pageSize)
                 }
 
-        preparer := autorest.CreatePreparer(
+            preparer := autorest.CreatePreparer(
         autorest.AsGet(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPath("/v2/supervisors"),
@@ -1329,8 +1542,8 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         // GetListOfSupervisorsSender sends the GetListOfSupervisors request. The method will close the
         // http.Response Body if it receives an error.
         func (client BaseClient) GetListOfSupervisorsSender(req *http.Request) (*http.Response, error) {
-                return autorest.SendWithSender(client, req,
-                autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
                 }
 
     // GetListOfSupervisorsResponder handles the response to the GetListOfSupervisors request. The method always
@@ -1418,7 +1631,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
 
         // GetStatusPreparer prepares the GetStatus request.
         func (client BaseClient) GetStatusPreparer(ctx context.Context) (*http.Request, error) {
-        preparer := autorest.CreatePreparer(
+            preparer := autorest.CreatePreparer(
         autorest.AsGet(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPath("/v2/status"))
@@ -1428,8 +1641,8 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         // GetStatusSender sends the GetStatus request. The method will close the
         // http.Response Body if it receives an error.
         func (client BaseClient) GetStatusSender(req *http.Request) (*http.Response, error) {
-                return autorest.SendWithSender(client, req,
-                autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
                 }
 
     // GetStatusResponder handles the response to the GetStatus request. The method always
@@ -1497,7 +1710,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 queryParameters["onlyServerState"] = autorest.Encode("query",*onlyServerState)
                 }
 
-        preparer := autorest.CreatePreparer(
+            preparer := autorest.CreatePreparer(
         autorest.AsGet(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPathParameters("/v2/supervisors/{supervisorId}",pathParameters),
@@ -1508,8 +1721,8 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         // GetSupervisorSender sends the GetSupervisor request. The method will close the
         // http.Response Body if it receives an error.
         func (client BaseClient) GetSupervisorSender(req *http.Request) (*http.Response, error) {
-                return autorest.SendWithSender(client, req,
-                autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
                 }
 
     // GetSupervisorResponder handles the response to the GetSupervisor request. The method always
@@ -1566,7 +1779,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 "supervisorId": autorest.Encode("path",supervisorID),
                 }
 
-        preparer := autorest.CreatePreparer(
+            preparer := autorest.CreatePreparer(
         autorest.AsGet(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPathParameters("/v2/supervisors/{supervisorId}/status",pathParameters))
@@ -1576,8 +1789,8 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         // GetSupervisorStatusSender sends the GetSupervisorStatus request. The method will close the
         // http.Response Body if it receives an error.
         func (client BaseClient) GetSupervisorStatusSender(req *http.Request) (*http.Response, error) {
-                return autorest.SendWithSender(client, req,
-                autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
                 }
 
     // GetSupervisorStatusResponder handles the response to the GetSupervisorStatus request. The method always
@@ -1642,7 +1855,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 queryParameters["pageSize"] = autorest.Encode("query",*pageSize)
                 }
 
-        preparer := autorest.CreatePreparer(
+            preparer := autorest.CreatePreparer(
         autorest.AsContentType("application/json-patch+json; charset=utf-8"),
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
@@ -1655,13 +1868,81 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         // QueryApplicationsSender sends the QueryApplications request. The method will close the
         // http.Response Body if it receives an error.
         func (client BaseClient) QueryApplicationsSender(req *http.Request) (*http.Response, error) {
-                return autorest.SendWithSender(client, req,
-                autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
                 }
 
     // QueryApplicationsResponder handles the response to the QueryApplications request. The method always
     // closes the http.Response Body.
     func (client BaseClient) QueryApplicationsResponder(resp *http.Response) (result ApplicationInfoListAPIModel, err error) {
+        err = autorest.Respond(
+        resp,
+        client.ByInspecting(),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
+        autorest.ByUnmarshallingJSON(&result),
+        autorest.ByClosing())
+        result.Response = autorest.Response{Response: resp}
+            return
+        }
+
+    // QueryApplicationsByID a query model which supports the OPC UA Global
+    // Discovery Server query.
+    func (client BaseClient) QueryApplicationsByID(ctx context.Context, query *ApplicationRecordQueryAPIModel) (result ApplicationRecordListAPIModel, err error) {
+        if tracing.IsEnabled() {
+            ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.QueryApplicationsByID")
+            defer func() {
+                sc := -1
+                if result.Response.Response != nil {
+                    sc = result.Response.Response.StatusCode
+                }
+                tracing.EndSpan(ctx, sc, err)
+            }()
+        }
+            req, err := client.QueryApplicationsByIDPreparer(ctx, query)
+        if err != nil {
+        err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "QueryApplicationsByID", nil , "Failure preparing request")
+        return
+        }
+
+                resp, err := client.QueryApplicationsByIDSender(req)
+                if err != nil {
+                result.Response = autorest.Response{Response: resp}
+                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "QueryApplicationsByID", resp, "Failure sending request")
+                return
+                }
+
+                result, err = client.QueryApplicationsByIDResponder(resp)
+                if err != nil {
+                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "QueryApplicationsByID", resp, "Failure responding to request")
+                }
+
+        return
+        }
+
+        // QueryApplicationsByIDPreparer prepares the QueryApplicationsByID request.
+        func (client BaseClient) QueryApplicationsByIDPreparer(ctx context.Context, query *ApplicationRecordQueryAPIModel) (*http.Request, error) {
+            preparer := autorest.CreatePreparer(
+        autorest.AsContentType("application/json-patch+json; charset=utf-8"),
+        autorest.AsPost(),
+        autorest.WithBaseURL(client.BaseURI),
+        autorest.WithPath("/v2/applications/querybyid"))
+                if query != nil {
+                preparer = autorest.DecoratePreparer(preparer,
+                autorest.WithJSON(query))
+                }
+        return preparer.Prepare((&http.Request{}).WithContext(ctx))
+        }
+
+        // QueryApplicationsByIDSender sends the QueryApplicationsByID request. The method will close the
+        // http.Response Body if it receives an error.
+        func (client BaseClient) QueryApplicationsByIDSender(req *http.Request) (*http.Response, error) {
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
+                }
+
+    // QueryApplicationsByIDResponder handles the response to the QueryApplicationsByID request. The method always
+    // closes the http.Response Body.
+    func (client BaseClient) QueryApplicationsByIDResponder(resp *http.Response) (result ApplicationRecordListAPIModel, err error) {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
@@ -1725,7 +2006,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 queryParameters["pageSize"] = autorest.Encode("query",*pageSize)
                 }
 
-        preparer := autorest.CreatePreparer(
+            preparer := autorest.CreatePreparer(
         autorest.AsContentType("application/json-patch+json; charset=utf-8"),
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
@@ -1738,8 +2019,8 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         // QueryEndpointsSender sends the QueryEndpoints request. The method will close the
         // http.Response Body if it receives an error.
         func (client BaseClient) QueryEndpointsSender(req *http.Request) (*http.Response, error) {
-                return autorest.SendWithSender(client, req,
-                autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
                 }
 
     // QueryEndpointsResponder handles the response to the QueryEndpoints request. The method always
@@ -1809,7 +2090,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 queryParameters["pageSize"] = autorest.Encode("query",*pageSize)
                 }
 
-        preparer := autorest.CreatePreparer(
+            preparer := autorest.CreatePreparer(
         autorest.AsContentType("application/json-patch+json; charset=utf-8"),
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
@@ -1822,8 +2103,8 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         // QuerySupervisorsSender sends the QuerySupervisors request. The method will close the
         // http.Response Body if it receives an error.
         func (client BaseClient) QuerySupervisorsSender(req *http.Request) (*http.Response, error) {
-                return autorest.SendWithSender(client, req,
-                autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
                 }
 
     // QuerySupervisorsResponder handles the response to the QuerySupervisors request. The method always
@@ -1885,7 +2166,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
 
         // RegisterServerPreparer prepares the RegisterServer request.
         func (client BaseClient) RegisterServerPreparer(ctx context.Context, request ServerRegistrationRequestAPIModel) (*http.Request, error) {
-        preparer := autorest.CreatePreparer(
+            preparer := autorest.CreatePreparer(
         autorest.AsContentType("application/json-patch+json; charset=utf-8"),
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
@@ -1897,13 +2178,92 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         // RegisterServerSender sends the RegisterServer request. The method will close the
         // http.Response Body if it receives an error.
         func (client BaseClient) RegisterServerSender(req *http.Request) (*http.Response, error) {
-                return autorest.SendWithSender(client, req,
-                autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
                 }
 
     // RegisterServerResponder handles the response to the RegisterServer request. The method always
     // closes the http.Response Body.
     func (client BaseClient) RegisterServerResponder(resp *http.Response) (result autorest.Response, err error) {
+        err = autorest.Respond(
+        resp,
+        client.ByInspecting(),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
+        autorest.ByClosing())
+        result.Response = resp
+            return
+        }
+
+    // RejectApplication a manager can approve a new application or force an
+    // application
+    // from any state.
+    // After approval the application is in the 'Rejected' state.
+    // Requires Manager role.
+        // Parameters:
+            // applicationID - the application id
+            // force - optional, force application in new state
+    func (client BaseClient) RejectApplication(ctx context.Context, applicationID string, force *bool) (result autorest.Response, err error) {
+        if tracing.IsEnabled() {
+            ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.RejectApplication")
+            defer func() {
+                sc := -1
+                if result.Response != nil {
+                    sc = result.Response.StatusCode
+                }
+                tracing.EndSpan(ctx, sc, err)
+            }()
+        }
+            req, err := client.RejectApplicationPreparer(ctx, applicationID, force)
+        if err != nil {
+        err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "RejectApplication", nil , "Failure preparing request")
+        return
+        }
+
+                resp, err := client.RejectApplicationSender(req)
+                if err != nil {
+                result.Response = resp
+                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "RejectApplication", resp, "Failure sending request")
+                return
+                }
+
+                result, err = client.RejectApplicationResponder(resp)
+                if err != nil {
+                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "RejectApplication", resp, "Failure responding to request")
+                }
+
+        return
+        }
+
+        // RejectApplicationPreparer prepares the RejectApplication request.
+        func (client BaseClient) RejectApplicationPreparer(ctx context.Context, applicationID string, force *bool) (*http.Request, error) {
+                pathParameters := map[string]interface{} {
+                "applicationId": autorest.Encode("path",applicationID),
+                }
+
+                        queryParameters := map[string]interface{} {
+            }
+                if force != nil {
+                queryParameters["force"] = autorest.Encode("query",*force)
+                }
+
+            preparer := autorest.CreatePreparer(
+        autorest.AsPost(),
+        autorest.WithBaseURL(client.BaseURI),
+        autorest.WithPathParameters("/v2/applications/{applicationId}/reject",pathParameters),
+        autorest.WithQueryParameters(queryParameters))
+        return preparer.Prepare((&http.Request{}).WithContext(ctx))
+        }
+
+        // RejectApplicationSender sends the RejectApplication request. The method will close the
+        // http.Response Body if it receives an error.
+        func (client BaseClient) RejectApplicationSender(req *http.Request) (*http.Response, error) {
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
+                }
+
+    // RejectApplicationResponder handles the response to the RejectApplication request. The method always
+    // closes the http.Response Body.
+    func (client BaseClient) RejectApplicationResponder(resp *http.Response) (result autorest.Response, err error) {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
@@ -1956,7 +2316,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 "supervisorId": autorest.Encode("path",supervisorID),
                 }
 
-        preparer := autorest.CreatePreparer(
+            preparer := autorest.CreatePreparer(
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPathParameters("/v2/supervisors/{supervisorId}/reset",pathParameters))
@@ -1966,8 +2326,8 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         // ResetSupervisorSender sends the ResetSupervisor request. The method will close the
         // http.Response Body if it receives an error.
         func (client BaseClient) ResetSupervisorSender(req *http.Request) (*http.Response, error) {
-                return autorest.SendWithSender(client, req,
-                autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
                 }
 
     // ResetSupervisorResponder handles the response to the ResetSupervisor request. The method always
@@ -2027,7 +2387,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 "applicationId": autorest.Encode("path",applicationID),
                 }
 
-        preparer := autorest.CreatePreparer(
+            preparer := autorest.CreatePreparer(
         autorest.AsContentType("application/json-patch+json; charset=utf-8"),
         autorest.AsPatch(),
         autorest.WithBaseURL(client.BaseURI),
@@ -2039,8 +2399,8 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         // UpdateApplicationRegistrationSender sends the UpdateApplicationRegistration request. The method will close the
         // http.Response Body if it receives an error.
         func (client BaseClient) UpdateApplicationRegistrationSender(req *http.Request) (*http.Response, error) {
-                return autorest.SendWithSender(client, req,
-                autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
                 }
 
     // UpdateApplicationRegistrationResponder handles the response to the UpdateApplicationRegistration request. The method always
@@ -2097,7 +2457,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 "endpointId": autorest.Encode("path",endpointID),
                 }
 
-        preparer := autorest.CreatePreparer(
+            preparer := autorest.CreatePreparer(
         autorest.AsContentType("application/json-patch+json; charset=utf-8"),
         autorest.AsPatch(),
         autorest.WithBaseURL(client.BaseURI),
@@ -2109,8 +2469,8 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         // UpdateEndpointSender sends the UpdateEndpoint request. The method will close the
         // http.Response Body if it receives an error.
         func (client BaseClient) UpdateEndpointSender(req *http.Request) (*http.Response, error) {
-                return autorest.SendWithSender(client, req,
-                autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
                 }
 
     // UpdateEndpointResponder handles the response to the UpdateEndpoint request. The method always
@@ -2169,7 +2529,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 "supervisorId": autorest.Encode("path",supervisorID),
                 }
 
-        preparer := autorest.CreatePreparer(
+            preparer := autorest.CreatePreparer(
         autorest.AsContentType("application/json-patch+json; charset=utf-8"),
         autorest.AsPatch(),
         autorest.WithBaseURL(client.BaseURI),
@@ -2181,8 +2541,8 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         // UpdateSupervisorSender sends the UpdateSupervisor request. The method will close the
         // http.Response Body if it receives an error.
         func (client BaseClient) UpdateSupervisorSender(req *http.Request) (*http.Response, error) {
-                return autorest.SendWithSender(client, req,
-                autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
                 }
 
     // UpdateSupervisorResponder handles the response to the UpdateSupervisor request. The method always

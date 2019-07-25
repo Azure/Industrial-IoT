@@ -851,7 +851,7 @@ export interface StatusResponseApiModel {
   /**
    * Name of this service
    */
-  readonly name?: string;
+  name?: string;
   /**
    * Operational status
    */

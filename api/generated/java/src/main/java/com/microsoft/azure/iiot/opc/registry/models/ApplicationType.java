@@ -24,7 +24,10 @@ public enum ApplicationType {
     CLIENT("Client"),
 
     /** Enum value ClientAndServer. */
-    CLIENT_AND_SERVER("ClientAndServer");
+    CLIENT_AND_SERVER("ClientAndServer"),
+
+    /** Enum value DiscoveryServer. */
+    DISCOVERY_SERVER("DiscoveryServer");
 
     /** The actual serialized value for a ApplicationType instance. */
     private String value;

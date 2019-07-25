@@ -19,7 +19,7 @@ namespace Microsoft.Azure.IIoT.Opc.History
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Azure Industrial IoT OPC UA Registry Service
+    /// Azure Industrial IoT OPC UA Historic Access Service
     /// </summary>
     public partial interface IAzureOpcHistoryClient : System.IDisposable
     {
@@ -46,290 +46,18 @@ namespace Microsoft.Azure.IIoT.Opc.History
 
 
         /// <summary>
-        /// Get list of applications
+        /// Delete value history at specified times
         /// </summary>
         /// <remarks>
-        /// Get all registered applications in paged form.
-        /// The returned model can contain a continuation token if more results
-        /// are
-        /// available.
-        /// Call this operation again using the token to retrieve more results.
-        /// </remarks>
-        /// <param name='continuationToken'>
-        /// Optional Continuation
-        /// token
-        /// </param>
-        /// <param name='pageSize'>
-        /// Optional number of results to
-        /// return
-        /// </param>
-        /// <param name='customHeaders'>
-        /// The headers that will be added to request.
-        /// </param>
-        /// <param name='cancellationToken'>
-        /// The cancellation token.
-        /// </param>
-        Task<HttpOperationResponse<ApplicationInfoListApiModel>> GetListOfApplicationsWithHttpMessagesAsync(string continuationToken = default(string), int? pageSize = default(int?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
-
-        /// <summary>
-        /// Create new application
-        /// </summary>
-        /// <remarks>
-        /// The application is registered using the provided information, but
-        /// it
-        /// is not associated with a supervisor.  This is useful for when you
-        /// need
-        /// to register clients or you want to register a server that is
-        /// located
-        /// in a network not reachable through a Twin module.
-        /// </remarks>
-        /// <param name='request'>
-        /// Application registration request
-        /// </param>
-        /// <param name='customHeaders'>
-        /// The headers that will be added to request.
-        /// </param>
-        /// <param name='cancellationToken'>
-        /// The cancellation token.
-        /// </param>
-        Task<HttpOperationResponse<ApplicationRegistrationResponseApiModel>> CreateApplicationWithHttpMessagesAsync(ApplicationRegistrationRequestApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
-
-        /// <summary>
-        /// Register new server
-        /// </summary>
-        /// <remarks>
-        /// Registers a server solely using a discovery url. Requires that
-        /// the onboarding agent service is running and the server can be
-        /// located by a supervisor in its network using the discovery url.
-        /// </remarks>
-        /// <param name='request'>
-        /// Server registration request
-        /// </param>
-        /// <param name='customHeaders'>
-        /// The headers that will be added to request.
-        /// </param>
-        /// <param name='cancellationToken'>
-        /// The cancellation token.
-        /// </param>
-        Task<HttpOperationResponse> RegisterServerWithHttpMessagesAsync(ServerRegistrationRequestApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
-
-        /// <summary>
-        /// Purge applications
-        /// </summary>
-        /// <remarks>
-        /// Purges all applications that have not been seen for a specified
-        /// amount of time.
-        /// </remarks>
-        /// <param name='notSeenFor'>
-        /// A duration in milliseconds
-        /// </param>
-        /// <param name='customHeaders'>
-        /// The headers that will be added to request.
-        /// </param>
-        /// <param name='cancellationToken'>
-        /// The cancellation token.
-        /// </param>
-        Task<HttpOperationResponse> DeleteAllDisabledApplicationsWithHttpMessagesAsync(string notSeenFor = default(string), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
-
-        /// <summary>
-        /// Discover servers
-        /// </summary>
-        /// <remarks>
-        /// Registers servers by running a discovery scan in a supervisor's
-        /// network. Requires that the onboarding agent service is running.
-        /// </remarks>
-        /// <param name='request'>
-        /// Discovery request
-        /// </param>
-        /// <param name='customHeaders'>
-        /// The headers that will be added to request.
-        /// </param>
-        /// <param name='cancellationToken'>
-        /// The cancellation token.
-        /// </param>
-        Task<HttpOperationResponse> DiscoverServerWithHttpMessagesAsync(DiscoveryRequestApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
-
-        /// <summary>
-        /// Get application registration
-        /// </summary>
-        /// <param name='applicationId'>
-        /// Application id for the server
-        /// </param>
-        /// <param name='customHeaders'>
-        /// The headers that will be added to request.
-        /// </param>
-        /// <param name='cancellationToken'>
-        /// The cancellation token.
-        /// </param>
-        Task<HttpOperationResponse<ApplicationRegistrationApiModel>> GetApplicationRegistrationWithHttpMessagesAsync(string applicationId, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
-
-        /// <summary>
-        /// Unregister application
-        /// </summary>
-        /// <remarks>
-        /// Unregisters and deletes application and all its associated
-        /// endpoints.
-        /// </remarks>
-        /// <param name='applicationId'>
-        /// The identifier of the application
-        /// </param>
-        /// <param name='customHeaders'>
-        /// The headers that will be added to request.
-        /// </param>
-        /// <param name='cancellationToken'>
-        /// The cancellation token.
-        /// </param>
-        Task<HttpOperationResponse> DeleteApplicationWithHttpMessagesAsync(string applicationId, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
-
-        /// <summary>
-        /// Update application registration
-        /// </summary>
-        /// <remarks>
-        /// The application information is updated with new properties.  Note
-        /// that
-        /// this information might be overridden if the application is
-        /// re-discovered
-        /// during a discovery run (recurring or one-time).
-        /// </remarks>
-        /// <param name='applicationId'>
-        /// The identifier of the application
-        /// </param>
-        /// <param name='request'>
-        /// Application update request
-        /// </param>
-        /// <param name='customHeaders'>
-        /// The headers that will be added to request.
-        /// </param>
-        /// <param name='cancellationToken'>
-        /// The cancellation token.
-        /// </param>
-        Task<HttpOperationResponse> UpdateApplicationRegistrationWithHttpMessagesAsync(string applicationId, ApplicationRegistrationUpdateApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
-
-        /// <summary>
-        /// Get list of sites
-        /// </summary>
-        /// <remarks>
-        /// List all sites applications are registered in.
-        /// </remarks>
-        /// <param name='continuationToken'>
-        /// Optional Continuation
-        /// token
-        /// </param>
-        /// <param name='pageSize'>
-        /// Optional number of results to
-        /// return
-        /// </param>
-        /// <param name='customHeaders'>
-        /// The headers that will be added to request.
-        /// </param>
-        /// <param name='cancellationToken'>
-        /// The cancellation token.
-        /// </param>
-        Task<HttpOperationResponse<ApplicationSiteListApiModel>> GetListOfSitesWithHttpMessagesAsync(string continuationToken = default(string), int? pageSize = default(int?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
-
-        /// <summary>
-        /// Get filtered list of applications
-        /// </summary>
-        /// <remarks>
-        /// Get a list of applications filtered using the specified query
-        /// parameters.
-        /// The returned model can contain a continuation token if more results
-        /// are
-        /// available.
-        /// Call the GetListOfApplications operation using the token to
-        /// retrieve
-        /// more results.
-        /// </remarks>
-        /// <param name='query'>
-        /// Applications Query model
-        /// </param>
-        /// <param name='pageSize'>
-        /// Number of results to return
-        /// </param>
-        /// <param name='customHeaders'>
-        /// The headers that will be added to request.
-        /// </param>
-        /// <param name='cancellationToken'>
-        /// The cancellation token.
-        /// </param>
-        Task<HttpOperationResponse<ApplicationInfoListApiModel>> GetFilteredListOfApplicationsWithHttpMessagesAsync(ApplicationRegistrationQueryApiModel query, int? pageSize = default(int?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
-
-        /// <summary>
-        /// Query applications
-        /// </summary>
-        /// <remarks>
-        /// List applications that match a query model.
-        /// The returned model can contain a continuation token if more results
-        /// are
-        /// available.
-        /// Call the GetListOfApplications operation using the token to
-        /// retrieve
-        /// more results.
-        /// </remarks>
-        /// <param name='query'>
-        /// Application query
-        /// </param>
-        /// <param name='pageSize'>
-        /// Optional number of results to
-        /// return
-        /// </param>
-        /// <param name='customHeaders'>
-        /// The headers that will be added to request.
-        /// </param>
-        /// <param name='cancellationToken'>
-        /// The cancellation token.
-        /// </param>
-        Task<HttpOperationResponse<ApplicationInfoListApiModel>> QueryApplicationsWithHttpMessagesAsync(ApplicationRegistrationQueryApiModel query, int? pageSize = default(int?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
-
-        /// <summary>
-        /// Activate endpoint
-        /// </summary>
-        /// <remarks>
-        /// Activates an endpoint for subsequent use in twin service.
-        /// All endpoints must be activated using this API or through a
-        /// activation filter during application registration or discovery.
+        /// Delete value history using historic access.
+        /// The endpoint must be activated and connected and the module client
+        /// and server must trust each other.
         /// </remarks>
         /// <param name='endpointId'>
-        /// endpoint identifier
-        /// </param>
-        /// <param name='customHeaders'>
-        /// The headers that will be added to request.
-        /// </param>
-        /// <param name='cancellationToken'>
-        /// The cancellation token.
-        /// </param>
-        Task<HttpOperationResponse> ActivateEndpointWithHttpMessagesAsync(string endpointId, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
-
-        /// <summary>
-        /// Get endpoint information
-        /// </summary>
-        /// <remarks>
-        /// Gets information about an endpoint.
-        /// </remarks>
-        /// <param name='endpointId'>
-        /// endpoint identifier
-        /// </param>
-        /// <param name='onlyServerState'>
-        /// Whether to include only server
-        /// state, or display current client state of the endpoint if
-        /// available
-        /// </param>
-        /// <param name='customHeaders'>
-        /// The headers that will be added to request.
-        /// </param>
-        /// <param name='cancellationToken'>
-        /// The cancellation token.
-        /// </param>
-        Task<HttpOperationResponse<EndpointInfoApiModel>> GetEndpointWithHttpMessagesAsync(string endpointId, bool? onlyServerState = default(bool?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
-
-        /// <summary>
-        /// Update endpoint information
-        /// </summary>
-        /// <param name='endpointId'>
-        /// endpoint identifier
+        /// The identifier of the activated endpoint.
         /// </param>
         /// <param name='request'>
-        /// Endpoint update request
+        /// The history update request
         /// </param>
         /// <param name='customHeaders'>
         /// The headers that will be added to request.
@@ -337,132 +65,21 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// <param name='cancellationToken'>
         /// The cancellation token.
         /// </param>
-        Task<HttpOperationResponse> UpdateEndpointWithHttpMessagesAsync(string endpointId, EndpointRegistrationUpdateApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+        Task<HttpOperationResponse<HistoryUpdateResponseApiModel>> HistoryDeleteValuesAtTimesWithHttpMessagesAsync(string endpointId, HistoryUpdateRequestApiModelDeleteValuesAtTimesDetailsApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
-        /// Get list of endpoints
+        /// Delete historic values
         /// </summary>
         /// <remarks>
-        /// Get all registered endpoints in paged form.
-        /// The returned model can contain a continuation token if more results
-        /// are
-        /// available.
-        /// Call this operation again using the token to retrieve more results.
-        /// </remarks>
-        /// <param name='onlyServerState'>
-        /// Whether to include only server
-        /// state, or display current client state of the endpoint if available
-        /// </param>
-        /// <param name='continuationToken'>
-        /// Optional Continuation token
-        /// </param>
-        /// <param name='pageSize'>
-        /// Optional number of results to return
-        /// </param>
-        /// <param name='customHeaders'>
-        /// The headers that will be added to request.
-        /// </param>
-        /// <param name='cancellationToken'>
-        /// The cancellation token.
-        /// </param>
-        Task<HttpOperationResponse<EndpointInfoListApiModel>> GetListOfEndpointsWithHttpMessagesAsync(bool? onlyServerState = default(bool?), string continuationToken = default(string), int? pageSize = default(int?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
-
-        /// <summary>
-        /// Get filtered list of endpoints
-        /// </summary>
-        /// <remarks>
-        /// Get a list of endpoints filtered using the specified query
-        /// parameters.
-        /// The returned model can contain a continuation token if more results
-        /// are
-        /// available.
-        /// Call the GetListOfEndpoints operation using the token to retrieve
-        /// more results.
-        /// </remarks>
-        /// <param name='url'>
-        /// Endoint url for direct server access
-        /// </param>
-        /// <param name='userAuthentication'>
-        /// Type of credential selected for authentication. Possible values
-        /// include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
-        /// </param>
-        /// <param name='certificate'>
-        /// Certificate of the endpoint
-        /// </param>
-        /// <param name='securityMode'>
-        /// Security Mode. Possible values include: 'Best', 'Sign',
-        /// 'SignAndEncrypt', 'None'
-        /// </param>
-        /// <param name='securityPolicy'>
-        /// Security policy uri
-        /// </param>
-        /// <param name='activated'>
-        /// Whether the endpoint was activated
-        /// </param>
-        /// <param name='connected'>
-        /// Whether the endpoint is connected on supervisor.
-        /// </param>
-        /// <param name='endpointState'>
-        /// The last state of the the activated endpoint. Possible values
-        /// include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust',
-        /// 'CertificateInvalid', 'Ready', 'Error'
-        /// </param>
-        /// <param name='includeNotSeenSince'>
-        /// Whether to include endpoints that were soft deleted
-        /// </param>
-        /// <param name='onlyServerState'>
-        /// Whether to include only server state, or display
-        /// current client state of the endpoint if available
-        /// </param>
-        /// <param name='pageSize'>
-        /// Optional number of results to
-        /// return
-        /// </param>
-        /// <param name='customHeaders'>
-        /// The headers that will be added to request.
-        /// </param>
-        /// <param name='cancellationToken'>
-        /// The cancellation token.
-        /// </param>
-        Task<HttpOperationResponse<EndpointInfoListApiModel>> GetFilteredListOfEndpointsWithHttpMessagesAsync(string url = default(string), string userAuthentication = default(string), byte[] certificate = default(byte[]), string securityMode = default(string), string securityPolicy = default(string), bool? activated = default(bool?), bool? connected = default(bool?), string endpointState = default(string), bool? includeNotSeenSince = default(bool?), bool? onlyServerState = default(bool?), int? pageSize = default(int?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
-
-        /// <summary>
-        /// Query endpoints
-        /// </summary>
-        /// <remarks>
-        /// Return endpoints that match the specified query.
-        /// The returned model can contain a continuation token if more results
-        /// are
-        /// available.
-        /// Call the GetListOfEndpoints operation using the token to retrieve
-        /// more results.
-        /// </remarks>
-        /// <param name='query'>
-        /// Query to match
-        /// </param>
-        /// <param name='onlyServerState'>
-        /// Whether to include only server
-        /// state, or display current client state of the endpoint if available
-        /// </param>
-        /// <param name='pageSize'>
-        /// Optional number of results to return
-        /// </param>
-        /// <param name='customHeaders'>
-        /// The headers that will be added to request.
-        /// </param>
-        /// <param name='cancellationToken'>
-        /// The cancellation token.
-        /// </param>
-        Task<HttpOperationResponse<EndpointInfoListApiModel>> QueryEndpointsWithHttpMessagesAsync(EndpointRegistrationQueryApiModel query, bool? onlyServerState = default(bool?), int? pageSize = default(int?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
-
-        /// <summary>
-        /// Deactivate endpoint
-        /// </summary>
-        /// <remarks>
-        /// Deactivates the endpoint and disable access through twin service.
+        /// Delete historic values using historic access.
+        /// The endpoint must be activated and connected and the module client
+        /// and server must trust each other.
         /// </remarks>
         /// <param name='endpointId'>
-        /// endpoint identifier
+        /// The identifier of the activated endpoint.
+        /// </param>
+        /// <param name='request'>
+        /// The history update request
         /// </param>
         /// <param name='customHeaders'>
         /// The headers that will be added to request.
@@ -470,7 +87,362 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// <param name='cancellationToken'>
         /// The cancellation token.
         /// </param>
-        Task<HttpOperationResponse> DeactivateEndpointWithHttpMessagesAsync(string endpointId, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+        Task<HttpOperationResponse<HistoryUpdateResponseApiModel>> HistoryDeleteValuesWithHttpMessagesAsync(string endpointId, HistoryUpdateRequestApiModelDeleteValuesDetailsApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Delete historic values
+        /// </summary>
+        /// <remarks>
+        /// Delete historic values using historic access.
+        /// The endpoint must be activated and connected and the module client
+        /// and server must trust each other.
+        /// </remarks>
+        /// <param name='endpointId'>
+        /// The identifier of the activated endpoint.
+        /// </param>
+        /// <param name='request'>
+        /// The history update request
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse<HistoryUpdateResponseApiModel>> HistoryDeleteModifiedValuesWithHttpMessagesAsync(string endpointId, HistoryUpdateRequestApiModelDeleteModifiedValuesDetailsApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Delete historic events
+        /// </summary>
+        /// <remarks>
+        /// Delete historic events using historic access.
+        /// The endpoint must be activated and connected and the module client
+        /// and server must trust each other.
+        /// </remarks>
+        /// <param name='endpointId'>
+        /// The identifier of the activated endpoint.
+        /// </param>
+        /// <param name='request'>
+        /// The history update request
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse<HistoryUpdateResponseApiModel>> HistoryDeleteEventsWithHttpMessagesAsync(string endpointId, HistoryUpdateRequestApiModelDeleteEventsDetailsApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Read history using json details
+        /// </summary>
+        /// <remarks>
+        /// Read node history if available using historic access.
+        /// The endpoint must be activated and connected and the module client
+        /// and server must trust each other.
+        /// </remarks>
+        /// <param name='endpointId'>
+        /// The identifier of the activated endpoint.
+        /// </param>
+        /// <param name='request'>
+        /// The history read request
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse<HistoryReadResponseApiModelJToken>> HistoryReadRawWithHttpMessagesAsync(string endpointId, HistoryReadRequestApiModelJToken request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Read next batch of history as json
+        /// </summary>
+        /// <remarks>
+        /// Read next batch of node history values using historic access.
+        /// The endpoint must be activated and connected and the module client
+        /// and server must trust each other.
+        /// </remarks>
+        /// <param name='endpointId'>
+        /// The identifier of the activated endpoint.
+        /// </param>
+        /// <param name='request'>
+        /// The history read next request
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse<HistoryReadNextResponseApiModelJToken>> HistoryReadRawNextWithHttpMessagesAsync(string endpointId, HistoryReadNextRequestApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Update node history using raw json
+        /// </summary>
+        /// <remarks>
+        /// Update node history using historic access.
+        /// The endpoint must be activated and connected and the module client
+        /// and server must trust each other.
+        /// </remarks>
+        /// <param name='endpointId'>
+        /// The identifier of the activated endpoint.
+        /// </param>
+        /// <param name='request'>
+        /// The history update request
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse<HistoryUpdateResponseApiModel>> HistoryUpdateRawWithHttpMessagesAsync(string endpointId, HistoryUpdateRequestApiModelJToken request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Insert historic values
+        /// </summary>
+        /// <remarks>
+        /// Insert historic values using historic access.
+        /// The endpoint must be activated and connected and the module client
+        /// and server must trust each other.
+        /// </remarks>
+        /// <param name='endpointId'>
+        /// The identifier of the activated endpoint.
+        /// </param>
+        /// <param name='request'>
+        /// The history insert request
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse<HistoryUpdateResponseApiModel>> HistoryInsertValuesWithHttpMessagesAsync(string endpointId, HistoryUpdateRequestApiModelInsertValuesDetailsApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Insert historic events
+        /// </summary>
+        /// <remarks>
+        /// Insert historic events using historic access.
+        /// The endpoint must be activated and connected and the module client
+        /// and server must trust each other.
+        /// </remarks>
+        /// <param name='endpointId'>
+        /// The identifier of the activated endpoint.
+        /// </param>
+        /// <param name='request'>
+        /// The history insert request
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse<HistoryUpdateResponseApiModel>> HistoryInsertEventsWithHttpMessagesAsync(string endpointId, HistoryUpdateRequestApiModelInsertEventsDetailsApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Read historic events
+        /// </summary>
+        /// <remarks>
+        /// Read historic events of a node if available using historic access.
+        /// The endpoint must be activated and connected and the module client
+        /// and server must trust each other.
+        /// </remarks>
+        /// <param name='endpointId'>
+        /// The identifier of the activated endpoint.
+        /// </param>
+        /// <param name='request'>
+        /// The history read request
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse<HistoryReadResponseApiModelHistoricEventApiModel>> HistoryReadEventsWithHttpMessagesAsync(string endpointId, HistoryReadRequestApiModelReadEventsDetailsApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Read next batch of historic events
+        /// </summary>
+        /// <remarks>
+        /// Read next batch of historic events of a node using historic access.
+        /// The endpoint must be activated and connected and the module client
+        /// and server must trust each other.
+        /// </remarks>
+        /// <param name='endpointId'>
+        /// The identifier of the activated endpoint.
+        /// </param>
+        /// <param name='request'>
+        /// The history read next request
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse<HistoryReadNextResponseApiModelHistoricEventApiModel>> HistoryReadEventsNextWithHttpMessagesAsync(string endpointId, HistoryReadNextRequestApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Read historic processed values at specified times
+        /// </summary>
+        /// <remarks>
+        /// Read processed history values of a node if available using historic
+        /// access.
+        /// The endpoint must be activated and connected and the module client
+        /// and server must trust each other.
+        /// </remarks>
+        /// <param name='endpointId'>
+        /// The identifier of the activated endpoint.
+        /// </param>
+        /// <param name='request'>
+        /// The history read request
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse<HistoryReadResponseApiModelHistoricValueApiModel>> HistoryReadValuesWithHttpMessagesAsync(string endpointId, HistoryReadRequestApiModelReadValuesDetailsApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Read historic values at specified times
+        /// </summary>
+        /// <remarks>
+        /// Read historic values of a node if available using historic access.
+        /// The endpoint must be activated and connected and the module client
+        /// and server must trust each other.
+        /// </remarks>
+        /// <param name='endpointId'>
+        /// The identifier of the activated endpoint.
+        /// </param>
+        /// <param name='request'>
+        /// The history read request
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse<HistoryReadResponseApiModelHistoricValueApiModel>> HistoryReadValuesAtTimesWithHttpMessagesAsync(string endpointId, HistoryReadRequestApiModelReadValuesAtTimesDetailsApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Read historic processed values at specified times
+        /// </summary>
+        /// <remarks>
+        /// Read processed history values of a node if available using historic
+        /// access.
+        /// The endpoint must be activated and connected and the module client
+        /// and server must trust each other.
+        /// </remarks>
+        /// <param name='endpointId'>
+        /// The identifier of the activated endpoint.
+        /// </param>
+        /// <param name='request'>
+        /// The history read request
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse<HistoryReadResponseApiModelHistoricValueApiModel>> HistoryReadProcessedValuesWithHttpMessagesAsync(string endpointId, HistoryReadRequestApiModelReadProcessedValuesDetailsApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Read historic modified values at specified times
+        /// </summary>
+        /// <remarks>
+        /// Read processed history values of a node if available using historic
+        /// access.
+        /// The endpoint must be activated and connected and the module client
+        /// and server must trust each other.
+        /// </remarks>
+        /// <param name='endpointId'>
+        /// The identifier of the activated endpoint.
+        /// </param>
+        /// <param name='request'>
+        /// The history read request
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse<HistoryReadResponseApiModelHistoricValueApiModel>> HistoryReadModifiedValuesWithHttpMessagesAsync(string endpointId, HistoryReadRequestApiModelReadModifiedValuesDetailsApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Read next batch of historic values
+        /// </summary>
+        /// <remarks>
+        /// Read next batch of historic values of a node using historic access.
+        /// The endpoint must be activated and connected and the module client
+        /// and server must trust each other.
+        /// </remarks>
+        /// <param name='endpointId'>
+        /// The identifier of the activated endpoint.
+        /// </param>
+        /// <param name='request'>
+        /// The history read next request
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse<HistoryReadNextResponseApiModelHistoricValueApiModel>> HistoryReadValueNextWithHttpMessagesAsync(string endpointId, HistoryReadNextRequestApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Replace historic values
+        /// </summary>
+        /// <remarks>
+        /// Replace historic values using historic access.
+        /// The endpoint must be activated and connected and the module client
+        /// and server must trust each other.
+        /// </remarks>
+        /// <param name='endpointId'>
+        /// The identifier of the activated endpoint.
+        /// </param>
+        /// <param name='request'>
+        /// The history replace request
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse<HistoryUpdateResponseApiModel>> HistoryReplaceValuesWithHttpMessagesAsync(string endpointId, HistoryUpdateRequestApiModelReplaceValuesDetailsApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Replace historic events
+        /// </summary>
+        /// <remarks>
+        /// Replace historic events using historic access.
+        /// The endpoint must be activated and connected and the module client
+        /// and server must trust each other.
+        /// </remarks>
+        /// <param name='endpointId'>
+        /// The identifier of the activated endpoint.
+        /// </param>
+        /// <param name='request'>
+        /// The history replace request
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse<HistoryUpdateResponseApiModel>> HistoryReplaceEventsWithHttpMessagesAsync(string endpointId, HistoryUpdateRequestApiModelReplaceEventsDetailsApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Return the service status in the form of the service status
@@ -483,183 +455,6 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// The cancellation token.
         /// </param>
         Task<HttpOperationResponse<StatusResponseApiModel>> GetStatusWithHttpMessagesAsync(Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
-
-        /// <summary>
-        /// Get supervisor registration information
-        /// </summary>
-        /// <remarks>
-        /// Returns a supervisor's registration and connectivity information.
-        /// A supervisor id corresponds to the twin modules module identity.
-        /// </remarks>
-        /// <param name='supervisorId'>
-        /// Supervisor identifier
-        /// </param>
-        /// <param name='onlyServerState'>
-        /// Whether to include only server
-        /// state, or display current client state of the endpoint if
-        /// available
-        /// </param>
-        /// <param name='customHeaders'>
-        /// The headers that will be added to request.
-        /// </param>
-        /// <param name='cancellationToken'>
-        /// The cancellation token.
-        /// </param>
-        Task<HttpOperationResponse<SupervisorApiModel>> GetSupervisorWithHttpMessagesAsync(string supervisorId, bool? onlyServerState = default(bool?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
-
-        /// <summary>
-        /// Update supervisor information
-        /// </summary>
-        /// <remarks>
-        /// Allows a caller to configure recurring discovery runs on the twin
-        /// module
-        /// identified by the supervisor id or update site information.
-        /// </remarks>
-        /// <param name='supervisorId'>
-        /// supervisor identifier
-        /// </param>
-        /// <param name='request'>
-        /// Patch request
-        /// </param>
-        /// <param name='customHeaders'>
-        /// The headers that will be added to request.
-        /// </param>
-        /// <param name='cancellationToken'>
-        /// The cancellation token.
-        /// </param>
-        Task<HttpOperationResponse> UpdateSupervisorWithHttpMessagesAsync(string supervisorId, SupervisorUpdateApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
-
-        /// <summary>
-        /// Get runtime status of supervisor
-        /// </summary>
-        /// <remarks>
-        /// Allows a caller to get runtime status for a supervisor.
-        /// </remarks>
-        /// <param name='supervisorId'>
-        /// supervisor identifier
-        /// </param>
-        /// <param name='customHeaders'>
-        /// The headers that will be added to request.
-        /// </param>
-        /// <param name='cancellationToken'>
-        /// The cancellation token.
-        /// </param>
-        Task<HttpOperationResponse<SupervisorStatusApiModel>> GetSupervisorStatusWithHttpMessagesAsync(string supervisorId, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
-
-        /// <summary>
-        /// Reset supervisor
-        /// </summary>
-        /// <remarks>
-        /// Allows a caller to reset the twin module using its supervisor
-        /// identity identifier.
-        /// </remarks>
-        /// <param name='supervisorId'>
-        /// supervisor identifier
-        /// </param>
-        /// <param name='customHeaders'>
-        /// The headers that will be added to request.
-        /// </param>
-        /// <param name='cancellationToken'>
-        /// The cancellation token.
-        /// </param>
-        Task<HttpOperationResponse> ResetSupervisorWithHttpMessagesAsync(string supervisorId, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
-
-        /// <summary>
-        /// Get list of supervisors
-        /// </summary>
-        /// <remarks>
-        /// Get all registered supervisors and therefore twin modules in paged
-        /// form.
-        /// The returned model can contain a continuation token if more results
-        /// are
-        /// available.
-        /// Call this operation again using the token to retrieve more results.
-        /// </remarks>
-        /// <param name='onlyServerState'>
-        /// Whether to include only server
-        /// state, or display current client state of the endpoint if available
-        /// </param>
-        /// <param name='continuationToken'>
-        /// Optional Continuation token
-        /// </param>
-        /// <param name='pageSize'>
-        /// Optional number of results to return
-        /// </param>
-        /// <param name='customHeaders'>
-        /// The headers that will be added to request.
-        /// </param>
-        /// <param name='cancellationToken'>
-        /// The cancellation token.
-        /// </param>
-        Task<HttpOperationResponse<SupervisorListApiModel>> GetListOfSupervisorsWithHttpMessagesAsync(bool? onlyServerState = default(bool?), string continuationToken = default(string), int? pageSize = default(int?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
-
-        /// <summary>
-        /// Get filtered list of supervisors
-        /// </summary>
-        /// <remarks>
-        /// Get a list of supervisors filtered using the specified query
-        /// parameters.
-        /// The returned model can contain a continuation token if more results
-        /// are
-        /// available.
-        /// Call the GetListOfSupervisors operation using the token to retrieve
-        /// more results.
-        /// </remarks>
-        /// <param name='siteId'>
-        /// Site of the supervisor
-        /// </param>
-        /// <param name='discovery'>
-        /// Discovery mode of supervisor. Possible values include: 'Off',
-        /// 'Local', 'Network', 'Fast', 'Scan'
-        /// </param>
-        /// <param name='connected'>
-        /// Included connected or disconnected
-        /// </param>
-        /// <param name='onlyServerState'>
-        /// Whether to include only server
-        /// state, or display current client state of the endpoint if
-        /// available
-        /// </param>
-        /// <param name='pageSize'>
-        /// Number of results to return
-        /// </param>
-        /// <param name='customHeaders'>
-        /// The headers that will be added to request.
-        /// </param>
-        /// <param name='cancellationToken'>
-        /// The cancellation token.
-        /// </param>
-        Task<HttpOperationResponse<SupervisorListApiModel>> GetFilteredListOfSupervisorsWithHttpMessagesAsync(string siteId = default(string), string discovery = default(string), bool? connected = default(bool?), bool? onlyServerState = default(bool?), int? pageSize = default(int?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
-
-        /// <summary>
-        /// Query supervisors
-        /// </summary>
-        /// <remarks>
-        /// Get all supervisors that match a specified query.
-        /// The returned model can contain a continuation token if more results
-        /// are
-        /// available.
-        /// Call the GetListOfSupervisors operation using the token to retrieve
-        /// more results.
-        /// </remarks>
-        /// <param name='query'>
-        /// Supervisors query model
-        /// </param>
-        /// <param name='onlyServerState'>
-        /// Whether to include only server
-        /// state, or display current client state of the endpoint if
-        /// available
-        /// </param>
-        /// <param name='pageSize'>
-        /// Number of results to return
-        /// </param>
-        /// <param name='customHeaders'>
-        /// The headers that will be added to request.
-        /// </param>
-        /// <param name='cancellationToken'>
-        /// The cancellation token.
-        /// </param>
-        Task<HttpOperationResponse<SupervisorListApiModel>> QuerySupervisorsWithHttpMessagesAsync(SupervisorQueryApiModel query, bool? onlyServerState = default(bool?), int? pageSize = default(int?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
     }
 }

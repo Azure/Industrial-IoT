@@ -25,543 +25,633 @@ class AzureOpcHistoryClient extends AzureOpcHistoryClientContext {
   }
 
   /**
-   * Get all registered applications in paged form.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call this operation again using the token to retrieve more results.
-   * @summary Get list of applications
+   * Delete value history using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   * @summary Delete value history at specified times
+   * @param endpointId The identifier of the activated endpoint.
+   * @param request The history update request
    * @param [options] The optional parameters
-   * @returns Promise<Models.GetListOfApplicationsResponse>
+   * @returns Promise<Models.HistoryDeleteValuesAtTimesResponse>
    */
-  getListOfApplications(options?: Models.AzureOpcHistoryClientGetListOfApplicationsOptionalParams): Promise<Models.GetListOfApplicationsResponse>;
+  historyDeleteValuesAtTimes(endpointId: string, request: Models.HistoryUpdateRequestApiModelDeleteValuesAtTimesDetailsApiModel, options?: msRest.RequestOptionsBase): Promise<Models.HistoryDeleteValuesAtTimesResponse>;
   /**
+   * @param endpointId The identifier of the activated endpoint.
+   * @param request The history update request
    * @param callback The callback
    */
-  getListOfApplications(callback: msRest.ServiceCallback<Models.ApplicationInfoListApiModel>): void;
+  historyDeleteValuesAtTimes(endpointId: string, request: Models.HistoryUpdateRequestApiModelDeleteValuesAtTimesDetailsApiModel, callback: msRest.ServiceCallback<Models.HistoryUpdateResponseApiModel>): void;
   /**
+   * @param endpointId The identifier of the activated endpoint.
+   * @param request The history update request
    * @param options The optional parameters
    * @param callback The callback
    */
-  getListOfApplications(options: Models.AzureOpcHistoryClientGetListOfApplicationsOptionalParams, callback: msRest.ServiceCallback<Models.ApplicationInfoListApiModel>): void;
-  getListOfApplications(options?: Models.AzureOpcHistoryClientGetListOfApplicationsOptionalParams | msRest.ServiceCallback<Models.ApplicationInfoListApiModel>, callback?: msRest.ServiceCallback<Models.ApplicationInfoListApiModel>): Promise<Models.GetListOfApplicationsResponse> {
-    return this.sendOperationRequest(
-      {
-        options
-      },
-      getListOfApplicationsOperationSpec,
-      callback) as Promise<Models.GetListOfApplicationsResponse>;
-  }
-
-  /**
-   * The application is registered using the provided information, but it
-   * is not associated with a supervisor.  This is useful for when you need
-   * to register clients or you want to register a server that is located
-   * in a network not reachable through a Twin module.
-   * @summary Create new application
-   * @param request Application registration request
-   * @param [options] The optional parameters
-   * @returns Promise<Models.CreateApplicationResponse>
-   */
-  createApplication(request: Models.ApplicationRegistrationRequestApiModel, options?: msRest.RequestOptionsBase): Promise<Models.CreateApplicationResponse>;
-  /**
-   * @param request Application registration request
-   * @param callback The callback
-   */
-  createApplication(request: Models.ApplicationRegistrationRequestApiModel, callback: msRest.ServiceCallback<Models.ApplicationRegistrationResponseApiModel>): void;
-  /**
-   * @param request Application registration request
-   * @param options The optional parameters
-   * @param callback The callback
-   */
-  createApplication(request: Models.ApplicationRegistrationRequestApiModel, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<Models.ApplicationRegistrationResponseApiModel>): void;
-  createApplication(request: Models.ApplicationRegistrationRequestApiModel, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<Models.ApplicationRegistrationResponseApiModel>, callback?: msRest.ServiceCallback<Models.ApplicationRegistrationResponseApiModel>): Promise<Models.CreateApplicationResponse> {
-    return this.sendOperationRequest(
-      {
-        request,
-        options
-      },
-      createApplicationOperationSpec,
-      callback) as Promise<Models.CreateApplicationResponse>;
-  }
-
-  /**
-   * Registers a server solely using a discovery url. Requires that
-   * the onboarding agent service is running and the server can be
-   * located by a supervisor in its network using the discovery url.
-   * @summary Register new server
-   * @param request Server registration request
-   * @param [options] The optional parameters
-   * @returns Promise<msRest.RestResponse>
-   */
-  registerServer(request: Models.ServerRegistrationRequestApiModel, options?: msRest.RequestOptionsBase): Promise<msRest.RestResponse>;
-  /**
-   * @param request Server registration request
-   * @param callback The callback
-   */
-  registerServer(request: Models.ServerRegistrationRequestApiModel, callback: msRest.ServiceCallback<void>): void;
-  /**
-   * @param request Server registration request
-   * @param options The optional parameters
-   * @param callback The callback
-   */
-  registerServer(request: Models.ServerRegistrationRequestApiModel, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<void>): void;
-  registerServer(request: Models.ServerRegistrationRequestApiModel, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
-    return this.sendOperationRequest(
-      {
-        request,
-        options
-      },
-      registerServerOperationSpec,
-      callback);
-  }
-
-  /**
-   * Purges all applications that have not been seen for a specified amount of time.
-   * @summary Purge applications
-   * @param [options] The optional parameters
-   * @returns Promise<msRest.RestResponse>
-   */
-  deleteAllDisabledApplications(options?: Models.AzureOpcHistoryClientDeleteAllDisabledApplicationsOptionalParams): Promise<msRest.RestResponse>;
-  /**
-   * @param callback The callback
-   */
-  deleteAllDisabledApplications(callback: msRest.ServiceCallback<void>): void;
-  /**
-   * @param options The optional parameters
-   * @param callback The callback
-   */
-  deleteAllDisabledApplications(options: Models.AzureOpcHistoryClientDeleteAllDisabledApplicationsOptionalParams, callback: msRest.ServiceCallback<void>): void;
-  deleteAllDisabledApplications(options?: Models.AzureOpcHistoryClientDeleteAllDisabledApplicationsOptionalParams | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
-    return this.sendOperationRequest(
-      {
-        options
-      },
-      deleteAllDisabledApplicationsOperationSpec,
-      callback);
-  }
-
-  /**
-   * Registers servers by running a discovery scan in a supervisor's
-   * network. Requires that the onboarding agent service is running.
-   * @summary Discover servers
-   * @param request Discovery request
-   * @param [options] The optional parameters
-   * @returns Promise<msRest.RestResponse>
-   */
-  discoverServer(request: Models.DiscoveryRequestApiModel, options?: msRest.RequestOptionsBase): Promise<msRest.RestResponse>;
-  /**
-   * @param request Discovery request
-   * @param callback The callback
-   */
-  discoverServer(request: Models.DiscoveryRequestApiModel, callback: msRest.ServiceCallback<void>): void;
-  /**
-   * @param request Discovery request
-   * @param options The optional parameters
-   * @param callback The callback
-   */
-  discoverServer(request: Models.DiscoveryRequestApiModel, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<void>): void;
-  discoverServer(request: Models.DiscoveryRequestApiModel, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
-    return this.sendOperationRequest(
-      {
-        request,
-        options
-      },
-      discoverServerOperationSpec,
-      callback);
-  }
-
-  /**
-   * @summary Get application registration
-   * @param applicationId Application id for the server
-   * @param [options] The optional parameters
-   * @returns Promise<Models.GetApplicationRegistrationResponse>
-   */
-  getApplicationRegistration(applicationId: string, options?: msRest.RequestOptionsBase): Promise<Models.GetApplicationRegistrationResponse>;
-  /**
-   * @param applicationId Application id for the server
-   * @param callback The callback
-   */
-  getApplicationRegistration(applicationId: string, callback: msRest.ServiceCallback<Models.ApplicationRegistrationApiModel>): void;
-  /**
-   * @param applicationId Application id for the server
-   * @param options The optional parameters
-   * @param callback The callback
-   */
-  getApplicationRegistration(applicationId: string, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<Models.ApplicationRegistrationApiModel>): void;
-  getApplicationRegistration(applicationId: string, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<Models.ApplicationRegistrationApiModel>, callback?: msRest.ServiceCallback<Models.ApplicationRegistrationApiModel>): Promise<Models.GetApplicationRegistrationResponse> {
-    return this.sendOperationRequest(
-      {
-        applicationId,
-        options
-      },
-      getApplicationRegistrationOperationSpec,
-      callback) as Promise<Models.GetApplicationRegistrationResponse>;
-  }
-
-  /**
-   * Unregisters and deletes application and all its associated endpoints.
-   * @summary Unregister application
-   * @param applicationId The identifier of the application
-   * @param [options] The optional parameters
-   * @returns Promise<msRest.RestResponse>
-   */
-  deleteApplication(applicationId: string, options?: msRest.RequestOptionsBase): Promise<msRest.RestResponse>;
-  /**
-   * @param applicationId The identifier of the application
-   * @param callback The callback
-   */
-  deleteApplication(applicationId: string, callback: msRest.ServiceCallback<void>): void;
-  /**
-   * @param applicationId The identifier of the application
-   * @param options The optional parameters
-   * @param callback The callback
-   */
-  deleteApplication(applicationId: string, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<void>): void;
-  deleteApplication(applicationId: string, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
-    return this.sendOperationRequest(
-      {
-        applicationId,
-        options
-      },
-      deleteApplicationOperationSpec,
-      callback);
-  }
-
-  /**
-   * The application information is updated with new properties.  Note that
-   * this information might be overridden if the application is re-discovered
-   * during a discovery run (recurring or one-time).
-   * @summary Update application registration
-   * @param applicationId The identifier of the application
-   * @param request Application update request
-   * @param [options] The optional parameters
-   * @returns Promise<msRest.RestResponse>
-   */
-  updateApplicationRegistration(applicationId: string, request: Models.ApplicationRegistrationUpdateApiModel, options?: msRest.RequestOptionsBase): Promise<msRest.RestResponse>;
-  /**
-   * @param applicationId The identifier of the application
-   * @param request Application update request
-   * @param callback The callback
-   */
-  updateApplicationRegistration(applicationId: string, request: Models.ApplicationRegistrationUpdateApiModel, callback: msRest.ServiceCallback<void>): void;
-  /**
-   * @param applicationId The identifier of the application
-   * @param request Application update request
-   * @param options The optional parameters
-   * @param callback The callback
-   */
-  updateApplicationRegistration(applicationId: string, request: Models.ApplicationRegistrationUpdateApiModel, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<void>): void;
-  updateApplicationRegistration(applicationId: string, request: Models.ApplicationRegistrationUpdateApiModel, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
-    return this.sendOperationRequest(
-      {
-        applicationId,
-        request,
-        options
-      },
-      updateApplicationRegistrationOperationSpec,
-      callback);
-  }
-
-  /**
-   * List all sites applications are registered in.
-   * @summary Get list of sites
-   * @param [options] The optional parameters
-   * @returns Promise<Models.GetListOfSitesResponse>
-   */
-  getListOfSites(options?: Models.AzureOpcHistoryClientGetListOfSitesOptionalParams): Promise<Models.GetListOfSitesResponse>;
-  /**
-   * @param callback The callback
-   */
-  getListOfSites(callback: msRest.ServiceCallback<Models.ApplicationSiteListApiModel>): void;
-  /**
-   * @param options The optional parameters
-   * @param callback The callback
-   */
-  getListOfSites(options: Models.AzureOpcHistoryClientGetListOfSitesOptionalParams, callback: msRest.ServiceCallback<Models.ApplicationSiteListApiModel>): void;
-  getListOfSites(options?: Models.AzureOpcHistoryClientGetListOfSitesOptionalParams | msRest.ServiceCallback<Models.ApplicationSiteListApiModel>, callback?: msRest.ServiceCallback<Models.ApplicationSiteListApiModel>): Promise<Models.GetListOfSitesResponse> {
-    return this.sendOperationRequest(
-      {
-        options
-      },
-      getListOfSitesOperationSpec,
-      callback) as Promise<Models.GetListOfSitesResponse>;
-  }
-
-  /**
-   * Get a list of applications filtered using the specified query parameters.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfApplications operation using the token to retrieve
-   * more results.
-   * @summary Get filtered list of applications
-   * @param query Applications Query model
-   * @param [options] The optional parameters
-   * @returns Promise<Models.GetFilteredListOfApplicationsResponse>
-   */
-  getFilteredListOfApplications(query: Models.ApplicationRegistrationQueryApiModel, options?: Models.AzureOpcHistoryClientGetFilteredListOfApplicationsOptionalParams): Promise<Models.GetFilteredListOfApplicationsResponse>;
-  /**
-   * @param query Applications Query model
-   * @param callback The callback
-   */
-  getFilteredListOfApplications(query: Models.ApplicationRegistrationQueryApiModel, callback: msRest.ServiceCallback<Models.ApplicationInfoListApiModel>): void;
-  /**
-   * @param query Applications Query model
-   * @param options The optional parameters
-   * @param callback The callback
-   */
-  getFilteredListOfApplications(query: Models.ApplicationRegistrationQueryApiModel, options: Models.AzureOpcHistoryClientGetFilteredListOfApplicationsOptionalParams, callback: msRest.ServiceCallback<Models.ApplicationInfoListApiModel>): void;
-  getFilteredListOfApplications(query: Models.ApplicationRegistrationQueryApiModel, options?: Models.AzureOpcHistoryClientGetFilteredListOfApplicationsOptionalParams | msRest.ServiceCallback<Models.ApplicationInfoListApiModel>, callback?: msRest.ServiceCallback<Models.ApplicationInfoListApiModel>): Promise<Models.GetFilteredListOfApplicationsResponse> {
-    return this.sendOperationRequest(
-      {
-        query,
-        options
-      },
-      getFilteredListOfApplicationsOperationSpec,
-      callback) as Promise<Models.GetFilteredListOfApplicationsResponse>;
-  }
-
-  /**
-   * List applications that match a query model.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfApplications operation using the token to retrieve
-   * more results.
-   * @summary Query applications
-   * @param query Application query
-   * @param [options] The optional parameters
-   * @returns Promise<Models.QueryApplicationsResponse>
-   */
-  queryApplications(query: Models.ApplicationRegistrationQueryApiModel, options?: Models.AzureOpcHistoryClientQueryApplicationsOptionalParams): Promise<Models.QueryApplicationsResponse>;
-  /**
-   * @param query Application query
-   * @param callback The callback
-   */
-  queryApplications(query: Models.ApplicationRegistrationQueryApiModel, callback: msRest.ServiceCallback<Models.ApplicationInfoListApiModel>): void;
-  /**
-   * @param query Application query
-   * @param options The optional parameters
-   * @param callback The callback
-   */
-  queryApplications(query: Models.ApplicationRegistrationQueryApiModel, options: Models.AzureOpcHistoryClientQueryApplicationsOptionalParams, callback: msRest.ServiceCallback<Models.ApplicationInfoListApiModel>): void;
-  queryApplications(query: Models.ApplicationRegistrationQueryApiModel, options?: Models.AzureOpcHistoryClientQueryApplicationsOptionalParams | msRest.ServiceCallback<Models.ApplicationInfoListApiModel>, callback?: msRest.ServiceCallback<Models.ApplicationInfoListApiModel>): Promise<Models.QueryApplicationsResponse> {
-    return this.sendOperationRequest(
-      {
-        query,
-        options
-      },
-      queryApplicationsOperationSpec,
-      callback) as Promise<Models.QueryApplicationsResponse>;
-  }
-
-  /**
-   * Activates an endpoint for subsequent use in twin service.
-   * All endpoints must be activated using this API or through a
-   * activation filter during application registration or discovery.
-   * @summary Activate endpoint
-   * @param endpointId endpoint identifier
-   * @param [options] The optional parameters
-   * @returns Promise<msRest.RestResponse>
-   */
-  activateEndpoint(endpointId: string, options?: msRest.RequestOptionsBase): Promise<msRest.RestResponse>;
-  /**
-   * @param endpointId endpoint identifier
-   * @param callback The callback
-   */
-  activateEndpoint(endpointId: string, callback: msRest.ServiceCallback<void>): void;
-  /**
-   * @param endpointId endpoint identifier
-   * @param options The optional parameters
-   * @param callback The callback
-   */
-  activateEndpoint(endpointId: string, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<void>): void;
-  activateEndpoint(endpointId: string, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
-    return this.sendOperationRequest(
-      {
-        endpointId,
-        options
-      },
-      activateEndpointOperationSpec,
-      callback);
-  }
-
-  /**
-   * Gets information about an endpoint.
-   * @summary Get endpoint information
-   * @param endpointId endpoint identifier
-   * @param [options] The optional parameters
-   * @returns Promise<Models.GetEndpointResponse>
-   */
-  getEndpoint(endpointId: string, options?: Models.AzureOpcHistoryClientGetEndpointOptionalParams): Promise<Models.GetEndpointResponse>;
-  /**
-   * @param endpointId endpoint identifier
-   * @param callback The callback
-   */
-  getEndpoint(endpointId: string, callback: msRest.ServiceCallback<Models.EndpointInfoApiModel>): void;
-  /**
-   * @param endpointId endpoint identifier
-   * @param options The optional parameters
-   * @param callback The callback
-   */
-  getEndpoint(endpointId: string, options: Models.AzureOpcHistoryClientGetEndpointOptionalParams, callback: msRest.ServiceCallback<Models.EndpointInfoApiModel>): void;
-  getEndpoint(endpointId: string, options?: Models.AzureOpcHistoryClientGetEndpointOptionalParams | msRest.ServiceCallback<Models.EndpointInfoApiModel>, callback?: msRest.ServiceCallback<Models.EndpointInfoApiModel>): Promise<Models.GetEndpointResponse> {
-    return this.sendOperationRequest(
-      {
-        endpointId,
-        options
-      },
-      getEndpointOperationSpec,
-      callback) as Promise<Models.GetEndpointResponse>;
-  }
-
-  /**
-   * @summary Update endpoint information
-   * @param endpointId endpoint identifier
-   * @param request Endpoint update request
-   * @param [options] The optional parameters
-   * @returns Promise<msRest.RestResponse>
-   */
-  updateEndpoint(endpointId: string, request: Models.EndpointRegistrationUpdateApiModel, options?: msRest.RequestOptionsBase): Promise<msRest.RestResponse>;
-  /**
-   * @param endpointId endpoint identifier
-   * @param request Endpoint update request
-   * @param callback The callback
-   */
-  updateEndpoint(endpointId: string, request: Models.EndpointRegistrationUpdateApiModel, callback: msRest.ServiceCallback<void>): void;
-  /**
-   * @param endpointId endpoint identifier
-   * @param request Endpoint update request
-   * @param options The optional parameters
-   * @param callback The callback
-   */
-  updateEndpoint(endpointId: string, request: Models.EndpointRegistrationUpdateApiModel, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<void>): void;
-  updateEndpoint(endpointId: string, request: Models.EndpointRegistrationUpdateApiModel, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
+  historyDeleteValuesAtTimes(endpointId: string, request: Models.HistoryUpdateRequestApiModelDeleteValuesAtTimesDetailsApiModel, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<Models.HistoryUpdateResponseApiModel>): void;
+  historyDeleteValuesAtTimes(endpointId: string, request: Models.HistoryUpdateRequestApiModelDeleteValuesAtTimesDetailsApiModel, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<Models.HistoryUpdateResponseApiModel>, callback?: msRest.ServiceCallback<Models.HistoryUpdateResponseApiModel>): Promise<Models.HistoryDeleteValuesAtTimesResponse> {
     return this.sendOperationRequest(
       {
         endpointId,
         request,
         options
       },
-      updateEndpointOperationSpec,
-      callback);
+      historyDeleteValuesAtTimesOperationSpec,
+      callback) as Promise<Models.HistoryDeleteValuesAtTimesResponse>;
   }
 
   /**
-   * Get all registered endpoints in paged form.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call this operation again using the token to retrieve more results.
-   * @summary Get list of endpoints
+   * Delete historic values using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   * @summary Delete historic values
+   * @param endpointId The identifier of the activated endpoint.
+   * @param request The history update request
    * @param [options] The optional parameters
-   * @returns Promise<Models.GetListOfEndpointsResponse>
+   * @returns Promise<Models.HistoryDeleteValuesResponse>
    */
-  getListOfEndpoints(options?: Models.AzureOpcHistoryClientGetListOfEndpointsOptionalParams): Promise<Models.GetListOfEndpointsResponse>;
+  historyDeleteValues(endpointId: string, request: Models.HistoryUpdateRequestApiModelDeleteValuesDetailsApiModel, options?: msRest.RequestOptionsBase): Promise<Models.HistoryDeleteValuesResponse>;
   /**
+   * @param endpointId The identifier of the activated endpoint.
+   * @param request The history update request
    * @param callback The callback
    */
-  getListOfEndpoints(callback: msRest.ServiceCallback<Models.EndpointInfoListApiModel>): void;
+  historyDeleteValues(endpointId: string, request: Models.HistoryUpdateRequestApiModelDeleteValuesDetailsApiModel, callback: msRest.ServiceCallback<Models.HistoryUpdateResponseApiModel>): void;
   /**
+   * @param endpointId The identifier of the activated endpoint.
+   * @param request The history update request
    * @param options The optional parameters
    * @param callback The callback
    */
-  getListOfEndpoints(options: Models.AzureOpcHistoryClientGetListOfEndpointsOptionalParams, callback: msRest.ServiceCallback<Models.EndpointInfoListApiModel>): void;
-  getListOfEndpoints(options?: Models.AzureOpcHistoryClientGetListOfEndpointsOptionalParams | msRest.ServiceCallback<Models.EndpointInfoListApiModel>, callback?: msRest.ServiceCallback<Models.EndpointInfoListApiModel>): Promise<Models.GetListOfEndpointsResponse> {
-    return this.sendOperationRequest(
-      {
-        options
-      },
-      getListOfEndpointsOperationSpec,
-      callback) as Promise<Models.GetListOfEndpointsResponse>;
-  }
-
-  /**
-   * Get a list of endpoints filtered using the specified query parameters.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfEndpoints operation using the token to retrieve
-   * more results.
-   * @summary Get filtered list of endpoints
-   * @param [options] The optional parameters
-   * @returns Promise<Models.GetFilteredListOfEndpointsResponse>
-   */
-  getFilteredListOfEndpoints(options?: Models.AzureOpcHistoryClientGetFilteredListOfEndpointsOptionalParams): Promise<Models.GetFilteredListOfEndpointsResponse>;
-  /**
-   * @param callback The callback
-   */
-  getFilteredListOfEndpoints(callback: msRest.ServiceCallback<Models.EndpointInfoListApiModel>): void;
-  /**
-   * @param options The optional parameters
-   * @param callback The callback
-   */
-  getFilteredListOfEndpoints(options: Models.AzureOpcHistoryClientGetFilteredListOfEndpointsOptionalParams, callback: msRest.ServiceCallback<Models.EndpointInfoListApiModel>): void;
-  getFilteredListOfEndpoints(options?: Models.AzureOpcHistoryClientGetFilteredListOfEndpointsOptionalParams | msRest.ServiceCallback<Models.EndpointInfoListApiModel>, callback?: msRest.ServiceCallback<Models.EndpointInfoListApiModel>): Promise<Models.GetFilteredListOfEndpointsResponse> {
-    return this.sendOperationRequest(
-      {
-        options
-      },
-      getFilteredListOfEndpointsOperationSpec,
-      callback) as Promise<Models.GetFilteredListOfEndpointsResponse>;
-  }
-
-  /**
-   * Return endpoints that match the specified query.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfEndpoints operation using the token to retrieve
-   * more results.
-   * @summary Query endpoints
-   * @param query Query to match
-   * @param [options] The optional parameters
-   * @returns Promise<Models.QueryEndpointsResponse>
-   */
-  queryEndpoints(query: Models.EndpointRegistrationQueryApiModel, options?: Models.AzureOpcHistoryClientQueryEndpointsOptionalParams): Promise<Models.QueryEndpointsResponse>;
-  /**
-   * @param query Query to match
-   * @param callback The callback
-   */
-  queryEndpoints(query: Models.EndpointRegistrationQueryApiModel, callback: msRest.ServiceCallback<Models.EndpointInfoListApiModel>): void;
-  /**
-   * @param query Query to match
-   * @param options The optional parameters
-   * @param callback The callback
-   */
-  queryEndpoints(query: Models.EndpointRegistrationQueryApiModel, options: Models.AzureOpcHistoryClientQueryEndpointsOptionalParams, callback: msRest.ServiceCallback<Models.EndpointInfoListApiModel>): void;
-  queryEndpoints(query: Models.EndpointRegistrationQueryApiModel, options?: Models.AzureOpcHistoryClientQueryEndpointsOptionalParams | msRest.ServiceCallback<Models.EndpointInfoListApiModel>, callback?: msRest.ServiceCallback<Models.EndpointInfoListApiModel>): Promise<Models.QueryEndpointsResponse> {
-    return this.sendOperationRequest(
-      {
-        query,
-        options
-      },
-      queryEndpointsOperationSpec,
-      callback) as Promise<Models.QueryEndpointsResponse>;
-  }
-
-  /**
-   * Deactivates the endpoint and disable access through twin service.
-   * @summary Deactivate endpoint
-   * @param endpointId endpoint identifier
-   * @param [options] The optional parameters
-   * @returns Promise<msRest.RestResponse>
-   */
-  deactivateEndpoint(endpointId: string, options?: msRest.RequestOptionsBase): Promise<msRest.RestResponse>;
-  /**
-   * @param endpointId endpoint identifier
-   * @param callback The callback
-   */
-  deactivateEndpoint(endpointId: string, callback: msRest.ServiceCallback<void>): void;
-  /**
-   * @param endpointId endpoint identifier
-   * @param options The optional parameters
-   * @param callback The callback
-   */
-  deactivateEndpoint(endpointId: string, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<void>): void;
-  deactivateEndpoint(endpointId: string, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
+  historyDeleteValues(endpointId: string, request: Models.HistoryUpdateRequestApiModelDeleteValuesDetailsApiModel, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<Models.HistoryUpdateResponseApiModel>): void;
+  historyDeleteValues(endpointId: string, request: Models.HistoryUpdateRequestApiModelDeleteValuesDetailsApiModel, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<Models.HistoryUpdateResponseApiModel>, callback?: msRest.ServiceCallback<Models.HistoryUpdateResponseApiModel>): Promise<Models.HistoryDeleteValuesResponse> {
     return this.sendOperationRequest(
       {
         endpointId,
+        request,
         options
       },
-      deactivateEndpointOperationSpec,
-      callback);
+      historyDeleteValuesOperationSpec,
+      callback) as Promise<Models.HistoryDeleteValuesResponse>;
+  }
+
+  /**
+   * Delete historic values using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   * @summary Delete historic values
+   * @param endpointId The identifier of the activated endpoint.
+   * @param request The history update request
+   * @param [options] The optional parameters
+   * @returns Promise<Models.HistoryDeleteModifiedValuesResponse>
+   */
+  historyDeleteModifiedValues(endpointId: string, request: Models.HistoryUpdateRequestApiModelDeleteModifiedValuesDetailsApiModel, options?: msRest.RequestOptionsBase): Promise<Models.HistoryDeleteModifiedValuesResponse>;
+  /**
+   * @param endpointId The identifier of the activated endpoint.
+   * @param request The history update request
+   * @param callback The callback
+   */
+  historyDeleteModifiedValues(endpointId: string, request: Models.HistoryUpdateRequestApiModelDeleteModifiedValuesDetailsApiModel, callback: msRest.ServiceCallback<Models.HistoryUpdateResponseApiModel>): void;
+  /**
+   * @param endpointId The identifier of the activated endpoint.
+   * @param request The history update request
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  historyDeleteModifiedValues(endpointId: string, request: Models.HistoryUpdateRequestApiModelDeleteModifiedValuesDetailsApiModel, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<Models.HistoryUpdateResponseApiModel>): void;
+  historyDeleteModifiedValues(endpointId: string, request: Models.HistoryUpdateRequestApiModelDeleteModifiedValuesDetailsApiModel, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<Models.HistoryUpdateResponseApiModel>, callback?: msRest.ServiceCallback<Models.HistoryUpdateResponseApiModel>): Promise<Models.HistoryDeleteModifiedValuesResponse> {
+    return this.sendOperationRequest(
+      {
+        endpointId,
+        request,
+        options
+      },
+      historyDeleteModifiedValuesOperationSpec,
+      callback) as Promise<Models.HistoryDeleteModifiedValuesResponse>;
+  }
+
+  /**
+   * Delete historic events using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   * @summary Delete historic events
+   * @param endpointId The identifier of the activated endpoint.
+   * @param request The history update request
+   * @param [options] The optional parameters
+   * @returns Promise<Models.HistoryDeleteEventsResponse>
+   */
+  historyDeleteEvents(endpointId: string, request: Models.HistoryUpdateRequestApiModelDeleteEventsDetailsApiModel, options?: msRest.RequestOptionsBase): Promise<Models.HistoryDeleteEventsResponse>;
+  /**
+   * @param endpointId The identifier of the activated endpoint.
+   * @param request The history update request
+   * @param callback The callback
+   */
+  historyDeleteEvents(endpointId: string, request: Models.HistoryUpdateRequestApiModelDeleteEventsDetailsApiModel, callback: msRest.ServiceCallback<Models.HistoryUpdateResponseApiModel>): void;
+  /**
+   * @param endpointId The identifier of the activated endpoint.
+   * @param request The history update request
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  historyDeleteEvents(endpointId: string, request: Models.HistoryUpdateRequestApiModelDeleteEventsDetailsApiModel, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<Models.HistoryUpdateResponseApiModel>): void;
+  historyDeleteEvents(endpointId: string, request: Models.HistoryUpdateRequestApiModelDeleteEventsDetailsApiModel, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<Models.HistoryUpdateResponseApiModel>, callback?: msRest.ServiceCallback<Models.HistoryUpdateResponseApiModel>): Promise<Models.HistoryDeleteEventsResponse> {
+    return this.sendOperationRequest(
+      {
+        endpointId,
+        request,
+        options
+      },
+      historyDeleteEventsOperationSpec,
+      callback) as Promise<Models.HistoryDeleteEventsResponse>;
+  }
+
+  /**
+   * Read node history if available using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   * @summary Read history using json details
+   * @param endpointId The identifier of the activated endpoint.
+   * @param request The history read request
+   * @param [options] The optional parameters
+   * @returns Promise<Models.HistoryReadRawResponse>
+   */
+  historyReadRaw(endpointId: string, request: Models.HistoryReadRequestApiModelJToken, options?: msRest.RequestOptionsBase): Promise<Models.HistoryReadRawResponse>;
+  /**
+   * @param endpointId The identifier of the activated endpoint.
+   * @param request The history read request
+   * @param callback The callback
+   */
+  historyReadRaw(endpointId: string, request: Models.HistoryReadRequestApiModelJToken, callback: msRest.ServiceCallback<Models.HistoryReadResponseApiModelJToken>): void;
+  /**
+   * @param endpointId The identifier of the activated endpoint.
+   * @param request The history read request
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  historyReadRaw(endpointId: string, request: Models.HistoryReadRequestApiModelJToken, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<Models.HistoryReadResponseApiModelJToken>): void;
+  historyReadRaw(endpointId: string, request: Models.HistoryReadRequestApiModelJToken, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<Models.HistoryReadResponseApiModelJToken>, callback?: msRest.ServiceCallback<Models.HistoryReadResponseApiModelJToken>): Promise<Models.HistoryReadRawResponse> {
+    return this.sendOperationRequest(
+      {
+        endpointId,
+        request,
+        options
+      },
+      historyReadRawOperationSpec,
+      callback) as Promise<Models.HistoryReadRawResponse>;
+  }
+
+  /**
+   * Read next batch of node history values using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   * @summary Read next batch of history as json
+   * @param endpointId The identifier of the activated endpoint.
+   * @param request The history read next request
+   * @param [options] The optional parameters
+   * @returns Promise<Models.HistoryReadRawNextResponse>
+   */
+  historyReadRawNext(endpointId: string, request: Models.HistoryReadNextRequestApiModel, options?: msRest.RequestOptionsBase): Promise<Models.HistoryReadRawNextResponse>;
+  /**
+   * @param endpointId The identifier of the activated endpoint.
+   * @param request The history read next request
+   * @param callback The callback
+   */
+  historyReadRawNext(endpointId: string, request: Models.HistoryReadNextRequestApiModel, callback: msRest.ServiceCallback<Models.HistoryReadNextResponseApiModelJToken>): void;
+  /**
+   * @param endpointId The identifier of the activated endpoint.
+   * @param request The history read next request
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  historyReadRawNext(endpointId: string, request: Models.HistoryReadNextRequestApiModel, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<Models.HistoryReadNextResponseApiModelJToken>): void;
+  historyReadRawNext(endpointId: string, request: Models.HistoryReadNextRequestApiModel, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<Models.HistoryReadNextResponseApiModelJToken>, callback?: msRest.ServiceCallback<Models.HistoryReadNextResponseApiModelJToken>): Promise<Models.HistoryReadRawNextResponse> {
+    return this.sendOperationRequest(
+      {
+        endpointId,
+        request,
+        options
+      },
+      historyReadRawNextOperationSpec,
+      callback) as Promise<Models.HistoryReadRawNextResponse>;
+  }
+
+  /**
+   * Update node history using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   * @summary Update node history using raw json
+   * @param endpointId The identifier of the activated endpoint.
+   * @param request The history update request
+   * @param [options] The optional parameters
+   * @returns Promise<Models.HistoryUpdateRawResponse>
+   */
+  historyUpdateRaw(endpointId: string, request: Models.HistoryUpdateRequestApiModelJToken, options?: msRest.RequestOptionsBase): Promise<Models.HistoryUpdateRawResponse>;
+  /**
+   * @param endpointId The identifier of the activated endpoint.
+   * @param request The history update request
+   * @param callback The callback
+   */
+  historyUpdateRaw(endpointId: string, request: Models.HistoryUpdateRequestApiModelJToken, callback: msRest.ServiceCallback<Models.HistoryUpdateResponseApiModel>): void;
+  /**
+   * @param endpointId The identifier of the activated endpoint.
+   * @param request The history update request
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  historyUpdateRaw(endpointId: string, request: Models.HistoryUpdateRequestApiModelJToken, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<Models.HistoryUpdateResponseApiModel>): void;
+  historyUpdateRaw(endpointId: string, request: Models.HistoryUpdateRequestApiModelJToken, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<Models.HistoryUpdateResponseApiModel>, callback?: msRest.ServiceCallback<Models.HistoryUpdateResponseApiModel>): Promise<Models.HistoryUpdateRawResponse> {
+    return this.sendOperationRequest(
+      {
+        endpointId,
+        request,
+        options
+      },
+      historyUpdateRawOperationSpec,
+      callback) as Promise<Models.HistoryUpdateRawResponse>;
+  }
+
+  /**
+   * Insert historic values using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   * @summary Insert historic values
+   * @param endpointId The identifier of the activated endpoint.
+   * @param request The history insert request
+   * @param [options] The optional parameters
+   * @returns Promise<Models.HistoryInsertValuesResponse>
+   */
+  historyInsertValues(endpointId: string, request: Models.HistoryUpdateRequestApiModelInsertValuesDetailsApiModel, options?: msRest.RequestOptionsBase): Promise<Models.HistoryInsertValuesResponse>;
+  /**
+   * @param endpointId The identifier of the activated endpoint.
+   * @param request The history insert request
+   * @param callback The callback
+   */
+  historyInsertValues(endpointId: string, request: Models.HistoryUpdateRequestApiModelInsertValuesDetailsApiModel, callback: msRest.ServiceCallback<Models.HistoryUpdateResponseApiModel>): void;
+  /**
+   * @param endpointId The identifier of the activated endpoint.
+   * @param request The history insert request
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  historyInsertValues(endpointId: string, request: Models.HistoryUpdateRequestApiModelInsertValuesDetailsApiModel, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<Models.HistoryUpdateResponseApiModel>): void;
+  historyInsertValues(endpointId: string, request: Models.HistoryUpdateRequestApiModelInsertValuesDetailsApiModel, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<Models.HistoryUpdateResponseApiModel>, callback?: msRest.ServiceCallback<Models.HistoryUpdateResponseApiModel>): Promise<Models.HistoryInsertValuesResponse> {
+    return this.sendOperationRequest(
+      {
+        endpointId,
+        request,
+        options
+      },
+      historyInsertValuesOperationSpec,
+      callback) as Promise<Models.HistoryInsertValuesResponse>;
+  }
+
+  /**
+   * Insert historic events using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   * @summary Insert historic events
+   * @param endpointId The identifier of the activated endpoint.
+   * @param request The history insert request
+   * @param [options] The optional parameters
+   * @returns Promise<Models.HistoryInsertEventsResponse>
+   */
+  historyInsertEvents(endpointId: string, request: Models.HistoryUpdateRequestApiModelInsertEventsDetailsApiModel, options?: msRest.RequestOptionsBase): Promise<Models.HistoryInsertEventsResponse>;
+  /**
+   * @param endpointId The identifier of the activated endpoint.
+   * @param request The history insert request
+   * @param callback The callback
+   */
+  historyInsertEvents(endpointId: string, request: Models.HistoryUpdateRequestApiModelInsertEventsDetailsApiModel, callback: msRest.ServiceCallback<Models.HistoryUpdateResponseApiModel>): void;
+  /**
+   * @param endpointId The identifier of the activated endpoint.
+   * @param request The history insert request
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  historyInsertEvents(endpointId: string, request: Models.HistoryUpdateRequestApiModelInsertEventsDetailsApiModel, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<Models.HistoryUpdateResponseApiModel>): void;
+  historyInsertEvents(endpointId: string, request: Models.HistoryUpdateRequestApiModelInsertEventsDetailsApiModel, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<Models.HistoryUpdateResponseApiModel>, callback?: msRest.ServiceCallback<Models.HistoryUpdateResponseApiModel>): Promise<Models.HistoryInsertEventsResponse> {
+    return this.sendOperationRequest(
+      {
+        endpointId,
+        request,
+        options
+      },
+      historyInsertEventsOperationSpec,
+      callback) as Promise<Models.HistoryInsertEventsResponse>;
+  }
+
+  /**
+   * Read historic events of a node if available using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   * @summary Read historic events
+   * @param endpointId The identifier of the activated endpoint.
+   * @param request The history read request
+   * @param [options] The optional parameters
+   * @returns Promise<Models.HistoryReadEventsResponse>
+   */
+  historyReadEvents(endpointId: string, request: Models.HistoryReadRequestApiModelReadEventsDetailsApiModel, options?: msRest.RequestOptionsBase): Promise<Models.HistoryReadEventsResponse>;
+  /**
+   * @param endpointId The identifier of the activated endpoint.
+   * @param request The history read request
+   * @param callback The callback
+   */
+  historyReadEvents(endpointId: string, request: Models.HistoryReadRequestApiModelReadEventsDetailsApiModel, callback: msRest.ServiceCallback<Models.HistoryReadResponseApiModelHistoricEventApiModel>): void;
+  /**
+   * @param endpointId The identifier of the activated endpoint.
+   * @param request The history read request
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  historyReadEvents(endpointId: string, request: Models.HistoryReadRequestApiModelReadEventsDetailsApiModel, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<Models.HistoryReadResponseApiModelHistoricEventApiModel>): void;
+  historyReadEvents(endpointId: string, request: Models.HistoryReadRequestApiModelReadEventsDetailsApiModel, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<Models.HistoryReadResponseApiModelHistoricEventApiModel>, callback?: msRest.ServiceCallback<Models.HistoryReadResponseApiModelHistoricEventApiModel>): Promise<Models.HistoryReadEventsResponse> {
+    return this.sendOperationRequest(
+      {
+        endpointId,
+        request,
+        options
+      },
+      historyReadEventsOperationSpec,
+      callback) as Promise<Models.HistoryReadEventsResponse>;
+  }
+
+  /**
+   * Read next batch of historic events of a node using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   * @summary Read next batch of historic events
+   * @param endpointId The identifier of the activated endpoint.
+   * @param request The history read next request
+   * @param [options] The optional parameters
+   * @returns Promise<Models.HistoryReadEventsNextResponse>
+   */
+  historyReadEventsNext(endpointId: string, request: Models.HistoryReadNextRequestApiModel, options?: msRest.RequestOptionsBase): Promise<Models.HistoryReadEventsNextResponse>;
+  /**
+   * @param endpointId The identifier of the activated endpoint.
+   * @param request The history read next request
+   * @param callback The callback
+   */
+  historyReadEventsNext(endpointId: string, request: Models.HistoryReadNextRequestApiModel, callback: msRest.ServiceCallback<Models.HistoryReadNextResponseApiModelHistoricEventApiModel>): void;
+  /**
+   * @param endpointId The identifier of the activated endpoint.
+   * @param request The history read next request
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  historyReadEventsNext(endpointId: string, request: Models.HistoryReadNextRequestApiModel, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<Models.HistoryReadNextResponseApiModelHistoricEventApiModel>): void;
+  historyReadEventsNext(endpointId: string, request: Models.HistoryReadNextRequestApiModel, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<Models.HistoryReadNextResponseApiModelHistoricEventApiModel>, callback?: msRest.ServiceCallback<Models.HistoryReadNextResponseApiModelHistoricEventApiModel>): Promise<Models.HistoryReadEventsNextResponse> {
+    return this.sendOperationRequest(
+      {
+        endpointId,
+        request,
+        options
+      },
+      historyReadEventsNextOperationSpec,
+      callback) as Promise<Models.HistoryReadEventsNextResponse>;
+  }
+
+  /**
+   * Read processed history values of a node if available using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   * @summary Read historic processed values at specified times
+   * @param endpointId The identifier of the activated endpoint.
+   * @param request The history read request
+   * @param [options] The optional parameters
+   * @returns Promise<Models.HistoryReadValuesResponse>
+   */
+  historyReadValues(endpointId: string, request: Models.HistoryReadRequestApiModelReadValuesDetailsApiModel, options?: msRest.RequestOptionsBase): Promise<Models.HistoryReadValuesResponse>;
+  /**
+   * @param endpointId The identifier of the activated endpoint.
+   * @param request The history read request
+   * @param callback The callback
+   */
+  historyReadValues(endpointId: string, request: Models.HistoryReadRequestApiModelReadValuesDetailsApiModel, callback: msRest.ServiceCallback<Models.HistoryReadResponseApiModelHistoricValueApiModel>): void;
+  /**
+   * @param endpointId The identifier of the activated endpoint.
+   * @param request The history read request
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  historyReadValues(endpointId: string, request: Models.HistoryReadRequestApiModelReadValuesDetailsApiModel, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<Models.HistoryReadResponseApiModelHistoricValueApiModel>): void;
+  historyReadValues(endpointId: string, request: Models.HistoryReadRequestApiModelReadValuesDetailsApiModel, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<Models.HistoryReadResponseApiModelHistoricValueApiModel>, callback?: msRest.ServiceCallback<Models.HistoryReadResponseApiModelHistoricValueApiModel>): Promise<Models.HistoryReadValuesResponse> {
+    return this.sendOperationRequest(
+      {
+        endpointId,
+        request,
+        options
+      },
+      historyReadValuesOperationSpec,
+      callback) as Promise<Models.HistoryReadValuesResponse>;
+  }
+
+  /**
+   * Read historic values of a node if available using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   * @summary Read historic values at specified times
+   * @param endpointId The identifier of the activated endpoint.
+   * @param request The history read request
+   * @param [options] The optional parameters
+   * @returns Promise<Models.HistoryReadValuesAtTimesResponse>
+   */
+  historyReadValuesAtTimes(endpointId: string, request: Models.HistoryReadRequestApiModelReadValuesAtTimesDetailsApiModel, options?: msRest.RequestOptionsBase): Promise<Models.HistoryReadValuesAtTimesResponse>;
+  /**
+   * @param endpointId The identifier of the activated endpoint.
+   * @param request The history read request
+   * @param callback The callback
+   */
+  historyReadValuesAtTimes(endpointId: string, request: Models.HistoryReadRequestApiModelReadValuesAtTimesDetailsApiModel, callback: msRest.ServiceCallback<Models.HistoryReadResponseApiModelHistoricValueApiModel>): void;
+  /**
+   * @param endpointId The identifier of the activated endpoint.
+   * @param request The history read request
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  historyReadValuesAtTimes(endpointId: string, request: Models.HistoryReadRequestApiModelReadValuesAtTimesDetailsApiModel, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<Models.HistoryReadResponseApiModelHistoricValueApiModel>): void;
+  historyReadValuesAtTimes(endpointId: string, request: Models.HistoryReadRequestApiModelReadValuesAtTimesDetailsApiModel, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<Models.HistoryReadResponseApiModelHistoricValueApiModel>, callback?: msRest.ServiceCallback<Models.HistoryReadResponseApiModelHistoricValueApiModel>): Promise<Models.HistoryReadValuesAtTimesResponse> {
+    return this.sendOperationRequest(
+      {
+        endpointId,
+        request,
+        options
+      },
+      historyReadValuesAtTimesOperationSpec,
+      callback) as Promise<Models.HistoryReadValuesAtTimesResponse>;
+  }
+
+  /**
+   * Read processed history values of a node if available using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   * @summary Read historic processed values at specified times
+   * @param endpointId The identifier of the activated endpoint.
+   * @param request The history read request
+   * @param [options] The optional parameters
+   * @returns Promise<Models.HistoryReadProcessedValuesResponse>
+   */
+  historyReadProcessedValues(endpointId: string, request: Models.HistoryReadRequestApiModelReadProcessedValuesDetailsApiModel, options?: msRest.RequestOptionsBase): Promise<Models.HistoryReadProcessedValuesResponse>;
+  /**
+   * @param endpointId The identifier of the activated endpoint.
+   * @param request The history read request
+   * @param callback The callback
+   */
+  historyReadProcessedValues(endpointId: string, request: Models.HistoryReadRequestApiModelReadProcessedValuesDetailsApiModel, callback: msRest.ServiceCallback<Models.HistoryReadResponseApiModelHistoricValueApiModel>): void;
+  /**
+   * @param endpointId The identifier of the activated endpoint.
+   * @param request The history read request
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  historyReadProcessedValues(endpointId: string, request: Models.HistoryReadRequestApiModelReadProcessedValuesDetailsApiModel, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<Models.HistoryReadResponseApiModelHistoricValueApiModel>): void;
+  historyReadProcessedValues(endpointId: string, request: Models.HistoryReadRequestApiModelReadProcessedValuesDetailsApiModel, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<Models.HistoryReadResponseApiModelHistoricValueApiModel>, callback?: msRest.ServiceCallback<Models.HistoryReadResponseApiModelHistoricValueApiModel>): Promise<Models.HistoryReadProcessedValuesResponse> {
+    return this.sendOperationRequest(
+      {
+        endpointId,
+        request,
+        options
+      },
+      historyReadProcessedValuesOperationSpec,
+      callback) as Promise<Models.HistoryReadProcessedValuesResponse>;
+  }
+
+  /**
+   * Read processed history values of a node if available using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   * @summary Read historic modified values at specified times
+   * @param endpointId The identifier of the activated endpoint.
+   * @param request The history read request
+   * @param [options] The optional parameters
+   * @returns Promise<Models.HistoryReadModifiedValuesResponse>
+   */
+  historyReadModifiedValues(endpointId: string, request: Models.HistoryReadRequestApiModelReadModifiedValuesDetailsApiModel, options?: msRest.RequestOptionsBase): Promise<Models.HistoryReadModifiedValuesResponse>;
+  /**
+   * @param endpointId The identifier of the activated endpoint.
+   * @param request The history read request
+   * @param callback The callback
+   */
+  historyReadModifiedValues(endpointId: string, request: Models.HistoryReadRequestApiModelReadModifiedValuesDetailsApiModel, callback: msRest.ServiceCallback<Models.HistoryReadResponseApiModelHistoricValueApiModel>): void;
+  /**
+   * @param endpointId The identifier of the activated endpoint.
+   * @param request The history read request
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  historyReadModifiedValues(endpointId: string, request: Models.HistoryReadRequestApiModelReadModifiedValuesDetailsApiModel, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<Models.HistoryReadResponseApiModelHistoricValueApiModel>): void;
+  historyReadModifiedValues(endpointId: string, request: Models.HistoryReadRequestApiModelReadModifiedValuesDetailsApiModel, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<Models.HistoryReadResponseApiModelHistoricValueApiModel>, callback?: msRest.ServiceCallback<Models.HistoryReadResponseApiModelHistoricValueApiModel>): Promise<Models.HistoryReadModifiedValuesResponse> {
+    return this.sendOperationRequest(
+      {
+        endpointId,
+        request,
+        options
+      },
+      historyReadModifiedValuesOperationSpec,
+      callback) as Promise<Models.HistoryReadModifiedValuesResponse>;
+  }
+
+  /**
+   * Read next batch of historic values of a node using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   * @summary Read next batch of historic values
+   * @param endpointId The identifier of the activated endpoint.
+   * @param request The history read next request
+   * @param [options] The optional parameters
+   * @returns Promise<Models.HistoryReadValueNextResponse>
+   */
+  historyReadValueNext(endpointId: string, request: Models.HistoryReadNextRequestApiModel, options?: msRest.RequestOptionsBase): Promise<Models.HistoryReadValueNextResponse>;
+  /**
+   * @param endpointId The identifier of the activated endpoint.
+   * @param request The history read next request
+   * @param callback The callback
+   */
+  historyReadValueNext(endpointId: string, request: Models.HistoryReadNextRequestApiModel, callback: msRest.ServiceCallback<Models.HistoryReadNextResponseApiModelHistoricValueApiModel>): void;
+  /**
+   * @param endpointId The identifier of the activated endpoint.
+   * @param request The history read next request
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  historyReadValueNext(endpointId: string, request: Models.HistoryReadNextRequestApiModel, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<Models.HistoryReadNextResponseApiModelHistoricValueApiModel>): void;
+  historyReadValueNext(endpointId: string, request: Models.HistoryReadNextRequestApiModel, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<Models.HistoryReadNextResponseApiModelHistoricValueApiModel>, callback?: msRest.ServiceCallback<Models.HistoryReadNextResponseApiModelHistoricValueApiModel>): Promise<Models.HistoryReadValueNextResponse> {
+    return this.sendOperationRequest(
+      {
+        endpointId,
+        request,
+        options
+      },
+      historyReadValueNextOperationSpec,
+      callback) as Promise<Models.HistoryReadValueNextResponse>;
+  }
+
+  /**
+   * Replace historic values using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   * @summary Replace historic values
+   * @param endpointId The identifier of the activated endpoint.
+   * @param request The history replace request
+   * @param [options] The optional parameters
+   * @returns Promise<Models.HistoryReplaceValuesResponse>
+   */
+  historyReplaceValues(endpointId: string, request: Models.HistoryUpdateRequestApiModelReplaceValuesDetailsApiModel, options?: msRest.RequestOptionsBase): Promise<Models.HistoryReplaceValuesResponse>;
+  /**
+   * @param endpointId The identifier of the activated endpoint.
+   * @param request The history replace request
+   * @param callback The callback
+   */
+  historyReplaceValues(endpointId: string, request: Models.HistoryUpdateRequestApiModelReplaceValuesDetailsApiModel, callback: msRest.ServiceCallback<Models.HistoryUpdateResponseApiModel>): void;
+  /**
+   * @param endpointId The identifier of the activated endpoint.
+   * @param request The history replace request
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  historyReplaceValues(endpointId: string, request: Models.HistoryUpdateRequestApiModelReplaceValuesDetailsApiModel, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<Models.HistoryUpdateResponseApiModel>): void;
+  historyReplaceValues(endpointId: string, request: Models.HistoryUpdateRequestApiModelReplaceValuesDetailsApiModel, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<Models.HistoryUpdateResponseApiModel>, callback?: msRest.ServiceCallback<Models.HistoryUpdateResponseApiModel>): Promise<Models.HistoryReplaceValuesResponse> {
+    return this.sendOperationRequest(
+      {
+        endpointId,
+        request,
+        options
+      },
+      historyReplaceValuesOperationSpec,
+      callback) as Promise<Models.HistoryReplaceValuesResponse>;
+  }
+
+  /**
+   * Replace historic events using historic access.
+   * The endpoint must be activated and connected and the module client
+   * and server must trust each other.
+   * @summary Replace historic events
+   * @param endpointId The identifier of the activated endpoint.
+   * @param request The history replace request
+   * @param [options] The optional parameters
+   * @returns Promise<Models.HistoryReplaceEventsResponse>
+   */
+  historyReplaceEvents(endpointId: string, request: Models.HistoryUpdateRequestApiModelReplaceEventsDetailsApiModel, options?: msRest.RequestOptionsBase): Promise<Models.HistoryReplaceEventsResponse>;
+  /**
+   * @param endpointId The identifier of the activated endpoint.
+   * @param request The history replace request
+   * @param callback The callback
+   */
+  historyReplaceEvents(endpointId: string, request: Models.HistoryUpdateRequestApiModelReplaceEventsDetailsApiModel, callback: msRest.ServiceCallback<Models.HistoryUpdateResponseApiModel>): void;
+  /**
+   * @param endpointId The identifier of the activated endpoint.
+   * @param request The history replace request
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  historyReplaceEvents(endpointId: string, request: Models.HistoryUpdateRequestApiModelReplaceEventsDetailsApiModel, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<Models.HistoryUpdateResponseApiModel>): void;
+  historyReplaceEvents(endpointId: string, request: Models.HistoryUpdateRequestApiModelReplaceEventsDetailsApiModel, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<Models.HistoryUpdateResponseApiModel>, callback?: msRest.ServiceCallback<Models.HistoryUpdateResponseApiModel>): Promise<Models.HistoryReplaceEventsResponse> {
+    return this.sendOperationRequest(
+      {
+        endpointId,
+        request,
+        options
+      },
+      historyReplaceEventsOperationSpec,
+      callback) as Promise<Models.HistoryReplaceEventsResponse>;
   }
 
   /**
@@ -588,545 +678,401 @@ class AzureOpcHistoryClient extends AzureOpcHistoryClientContext {
       getStatusOperationSpec,
       callback) as Promise<Models.GetStatusResponse>;
   }
-
-  /**
-   * Returns a supervisor's registration and connectivity information.
-   * A supervisor id corresponds to the twin modules module identity.
-   * @summary Get supervisor registration information
-   * @param supervisorId Supervisor identifier
-   * @param [options] The optional parameters
-   * @returns Promise<Models.GetSupervisorResponse>
-   */
-  getSupervisor(supervisorId: string, options?: Models.AzureOpcHistoryClientGetSupervisorOptionalParams): Promise<Models.GetSupervisorResponse>;
-  /**
-   * @param supervisorId Supervisor identifier
-   * @param callback The callback
-   */
-  getSupervisor(supervisorId: string, callback: msRest.ServiceCallback<Models.SupervisorApiModel>): void;
-  /**
-   * @param supervisorId Supervisor identifier
-   * @param options The optional parameters
-   * @param callback The callback
-   */
-  getSupervisor(supervisorId: string, options: Models.AzureOpcHistoryClientGetSupervisorOptionalParams, callback: msRest.ServiceCallback<Models.SupervisorApiModel>): void;
-  getSupervisor(supervisorId: string, options?: Models.AzureOpcHistoryClientGetSupervisorOptionalParams | msRest.ServiceCallback<Models.SupervisorApiModel>, callback?: msRest.ServiceCallback<Models.SupervisorApiModel>): Promise<Models.GetSupervisorResponse> {
-    return this.sendOperationRequest(
-      {
-        supervisorId,
-        options
-      },
-      getSupervisorOperationSpec,
-      callback) as Promise<Models.GetSupervisorResponse>;
-  }
-
-  /**
-   * Allows a caller to configure recurring discovery runs on the twin module
-   * identified by the supervisor id or update site information.
-   * @summary Update supervisor information
-   * @param supervisorId supervisor identifier
-   * @param request Patch request
-   * @param [options] The optional parameters
-   * @returns Promise<msRest.RestResponse>
-   */
-  updateSupervisor(supervisorId: string, request: Models.SupervisorUpdateApiModel, options?: msRest.RequestOptionsBase): Promise<msRest.RestResponse>;
-  /**
-   * @param supervisorId supervisor identifier
-   * @param request Patch request
-   * @param callback The callback
-   */
-  updateSupervisor(supervisorId: string, request: Models.SupervisorUpdateApiModel, callback: msRest.ServiceCallback<void>): void;
-  /**
-   * @param supervisorId supervisor identifier
-   * @param request Patch request
-   * @param options The optional parameters
-   * @param callback The callback
-   */
-  updateSupervisor(supervisorId: string, request: Models.SupervisorUpdateApiModel, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<void>): void;
-  updateSupervisor(supervisorId: string, request: Models.SupervisorUpdateApiModel, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
-    return this.sendOperationRequest(
-      {
-        supervisorId,
-        request,
-        options
-      },
-      updateSupervisorOperationSpec,
-      callback);
-  }
-
-  /**
-   * Allows a caller to get runtime status for a supervisor.
-   * @summary Get runtime status of supervisor
-   * @param supervisorId supervisor identifier
-   * @param [options] The optional parameters
-   * @returns Promise<Models.GetSupervisorStatusResponse>
-   */
-  getSupervisorStatus(supervisorId: string, options?: msRest.RequestOptionsBase): Promise<Models.GetSupervisorStatusResponse>;
-  /**
-   * @param supervisorId supervisor identifier
-   * @param callback The callback
-   */
-  getSupervisorStatus(supervisorId: string, callback: msRest.ServiceCallback<Models.SupervisorStatusApiModel>): void;
-  /**
-   * @param supervisorId supervisor identifier
-   * @param options The optional parameters
-   * @param callback The callback
-   */
-  getSupervisorStatus(supervisorId: string, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<Models.SupervisorStatusApiModel>): void;
-  getSupervisorStatus(supervisorId: string, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<Models.SupervisorStatusApiModel>, callback?: msRest.ServiceCallback<Models.SupervisorStatusApiModel>): Promise<Models.GetSupervisorStatusResponse> {
-    return this.sendOperationRequest(
-      {
-        supervisorId,
-        options
-      },
-      getSupervisorStatusOperationSpec,
-      callback) as Promise<Models.GetSupervisorStatusResponse>;
-  }
-
-  /**
-   * Allows a caller to reset the twin module using its supervisor
-   * identity identifier.
-   * @summary Reset supervisor
-   * @param supervisorId supervisor identifier
-   * @param [options] The optional parameters
-   * @returns Promise<msRest.RestResponse>
-   */
-  resetSupervisor(supervisorId: string, options?: msRest.RequestOptionsBase): Promise<msRest.RestResponse>;
-  /**
-   * @param supervisorId supervisor identifier
-   * @param callback The callback
-   */
-  resetSupervisor(supervisorId: string, callback: msRest.ServiceCallback<void>): void;
-  /**
-   * @param supervisorId supervisor identifier
-   * @param options The optional parameters
-   * @param callback The callback
-   */
-  resetSupervisor(supervisorId: string, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<void>): void;
-  resetSupervisor(supervisorId: string, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
-    return this.sendOperationRequest(
-      {
-        supervisorId,
-        options
-      },
-      resetSupervisorOperationSpec,
-      callback);
-  }
-
-  /**
-   * Get all registered supervisors and therefore twin modules in paged form.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call this operation again using the token to retrieve more results.
-   * @summary Get list of supervisors
-   * @param [options] The optional parameters
-   * @returns Promise<Models.GetListOfSupervisorsResponse>
-   */
-  getListOfSupervisors(options?: Models.AzureOpcHistoryClientGetListOfSupervisorsOptionalParams): Promise<Models.GetListOfSupervisorsResponse>;
-  /**
-   * @param callback The callback
-   */
-  getListOfSupervisors(callback: msRest.ServiceCallback<Models.SupervisorListApiModel>): void;
-  /**
-   * @param options The optional parameters
-   * @param callback The callback
-   */
-  getListOfSupervisors(options: Models.AzureOpcHistoryClientGetListOfSupervisorsOptionalParams, callback: msRest.ServiceCallback<Models.SupervisorListApiModel>): void;
-  getListOfSupervisors(options?: Models.AzureOpcHistoryClientGetListOfSupervisorsOptionalParams | msRest.ServiceCallback<Models.SupervisorListApiModel>, callback?: msRest.ServiceCallback<Models.SupervisorListApiModel>): Promise<Models.GetListOfSupervisorsResponse> {
-    return this.sendOperationRequest(
-      {
-        options
-      },
-      getListOfSupervisorsOperationSpec,
-      callback) as Promise<Models.GetListOfSupervisorsResponse>;
-  }
-
-  /**
-   * Get a list of supervisors filtered using the specified query parameters.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfSupervisors operation using the token to retrieve
-   * more results.
-   * @summary Get filtered list of supervisors
-   * @param [options] The optional parameters
-   * @returns Promise<Models.GetFilteredListOfSupervisorsResponse>
-   */
-  getFilteredListOfSupervisors(options?: Models.AzureOpcHistoryClientGetFilteredListOfSupervisorsOptionalParams): Promise<Models.GetFilteredListOfSupervisorsResponse>;
-  /**
-   * @param callback The callback
-   */
-  getFilteredListOfSupervisors(callback: msRest.ServiceCallback<Models.SupervisorListApiModel>): void;
-  /**
-   * @param options The optional parameters
-   * @param callback The callback
-   */
-  getFilteredListOfSupervisors(options: Models.AzureOpcHistoryClientGetFilteredListOfSupervisorsOptionalParams, callback: msRest.ServiceCallback<Models.SupervisorListApiModel>): void;
-  getFilteredListOfSupervisors(options?: Models.AzureOpcHistoryClientGetFilteredListOfSupervisorsOptionalParams | msRest.ServiceCallback<Models.SupervisorListApiModel>, callback?: msRest.ServiceCallback<Models.SupervisorListApiModel>): Promise<Models.GetFilteredListOfSupervisorsResponse> {
-    return this.sendOperationRequest(
-      {
-        options
-      },
-      getFilteredListOfSupervisorsOperationSpec,
-      callback) as Promise<Models.GetFilteredListOfSupervisorsResponse>;
-  }
-
-  /**
-   * Get all supervisors that match a specified query.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfSupervisors operation using the token to retrieve
-   * more results.
-   * @summary Query supervisors
-   * @param query Supervisors query model
-   * @param [options] The optional parameters
-   * @returns Promise<Models.QuerySupervisorsResponse>
-   */
-  querySupervisors(query: Models.SupervisorQueryApiModel, options?: Models.AzureOpcHistoryClientQuerySupervisorsOptionalParams): Promise<Models.QuerySupervisorsResponse>;
-  /**
-   * @param query Supervisors query model
-   * @param callback The callback
-   */
-  querySupervisors(query: Models.SupervisorQueryApiModel, callback: msRest.ServiceCallback<Models.SupervisorListApiModel>): void;
-  /**
-   * @param query Supervisors query model
-   * @param options The optional parameters
-   * @param callback The callback
-   */
-  querySupervisors(query: Models.SupervisorQueryApiModel, options: Models.AzureOpcHistoryClientQuerySupervisorsOptionalParams, callback: msRest.ServiceCallback<Models.SupervisorListApiModel>): void;
-  querySupervisors(query: Models.SupervisorQueryApiModel, options?: Models.AzureOpcHistoryClientQuerySupervisorsOptionalParams | msRest.ServiceCallback<Models.SupervisorListApiModel>, callback?: msRest.ServiceCallback<Models.SupervisorListApiModel>): Promise<Models.QuerySupervisorsResponse> {
-    return this.sendOperationRequest(
-      {
-        query,
-        options
-      },
-      querySupervisorsOperationSpec,
-      callback) as Promise<Models.QuerySupervisorsResponse>;
-  }
 }
 
 // Operation Specifications
 const serializer = new msRest.Serializer(Mappers);
-const getListOfApplicationsOperationSpec: msRest.OperationSpec = {
-  httpMethod: "GET",
-  path: "v2/applications",
-  queryParameters: [
-    Parameters.continuationToken,
-    Parameters.pageSize
-  ],
-  responses: {
-    200: {
-      bodyMapper: Mappers.ApplicationInfoListApiModel
-    },
-    default: {}
-  },
-  serializer
-};
-
-const createApplicationOperationSpec: msRest.OperationSpec = {
-  httpMethod: "PUT",
-  path: "v2/applications",
-  requestBody: {
-    parameterPath: "request",
-    mapper: {
-      ...Mappers.ApplicationRegistrationRequestApiModel,
-      required: true
-    }
-  },
-  contentType: "application/json-patch+json; charset=utf-8",
-  responses: {
-    200: {
-      bodyMapper: Mappers.ApplicationRegistrationResponseApiModel
-    },
-    default: {}
-  },
-  serializer
-};
-
-const registerServerOperationSpec: msRest.OperationSpec = {
+const historyDeleteValuesAtTimesOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v2/applications",
-  requestBody: {
-    parameterPath: "request",
-    mapper: {
-      ...Mappers.ServerRegistrationRequestApiModel,
-      required: true
-    }
-  },
-  contentType: "application/json-patch+json; charset=utf-8",
-  responses: {
-    200: {},
-    default: {}
-  },
-  serializer
-};
-
-const deleteAllDisabledApplicationsOperationSpec: msRest.OperationSpec = {
-  httpMethod: "DELETE",
-  path: "v2/applications",
-  queryParameters: [
-    Parameters.notSeenFor
-  ],
-  responses: {
-    200: {},
-    default: {}
-  },
-  serializer
-};
-
-const discoverServerOperationSpec: msRest.OperationSpec = {
-  httpMethod: "POST",
-  path: "v2/applications/discover",
-  requestBody: {
-    parameterPath: "request",
-    mapper: {
-      ...Mappers.DiscoveryRequestApiModel,
-      required: true
-    }
-  },
-  contentType: "application/json-patch+json; charset=utf-8",
-  responses: {
-    200: {},
-    default: {}
-  },
-  serializer
-};
-
-const getApplicationRegistrationOperationSpec: msRest.OperationSpec = {
-  httpMethod: "GET",
-  path: "v2/applications/{applicationId}",
-  urlParameters: [
-    Parameters.applicationId
-  ],
-  responses: {
-    200: {
-      bodyMapper: Mappers.ApplicationRegistrationApiModel
-    },
-    default: {}
-  },
-  serializer
-};
-
-const deleteApplicationOperationSpec: msRest.OperationSpec = {
-  httpMethod: "DELETE",
-  path: "v2/applications/{applicationId}",
-  urlParameters: [
-    Parameters.applicationId
-  ],
-  responses: {
-    200: {},
-    default: {}
-  },
-  serializer
-};
-
-const updateApplicationRegistrationOperationSpec: msRest.OperationSpec = {
-  httpMethod: "PATCH",
-  path: "v2/applications/{applicationId}",
-  urlParameters: [
-    Parameters.applicationId
-  ],
-  requestBody: {
-    parameterPath: "request",
-    mapper: {
-      ...Mappers.ApplicationRegistrationUpdateApiModel,
-      required: true
-    }
-  },
-  contentType: "application/json-patch+json; charset=utf-8",
-  responses: {
-    200: {},
-    default: {}
-  },
-  serializer
-};
-
-const getListOfSitesOperationSpec: msRest.OperationSpec = {
-  httpMethod: "GET",
-  path: "v2/applications/sites",
-  queryParameters: [
-    Parameters.continuationToken,
-    Parameters.pageSize
-  ],
-  responses: {
-    200: {
-      bodyMapper: Mappers.ApplicationSiteListApiModel
-    },
-    default: {}
-  },
-  serializer
-};
-
-const getFilteredListOfApplicationsOperationSpec: msRest.OperationSpec = {
-  httpMethod: "GET",
-  path: "v2/applications/query",
-  queryParameters: [
-    Parameters.pageSize
-  ],
-  requestBody: {
-    parameterPath: "query",
-    mapper: {
-      ...Mappers.ApplicationRegistrationQueryApiModel,
-      required: true
-    }
-  },
-  contentType: "application/json-patch+json; charset=utf-8",
-  responses: {
-    200: {
-      bodyMapper: Mappers.ApplicationInfoListApiModel
-    },
-    default: {}
-  },
-  serializer
-};
-
-const queryApplicationsOperationSpec: msRest.OperationSpec = {
-  httpMethod: "POST",
-  path: "v2/applications/query",
-  queryParameters: [
-    Parameters.pageSize
-  ],
-  requestBody: {
-    parameterPath: "query",
-    mapper: {
-      ...Mappers.ApplicationRegistrationQueryApiModel,
-      required: true
-    }
-  },
-  contentType: "application/json-patch+json; charset=utf-8",
-  responses: {
-    200: {
-      bodyMapper: Mappers.ApplicationInfoListApiModel
-    },
-    default: {}
-  },
-  serializer
-};
-
-const activateEndpointOperationSpec: msRest.OperationSpec = {
-  httpMethod: "POST",
-  path: "v2/endpoints/{endpointId}/activate",
-  urlParameters: [
-    Parameters.endpointId
-  ],
-  responses: {
-    200: {},
-    default: {}
-  },
-  serializer
-};
-
-const getEndpointOperationSpec: msRest.OperationSpec = {
-  httpMethod: "GET",
-  path: "v2/endpoints/{endpointId}",
-  urlParameters: [
-    Parameters.endpointId
-  ],
-  queryParameters: [
-    Parameters.onlyServerState
-  ],
-  responses: {
-    200: {
-      bodyMapper: Mappers.EndpointInfoApiModel
-    },
-    default: {}
-  },
-  serializer
-};
-
-const updateEndpointOperationSpec: msRest.OperationSpec = {
-  httpMethod: "PATCH",
-  path: "v2/endpoints/{endpointId}",
+  path: "v2/delete/{endpointId}/values/pick",
   urlParameters: [
     Parameters.endpointId
   ],
   requestBody: {
     parameterPath: "request",
     mapper: {
-      ...Mappers.EndpointRegistrationUpdateApiModel,
+      ...Mappers.HistoryUpdateRequestApiModelDeleteValuesAtTimesDetailsApiModel,
       required: true
     }
   },
-  contentType: "application/json-patch+json; charset=utf-8",
-  responses: {
-    200: {},
-    default: {}
-  },
-  serializer
-};
-
-const getListOfEndpointsOperationSpec: msRest.OperationSpec = {
-  httpMethod: "GET",
-  path: "v2/endpoints",
-  queryParameters: [
-    Parameters.onlyServerState,
-    Parameters.continuationToken,
-    Parameters.pageSize
-  ],
   responses: {
     200: {
-      bodyMapper: Mappers.EndpointInfoListApiModel
+      bodyMapper: Mappers.HistoryUpdateResponseApiModel
     },
     default: {}
   },
   serializer
 };
 
-const getFilteredListOfEndpointsOperationSpec: msRest.OperationSpec = {
-  httpMethod: "GET",
-  path: "v2/endpoints/query",
-  queryParameters: [
-    Parameters.url,
-    Parameters.userAuthentication,
-    Parameters.certificate,
-    Parameters.securityMode,
-    Parameters.securityPolicy,
-    Parameters.activated,
-    Parameters.connected,
-    Parameters.endpointState,
-    Parameters.includeNotSeenSince,
-    Parameters.onlyServerState,
-    Parameters.pageSize
-  ],
-  responses: {
-    200: {
-      bodyMapper: Mappers.EndpointInfoListApiModel
-    },
-    default: {}
-  },
-  serializer
-};
-
-const queryEndpointsOperationSpec: msRest.OperationSpec = {
+const historyDeleteValuesOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v2/endpoints/query",
-  queryParameters: [
-    Parameters.onlyServerState,
-    Parameters.pageSize
-  ],
-  requestBody: {
-    parameterPath: "query",
-    mapper: {
-      ...Mappers.EndpointRegistrationQueryApiModel,
-      required: true
-    }
-  },
-  contentType: "application/json-patch+json; charset=utf-8",
-  responses: {
-    200: {
-      bodyMapper: Mappers.EndpointInfoListApiModel
-    },
-    default: {}
-  },
-  serializer
-};
-
-const deactivateEndpointOperationSpec: msRest.OperationSpec = {
-  httpMethod: "POST",
-  path: "v2/endpoints/{endpointId}/deactivate",
+  path: "v2/delete/{endpointId}/values",
   urlParameters: [
     Parameters.endpointId
   ],
+  requestBody: {
+    parameterPath: "request",
+    mapper: {
+      ...Mappers.HistoryUpdateRequestApiModelDeleteValuesDetailsApiModel,
+      required: true
+    }
+  },
   responses: {
-    200: {},
+    200: {
+      bodyMapper: Mappers.HistoryUpdateResponseApiModel
+    },
+    default: {}
+  },
+  serializer
+};
+
+const historyDeleteModifiedValuesOperationSpec: msRest.OperationSpec = {
+  httpMethod: "POST",
+  path: "v2/delete/{endpointId}/values/modified",
+  urlParameters: [
+    Parameters.endpointId
+  ],
+  requestBody: {
+    parameterPath: "request",
+    mapper: {
+      ...Mappers.HistoryUpdateRequestApiModelDeleteModifiedValuesDetailsApiModel,
+      required: true
+    }
+  },
+  responses: {
+    200: {
+      bodyMapper: Mappers.HistoryUpdateResponseApiModel
+    },
+    default: {}
+  },
+  serializer
+};
+
+const historyDeleteEventsOperationSpec: msRest.OperationSpec = {
+  httpMethod: "POST",
+  path: "v2/delete/{endpointId}/events",
+  urlParameters: [
+    Parameters.endpointId
+  ],
+  requestBody: {
+    parameterPath: "request",
+    mapper: {
+      ...Mappers.HistoryUpdateRequestApiModelDeleteEventsDetailsApiModel,
+      required: true
+    }
+  },
+  responses: {
+    200: {
+      bodyMapper: Mappers.HistoryUpdateResponseApiModel
+    },
+    default: {}
+  },
+  serializer
+};
+
+const historyReadRawOperationSpec: msRest.OperationSpec = {
+  httpMethod: "POST",
+  path: "v2/history/read/{endpointId}",
+  urlParameters: [
+    Parameters.endpointId
+  ],
+  requestBody: {
+    parameterPath: "request",
+    mapper: {
+      ...Mappers.HistoryReadRequestApiModelJToken,
+      required: true
+    }
+  },
+  responses: {
+    200: {
+      bodyMapper: Mappers.HistoryReadResponseApiModelJToken
+    },
+    default: {}
+  },
+  serializer
+};
+
+const historyReadRawNextOperationSpec: msRest.OperationSpec = {
+  httpMethod: "POST",
+  path: "v2/history/read/{endpointId}/next",
+  urlParameters: [
+    Parameters.endpointId
+  ],
+  requestBody: {
+    parameterPath: "request",
+    mapper: {
+      ...Mappers.HistoryReadNextRequestApiModel,
+      required: true
+    }
+  },
+  responses: {
+    200: {
+      bodyMapper: Mappers.HistoryReadNextResponseApiModelJToken
+    },
+    default: {}
+  },
+  serializer
+};
+
+const historyUpdateRawOperationSpec: msRest.OperationSpec = {
+  httpMethod: "POST",
+  path: "v2/history/update/{endpointId}",
+  urlParameters: [
+    Parameters.endpointId
+  ],
+  requestBody: {
+    parameterPath: "request",
+    mapper: {
+      ...Mappers.HistoryUpdateRequestApiModelJToken,
+      required: true
+    }
+  },
+  responses: {
+    200: {
+      bodyMapper: Mappers.HistoryUpdateResponseApiModel
+    },
+    default: {}
+  },
+  serializer
+};
+
+const historyInsertValuesOperationSpec: msRest.OperationSpec = {
+  httpMethod: "POST",
+  path: "v2/insert/{endpointId}/values",
+  urlParameters: [
+    Parameters.endpointId
+  ],
+  requestBody: {
+    parameterPath: "request",
+    mapper: {
+      ...Mappers.HistoryUpdateRequestApiModelInsertValuesDetailsApiModel,
+      required: true
+    }
+  },
+  responses: {
+    200: {
+      bodyMapper: Mappers.HistoryUpdateResponseApiModel
+    },
+    default: {}
+  },
+  serializer
+};
+
+const historyInsertEventsOperationSpec: msRest.OperationSpec = {
+  httpMethod: "POST",
+  path: "v2/insert/{endpointId}/events",
+  urlParameters: [
+    Parameters.endpointId
+  ],
+  requestBody: {
+    parameterPath: "request",
+    mapper: {
+      ...Mappers.HistoryUpdateRequestApiModelInsertEventsDetailsApiModel,
+      required: true
+    }
+  },
+  responses: {
+    200: {
+      bodyMapper: Mappers.HistoryUpdateResponseApiModel
+    },
+    default: {}
+  },
+  serializer
+};
+
+const historyReadEventsOperationSpec: msRest.OperationSpec = {
+  httpMethod: "POST",
+  path: "v2/read/{endpointId}/events",
+  urlParameters: [
+    Parameters.endpointId
+  ],
+  requestBody: {
+    parameterPath: "request",
+    mapper: {
+      ...Mappers.HistoryReadRequestApiModelReadEventsDetailsApiModel,
+      required: true
+    }
+  },
+  responses: {
+    200: {
+      bodyMapper: Mappers.HistoryReadResponseApiModelHistoricEventApiModel
+    },
+    default: {}
+  },
+  serializer
+};
+
+const historyReadEventsNextOperationSpec: msRest.OperationSpec = {
+  httpMethod: "POST",
+  path: "v2/read/{endpointId}/events/next",
+  urlParameters: [
+    Parameters.endpointId
+  ],
+  requestBody: {
+    parameterPath: "request",
+    mapper: {
+      ...Mappers.HistoryReadNextRequestApiModel,
+      required: true
+    }
+  },
+  responses: {
+    200: {
+      bodyMapper: Mappers.HistoryReadNextResponseApiModelHistoricEventApiModel
+    },
+    default: {}
+  },
+  serializer
+};
+
+const historyReadValuesOperationSpec: msRest.OperationSpec = {
+  httpMethod: "POST",
+  path: "v2/read/{endpointId}/values",
+  urlParameters: [
+    Parameters.endpointId
+  ],
+  requestBody: {
+    parameterPath: "request",
+    mapper: {
+      ...Mappers.HistoryReadRequestApiModelReadValuesDetailsApiModel,
+      required: true
+    }
+  },
+  responses: {
+    200: {
+      bodyMapper: Mappers.HistoryReadResponseApiModelHistoricValueApiModel
+    },
+    default: {}
+  },
+  serializer
+};
+
+const historyReadValuesAtTimesOperationSpec: msRest.OperationSpec = {
+  httpMethod: "POST",
+  path: "v2/read/{endpointId}/values/pick",
+  urlParameters: [
+    Parameters.endpointId
+  ],
+  requestBody: {
+    parameterPath: "request",
+    mapper: {
+      ...Mappers.HistoryReadRequestApiModelReadValuesAtTimesDetailsApiModel,
+      required: true
+    }
+  },
+  responses: {
+    200: {
+      bodyMapper: Mappers.HistoryReadResponseApiModelHistoricValueApiModel
+    },
+    default: {}
+  },
+  serializer
+};
+
+const historyReadProcessedValuesOperationSpec: msRest.OperationSpec = {
+  httpMethod: "POST",
+  path: "v2/read/{endpointId}/values/processed",
+  urlParameters: [
+    Parameters.endpointId
+  ],
+  requestBody: {
+    parameterPath: "request",
+    mapper: {
+      ...Mappers.HistoryReadRequestApiModelReadProcessedValuesDetailsApiModel,
+      required: true
+    }
+  },
+  responses: {
+    200: {
+      bodyMapper: Mappers.HistoryReadResponseApiModelHistoricValueApiModel
+    },
+    default: {}
+  },
+  serializer
+};
+
+const historyReadModifiedValuesOperationSpec: msRest.OperationSpec = {
+  httpMethod: "POST",
+  path: "v2/read/{endpointId}/values/modified",
+  urlParameters: [
+    Parameters.endpointId
+  ],
+  requestBody: {
+    parameterPath: "request",
+    mapper: {
+      ...Mappers.HistoryReadRequestApiModelReadModifiedValuesDetailsApiModel,
+      required: true
+    }
+  },
+  responses: {
+    200: {
+      bodyMapper: Mappers.HistoryReadResponseApiModelHistoricValueApiModel
+    },
+    default: {}
+  },
+  serializer
+};
+
+const historyReadValueNextOperationSpec: msRest.OperationSpec = {
+  httpMethod: "POST",
+  path: "v2/read/{endpointId}/values/next",
+  urlParameters: [
+    Parameters.endpointId
+  ],
+  requestBody: {
+    parameterPath: "request",
+    mapper: {
+      ...Mappers.HistoryReadNextRequestApiModel,
+      required: true
+    }
+  },
+  responses: {
+    200: {
+      bodyMapper: Mappers.HistoryReadNextResponseApiModelHistoricValueApiModel
+    },
+    default: {}
+  },
+  serializer
+};
+
+const historyReplaceValuesOperationSpec: msRest.OperationSpec = {
+  httpMethod: "POST",
+  path: "v2/replace/{endpointId}/values",
+  urlParameters: [
+    Parameters.endpointId
+  ],
+  requestBody: {
+    parameterPath: "request",
+    mapper: {
+      ...Mappers.HistoryUpdateRequestApiModelReplaceValuesDetailsApiModel,
+      required: true
+    }
+  },
+  responses: {
+    200: {
+      bodyMapper: Mappers.HistoryUpdateResponseApiModel
+    },
+    default: {}
+  },
+  serializer
+};
+
+const historyReplaceEventsOperationSpec: msRest.OperationSpec = {
+  httpMethod: "POST",
+  path: "v2/replace/{endpointId}/events",
+  urlParameters: [
+    Parameters.endpointId
+  ],
+  requestBody: {
+    parameterPath: "request",
+    mapper: {
+      ...Mappers.HistoryUpdateRequestApiModelReplaceEventsDetailsApiModel,
+      required: true
+    }
+  },
+  responses: {
+    200: {
+      bodyMapper: Mappers.HistoryUpdateResponseApiModel
+    },
     default: {}
   },
   serializer
@@ -1135,136 +1081,10 @@ const deactivateEndpointOperationSpec: msRest.OperationSpec = {
 const getStatusOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
   path: "v2/status",
+  contentType: "application/json; charset=utf-8",
   responses: {
     200: {
       bodyMapper: Mappers.StatusResponseApiModel
-    },
-    default: {}
-  },
-  serializer
-};
-
-const getSupervisorOperationSpec: msRest.OperationSpec = {
-  httpMethod: "GET",
-  path: "v2/supervisors/{supervisorId}",
-  urlParameters: [
-    Parameters.supervisorId
-  ],
-  queryParameters: [
-    Parameters.onlyServerState
-  ],
-  responses: {
-    200: {
-      bodyMapper: Mappers.SupervisorApiModel
-    },
-    default: {}
-  },
-  serializer
-};
-
-const updateSupervisorOperationSpec: msRest.OperationSpec = {
-  httpMethod: "PATCH",
-  path: "v2/supervisors/{supervisorId}",
-  urlParameters: [
-    Parameters.supervisorId
-  ],
-  requestBody: {
-    parameterPath: "request",
-    mapper: {
-      ...Mappers.SupervisorUpdateApiModel,
-      required: true
-    }
-  },
-  contentType: "application/json-patch+json; charset=utf-8",
-  responses: {
-    200: {},
-    default: {}
-  },
-  serializer
-};
-
-const getSupervisorStatusOperationSpec: msRest.OperationSpec = {
-  httpMethod: "GET",
-  path: "v2/supervisors/{supervisorId}/status",
-  urlParameters: [
-    Parameters.supervisorId
-  ],
-  responses: {
-    200: {
-      bodyMapper: Mappers.SupervisorStatusApiModel
-    },
-    default: {}
-  },
-  serializer
-};
-
-const resetSupervisorOperationSpec: msRest.OperationSpec = {
-  httpMethod: "POST",
-  path: "v2/supervisors/{supervisorId}/reset",
-  urlParameters: [
-    Parameters.supervisorId
-  ],
-  responses: {
-    200: {},
-    default: {}
-  },
-  serializer
-};
-
-const getListOfSupervisorsOperationSpec: msRest.OperationSpec = {
-  httpMethod: "GET",
-  path: "v2/supervisors",
-  queryParameters: [
-    Parameters.onlyServerState,
-    Parameters.continuationToken,
-    Parameters.pageSize
-  ],
-  responses: {
-    200: {
-      bodyMapper: Mappers.SupervisorListApiModel
-    },
-    default: {}
-  },
-  serializer
-};
-
-const getFilteredListOfSupervisorsOperationSpec: msRest.OperationSpec = {
-  httpMethod: "GET",
-  path: "v2/supervisors/query",
-  queryParameters: [
-    Parameters.siteId,
-    Parameters.discovery,
-    Parameters.connected,
-    Parameters.onlyServerState,
-    Parameters.pageSize
-  ],
-  responses: {
-    200: {
-      bodyMapper: Mappers.SupervisorListApiModel
-    },
-    default: {}
-  },
-  serializer
-};
-
-const querySupervisorsOperationSpec: msRest.OperationSpec = {
-  httpMethod: "POST",
-  path: "v2/supervisors/query",
-  queryParameters: [
-    Parameters.onlyServerState,
-    Parameters.pageSize
-  ],
-  requestBody: {
-    parameterPath: "query",
-    mapper: {
-      ...Mappers.SupervisorQueryApiModel,
-      required: true
-    }
-  },
-  contentType: "application/json-patch+json; charset=utf-8",
-  responses: {
-    200: {
-      bodyMapper: Mappers.SupervisorListApiModel
     },
     default: {}
   },

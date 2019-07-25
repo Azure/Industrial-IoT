@@ -469,6 +469,332 @@ module azure.iiot.opc.registry
     end
 
     #
+    # Approve a new application.
+    #
+    # A manager can approve a new application or force an application
+    # from any state.
+    # After approval the application is in the 'Approved' state.
+    # Requires Manager role.
+    #
+    # @param application_id [String] The application id
+    # @param force [Boolean] optional, force application in new state
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    #
+    def approve_application(application_id, force:nil, custom_headers:nil)
+      response = approve_application_async(application_id, force:force, custom_headers:custom_headers).value!
+      nil
+    end
+
+    #
+    # Approve a new application.
+    #
+    # A manager can approve a new application or force an application
+    # from any state.
+    # After approval the application is in the 'Approved' state.
+    # Requires Manager role.
+    #
+    # @param application_id [String] The application id
+    # @param force [Boolean] optional, force application in new state
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def approve_application_with_http_info(application_id, force:nil, custom_headers:nil)
+      approve_application_async(application_id, force:force, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Approve a new application.
+    #
+    # A manager can approve a new application or force an application
+    # from any state.
+    # After approval the application is in the 'Approved' state.
+    # Requires Manager role.
+    #
+    # @param application_id [String] The application id
+    # @param force [Boolean] optional, force application in new state
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def approve_application_async(application_id, force:nil, custom_headers:nil)
+      fail ArgumentError, 'application_id is nil' if application_id.nil?
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json; charset=utf-8'
+      path_template = 'v2/applications/{applicationId}/approve'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          path_params: {'applicationId' => application_id},
+          query_params: {'force' => force},
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:post, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
+    # Reject a new application.
+    #
+    # A manager can approve a new application or force an application
+    # from any state.
+    # After approval the application is in the 'Rejected' state.
+    # Requires Manager role.
+    #
+    # @param application_id [String] The application id
+    # @param force [Boolean] optional, force application in new state
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    #
+    def reject_application(application_id, force:nil, custom_headers:nil)
+      response = reject_application_async(application_id, force:force, custom_headers:custom_headers).value!
+      nil
+    end
+
+    #
+    # Reject a new application.
+    #
+    # A manager can approve a new application or force an application
+    # from any state.
+    # After approval the application is in the 'Rejected' state.
+    # Requires Manager role.
+    #
+    # @param application_id [String] The application id
+    # @param force [Boolean] optional, force application in new state
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def reject_application_with_http_info(application_id, force:nil, custom_headers:nil)
+      reject_application_async(application_id, force:force, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Reject a new application.
+    #
+    # A manager can approve a new application or force an application
+    # from any state.
+    # After approval the application is in the 'Rejected' state.
+    # Requires Manager role.
+    #
+    # @param application_id [String] The application id
+    # @param force [Boolean] optional, force application in new state
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def reject_application_async(application_id, force:nil, custom_headers:nil)
+      fail ArgumentError, 'application_id is nil' if application_id.nil?
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json; charset=utf-8'
+      path_template = 'v2/applications/{applicationId}/reject'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          path_params: {'applicationId' => application_id},
+          query_params: {'force' => force},
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:post, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
+    # Disable an enabled application.
+    #
+    # A manager can disable an application.
+    #
+    # @param application_id [String] The application id
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    #
+    def disable_application(application_id, custom_headers:nil)
+      response = disable_application_async(application_id, custom_headers:custom_headers).value!
+      nil
+    end
+
+    #
+    # Disable an enabled application.
+    #
+    # A manager can disable an application.
+    #
+    # @param application_id [String] The application id
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def disable_application_with_http_info(application_id, custom_headers:nil)
+      disable_application_async(application_id, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Disable an enabled application.
+    #
+    # A manager can disable an application.
+    #
+    # @param application_id [String] The application id
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def disable_application_async(application_id, custom_headers:nil)
+      fail ArgumentError, 'application_id is nil' if application_id.nil?
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json; charset=utf-8'
+      path_template = 'v2/applications/{applicationId}/disable'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          path_params: {'applicationId' => application_id},
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:post, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
+    # Re-enable a disabled application.
+    #
+    # A manager can enable an application.
+    #
+    # @param application_id [String] The application id
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    #
+    def enable_application(application_id, custom_headers:nil)
+      response = enable_application_async(application_id, custom_headers:custom_headers).value!
+      nil
+    end
+
+    #
+    # Re-enable a disabled application.
+    #
+    # A manager can enable an application.
+    #
+    # @param application_id [String] The application id
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def enable_application_with_http_info(application_id, custom_headers:nil)
+      enable_application_async(application_id, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Re-enable a disabled application.
+    #
+    # A manager can enable an application.
+    #
+    # @param application_id [String] The application id
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def enable_application_async(application_id, custom_headers:nil)
+      fail ArgumentError, 'application_id is nil' if application_id.nil?
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json; charset=utf-8'
+      path_template = 'v2/applications/{applicationId}/enable'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          path_params: {'applicationId' => application_id},
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:post, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
     # Discover servers
     #
     # Registers servers by running a discovery scan in a supervisor's
@@ -1103,6 +1429,97 @@ module azure.iiot.opc.registry
           begin
             parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
             result_mapper = azure.iiot.opc.registry::Models::ApplicationInfoListApiModel.mapper()
+            result.body = self.deserialize(result_mapper, parsed_response)
+          rescue Exception => e
+            fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
+          end
+        end
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
+    # Query applications by id.
+    #
+    # A query model which supports the OPC UA Global Discovery Server query.
+    #
+    # @param query [ApplicationRecordQueryApiModel]
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [ApplicationRecordListApiModel] operation results.
+    #
+    def query_applications_by_id(query:nil, custom_headers:nil)
+      response = query_applications_by_id_async(query:query, custom_headers:custom_headers).value!
+      response.body unless response.nil?
+    end
+
+    #
+    # Query applications by id.
+    #
+    # A query model which supports the OPC UA Global Discovery Server query.
+    #
+    # @param query [ApplicationRecordQueryApiModel]
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def query_applications_by_id_with_http_info(query:nil, custom_headers:nil)
+      query_applications_by_id_async(query:query, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Query applications by id.
+    #
+    # A query model which supports the OPC UA Global Discovery Server query.
+    #
+    # @param query [ApplicationRecordQueryApiModel]
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def query_applications_by_id_async(query:nil, custom_headers:nil)
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
+
+      # Serialize Request
+      request_mapper = azure.iiot.opc.registry::Models::ApplicationRecordQueryApiModel.mapper()
+      request_content = self.serialize(request_mapper,  query)
+      request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
+
+      path_template = 'v2/applications/querybyid'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          body: request_content,
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:post, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+        # Deserialize Response
+        if status_code == 200
+          begin
+            parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
+            result_mapper = azure.iiot.opc.registry::Models::ApplicationRecordListApiModel.mapper()
             result.body = self.deserialize(result_mapper, parsed_response)
           rescue Exception => e
             fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)

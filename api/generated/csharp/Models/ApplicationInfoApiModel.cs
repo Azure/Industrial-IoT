@@ -8,7 +8,7 @@
 // regenerated.
 // </auto-generated>
 
-namespace Microsoft.Azure.IIoT.Opc.History.Models
+namespace Microsoft.Azure.IIoT.Opc.Registry.Models
 {
     using Microsoft.Rest;
     using Newtonsoft.Json;
@@ -32,40 +32,56 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
         /// <summary>
         /// Initializes a new instance of the ApplicationInfoApiModel class.
         /// </summary>
+        /// <param name="state">State. Possible values include: 'New',
+        /// 'Approved', 'Rejected'</param>
         /// <param name="applicationId">Unique application id</param>
         /// <param name="applicationType">Type of application. Possible values
-        /// include: 'Server', 'Client', 'ClientAndServer'</param>
+        /// include: 'Server', 'Client', 'ClientAndServer',
+        /// 'DiscoveryServer'</param>
         /// <param name="applicationUri">Unique application uri</param>
         /// <param name="productUri">Product uri</param>
-        /// <param name="applicationName">Name of server</param>
-        /// <param name="locale">Locale of name - defaults to "en"</param>
+        /// <param name="applicationName">Default name of application</param>
+        /// <param name="locale">Locale of default name - defaults to
+        /// "en"</param>
+        /// <param name="localizedNames">Localized Names of application keyed
+        /// on locale</param>
         /// <param name="certificate">Application public cert</param>
         /// <param name="capabilities">The capabilities advertised by the
         /// server.</param>
         /// <param name="discoveryUrls">Discovery urls of the server</param>
         /// <param name="discoveryProfileUri">Discovery profile uri</param>
+        /// <param name="gatewayServerUri">Gateway server uri</param>
         /// <param name="hostAddresses">Host addresses of server application or
         /// null</param>
         /// <param name="siteId">Site of the application</param>
         /// <param name="supervisorId">Supervisor having registered the
         /// application</param>
         /// <param name="notSeenSince">Last time application was seen</param>
-        public ApplicationInfoApiModel(string applicationId = default(string), ApplicationType? applicationType = default(ApplicationType?), string applicationUri = default(string), string productUri = default(string), string applicationName = default(string), string locale = default(string), byte[] certificate = default(byte[]), IList<string> capabilities = default(IList<string>), IList<string> discoveryUrls = default(IList<string>), string discoveryProfileUri = default(string), IList<string> hostAddresses = default(IList<string>), string siteId = default(string), string supervisorId = default(string), System.DateTime? notSeenSince = default(System.DateTime?))
+        /// <param name="created">Created</param>
+        /// <param name="approved">Approved</param>
+        /// <param name="updated">Updated</param>
+        public ApplicationInfoApiModel(ApplicationState? state = default(ApplicationState?), string applicationId = default(string), ApplicationType? applicationType = default(ApplicationType?), string applicationUri = default(string), string productUri = default(string), string applicationName = default(string), string locale = default(string), IDictionary<string, string> localizedNames = default(IDictionary<string, string>), byte[] certificate = default(byte[]), IList<string> capabilities = default(IList<string>), IList<string> discoveryUrls = default(IList<string>), string discoveryProfileUri = default(string), string gatewayServerUri = default(string), IList<string> hostAddresses = default(IList<string>), string siteId = default(string), string supervisorId = default(string), System.DateTime? notSeenSince = default(System.DateTime?), RegistryOperationApiModel created = default(RegistryOperationApiModel), RegistryOperationApiModel approved = default(RegistryOperationApiModel), RegistryOperationApiModel updated = default(RegistryOperationApiModel))
         {
+            State = state;
             ApplicationId = applicationId;
             ApplicationType = applicationType;
             ApplicationUri = applicationUri;
             ProductUri = productUri;
             ApplicationName = applicationName;
             Locale = locale;
+            LocalizedNames = localizedNames;
             Certificate = certificate;
             Capabilities = capabilities;
             DiscoveryUrls = discoveryUrls;
             DiscoveryProfileUri = discoveryProfileUri;
+            GatewayServerUri = gatewayServerUri;
             HostAddresses = hostAddresses;
             SiteId = siteId;
             SupervisorId = supervisorId;
             NotSeenSince = notSeenSince;
+            Created = created;
+            Approved = approved;
+            Updated = updated;
             CustomInit();
         }
 
@@ -75,6 +91,13 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
         partial void CustomInit();
 
         /// <summary>
+        /// Gets or sets state. Possible values include: 'New', 'Approved',
+        /// 'Rejected'
+        /// </summary>
+        [JsonProperty(PropertyName = "state")]
+        public ApplicationState? State { get; set; }
+
+        /// <summary>
         /// Gets or sets unique application id
         /// </summary>
         [JsonProperty(PropertyName = "applicationId")]
@@ -82,7 +105,7 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
 
         /// <summary>
         /// Gets or sets type of application. Possible values include:
-        /// 'Server', 'Client', 'ClientAndServer'
+        /// 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
         /// </summary>
         [JsonProperty(PropertyName = "applicationType")]
         public ApplicationType? ApplicationType { get; set; }
@@ -100,16 +123,22 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
         public string ProductUri { get; set; }
 
         /// <summary>
-        /// Gets or sets name of server
+        /// Gets or sets default name of application
         /// </summary>
         [JsonProperty(PropertyName = "applicationName")]
         public string ApplicationName { get; set; }
 
         /// <summary>
-        /// Gets or sets locale of name - defaults to "en"
+        /// Gets or sets locale of default name - defaults to "en"
         /// </summary>
         [JsonProperty(PropertyName = "locale")]
         public string Locale { get; set; }
+
+        /// <summary>
+        /// Gets or sets localized Names of application keyed on locale
+        /// </summary>
+        [JsonProperty(PropertyName = "localizedNames")]
+        public IDictionary<string, string> LocalizedNames { get; set; }
 
         /// <summary>
         /// Gets or sets application public cert
@@ -136,6 +165,12 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
         public string DiscoveryProfileUri { get; set; }
 
         /// <summary>
+        /// Gets or sets gateway server uri
+        /// </summary>
+        [JsonProperty(PropertyName = "gatewayServerUri")]
+        public string GatewayServerUri { get; set; }
+
+        /// <summary>
         /// Gets or sets host addresses of server application or null
         /// </summary>
         [JsonProperty(PropertyName = "hostAddresses")]
@@ -158,6 +193,24 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
         /// </summary>
         [JsonProperty(PropertyName = "notSeenSince")]
         public System.DateTime? NotSeenSince { get; set; }
+
+        /// <summary>
+        /// Gets or sets created
+        /// </summary>
+        [JsonProperty(PropertyName = "created")]
+        public RegistryOperationApiModel Created { get; set; }
+
+        /// <summary>
+        /// Gets or sets approved
+        /// </summary>
+        [JsonProperty(PropertyName = "approved")]
+        public RegistryOperationApiModel Approved { get; set; }
+
+        /// <summary>
+        /// Gets or sets updated
+        /// </summary>
+        [JsonProperty(PropertyName = "updated")]
+        public RegistryOperationApiModel Updated { get; set; }
 
         /// <summary>
         /// Validate the object.
@@ -187,6 +240,18 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
                 {
                     throw new ValidationException(ValidationRules.UniqueItems, "HostAddresses");
                 }
+            }
+            if (Created != null)
+            {
+                Created.Validate();
+            }
+            if (Approved != null)
+            {
+                Approved.Validate();
+            }
+            if (Updated != null)
+            {
+                Updated.Validate();
             }
         }
     }

@@ -9,51 +9,13 @@ package azureiiotopchistory
 // regenerated.
 
 import (
-    "context"
     "encoding/json"
     "github.com/Azure/go-autorest/autorest"
     "github.com/Azure/go-autorest/autorest/date"
-    "github.com/Azure/go-autorest/autorest/to"
-    "github.com/Azure/go-autorest/tracing"
-    "net/http"
 )
 
 // The package's fully qualified name.
 const fqdn = "go/azure-iiot-opc-history"
-
-        // ApplicationType enumerates the values for application type.
-    type ApplicationType string
-
-    const (
-                // Client ...
-        Client ApplicationType = "Client"
-                // ClientAndServer ...
-        ClientAndServer ApplicationType = "ClientAndServer"
-                // Server ...
-        Server ApplicationType = "Server"
-            )
-    // PossibleApplicationTypeValues returns an array of possible values for the ApplicationType const type.
-    func PossibleApplicationTypeValues() []ApplicationType {
-        return []ApplicationType{Client,ClientAndServer,Server}
-    }
-
-        // CallbackMethodType enumerates the values for callback method type.
-    type CallbackMethodType string
-
-    const (
-                // Delete ...
-        Delete CallbackMethodType = "Delete"
-                // Get ...
-        Get CallbackMethodType = "Get"
-                // Post ...
-        Post CallbackMethodType = "Post"
-                // Put ...
-        Put CallbackMethodType = "Put"
-            )
-    // PossibleCallbackMethodTypeValues returns an array of possible values for the CallbackMethodType const type.
-    func PossibleCallbackMethodTypeValues() []CallbackMethodType {
-        return []CallbackMethodType{Delete,Get,Post,Put}
-    }
 
         // CredentialType enumerates the values for credential type.
     type CredentialType string
@@ -73,532 +35,57 @@ const fqdn = "go/azure-iiot-opc-history"
         return []CredentialType{JwtToken,None,UserName,X509Certificate}
     }
 
-        // DiscoveryMode enumerates the values for discovery mode.
-    type DiscoveryMode string
+        // DiagnosticsLevel enumerates the values for diagnostics level.
+    type DiagnosticsLevel string
 
     const (
-                // Fast ...
-        Fast DiscoveryMode = "Fast"
-                // Local ...
-        Local DiscoveryMode = "Local"
-                // Network ...
-        Network DiscoveryMode = "Network"
-                // Off ...
-        Off DiscoveryMode = "Off"
-                // Scan ...
-        Scan DiscoveryMode = "Scan"
+                // DiagnosticsLevelDiagnostics ...
+        DiagnosticsLevelDiagnostics DiagnosticsLevel = "Diagnostics"
+                // DiagnosticsLevelNone ...
+        DiagnosticsLevelNone DiagnosticsLevel = "None"
+                // DiagnosticsLevelOperations ...
+        DiagnosticsLevelOperations DiagnosticsLevel = "Operations"
+                // DiagnosticsLevelStatus ...
+        DiagnosticsLevelStatus DiagnosticsLevel = "Status"
+                // DiagnosticsLevelVerbose ...
+        DiagnosticsLevelVerbose DiagnosticsLevel = "Verbose"
             )
-    // PossibleDiscoveryModeValues returns an array of possible values for the DiscoveryMode const type.
-    func PossibleDiscoveryModeValues() []DiscoveryMode {
-        return []DiscoveryMode{Fast,Local,Network,Off,Scan}
+    // PossibleDiagnosticsLevelValues returns an array of possible values for the DiagnosticsLevel const type.
+    func PossibleDiagnosticsLevelValues() []DiagnosticsLevel {
+        return []DiagnosticsLevel{DiagnosticsLevelDiagnostics,DiagnosticsLevelNone,DiagnosticsLevelOperations,DiagnosticsLevelStatus,DiagnosticsLevelVerbose}
     }
 
-        // EndpointActivationState enumerates the values for endpoint
-        // activation state.
-    type EndpointActivationState string
+        // HistoryUpdateOperation enumerates the values for history update
+        // operation.
+    type HistoryUpdateOperation string
 
     const (
-                // Activated ...
-        Activated EndpointActivationState = "Activated"
-                // ActivatedAndConnected ...
-        ActivatedAndConnected EndpointActivationState = "ActivatedAndConnected"
-                // Deactivated ...
-        Deactivated EndpointActivationState = "Deactivated"
+                // Delete ...
+        Delete HistoryUpdateOperation = "Delete"
+                // Insert ...
+        Insert HistoryUpdateOperation = "Insert"
+                // Replace ...
+        Replace HistoryUpdateOperation = "Replace"
+                // Update ...
+        Update HistoryUpdateOperation = "Update"
             )
-    // PossibleEndpointActivationStateValues returns an array of possible values for the EndpointActivationState const type.
-    func PossibleEndpointActivationStateValues() []EndpointActivationState {
-        return []EndpointActivationState{Activated,ActivatedAndConnected,Deactivated}
+    // PossibleHistoryUpdateOperationValues returns an array of possible values for the HistoryUpdateOperation const type.
+    func PossibleHistoryUpdateOperationValues() []HistoryUpdateOperation {
+        return []HistoryUpdateOperation{Delete,Insert,Replace,Update}
     }
 
-        // EndpointConnectivityState enumerates the values for endpoint
-        // connectivity state.
-    type EndpointConnectivityState string
-
-    const (
-                // Busy ...
-        Busy EndpointConnectivityState = "Busy"
-                // CertificateInvalid ...
-        CertificateInvalid EndpointConnectivityState = "CertificateInvalid"
-                // Connecting ...
-        Connecting EndpointConnectivityState = "Connecting"
-                // Error ...
-        Error EndpointConnectivityState = "Error"
-                // NotReachable ...
-        NotReachable EndpointConnectivityState = "NotReachable"
-                // NoTrust ...
-        NoTrust EndpointConnectivityState = "NoTrust"
-                // Ready ...
-        Ready EndpointConnectivityState = "Ready"
-            )
-    // PossibleEndpointConnectivityStateValues returns an array of possible values for the EndpointConnectivityState const type.
-    func PossibleEndpointConnectivityStateValues() []EndpointConnectivityState {
-        return []EndpointConnectivityState{Busy,CertificateInvalid,Connecting,Error,NotReachable,NoTrust,Ready}
-    }
-
-        // SecurityAssessment enumerates the values for security assessment.
-    type SecurityAssessment string
-
-    const (
-                // High ...
-        High SecurityAssessment = "High"
-                // Low ...
-        Low SecurityAssessment = "Low"
-                // Medium ...
-        Medium SecurityAssessment = "Medium"
-                // Unknown ...
-        Unknown SecurityAssessment = "Unknown"
-            )
-    // PossibleSecurityAssessmentValues returns an array of possible values for the SecurityAssessment const type.
-    func PossibleSecurityAssessmentValues() []SecurityAssessment {
-        return []SecurityAssessment{High,Low,Medium,Unknown}
-    }
-
-        // SecurityMode enumerates the values for security mode.
-    type SecurityMode string
-
-    const (
-                // SecurityModeBest ...
-        SecurityModeBest SecurityMode = "Best"
-                // SecurityModeNone ...
-        SecurityModeNone SecurityMode = "None"
-                // SecurityModeSign ...
-        SecurityModeSign SecurityMode = "Sign"
-                // SecurityModeSignAndEncrypt ...
-        SecurityModeSignAndEncrypt SecurityMode = "SignAndEncrypt"
-            )
-    // PossibleSecurityModeValues returns an array of possible values for the SecurityMode const type.
-    func PossibleSecurityModeValues() []SecurityMode {
-        return []SecurityMode{SecurityModeBest,SecurityModeNone,SecurityModeSign,SecurityModeSignAndEncrypt}
-    }
-
-        // SupervisorLogLevel enumerates the values for supervisor log level.
-    type SupervisorLogLevel string
-
-    const (
-                // SupervisorLogLevelDebug ...
-        SupervisorLogLevelDebug SupervisorLogLevel = "Debug"
-                // SupervisorLogLevelError ...
-        SupervisorLogLevelError SupervisorLogLevel = "Error"
-                // SupervisorLogLevelInformation ...
-        SupervisorLogLevelInformation SupervisorLogLevel = "Information"
-                // SupervisorLogLevelVerbose ...
-        SupervisorLogLevelVerbose SupervisorLogLevel = "Verbose"
-            )
-    // PossibleSupervisorLogLevelValues returns an array of possible values for the SupervisorLogLevel const type.
-    func PossibleSupervisorLogLevelValues() []SupervisorLogLevel {
-        return []SupervisorLogLevel{SupervisorLogLevelDebug,SupervisorLogLevelError,SupervisorLogLevelInformation,SupervisorLogLevelVerbose}
-    }
-
-            // ApplicationInfoAPIModel application info model
-            type ApplicationInfoAPIModel struct {
-            // ApplicationID - Unique application id
-            ApplicationID *string `json:"applicationId,omitempty"`
-            // ApplicationType - Type of application. Possible values include: 'Server', 'Client', 'ClientAndServer'
-            ApplicationType ApplicationType `json:"applicationType,omitempty"`
-            // ApplicationURI - Unique application uri
-            ApplicationURI *string `json:"applicationUri,omitempty"`
-            // ProductURI - Product uri
-            ProductURI *string `json:"productUri,omitempty"`
-            // ApplicationName - Name of server
-            ApplicationName *string `json:"applicationName,omitempty"`
-            // Locale - Locale of name - defaults to "en"
-            Locale *string `json:"locale,omitempty"`
-            // Certificate - Application public cert
-            Certificate *[]byte `json:"certificate,omitempty"`
-            // Capabilities - The capabilities advertised by the server.
-            Capabilities *[]string `json:"capabilities,omitempty"`
-            // DiscoveryUrls - Discovery urls of the server
-            DiscoveryUrls *[]string `json:"discoveryUrls,omitempty"`
-            // DiscoveryProfileURI - Discovery profile uri
-            DiscoveryProfileURI *string `json:"discoveryProfileUri,omitempty"`
-            // HostAddresses - Host addresses of server application or null
-            HostAddresses *[]string `json:"hostAddresses,omitempty"`
-            // SiteID - Site of the application
-            SiteID *string `json:"siteId,omitempty"`
-            // SupervisorID - Supervisor having registered the application
-            SupervisorID *string `json:"supervisorId,omitempty"`
-            // NotSeenSince - Last time application was seen
-            NotSeenSince *date.Time `json:"notSeenSince,omitempty"`
-            }
-
-            // ApplicationInfoListAPIModel list of registered applications
-            type ApplicationInfoListAPIModel struct {
-            autorest.Response `json:"-"`
-            // Items - Application infos
-            Items *[]ApplicationInfoAPIModel `json:"items,omitempty"`
-            // ContinuationToken - Continuation or null if final
-            ContinuationToken *string `json:"continuationToken,omitempty"`
-            }
-
-            // ApplicationInfoListAPIModelIterator provides access to a
-            // complete listing of ApplicationInfoAPIModel values.
-            type ApplicationInfoListAPIModelIterator struct {
-                i int
-                page ApplicationInfoListAPIModelPage
-            }
-        // NextWithContext advances to the next value.  If there was an error making
-        // the request the iterator does not advance and the error is returned.
-        func (iter * ApplicationInfoListAPIModelIterator) NextWithContext(ctx context.Context) (err error) {
-        if tracing.IsEnabled() {
-        ctx = tracing.StartSpan(ctx, fqdn + "/ApplicationInfoListAPIModelIterator.NextWithContext")
-        defer func() {
-        sc := -1
-        if iter.Response().Response.Response != nil {
-        sc = iter.Response().Response.Response.StatusCode
-        }
-        tracing.EndSpan(ctx, sc, err)
-        }()
-        }
-        iter.i++
-        if iter.i < len(iter. page.Values()) {
-        return nil
-        }
-        err = iter.page.NextWithContext(ctx)
-        if err != nil {
-        iter. i--
-        return err
-        }
-        iter.i = 0
-        return nil
-        }
-        // Next advances to the next value.  If there was an error making
-        // the request the iterator does not advance and the error is returned.
-        // Deprecated: Use NextWithContext() instead.
-        func (iter * ApplicationInfoListAPIModelIterator) Next() error {
-        return iter.NextWithContext(context.Background())
-        }
-        // NotDone returns true if the enumeration should be started or is not yet complete.
-        func (iter ApplicationInfoListAPIModelIterator) NotDone() bool {
-        return iter.page.NotDone() && iter.i < len(iter. page.Values())
-        }
-        // Response returns the raw server response from the last page request.
-        func (iter ApplicationInfoListAPIModelIterator) Response() ApplicationInfoListAPIModel {
-        return iter.page.Response()
-        }
-        // Value returns the current value or a zero-initialized value if the
-        // iterator has advanced beyond the end of the collection.
-        func (iter ApplicationInfoListAPIModelIterator) Value() ApplicationInfoAPIModel {
-        if !iter.page.NotDone() {
-        return ApplicationInfoAPIModel{}
-        }
-        return iter.page.Values()[iter.i]
-        }
-        // Creates a new instance of the ApplicationInfoListAPIModelIterator type.
-        func NewApplicationInfoListAPIModelIterator (page ApplicationInfoListAPIModelPage) ApplicationInfoListAPIModelIterator {
-            return ApplicationInfoListAPIModelIterator{page: page}
-        }
-
-
-                // IsEmpty returns true if the ListResult contains no values.
-                func (ailam ApplicationInfoListAPIModel) IsEmpty() bool {
-                return ailam.Value == nil || len(*ailam.Value) == 0
-                }
-
-                    // applicationInfoListAPIModelPreparer prepares a request to retrieve the next set of results.
-                    // It returns nil if no more results exist.
-                    func (ailam ApplicationInfoListAPIModel) applicationInfoListAPIModelPreparer(ctx context.Context) (*http.Request, error) {
-                    if ailam.ContinuationToken == nil || len(to.String(ailam.ContinuationToken)) < 1 {
-                    return nil, nil
-                    }
-                    return autorest.Prepare((&http.Request{}).WithContext(ctx),
-                    autorest.AsJSON(),
-                    autorest.AsGet(),
-                    autorest.WithBaseURL(to.String( ailam.ContinuationToken)));
-                    }
-
-            // ApplicationInfoListAPIModelPage contains a page of
-            // ApplicationInfoAPIModel values.
-            type ApplicationInfoListAPIModelPage struct {
-                fn func(context.Context, ApplicationInfoListAPIModel) (ApplicationInfoListAPIModel, error)
-                ailam ApplicationInfoListAPIModel
-            }
-
-        // NextWithContext advances to the next page of values.  If there was an error making
-        // the request the page does not advance and the error is returned.
-        func (page * ApplicationInfoListAPIModelPage) NextWithContext(ctx context.Context) (err error) {
-        if tracing.IsEnabled() {
-        ctx = tracing.StartSpan(ctx, fqdn + "/ApplicationInfoListAPIModelPage.NextWithContext")
-        defer func() {
-        sc := -1
-        if page.Response().Response.Response != nil {
-        sc = page.Response().Response.Response.StatusCode
-        }
-        tracing.EndSpan(ctx, sc, err)
-        }()
-        }
-        next, err := page.fn(ctx, page.ailam)
-        if err != nil {
-        return err
-        }
-        page.ailam = next
-        return nil
-        }
-
-        // Next advances to the next page of values.  If there was an error making
-        // the request the page does not advance and the error is returned.
-        // Deprecated: Use NextWithContext() instead.
-        func (page * ApplicationInfoListAPIModelPage) Next() error {
-        return page.NextWithContext(context.Background())
-        }
-        // NotDone returns true if the page enumeration should be started or is not yet complete.
-        func (page ApplicationInfoListAPIModelPage) NotDone() bool {
-        return !page.ailam.IsEmpty()
-        }
-        // Response returns the raw server response from the last page request.
-        func (page ApplicationInfoListAPIModelPage) Response() ApplicationInfoListAPIModel {
-        return page.ailam
-        }
-        // Values returns the slice of values for the current page or nil if there are no values.
-        func (page ApplicationInfoListAPIModelPage) Values() []ApplicationInfoAPIModel {
-        if page.ailam.IsEmpty() {
-        return nil
-        }
-        return *page.ailam.Value
-        }
-        // Creates a new instance of the ApplicationInfoListAPIModelPage type.
-        func NewApplicationInfoListAPIModelPage (getNextPage func(context.Context, ApplicationInfoListAPIModel) (ApplicationInfoListAPIModel, error)) ApplicationInfoListAPIModelPage {
-            return ApplicationInfoListAPIModelPage{fn: getNextPage}
-        }
-
-            // ApplicationRegistrationAPIModel application with list of
-            // endpoints
-            type ApplicationRegistrationAPIModel struct {
-            autorest.Response `json:"-"`
-            // Application - Application information
-            Application *ApplicationInfoAPIModel `json:"application,omitempty"`
-            // Endpoints - List of endpoint twins
-            Endpoints *[]EndpointRegistrationAPIModel `json:"endpoints,omitempty"`
-            // SecurityAssessment - Application security assessment. Possible values include: 'Unknown', 'Low', 'Medium', 'High'
-            SecurityAssessment SecurityAssessment `json:"securityAssessment,omitempty"`
-            }
-
-            // ApplicationRegistrationQueryAPIModel application information
-            type ApplicationRegistrationQueryAPIModel struct {
-            // ApplicationType - Type of application. Possible values include: 'Server', 'Client', 'ClientAndServer'
-            ApplicationType ApplicationType `json:"applicationType,omitempty"`
-            // ApplicationURI - Application uri
-            ApplicationURI *string `json:"applicationUri,omitempty"`
-            // ProductURI - Product uri
-            ProductURI *string `json:"productUri,omitempty"`
-            // ApplicationName - Name of application
-            ApplicationName *string `json:"applicationName,omitempty"`
-            // Locale - Locale of application name - default is "en"
-            Locale *string `json:"locale,omitempty"`
-            // Capability - Application capability to query with
-            Capability *string `json:"capability,omitempty"`
-            // SiteOrSupervisorID - Supervisor or site the application belongs to.
-            SiteOrSupervisorID *string `json:"siteOrSupervisorId,omitempty"`
-            // IncludeNotSeenSince - Whether to include apps that were soft deleted
-            IncludeNotSeenSince *bool `json:"includeNotSeenSince,omitempty"`
-            }
-
-            // ApplicationRegistrationRequestAPIModel application information
-            type ApplicationRegistrationRequestAPIModel struct {
-            // ApplicationURI - Unique application uri
-            ApplicationURI *string `json:"applicationUri,omitempty"`
-            // ApplicationType - Type of application. Possible values include: 'Server', 'Client', 'ClientAndServer'
-            ApplicationType ApplicationType `json:"applicationType,omitempty"`
-            // ProductURI - Product uri of the application.
-            ProductURI *string `json:"productUri,omitempty"`
-            // ApplicationName - Name of the server or client.
-            ApplicationName *string `json:"applicationName,omitempty"`
-            // Locale - Locale of name
-            Locale *string `json:"locale,omitempty"`
-            // Capabilities - The OPC UA defined capabilities of the server.
-            Capabilities *[]string `json:"capabilities,omitempty"`
-            // DiscoveryUrls - Discovery urls of the server.
-            DiscoveryUrls *[]string `json:"discoveryUrls,omitempty"`
-            // DiscoveryProfileURI - The discovery profile uri of the server.
-            DiscoveryProfileURI *string `json:"discoveryProfileUri,omitempty"`
-            }
-
-            // ApplicationRegistrationResponseAPIModel result of an application
-            // registration
-            type ApplicationRegistrationResponseAPIModel struct {
-            autorest.Response `json:"-"`
-            // ID - New id application was registered under
-            ID *string `json:"id,omitempty"`
-            }
-
-            // ApplicationRegistrationUpdateAPIModel application registration
-            // update request
-            type ApplicationRegistrationUpdateAPIModel struct {
-            // ProductURI - Product uri
-            ProductURI *string `json:"productUri,omitempty"`
-            // ApplicationName - Application name
-            ApplicationName *string `json:"applicationName,omitempty"`
-            // Locale - Locale of name - defaults to "en"
-            Locale *string `json:"locale,omitempty"`
-            // Certificate - Application public cert
-            Certificate *[]byte `json:"certificate,omitempty"`
-            // Capabilities - Capabilities of the application
-            Capabilities *[]string `json:"capabilities,omitempty"`
-            // DiscoveryUrls - Discovery urls of the application
-            DiscoveryUrls *[]string `json:"discoveryUrls,omitempty"`
-            // DiscoveryProfileURI - Discovery profile uri
-            DiscoveryProfileURI *string `json:"discoveryProfileUri,omitempty"`
-            }
-
-            // ApplicationSiteListAPIModel list of application sites
-            type ApplicationSiteListAPIModel struct {
-            autorest.Response `json:"-"`
-            // Sites - Distinct list of sites applications were registered in.
-            Sites *[]string `json:"sites,omitempty"`
-            // ContinuationToken - Continuation or null if final
-            ContinuationToken *string `json:"continuationToken,omitempty"`
-            }
-
-            // ApplicationSiteListAPIModelIterator provides access to a
-            // complete listing of string values.
-            type ApplicationSiteListAPIModelIterator struct {
-                i int
-                page ApplicationSiteListAPIModelPage
-            }
-        // NextWithContext advances to the next value.  If there was an error making
-        // the request the iterator does not advance and the error is returned.
-        func (iter * ApplicationSiteListAPIModelIterator) NextWithContext(ctx context.Context) (err error) {
-        if tracing.IsEnabled() {
-        ctx = tracing.StartSpan(ctx, fqdn + "/ApplicationSiteListAPIModelIterator.NextWithContext")
-        defer func() {
-        sc := -1
-        if iter.Response().Response.Response != nil {
-        sc = iter.Response().Response.Response.StatusCode
-        }
-        tracing.EndSpan(ctx, sc, err)
-        }()
-        }
-        iter.i++
-        if iter.i < len(iter. page.Values()) {
-        return nil
-        }
-        err = iter.page.NextWithContext(ctx)
-        if err != nil {
-        iter. i--
-        return err
-        }
-        iter.i = 0
-        return nil
-        }
-        // Next advances to the next value.  If there was an error making
-        // the request the iterator does not advance and the error is returned.
-        // Deprecated: Use NextWithContext() instead.
-        func (iter * ApplicationSiteListAPIModelIterator) Next() error {
-        return iter.NextWithContext(context.Background())
-        }
-        // NotDone returns true if the enumeration should be started or is not yet complete.
-        func (iter ApplicationSiteListAPIModelIterator) NotDone() bool {
-        return iter.page.NotDone() && iter.i < len(iter. page.Values())
-        }
-        // Response returns the raw server response from the last page request.
-        func (iter ApplicationSiteListAPIModelIterator) Response() ApplicationSiteListAPIModel {
-        return iter.page.Response()
-        }
-        // Value returns the current value or a zero-initialized value if the
-        // iterator has advanced beyond the end of the collection.
-        func (iter ApplicationSiteListAPIModelIterator) Value() string {
-        if !iter.page.NotDone() {
-        return ""
-        }
-        return iter.page.Values()[iter.i]
-        }
-        // Creates a new instance of the ApplicationSiteListAPIModelIterator type.
-        func NewApplicationSiteListAPIModelIterator (page ApplicationSiteListAPIModelPage) ApplicationSiteListAPIModelIterator {
-            return ApplicationSiteListAPIModelIterator{page: page}
-        }
-
-
-                // IsEmpty returns true if the ListResult contains no values.
-                func (aslam ApplicationSiteListAPIModel) IsEmpty() bool {
-                return aslam.Value == nil || len(*aslam.Value) == 0
-                }
-
-                    // applicationSiteListAPIModelPreparer prepares a request to retrieve the next set of results.
-                    // It returns nil if no more results exist.
-                    func (aslam ApplicationSiteListAPIModel) applicationSiteListAPIModelPreparer(ctx context.Context) (*http.Request, error) {
-                    if aslam.ContinuationToken == nil || len(to.String(aslam.ContinuationToken)) < 1 {
-                    return nil, nil
-                    }
-                    return autorest.Prepare((&http.Request{}).WithContext(ctx),
-                    autorest.AsJSON(),
-                    autorest.AsGet(),
-                    autorest.WithBaseURL(to.String( aslam.ContinuationToken)));
-                    }
-
-            // ApplicationSiteListAPIModelPage contains a page of string
-            // values.
-            type ApplicationSiteListAPIModelPage struct {
-                fn func(context.Context, ApplicationSiteListAPIModel) (ApplicationSiteListAPIModel, error)
-                aslam ApplicationSiteListAPIModel
-            }
-
-        // NextWithContext advances to the next page of values.  If there was an error making
-        // the request the page does not advance and the error is returned.
-        func (page * ApplicationSiteListAPIModelPage) NextWithContext(ctx context.Context) (err error) {
-        if tracing.IsEnabled() {
-        ctx = tracing.StartSpan(ctx, fqdn + "/ApplicationSiteListAPIModelPage.NextWithContext")
-        defer func() {
-        sc := -1
-        if page.Response().Response.Response != nil {
-        sc = page.Response().Response.Response.StatusCode
-        }
-        tracing.EndSpan(ctx, sc, err)
-        }()
-        }
-        next, err := page.fn(ctx, page.aslam)
-        if err != nil {
-        return err
-        }
-        page.aslam = next
-        return nil
-        }
-
-        // Next advances to the next page of values.  If there was an error making
-        // the request the page does not advance and the error is returned.
-        // Deprecated: Use NextWithContext() instead.
-        func (page * ApplicationSiteListAPIModelPage) Next() error {
-        return page.NextWithContext(context.Background())
-        }
-        // NotDone returns true if the page enumeration should be started or is not yet complete.
-        func (page ApplicationSiteListAPIModelPage) NotDone() bool {
-        return !page.aslam.IsEmpty()
-        }
-        // Response returns the raw server response from the last page request.
-        func (page ApplicationSiteListAPIModelPage) Response() ApplicationSiteListAPIModel {
-        return page.aslam
-        }
-        // Values returns the slice of values for the current page or nil if there are no values.
-        func (page ApplicationSiteListAPIModelPage) Values() []string {
-        if page.aslam.IsEmpty() {
-        return nil
-        }
-        return *page.aslam.Value
-        }
-        // Creates a new instance of the ApplicationSiteListAPIModelPage type.
-        func NewApplicationSiteListAPIModelPage (getNextPage func(context.Context, ApplicationSiteListAPIModel) (ApplicationSiteListAPIModel, error)) ApplicationSiteListAPIModelPage {
-            return ApplicationSiteListAPIModelPage{fn: getNextPage}
-        }
-
-            // AuthenticationMethodAPIModel authentication Method model
-            type AuthenticationMethodAPIModel struct {
-            // ID - Method id
-            ID *string `json:"id,omitempty"`
-            // CredentialType - Type of credential. Possible values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
-            CredentialType CredentialType `json:"credentialType,omitempty"`
-            // SecurityPolicy - Security policy to use when passing credential.
-            SecurityPolicy *string `json:"securityPolicy,omitempty"`
-            // Configuration - Method specific configuration
-            Configuration interface{} `json:"configuration,omitempty"`
-            }
-
-            // CallbackAPIModel a registered callback
-            type CallbackAPIModel struct {
-            // URI - Uri to call - should use https scheme in which
-            // case security is enforced.
-            URI *string `json:"uri,omitempty"`
-            // Method - Http Method to use for callback. Possible values include: 'Get', 'Post', 'Put', 'Delete'
-            Method CallbackMethodType `json:"method,omitempty"`
-            // AuthenticationHeader - Authentication header to add or null if not needed
-            AuthenticationHeader *string `json:"authenticationHeader,omitempty"`
+            // AggregateConfigAPIModel aggregate configuration
+            type AggregateConfigAPIModel struct {
+            // UseServerCapabilitiesDefaults - Whether to use the default server caps
+            UseServerCapabilitiesDefaults *bool `json:"useServerCapabilitiesDefaults,omitempty"`
+            // TreatUncertainAsBad - Whether to treat uncertain as bad
+            TreatUncertainAsBad *bool `json:"treatUncertainAsBad,omitempty"`
+            // PercentDataBad - Percent of data that is bad
+            PercentDataBad *int32 `json:"percentDataBad,omitempty"`
+            // PercentDataGood - Percent of data that is good
+            PercentDataGood *int32 `json:"percentDataGood,omitempty"`
+            // UseSlopedExtrapolation - Whether to use sloped extrapolation.
+            UseSlopedExtrapolation *bool `json:"useSlopedExtrapolation,omitempty"`
             }
 
             // CredentialAPIModel credential model
@@ -609,303 +96,559 @@ const fqdn = "go/azure-iiot-opc-history"
             Value interface{} `json:"value,omitempty"`
             }
 
-            // DiscoveryConfigAPIModel discovery configuration
-            type DiscoveryConfigAPIModel struct {
-            // AddressRangesToScan - Address ranges to scan (null == all wired nics)
-            AddressRangesToScan *string `json:"addressRangesToScan,omitempty"`
-            // NetworkProbeTimeoutMs - Network probe timeout
-            NetworkProbeTimeoutMs *int32 `json:"networkProbeTimeoutMs,omitempty"`
-            // MaxNetworkProbes - Max network probes that should ever run.
-            MaxNetworkProbes *int32 `json:"maxNetworkProbes,omitempty"`
-            // PortRangesToScan - Port ranges to scan (null == all unassigned)
-            PortRangesToScan *string `json:"portRangesToScan,omitempty"`
-            // PortProbeTimeoutMs - Port probe timeout
-            PortProbeTimeoutMs *int32 `json:"portProbeTimeoutMs,omitempty"`
-            // MaxPortProbes - Max port probes that should ever run.
-            MaxPortProbes *int32 `json:"maxPortProbes,omitempty"`
-            // MinPortProbesPercent - Probes that must always be there as percent of max.
-            MinPortProbesPercent *int32 `json:"minPortProbesPercent,omitempty"`
-            // IdleTimeBetweenScansSec - Delay time between discovery sweeps in seconds
-            IdleTimeBetweenScansSec *int32 `json:"idleTimeBetweenScansSec,omitempty"`
-            // DiscoveryUrls - List of preset discovery urls to use
-            DiscoveryUrls *[]string `json:"discoveryUrls,omitempty"`
-            // Locales - List of locales to filter with during discovery
-            Locales *[]string `json:"locales,omitempty"`
-            // Callbacks - Callbacks to invoke once onboarding finishes
-            Callbacks *[]CallbackAPIModel `json:"callbacks,omitempty"`
-            // ActivationFilter - Activate all twins with this filter during onboarding.
-            ActivationFilter *EndpointActivationFilterAPIModel `json:"activationFilter,omitempty"`
+            // DeleteEventsDetailsAPIModel the events to delete
+            type DeleteEventsDetailsAPIModel struct {
+            // EventIds - Events to delete
+            EventIds *[][]byte `json:"eventIds,omitempty"`
             }
 
-            // DiscoveryRequestAPIModel discovery request
-            type DiscoveryRequestAPIModel struct {
-            // ID - Id of discovery request
-            ID *string `json:"id,omitempty"`
-            // Discovery - Discovery mode to use. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
-            Discovery DiscoveryMode `json:"discovery,omitempty"`
-            // Configuration - Scan configuration to use
-            Configuration *DiscoveryConfigAPIModel `json:"configuration,omitempty"`
+            // DeleteModifiedValuesDetailsAPIModel delete raw modified data
+            type DeleteModifiedValuesDetailsAPIModel struct {
+            // StartTime - Start time
+            StartTime *date.Time `json:"startTime,omitempty"`
+            // EndTime - End time to delete until
+            EndTime *date.Time `json:"endTime,omitempty"`
             }
 
-            // EndpointActivationFilterAPIModel endpoint Activation Filter
-            // model
-            type EndpointActivationFilterAPIModel struct {
-            // TrustLists - Certificate trust list identifiers to use for
-            // activation, if null, all certificates are
-            // trusted.  If empty list, no certificates are
-            // trusted which is equal to no filter.
-            TrustLists *[]string `json:"trustLists,omitempty"`
-            // SecurityPolicies - Endpoint security policies to filter against.
-            // If set to null, all policies are in scope.
-            SecurityPolicies *[]string `json:"securityPolicies,omitempty"`
-            // SecurityMode - Security mode level to activate. If null,
-            // then Microsoft.Azure.IIoT.OpcUa.Registry.Models.SecurityMode.Best is assumed. Possible values include: 'SecurityModeBest', 'SecurityModeSign', 'SecurityModeSignAndEncrypt', 'SecurityModeNone'
-            SecurityMode SecurityMode `json:"securityMode,omitempty"`
+            // DeleteValuesAtTimesDetailsAPIModel deletes data at times
+            type DeleteValuesAtTimesDetailsAPIModel struct {
+            // ReqTimes - The timestamps to delete
+            ReqTimes *[]date.Time `json:"reqTimes,omitempty"`
             }
 
-            // EndpointActivationStatusAPIModel endpoint Activation status
-            // model
-            type EndpointActivationStatusAPIModel struct {
-            // ID - Identifier of the endoint
-            ID *string `json:"id,omitempty"`
-            // ActivationState - Activation state. Possible values include: 'Deactivated', 'Activated', 'ActivatedAndConnected'
-            ActivationState EndpointActivationState `json:"activationState,omitempty"`
+            // DeleteValuesDetailsAPIModel delete raw modified data
+            type DeleteValuesDetailsAPIModel struct {
+            // StartTime - Start time
+            StartTime *date.Time `json:"startTime,omitempty"`
+            // EndTime - End time to delete until
+            EndTime *date.Time `json:"endTime,omitempty"`
             }
 
-            // EndpointAPIModel endpoint model
-            type EndpointAPIModel struct {
-            // URL - Endpoint url to use to connect with
-            URL *string `json:"url,omitempty"`
-            // AlternativeUrls - Alternative endpoint urls that can be used for
-            // accessing and validating the server
-            AlternativeUrls *[]string `json:"alternativeUrls,omitempty"`
-            // User - User Authentication
-            User *CredentialAPIModel `json:"user,omitempty"`
-            // SecurityMode - Security Mode to use for communication
-            // default to best. Possible values include: 'SecurityModeBest', 'SecurityModeSign', 'SecurityModeSignAndEncrypt', 'SecurityModeNone'
-            SecurityMode SecurityMode `json:"securityMode,omitempty"`
-            // SecurityPolicy - Security policy uri to use for communication
-            // default to best.
-            SecurityPolicy *string `json:"securityPolicy,omitempty"`
-            // ServerThumbprint - Thumbprint to validate against or null to trust any.
-            ServerThumbprint *[]byte `json:"serverThumbprint,omitempty"`
+            // DiagnosticsAPIModel diagnostics configuration
+            type DiagnosticsAPIModel struct {
+            // Level - Requested level of response diagnostics.
+            // (default: Status). Possible values include: 'DiagnosticsLevelNone', 'DiagnosticsLevelStatus', 'DiagnosticsLevelOperations', 'DiagnosticsLevelDiagnostics', 'DiagnosticsLevelVerbose'
+            Level DiagnosticsLevel `json:"level,omitempty"`
+            // AuditID - Client audit log entry.
+            // (default: client generated)
+            AuditID *string `json:"auditId,omitempty"`
+            // TimeStamp - Timestamp of request.
+            // (default: client generated)
+            TimeStamp *date.Time `json:"timeStamp,omitempty"`
             }
 
-            // EndpointInfoAPIModel endpoint registration model
-            type EndpointInfoAPIModel struct {
-            autorest.Response `json:"-"`
-            // Registration - Endpoint registration
-            Registration *EndpointRegistrationAPIModel `json:"registration,omitempty"`
-            // ApplicationID - Application id endpoint is registered under.
-            ApplicationID *string `json:"applicationId,omitempty"`
-            // ActivationState - Activation state of endpoint. Possible values include: 'Deactivated', 'Activated', 'ActivatedAndConnected'
-            ActivationState EndpointActivationState `json:"activationState,omitempty"`
-            // EndpointState - Last state of the activated endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
-            EndpointState EndpointConnectivityState `json:"endpointState,omitempty"`
-            // OutOfSync - Whether the registration is out of sync
-            OutOfSync *bool `json:"outOfSync,omitempty"`
-            // NotSeenSince - Last time endpoint was seen
-            NotSeenSince *date.Time `json:"notSeenSince,omitempty"`
+            // HistoricEventAPIModel historic event
+            type HistoricEventAPIModel struct {
+            // EventFields - The selected fields of the event
+            EventFields *[]interface{} `json:"eventFields,omitempty"`
             }
 
-            // EndpointInfoListAPIModel endpoint registration list
-            type EndpointInfoListAPIModel struct {
-            autorest.Response `json:"-"`
-            // Items - Endpoint registrations
-            Items *[]EndpointInfoAPIModel `json:"items,omitempty"`
-            // ContinuationToken - Continuation or null if final
+            // HistoricValueAPIModel historic data
+            type HistoricValueAPIModel struct {
+            // Value - ,
+            //             The value of data value.
+            Value interface{} `json:"value,omitempty"`
+            // StatusCode - The status code associated with the value.
+            StatusCode *int32 `json:"statusCode,omitempty"`
+            // SourceTimestamp - The source timestamp associated with the value.
+            SourceTimestamp *date.Time `json:"sourceTimestamp,omitempty"`
+            // SourcePicoseconds - Additional resolution for the source timestamp.
+            SourcePicoseconds *int32 `json:"sourcePicoseconds,omitempty"`
+            // ServerTimestamp - The server timestamp associated with the value.
+            ServerTimestamp *date.Time `json:"serverTimestamp,omitempty"`
+            // ServerPicoseconds - Additional resolution for the server timestamp.
+            ServerPicoseconds *int32 `json:"serverPicoseconds,omitempty"`
+            // ModificationInfo - modification information when reading modifications.
+            ModificationInfo *ModificationInfoAPIModel `json:"modificationInfo,omitempty"`
+            }
+
+            // HistoryReadNextRequestAPIModel request node history read
+            // continuation
+            type HistoryReadNextRequestAPIModel struct {
+            // ContinuationToken - Continuation token to continue reading more
+            // results.
             ContinuationToken *string `json:"continuationToken,omitempty"`
+            // Abort - Abort reading after this read
+            Abort *bool `json:"abort,omitempty"`
+            // Header - Optional request header
+            Header *RequestHeaderAPIModel `json:"header,omitempty"`
             }
 
-            // EndpointInfoListAPIModelIterator provides access to a complete
-            // listing of EndpointInfoAPIModel values.
-            type EndpointInfoListAPIModelIterator struct {
-                i int
-                page EndpointInfoListAPIModelPage
-            }
-        // NextWithContext advances to the next value.  If there was an error making
-        // the request the iterator does not advance and the error is returned.
-        func (iter * EndpointInfoListAPIModelIterator) NextWithContext(ctx context.Context) (err error) {
-        if tracing.IsEnabled() {
-        ctx = tracing.StartSpan(ctx, fqdn + "/EndpointInfoListAPIModelIterator.NextWithContext")
-        defer func() {
-        sc := -1
-        if iter.Response().Response.Response != nil {
-        sc = iter.Response().Response.Response.StatusCode
-        }
-        tracing.EndSpan(ctx, sc, err)
-        }()
-        }
-        iter.i++
-        if iter.i < len(iter. page.Values()) {
-        return nil
-        }
-        err = iter.page.NextWithContext(ctx)
-        if err != nil {
-        iter. i--
-        return err
-        }
-        iter.i = 0
-        return nil
-        }
-        // Next advances to the next value.  If there was an error making
-        // the request the iterator does not advance and the error is returned.
-        // Deprecated: Use NextWithContext() instead.
-        func (iter * EndpointInfoListAPIModelIterator) Next() error {
-        return iter.NextWithContext(context.Background())
-        }
-        // NotDone returns true if the enumeration should be started or is not yet complete.
-        func (iter EndpointInfoListAPIModelIterator) NotDone() bool {
-        return iter.page.NotDone() && iter.i < len(iter. page.Values())
-        }
-        // Response returns the raw server response from the last page request.
-        func (iter EndpointInfoListAPIModelIterator) Response() EndpointInfoListAPIModel {
-        return iter.page.Response()
-        }
-        // Value returns the current value or a zero-initialized value if the
-        // iterator has advanced beyond the end of the collection.
-        func (iter EndpointInfoListAPIModelIterator) Value() EndpointInfoAPIModel {
-        if !iter.page.NotDone() {
-        return EndpointInfoAPIModel{}
-        }
-        return iter.page.Values()[iter.i]
-        }
-        // Creates a new instance of the EndpointInfoListAPIModelIterator type.
-        func NewEndpointInfoListAPIModelIterator (page EndpointInfoListAPIModelPage) EndpointInfoListAPIModelIterator {
-            return EndpointInfoListAPIModelIterator{page: page}
-        }
-
-
-                // IsEmpty returns true if the ListResult contains no values.
-                func (eilam EndpointInfoListAPIModel) IsEmpty() bool {
-                return eilam.Value == nil || len(*eilam.Value) == 0
-                }
-
-                    // endpointInfoListAPIModelPreparer prepares a request to retrieve the next set of results.
-                    // It returns nil if no more results exist.
-                    func (eilam EndpointInfoListAPIModel) endpointInfoListAPIModelPreparer(ctx context.Context) (*http.Request, error) {
-                    if eilam.ContinuationToken == nil || len(to.String(eilam.ContinuationToken)) < 1 {
-                    return nil, nil
-                    }
-                    return autorest.Prepare((&http.Request{}).WithContext(ctx),
-                    autorest.AsJSON(),
-                    autorest.AsGet(),
-                    autorest.WithBaseURL(to.String( eilam.ContinuationToken)));
-                    }
-
-            // EndpointInfoListAPIModelPage contains a page of
-            // EndpointInfoAPIModel values.
-            type EndpointInfoListAPIModelPage struct {
-                fn func(context.Context, EndpointInfoListAPIModel) (EndpointInfoListAPIModel, error)
-                eilam EndpointInfoListAPIModel
+            // HistoryReadNextResponseAPIModelHistoricEventAPIModel history
+            // read continuation result
+            type HistoryReadNextResponseAPIModelHistoricEventAPIModel struct {
+            autorest.Response `json:"-"`
+            // History - History as json encoded extension object
+            History *[]HistoricEventAPIModel `json:"history,omitempty"`
+            // ContinuationToken - Continuation token if more results pending.
+            ContinuationToken *string `json:"continuationToken,omitempty"`
+            // ErrorInfo - Service result in case of error
+            ErrorInfo *ServiceResultAPIModel `json:"errorInfo,omitempty"`
             }
 
-        // NextWithContext advances to the next page of values.  If there was an error making
-        // the request the page does not advance and the error is returned.
-        func (page * EndpointInfoListAPIModelPage) NextWithContext(ctx context.Context) (err error) {
-        if tracing.IsEnabled() {
-        ctx = tracing.StartSpan(ctx, fqdn + "/EndpointInfoListAPIModelPage.NextWithContext")
-        defer func() {
-        sc := -1
-        if page.Response().Response.Response != nil {
-        sc = page.Response().Response.Response.StatusCode
-        }
-        tracing.EndSpan(ctx, sc, err)
-        }()
-        }
-        next, err := page.fn(ctx, page.eilam)
-        if err != nil {
-        return err
-        }
-        page.eilam = next
-        return nil
-        }
-
-        // Next advances to the next page of values.  If there was an error making
-        // the request the page does not advance and the error is returned.
-        // Deprecated: Use NextWithContext() instead.
-        func (page * EndpointInfoListAPIModelPage) Next() error {
-        return page.NextWithContext(context.Background())
-        }
-        // NotDone returns true if the page enumeration should be started or is not yet complete.
-        func (page EndpointInfoListAPIModelPage) NotDone() bool {
-        return !page.eilam.IsEmpty()
-        }
-        // Response returns the raw server response from the last page request.
-        func (page EndpointInfoListAPIModelPage) Response() EndpointInfoListAPIModel {
-        return page.eilam
-        }
-        // Values returns the slice of values for the current page or nil if there are no values.
-        func (page EndpointInfoListAPIModelPage) Values() []EndpointInfoAPIModel {
-        if page.eilam.IsEmpty() {
-        return nil
-        }
-        return *page.eilam.Value
-        }
-        // Creates a new instance of the EndpointInfoListAPIModelPage type.
-        func NewEndpointInfoListAPIModelPage (getNextPage func(context.Context, EndpointInfoListAPIModel) (EndpointInfoListAPIModel, error)) EndpointInfoListAPIModelPage {
-            return EndpointInfoListAPIModelPage{fn: getNextPage}
-        }
-
-            // EndpointRegistrationAPIModel endpoint registration model
-            type EndpointRegistrationAPIModel struct {
-            // ID - Registered identifier of the endpoint
-            ID *string `json:"id,omitempty"`
-            // EndpointURL - Original endpoint url of the endpoint
-            EndpointURL *string `json:"endpointUrl,omitempty"`
-            // SiteID - Registered site of the endpoint
-            SiteID *string `json:"siteId,omitempty"`
-            // Endpoint - Endpoint information of the registration
-            Endpoint *EndpointAPIModel `json:"endpoint,omitempty"`
-            // SecurityLevel - Security level of the endpoint
-            SecurityLevel *int32 `json:"securityLevel,omitempty"`
-            // Certificate - Endpoint cert that was registered.
-            Certificate *[]byte `json:"certificate,omitempty"`
-            // AuthenticationMethods - Supported authentication methods that can be selected to
-            // obtain a credential and used to interact with the endpoint.
-            AuthenticationMethods *[]AuthenticationMethodAPIModel `json:"authenticationMethods,omitempty"`
+            // HistoryReadNextResponseAPIModelHistoricValueAPIModel history
+            // read continuation result
+            type HistoryReadNextResponseAPIModelHistoricValueAPIModel struct {
+            autorest.Response `json:"-"`
+            // History - History as json encoded extension object
+            History *[]HistoricValueAPIModel `json:"history,omitempty"`
+            // ContinuationToken - Continuation token if more results pending.
+            ContinuationToken *string `json:"continuationToken,omitempty"`
+            // ErrorInfo - Service result in case of error
+            ErrorInfo *ServiceResultAPIModel `json:"errorInfo,omitempty"`
             }
 
-            // EndpointRegistrationQueryAPIModel endpoint query
-            type EndpointRegistrationQueryAPIModel struct {
-            // URL - Endoint url for direct server access
-            URL *string `json:"url,omitempty"`
-            // UserAuthentication - Type of credential selected for authentication. Possible values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
-            UserAuthentication CredentialType `json:"userAuthentication,omitempty"`
-            // Certificate - Certificate of the endpoint
-            Certificate *[]byte `json:"certificate,omitempty"`
-            // SecurityMode - Security Mode. Possible values include: 'SecurityModeBest', 'SecurityModeSign', 'SecurityModeSignAndEncrypt', 'SecurityModeNone'
-            SecurityMode SecurityMode `json:"securityMode,omitempty"`
-            // SecurityPolicy - Security policy uri
-            SecurityPolicy *string `json:"securityPolicy,omitempty"`
-            // Activated - Whether the endpoint was activated
-            Activated *bool `json:"activated,omitempty"`
-            // Connected - Whether the endpoint is connected on supervisor.
-            Connected *bool `json:"connected,omitempty"`
-            // EndpointState - The last state of the the activated endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
-            EndpointState EndpointConnectivityState `json:"endpointState,omitempty"`
-            // IncludeNotSeenSince - Whether to include endpoints that were soft deleted
-            IncludeNotSeenSince *bool `json:"includeNotSeenSince,omitempty"`
+            // HistoryReadNextResponseAPIModelJToken history read continuation
+            // result
+            type HistoryReadNextResponseAPIModelJToken struct {
+            autorest.Response `json:"-"`
+            // History - History as json encoded extension object
+            History interface{} `json:"history,omitempty"`
+            // ContinuationToken - Continuation token if more results pending.
+            ContinuationToken *string `json:"continuationToken,omitempty"`
+            // ErrorInfo - Service result in case of error
+            ErrorInfo *ServiceResultAPIModel `json:"errorInfo,omitempty"`
             }
 
-            // EndpointRegistrationUpdateAPIModel endpoint registration update
-            // request
-            type EndpointRegistrationUpdateAPIModel struct {
-            // User - User authentication to change on the endpoint.
-            User *CredentialAPIModel `json:"user,omitempty"`
+            // HistoryReadRequestAPIModelJToken request node history read
+            type HistoryReadRequestAPIModelJToken struct {
+            // NodeID - Node to read from (mandatory)
+            NodeID *string `json:"nodeId,omitempty"`
+            // BrowsePath - An optional path from NodeId instance to
+            // the actual node.
+            BrowsePath *[]string `json:"browsePath,omitempty"`
+            // Details - The HistoryReadDetailsType extension object
+            // encoded in json and containing the tunneled
+            // Historian reader request.
+            Details interface{} `json:"details,omitempty"`
+            // IndexRange - Index range to read, e.g. 1:2,0:1 for 2 slices
+            // out of a matrix or 0:1 for the first item in
+            // an array, string or bytestring.
+            // See 7.22 of part 4: NumericRange.
+            IndexRange *string `json:"indexRange,omitempty"`
+            // Header - Optional request header
+            Header *RequestHeaderAPIModel `json:"header,omitempty"`
             }
 
-            // ServerRegistrationRequestAPIModel application registration
-            // request
-            type ServerRegistrationRequestAPIModel struct {
-            // DiscoveryURL - Discovery url to use for registration
-            DiscoveryURL *string `json:"discoveryUrl,omitempty"`
-            // ID - Registration id
-            ID *string `json:"id,omitempty"`
-            // Callback - An optional callback hook to register.
-            Callback *CallbackAPIModel `json:"callback,omitempty"`
-            // ActivationFilter - Upon discovery, activate all endpoints with this filter.
-            ActivationFilter *EndpointActivationFilterAPIModel `json:"activationFilter,omitempty"`
+            // HistoryReadRequestAPIModelReadEventsDetailsAPIModel request node
+            // history read
+            type HistoryReadRequestAPIModelReadEventsDetailsAPIModel struct {
+            // NodeID - Node to read from (mandatory)
+            NodeID *string `json:"nodeId,omitempty"`
+            // BrowsePath - An optional path from NodeId instance to
+            // the actual node.
+            BrowsePath *[]string `json:"browsePath,omitempty"`
+            // Details - The HistoryReadDetailsType extension object
+            // encoded in json and containing the tunneled
+            // Historian reader request.
+            Details *ReadEventsDetailsAPIModel `json:"details,omitempty"`
+            // IndexRange - Index range to read, e.g. 1:2,0:1 for 2 slices
+            // out of a matrix or 0:1 for the first item in
+            // an array, string or bytestring.
+            // See 7.22 of part 4: NumericRange.
+            IndexRange *string `json:"indexRange,omitempty"`
+            // Header - Optional request header
+            Header *RequestHeaderAPIModel `json:"header,omitempty"`
+            }
+
+            // HistoryReadRequestAPIModelReadModifiedValuesDetailsAPIModel
+            // request node history read
+            type HistoryReadRequestAPIModelReadModifiedValuesDetailsAPIModel struct {
+            // NodeID - Node to read from (mandatory)
+            NodeID *string `json:"nodeId,omitempty"`
+            // BrowsePath - An optional path from NodeId instance to
+            // the actual node.
+            BrowsePath *[]string `json:"browsePath,omitempty"`
+            // Details - The HistoryReadDetailsType extension object
+            // encoded in json and containing the tunneled
+            // Historian reader request.
+            Details *ReadModifiedValuesDetailsAPIModel `json:"details,omitempty"`
+            // IndexRange - Index range to read, e.g. 1:2,0:1 for 2 slices
+            // out of a matrix or 0:1 for the first item in
+            // an array, string or bytestring.
+            // See 7.22 of part 4: NumericRange.
+            IndexRange *string `json:"indexRange,omitempty"`
+            // Header - Optional request header
+            Header *RequestHeaderAPIModel `json:"header,omitempty"`
+            }
+
+            // HistoryReadRequestAPIModelReadProcessedValuesDetailsAPIModel
+            // request node history read
+            type HistoryReadRequestAPIModelReadProcessedValuesDetailsAPIModel struct {
+            // NodeID - Node to read from (mandatory)
+            NodeID *string `json:"nodeId,omitempty"`
+            // BrowsePath - An optional path from NodeId instance to
+            // the actual node.
+            BrowsePath *[]string `json:"browsePath,omitempty"`
+            // Details - The HistoryReadDetailsType extension object
+            // encoded in json and containing the tunneled
+            // Historian reader request.
+            Details *ReadProcessedValuesDetailsAPIModel `json:"details,omitempty"`
+            // IndexRange - Index range to read, e.g. 1:2,0:1 for 2 slices
+            // out of a matrix or 0:1 for the first item in
+            // an array, string or bytestring.
+            // See 7.22 of part 4: NumericRange.
+            IndexRange *string `json:"indexRange,omitempty"`
+            // Header - Optional request header
+            Header *RequestHeaderAPIModel `json:"header,omitempty"`
+            }
+
+            // HistoryReadRequestAPIModelReadValuesAtTimesDetailsAPIModel
+            // request node history read
+            type HistoryReadRequestAPIModelReadValuesAtTimesDetailsAPIModel struct {
+            // NodeID - Node to read from (mandatory)
+            NodeID *string `json:"nodeId,omitempty"`
+            // BrowsePath - An optional path from NodeId instance to
+            // the actual node.
+            BrowsePath *[]string `json:"browsePath,omitempty"`
+            // Details - The HistoryReadDetailsType extension object
+            // encoded in json and containing the tunneled
+            // Historian reader request.
+            Details *ReadValuesAtTimesDetailsAPIModel `json:"details,omitempty"`
+            // IndexRange - Index range to read, e.g. 1:2,0:1 for 2 slices
+            // out of a matrix or 0:1 for the first item in
+            // an array, string or bytestring.
+            // See 7.22 of part 4: NumericRange.
+            IndexRange *string `json:"indexRange,omitempty"`
+            // Header - Optional request header
+            Header *RequestHeaderAPIModel `json:"header,omitempty"`
+            }
+
+            // HistoryReadRequestAPIModelReadValuesDetailsAPIModel request node
+            // history read
+            type HistoryReadRequestAPIModelReadValuesDetailsAPIModel struct {
+            // NodeID - Node to read from (mandatory)
+            NodeID *string `json:"nodeId,omitempty"`
+            // BrowsePath - An optional path from NodeId instance to
+            // the actual node.
+            BrowsePath *[]string `json:"browsePath,omitempty"`
+            // Details - The HistoryReadDetailsType extension object
+            // encoded in json and containing the tunneled
+            // Historian reader request.
+            Details *ReadValuesDetailsAPIModel `json:"details,omitempty"`
+            // IndexRange - Index range to read, e.g. 1:2,0:1 for 2 slices
+            // out of a matrix or 0:1 for the first item in
+            // an array, string or bytestring.
+            // See 7.22 of part 4: NumericRange.
+            IndexRange *string `json:"indexRange,omitempty"`
+            // Header - Optional request header
+            Header *RequestHeaderAPIModel `json:"header,omitempty"`
+            }
+
+            // HistoryReadResponseAPIModelHistoricEventAPIModel history read
+            // results
+            type HistoryReadResponseAPIModelHistoricEventAPIModel struct {
+            autorest.Response `json:"-"`
+            // History - History as json encoded extension object
+            History *[]HistoricEventAPIModel `json:"history,omitempty"`
+            // ContinuationToken - Continuation token if more results pending.
+            ContinuationToken *string `json:"continuationToken,omitempty"`
+            // ErrorInfo - Service result in case of error
+            ErrorInfo *ServiceResultAPIModel `json:"errorInfo,omitempty"`
+            }
+
+            // HistoryReadResponseAPIModelHistoricValueAPIModel history read
+            // results
+            type HistoryReadResponseAPIModelHistoricValueAPIModel struct {
+            autorest.Response `json:"-"`
+            // History - History as json encoded extension object
+            History *[]HistoricValueAPIModel `json:"history,omitempty"`
+            // ContinuationToken - Continuation token if more results pending.
+            ContinuationToken *string `json:"continuationToken,omitempty"`
+            // ErrorInfo - Service result in case of error
+            ErrorInfo *ServiceResultAPIModel `json:"errorInfo,omitempty"`
+            }
+
+            // HistoryReadResponseAPIModelJToken history read results
+            type HistoryReadResponseAPIModelJToken struct {
+            autorest.Response `json:"-"`
+            // History - History as json encoded extension object
+            History interface{} `json:"history,omitempty"`
+            // ContinuationToken - Continuation token if more results pending.
+            ContinuationToken *string `json:"continuationToken,omitempty"`
+            // ErrorInfo - Service result in case of error
+            ErrorInfo *ServiceResultAPIModel `json:"errorInfo,omitempty"`
+            }
+
+            // HistoryUpdateRequestAPIModelDeleteEventsDetailsAPIModel request
+            // node history update
+            type HistoryUpdateRequestAPIModelDeleteEventsDetailsAPIModel struct {
+            // NodeID - Node to update
+            NodeID *string `json:"nodeId,omitempty"`
+            // BrowsePath - An optional path from NodeId instance to
+            // the actual node.
+            BrowsePath *[]string `json:"browsePath,omitempty"`
+            // Details - The HistoryUpdateDetailsType extension object
+            // encoded as json Variant and containing the tunneled
+            // update request for the Historian server. The value
+            // is updated at edge using above node address.
+            Details *DeleteEventsDetailsAPIModel `json:"details,omitempty"`
+            // Header - Optional request header
+            Header *RequestHeaderAPIModel `json:"header,omitempty"`
+            }
+
+            // HistoryUpdateRequestAPIModelDeleteModifiedValuesDetailsAPIModel
+            // request node history update
+            type HistoryUpdateRequestAPIModelDeleteModifiedValuesDetailsAPIModel struct {
+            // NodeID - Node to update
+            NodeID *string `json:"nodeId,omitempty"`
+            // BrowsePath - An optional path from NodeId instance to
+            // the actual node.
+            BrowsePath *[]string `json:"browsePath,omitempty"`
+            // Details - The HistoryUpdateDetailsType extension object
+            // encoded as json Variant and containing the tunneled
+            // update request for the Historian server. The value
+            // is updated at edge using above node address.
+            Details *DeleteModifiedValuesDetailsAPIModel `json:"details,omitempty"`
+            // Header - Optional request header
+            Header *RequestHeaderAPIModel `json:"header,omitempty"`
+            }
+
+            // HistoryUpdateRequestAPIModelDeleteValuesAtTimesDetailsAPIModel
+            // request node history update
+            type HistoryUpdateRequestAPIModelDeleteValuesAtTimesDetailsAPIModel struct {
+            // NodeID - Node to update
+            NodeID *string `json:"nodeId,omitempty"`
+            // BrowsePath - An optional path from NodeId instance to
+            // the actual node.
+            BrowsePath *[]string `json:"browsePath,omitempty"`
+            // Details - The HistoryUpdateDetailsType extension object
+            // encoded as json Variant and containing the tunneled
+            // update request for the Historian server. The value
+            // is updated at edge using above node address.
+            Details *DeleteValuesAtTimesDetailsAPIModel `json:"details,omitempty"`
+            // Header - Optional request header
+            Header *RequestHeaderAPIModel `json:"header,omitempty"`
+            }
+
+            // HistoryUpdateRequestAPIModelDeleteValuesDetailsAPIModel request
+            // node history update
+            type HistoryUpdateRequestAPIModelDeleteValuesDetailsAPIModel struct {
+            // NodeID - Node to update
+            NodeID *string `json:"nodeId,omitempty"`
+            // BrowsePath - An optional path from NodeId instance to
+            // the actual node.
+            BrowsePath *[]string `json:"browsePath,omitempty"`
+            // Details - The HistoryUpdateDetailsType extension object
+            // encoded as json Variant and containing the tunneled
+            // update request for the Historian server. The value
+            // is updated at edge using above node address.
+            Details *DeleteValuesDetailsAPIModel `json:"details,omitempty"`
+            // Header - Optional request header
+            Header *RequestHeaderAPIModel `json:"header,omitempty"`
+            }
+
+            // HistoryUpdateRequestAPIModelInsertEventsDetailsAPIModel request
+            // node history update
+            type HistoryUpdateRequestAPIModelInsertEventsDetailsAPIModel struct {
+            // NodeID - Node to update
+            NodeID *string `json:"nodeId,omitempty"`
+            // BrowsePath - An optional path from NodeId instance to
+            // the actual node.
+            BrowsePath *[]string `json:"browsePath,omitempty"`
+            // Details - The HistoryUpdateDetailsType extension object
+            // encoded as json Variant and containing the tunneled
+            // update request for the Historian server. The value
+            // is updated at edge using above node address.
+            Details *InsertEventsDetailsAPIModel `json:"details,omitempty"`
+            // Header - Optional request header
+            Header *RequestHeaderAPIModel `json:"header,omitempty"`
+            }
+
+            // HistoryUpdateRequestAPIModelInsertValuesDetailsAPIModel request
+            // node history update
+            type HistoryUpdateRequestAPIModelInsertValuesDetailsAPIModel struct {
+            // NodeID - Node to update
+            NodeID *string `json:"nodeId,omitempty"`
+            // BrowsePath - An optional path from NodeId instance to
+            // the actual node.
+            BrowsePath *[]string `json:"browsePath,omitempty"`
+            // Details - The HistoryUpdateDetailsType extension object
+            // encoded as json Variant and containing the tunneled
+            // update request for the Historian server. The value
+            // is updated at edge using above node address.
+            Details *InsertValuesDetailsAPIModel `json:"details,omitempty"`
+            // Header - Optional request header
+            Header *RequestHeaderAPIModel `json:"header,omitempty"`
+            }
+
+            // HistoryUpdateRequestAPIModelJToken request node history update
+            type HistoryUpdateRequestAPIModelJToken struct {
+            // NodeID - Node to update
+            NodeID *string `json:"nodeId,omitempty"`
+            // BrowsePath - An optional path from NodeId instance to
+            // the actual node.
+            BrowsePath *[]string `json:"browsePath,omitempty"`
+            // Details - The HistoryUpdateDetailsType extension object
+            // encoded as json Variant and containing the tunneled
+            // update request for the Historian server. The value
+            // is updated at edge using above node address.
+            Details interface{} `json:"details,omitempty"`
+            // Header - Optional request header
+            Header *RequestHeaderAPIModel `json:"header,omitempty"`
+            }
+
+            // HistoryUpdateRequestAPIModelReplaceEventsDetailsAPIModel request
+            // node history update
+            type HistoryUpdateRequestAPIModelReplaceEventsDetailsAPIModel struct {
+            // NodeID - Node to update
+            NodeID *string `json:"nodeId,omitempty"`
+            // BrowsePath - An optional path from NodeId instance to
+            // the actual node.
+            BrowsePath *[]string `json:"browsePath,omitempty"`
+            // Details - The HistoryUpdateDetailsType extension object
+            // encoded as json Variant and containing the tunneled
+            // update request for the Historian server. The value
+            // is updated at edge using above node address.
+            Details *ReplaceEventsDetailsAPIModel `json:"details,omitempty"`
+            // Header - Optional request header
+            Header *RequestHeaderAPIModel `json:"header,omitempty"`
+            }
+
+            // HistoryUpdateRequestAPIModelReplaceValuesDetailsAPIModel request
+            // node history update
+            type HistoryUpdateRequestAPIModelReplaceValuesDetailsAPIModel struct {
+            // NodeID - Node to update
+            NodeID *string `json:"nodeId,omitempty"`
+            // BrowsePath - An optional path from NodeId instance to
+            // the actual node.
+            BrowsePath *[]string `json:"browsePath,omitempty"`
+            // Details - The HistoryUpdateDetailsType extension object
+            // encoded as json Variant and containing the tunneled
+            // update request for the Historian server. The value
+            // is updated at edge using above node address.
+            Details *ReplaceValuesDetailsAPIModel `json:"details,omitempty"`
+            // Header - Optional request header
+            Header *RequestHeaderAPIModel `json:"header,omitempty"`
+            }
+
+            // HistoryUpdateResponseAPIModel history update results
+            type HistoryUpdateResponseAPIModel struct {
+            autorest.Response `json:"-"`
+            // Results - List of results from the update operation
+            Results *[]ServiceResultAPIModel `json:"results,omitempty"`
+            // ErrorInfo - Service result in case of service call error
+            ErrorInfo *ServiceResultAPIModel `json:"errorInfo,omitempty"`
+            }
+
+            // InsertEventsDetailsAPIModel insert historic events
+            type InsertEventsDetailsAPIModel struct {
+            // Filter - The filter to use to select the events
+            Filter interface{} `json:"filter,omitempty"`
+            // Events - The new events to insert
+            Events *[]HistoricEventAPIModel `json:"events,omitempty"`
+            }
+
+            // InsertValuesDetailsAPIModel insert historic data
+            type InsertValuesDetailsAPIModel struct {
+            // Values - Values to insert
+            Values *[]HistoricValueAPIModel `json:"values,omitempty"`
+            }
+
+            // ModificationInfoAPIModel modification information
+            type ModificationInfoAPIModel struct {
+            // ModificationTime - Modification time
+            ModificationTime *date.Time `json:"modificationTime,omitempty"`
+            // UpdateType - Operation. Possible values include: 'Insert', 'Replace', 'Update', 'Delete'
+            UpdateType HistoryUpdateOperation `json:"updateType,omitempty"`
+            // UserName - User who made the change
+            UserName *string `json:"userName,omitempty"`
+            }
+
+            // ReadEventsDetailsAPIModel read event data
+            type ReadEventsDetailsAPIModel struct {
+            // StartTime - Start time to read from
+            StartTime *date.Time `json:"startTime,omitempty"`
+            // EndTime - End time to read to
+            EndTime *date.Time `json:"endTime,omitempty"`
+            // NumEvents - Number of events to read
+            NumEvents *int32 `json:"numEvents,omitempty"`
+            // Filter - The filter to use to select the event fields
+            Filter interface{} `json:"filter,omitempty"`
+            }
+
+            // ReadModifiedValuesDetailsAPIModel read modified data
+            type ReadModifiedValuesDetailsAPIModel struct {
+            // StartTime - The start time to read from
+            StartTime *date.Time `json:"startTime,omitempty"`
+            // EndTime - The end time to read to
+            EndTime *date.Time `json:"endTime,omitempty"`
+            // NumValues - The number of values to read
+            NumValues *int32 `json:"numValues,omitempty"`
+            }
+
+            // ReadProcessedValuesDetailsAPIModel read processed historic data
+            type ReadProcessedValuesDetailsAPIModel struct {
+            // StartTime - Start time to read from.
+            StartTime *date.Time `json:"startTime,omitempty"`
+            // EndTime - End time to read until
+            EndTime *date.Time `json:"endTime,omitempty"`
+            // ProcessingInterval - Interval to process
+            ProcessingInterval *float64 `json:"processingInterval,omitempty"`
+            // AggregateTypeID - The aggregate type node ids
+            AggregateTypeID *string `json:"aggregateTypeId,omitempty"`
+            // AggregateConfiguration - A configuration for the aggregate
+            AggregateConfiguration *AggregateConfigAPIModel `json:"aggregateConfiguration,omitempty"`
+            }
+
+            // ReadValuesAtTimesDetailsAPIModel read data at specified times
+            type ReadValuesAtTimesDetailsAPIModel struct {
+            // ReqTimes - Requested datums
+            ReqTimes *[]date.Time `json:"reqTimes,omitempty"`
+            // UseSimpleBounds - Whether to use simple bounds
+            UseSimpleBounds *bool `json:"useSimpleBounds,omitempty"`
+            }
+
+            // ReadValuesDetailsAPIModel read historic values
+            type ReadValuesDetailsAPIModel struct {
+            // StartTime - Beginning of period to read. Set to null
+            // if no specific start time is specified.
+            StartTime *date.Time `json:"startTime,omitempty"`
+            // EndTime - End of period to read. Set to null if no
+            // specific end time is specified.
+            EndTime *date.Time `json:"endTime,omitempty"`
+            // NumValues - The maximum number of values returned for any Node
+            // over the time range. If only one time is specified,
+            // the time range shall extend to return this number
+            // of values. 0 or null indicates that there is no
+            // maximum.
+            NumValues *int32 `json:"numValues,omitempty"`
+            // ReturnBounds - Whether to return the bounding values or not.
+            ReturnBounds *bool `json:"returnBounds,omitempty"`
+            }
+
+            // ReplaceEventsDetailsAPIModel replace historic events
+            type ReplaceEventsDetailsAPIModel struct {
+            // Filter - The filter to use to select the events
+            Filter interface{} `json:"filter,omitempty"`
+            // Events - The events to replace
+            Events *[]HistoricEventAPIModel `json:"events,omitempty"`
+            }
+
+            // ReplaceValuesDetailsAPIModel replace historic data
+            type ReplaceValuesDetailsAPIModel struct {
+            // Values - Values to replace
+            Values *[]HistoricValueAPIModel `json:"values,omitempty"`
+            }
+
+            // RequestHeaderAPIModel request header model
+            type RequestHeaderAPIModel struct {
+            // Elevation - Optional User elevation
+            Elevation *CredentialAPIModel `json:"elevation,omitempty"`
+            // Locales - Optional list of locales in preference order.
+            Locales *[]string `json:"locales,omitempty"`
+            // Diagnostics - Optional diagnostics configuration
+            Diagnostics *DiagnosticsAPIModel `json:"diagnostics,omitempty"`
+            }
+
+            // ServiceResultAPIModel service result
+            type ServiceResultAPIModel struct {
+            // StatusCode - Error code - if null operation succeeded.
+            StatusCode *int32 `json:"statusCode,omitempty"`
+            // ErrorMessage - Error message in case of error or null.
+            ErrorMessage *string `json:"errorMessage,omitempty"`
+            // Diagnostics - Additional diagnostics information
+            Diagnostics interface{} `json:"diagnostics,omitempty"`
             }
 
             // StatusResponseAPIModel status response model
@@ -915,21 +658,21 @@ const fqdn = "go/azure-iiot-opc-history"
             Name *string `json:"name,omitempty"`
             // Status - Operational status
             Status *string `json:"status,omitempty"`
-            // CurrentTime - Current time
+            // CurrentTime - READ-ONLY; Current time
             CurrentTime *string `json:"currentTime,omitempty"`
-            // StartTime - Start time of service
+            // StartTime - READ-ONLY; Start time of service
             StartTime *string `json:"startTime,omitempty"`
-            // UpTime - Up time of service
+            // UpTime - READ-ONLY; Up time of service
             UpTime *int64 `json:"upTime,omitempty"`
-            // UID - Value generated at bootstrap by each instance of the service and
+            // UID - READ-ONLY; Value generated at bootstrap by each instance of the service and
             // used to correlate logs coming from the same instance. The value
             // changes every time the service starts.
             UID *string `json:"uid,omitempty"`
-            // Properties - A property bag with details about the service
+            // Properties - READ-ONLY; A property bag with details about the service
             Properties map[string]*string `json:"properties"`
-            // Dependencies - A property bag with details about the internal dependencies
+            // Dependencies - READ-ONLY; A property bag with details about the internal dependencies
             Dependencies map[string]*string `json:"dependencies"`
-            // Metadata - Optional meta data.
+            // Metadata - READ-ONLY; Optional meta data.
             Metadata map[string]*string `json:"$metadata"`
             }
 
@@ -942,228 +685,6 @@ const fqdn = "go/azure-iiot-opc-history"
                 if(sram.Status != nil) {
                 objectMap["status"] = sram.Status
                 }
-                if(sram.CurrentTime != nil) {
-                objectMap["currentTime"] = sram.CurrentTime
-                }
-                if(sram.StartTime != nil) {
-                objectMap["startTime"] = sram.StartTime
-                }
-                if(sram.UpTime != nil) {
-                objectMap["upTime"] = sram.UpTime
-                }
-                if(sram.UID != nil) {
-                objectMap["uid"] = sram.UID
-                }
-                if(sram.Properties != nil) {
-                objectMap["properties"] = sram.Properties
-                }
-                if(sram.Dependencies != nil) {
-                objectMap["dependencies"] = sram.Dependencies
-                }
-                if(sram.Metadata != nil) {
-                objectMap["$metadata"] = sram.Metadata
-                }
                 return json.Marshal(objectMap)
         }
-
-            // SupervisorAPIModel supervisor registration model
-            type SupervisorAPIModel struct {
-            autorest.Response `json:"-"`
-            // ID - Supervisor id
-            ID *string `json:"id,omitempty"`
-            // SiteID - Site of the supervisor
-            SiteID *string `json:"siteId,omitempty"`
-            // Discovery - Whether the supervisor is in discovery mode. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
-            Discovery DiscoveryMode `json:"discovery,omitempty"`
-            // DiscoveryConfig - Supervisor configuration
-            DiscoveryConfig *DiscoveryConfigAPIModel `json:"discoveryConfig,omitempty"`
-            // Certificate - Supervisor public client cert
-            Certificate *[]byte `json:"certificate,omitempty"`
-            // LogLevel - Current log level. Possible values include: 'SupervisorLogLevelError', 'SupervisorLogLevelInformation', 'SupervisorLogLevelDebug', 'SupervisorLogLevelVerbose'
-            LogLevel SupervisorLogLevel `json:"logLevel,omitempty"`
-            // OutOfSync - Whether the registration is out of sync between
-            // client (module) and server (service) (default: false).
-            OutOfSync *bool `json:"outOfSync,omitempty"`
-            // Connected - Whether supervisor is connected on this registration
-            Connected *bool `json:"connected,omitempty"`
-            }
-
-            // SupervisorListAPIModel supervisor registration list
-            type SupervisorListAPIModel struct {
-            autorest.Response `json:"-"`
-            // Items - Registrations
-            Items *[]SupervisorAPIModel `json:"items,omitempty"`
-            // ContinuationToken - Continuation or null if final
-            ContinuationToken *string `json:"continuationToken,omitempty"`
-            }
-
-            // SupervisorListAPIModelIterator provides access to a complete
-            // listing of SupervisorAPIModel values.
-            type SupervisorListAPIModelIterator struct {
-                i int
-                page SupervisorListAPIModelPage
-            }
-        // NextWithContext advances to the next value.  If there was an error making
-        // the request the iterator does not advance and the error is returned.
-        func (iter * SupervisorListAPIModelIterator) NextWithContext(ctx context.Context) (err error) {
-        if tracing.IsEnabled() {
-        ctx = tracing.StartSpan(ctx, fqdn + "/SupervisorListAPIModelIterator.NextWithContext")
-        defer func() {
-        sc := -1
-        if iter.Response().Response.Response != nil {
-        sc = iter.Response().Response.Response.StatusCode
-        }
-        tracing.EndSpan(ctx, sc, err)
-        }()
-        }
-        iter.i++
-        if iter.i < len(iter. page.Values()) {
-        return nil
-        }
-        err = iter.page.NextWithContext(ctx)
-        if err != nil {
-        iter. i--
-        return err
-        }
-        iter.i = 0
-        return nil
-        }
-        // Next advances to the next value.  If there was an error making
-        // the request the iterator does not advance and the error is returned.
-        // Deprecated: Use NextWithContext() instead.
-        func (iter * SupervisorListAPIModelIterator) Next() error {
-        return iter.NextWithContext(context.Background())
-        }
-        // NotDone returns true if the enumeration should be started or is not yet complete.
-        func (iter SupervisorListAPIModelIterator) NotDone() bool {
-        return iter.page.NotDone() && iter.i < len(iter. page.Values())
-        }
-        // Response returns the raw server response from the last page request.
-        func (iter SupervisorListAPIModelIterator) Response() SupervisorListAPIModel {
-        return iter.page.Response()
-        }
-        // Value returns the current value or a zero-initialized value if the
-        // iterator has advanced beyond the end of the collection.
-        func (iter SupervisorListAPIModelIterator) Value() SupervisorAPIModel {
-        if !iter.page.NotDone() {
-        return SupervisorAPIModel{}
-        }
-        return iter.page.Values()[iter.i]
-        }
-        // Creates a new instance of the SupervisorListAPIModelIterator type.
-        func NewSupervisorListAPIModelIterator (page SupervisorListAPIModelPage) SupervisorListAPIModelIterator {
-            return SupervisorListAPIModelIterator{page: page}
-        }
-
-
-                // IsEmpty returns true if the ListResult contains no values.
-                func (slam SupervisorListAPIModel) IsEmpty() bool {
-                return slam.Value == nil || len(*slam.Value) == 0
-                }
-
-                    // supervisorListAPIModelPreparer prepares a request to retrieve the next set of results.
-                    // It returns nil if no more results exist.
-                    func (slam SupervisorListAPIModel) supervisorListAPIModelPreparer(ctx context.Context) (*http.Request, error) {
-                    if slam.ContinuationToken == nil || len(to.String(slam.ContinuationToken)) < 1 {
-                    return nil, nil
-                    }
-                    return autorest.Prepare((&http.Request{}).WithContext(ctx),
-                    autorest.AsJSON(),
-                    autorest.AsGet(),
-                    autorest.WithBaseURL(to.String( slam.ContinuationToken)));
-                    }
-
-            // SupervisorListAPIModelPage contains a page of SupervisorAPIModel
-            // values.
-            type SupervisorListAPIModelPage struct {
-                fn func(context.Context, SupervisorListAPIModel) (SupervisorListAPIModel, error)
-                slam SupervisorListAPIModel
-            }
-
-        // NextWithContext advances to the next page of values.  If there was an error making
-        // the request the page does not advance and the error is returned.
-        func (page * SupervisorListAPIModelPage) NextWithContext(ctx context.Context) (err error) {
-        if tracing.IsEnabled() {
-        ctx = tracing.StartSpan(ctx, fqdn + "/SupervisorListAPIModelPage.NextWithContext")
-        defer func() {
-        sc := -1
-        if page.Response().Response.Response != nil {
-        sc = page.Response().Response.Response.StatusCode
-        }
-        tracing.EndSpan(ctx, sc, err)
-        }()
-        }
-        next, err := page.fn(ctx, page.slam)
-        if err != nil {
-        return err
-        }
-        page.slam = next
-        return nil
-        }
-
-        // Next advances to the next page of values.  If there was an error making
-        // the request the page does not advance and the error is returned.
-        // Deprecated: Use NextWithContext() instead.
-        func (page * SupervisorListAPIModelPage) Next() error {
-        return page.NextWithContext(context.Background())
-        }
-        // NotDone returns true if the page enumeration should be started or is not yet complete.
-        func (page SupervisorListAPIModelPage) NotDone() bool {
-        return !page.slam.IsEmpty()
-        }
-        // Response returns the raw server response from the last page request.
-        func (page SupervisorListAPIModelPage) Response() SupervisorListAPIModel {
-        return page.slam
-        }
-        // Values returns the slice of values for the current page or nil if there are no values.
-        func (page SupervisorListAPIModelPage) Values() []SupervisorAPIModel {
-        if page.slam.IsEmpty() {
-        return nil
-        }
-        return *page.slam.Value
-        }
-        // Creates a new instance of the SupervisorListAPIModelPage type.
-        func NewSupervisorListAPIModelPage (getNextPage func(context.Context, SupervisorListAPIModel) (SupervisorListAPIModel, error)) SupervisorListAPIModelPage {
-            return SupervisorListAPIModelPage{fn: getNextPage}
-        }
-
-            // SupervisorQueryAPIModel supervisor registration query
-            type SupervisorQueryAPIModel struct {
-            // SiteID - Site of the supervisor
-            SiteID *string `json:"siteId,omitempty"`
-            // Discovery - Discovery mode of supervisor. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
-            Discovery DiscoveryMode `json:"discovery,omitempty"`
-            // Connected - Included connected or disconnected
-            Connected *bool `json:"connected,omitempty"`
-            }
-
-            // SupervisorStatusAPIModel supervisor runtime status
-            type SupervisorStatusAPIModel struct {
-            autorest.Response `json:"-"`
-            // DeviceID - Edge device id
-            DeviceID *string `json:"deviceId,omitempty"`
-            // ModuleID - Module id
-            ModuleID *string `json:"moduleId,omitempty"`
-            // SiteID - Site id
-            SiteID *string `json:"siteId,omitempty"`
-            // Endpoints - Endpoint activation status
-            Endpoints *[]EndpointActivationStatusAPIModel `json:"endpoints,omitempty"`
-            }
-
-            // SupervisorUpdateAPIModel supervisor registration update request
-            type SupervisorUpdateAPIModel struct {
-            // SiteID - Site of the supervisor
-            SiteID *string `json:"siteId,omitempty"`
-            // Discovery - Whether the supervisor is in discovery mode.
-            // If null, does not change. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
-            Discovery DiscoveryMode `json:"discovery,omitempty"`
-            // DiscoveryConfig - Supervisor discovery configuration
-            DiscoveryConfig *DiscoveryConfigAPIModel `json:"discoveryConfig,omitempty"`
-            // DiscoveryCallbacks - Callbacks to add or remove (see below)
-            DiscoveryCallbacks *[]CallbackAPIModel `json:"discoveryCallbacks,omitempty"`
-            // RemoveDiscoveryCallbacks - Whether to add or remove callbacks
-            RemoveDiscoveryCallbacks *bool `json:"removeDiscoveryCallbacks,omitempty"`
-            // LogLevel - Current log level. Possible values include: 'SupervisorLogLevelError', 'SupervisorLogLevelInformation', 'SupervisorLogLevelDebug', 'SupervisorLogLevelVerbose'
-            LogLevel SupervisorLogLevel `json:"logLevel,omitempty"`
-            }
 

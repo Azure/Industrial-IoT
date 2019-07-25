@@ -17,24 +17,38 @@
 class ApplicationInfoApiModel {
   /**
    * Create a ApplicationInfoApiModel.
+   * @property {string} [state] State. Possible values include: 'New',
+   * 'Approved', 'Rejected'. Default value: 'New' .
    * @property {string} [applicationId] Unique application id
    * @property {string} [applicationType] Type of application. Possible values
-   * include: 'Server', 'Client', 'ClientAndServer'
+   * include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
    * @property {string} [applicationUri] Unique application uri
    * @property {string} [productUri] Product uri
-   * @property {string} [applicationName] Name of server
-   * @property {string} [locale] Locale of name - defaults to "en"
+   * @property {string} [applicationName] Default name of application
+   * @property {string} [locale] Locale of default name - defaults to "en"
+   * @property {object} [localizedNames] Localized Names of application keyed
+   * on locale
    * @property {buffer} [certificate] Application public cert
    * @property {array} [capabilities] The capabilities advertised by the
    * server.
    * @property {array} [discoveryUrls] Discovery urls of the server
    * @property {string} [discoveryProfileUri] Discovery profile uri
+   * @property {string} [gatewayServerUri] Gateway server uri
    * @property {array} [hostAddresses] Host addresses of server application or
    * null
    * @property {string} [siteId] Site of the application
    * @property {string} [supervisorId] Supervisor having registered the
    * application
    * @property {date} [notSeenSince] Last time application was seen
+   * @property {object} [created] Created
+   * @property {string} [created.authorityId] Operation User
+   * @property {date} [created.time] Operation time
+   * @property {object} [approved] Approved
+   * @property {string} [approved.authorityId] Operation User
+   * @property {date} [approved.time] Operation time
+   * @property {object} [updated] Updated
+   * @property {string} [updated.authorityId] Operation User
+   * @property {date} [updated.time] Operation time
    */
   constructor() {
   }
@@ -53,6 +67,15 @@ class ApplicationInfoApiModel {
         name: 'Composite',
         className: 'ApplicationInfoApiModel',
         modelProperties: {
+          state: {
+            required: false,
+            serializedName: 'state',
+            defaultValue: 'New',
+            type: {
+              name: 'Enum',
+              allowedValues: [ 'New', 'Approved', 'Rejected' ]
+            }
+          },
           applicationId: {
             required: false,
             serializedName: 'applicationId',
@@ -65,7 +88,7 @@ class ApplicationInfoApiModel {
             serializedName: 'applicationType',
             type: {
               name: 'Enum',
-              allowedValues: [ 'Server', 'Client', 'ClientAndServer' ]
+              allowedValues: [ 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer' ]
             }
           },
           applicationUri: {
@@ -94,6 +117,20 @@ class ApplicationInfoApiModel {
             serializedName: 'locale',
             type: {
               name: 'String'
+            }
+          },
+          localizedNames: {
+            required: false,
+            serializedName: 'localizedNames',
+            type: {
+              name: 'Dictionary',
+              value: {
+                  required: false,
+                  serializedName: 'StringElementType',
+                  type: {
+                    name: 'String'
+                  }
+              }
             }
           },
           certificate: {
@@ -144,6 +181,13 @@ class ApplicationInfoApiModel {
               name: 'String'
             }
           },
+          gatewayServerUri: {
+            required: false,
+            serializedName: 'gatewayServerUri',
+            type: {
+              name: 'String'
+            }
+          },
           hostAddresses: {
             required: false,
             serializedName: 'hostAddresses',
@@ -180,6 +224,30 @@ class ApplicationInfoApiModel {
             serializedName: 'notSeenSince',
             type: {
               name: 'DateTime'
+            }
+          },
+          created: {
+            required: false,
+            serializedName: 'created',
+            type: {
+              name: 'Composite',
+              className: 'RegistryOperationApiModel'
+            }
+          },
+          approved: {
+            required: false,
+            serializedName: 'approved',
+            type: {
+              name: 'Composite',
+              className: 'RegistryOperationApiModel'
+            }
+          },
+          updated: {
+            required: false,
+            serializedName: 'updated',
+            type: {
+              name: 'Composite',
+              className: 'RegistryOperationApiModel'
             }
           }
         }
