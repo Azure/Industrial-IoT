@@ -61,7 +61,7 @@ For more information about OPC Publisher, see [here](publisher.md).
 
 ## Next steps
 
-* [Learn how to deploy OPC Twin Module](howto-modules.md)
+* [Learn how to deploy OPC Twin Module](../howto-deploy-modules.md)
 * [Learn about the OPC Twin Microservice](twin.md)
 * [Learn about OPC Registry Onboarding](onboarding.md)
 
