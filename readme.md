@@ -30,17 +30,17 @@ The platform also allows OT and IT to manage OPC UA Application Certificates and
 
 This repository includes the Industrial IoT platform component:
 
-- Cloud Management and Data Plane, including
-   - [OPC Twin](docs/services/twin.md) Microservices provide discovery, registration, and remote control of industrial devices through REST APIs.  
-   - [OPC Vault](docs/services/vault.md) enables secure communication among OPC UA enabled devices and the cloud. 
-   - A REST based [API](docs/api/readme.md) to access service functionality.
-- Edge components
-  - [OPC Twin module](docs/modules/twin.md)
-  - [OPC Publisher module](docs/modules/publisher.md)
-- Components and protocol stacks including
-  - [OPC Unified Architecture (OPC UA)](https://github.com/Azure/azure-iiot-opc-ua)
+* Cloud Management and Data Plane, including
+   * [OPC Twin](docs/services/twin.md) Microservices provide discovery, registration, and remote control of industrial devices through REST APIs.  
+   * [OPC Vault](docs/services/vault.md) enables secure communication among OPC UA enabled devices and the cloud. 
+   * A REST based [API](docs/api/readme.md) to access service functionality.
+* Edge components
+  * [OPC Twin module](docs/modules/twin.md)
+  * [OPC Publisher module](docs/modules/publisher.md)
+* Components and protocol stacks including
+  * [OPC Unified Architecture (OPC UA)](https://github.com/Azure/azure-iiot-opc-ua)
 
-## Learn more 
+## Learn more
 
 * [Deploy Azure Industrial IoT](docs/readme.md)
 * [Deploy the Microservices](docs/howto-deploy-microservices.md)
