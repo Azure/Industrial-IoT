@@ -1,8 +1,6 @@
-# Azure/Industrial-IoT
+# Azure Industrial IoT
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-
-Azure Industrial IoT
 
 ## Features
 
