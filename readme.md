@@ -26,7 +26,7 @@ Azure Industrial IoT manages OPC UA Application Certificates and Trust Lists of 
 
 [![Build Status](https://msazure.visualstudio.com/One/_apis/build/status/Custom/Azure_IOT/Industrial/Components/Azure.Industrial-IoT?branchName=master)](https://msazure.visualstudio.com/One/_build/latest?definitionId=86580&branchName=master)
 
-This repository includes the Industrial IoT components:
+This repository includes the following Industrial IoT components:
 
 * Cloud Management and Data Plane, including
    * [OPC Twin](docs/services/twin.md) Microservices provide discovery, registration, and remote control of industrial devices through REST APIs.  
