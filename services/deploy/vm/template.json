@@ -488,7 +488,7 @@
         "publicIPName": "[concat(parameters('solutionName'), '-public-ip')]",
         "nicName": "[concat(parameters('solutionName'), '-nic')]",
         "servicesBranch": "[parameters('branchName')]",
-        "servicesRepoUrl": "https://raw.githubusercontent.com/Azure/azure-iiot-services/",
+        "servicesRepoUrl": "https://raw.githubusercontent.com/Azure/Industrial-IoT/",
         "proxyBranch": "master",
         "hostingPlanName": "[parameters('azureWebsiteName')]",
         "appServiceVersion": "2018-02-01",
@@ -520,107 +520,57 @@
                     "family": "A"
                 },
                 "accessPolicies": []
-            },
-            "resources": [
-                {
-                    "type": "accessPolicies",
-                    "name": "add",
-                    "apiVersion": "[variables('keyVaultApiVersion')]",
-                    "dependsOn": [
-                        "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
-                    ],
-                    "properties": {
-                        "accessPolicies": [
-                            {
-                                "tenantId": "[parameters('aadTenantId')]",
-                                "objectId": "[parameters('aadServicePrincipalId')]",
-                                "permissions": {
-                                    "keys": [ 
-                                    ],
-                                    "secrets": [ 
-                                        "get" 
-                                    ],
-                                    "certificates": [ 
-                                        "get",
-                                        "list" 
-                                    ],
-                                    "storage": [ 
-                                    ]
-                                }
-                            },
-                            {
-                                "tenantId": "[parameters('aadTenantId')]",
-                                "objectId": "[parameters('aadUserPrincipalId')]",
-                                "permissions": {
-                                    "keys": [ 
-                                        "get", 
-                                        "list", 
-                                        "encrypt",
-                                        "decrypt",
-                                        "sign" 
-                                    ],
-                                    "secrets": [ 
-                                        "get", 
-                                        "list", 
-                                        "set", 
-                                        "delete" 
-                                    ],
-                                    "certificates": [ 
-                                        "get", 
-                                        "list", 
-                                        "update", 
-                                        "create", 
-                                        "import",
-                                        "getissuers",
-                                        "listissuers",
-                                        "setissuers",
-                                        "deleteissuers",
-                                        "manageissuers"
-                                    ],
-                                    "storage": [ 
-                                    ]
-                                }
-                            }
-                        ]
+            }
+        },
+        {
+            "comments": "KeyVault service principal permissions.",
+            "type": "Microsoft.KeyVault/vaults/accessPolicies",
+            "name": "[concat(parameters('keyVaultName'), '/replace')]",
+            "apiVersion": "[variables('keyVaultApiVersion')]",
+            "dependsOn": [
+                "[concat('Microsoft.KeyVault/vaults/', parameters('keyVaultName'))]"
+            ],
+            "properties": {
+                "accessPolicies": [
+                    {
+                        "tenantId": "[parameters('aadTenantId')]",
+                        "objectId": "[parameters('aadServicePrincipalId')]",
+                        "permissions": {
+                            "secrets": [ 
+                                "get" 
+                            ],
+                            "certificates": [ 
+                                "get",
+                                "list" 
+                            ]
+                        }
+                    },
+                    {
+                        "tenantId": "[parameters('aadTenantId')]",
+                        "objectId": "[parameters('aadUserPrincipalId')]",
+                        "permissions": {
+                            "keys": [ 
+                                "get", 
+                                "list", 
+                                "sign" 
+                            ],
+                            "secrets": [ 
+                                "get", 
+                                "list", 
+                                "set", 
+                                "delete" 
+                            ],
+                            "certificates": [ 
+                                "get", 
+                                "list", 
+                                "update", 
+                                "create", 
+                                "import"
+                            ]
+                        }
                     }
-                }
-            ]
-        },
-        {
-            "type": "Microsoft.KeyVault/vaults/secrets",
-            "name": "[concat(parameters('keyVaultName'), '/', 'Service-Auth--AppSecret')]",
-            "apiVersion": "[variables('keyVaultApiVersion')]",
-            "properties": {
-                "value": "[parameters('aadServiceSecret')]",
-                "contentType": "text/plain"
-            },
-            "dependsOn": [
-                "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
-            ]
-        },
-        {
-            "type": "Microsoft.KeyVault/vaults/secrets",
-            "name": "[concat(parameters('keyVaultName'), '/', 'App-AzureAd--ClientSecret')]",
-            "apiVersion": "[variables('keyVaultApiVersion')]",
-            "properties": {
-                "value": "[parameters('aadClientSecret')]",
-                "contentType": "text/plain"
-            },
-            "dependsOn": [
-                "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
-            ]
-        },
-        {
-            "type": "Microsoft.KeyVault/vaults/secrets",
-            "name": "[concat(parameters('keyVaultName'), '/', 'Service-Swagger--AppSecret')]",
-            "apiVersion": "[variables('keyVaultApiVersion')]",
-            "properties": {
-                "value": "[parameters('aadClientSecret')]",
-                "contentType": "text/plain"
-            },
-            "dependsOn": [
-                "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
-            ]
+                ]
+            }
         },
         {
             "comments": "Azure IoT Hub",
@@ -704,19 +654,6 @@
             ]
         },
         {
-            "type": "Microsoft.KeyVault/vaults/secrets",
-            "name": "[concat(parameters('keyVaultName'), '/', 'PCS_IOTHUB_CONNSTRING')]",
-            "apiVersion": "[variables('keyVaultApiVersion')]",
-            "properties": {
-                "value": "[concat('HostName=', reference(variables('iotHubResourceId')).hostName, ';SharedAccessKeyName=', variables('iotHubKeyName'), ';SharedAccessKey=', listkeys(variables('iotHubKeyResource'), variables('iotHubApiVersion')).primaryKey)]",
-                "contentType": "text/plain"
-            },
-            "dependsOn": [
-                "[resourceId('Microsoft.Devices/Iothubs', parameters('iotHubName'))]",
-                "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
-            ]
-        },
-        {
             "comments": "Storage account",
             "type": "Microsoft.Storage/storageAccounts",
             "name": "[parameters('storageName')]",
@@ -749,19 +686,6 @@
             "dependsOn": []
         },
         {
-            "type": "Microsoft.KeyVault/vaults/secrets",
-            "name": "[concat(parameters('keyVaultName'), '/', 'PCS_IOTHUBREACT_AZUREBLOB_KEY')]",
-            "apiVersion": "[variables('keyVaultApiVersion')]",
-            "properties": {
-                "value": "[listKeys(variables('storageResourceId'), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value]",
-                "contentType": "text/plain"
-            },
-            "dependsOn": [
-                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageName'))]",
-                "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
-            ]
-        },
-        {
             "comments": "Azure CosmosDb",
             "apiVersion": "[variables('documentDBApiVersion')]",
             "type": "Microsoft.DocumentDb/databaseAccounts",
@@ -779,19 +703,6 @@
             "dependsOn": []
         },
         {
-            "type": "Microsoft.KeyVault/vaults/secrets",
-            "name": "[concat(parameters('keyVaultName'), '/', 'PCS_TELEMETRY_DOCUMENTDB_CONNSTRING')]",
-            "apiVersion": "[variables('keyVaultApiVersion')]",
-            "properties": {
-                "value": "[concat('\"', 'AccountEndpoint=', reference(variables('documentDBResourceId')).documentEndpoint, ';AccountKey=', listkeys(variables('documentDBResourceId'), variables('documentDBApiVersion')).primaryMasterKey, ';', '\"')]",
-                "contentType": "text/plain"
-            },
-            "dependsOn": [
-                "[resourceId('Microsoft.DocumentDb/databaseAccounts', parameters('documentDBName'))]",
-                "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
-            ]
-        },
-        {
             "comments": "Azure Service Bus Namespace",
             "apiVersion": "[variables('serviceBusApiVersion')]",
             "type": "Microsoft.ServiceBus/namespaces",
@@ -803,19 +714,6 @@
             "properties": { 
             },
             "dependsOn": []
-        },
-        {
-            "type": "Microsoft.KeyVault/vaults/secrets",
-            "name": "[concat(parameters('keyVaultName'), '/', 'PCS_SERVICEBUS_CONNSTRING')]",
-            "apiVersion": "[variables('keyVaultApiVersion')]",
-            "properties": {
-                "value": "[listkeys(variables('serviceBusKeyResourceId'), variables('serviceBusApiVersion')).primaryConnectionString]",
-                "contentType": "text/plain"
-            },
-            "dependsOn": [
-                "[resourceId('Microsoft.ServiceBus/namespaces', parameters('serviceBusNamespaceName'))]",
-                "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
-            ]
         },
         {
             "comments": "Azure Event Hub Namespace",
@@ -852,7 +750,7 @@
             "comments": "Event Hub Authorization for Iot Hub",
             "type": "Microsoft.EventHub/namespaces/eventhubs/authorizationRules",
             "name": "[concat(parameters('eventHubNamespaceName'), '/', parameters('eventHubName'), '/', parameters('eventHubAuthorizationName'))]",
-            "apiVersion":  "[variables('eventHubApiVersion')]",
+            "apiVersion": "[variables('eventHubApiVersion')]",
             "location": "[variables('location')]",
             "properties": {
                 "rights": [
@@ -863,26 +761,6 @@
                 "[variables('eventHubNamespaceResourceId')]",
                 "[variables('eventHubResourceId')]"
             ]
-        },
-        {
-            "type": "Microsoft.KeyVault/vaults",
-            "name": "[parameters('keyVaultName')]",
-            "apiVersion": "[variables('keyVaultVersion')]",
-            "location": "[resourceGroup().location]",
-            "tags": {
-                "displayName": "[parameters('keyVaultDisplayName')]"
-            },
-            "properties": {
-                "enabledForDeployment": true,
-                "enabledForTemplateDeployment": false,
-                "enabledForVolumeEncryption": false,
-                "sku": {
-                    "name": "[parameters('keyVaultSkuName')]",
-                    "family": "A"
-                },
-                "tenantId": "[parameters('aadTenantId')]",
-                "accessPolicies": []
-            }
         },
         {
             "type": "Microsoft.OperationalInsights/workspaces",
@@ -897,7 +775,7 @@
                     "searchVersion": 1
                 }
             }
-        },
+        }, 
         {
             "type": "microsoft.insights/components",
             "name": "[parameters('appInsightsName')]",
@@ -908,7 +786,7 @@
                 "ApplicationId": "[parameters('appInsightsName')]"
             },
             "dependsOn": []
-        },
+        }, 
         {
             "name": "[variables('appInsightsBillingPlan')]",
             "type": "microsoft.insights/components/CurrentBillingFeatures",
@@ -1183,14 +1061,14 @@
                 "autoUpgradeMinorVersion": true,
                 "settings": {
                     "fileUris": [
-                        "[concat(variables('servicesRepoUrl'), variables('servicesBranch'), '/deploy/vm/setup.sh')]",
-                        "[concat(variables('servicesRepoUrl'), variables('servicesBranch'), '/deploy/vm/ctrl.sh')]",
-                        "[concat(variables('servicesRepoUrl'), variables('servicesBranch'), '/deploy/vm/docker-compose.yml')]",
-                        "[concat(variables('servicesRepoUrl'), variables('servicesBranch'), '/deploy/vm/nginx.conf')]"
+                        "[concat(variables('servicesRepoUrl'), variables('servicesBranch'), '/services/deploy/vm/setup.sh')]",
+                        "[concat(variables('servicesRepoUrl'), variables('servicesBranch'), '/services/deploy/vm/ctrl.sh')]",
+                        "[concat(variables('servicesRepoUrl'), variables('servicesBranch'), '/services/deploy/vm/docker-compose.yml')]",
+                        "[concat(variables('servicesRepoUrl'), variables('servicesBranch'), '/services/deploy/vm/nginx.conf')]"
                     ]
                 },
                 "protectedSettings": {
-                    "commandToExecute": "[concat('sh setup.sh ', ' --unsafe false --admin ', concat('\"', parameters('adminUsername'), '\"'), ' --registry-prefix ', concat('\"', parameters('containerRegistryPrefix'), '\"'), ' --hostname ', concat('\"', variables('vmFQDN'), '\"'), ' --ssl-certificate-key ', concat('\"', parameters('adminPassword'), '\"'), ' --ssl-certificate ', concat('\"', parameters('remoteEndpointCertificate'), '\"'), ' --auth-type aad ', ' --auth-audience ', concat('\"', parameters('authAudience'), '\"'), ' --aad-appid ', concat('\"', parameters('aadClientId'), '\"'), ' --aad-tenant ', concat('\"', parameters('aadTenantId'), '\"'), ' --workspace-name ', concat('\"', parameters('workspaceName'), '\"'), ' --appinsights-name ', concat('\"', parameters('appInsightsName'), '\"'), ' --appinsights-ikey ', concat('\"', reference(resourceId('Microsoft.Insights/components', parameters('appInsightsName')), variables('appInsightsVersion')).InstrumentationKey, '\"'), ' --aad-instance ', concat('\"', parameters('aadInstance'), '\"'), ' --iothub-connstring ', concat('\"', 'HostName=', reference(variables('iotHubResourceId')).hostName, ';SharedAccessKeyName=', variables('iotHubKeyName'), ';SharedAccessKey=', listkeys(variables('iotHubKeyResource'), variables('iotHubApiVersion')).primaryKey, '\"'), ' --docdb-connstring ', concat('\"', 'AccountEndpoint=', reference(variables('documentDBResourceId')).documentEndpoint, ';AccountKey=', listkeys(variables('documentDBResourceId'), variables('documentDBApiVersion')).primaryMasterKey, ';', '\"'), ' --iothub-name ', concat('\"', reference(variables('iotHubResourceId')).eventHubEndpoints.events.path, '\"'), ' --iothub-endpoint ', concat('\"', reference(variables('iotHubResourceId')).eventHubEndpoints.events.endpoint, '\"'), ' --azureblob-account ', concat('\"', parameters('storageName'), '\"'), ' --azureblob-key ', concat('\"', listKeys(variables('storageResourceId'), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, '\"'), ' --azureblob-endpoint-suffix ',  concat('\"', parameters('storageEndpointSuffix'), '\"'), ' --release-version ', concat('\"', variables('servicesBranch'), '\"'), ' --iothub-consumer-group ', concat('\"', variables('onboardingConsumerGroupName'), '\"'), ' --sb-connstring ', listkeys(variables('serviceBusKeyResourceId'), variables('serviceBusApiVersion')).primaryConnectionString, ' --evenhub-connstring ', concat('\"Endpoint=sb://', parameters('eventHubNamespaceName'), '.', parameters('serviceBusEndpointSuffix'), '/;SharedAccessKeyName=', variables('eventHubKeyName'), ';SharedAccessKey=', listkeys(variables('eventHubKeyResourceId'), variables('eventHubApiVersion')).primaryKey, '\"'), ' --eventhub-name ', parameters('eventHubName'))]"
+                    "commandToExecute": "[concat('sh setup.sh ', ' --unsafe false --admin ', concat('\"', parameters('adminUsername'), '\"'), ' --registry-prefix ', concat('\"', parameters('containerRegistryPrefix'), '\"'), ' --hostname ', concat('\"', variables('vmFQDN'), '\"'), ' --ssl-certificate-key ', concat('\"', parameters('adminPassword'), '\"'), ' --ssl-certificate ', concat('\"', parameters('remoteEndpointCertificate'), '\"'), ' --auth-type aad ', ' --auth-audience ', concat('\"', parameters('authAudience'), '\"'), ' --aad-appid ', concat('\"', parameters('aadClientId'), '\"'), ' --aad-tenant ', concat('\"', parameters('aadTenantId'), '\"'), ' --workspace-name ', concat('\"', parameters('workspaceName'), '\"'), ' --appinsights-name ', concat('\"', parameters('appInsightsName'), '\"'), ' --appinsights-ikey ', concat('\"', reference(resourceId('Microsoft.Insights/components', parameters('appInsightsName')), variables('appInsightsVersion')).InstrumentationKey, '\"'), ' --aad-instance ', concat('\"', parameters('aadInstance'), '\"'), ' --iothub-connstring ', concat('\"', 'HostName=', reference(variables('iotHubResourceId')).hostName, ';SharedAccessKeyName=', variables('iotHubKeyName'), ';SharedAccessKey=', listkeys(variables('iotHubKeyResource'), variables('iotHubApiVersion')).primaryKey, '\"'), ' --docdb-connstring ', concat('\"', 'AccountEndpoint=', reference(variables('documentDBResourceId')).documentEndpoint, ';AccountKey=', listkeys(variables('documentDBResourceId'), variables('documentDBApiVersion')).primaryMasterKey, ';', '\"'), ' --iothub-name ', concat('\"', reference(variables('iotHubResourceId')).eventHubEndpoints.events.path, '\"'), ' --iothub-endpoint ', concat('\"', reference(variables('iotHubResourceId')).eventHubEndpoints.events.endpoint, '\"'), ' --azureblob-account ', concat('\"', parameters('storageName'), '\"'), ' --azureblob-key ', concat('\"', listKeys(variables('storageResourceId'), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, '\"'), ' --azureblob-endpoint-suffix ',  concat('\"', parameters('storageEndpointSuffix'), '\"'), ' --release-version ', concat('\"', variables('servicesBranch'), '\"'), ' --iothub-consumer-group ', concat('\"', variables('onboardingConsumerGroupName'), '\"'), ' --sb-connstring ', concat('\"', listkeys(variables('serviceBusKeyResourceId'), variables('serviceBusApiVersion')).primaryConnectionString, '\"'), ' --eventhub-connstring ', concat('\"Endpoint=sb://', parameters('eventHubNamespaceName'), '.', parameters('serviceBusEndpointSuffix'), '/;SharedAccessKeyName=', variables('eventHubKeyName'), ';SharedAccessKey=', listkeys(variables('eventHubKeyResourceId'), variables('eventHubApiVersion')).primaryKey, '\"'), ' --eventhub-name ', parameters('eventHubName'))]"
                 }
             }
         }
@@ -1214,7 +1092,7 @@
         },
         "docdb-connstring": {
             "type": "string",
-            "value": "[concat('\"', 'AccountEndpoint=', reference(variables('documentDBResourceId')).documentEndpoint, ';AccountKey=', listkeys(variables('documentDBResourceId'), variables('documentDBApiVersion')).primaryMasterKey, ';', '\"')]"
+            "value": "[concat('AccountEndpoint=', reference(variables('documentDBResourceId')).documentEndpoint, ';AccountKey=', listkeys(variables('documentDBResourceId'), variables('documentDBApiVersion')).primaryMasterKey, ';')]"
         },
         "eventhub-name": {
             "type": "string",
@@ -1222,7 +1100,7 @@
         },
         "eventhub-connstring": {
             "type": "string",
-            "value": "[concat('\"Endpoint=sb://', parameters('eventHubNamespaceName'), '.', parameters('serviceBusEndpointSuffix'), '/;SharedAccessKeyName=', variables('eventHubKeyName'), ';SharedAccessKey=', listkeys(variables('eventHubKeyResourceId'), variables('eventHubApiVersion')).primaryKey, '\"')]"
+            "value": "[concat('Endpoint=sb://', parameters('eventHubNamespaceName'), '.', parameters('serviceBusEndpointSuffix'), '/;SharedAccessKeyName=', variables('eventHubKeyName'), ';SharedAccessKey=', listkeys(variables('eventHubKeyResourceId'), variables('eventHubApiVersion')).primaryKey, ';')]"
         },
         "sb-connstring": {
             "type": "string",

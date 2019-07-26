@@ -35,14 +35,13 @@ This repository includes the following Industrial IoT components:
 * Edge components
   * [OPC Twin module](docs/modules/twin.md)
   * [OPC Publisher module](docs/modules/publisher.md)
-* Components and protocol stacks including
-  * [OPC Unified Architecture (OPC UA)](https://github.com/Azure/azure-iiot-opc-ua)
 
 ## Learn more
 
 * [Deploy Azure Industrial IoT](docs/readme.md)
 * [Deploy the Microservices](docs/howto-deploy-microservices.md)
 * Explore the samples
+  * [Connected Factory](https://github.com/Azure/Azure-IoT-Connected-Factory) Solution Accelerator which you can try out [here](https://www.azureiotsolutions.com/Accelerators).
   * [OPC Vault Dashboard](https://github.com/Azure/azure-iiot-opc-vault-service/tree/master/app)
   * [OPC Twin Browser](https://github.com/Azure/azure-iiot-opc-twin-webui)
 * Read more about Industrial IoT Components [here](docs/industrial-iot-components.md)

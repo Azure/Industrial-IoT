@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.v2.Controllers {
     using Microsoft.Azure.IIoT.Services.OpcUa.Twin.v2.Filters;
     using Microsoft.Azure.IIoT.Services.OpcUa.Twin.v2.Models;
-    using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.AspNetCore.Mvc;
 

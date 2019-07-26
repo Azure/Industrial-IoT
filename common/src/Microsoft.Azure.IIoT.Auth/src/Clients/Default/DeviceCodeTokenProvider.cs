@@ -67,6 +67,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         public async Task<TokenResultModel> GetTokenForAsync(string resource,
             IEnumerable<string> scopes) {
             if (string.IsNullOrEmpty(_config.AppId)) {
+                // No auth
                 return null;
             }
             var ctx = CreateAuthenticationContext(_config.InstanceUrl,

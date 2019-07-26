@@ -23,11 +23,11 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
         private const string kAuth_AudienceKey = "Auth:Audience";
 
         /// <summary>Application id</summary>
-        public string AppId => GetStringOrDefault(kAuth_AppIdKey, GetStringOrDefault(
-            GetStringOrDefault("PCS_WEBUI_AUTH_AAD_APPID")))?.Trim();
+        public string AppId => GetStringOrDefault(kAuth_AppIdKey,
+            GetStringOrDefault("PCS_WEBUI_AUTH_AAD_APPID"))?.Trim();
         /// <summary>App secret</summary>
-        public string AppSecret => GetStringOrDefault(kAuth_AppSecretKey, GetStringOrDefault(
-            GetStringOrDefault("PCS_APPLICATION_SECRET")))?.Trim();
+        public string AppSecret => GetStringOrDefault(kAuth_AppSecretKey,
+            GetStringOrDefault("PCS_APPLICATION_SECRET"))?.Trim();
         /// <summary>Optional tenant</summary>
         public string TenantId => GetStringOrDefault(kAuth_TenantIdKey,
             GetStringOrDefault("PCS_WEBUI_AUTH_AAD_TENANT", "common")).Trim();

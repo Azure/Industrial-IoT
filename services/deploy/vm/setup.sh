@@ -44,7 +44,7 @@ while [ "$#" -gt 0 ]; do
         --aad-appsecret)                PCS_APPLICATION_SECRET="$2" ;;
         --release-version)              PCS_RELEASE_VERSION="$2" ;;
         --sb-connstring)                PCS_SERVICEBUS_CONNSTRING="$2" ;;
-        --evenhub-connstring)           PCS_EVENTHUB_CONNSTRING="$2" ;;
+        --eventhub-connstring)          PCS_EVENTHUB_CONNSTRING="$2" ;;
         --eventhub-name)                PCS_EVENTHUB_NAME="$2" ;;
         --workspace-name)               PCS_WORKSPACE_NAME="$2" ;;
         --appinsights-name)             PCS_APPINSIGHTS_NAME="$2" ;;
