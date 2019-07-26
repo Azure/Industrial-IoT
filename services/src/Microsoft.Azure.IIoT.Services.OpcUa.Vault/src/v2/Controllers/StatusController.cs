@@ -4,62 +4,40 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Controllers {
-    using Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Auth;
     using Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Filters;
     using Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Vault;
     using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
-    using Serilog;
-    using System;
-    using System.Threading.Tasks;
 
     /// <summary>
-    /// The status service.
+    /// Status checks
     /// </summary>
-    [ExceptionsFilter]
     [Route(VersionInfo.PATH + "/status")]
+    [ExceptionsFilter]
     [Produces(ContentEncodings.MimeTypeJson)]
-    [Authorize(Policy = Policies.CanRead)]
     public class StatusController : Controller {
 
         /// <summary>
-        /// Create the controller
+        /// Create controller
         /// </summary>
-        /// <param name="certificateGroups"></param>
         /// <param name="process"></param>
-        /// <param name="logger"></param>
-        public StatusController(
-            ITrustGroupStore certificateGroups, IProcessIdentity process,
-            ILogger logger) {
-            _certificateGroups = certificateGroups;
-            _logger = logger;
+        public StatusController(IProcessIdentity process) {
             _process = process;
         }
 
         /// <summary>
-        /// Get the status.
+        /// Return the service status in the form of the service status
+        /// api model.
         /// </summary>
+        /// <returns>Status object</returns>
         [HttpGet]
-        public async Task<StatusResponseApiModel> GetStatusAsync() {
-            var kvOk = true;
-            var kvMessage = "Alive and well";
-            try {
-                await _certificateGroups.ListGroupsAsync();
-            }
-            catch (Exception ex) {
-                _logger.Error(ex, "Service status error");
-                kvOk = false;
-                kvMessage = ex.Message;
-            }
-            return new StatusResponseApiModel(kvOk, kvMessage) {
+        public StatusResponseApiModel GetStatus() {
+            // TODO: check if the dependencies are healthy
+            return new StatusResponseApiModel(true, "Alive and well") {
                 Name = _process.ServiceId
             };
         }
 
-        private readonly ILogger _logger;
         private readonly IProcessIdentity _process;
-        private readonly ITrustGroupStore _certificateGroups;
     }
 }
