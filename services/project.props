@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
     <Product>Azure Industrial IoT Components</Product>
-    <RepositoryUrl>https://github.com/Azure/azure-iiot-services</RepositoryUrl>
+    <RepositoryUrl>https://github.com/Azure/Industrial-IoT</RepositoryUrl>
     <PackageTags>Industrial;Manufacturing;OPC;OPCUA;Azure;IoT;IIoT;Twin;.NET</PackageTags>
   </PropertyGroup>
 </Project>

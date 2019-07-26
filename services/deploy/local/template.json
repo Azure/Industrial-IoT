@@ -327,7 +327,6 @@
         "onboardingConsumerGroupName": "onboarding",
         "storageApiVersion": "2017-06-01",
         "storageResourceId": "[resourceId('Microsoft.Storage/storageAccounts/',  parameters('storageName'))]",
-        "keyVaultVersion": "2015-06-01",
         "appInsightsPriceArray": [
             "Basic",
             "Application Insights Enterprise"
