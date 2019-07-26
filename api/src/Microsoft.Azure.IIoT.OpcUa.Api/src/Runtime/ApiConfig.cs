@@ -7,13 +7,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Runtime {
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin;
     using Microsoft.Azure.IIoT.OpcUa.Api.Vault;
-    using Microsoft.Azure.IIoT.Utils;
+    using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Extensions.Configuration;
 
     /// <summary>
     /// Configuration - wraps a configuration root
     /// </summary>
-    public class ApiConfig : ConfigBase, ITwinConfig, IRegistryConfig, IVaultConfig {
+    public class ApiConfig : ClientConfig, ITwinConfig, IRegistryConfig, IVaultConfig {
 
         /// <summary>
         /// Twin configuration
@@ -24,11 +24,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Runtime {
         /// <summary>OPC twin endpoint url</summary>
         public string OpcUaTwinServiceUrl => GetStringOrDefault(
             kOpcUaTwinServiceUrlKey, GetStringOrDefault(
-                 "PCS_TWIN_SERVICE_URL", $"http://{_hostName}:9041"));
+                "PCS_TWIN_SERVICE_URL", $"http://{_hostName}:9041"));
         /// <summary>OPC twin service audience</summary>
         public string OpcUaTwinServiceResourceId => GetStringOrDefault(
             kOpcUaTwinServiceIdKey, GetStringOrDefault(
-                "OPC_TWIN_APP_ID", null));
+                "OPC_TWIN_APP_ID", Audience));
 
         /// <summary>
         /// Vault configuration
@@ -39,11 +39,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Runtime {
         /// <summary>OPC vault endpoint url</summary>
         public string OpcUaVaultServiceUrl => GetStringOrDefault(
             kOpcUaVaultServiceUrlKey, GetStringOrDefault(
-                 "PCS_VAULT_SERVICE_URL", $"http://{_hostName}:9044"));
+                "PCS_VAULT_SERVICE_URL", $"http://{_hostName}:9044"));
         /// <summary>OPC vault audience</summary>
         public string OpcUaVaultServiceResourceId => GetStringOrDefault(
             kOpcUaVaultServiceIdKey, GetStringOrDefault(
-                "OPC_VAULT_APP_ID", null));
+                "OPC_VAULT_APP_ID", Audience));
 
         /// <summary>
         /// Registry configuration
@@ -58,7 +58,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Runtime {
         /// <summary>OPC registry audience</summary>
         public string OpcUaRegistryServiceResourceId => GetStringOrDefault(
             kOpcUaRegistryServiceIdKey, GetStringOrDefault(
-                "OPC_REGISTRY_APP_ID", null));
+                "OPC_REGISTRY_APP_ID", Audience));
 
         /// <inheritdoc/>
         public ApiConfig(IConfigurationRoot configuration) :
