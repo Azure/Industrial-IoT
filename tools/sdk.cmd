@@ -159,7 +159,7 @@ pushd %build_root%
 rem start services
 if "%clean%" == "" goto :start
 echo Rebuilding...
-docker-compose build --no-cache > %TMP%\sdk_build.log 2>&1
+docker-compose build --parallel --compress --no-cache > %TMP%\sdk_build.log 2>&1
 if not !ERRORLEVEL! == 0 type %TMP%\sdk_build.log && goto :done
 :start
 echo Starting...
