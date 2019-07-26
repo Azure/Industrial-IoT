@@ -2,7 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Azure Industrial IoT Platform
+Azure Industrial IoT
 
 ## Features
 
