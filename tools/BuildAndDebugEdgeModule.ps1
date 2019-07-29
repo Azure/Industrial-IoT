@@ -15,7 +15,6 @@ Param(
     [switch]
     $SkipLocalRegistryCheck,
 
-
     <# Flag if the module manifest should be updated. If set, the ModulesFile-Parameter must be set. #>
     [switch]$UpdateModuleManifest,
 
