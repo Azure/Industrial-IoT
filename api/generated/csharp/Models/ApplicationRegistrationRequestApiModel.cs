@@ -8,7 +8,7 @@
 // regenerated.
 // </auto-generated>
 
-namespace Microsoft.Azure.IIoT.Opc.History.Models
+namespace Microsoft.Azure.IIoT.Opc.Registry.Models
 {
     using Microsoft.Rest;
     using Newtonsoft.Json;
@@ -36,25 +36,34 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
         /// </summary>
         /// <param name="applicationUri">Unique application uri</param>
         /// <param name="applicationType">Type of application. Possible values
-        /// include: 'Server', 'Client', 'ClientAndServer'</param>
+        /// include: 'Server', 'Client', 'ClientAndServer',
+        /// 'DiscoveryServer'</param>
         /// <param name="productUri">Product uri of the application.</param>
-        /// <param name="applicationName">Name of the server or client.</param>
-        /// <param name="locale">Locale of name</param>
+        /// <param name="applicationName">Default name of the server or
+        /// client.</param>
+        /// <param name="locale">Locale of default name</param>
+        /// <param name="siteId">Site of the application</param>
+        /// <param name="localizedNames">Localized names key off locale
+        /// id.</param>
         /// <param name="capabilities">The OPC UA defined capabilities of the
         /// server.</param>
         /// <param name="discoveryUrls">Discovery urls of the server.</param>
         /// <param name="discoveryProfileUri">The discovery profile uri of the
         /// server.</param>
-        public ApplicationRegistrationRequestApiModel(string applicationUri, ApplicationType? applicationType = default(ApplicationType?), string productUri = default(string), string applicationName = default(string), string locale = default(string), IList<string> capabilities = default(IList<string>), IList<string> discoveryUrls = default(IList<string>), string discoveryProfileUri = default(string))
+        /// <param name="gatewayServerUri">Gateway server uri</param>
+        public ApplicationRegistrationRequestApiModel(string applicationUri, ApplicationType? applicationType = default(ApplicationType?), string productUri = default(string), string applicationName = default(string), string locale = default(string), string siteId = default(string), IDictionary<string, string> localizedNames = default(IDictionary<string, string>), IList<string> capabilities = default(IList<string>), IList<string> discoveryUrls = default(IList<string>), string discoveryProfileUri = default(string), string gatewayServerUri = default(string))
         {
             ApplicationUri = applicationUri;
             ApplicationType = applicationType;
             ProductUri = productUri;
             ApplicationName = applicationName;
             Locale = locale;
+            SiteId = siteId;
+            LocalizedNames = localizedNames;
             Capabilities = capabilities;
             DiscoveryUrls = discoveryUrls;
             DiscoveryProfileUri = discoveryProfileUri;
+            GatewayServerUri = gatewayServerUri;
             CustomInit();
         }
 
@@ -71,7 +80,7 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
 
         /// <summary>
         /// Gets or sets type of application. Possible values include:
-        /// 'Server', 'Client', 'ClientAndServer'
+        /// 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
         /// </summary>
         [JsonProperty(PropertyName = "applicationType")]
         public ApplicationType? ApplicationType { get; set; }
@@ -83,16 +92,28 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
         public string ProductUri { get; set; }
 
         /// <summary>
-        /// Gets or sets name of the server or client.
+        /// Gets or sets default name of the server or client.
         /// </summary>
         [JsonProperty(PropertyName = "applicationName")]
         public string ApplicationName { get; set; }
 
         /// <summary>
-        /// Gets or sets locale of name
+        /// Gets or sets locale of default name
         /// </summary>
         [JsonProperty(PropertyName = "locale")]
         public string Locale { get; set; }
+
+        /// <summary>
+        /// Gets or sets site of the application
+        /// </summary>
+        [JsonProperty(PropertyName = "siteId")]
+        public string SiteId { get; set; }
+
+        /// <summary>
+        /// Gets or sets localized names key off locale id.
+        /// </summary>
+        [JsonProperty(PropertyName = "localizedNames")]
+        public IDictionary<string, string> LocalizedNames { get; set; }
 
         /// <summary>
         /// Gets or sets the OPC UA defined capabilities of the server.
@@ -111,6 +132,12 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
         /// </summary>
         [JsonProperty(PropertyName = "discoveryProfileUri")]
         public string DiscoveryProfileUri { get; set; }
+
+        /// <summary>
+        /// Gets or sets gateway server uri
+        /// </summary>
+        [JsonProperty(PropertyName = "gatewayServerUri")]
+        public string GatewayServerUri { get; set; }
 
         /// <summary>
         /// Validate the object.

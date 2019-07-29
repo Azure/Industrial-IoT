@@ -8,6 +8,6 @@
 
 /**
  * This package contains the models classes for AzureOpcHistoryClient.
- * Azure Industrial IoT OPC UA Registry Service.
+ * Azure Industrial IoT OPC UA Historic Access Service.
  */
 package com.microsoft.azure.iiot.opc.history.models;

@@ -62,7 +62,6 @@ module azure.iiot.opc.twin
               name: {
                 client_side_validation: true,
                 required: false,
-                read_only: true,
                 serialized_name: 'name',
                 type: {
                   name: 'String'

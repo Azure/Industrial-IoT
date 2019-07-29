@@ -29,9 +29,8 @@ class EndpointApiModel(Model):
     :param security_policy: Security policy uri to use for communication
      default to best.
     :type security_policy: str
-    :param server_thumbprint: Thumbprint to validate against or null to trust
-     any.
-    :type server_thumbprint: bytearray
+    :param certificate: Endpoint certificate that was registered.
+    :type certificate: bytearray
     """
 
     _validation = {
@@ -45,14 +44,14 @@ class EndpointApiModel(Model):
         'user': {'key': 'user', 'type': 'CredentialApiModel'},
         'security_mode': {'key': 'securityMode', 'type': 'SecurityMode'},
         'security_policy': {'key': 'securityPolicy', 'type': 'str'},
-        'server_thumbprint': {'key': 'serverThumbprint', 'type': 'bytearray'},
+        'certificate': {'key': 'certificate', 'type': 'bytearray'},
     }
 
-    def __init__(self, url, alternative_urls=None, user=None, security_mode="Best", security_policy=None, server_thumbprint=None):
+    def __init__(self, url, alternative_urls=None, user=None, security_mode="Best", security_policy=None, certificate=None):
         super(EndpointApiModel, self).__init__()
         self.url = url
         self.alternative_urls = alternative_urls
         self.user = user
         self.security_mode = security_mode
         self.security_policy = security_policy
-        self.server_thumbprint = server_thumbprint
+        self.certificate = certificate

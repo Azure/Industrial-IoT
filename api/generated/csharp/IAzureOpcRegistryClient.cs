@@ -132,6 +132,86 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
         Task<HttpOperationResponse> DeleteAllDisabledApplicationsWithHttpMessagesAsync(string notSeenFor = default(string), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
+        /// Approve a new application.
+        /// </summary>
+        /// <remarks>
+        /// A manager can approve a new application or force an application
+        /// from any state.
+        /// After approval the application is in the 'Approved' state.
+        /// Requires Manager role.
+        /// </remarks>
+        /// <param name='applicationId'>
+        /// The application id
+        /// </param>
+        /// <param name='force'>
+        /// optional, force application in new state
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse> ApproveApplicationWithHttpMessagesAsync(string applicationId, bool? force = default(bool?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Reject a new application.
+        /// </summary>
+        /// <remarks>
+        /// A manager can approve a new application or force an application
+        /// from any state.
+        /// After approval the application is in the 'Rejected' state.
+        /// Requires Manager role.
+        /// </remarks>
+        /// <param name='applicationId'>
+        /// The application id
+        /// </param>
+        /// <param name='force'>
+        /// optional, force application in new state
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse> RejectApplicationWithHttpMessagesAsync(string applicationId, bool? force = default(bool?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Disable an enabled application.
+        /// </summary>
+        /// <remarks>
+        /// A manager can disable an application.
+        /// </remarks>
+        /// <param name='applicationId'>
+        /// The application id
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse> DisableApplicationWithHttpMessagesAsync(string applicationId, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Re-enable a disabled application.
+        /// </summary>
+        /// <remarks>
+        /// A manager can enable an application.
+        /// </remarks>
+        /// <param name='applicationId'>
+        /// The application id
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse> EnableApplicationWithHttpMessagesAsync(string applicationId, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
         /// Discover servers
         /// </summary>
         /// <remarks>
@@ -280,6 +360,23 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
         /// The cancellation token.
         /// </param>
         Task<HttpOperationResponse<ApplicationInfoListApiModel>> QueryApplicationsWithHttpMessagesAsync(ApplicationRegistrationQueryApiModel query, int? pageSize = default(int?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Query applications by id.
+        /// </summary>
+        /// <remarks>
+        /// A query model which supports the OPC UA Global Discovery Server
+        /// query.
+        /// </remarks>
+        /// <param name='query'>
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse<ApplicationRecordListApiModel>> QueryApplicationsByIdWithHttpMessagesAsync(ApplicationRecordQueryApiModel query = default(ApplicationRecordQueryApiModel), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Activate endpoint

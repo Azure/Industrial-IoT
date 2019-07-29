@@ -1,4 +1,4 @@
-# Opc-Registry
+# Opc-Registry-Service
 
 
 <a name="overview"></a>
@@ -302,6 +302,44 @@ more results.
 * `application/json`
 
 
+<a name="queryapplicationsbyid"></a>
+#### Query applications by id.
+```
+POST /v2/applications/querybyid
+```
+
+
+##### Description
+A query model which supports the OPC UA Global Discovery Server query.
+
+
+##### Parameters
+
+|Type|Name|Schema|
+|---|---|---|
+|**Body**|**query**  <br>*optional*|[ApplicationRecordQueryApiModel](definitions.md#applicationrecordqueryapimodel)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|[ApplicationRecordListApiModel](definitions.md#applicationrecordlistapimodel)|
+
+
+##### Consumes
+
+* `application/json-patch+json`
+* `application/json`
+* `text/json`
+* `application/*+json`
+
+
+##### Produces
+
+* `application/json`
+
+
 <a name="getlistofsites"></a>
 #### Get list of sites
 ```
@@ -423,6 +461,134 @@ during a discovery run (recurring or one-time).
 * `application/json`
 * `text/json`
 * `application/*+json`
+
+
+##### Produces
+
+* `application/json`
+
+
+<a name="approveapplication"></a>
+#### Approve a new application.
+```
+POST /v2/applications/{applicationId}/approve
+```
+
+
+##### Description
+A manager can approve a new application or force an application
+from any state.
+After approval the application is in the 'Approved' state.
+Requires Manager role.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**applicationId**  <br>*required*|The application id|string|
+|**Query**|**force**  <br>*optional*|optional, force application in new state|boolean|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|No Content|
+
+
+##### Produces
+
+* `application/json`
+
+
+<a name="disableapplication"></a>
+#### Disable an enabled application.
+```
+POST /v2/applications/{applicationId}/disable
+```
+
+
+##### Description
+A manager can disable an application.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**applicationId**  <br>*required*|The application id|string|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|No Content|
+
+
+##### Produces
+
+* `application/json`
+
+
+<a name="enableapplication"></a>
+#### Re-enable a disabled application.
+```
+POST /v2/applications/{applicationId}/enable
+```
+
+
+##### Description
+A manager can enable an application.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**applicationId**  <br>*required*|The application id|string|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|No Content|
+
+
+##### Produces
+
+* `application/json`
+
+
+<a name="rejectapplication"></a>
+#### Reject a new application.
+```
+POST /v2/applications/{applicationId}/reject
+```
+
+
+##### Description
+A manager can approve a new application or force an application
+from any state.
+After approval the application is in the 'Rejected' state.
+Requires Manager role.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**applicationId**  <br>*required*|The application id|string|
+|**Query**|**force**  <br>*optional*|optional, force application in new state|boolean|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|No Content|
 
 
 ##### Produces

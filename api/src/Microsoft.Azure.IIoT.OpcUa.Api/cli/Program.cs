@@ -47,8 +47,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
             // Register configuration interfaces and logger
             builder.RegisterInstance(new ApiConfig(configuration))
                 .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterInstance(new ClientConfig(configuration))
-                .AsImplementedInterfaces().SingleInstance();
 
             // Register logger
             builder.RegisterLogger(LogEx.Trace());

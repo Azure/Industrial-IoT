@@ -14,6 +14,7 @@ from .endpoint_activation_filter_api_model import EndpointActivationFilterApiMod
 from .server_registration_request_api_model import ServerRegistrationRequestApiModel
 from .application_registration_request_api_model import ApplicationRegistrationRequestApiModel
 from .application_registration_response_api_model import ApplicationRegistrationResponseApiModel
+from .registry_operation_api_model import RegistryOperationApiModel
 from .application_info_api_model import ApplicationInfoApiModel
 from .application_info_list_api_model import ApplicationInfoListApiModel
 from .discovery_config_api_model import DiscoveryConfigApiModel
@@ -26,6 +27,9 @@ from .application_registration_api_model import ApplicationRegistrationApiModel
 from .application_registration_update_api_model import ApplicationRegistrationUpdateApiModel
 from .application_site_list_api_model import ApplicationSiteListApiModel
 from .application_registration_query_api_model import ApplicationRegistrationQueryApiModel
+from .application_record_query_api_model import ApplicationRecordQueryApiModel
+from .application_record_api_model import ApplicationRecordApiModel
+from .application_record_list_api_model import ApplicationRecordListApiModel
 from .endpoint_registration_update_api_model import EndpointRegistrationUpdateApiModel
 from .endpoint_info_api_model import EndpointInfoApiModel
 from .endpoint_info_list_api_model import EndpointInfoListApiModel
@@ -41,9 +45,11 @@ from .azure_opc_registry_client_enums import (
     CallbackMethodType,
     SecurityMode,
     ApplicationType,
+    ApplicationState,
     DiscoveryMode,
     CredentialType,
     SecurityAssessment,
+    ApplicationStateMask,
     EndpointActivationState,
     EndpointConnectivityState,
     SupervisorLogLevel,
@@ -55,6 +61,7 @@ __all__ = [
     'ServerRegistrationRequestApiModel',
     'ApplicationRegistrationRequestApiModel',
     'ApplicationRegistrationResponseApiModel',
+    'RegistryOperationApiModel',
     'ApplicationInfoApiModel',
     'ApplicationInfoListApiModel',
     'DiscoveryConfigApiModel',
@@ -67,6 +74,9 @@ __all__ = [
     'ApplicationRegistrationUpdateApiModel',
     'ApplicationSiteListApiModel',
     'ApplicationRegistrationQueryApiModel',
+    'ApplicationRecordQueryApiModel',
+    'ApplicationRecordApiModel',
+    'ApplicationRecordListApiModel',
     'EndpointRegistrationUpdateApiModel',
     'EndpointInfoApiModel',
     'EndpointInfoListApiModel',
@@ -81,9 +91,11 @@ __all__ = [
     'CallbackMethodType',
     'SecurityMode',
     'ApplicationType',
+    'ApplicationState',
     'DiscoveryMode',
     'CredentialType',
     'SecurityAssessment',
+    'ApplicationStateMask',
     'EndpointActivationState',
     'EndpointConnectivityState',
     'SupervisorLogLevel',

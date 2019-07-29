@@ -14,14 +14,14 @@ OPC Gateway enables existing UA applications to use your OPC Twin infrastructure
 
 ## Current Limitations
 
-- Many UA clients first browse the server tree to learn about the capabilities of a server.  This is an expensive operation as it involves many calls to the OPC Twin module.  
-  - This will be addressed in a future version.
-- The gateway currently only supports un-authenticated access.   
-  - This will be addressed in a future version.  The Gateway will then support **JWT token validation** (as per OPC UA version 1.04), note however that all known UA clients today do not support this authentication mode yet.
-- OPC UA Subscription services (i.e. monitored items) are not supported.
+* Many UA clients first browse the server tree to learn about the capabilities of a server.  This is an expensive operation as it involves many calls to the OPC Twin module.  
+  * This will be addressed in a future version.
+* The gateway currently only supports un-authenticated access.
+  * This will be addressed in a future version.  The Gateway will then support **JWT token validation** (as per OPC UA version 1.04), note however that all known UA clients today do not support this authentication mode yet.
+* OPC UA Subscription services (i.e. monitored items) are not supported.
 
 ## Next steps
 
-- [Learn more about the OPC Registry](registry.md)
-- [Learn more about the OPC Twin](twin.md)
-- [Learn more about the overall Architecture](../architecture.md)
+* [Learn more about the OPC Registry](registry.md)
+* [Learn more about the OPC Twin](twin.md)
+* [Learn more about the overall Architecture](../architecture.md)

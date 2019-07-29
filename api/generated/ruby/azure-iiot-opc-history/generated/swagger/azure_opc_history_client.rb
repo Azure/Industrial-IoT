@@ -95,1242 +95,63 @@ module azure.iiot.opc.history
     end
 
     #
-    # Get list of applications
+    # Delete value history at specified times
     #
-    # Get all registered applications in paged form.
-    # The returned model can contain a continuation token if more results are
-    # available.
-    # Call this operation again using the token to retrieve more results.
+    # Delete value history using historic access.
+    # The endpoint must be activated and connected and the module client
+    # and server must trust each other.
     #
-    # @param continuation_token [String] Optional Continuation
-    # token
-    # @param page_size [Integer] Optional number of results to
-    # return
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param request
+    # [HistoryUpdateRequestApiModelDeleteValuesAtTimesDetailsApiModel] The history
+    # update request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
-    # @return [ApplicationInfoListApiModel] operation results.
+    # @return [HistoryUpdateResponseApiModel] operation results.
     #
-    def get_list_of_applications(continuation_token:nil, page_size:nil, custom_headers:nil)
-      response = get_list_of_applications_async(continuation_token:continuation_token, page_size:page_size, custom_headers:custom_headers).value!
+    def history_delete_values_at_times(endpoint_id, request, custom_headers:nil)
+      response = history_delete_values_at_times_async(endpoint_id, request, custom_headers:custom_headers).value!
       response.body unless response.nil?
     end
 
     #
-    # Get list of applications
+    # Delete value history at specified times
     #
-    # Get all registered applications in paged form.
-    # The returned model can contain a continuation token if more results are
-    # available.
-    # Call this operation again using the token to retrieve more results.
+    # Delete value history using historic access.
+    # The endpoint must be activated and connected and the module client
+    # and server must trust each other.
     #
-    # @param continuation_token [String] Optional Continuation
-    # token
-    # @param page_size [Integer] Optional number of results to
-    # return
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param request
+    # [HistoryUpdateRequestApiModelDeleteValuesAtTimesDetailsApiModel] The history
+    # update request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [MsRest::HttpOperationResponse] HTTP response information.
     #
-    def get_list_of_applications_with_http_info(continuation_token:nil, page_size:nil, custom_headers:nil)
-      get_list_of_applications_async(continuation_token:continuation_token, page_size:page_size, custom_headers:custom_headers).value!
+    def history_delete_values_at_times_with_http_info(endpoint_id, request, custom_headers:nil)
+      history_delete_values_at_times_async(endpoint_id, request, custom_headers:custom_headers).value!
     end
 
     #
-    # Get list of applications
+    # Delete value history at specified times
     #
-    # Get all registered applications in paged form.
-    # The returned model can contain a continuation token if more results are
-    # available.
-    # Call this operation again using the token to retrieve more results.
+    # Delete value history using historic access.
+    # The endpoint must be activated and connected and the module client
+    # and server must trust each other.
     #
-    # @param continuation_token [String] Optional Continuation
-    # token
-    # @param page_size [Integer] Optional number of results to
-    # return
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param request
+    # [HistoryUpdateRequestApiModelDeleteValuesAtTimesDetailsApiModel] The history
+    # update request
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
     # @return [Concurrent::Promise] Promise object which holds the HTTP response.
     #
-    def get_list_of_applications_async(continuation_token:nil, page_size:nil, custom_headers:nil)
-
-
-      request_headers = {}
-      request_headers['Content-Type'] = 'application/json; charset=utf-8'
-      path_template = 'v2/applications'
-
-      request_url = @base_url || self.base_url
-
-      options = {
-          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
-          query_params: {'continuationToken' => continuation_token,'pageSize' => page_size},
-          headers: request_headers.merge(custom_headers || {}),
-          base_url: request_url
-      }
-      promise = self.make_request_async(:get, path_template, options)
-
-      promise = promise.then do |result|
-        http_response = result.response
-        status_code = http_response.status
-        response_content = http_response.body
-        unless status_code == 200
-          error_model = JSON.load(response_content)
-          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
-        end
-
-        # Deserialize Response
-        if status_code == 200
-          begin
-            parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
-            result_mapper = azure.iiot.opc.history::Models::ApplicationInfoListApiModel.mapper()
-            result.body = self.deserialize(result_mapper, parsed_response)
-          rescue Exception => e
-            fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
-          end
-        end
-
-        result
-      end
-
-      promise.execute
-    end
-
-    #
-    # Create new application
-    #
-    # The application is registered using the provided information, but it
-    # is not associated with a supervisor.  This is useful for when you need
-    # to register clients or you want to register a server that is located
-    # in a network not reachable through a Twin module.
-    #
-    # @param request [ApplicationRegistrationRequestApiModel] Application
-    # registration request
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    # @return [ApplicationRegistrationResponseApiModel] operation results.
-    #
-    def create_application(request, custom_headers:nil)
-      response = create_application_async(request, custom_headers:custom_headers).value!
-      response.body unless response.nil?
-    end
-
-    #
-    # Create new application
-    #
-    # The application is registered using the provided information, but it
-    # is not associated with a supervisor.  This is useful for when you need
-    # to register clients or you want to register a server that is located
-    # in a network not reachable through a Twin module.
-    #
-    # @param request [ApplicationRegistrationRequestApiModel] Application
-    # registration request
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    # @return [MsRest::HttpOperationResponse] HTTP response information.
-    #
-    def create_application_with_http_info(request, custom_headers:nil)
-      create_application_async(request, custom_headers:custom_headers).value!
-    end
-
-    #
-    # Create new application
-    #
-    # The application is registered using the provided information, but it
-    # is not associated with a supervisor.  This is useful for when you need
-    # to register clients or you want to register a server that is located
-    # in a network not reachable through a Twin module.
-    #
-    # @param request [ApplicationRegistrationRequestApiModel] Application
-    # registration request
-    # @param [Hash{String => String}] A hash of custom headers that will be added
-    # to the HTTP request.
-    #
-    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
-    #
-    def create_application_async(request, custom_headers:nil)
-      fail ArgumentError, 'request is nil' if request.nil?
-
-
-      request_headers = {}
-      request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
-
-      # Serialize Request
-      request_mapper = azure.iiot.opc.history::Models::ApplicationRegistrationRequestApiModel.mapper()
-      request_content = self.serialize(request_mapper,  request)
-      request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
-
-      path_template = 'v2/applications'
-
-      request_url = @base_url || self.base_url
-
-      options = {
-          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
-          body: request_content,
-          headers: request_headers.merge(custom_headers || {}),
-          base_url: request_url
-      }
-      promise = self.make_request_async(:put, path_template, options)
-
-      promise = promise.then do |result|
-        http_response = result.response
-        status_code = http_response.status
-        response_content = http_response.body
-        unless status_code == 200
-          error_model = JSON.load(response_content)
-          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
-        end
-
-        # Deserialize Response
-        if status_code == 200
-          begin
-            parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
-            result_mapper = azure.iiot.opc.history::Models::ApplicationRegistrationResponseApiModel.mapper()
-            result.body = self.deserialize(result_mapper, parsed_response)
-          rescue Exception => e
-            fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
-          end
-        end
-
-        result
-      end
-
-      promise.execute
-    end
-
-    #
-    # Register new server
-    #
-    # Registers a server solely using a discovery url. Requires that
-    # the onboarding agent service is running and the server can be
-    # located by a supervisor in its network using the discovery url.
-    #
-    # @param request [ServerRegistrationRequestApiModel] Server registration
-    # request
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    #
-    def register_server(request, custom_headers:nil)
-      response = register_server_async(request, custom_headers:custom_headers).value!
-      nil
-    end
-
-    #
-    # Register new server
-    #
-    # Registers a server solely using a discovery url. Requires that
-    # the onboarding agent service is running and the server can be
-    # located by a supervisor in its network using the discovery url.
-    #
-    # @param request [ServerRegistrationRequestApiModel] Server registration
-    # request
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    # @return [MsRest::HttpOperationResponse] HTTP response information.
-    #
-    def register_server_with_http_info(request, custom_headers:nil)
-      register_server_async(request, custom_headers:custom_headers).value!
-    end
-
-    #
-    # Register new server
-    #
-    # Registers a server solely using a discovery url. Requires that
-    # the onboarding agent service is running and the server can be
-    # located by a supervisor in its network using the discovery url.
-    #
-    # @param request [ServerRegistrationRequestApiModel] Server registration
-    # request
-    # @param [Hash{String => String}] A hash of custom headers that will be added
-    # to the HTTP request.
-    #
-    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
-    #
-    def register_server_async(request, custom_headers:nil)
-      fail ArgumentError, 'request is nil' if request.nil?
-
-
-      request_headers = {}
-      request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
-
-      # Serialize Request
-      request_mapper = azure.iiot.opc.history::Models::ServerRegistrationRequestApiModel.mapper()
-      request_content = self.serialize(request_mapper,  request)
-      request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
-
-      path_template = 'v2/applications'
-
-      request_url = @base_url || self.base_url
-
-      options = {
-          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
-          body: request_content,
-          headers: request_headers.merge(custom_headers || {}),
-          base_url: request_url
-      }
-      promise = self.make_request_async(:post, path_template, options)
-
-      promise = promise.then do |result|
-        http_response = result.response
-        status_code = http_response.status
-        response_content = http_response.body
-        unless status_code == 200
-          error_model = JSON.load(response_content)
-          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
-        end
-
-
-        result
-      end
-
-      promise.execute
-    end
-
-    #
-    # Purge applications
-    #
-    # Purges all applications that have not been seen for a specified amount of
-    # time.
-    #
-    # @param not_seen_for [String] A duration in milliseconds
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    #
-    def delete_all_disabled_applications(not_seen_for:nil, custom_headers:nil)
-      response = delete_all_disabled_applications_async(not_seen_for:not_seen_for, custom_headers:custom_headers).value!
-      nil
-    end
-
-    #
-    # Purge applications
-    #
-    # Purges all applications that have not been seen for a specified amount of
-    # time.
-    #
-    # @param not_seen_for [String] A duration in milliseconds
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    # @return [MsRest::HttpOperationResponse] HTTP response information.
-    #
-    def delete_all_disabled_applications_with_http_info(not_seen_for:nil, custom_headers:nil)
-      delete_all_disabled_applications_async(not_seen_for:not_seen_for, custom_headers:custom_headers).value!
-    end
-
-    #
-    # Purge applications
-    #
-    # Purges all applications that have not been seen for a specified amount of
-    # time.
-    #
-    # @param not_seen_for [String] A duration in milliseconds
-    # @param [Hash{String => String}] A hash of custom headers that will be added
-    # to the HTTP request.
-    #
-    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
-    #
-    def delete_all_disabled_applications_async(not_seen_for:nil, custom_headers:nil)
-
-
-      request_headers = {}
-      request_headers['Content-Type'] = 'application/json; charset=utf-8'
-      path_template = 'v2/applications'
-
-      request_url = @base_url || self.base_url
-
-      options = {
-          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
-          query_params: {'notSeenFor' => not_seen_for},
-          headers: request_headers.merge(custom_headers || {}),
-          base_url: request_url
-      }
-      promise = self.make_request_async(:delete, path_template, options)
-
-      promise = promise.then do |result|
-        http_response = result.response
-        status_code = http_response.status
-        response_content = http_response.body
-        unless status_code == 200
-          error_model = JSON.load(response_content)
-          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
-        end
-
-
-        result
-      end
-
-      promise.execute
-    end
-
-    #
-    # Discover servers
-    #
-    # Registers servers by running a discovery scan in a supervisor's
-    # network. Requires that the onboarding agent service is running.
-    #
-    # @param request [DiscoveryRequestApiModel] Discovery request
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    #
-    def discover_server(request, custom_headers:nil)
-      response = discover_server_async(request, custom_headers:custom_headers).value!
-      nil
-    end
-
-    #
-    # Discover servers
-    #
-    # Registers servers by running a discovery scan in a supervisor's
-    # network. Requires that the onboarding agent service is running.
-    #
-    # @param request [DiscoveryRequestApiModel] Discovery request
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    # @return [MsRest::HttpOperationResponse] HTTP response information.
-    #
-    def discover_server_with_http_info(request, custom_headers:nil)
-      discover_server_async(request, custom_headers:custom_headers).value!
-    end
-
-    #
-    # Discover servers
-    #
-    # Registers servers by running a discovery scan in a supervisor's
-    # network. Requires that the onboarding agent service is running.
-    #
-    # @param request [DiscoveryRequestApiModel] Discovery request
-    # @param [Hash{String => String}] A hash of custom headers that will be added
-    # to the HTTP request.
-    #
-    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
-    #
-    def discover_server_async(request, custom_headers:nil)
-      fail ArgumentError, 'request is nil' if request.nil?
-
-
-      request_headers = {}
-      request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
-
-      # Serialize Request
-      request_mapper = azure.iiot.opc.history::Models::DiscoveryRequestApiModel.mapper()
-      request_content = self.serialize(request_mapper,  request)
-      request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
-
-      path_template = 'v2/applications/discover'
-
-      request_url = @base_url || self.base_url
-
-      options = {
-          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
-          body: request_content,
-          headers: request_headers.merge(custom_headers || {}),
-          base_url: request_url
-      }
-      promise = self.make_request_async(:post, path_template, options)
-
-      promise = promise.then do |result|
-        http_response = result.response
-        status_code = http_response.status
-        response_content = http_response.body
-        unless status_code == 200
-          error_model = JSON.load(response_content)
-          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
-        end
-
-
-        result
-      end
-
-      promise.execute
-    end
-
-    #
-    # Get application registration
-    #
-    # @param application_id [String] Application id for the server
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    # @return [ApplicationRegistrationApiModel] operation results.
-    #
-    def get_application_registration(application_id, custom_headers:nil)
-      response = get_application_registration_async(application_id, custom_headers:custom_headers).value!
-      response.body unless response.nil?
-    end
-
-    #
-    # Get application registration
-    #
-    # @param application_id [String] Application id for the server
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    # @return [MsRest::HttpOperationResponse] HTTP response information.
-    #
-    def get_application_registration_with_http_info(application_id, custom_headers:nil)
-      get_application_registration_async(application_id, custom_headers:custom_headers).value!
-    end
-
-    #
-    # Get application registration
-    #
-    # @param application_id [String] Application id for the server
-    # @param [Hash{String => String}] A hash of custom headers that will be added
-    # to the HTTP request.
-    #
-    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
-    #
-    def get_application_registration_async(application_id, custom_headers:nil)
-      fail ArgumentError, 'application_id is nil' if application_id.nil?
-
-
-      request_headers = {}
-      request_headers['Content-Type'] = 'application/json; charset=utf-8'
-      path_template = 'v2/applications/{applicationId}'
-
-      request_url = @base_url || self.base_url
-
-      options = {
-          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
-          path_params: {'applicationId' => application_id},
-          headers: request_headers.merge(custom_headers || {}),
-          base_url: request_url
-      }
-      promise = self.make_request_async(:get, path_template, options)
-
-      promise = promise.then do |result|
-        http_response = result.response
-        status_code = http_response.status
-        response_content = http_response.body
-        unless status_code == 200
-          error_model = JSON.load(response_content)
-          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
-        end
-
-        # Deserialize Response
-        if status_code == 200
-          begin
-            parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
-            result_mapper = azure.iiot.opc.history::Models::ApplicationRegistrationApiModel.mapper()
-            result.body = self.deserialize(result_mapper, parsed_response)
-          rescue Exception => e
-            fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
-          end
-        end
-
-        result
-      end
-
-      promise.execute
-    end
-
-    #
-    # Unregister application
-    #
-    # Unregisters and deletes application and all its associated endpoints.
-    #
-    # @param application_id [String] The identifier of the application
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    #
-    def delete_application(application_id, custom_headers:nil)
-      response = delete_application_async(application_id, custom_headers:custom_headers).value!
-      nil
-    end
-
-    #
-    # Unregister application
-    #
-    # Unregisters and deletes application and all its associated endpoints.
-    #
-    # @param application_id [String] The identifier of the application
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    # @return [MsRest::HttpOperationResponse] HTTP response information.
-    #
-    def delete_application_with_http_info(application_id, custom_headers:nil)
-      delete_application_async(application_id, custom_headers:custom_headers).value!
-    end
-
-    #
-    # Unregister application
-    #
-    # Unregisters and deletes application and all its associated endpoints.
-    #
-    # @param application_id [String] The identifier of the application
-    # @param [Hash{String => String}] A hash of custom headers that will be added
-    # to the HTTP request.
-    #
-    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
-    #
-    def delete_application_async(application_id, custom_headers:nil)
-      fail ArgumentError, 'application_id is nil' if application_id.nil?
-
-
-      request_headers = {}
-      request_headers['Content-Type'] = 'application/json; charset=utf-8'
-      path_template = 'v2/applications/{applicationId}'
-
-      request_url = @base_url || self.base_url
-
-      options = {
-          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
-          path_params: {'applicationId' => application_id},
-          headers: request_headers.merge(custom_headers || {}),
-          base_url: request_url
-      }
-      promise = self.make_request_async(:delete, path_template, options)
-
-      promise = promise.then do |result|
-        http_response = result.response
-        status_code = http_response.status
-        response_content = http_response.body
-        unless status_code == 200
-          error_model = JSON.load(response_content)
-          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
-        end
-
-
-        result
-      end
-
-      promise.execute
-    end
-
-    #
-    # Update application registration
-    #
-    # The application information is updated with new properties.  Note that
-    # this information might be overridden if the application is re-discovered
-    # during a discovery run (recurring or one-time).
-    #
-    # @param application_id [String] The identifier of the application
-    # @param request [ApplicationRegistrationUpdateApiModel] Application update
-    # request
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    #
-    def update_application_registration(application_id, request, custom_headers:nil)
-      response = update_application_registration_async(application_id, request, custom_headers:custom_headers).value!
-      nil
-    end
-
-    #
-    # Update application registration
-    #
-    # The application information is updated with new properties.  Note that
-    # this information might be overridden if the application is re-discovered
-    # during a discovery run (recurring or one-time).
-    #
-    # @param application_id [String] The identifier of the application
-    # @param request [ApplicationRegistrationUpdateApiModel] Application update
-    # request
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    # @return [MsRest::HttpOperationResponse] HTTP response information.
-    #
-    def update_application_registration_with_http_info(application_id, request, custom_headers:nil)
-      update_application_registration_async(application_id, request, custom_headers:custom_headers).value!
-    end
-
-    #
-    # Update application registration
-    #
-    # The application information is updated with new properties.  Note that
-    # this information might be overridden if the application is re-discovered
-    # during a discovery run (recurring or one-time).
-    #
-    # @param application_id [String] The identifier of the application
-    # @param request [ApplicationRegistrationUpdateApiModel] Application update
-    # request
-    # @param [Hash{String => String}] A hash of custom headers that will be added
-    # to the HTTP request.
-    #
-    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
-    #
-    def update_application_registration_async(application_id, request, custom_headers:nil)
-      fail ArgumentError, 'application_id is nil' if application_id.nil?
-      fail ArgumentError, 'request is nil' if request.nil?
-
-
-      request_headers = {}
-      request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
-
-      # Serialize Request
-      request_mapper = azure.iiot.opc.history::Models::ApplicationRegistrationUpdateApiModel.mapper()
-      request_content = self.serialize(request_mapper,  request)
-      request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
-
-      path_template = 'v2/applications/{applicationId}'
-
-      request_url = @base_url || self.base_url
-
-      options = {
-          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
-          path_params: {'applicationId' => application_id},
-          body: request_content,
-          headers: request_headers.merge(custom_headers || {}),
-          base_url: request_url
-      }
-      promise = self.make_request_async(:patch, path_template, options)
-
-      promise = promise.then do |result|
-        http_response = result.response
-        status_code = http_response.status
-        response_content = http_response.body
-        unless status_code == 200
-          error_model = JSON.load(response_content)
-          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
-        end
-
-
-        result
-      end
-
-      promise.execute
-    end
-
-    #
-    # Get list of sites
-    #
-    # List all sites applications are registered in.
-    #
-    # @param continuation_token [String] Optional Continuation
-    # token
-    # @param page_size [Integer] Optional number of results to
-    # return
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    # @return [ApplicationSiteListApiModel] operation results.
-    #
-    def get_list_of_sites(continuation_token:nil, page_size:nil, custom_headers:nil)
-      response = get_list_of_sites_async(continuation_token:continuation_token, page_size:page_size, custom_headers:custom_headers).value!
-      response.body unless response.nil?
-    end
-
-    #
-    # Get list of sites
-    #
-    # List all sites applications are registered in.
-    #
-    # @param continuation_token [String] Optional Continuation
-    # token
-    # @param page_size [Integer] Optional number of results to
-    # return
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    # @return [MsRest::HttpOperationResponse] HTTP response information.
-    #
-    def get_list_of_sites_with_http_info(continuation_token:nil, page_size:nil, custom_headers:nil)
-      get_list_of_sites_async(continuation_token:continuation_token, page_size:page_size, custom_headers:custom_headers).value!
-    end
-
-    #
-    # Get list of sites
-    #
-    # List all sites applications are registered in.
-    #
-    # @param continuation_token [String] Optional Continuation
-    # token
-    # @param page_size [Integer] Optional number of results to
-    # return
-    # @param [Hash{String => String}] A hash of custom headers that will be added
-    # to the HTTP request.
-    #
-    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
-    #
-    def get_list_of_sites_async(continuation_token:nil, page_size:nil, custom_headers:nil)
-
-
-      request_headers = {}
-      request_headers['Content-Type'] = 'application/json; charset=utf-8'
-      path_template = 'v2/applications/sites'
-
-      request_url = @base_url || self.base_url
-
-      options = {
-          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
-          query_params: {'continuationToken' => continuation_token,'pageSize' => page_size},
-          headers: request_headers.merge(custom_headers || {}),
-          base_url: request_url
-      }
-      promise = self.make_request_async(:get, path_template, options)
-
-      promise = promise.then do |result|
-        http_response = result.response
-        status_code = http_response.status
-        response_content = http_response.body
-        unless status_code == 200
-          error_model = JSON.load(response_content)
-          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
-        end
-
-        # Deserialize Response
-        if status_code == 200
-          begin
-            parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
-            result_mapper = azure.iiot.opc.history::Models::ApplicationSiteListApiModel.mapper()
-            result.body = self.deserialize(result_mapper, parsed_response)
-          rescue Exception => e
-            fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
-          end
-        end
-
-        result
-      end
-
-      promise.execute
-    end
-
-    #
-    # Get filtered list of applications
-    #
-    # Get a list of applications filtered using the specified query parameters.
-    # The returned model can contain a continuation token if more results are
-    # available.
-    # Call the GetListOfApplications operation using the token to retrieve
-    # more results.
-    #
-    # @param query [ApplicationRegistrationQueryApiModel] Applications Query model
-    # @param page_size [Integer] Number of results to return
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    # @return [ApplicationInfoListApiModel] operation results.
-    #
-    def get_filtered_list_of_applications(query, page_size:nil, custom_headers:nil)
-      response = get_filtered_list_of_applications_async(query, page_size:page_size, custom_headers:custom_headers).value!
-      response.body unless response.nil?
-    end
-
-    #
-    # Get filtered list of applications
-    #
-    # Get a list of applications filtered using the specified query parameters.
-    # The returned model can contain a continuation token if more results are
-    # available.
-    # Call the GetListOfApplications operation using the token to retrieve
-    # more results.
-    #
-    # @param query [ApplicationRegistrationQueryApiModel] Applications Query model
-    # @param page_size [Integer] Number of results to return
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    # @return [MsRest::HttpOperationResponse] HTTP response information.
-    #
-    def get_filtered_list_of_applications_with_http_info(query, page_size:nil, custom_headers:nil)
-      get_filtered_list_of_applications_async(query, page_size:page_size, custom_headers:custom_headers).value!
-    end
-
-    #
-    # Get filtered list of applications
-    #
-    # Get a list of applications filtered using the specified query parameters.
-    # The returned model can contain a continuation token if more results are
-    # available.
-    # Call the GetListOfApplications operation using the token to retrieve
-    # more results.
-    #
-    # @param query [ApplicationRegistrationQueryApiModel] Applications Query model
-    # @param page_size [Integer] Number of results to return
-    # @param [Hash{String => String}] A hash of custom headers that will be added
-    # to the HTTP request.
-    #
-    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
-    #
-    def get_filtered_list_of_applications_async(query, page_size:nil, custom_headers:nil)
-      fail ArgumentError, 'query is nil' if query.nil?
-
-
-      request_headers = {}
-      request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
-
-      # Serialize Request
-      request_mapper = azure.iiot.opc.history::Models::ApplicationRegistrationQueryApiModel.mapper()
-      request_content = self.serialize(request_mapper,  query)
-      request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
-
-      path_template = 'v2/applications/query'
-
-      request_url = @base_url || self.base_url
-
-      options = {
-          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
-          query_params: {'pageSize' => page_size},
-          body: request_content,
-          headers: request_headers.merge(custom_headers || {}),
-          base_url: request_url
-      }
-      promise = self.make_request_async(:get, path_template, options)
-
-      promise = promise.then do |result|
-        http_response = result.response
-        status_code = http_response.status
-        response_content = http_response.body
-        unless status_code == 200
-          error_model = JSON.load(response_content)
-          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
-        end
-
-        # Deserialize Response
-        if status_code == 200
-          begin
-            parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
-            result_mapper = azure.iiot.opc.history::Models::ApplicationInfoListApiModel.mapper()
-            result.body = self.deserialize(result_mapper, parsed_response)
-          rescue Exception => e
-            fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
-          end
-        end
-
-        result
-      end
-
-      promise.execute
-    end
-
-    #
-    # Query applications
-    #
-    # List applications that match a query model.
-    # The returned model can contain a continuation token if more results are
-    # available.
-    # Call the GetListOfApplications operation using the token to retrieve
-    # more results.
-    #
-    # @param query [ApplicationRegistrationQueryApiModel] Application query
-    # @param page_size [Integer] Optional number of results to
-    # return
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    # @return [ApplicationInfoListApiModel] operation results.
-    #
-    def query_applications(query, page_size:nil, custom_headers:nil)
-      response = query_applications_async(query, page_size:page_size, custom_headers:custom_headers).value!
-      response.body unless response.nil?
-    end
-
-    #
-    # Query applications
-    #
-    # List applications that match a query model.
-    # The returned model can contain a continuation token if more results are
-    # available.
-    # Call the GetListOfApplications operation using the token to retrieve
-    # more results.
-    #
-    # @param query [ApplicationRegistrationQueryApiModel] Application query
-    # @param page_size [Integer] Optional number of results to
-    # return
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    # @return [MsRest::HttpOperationResponse] HTTP response information.
-    #
-    def query_applications_with_http_info(query, page_size:nil, custom_headers:nil)
-      query_applications_async(query, page_size:page_size, custom_headers:custom_headers).value!
-    end
-
-    #
-    # Query applications
-    #
-    # List applications that match a query model.
-    # The returned model can contain a continuation token if more results are
-    # available.
-    # Call the GetListOfApplications operation using the token to retrieve
-    # more results.
-    #
-    # @param query [ApplicationRegistrationQueryApiModel] Application query
-    # @param page_size [Integer] Optional number of results to
-    # return
-    # @param [Hash{String => String}] A hash of custom headers that will be added
-    # to the HTTP request.
-    #
-    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
-    #
-    def query_applications_async(query, page_size:nil, custom_headers:nil)
-      fail ArgumentError, 'query is nil' if query.nil?
-
-
-      request_headers = {}
-      request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
-
-      # Serialize Request
-      request_mapper = azure.iiot.opc.history::Models::ApplicationRegistrationQueryApiModel.mapper()
-      request_content = self.serialize(request_mapper,  query)
-      request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
-
-      path_template = 'v2/applications/query'
-
-      request_url = @base_url || self.base_url
-
-      options = {
-          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
-          query_params: {'pageSize' => page_size},
-          body: request_content,
-          headers: request_headers.merge(custom_headers || {}),
-          base_url: request_url
-      }
-      promise = self.make_request_async(:post, path_template, options)
-
-      promise = promise.then do |result|
-        http_response = result.response
-        status_code = http_response.status
-        response_content = http_response.body
-        unless status_code == 200
-          error_model = JSON.load(response_content)
-          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
-        end
-
-        # Deserialize Response
-        if status_code == 200
-          begin
-            parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
-            result_mapper = azure.iiot.opc.history::Models::ApplicationInfoListApiModel.mapper()
-            result.body = self.deserialize(result_mapper, parsed_response)
-          rescue Exception => e
-            fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
-          end
-        end
-
-        result
-      end
-
-      promise.execute
-    end
-
-    #
-    # Activate endpoint
-    #
-    # Activates an endpoint for subsequent use in twin service.
-    # All endpoints must be activated using this API or through a
-    # activation filter during application registration or discovery.
-    #
-    # @param endpoint_id [String] endpoint identifier
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    #
-    def activate_endpoint(endpoint_id, custom_headers:nil)
-      response = activate_endpoint_async(endpoint_id, custom_headers:custom_headers).value!
-      nil
-    end
-
-    #
-    # Activate endpoint
-    #
-    # Activates an endpoint for subsequent use in twin service.
-    # All endpoints must be activated using this API or through a
-    # activation filter during application registration or discovery.
-    #
-    # @param endpoint_id [String] endpoint identifier
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    # @return [MsRest::HttpOperationResponse] HTTP response information.
-    #
-    def activate_endpoint_with_http_info(endpoint_id, custom_headers:nil)
-      activate_endpoint_async(endpoint_id, custom_headers:custom_headers).value!
-    end
-
-    #
-    # Activate endpoint
-    #
-    # Activates an endpoint for subsequent use in twin service.
-    # All endpoints must be activated using this API or through a
-    # activation filter during application registration or discovery.
-    #
-    # @param endpoint_id [String] endpoint identifier
-    # @param [Hash{String => String}] A hash of custom headers that will be added
-    # to the HTTP request.
-    #
-    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
-    #
-    def activate_endpoint_async(endpoint_id, custom_headers:nil)
-      fail ArgumentError, 'endpoint_id is nil' if endpoint_id.nil?
-
-
-      request_headers = {}
-      request_headers['Content-Type'] = 'application/json; charset=utf-8'
-      path_template = 'v2/endpoints/{endpointId}/activate'
-
-      request_url = @base_url || self.base_url
-
-      options = {
-          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
-          path_params: {'endpointId' => endpoint_id},
-          headers: request_headers.merge(custom_headers || {}),
-          base_url: request_url
-      }
-      promise = self.make_request_async(:post, path_template, options)
-
-      promise = promise.then do |result|
-        http_response = result.response
-        status_code = http_response.status
-        response_content = http_response.body
-        unless status_code == 200
-          error_model = JSON.load(response_content)
-          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
-        end
-
-
-        result
-      end
-
-      promise.execute
-    end
-
-    #
-    # Get endpoint information
-    #
-    # Gets information about an endpoint.
-    #
-    # @param endpoint_id [String] endpoint identifier
-    # @param only_server_state [Boolean] Whether to include only server
-    # state, or display current client state of the endpoint if
-    # available
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    # @return [EndpointInfoApiModel] operation results.
-    #
-    def get_endpoint(endpoint_id, only_server_state:nil, custom_headers:nil)
-      response = get_endpoint_async(endpoint_id, only_server_state:only_server_state, custom_headers:custom_headers).value!
-      response.body unless response.nil?
-    end
-
-    #
-    # Get endpoint information
-    #
-    # Gets information about an endpoint.
-    #
-    # @param endpoint_id [String] endpoint identifier
-    # @param only_server_state [Boolean] Whether to include only server
-    # state, or display current client state of the endpoint if
-    # available
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    # @return [MsRest::HttpOperationResponse] HTTP response information.
-    #
-    def get_endpoint_with_http_info(endpoint_id, only_server_state:nil, custom_headers:nil)
-      get_endpoint_async(endpoint_id, only_server_state:only_server_state, custom_headers:custom_headers).value!
-    end
-
-    #
-    # Get endpoint information
-    #
-    # Gets information about an endpoint.
-    #
-    # @param endpoint_id [String] endpoint identifier
-    # @param only_server_state [Boolean] Whether to include only server
-    # state, or display current client state of the endpoint if
-    # available
-    # @param [Hash{String => String}] A hash of custom headers that will be added
-    # to the HTTP request.
-    #
-    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
-    #
-    def get_endpoint_async(endpoint_id, only_server_state:nil, custom_headers:nil)
-      fail ArgumentError, 'endpoint_id is nil' if endpoint_id.nil?
-
-
-      request_headers = {}
-      request_headers['Content-Type'] = 'application/json; charset=utf-8'
-      path_template = 'v2/endpoints/{endpointId}'
-
-      request_url = @base_url || self.base_url
-
-      options = {
-          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
-          path_params: {'endpointId' => endpoint_id},
-          query_params: {'onlyServerState' => only_server_state},
-          headers: request_headers.merge(custom_headers || {}),
-          base_url: request_url
-      }
-      promise = self.make_request_async(:get, path_template, options)
-
-      promise = promise.then do |result|
-        http_response = result.response
-        status_code = http_response.status
-        response_content = http_response.body
-        unless status_code == 200
-          error_model = JSON.load(response_content)
-          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
-        end
-
-        # Deserialize Response
-        if status_code == 200
-          begin
-            parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
-            result_mapper = azure.iiot.opc.history::Models::EndpointInfoApiModel.mapper()
-            result.body = self.deserialize(result_mapper, parsed_response)
-          rescue Exception => e
-            fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
-          end
-        end
-
-        result
-      end
-
-      promise.execute
-    end
-
-    #
-    # Update endpoint information
-    #
-    # @param endpoint_id [String] endpoint identifier
-    # @param request [EndpointRegistrationUpdateApiModel] Endpoint update request
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    #
-    def update_endpoint(endpoint_id, request, custom_headers:nil)
-      response = update_endpoint_async(endpoint_id, request, custom_headers:custom_headers).value!
-      nil
-    end
-
-    #
-    # Update endpoint information
-    #
-    # @param endpoint_id [String] endpoint identifier
-    # @param request [EndpointRegistrationUpdateApiModel] Endpoint update request
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    # @return [MsRest::HttpOperationResponse] HTTP response information.
-    #
-    def update_endpoint_with_http_info(endpoint_id, request, custom_headers:nil)
-      update_endpoint_async(endpoint_id, request, custom_headers:custom_headers).value!
-    end
-
-    #
-    # Update endpoint information
-    #
-    # @param endpoint_id [String] endpoint identifier
-    # @param request [EndpointRegistrationUpdateApiModel] Endpoint update request
-    # @param [Hash{String => String}] A hash of custom headers that will be added
-    # to the HTTP request.
-    #
-    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
-    #
-    def update_endpoint_async(endpoint_id, request, custom_headers:nil)
+    def history_delete_values_at_times_async(endpoint_id, request, custom_headers:nil)
       fail ArgumentError, 'endpoint_id is nil' if endpoint_id.nil?
       fail ArgumentError, 'request is nil' if request.nil?
 
@@ -1339,11 +160,11 @@ module azure.iiot.opc.history
       request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
 
       # Serialize Request
-      request_mapper = azure.iiot.opc.history::Models::EndpointRegistrationUpdateApiModel.mapper()
+      request_mapper = azure.iiot.opc.history::Models::HistoryUpdateRequestApiModelDeleteValuesAtTimesDetailsApiModel.mapper()
       request_content = self.serialize(request_mapper,  request)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
-      path_template = 'v2/endpoints/{endpointId}'
+      path_template = 'v2/delete/{endpointId}/values/pick'
 
       request_url = @base_url || self.base_url
 
@@ -1354,100 +175,7 @@ module azure.iiot.opc.history
           headers: request_headers.merge(custom_headers || {}),
           base_url: request_url
       }
-      promise = self.make_request_async(:patch, path_template, options)
-
-      promise = promise.then do |result|
-        http_response = result.response
-        status_code = http_response.status
-        response_content = http_response.body
-        unless status_code == 200
-          error_model = JSON.load(response_content)
-          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
-        end
-
-
-        result
-      end
-
-      promise.execute
-    end
-
-    #
-    # Get list of endpoints
-    #
-    # Get all registered endpoints in paged form.
-    # The returned model can contain a continuation token if more results are
-    # available.
-    # Call this operation again using the token to retrieve more results.
-    #
-    # @param only_server_state [Boolean] Whether to include only server
-    # state, or display current client state of the endpoint if available
-    # @param continuation_token [String] Optional Continuation token
-    # @param page_size [Integer] Optional number of results to return
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    # @return [EndpointInfoListApiModel] operation results.
-    #
-    def get_list_of_endpoints(only_server_state:nil, continuation_token:nil, page_size:nil, custom_headers:nil)
-      response = get_list_of_endpoints_async(only_server_state:only_server_state, continuation_token:continuation_token, page_size:page_size, custom_headers:custom_headers).value!
-      response.body unless response.nil?
-    end
-
-    #
-    # Get list of endpoints
-    #
-    # Get all registered endpoints in paged form.
-    # The returned model can contain a continuation token if more results are
-    # available.
-    # Call this operation again using the token to retrieve more results.
-    #
-    # @param only_server_state [Boolean] Whether to include only server
-    # state, or display current client state of the endpoint if available
-    # @param continuation_token [String] Optional Continuation token
-    # @param page_size [Integer] Optional number of results to return
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    # @return [MsRest::HttpOperationResponse] HTTP response information.
-    #
-    def get_list_of_endpoints_with_http_info(only_server_state:nil, continuation_token:nil, page_size:nil, custom_headers:nil)
-      get_list_of_endpoints_async(only_server_state:only_server_state, continuation_token:continuation_token, page_size:page_size, custom_headers:custom_headers).value!
-    end
-
-    #
-    # Get list of endpoints
-    #
-    # Get all registered endpoints in paged form.
-    # The returned model can contain a continuation token if more results are
-    # available.
-    # Call this operation again using the token to retrieve more results.
-    #
-    # @param only_server_state [Boolean] Whether to include only server
-    # state, or display current client state of the endpoint if available
-    # @param continuation_token [String] Optional Continuation token
-    # @param page_size [Integer] Optional number of results to return
-    # @param [Hash{String => String}] A hash of custom headers that will be added
-    # to the HTTP request.
-    #
-    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
-    #
-    def get_list_of_endpoints_async(only_server_state:nil, continuation_token:nil, page_size:nil, custom_headers:nil)
-
-
-      request_headers = {}
-      request_headers['Content-Type'] = 'application/json; charset=utf-8'
-      path_template = 'v2/endpoints'
-
-      request_url = @base_url || self.base_url
-
-      options = {
-          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
-          query_params: {'onlyServerState' => only_server_state,'continuationToken' => continuation_token,'pageSize' => page_size},
-          headers: request_headers.merge(custom_headers || {}),
-          base_url: request_url
-      }
-      promise = self.make_request_async(:get, path_template, options)
+      promise = self.make_request_async(:post, path_template, options)
 
       promise = promise.then do |result|
         http_response = result.response
@@ -1462,7 +190,7 @@ module azure.iiot.opc.history
         if status_code == 200
           begin
             parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
-            result_mapper = azure.iiot.opc.history::Models::EndpointInfoListApiModel.mapper()
+            result_mapper = azure.iiot.opc.history::Models::HistoryUpdateResponseApiModel.mapper()
             result.body = self.deserialize(result_mapper, parsed_response)
           rescue Exception => e
             fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
@@ -1476,241 +204,79 @@ module azure.iiot.opc.history
     end
 
     #
-    # Get filtered list of endpoints
+    # Delete historic values
     #
-    # Get a list of endpoints filtered using the specified query parameters.
-    # The returned model can contain a continuation token if more results are
-    # available.
-    # Call the GetListOfEndpoints operation using the token to retrieve
-    # more results.
+    # Delete historic values using historic access.
+    # The endpoint must be activated and connected and the module client
+    # and server must trust each other.
     #
-    # @param url [String] Endoint url for direct server access
-    # @param user_authentication [Enum] Type of credential selected for
-    # authentication. Possible values include: 'None', 'UserName',
-    # 'X509Certificate', 'JwtToken'
-    # @param certificate [Array<Integer>] Certificate of the endpoint
-    # @param security_mode [Enum] Security Mode. Possible values include: 'Best',
-    # 'Sign', 'SignAndEncrypt', 'None'
-    # @param security_policy [String] Security policy uri
-    # @param activated [Boolean] Whether the endpoint was activated
-    # @param connected [Boolean] Whether the endpoint is connected on supervisor.
-    # @param endpoint_state [Enum] The last state of the the activated endpoint.
-    # Possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust',
-    # 'CertificateInvalid', 'Ready', 'Error'
-    # @param include_not_seen_since [Boolean] Whether to include endpoints that
-    # were soft deleted
-    # @param only_server_state [Boolean] Whether to include only server state, or
-    # display
-    # current client state of the endpoint if available
-    # @param page_size [Integer] Optional number of results to
-    # return
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param request [HistoryUpdateRequestApiModelDeleteValuesDetailsApiModel] The
+    # history update request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
-    # @return [EndpointInfoListApiModel] operation results.
+    # @return [HistoryUpdateResponseApiModel] operation results.
     #
-    def get_filtered_list_of_endpoints(url:nil, user_authentication:nil, certificate:nil, security_mode:nil, security_policy:nil, activated:nil, connected:nil, endpoint_state:nil, include_not_seen_since:nil, only_server_state:nil, page_size:nil, custom_headers:nil)
-      response = get_filtered_list_of_endpoints_async(url:url, user_authentication:user_authentication, certificate:certificate, security_mode:security_mode, security_policy:security_policy, activated:activated, connected:connected, endpoint_state:endpoint_state, include_not_seen_since:include_not_seen_since, only_server_state:only_server_state, page_size:page_size, custom_headers:custom_headers).value!
+    def history_delete_values(endpoint_id, request, custom_headers:nil)
+      response = history_delete_values_async(endpoint_id, request, custom_headers:custom_headers).value!
       response.body unless response.nil?
     end
 
     #
-    # Get filtered list of endpoints
+    # Delete historic values
     #
-    # Get a list of endpoints filtered using the specified query parameters.
-    # The returned model can contain a continuation token if more results are
-    # available.
-    # Call the GetListOfEndpoints operation using the token to retrieve
-    # more results.
+    # Delete historic values using historic access.
+    # The endpoint must be activated and connected and the module client
+    # and server must trust each other.
     #
-    # @param url [String] Endoint url for direct server access
-    # @param user_authentication [Enum] Type of credential selected for
-    # authentication. Possible values include: 'None', 'UserName',
-    # 'X509Certificate', 'JwtToken'
-    # @param certificate [Array<Integer>] Certificate of the endpoint
-    # @param security_mode [Enum] Security Mode. Possible values include: 'Best',
-    # 'Sign', 'SignAndEncrypt', 'None'
-    # @param security_policy [String] Security policy uri
-    # @param activated [Boolean] Whether the endpoint was activated
-    # @param connected [Boolean] Whether the endpoint is connected on supervisor.
-    # @param endpoint_state [Enum] The last state of the the activated endpoint.
-    # Possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust',
-    # 'CertificateInvalid', 'Ready', 'Error'
-    # @param include_not_seen_since [Boolean] Whether to include endpoints that
-    # were soft deleted
-    # @param only_server_state [Boolean] Whether to include only server state, or
-    # display
-    # current client state of the endpoint if available
-    # @param page_size [Integer] Optional number of results to
-    # return
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param request [HistoryUpdateRequestApiModelDeleteValuesDetailsApiModel] The
+    # history update request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [MsRest::HttpOperationResponse] HTTP response information.
     #
-    def get_filtered_list_of_endpoints_with_http_info(url:nil, user_authentication:nil, certificate:nil, security_mode:nil, security_policy:nil, activated:nil, connected:nil, endpoint_state:nil, include_not_seen_since:nil, only_server_state:nil, page_size:nil, custom_headers:nil)
-      get_filtered_list_of_endpoints_async(url:url, user_authentication:user_authentication, certificate:certificate, security_mode:security_mode, security_policy:security_policy, activated:activated, connected:connected, endpoint_state:endpoint_state, include_not_seen_since:include_not_seen_since, only_server_state:only_server_state, page_size:page_size, custom_headers:custom_headers).value!
+    def history_delete_values_with_http_info(endpoint_id, request, custom_headers:nil)
+      history_delete_values_async(endpoint_id, request, custom_headers:custom_headers).value!
     end
 
     #
-    # Get filtered list of endpoints
+    # Delete historic values
     #
-    # Get a list of endpoints filtered using the specified query parameters.
-    # The returned model can contain a continuation token if more results are
-    # available.
-    # Call the GetListOfEndpoints operation using the token to retrieve
-    # more results.
+    # Delete historic values using historic access.
+    # The endpoint must be activated and connected and the module client
+    # and server must trust each other.
     #
-    # @param url [String] Endoint url for direct server access
-    # @param user_authentication [Enum] Type of credential selected for
-    # authentication. Possible values include: 'None', 'UserName',
-    # 'X509Certificate', 'JwtToken'
-    # @param certificate [Array<Integer>] Certificate of the endpoint
-    # @param security_mode [Enum] Security Mode. Possible values include: 'Best',
-    # 'Sign', 'SignAndEncrypt', 'None'
-    # @param security_policy [String] Security policy uri
-    # @param activated [Boolean] Whether the endpoint was activated
-    # @param connected [Boolean] Whether the endpoint is connected on supervisor.
-    # @param endpoint_state [Enum] The last state of the the activated endpoint.
-    # Possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust',
-    # 'CertificateInvalid', 'Ready', 'Error'
-    # @param include_not_seen_since [Boolean] Whether to include endpoints that
-    # were soft deleted
-    # @param only_server_state [Boolean] Whether to include only server state, or
-    # display
-    # current client state of the endpoint if available
-    # @param page_size [Integer] Optional number of results to
-    # return
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param request [HistoryUpdateRequestApiModelDeleteValuesDetailsApiModel] The
+    # history update request
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
     # @return [Concurrent::Promise] Promise object which holds the HTTP response.
     #
-    def get_filtered_list_of_endpoints_async(url:nil, user_authentication:nil, certificate:nil, security_mode:nil, security_policy:nil, activated:nil, connected:nil, endpoint_state:nil, include_not_seen_since:nil, only_server_state:nil, page_size:nil, custom_headers:nil)
-
-
-      request_headers = {}
-      request_headers['Content-Type'] = 'application/json; charset=utf-8'
-      path_template = 'v2/endpoints/query'
-
-      request_url = @base_url || self.base_url
-
-      options = {
-          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
-          query_params: {'Url' => url,'UserAuthentication' => user_authentication,'Certificate' => certificate,'SecurityMode' => security_mode,'SecurityPolicy' => security_policy,'Activated' => activated,'Connected' => connected,'EndpointState' => endpoint_state,'IncludeNotSeenSince' => include_not_seen_since,'onlyServerState' => only_server_state,'pageSize' => page_size},
-          headers: request_headers.merge(custom_headers || {}),
-          base_url: request_url
-      }
-      promise = self.make_request_async(:get, path_template, options)
-
-      promise = promise.then do |result|
-        http_response = result.response
-        status_code = http_response.status
-        response_content = http_response.body
-        unless status_code == 200
-          error_model = JSON.load(response_content)
-          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
-        end
-
-        # Deserialize Response
-        if status_code == 200
-          begin
-            parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
-            result_mapper = azure.iiot.opc.history::Models::EndpointInfoListApiModel.mapper()
-            result.body = self.deserialize(result_mapper, parsed_response)
-          rescue Exception => e
-            fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
-          end
-        end
-
-        result
-      end
-
-      promise.execute
-    end
-
-    #
-    # Query endpoints
-    #
-    # Return endpoints that match the specified query.
-    # The returned model can contain a continuation token if more results are
-    # available.
-    # Call the GetListOfEndpoints operation using the token to retrieve
-    # more results.
-    #
-    # @param query [EndpointRegistrationQueryApiModel] Query to match
-    # @param only_server_state [Boolean] Whether to include only server
-    # state, or display current client state of the endpoint if available
-    # @param page_size [Integer] Optional number of results to return
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    # @return [EndpointInfoListApiModel] operation results.
-    #
-    def query_endpoints(query, only_server_state:nil, page_size:nil, custom_headers:nil)
-      response = query_endpoints_async(query, only_server_state:only_server_state, page_size:page_size, custom_headers:custom_headers).value!
-      response.body unless response.nil?
-    end
-
-    #
-    # Query endpoints
-    #
-    # Return endpoints that match the specified query.
-    # The returned model can contain a continuation token if more results are
-    # available.
-    # Call the GetListOfEndpoints operation using the token to retrieve
-    # more results.
-    #
-    # @param query [EndpointRegistrationQueryApiModel] Query to match
-    # @param only_server_state [Boolean] Whether to include only server
-    # state, or display current client state of the endpoint if available
-    # @param page_size [Integer] Optional number of results to return
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    # @return [MsRest::HttpOperationResponse] HTTP response information.
-    #
-    def query_endpoints_with_http_info(query, only_server_state:nil, page_size:nil, custom_headers:nil)
-      query_endpoints_async(query, only_server_state:only_server_state, page_size:page_size, custom_headers:custom_headers).value!
-    end
-
-    #
-    # Query endpoints
-    #
-    # Return endpoints that match the specified query.
-    # The returned model can contain a continuation token if more results are
-    # available.
-    # Call the GetListOfEndpoints operation using the token to retrieve
-    # more results.
-    #
-    # @param query [EndpointRegistrationQueryApiModel] Query to match
-    # @param only_server_state [Boolean] Whether to include only server
-    # state, or display current client state of the endpoint if available
-    # @param page_size [Integer] Optional number of results to return
-    # @param [Hash{String => String}] A hash of custom headers that will be added
-    # to the HTTP request.
-    #
-    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
-    #
-    def query_endpoints_async(query, only_server_state:nil, page_size:nil, custom_headers:nil)
-      fail ArgumentError, 'query is nil' if query.nil?
+    def history_delete_values_async(endpoint_id, request, custom_headers:nil)
+      fail ArgumentError, 'endpoint_id is nil' if endpoint_id.nil?
+      fail ArgumentError, 'request is nil' if request.nil?
 
 
       request_headers = {}
       request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
 
       # Serialize Request
-      request_mapper = azure.iiot.opc.history::Models::EndpointRegistrationQueryApiModel.mapper()
-      request_content = self.serialize(request_mapper,  query)
+      request_mapper = azure.iiot.opc.history::Models::HistoryUpdateRequestApiModelDeleteValuesDetailsApiModel.mapper()
+      request_content = self.serialize(request_mapper,  request)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
-      path_template = 'v2/endpoints/query'
+      path_template = 'v2/delete/{endpointId}/values'
 
       request_url = @base_url || self.base_url
 
       options = {
           middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
-          query_params: {'onlyServerState' => only_server_state,'pageSize' => page_size},
+          path_params: {'endpointId' => endpoint_id},
           body: request_content,
           headers: request_headers.merge(custom_headers || {}),
           base_url: request_url
@@ -1730,7 +296,7 @@ module azure.iiot.opc.history
         if status_code == 200
           begin
             parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
-            result_mapper = azure.iiot.opc.history::Models::EndpointInfoListApiModel.mapper()
+            result_mapper = azure.iiot.opc.history::Models::HistoryUpdateResponseApiModel.mapper()
             result.body = self.deserialize(result_mapper, parsed_response)
           rescue Exception => e
             fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
@@ -1744,59 +310,83 @@ module azure.iiot.opc.history
     end
 
     #
-    # Deactivate endpoint
+    # Delete historic values
     #
-    # Deactivates the endpoint and disable access through twin service.
+    # Delete historic values using historic access.
+    # The endpoint must be activated and connected and the module client
+    # and server must trust each other.
     #
-    # @param endpoint_id [String] endpoint identifier
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param request
+    # [HistoryUpdateRequestApiModelDeleteModifiedValuesDetailsApiModel] The history
+    # update request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
+    # @return [HistoryUpdateResponseApiModel] operation results.
     #
-    def deactivate_endpoint(endpoint_id, custom_headers:nil)
-      response = deactivate_endpoint_async(endpoint_id, custom_headers:custom_headers).value!
-      nil
+    def history_delete_modified_values(endpoint_id, request, custom_headers:nil)
+      response = history_delete_modified_values_async(endpoint_id, request, custom_headers:custom_headers).value!
+      response.body unless response.nil?
     end
 
     #
-    # Deactivate endpoint
+    # Delete historic values
     #
-    # Deactivates the endpoint and disable access through twin service.
+    # Delete historic values using historic access.
+    # The endpoint must be activated and connected and the module client
+    # and server must trust each other.
     #
-    # @param endpoint_id [String] endpoint identifier
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param request
+    # [HistoryUpdateRequestApiModelDeleteModifiedValuesDetailsApiModel] The history
+    # update request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [MsRest::HttpOperationResponse] HTTP response information.
     #
-    def deactivate_endpoint_with_http_info(endpoint_id, custom_headers:nil)
-      deactivate_endpoint_async(endpoint_id, custom_headers:custom_headers).value!
+    def history_delete_modified_values_with_http_info(endpoint_id, request, custom_headers:nil)
+      history_delete_modified_values_async(endpoint_id, request, custom_headers:custom_headers).value!
     end
 
     #
-    # Deactivate endpoint
+    # Delete historic values
     #
-    # Deactivates the endpoint and disable access through twin service.
+    # Delete historic values using historic access.
+    # The endpoint must be activated and connected and the module client
+    # and server must trust each other.
     #
-    # @param endpoint_id [String] endpoint identifier
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param request
+    # [HistoryUpdateRequestApiModelDeleteModifiedValuesDetailsApiModel] The history
+    # update request
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
     # @return [Concurrent::Promise] Promise object which holds the HTTP response.
     #
-    def deactivate_endpoint_async(endpoint_id, custom_headers:nil)
+    def history_delete_modified_values_async(endpoint_id, request, custom_headers:nil)
       fail ArgumentError, 'endpoint_id is nil' if endpoint_id.nil?
+      fail ArgumentError, 'request is nil' if request.nil?
 
 
       request_headers = {}
-      request_headers['Content-Type'] = 'application/json; charset=utf-8'
-      path_template = 'v2/endpoints/{endpointId}/deactivate'
+      request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
+
+      # Serialize Request
+      request_mapper = azure.iiot.opc.history::Models::HistoryUpdateRequestApiModelDeleteModifiedValuesDetailsApiModel.mapper()
+      request_content = self.serialize(request_mapper,  request)
+      request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
+
+      path_template = 'v2/delete/{endpointId}/values/modified'
 
       request_url = @base_url || self.base_url
 
       options = {
           middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
           path_params: {'endpointId' => endpoint_id},
+          body: request_content,
           headers: request_headers.merge(custom_headers || {}),
           base_url: request_url
       }
@@ -1811,6 +401,1601 @@ module azure.iiot.opc.history
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
 
+        # Deserialize Response
+        if status_code == 200
+          begin
+            parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
+            result_mapper = azure.iiot.opc.history::Models::HistoryUpdateResponseApiModel.mapper()
+            result.body = self.deserialize(result_mapper, parsed_response)
+          rescue Exception => e
+            fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
+          end
+        end
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
+    # Delete historic events
+    #
+    # Delete historic events using historic access.
+    # The endpoint must be activated and connected and the module client
+    # and server must trust each other.
+    #
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param request [HistoryUpdateRequestApiModelDeleteEventsDetailsApiModel] The
+    # history update request
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [HistoryUpdateResponseApiModel] operation results.
+    #
+    def history_delete_events(endpoint_id, request, custom_headers:nil)
+      response = history_delete_events_async(endpoint_id, request, custom_headers:custom_headers).value!
+      response.body unless response.nil?
+    end
+
+    #
+    # Delete historic events
+    #
+    # Delete historic events using historic access.
+    # The endpoint must be activated and connected and the module client
+    # and server must trust each other.
+    #
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param request [HistoryUpdateRequestApiModelDeleteEventsDetailsApiModel] The
+    # history update request
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def history_delete_events_with_http_info(endpoint_id, request, custom_headers:nil)
+      history_delete_events_async(endpoint_id, request, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Delete historic events
+    #
+    # Delete historic events using historic access.
+    # The endpoint must be activated and connected and the module client
+    # and server must trust each other.
+    #
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param request [HistoryUpdateRequestApiModelDeleteEventsDetailsApiModel] The
+    # history update request
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def history_delete_events_async(endpoint_id, request, custom_headers:nil)
+      fail ArgumentError, 'endpoint_id is nil' if endpoint_id.nil?
+      fail ArgumentError, 'request is nil' if request.nil?
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
+
+      # Serialize Request
+      request_mapper = azure.iiot.opc.history::Models::HistoryUpdateRequestApiModelDeleteEventsDetailsApiModel.mapper()
+      request_content = self.serialize(request_mapper,  request)
+      request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
+
+      path_template = 'v2/delete/{endpointId}/events'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          path_params: {'endpointId' => endpoint_id},
+          body: request_content,
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:post, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+        # Deserialize Response
+        if status_code == 200
+          begin
+            parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
+            result_mapper = azure.iiot.opc.history::Models::HistoryUpdateResponseApiModel.mapper()
+            result.body = self.deserialize(result_mapper, parsed_response)
+          rescue Exception => e
+            fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
+          end
+        end
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
+    # Read history using json details
+    #
+    # Read node history if available using historic access.
+    # The endpoint must be activated and connected and the module client
+    # and server must trust each other.
+    #
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param request [HistoryReadRequestApiModelJToken] The history read request
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [HistoryReadResponseApiModelJToken] operation results.
+    #
+    def history_read_raw(endpoint_id, request, custom_headers:nil)
+      response = history_read_raw_async(endpoint_id, request, custom_headers:custom_headers).value!
+      response.body unless response.nil?
+    end
+
+    #
+    # Read history using json details
+    #
+    # Read node history if available using historic access.
+    # The endpoint must be activated and connected and the module client
+    # and server must trust each other.
+    #
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param request [HistoryReadRequestApiModelJToken] The history read request
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def history_read_raw_with_http_info(endpoint_id, request, custom_headers:nil)
+      history_read_raw_async(endpoint_id, request, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Read history using json details
+    #
+    # Read node history if available using historic access.
+    # The endpoint must be activated and connected and the module client
+    # and server must trust each other.
+    #
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param request [HistoryReadRequestApiModelJToken] The history read request
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def history_read_raw_async(endpoint_id, request, custom_headers:nil)
+      fail ArgumentError, 'endpoint_id is nil' if endpoint_id.nil?
+      fail ArgumentError, 'request is nil' if request.nil?
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
+
+      # Serialize Request
+      request_mapper = azure.iiot.opc.history::Models::HistoryReadRequestApiModelJToken.mapper()
+      request_content = self.serialize(request_mapper,  request)
+      request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
+
+      path_template = 'v2/history/read/{endpointId}'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          path_params: {'endpointId' => endpoint_id},
+          body: request_content,
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:post, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+        # Deserialize Response
+        if status_code == 200
+          begin
+            parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
+            result_mapper = azure.iiot.opc.history::Models::HistoryReadResponseApiModelJToken.mapper()
+            result.body = self.deserialize(result_mapper, parsed_response)
+          rescue Exception => e
+            fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
+          end
+        end
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
+    # Read next batch of history as json
+    #
+    # Read next batch of node history values using historic access.
+    # The endpoint must be activated and connected and the module client
+    # and server must trust each other.
+    #
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param request [HistoryReadNextRequestApiModel] The history read next request
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [HistoryReadNextResponseApiModelJToken] operation results.
+    #
+    def history_read_raw_next(endpoint_id, request, custom_headers:nil)
+      response = history_read_raw_next_async(endpoint_id, request, custom_headers:custom_headers).value!
+      response.body unless response.nil?
+    end
+
+    #
+    # Read next batch of history as json
+    #
+    # Read next batch of node history values using historic access.
+    # The endpoint must be activated and connected and the module client
+    # and server must trust each other.
+    #
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param request [HistoryReadNextRequestApiModel] The history read next request
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def history_read_raw_next_with_http_info(endpoint_id, request, custom_headers:nil)
+      history_read_raw_next_async(endpoint_id, request, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Read next batch of history as json
+    #
+    # Read next batch of node history values using historic access.
+    # The endpoint must be activated and connected and the module client
+    # and server must trust each other.
+    #
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param request [HistoryReadNextRequestApiModel] The history read next request
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def history_read_raw_next_async(endpoint_id, request, custom_headers:nil)
+      fail ArgumentError, 'endpoint_id is nil' if endpoint_id.nil?
+      fail ArgumentError, 'request is nil' if request.nil?
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
+
+      # Serialize Request
+      request_mapper = azure.iiot.opc.history::Models::HistoryReadNextRequestApiModel.mapper()
+      request_content = self.serialize(request_mapper,  request)
+      request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
+
+      path_template = 'v2/history/read/{endpointId}/next'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          path_params: {'endpointId' => endpoint_id},
+          body: request_content,
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:post, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+        # Deserialize Response
+        if status_code == 200
+          begin
+            parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
+            result_mapper = azure.iiot.opc.history::Models::HistoryReadNextResponseApiModelJToken.mapper()
+            result.body = self.deserialize(result_mapper, parsed_response)
+          rescue Exception => e
+            fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
+          end
+        end
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
+    # Update node history using raw json
+    #
+    # Update node history using historic access.
+    # The endpoint must be activated and connected and the module client
+    # and server must trust each other.
+    #
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param request [HistoryUpdateRequestApiModelJToken] The history update
+    # request
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [HistoryUpdateResponseApiModel] operation results.
+    #
+    def history_update_raw(endpoint_id, request, custom_headers:nil)
+      response = history_update_raw_async(endpoint_id, request, custom_headers:custom_headers).value!
+      response.body unless response.nil?
+    end
+
+    #
+    # Update node history using raw json
+    #
+    # Update node history using historic access.
+    # The endpoint must be activated and connected and the module client
+    # and server must trust each other.
+    #
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param request [HistoryUpdateRequestApiModelJToken] The history update
+    # request
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def history_update_raw_with_http_info(endpoint_id, request, custom_headers:nil)
+      history_update_raw_async(endpoint_id, request, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Update node history using raw json
+    #
+    # Update node history using historic access.
+    # The endpoint must be activated and connected and the module client
+    # and server must trust each other.
+    #
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param request [HistoryUpdateRequestApiModelJToken] The history update
+    # request
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def history_update_raw_async(endpoint_id, request, custom_headers:nil)
+      fail ArgumentError, 'endpoint_id is nil' if endpoint_id.nil?
+      fail ArgumentError, 'request is nil' if request.nil?
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
+
+      # Serialize Request
+      request_mapper = azure.iiot.opc.history::Models::HistoryUpdateRequestApiModelJToken.mapper()
+      request_content = self.serialize(request_mapper,  request)
+      request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
+
+      path_template = 'v2/history/update/{endpointId}'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          path_params: {'endpointId' => endpoint_id},
+          body: request_content,
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:post, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+        # Deserialize Response
+        if status_code == 200
+          begin
+            parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
+            result_mapper = azure.iiot.opc.history::Models::HistoryUpdateResponseApiModel.mapper()
+            result.body = self.deserialize(result_mapper, parsed_response)
+          rescue Exception => e
+            fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
+          end
+        end
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
+    # Insert historic values
+    #
+    # Insert historic values using historic access.
+    # The endpoint must be activated and connected and the module client
+    # and server must trust each other.
+    #
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param request [HistoryUpdateRequestApiModelInsertValuesDetailsApiModel] The
+    # history insert request
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [HistoryUpdateResponseApiModel] operation results.
+    #
+    def history_insert_values(endpoint_id, request, custom_headers:nil)
+      response = history_insert_values_async(endpoint_id, request, custom_headers:custom_headers).value!
+      response.body unless response.nil?
+    end
+
+    #
+    # Insert historic values
+    #
+    # Insert historic values using historic access.
+    # The endpoint must be activated and connected and the module client
+    # and server must trust each other.
+    #
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param request [HistoryUpdateRequestApiModelInsertValuesDetailsApiModel] The
+    # history insert request
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def history_insert_values_with_http_info(endpoint_id, request, custom_headers:nil)
+      history_insert_values_async(endpoint_id, request, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Insert historic values
+    #
+    # Insert historic values using historic access.
+    # The endpoint must be activated and connected and the module client
+    # and server must trust each other.
+    #
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param request [HistoryUpdateRequestApiModelInsertValuesDetailsApiModel] The
+    # history insert request
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def history_insert_values_async(endpoint_id, request, custom_headers:nil)
+      fail ArgumentError, 'endpoint_id is nil' if endpoint_id.nil?
+      fail ArgumentError, 'request is nil' if request.nil?
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
+
+      # Serialize Request
+      request_mapper = azure.iiot.opc.history::Models::HistoryUpdateRequestApiModelInsertValuesDetailsApiModel.mapper()
+      request_content = self.serialize(request_mapper,  request)
+      request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
+
+      path_template = 'v2/insert/{endpointId}/values'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          path_params: {'endpointId' => endpoint_id},
+          body: request_content,
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:post, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+        # Deserialize Response
+        if status_code == 200
+          begin
+            parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
+            result_mapper = azure.iiot.opc.history::Models::HistoryUpdateResponseApiModel.mapper()
+            result.body = self.deserialize(result_mapper, parsed_response)
+          rescue Exception => e
+            fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
+          end
+        end
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
+    # Insert historic events
+    #
+    # Insert historic events using historic access.
+    # The endpoint must be activated and connected and the module client
+    # and server must trust each other.
+    #
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param request [HistoryUpdateRequestApiModelInsertEventsDetailsApiModel] The
+    # history insert request
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [HistoryUpdateResponseApiModel] operation results.
+    #
+    def history_insert_events(endpoint_id, request, custom_headers:nil)
+      response = history_insert_events_async(endpoint_id, request, custom_headers:custom_headers).value!
+      response.body unless response.nil?
+    end
+
+    #
+    # Insert historic events
+    #
+    # Insert historic events using historic access.
+    # The endpoint must be activated and connected and the module client
+    # and server must trust each other.
+    #
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param request [HistoryUpdateRequestApiModelInsertEventsDetailsApiModel] The
+    # history insert request
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def history_insert_events_with_http_info(endpoint_id, request, custom_headers:nil)
+      history_insert_events_async(endpoint_id, request, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Insert historic events
+    #
+    # Insert historic events using historic access.
+    # The endpoint must be activated and connected and the module client
+    # and server must trust each other.
+    #
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param request [HistoryUpdateRequestApiModelInsertEventsDetailsApiModel] The
+    # history insert request
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def history_insert_events_async(endpoint_id, request, custom_headers:nil)
+      fail ArgumentError, 'endpoint_id is nil' if endpoint_id.nil?
+      fail ArgumentError, 'request is nil' if request.nil?
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
+
+      # Serialize Request
+      request_mapper = azure.iiot.opc.history::Models::HistoryUpdateRequestApiModelInsertEventsDetailsApiModel.mapper()
+      request_content = self.serialize(request_mapper,  request)
+      request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
+
+      path_template = 'v2/insert/{endpointId}/events'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          path_params: {'endpointId' => endpoint_id},
+          body: request_content,
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:post, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+        # Deserialize Response
+        if status_code == 200
+          begin
+            parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
+            result_mapper = azure.iiot.opc.history::Models::HistoryUpdateResponseApiModel.mapper()
+            result.body = self.deserialize(result_mapper, parsed_response)
+          rescue Exception => e
+            fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
+          end
+        end
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
+    # Read historic events
+    #
+    # Read historic events of a node if available using historic access.
+    # The endpoint must be activated and connected and the module client
+    # and server must trust each other.
+    #
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param request [HistoryReadRequestApiModelReadEventsDetailsApiModel] The
+    # history read request
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [HistoryReadResponseApiModelHistoricEventApiModelSequence] operation
+    # results.
+    #
+    def history_read_events(endpoint_id, request, custom_headers:nil)
+      response = history_read_events_async(endpoint_id, request, custom_headers:custom_headers).value!
+      response.body unless response.nil?
+    end
+
+    #
+    # Read historic events
+    #
+    # Read historic events of a node if available using historic access.
+    # The endpoint must be activated and connected and the module client
+    # and server must trust each other.
+    #
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param request [HistoryReadRequestApiModelReadEventsDetailsApiModel] The
+    # history read request
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def history_read_events_with_http_info(endpoint_id, request, custom_headers:nil)
+      history_read_events_async(endpoint_id, request, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Read historic events
+    #
+    # Read historic events of a node if available using historic access.
+    # The endpoint must be activated and connected and the module client
+    # and server must trust each other.
+    #
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param request [HistoryReadRequestApiModelReadEventsDetailsApiModel] The
+    # history read request
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def history_read_events_async(endpoint_id, request, custom_headers:nil)
+      fail ArgumentError, 'endpoint_id is nil' if endpoint_id.nil?
+      fail ArgumentError, 'request is nil' if request.nil?
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
+
+      # Serialize Request
+      request_mapper = azure.iiot.opc.history::Models::HistoryReadRequestApiModelReadEventsDetailsApiModel.mapper()
+      request_content = self.serialize(request_mapper,  request)
+      request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
+
+      path_template = 'v2/read/{endpointId}/events'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          path_params: {'endpointId' => endpoint_id},
+          body: request_content,
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:post, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+        # Deserialize Response
+        if status_code == 200
+          begin
+            parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
+            result_mapper = azure.iiot.opc.history::Models::HistoryReadResponseApiModelHistoricEventApiModelSequence.mapper()
+            result.body = self.deserialize(result_mapper, parsed_response)
+          rescue Exception => e
+            fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
+          end
+        end
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
+    # Read next batch of historic events
+    #
+    # Read next batch of historic events of a node using historic access.
+    # The endpoint must be activated and connected and the module client
+    # and server must trust each other.
+    #
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param request [HistoryReadNextRequestApiModel] The history read next request
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [HistoryReadNextResponseApiModelHistoricEventApiModelSequence]
+    # operation results.
+    #
+    def history_read_events_next(endpoint_id, request, custom_headers:nil)
+      response = history_read_events_next_async(endpoint_id, request, custom_headers:custom_headers).value!
+      response.body unless response.nil?
+    end
+
+    #
+    # Read next batch of historic events
+    #
+    # Read next batch of historic events of a node using historic access.
+    # The endpoint must be activated and connected and the module client
+    # and server must trust each other.
+    #
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param request [HistoryReadNextRequestApiModel] The history read next request
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def history_read_events_next_with_http_info(endpoint_id, request, custom_headers:nil)
+      history_read_events_next_async(endpoint_id, request, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Read next batch of historic events
+    #
+    # Read next batch of historic events of a node using historic access.
+    # The endpoint must be activated and connected and the module client
+    # and server must trust each other.
+    #
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param request [HistoryReadNextRequestApiModel] The history read next request
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def history_read_events_next_async(endpoint_id, request, custom_headers:nil)
+      fail ArgumentError, 'endpoint_id is nil' if endpoint_id.nil?
+      fail ArgumentError, 'request is nil' if request.nil?
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
+
+      # Serialize Request
+      request_mapper = azure.iiot.opc.history::Models::HistoryReadNextRequestApiModel.mapper()
+      request_content = self.serialize(request_mapper,  request)
+      request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
+
+      path_template = 'v2/read/{endpointId}/events/next'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          path_params: {'endpointId' => endpoint_id},
+          body: request_content,
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:post, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+        # Deserialize Response
+        if status_code == 200
+          begin
+            parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
+            result_mapper = azure.iiot.opc.history::Models::HistoryReadNextResponseApiModelHistoricEventApiModelSequence.mapper()
+            result.body = self.deserialize(result_mapper, parsed_response)
+          rescue Exception => e
+            fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
+          end
+        end
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
+    # Read historic processed values at specified times
+    #
+    # Read processed history values of a node if available using historic access.
+    # The endpoint must be activated and connected and the module client
+    # and server must trust each other.
+    #
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param request [HistoryReadRequestApiModelReadValuesDetailsApiModel] The
+    # history read request
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [HistoryReadResponseApiModelHistoricValueApiModelSequence] operation
+    # results.
+    #
+    def history_read_values(endpoint_id, request, custom_headers:nil)
+      response = history_read_values_async(endpoint_id, request, custom_headers:custom_headers).value!
+      response.body unless response.nil?
+    end
+
+    #
+    # Read historic processed values at specified times
+    #
+    # Read processed history values of a node if available using historic access.
+    # The endpoint must be activated and connected and the module client
+    # and server must trust each other.
+    #
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param request [HistoryReadRequestApiModelReadValuesDetailsApiModel] The
+    # history read request
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def history_read_values_with_http_info(endpoint_id, request, custom_headers:nil)
+      history_read_values_async(endpoint_id, request, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Read historic processed values at specified times
+    #
+    # Read processed history values of a node if available using historic access.
+    # The endpoint must be activated and connected and the module client
+    # and server must trust each other.
+    #
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param request [HistoryReadRequestApiModelReadValuesDetailsApiModel] The
+    # history read request
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def history_read_values_async(endpoint_id, request, custom_headers:nil)
+      fail ArgumentError, 'endpoint_id is nil' if endpoint_id.nil?
+      fail ArgumentError, 'request is nil' if request.nil?
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
+
+      # Serialize Request
+      request_mapper = azure.iiot.opc.history::Models::HistoryReadRequestApiModelReadValuesDetailsApiModel.mapper()
+      request_content = self.serialize(request_mapper,  request)
+      request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
+
+      path_template = 'v2/read/{endpointId}/values'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          path_params: {'endpointId' => endpoint_id},
+          body: request_content,
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:post, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+        # Deserialize Response
+        if status_code == 200
+          begin
+            parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
+            result_mapper = azure.iiot.opc.history::Models::HistoryReadResponseApiModelHistoricValueApiModelSequence.mapper()
+            result.body = self.deserialize(result_mapper, parsed_response)
+          rescue Exception => e
+            fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
+          end
+        end
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
+    # Read historic values at specified times
+    #
+    # Read historic values of a node if available using historic access.
+    # The endpoint must be activated and connected and the module client
+    # and server must trust each other.
+    #
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param request [HistoryReadRequestApiModelReadValuesAtTimesDetailsApiModel]
+    # The history read request
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [HistoryReadResponseApiModelHistoricValueApiModelSequence] operation
+    # results.
+    #
+    def history_read_values_at_times(endpoint_id, request, custom_headers:nil)
+      response = history_read_values_at_times_async(endpoint_id, request, custom_headers:custom_headers).value!
+      response.body unless response.nil?
+    end
+
+    #
+    # Read historic values at specified times
+    #
+    # Read historic values of a node if available using historic access.
+    # The endpoint must be activated and connected and the module client
+    # and server must trust each other.
+    #
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param request [HistoryReadRequestApiModelReadValuesAtTimesDetailsApiModel]
+    # The history read request
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def history_read_values_at_times_with_http_info(endpoint_id, request, custom_headers:nil)
+      history_read_values_at_times_async(endpoint_id, request, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Read historic values at specified times
+    #
+    # Read historic values of a node if available using historic access.
+    # The endpoint must be activated and connected and the module client
+    # and server must trust each other.
+    #
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param request [HistoryReadRequestApiModelReadValuesAtTimesDetailsApiModel]
+    # The history read request
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def history_read_values_at_times_async(endpoint_id, request, custom_headers:nil)
+      fail ArgumentError, 'endpoint_id is nil' if endpoint_id.nil?
+      fail ArgumentError, 'request is nil' if request.nil?
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
+
+      # Serialize Request
+      request_mapper = azure.iiot.opc.history::Models::HistoryReadRequestApiModelReadValuesAtTimesDetailsApiModel.mapper()
+      request_content = self.serialize(request_mapper,  request)
+      request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
+
+      path_template = 'v2/read/{endpointId}/values/pick'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          path_params: {'endpointId' => endpoint_id},
+          body: request_content,
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:post, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+        # Deserialize Response
+        if status_code == 200
+          begin
+            parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
+            result_mapper = azure.iiot.opc.history::Models::HistoryReadResponseApiModelHistoricValueApiModelSequence.mapper()
+            result.body = self.deserialize(result_mapper, parsed_response)
+          rescue Exception => e
+            fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
+          end
+        end
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
+    # Read historic processed values at specified times
+    #
+    # Read processed history values of a node if available using historic access.
+    # The endpoint must be activated and connected and the module client
+    # and server must trust each other.
+    #
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param request [HistoryReadRequestApiModelReadProcessedValuesDetailsApiModel]
+    # The history read request
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [HistoryReadResponseApiModelHistoricValueApiModelSequence] operation
+    # results.
+    #
+    def history_read_processed_values(endpoint_id, request, custom_headers:nil)
+      response = history_read_processed_values_async(endpoint_id, request, custom_headers:custom_headers).value!
+      response.body unless response.nil?
+    end
+
+    #
+    # Read historic processed values at specified times
+    #
+    # Read processed history values of a node if available using historic access.
+    # The endpoint must be activated and connected and the module client
+    # and server must trust each other.
+    #
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param request [HistoryReadRequestApiModelReadProcessedValuesDetailsApiModel]
+    # The history read request
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def history_read_processed_values_with_http_info(endpoint_id, request, custom_headers:nil)
+      history_read_processed_values_async(endpoint_id, request, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Read historic processed values at specified times
+    #
+    # Read processed history values of a node if available using historic access.
+    # The endpoint must be activated and connected and the module client
+    # and server must trust each other.
+    #
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param request [HistoryReadRequestApiModelReadProcessedValuesDetailsApiModel]
+    # The history read request
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def history_read_processed_values_async(endpoint_id, request, custom_headers:nil)
+      fail ArgumentError, 'endpoint_id is nil' if endpoint_id.nil?
+      fail ArgumentError, 'request is nil' if request.nil?
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
+
+      # Serialize Request
+      request_mapper = azure.iiot.opc.history::Models::HistoryReadRequestApiModelReadProcessedValuesDetailsApiModel.mapper()
+      request_content = self.serialize(request_mapper,  request)
+      request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
+
+      path_template = 'v2/read/{endpointId}/values/processed'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          path_params: {'endpointId' => endpoint_id},
+          body: request_content,
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:post, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+        # Deserialize Response
+        if status_code == 200
+          begin
+            parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
+            result_mapper = azure.iiot.opc.history::Models::HistoryReadResponseApiModelHistoricValueApiModelSequence.mapper()
+            result.body = self.deserialize(result_mapper, parsed_response)
+          rescue Exception => e
+            fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
+          end
+        end
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
+    # Read historic modified values at specified times
+    #
+    # Read processed history values of a node if available using historic access.
+    # The endpoint must be activated and connected and the module client
+    # and server must trust each other.
+    #
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param request [HistoryReadRequestApiModelReadModifiedValuesDetailsApiModel]
+    # The history read request
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [HistoryReadResponseApiModelHistoricValueApiModelSequence] operation
+    # results.
+    #
+    def history_read_modified_values(endpoint_id, request, custom_headers:nil)
+      response = history_read_modified_values_async(endpoint_id, request, custom_headers:custom_headers).value!
+      response.body unless response.nil?
+    end
+
+    #
+    # Read historic modified values at specified times
+    #
+    # Read processed history values of a node if available using historic access.
+    # The endpoint must be activated and connected and the module client
+    # and server must trust each other.
+    #
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param request [HistoryReadRequestApiModelReadModifiedValuesDetailsApiModel]
+    # The history read request
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def history_read_modified_values_with_http_info(endpoint_id, request, custom_headers:nil)
+      history_read_modified_values_async(endpoint_id, request, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Read historic modified values at specified times
+    #
+    # Read processed history values of a node if available using historic access.
+    # The endpoint must be activated and connected and the module client
+    # and server must trust each other.
+    #
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param request [HistoryReadRequestApiModelReadModifiedValuesDetailsApiModel]
+    # The history read request
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def history_read_modified_values_async(endpoint_id, request, custom_headers:nil)
+      fail ArgumentError, 'endpoint_id is nil' if endpoint_id.nil?
+      fail ArgumentError, 'request is nil' if request.nil?
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
+
+      # Serialize Request
+      request_mapper = azure.iiot.opc.history::Models::HistoryReadRequestApiModelReadModifiedValuesDetailsApiModel.mapper()
+      request_content = self.serialize(request_mapper,  request)
+      request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
+
+      path_template = 'v2/read/{endpointId}/values/modified'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          path_params: {'endpointId' => endpoint_id},
+          body: request_content,
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:post, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+        # Deserialize Response
+        if status_code == 200
+          begin
+            parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
+            result_mapper = azure.iiot.opc.history::Models::HistoryReadResponseApiModelHistoricValueApiModelSequence.mapper()
+            result.body = self.deserialize(result_mapper, parsed_response)
+          rescue Exception => e
+            fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
+          end
+        end
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
+    # Read next batch of historic values
+    #
+    # Read next batch of historic values of a node using historic access.
+    # The endpoint must be activated and connected and the module client
+    # and server must trust each other.
+    #
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param request [HistoryReadNextRequestApiModel] The history read next request
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [HistoryReadNextResponseApiModelHistoricValueApiModelSequence]
+    # operation results.
+    #
+    def history_read_value_next(endpoint_id, request, custom_headers:nil)
+      response = history_read_value_next_async(endpoint_id, request, custom_headers:custom_headers).value!
+      response.body unless response.nil?
+    end
+
+    #
+    # Read next batch of historic values
+    #
+    # Read next batch of historic values of a node using historic access.
+    # The endpoint must be activated and connected and the module client
+    # and server must trust each other.
+    #
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param request [HistoryReadNextRequestApiModel] The history read next request
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def history_read_value_next_with_http_info(endpoint_id, request, custom_headers:nil)
+      history_read_value_next_async(endpoint_id, request, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Read next batch of historic values
+    #
+    # Read next batch of historic values of a node using historic access.
+    # The endpoint must be activated and connected and the module client
+    # and server must trust each other.
+    #
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param request [HistoryReadNextRequestApiModel] The history read next request
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def history_read_value_next_async(endpoint_id, request, custom_headers:nil)
+      fail ArgumentError, 'endpoint_id is nil' if endpoint_id.nil?
+      fail ArgumentError, 'request is nil' if request.nil?
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
+
+      # Serialize Request
+      request_mapper = azure.iiot.opc.history::Models::HistoryReadNextRequestApiModel.mapper()
+      request_content = self.serialize(request_mapper,  request)
+      request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
+
+      path_template = 'v2/read/{endpointId}/values/next'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          path_params: {'endpointId' => endpoint_id},
+          body: request_content,
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:post, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+        # Deserialize Response
+        if status_code == 200
+          begin
+            parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
+            result_mapper = azure.iiot.opc.history::Models::HistoryReadNextResponseApiModelHistoricValueApiModelSequence.mapper()
+            result.body = self.deserialize(result_mapper, parsed_response)
+          rescue Exception => e
+            fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
+          end
+        end
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
+    # Replace historic values
+    #
+    # Replace historic values using historic access.
+    # The endpoint must be activated and connected and the module client
+    # and server must trust each other.
+    #
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param request [HistoryUpdateRequestApiModelReplaceValuesDetailsApiModel] The
+    # history replace request
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [HistoryUpdateResponseApiModel] operation results.
+    #
+    def history_replace_values(endpoint_id, request, custom_headers:nil)
+      response = history_replace_values_async(endpoint_id, request, custom_headers:custom_headers).value!
+      response.body unless response.nil?
+    end
+
+    #
+    # Replace historic values
+    #
+    # Replace historic values using historic access.
+    # The endpoint must be activated and connected and the module client
+    # and server must trust each other.
+    #
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param request [HistoryUpdateRequestApiModelReplaceValuesDetailsApiModel] The
+    # history replace request
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def history_replace_values_with_http_info(endpoint_id, request, custom_headers:nil)
+      history_replace_values_async(endpoint_id, request, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Replace historic values
+    #
+    # Replace historic values using historic access.
+    # The endpoint must be activated and connected and the module client
+    # and server must trust each other.
+    #
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param request [HistoryUpdateRequestApiModelReplaceValuesDetailsApiModel] The
+    # history replace request
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def history_replace_values_async(endpoint_id, request, custom_headers:nil)
+      fail ArgumentError, 'endpoint_id is nil' if endpoint_id.nil?
+      fail ArgumentError, 'request is nil' if request.nil?
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
+
+      # Serialize Request
+      request_mapper = azure.iiot.opc.history::Models::HistoryUpdateRequestApiModelReplaceValuesDetailsApiModel.mapper()
+      request_content = self.serialize(request_mapper,  request)
+      request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
+
+      path_template = 'v2/replace/{endpointId}/values'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          path_params: {'endpointId' => endpoint_id},
+          body: request_content,
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:post, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+        # Deserialize Response
+        if status_code == 200
+          begin
+            parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
+            result_mapper = azure.iiot.opc.history::Models::HistoryUpdateResponseApiModel.mapper()
+            result.body = self.deserialize(result_mapper, parsed_response)
+          rescue Exception => e
+            fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
+          end
+        end
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
+    # Replace historic events
+    #
+    # Replace historic events using historic access.
+    # The endpoint must be activated and connected and the module client
+    # and server must trust each other.
+    #
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param request [HistoryUpdateRequestApiModelReplaceEventsDetailsApiModel] The
+    # history replace request
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [HistoryUpdateResponseApiModel] operation results.
+    #
+    def history_replace_events(endpoint_id, request, custom_headers:nil)
+      response = history_replace_events_async(endpoint_id, request, custom_headers:custom_headers).value!
+      response.body unless response.nil?
+    end
+
+    #
+    # Replace historic events
+    #
+    # Replace historic events using historic access.
+    # The endpoint must be activated and connected and the module client
+    # and server must trust each other.
+    #
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param request [HistoryUpdateRequestApiModelReplaceEventsDetailsApiModel] The
+    # history replace request
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def history_replace_events_with_http_info(endpoint_id, request, custom_headers:nil)
+      history_replace_events_async(endpoint_id, request, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Replace historic events
+    #
+    # Replace historic events using historic access.
+    # The endpoint must be activated and connected and the module client
+    # and server must trust each other.
+    #
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param request [HistoryUpdateRequestApiModelReplaceEventsDetailsApiModel] The
+    # history replace request
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def history_replace_events_async(endpoint_id, request, custom_headers:nil)
+      fail ArgumentError, 'endpoint_id is nil' if endpoint_id.nil?
+      fail ArgumentError, 'request is nil' if request.nil?
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
+
+      # Serialize Request
+      request_mapper = azure.iiot.opc.history::Models::HistoryUpdateRequestApiModelReplaceEventsDetailsApiModel.mapper()
+      request_content = self.serialize(request_mapper,  request)
+      request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
+
+      path_template = 'v2/replace/{endpointId}/events'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          path_params: {'endpointId' => endpoint_id},
+          body: request_content,
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:post, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+        # Deserialize Response
+        if status_code == 200
+          begin
+            parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
+            result_mapper = azure.iiot.opc.history::Models::HistoryUpdateResponseApiModel.mapper()
+            result.body = self.deserialize(result_mapper, parsed_response)
+          rescue Exception => e
+            fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
+          end
+        end
 
         result
       end
@@ -1884,696 +2069,6 @@ module azure.iiot.opc.history
           begin
             parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
             result_mapper = azure.iiot.opc.history::Models::StatusResponseApiModel.mapper()
-            result.body = self.deserialize(result_mapper, parsed_response)
-          rescue Exception => e
-            fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
-          end
-        end
-
-        result
-      end
-
-      promise.execute
-    end
-
-    #
-    # Get supervisor registration information
-    #
-    # Returns a supervisor's registration and connectivity information.
-    # A supervisor id corresponds to the twin modules module identity.
-    #
-    # @param supervisor_id [String] Supervisor identifier
-    # @param only_server_state [Boolean] Whether to include only server
-    # state, or display current client state of the endpoint if
-    # available
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    # @return [SupervisorApiModel] operation results.
-    #
-    def get_supervisor(supervisor_id, only_server_state:nil, custom_headers:nil)
-      response = get_supervisor_async(supervisor_id, only_server_state:only_server_state, custom_headers:custom_headers).value!
-      response.body unless response.nil?
-    end
-
-    #
-    # Get supervisor registration information
-    #
-    # Returns a supervisor's registration and connectivity information.
-    # A supervisor id corresponds to the twin modules module identity.
-    #
-    # @param supervisor_id [String] Supervisor identifier
-    # @param only_server_state [Boolean] Whether to include only server
-    # state, or display current client state of the endpoint if
-    # available
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    # @return [MsRest::HttpOperationResponse] HTTP response information.
-    #
-    def get_supervisor_with_http_info(supervisor_id, only_server_state:nil, custom_headers:nil)
-      get_supervisor_async(supervisor_id, only_server_state:only_server_state, custom_headers:custom_headers).value!
-    end
-
-    #
-    # Get supervisor registration information
-    #
-    # Returns a supervisor's registration and connectivity information.
-    # A supervisor id corresponds to the twin modules module identity.
-    #
-    # @param supervisor_id [String] Supervisor identifier
-    # @param only_server_state [Boolean] Whether to include only server
-    # state, or display current client state of the endpoint if
-    # available
-    # @param [Hash{String => String}] A hash of custom headers that will be added
-    # to the HTTP request.
-    #
-    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
-    #
-    def get_supervisor_async(supervisor_id, only_server_state:nil, custom_headers:nil)
-      fail ArgumentError, 'supervisor_id is nil' if supervisor_id.nil?
-
-
-      request_headers = {}
-      request_headers['Content-Type'] = 'application/json; charset=utf-8'
-      path_template = 'v2/supervisors/{supervisorId}'
-
-      request_url = @base_url || self.base_url
-
-      options = {
-          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
-          path_params: {'supervisorId' => supervisor_id},
-          query_params: {'onlyServerState' => only_server_state},
-          headers: request_headers.merge(custom_headers || {}),
-          base_url: request_url
-      }
-      promise = self.make_request_async(:get, path_template, options)
-
-      promise = promise.then do |result|
-        http_response = result.response
-        status_code = http_response.status
-        response_content = http_response.body
-        unless status_code == 200
-          error_model = JSON.load(response_content)
-          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
-        end
-
-        # Deserialize Response
-        if status_code == 200
-          begin
-            parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
-            result_mapper = azure.iiot.opc.history::Models::SupervisorApiModel.mapper()
-            result.body = self.deserialize(result_mapper, parsed_response)
-          rescue Exception => e
-            fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
-          end
-        end
-
-        result
-      end
-
-      promise.execute
-    end
-
-    #
-    # Update supervisor information
-    #
-    # Allows a caller to configure recurring discovery runs on the twin module
-    # identified by the supervisor id or update site information.
-    #
-    # @param supervisor_id [String] supervisor identifier
-    # @param request [SupervisorUpdateApiModel] Patch request
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    #
-    def update_supervisor(supervisor_id, request, custom_headers:nil)
-      response = update_supervisor_async(supervisor_id, request, custom_headers:custom_headers).value!
-      nil
-    end
-
-    #
-    # Update supervisor information
-    #
-    # Allows a caller to configure recurring discovery runs on the twin module
-    # identified by the supervisor id or update site information.
-    #
-    # @param supervisor_id [String] supervisor identifier
-    # @param request [SupervisorUpdateApiModel] Patch request
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    # @return [MsRest::HttpOperationResponse] HTTP response information.
-    #
-    def update_supervisor_with_http_info(supervisor_id, request, custom_headers:nil)
-      update_supervisor_async(supervisor_id, request, custom_headers:custom_headers).value!
-    end
-
-    #
-    # Update supervisor information
-    #
-    # Allows a caller to configure recurring discovery runs on the twin module
-    # identified by the supervisor id or update site information.
-    #
-    # @param supervisor_id [String] supervisor identifier
-    # @param request [SupervisorUpdateApiModel] Patch request
-    # @param [Hash{String => String}] A hash of custom headers that will be added
-    # to the HTTP request.
-    #
-    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
-    #
-    def update_supervisor_async(supervisor_id, request, custom_headers:nil)
-      fail ArgumentError, 'supervisor_id is nil' if supervisor_id.nil?
-      fail ArgumentError, 'request is nil' if request.nil?
-
-
-      request_headers = {}
-      request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
-
-      # Serialize Request
-      request_mapper = azure.iiot.opc.history::Models::SupervisorUpdateApiModel.mapper()
-      request_content = self.serialize(request_mapper,  request)
-      request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
-
-      path_template = 'v2/supervisors/{supervisorId}'
-
-      request_url = @base_url || self.base_url
-
-      options = {
-          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
-          path_params: {'supervisorId' => supervisor_id},
-          body: request_content,
-          headers: request_headers.merge(custom_headers || {}),
-          base_url: request_url
-      }
-      promise = self.make_request_async(:patch, path_template, options)
-
-      promise = promise.then do |result|
-        http_response = result.response
-        status_code = http_response.status
-        response_content = http_response.body
-        unless status_code == 200
-          error_model = JSON.load(response_content)
-          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
-        end
-
-
-        result
-      end
-
-      promise.execute
-    end
-
-    #
-    # Get runtime status of supervisor
-    #
-    # Allows a caller to get runtime status for a supervisor.
-    #
-    # @param supervisor_id [String] supervisor identifier
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    # @return [SupervisorStatusApiModel] operation results.
-    #
-    def get_supervisor_status(supervisor_id, custom_headers:nil)
-      response = get_supervisor_status_async(supervisor_id, custom_headers:custom_headers).value!
-      response.body unless response.nil?
-    end
-
-    #
-    # Get runtime status of supervisor
-    #
-    # Allows a caller to get runtime status for a supervisor.
-    #
-    # @param supervisor_id [String] supervisor identifier
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    # @return [MsRest::HttpOperationResponse] HTTP response information.
-    #
-    def get_supervisor_status_with_http_info(supervisor_id, custom_headers:nil)
-      get_supervisor_status_async(supervisor_id, custom_headers:custom_headers).value!
-    end
-
-    #
-    # Get runtime status of supervisor
-    #
-    # Allows a caller to get runtime status for a supervisor.
-    #
-    # @param supervisor_id [String] supervisor identifier
-    # @param [Hash{String => String}] A hash of custom headers that will be added
-    # to the HTTP request.
-    #
-    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
-    #
-    def get_supervisor_status_async(supervisor_id, custom_headers:nil)
-      fail ArgumentError, 'supervisor_id is nil' if supervisor_id.nil?
-
-
-      request_headers = {}
-      request_headers['Content-Type'] = 'application/json; charset=utf-8'
-      path_template = 'v2/supervisors/{supervisorId}/status'
-
-      request_url = @base_url || self.base_url
-
-      options = {
-          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
-          path_params: {'supervisorId' => supervisor_id},
-          headers: request_headers.merge(custom_headers || {}),
-          base_url: request_url
-      }
-      promise = self.make_request_async(:get, path_template, options)
-
-      promise = promise.then do |result|
-        http_response = result.response
-        status_code = http_response.status
-        response_content = http_response.body
-        unless status_code == 200
-          error_model = JSON.load(response_content)
-          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
-        end
-
-        # Deserialize Response
-        if status_code == 200
-          begin
-            parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
-            result_mapper = azure.iiot.opc.history::Models::SupervisorStatusApiModel.mapper()
-            result.body = self.deserialize(result_mapper, parsed_response)
-          rescue Exception => e
-            fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
-          end
-        end
-
-        result
-      end
-
-      promise.execute
-    end
-
-    #
-    # Reset supervisor
-    #
-    # Allows a caller to reset the twin module using its supervisor
-    # identity identifier.
-    #
-    # @param supervisor_id [String] supervisor identifier
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    #
-    def reset_supervisor(supervisor_id, custom_headers:nil)
-      response = reset_supervisor_async(supervisor_id, custom_headers:custom_headers).value!
-      nil
-    end
-
-    #
-    # Reset supervisor
-    #
-    # Allows a caller to reset the twin module using its supervisor
-    # identity identifier.
-    #
-    # @param supervisor_id [String] supervisor identifier
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    # @return [MsRest::HttpOperationResponse] HTTP response information.
-    #
-    def reset_supervisor_with_http_info(supervisor_id, custom_headers:nil)
-      reset_supervisor_async(supervisor_id, custom_headers:custom_headers).value!
-    end
-
-    #
-    # Reset supervisor
-    #
-    # Allows a caller to reset the twin module using its supervisor
-    # identity identifier.
-    #
-    # @param supervisor_id [String] supervisor identifier
-    # @param [Hash{String => String}] A hash of custom headers that will be added
-    # to the HTTP request.
-    #
-    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
-    #
-    def reset_supervisor_async(supervisor_id, custom_headers:nil)
-      fail ArgumentError, 'supervisor_id is nil' if supervisor_id.nil?
-
-
-      request_headers = {}
-      request_headers['Content-Type'] = 'application/json; charset=utf-8'
-      path_template = 'v2/supervisors/{supervisorId}/reset'
-
-      request_url = @base_url || self.base_url
-
-      options = {
-          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
-          path_params: {'supervisorId' => supervisor_id},
-          headers: request_headers.merge(custom_headers || {}),
-          base_url: request_url
-      }
-      promise = self.make_request_async(:post, path_template, options)
-
-      promise = promise.then do |result|
-        http_response = result.response
-        status_code = http_response.status
-        response_content = http_response.body
-        unless status_code == 200
-          error_model = JSON.load(response_content)
-          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
-        end
-
-
-        result
-      end
-
-      promise.execute
-    end
-
-    #
-    # Get list of supervisors
-    #
-    # Get all registered supervisors and therefore twin modules in paged form.
-    # The returned model can contain a continuation token if more results are
-    # available.
-    # Call this operation again using the token to retrieve more results.
-    #
-    # @param only_server_state [Boolean] Whether to include only server
-    # state, or display current client state of the endpoint if available
-    # @param continuation_token [String] Optional Continuation token
-    # @param page_size [Integer] Optional number of results to return
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    # @return [SupervisorListApiModel] operation results.
-    #
-    def get_list_of_supervisors(only_server_state:nil, continuation_token:nil, page_size:nil, custom_headers:nil)
-      response = get_list_of_supervisors_async(only_server_state:only_server_state, continuation_token:continuation_token, page_size:page_size, custom_headers:custom_headers).value!
-      response.body unless response.nil?
-    end
-
-    #
-    # Get list of supervisors
-    #
-    # Get all registered supervisors and therefore twin modules in paged form.
-    # The returned model can contain a continuation token if more results are
-    # available.
-    # Call this operation again using the token to retrieve more results.
-    #
-    # @param only_server_state [Boolean] Whether to include only server
-    # state, or display current client state of the endpoint if available
-    # @param continuation_token [String] Optional Continuation token
-    # @param page_size [Integer] Optional number of results to return
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    # @return [MsRest::HttpOperationResponse] HTTP response information.
-    #
-    def get_list_of_supervisors_with_http_info(only_server_state:nil, continuation_token:nil, page_size:nil, custom_headers:nil)
-      get_list_of_supervisors_async(only_server_state:only_server_state, continuation_token:continuation_token, page_size:page_size, custom_headers:custom_headers).value!
-    end
-
-    #
-    # Get list of supervisors
-    #
-    # Get all registered supervisors and therefore twin modules in paged form.
-    # The returned model can contain a continuation token if more results are
-    # available.
-    # Call this operation again using the token to retrieve more results.
-    #
-    # @param only_server_state [Boolean] Whether to include only server
-    # state, or display current client state of the endpoint if available
-    # @param continuation_token [String] Optional Continuation token
-    # @param page_size [Integer] Optional number of results to return
-    # @param [Hash{String => String}] A hash of custom headers that will be added
-    # to the HTTP request.
-    #
-    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
-    #
-    def get_list_of_supervisors_async(only_server_state:nil, continuation_token:nil, page_size:nil, custom_headers:nil)
-
-
-      request_headers = {}
-      request_headers['Content-Type'] = 'application/json; charset=utf-8'
-      path_template = 'v2/supervisors'
-
-      request_url = @base_url || self.base_url
-
-      options = {
-          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
-          query_params: {'onlyServerState' => only_server_state,'continuationToken' => continuation_token,'pageSize' => page_size},
-          headers: request_headers.merge(custom_headers || {}),
-          base_url: request_url
-      }
-      promise = self.make_request_async(:get, path_template, options)
-
-      promise = promise.then do |result|
-        http_response = result.response
-        status_code = http_response.status
-        response_content = http_response.body
-        unless status_code == 200
-          error_model = JSON.load(response_content)
-          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
-        end
-
-        # Deserialize Response
-        if status_code == 200
-          begin
-            parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
-            result_mapper = azure.iiot.opc.history::Models::SupervisorListApiModel.mapper()
-            result.body = self.deserialize(result_mapper, parsed_response)
-          rescue Exception => e
-            fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
-          end
-        end
-
-        result
-      end
-
-      promise.execute
-    end
-
-    #
-    # Get filtered list of supervisors
-    #
-    # Get a list of supervisors filtered using the specified query parameters.
-    # The returned model can contain a continuation token if more results are
-    # available.
-    # Call the GetListOfSupervisors operation using the token to retrieve
-    # more results.
-    #
-    # @param site_id [String] Site of the supervisor
-    # @param discovery [Enum] Discovery mode of supervisor. Possible values
-    # include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
-    # @param connected [Boolean] Included connected or disconnected
-    # @param only_server_state [Boolean] Whether to include only server
-    # state, or display current client state of the endpoint if
-    # available
-    # @param page_size [Integer] Number of results to return
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    # @return [SupervisorListApiModel] operation results.
-    #
-    def get_filtered_list_of_supervisors(site_id:nil, discovery:nil, connected:nil, only_server_state:nil, page_size:nil, custom_headers:nil)
-      response = get_filtered_list_of_supervisors_async(site_id:site_id, discovery:discovery, connected:connected, only_server_state:only_server_state, page_size:page_size, custom_headers:custom_headers).value!
-      response.body unless response.nil?
-    end
-
-    #
-    # Get filtered list of supervisors
-    #
-    # Get a list of supervisors filtered using the specified query parameters.
-    # The returned model can contain a continuation token if more results are
-    # available.
-    # Call the GetListOfSupervisors operation using the token to retrieve
-    # more results.
-    #
-    # @param site_id [String] Site of the supervisor
-    # @param discovery [Enum] Discovery mode of supervisor. Possible values
-    # include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
-    # @param connected [Boolean] Included connected or disconnected
-    # @param only_server_state [Boolean] Whether to include only server
-    # state, or display current client state of the endpoint if
-    # available
-    # @param page_size [Integer] Number of results to return
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    # @return [MsRest::HttpOperationResponse] HTTP response information.
-    #
-    def get_filtered_list_of_supervisors_with_http_info(site_id:nil, discovery:nil, connected:nil, only_server_state:nil, page_size:nil, custom_headers:nil)
-      get_filtered_list_of_supervisors_async(site_id:site_id, discovery:discovery, connected:connected, only_server_state:only_server_state, page_size:page_size, custom_headers:custom_headers).value!
-    end
-
-    #
-    # Get filtered list of supervisors
-    #
-    # Get a list of supervisors filtered using the specified query parameters.
-    # The returned model can contain a continuation token if more results are
-    # available.
-    # Call the GetListOfSupervisors operation using the token to retrieve
-    # more results.
-    #
-    # @param site_id [String] Site of the supervisor
-    # @param discovery [Enum] Discovery mode of supervisor. Possible values
-    # include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
-    # @param connected [Boolean] Included connected or disconnected
-    # @param only_server_state [Boolean] Whether to include only server
-    # state, or display current client state of the endpoint if
-    # available
-    # @param page_size [Integer] Number of results to return
-    # @param [Hash{String => String}] A hash of custom headers that will be added
-    # to the HTTP request.
-    #
-    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
-    #
-    def get_filtered_list_of_supervisors_async(site_id:nil, discovery:nil, connected:nil, only_server_state:nil, page_size:nil, custom_headers:nil)
-
-
-      request_headers = {}
-      request_headers['Content-Type'] = 'application/json; charset=utf-8'
-      path_template = 'v2/supervisors/query'
-
-      request_url = @base_url || self.base_url
-
-      options = {
-          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
-          query_params: {'SiteId' => site_id,'Discovery' => discovery,'Connected' => connected,'onlyServerState' => only_server_state,'pageSize' => page_size},
-          headers: request_headers.merge(custom_headers || {}),
-          base_url: request_url
-      }
-      promise = self.make_request_async(:get, path_template, options)
-
-      promise = promise.then do |result|
-        http_response = result.response
-        status_code = http_response.status
-        response_content = http_response.body
-        unless status_code == 200
-          error_model = JSON.load(response_content)
-          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
-        end
-
-        # Deserialize Response
-        if status_code == 200
-          begin
-            parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
-            result_mapper = azure.iiot.opc.history::Models::SupervisorListApiModel.mapper()
-            result.body = self.deserialize(result_mapper, parsed_response)
-          rescue Exception => e
-            fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
-          end
-        end
-
-        result
-      end
-
-      promise.execute
-    end
-
-    #
-    # Query supervisors
-    #
-    # Get all supervisors that match a specified query.
-    # The returned model can contain a continuation token if more results are
-    # available.
-    # Call the GetListOfSupervisors operation using the token to retrieve
-    # more results.
-    #
-    # @param query [SupervisorQueryApiModel] Supervisors query model
-    # @param only_server_state [Boolean] Whether to include only server
-    # state, or display current client state of the endpoint if
-    # available
-    # @param page_size [Integer] Number of results to return
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    # @return [SupervisorListApiModel] operation results.
-    #
-    def query_supervisors(query, only_server_state:nil, page_size:nil, custom_headers:nil)
-      response = query_supervisors_async(query, only_server_state:only_server_state, page_size:page_size, custom_headers:custom_headers).value!
-      response.body unless response.nil?
-    end
-
-    #
-    # Query supervisors
-    #
-    # Get all supervisors that match a specified query.
-    # The returned model can contain a continuation token if more results are
-    # available.
-    # Call the GetListOfSupervisors operation using the token to retrieve
-    # more results.
-    #
-    # @param query [SupervisorQueryApiModel] Supervisors query model
-    # @param only_server_state [Boolean] Whether to include only server
-    # state, or display current client state of the endpoint if
-    # available
-    # @param page_size [Integer] Number of results to return
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    # @return [MsRest::HttpOperationResponse] HTTP response information.
-    #
-    def query_supervisors_with_http_info(query, only_server_state:nil, page_size:nil, custom_headers:nil)
-      query_supervisors_async(query, only_server_state:only_server_state, page_size:page_size, custom_headers:custom_headers).value!
-    end
-
-    #
-    # Query supervisors
-    #
-    # Get all supervisors that match a specified query.
-    # The returned model can contain a continuation token if more results are
-    # available.
-    # Call the GetListOfSupervisors operation using the token to retrieve
-    # more results.
-    #
-    # @param query [SupervisorQueryApiModel] Supervisors query model
-    # @param only_server_state [Boolean] Whether to include only server
-    # state, or display current client state of the endpoint if
-    # available
-    # @param page_size [Integer] Number of results to return
-    # @param [Hash{String => String}] A hash of custom headers that will be added
-    # to the HTTP request.
-    #
-    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
-    #
-    def query_supervisors_async(query, only_server_state:nil, page_size:nil, custom_headers:nil)
-      fail ArgumentError, 'query is nil' if query.nil?
-
-
-      request_headers = {}
-      request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
-
-      # Serialize Request
-      request_mapper = azure.iiot.opc.history::Models::SupervisorQueryApiModel.mapper()
-      request_content = self.serialize(request_mapper,  query)
-      request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
-
-      path_template = 'v2/supervisors/query'
-
-      request_url = @base_url || self.base_url
-
-      options = {
-          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
-          query_params: {'onlyServerState' => only_server_state,'pageSize' => page_size},
-          body: request_content,
-          headers: request_headers.merge(custom_headers || {}),
-          base_url: request_url
-      }
-      promise = self.make_request_async(:post, path_template, options)
-
-      promise = promise.then do |result|
-        http_response = result.response
-        status_code = http_response.status
-        response_content = http_response.body
-        unless status_code == 200
-          error_model = JSON.load(response_content)
-          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
-        end
-
-        # Deserialize Response
-        if status_code == 200
-          begin
-            parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
-            result_mapper = azure.iiot.opc.history::Models::SupervisorListApiModel.mapper()
             result.body = self.deserialize(result_mapper, parsed_response)
           rescue Exception => e
             fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)

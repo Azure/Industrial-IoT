@@ -1,9 +1,9 @@
 FROM microsoft/dotnet:2.2-sdk AS build
 WORKDIR /src
 COPY . .
-RUN dotnet restore --configfile NuGet.Config -nowarn:msb3202,nu1503 azure-iiot-components.sln
-RUN dotnet build azure-iiot-components.sln -c Debug 
-RUN dotnet publish azure-iiot-components.sln -c Debug -o /app
+RUN dotnet restore --configfile NuGet.Config -nowarn:msb3202,nu1503 Industrial-IoT.sln
+RUN dotnet build Industrial-IoT.sln -c Debug 
+RUN dotnet publish Industrial-IoT.sln -c Debug -o /app
 
 FROM microsoft/dotnet:2.2-runtime-stretch-slim AS runtime
 

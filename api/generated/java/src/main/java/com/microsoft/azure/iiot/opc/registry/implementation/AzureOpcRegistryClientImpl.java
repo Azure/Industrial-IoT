@@ -17,6 +17,8 @@ import okhttp3.OkHttpClient;
 import retrofit2.Retrofit;
 import com.google.common.reflect.TypeToken;
 import com.microsoft.azure.iiot.opc.registry.models.ApplicationInfoListApiModel;
+import com.microsoft.azure.iiot.opc.registry.models.ApplicationRecordListApiModel;
+import com.microsoft.azure.iiot.opc.registry.models.ApplicationRecordQueryApiModel;
 import com.microsoft.azure.iiot.opc.registry.models.ApplicationRegistrationApiModel;
 import com.microsoft.azure.iiot.opc.registry.models.ApplicationRegistrationQueryApiModel;
 import com.microsoft.azure.iiot.opc.registry.models.ApplicationRegistrationRequestApiModel;
@@ -144,6 +146,22 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
         @HTTP(path = "v2/applications", method = "DELETE", hasBody = true)
         Observable<Response<ResponseBody>> deleteAllDisabledApplications(@Query("notSeenFor") String notSeenFor);
 
+        @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient approveApplication" })
+        @POST("v2/applications/{applicationId}/approve")
+        Observable<Response<ResponseBody>> approveApplication(@Path("applicationId") String applicationId, @Query("force") Boolean force);
+
+        @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient rejectApplication" })
+        @POST("v2/applications/{applicationId}/reject")
+        Observable<Response<ResponseBody>> rejectApplication(@Path("applicationId") String applicationId, @Query("force") Boolean force);
+
+        @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient disableApplication" })
+        @POST("v2/applications/{applicationId}/disable")
+        Observable<Response<ResponseBody>> disableApplication(@Path("applicationId") String applicationId);
+
+        @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient enableApplication" })
+        @POST("v2/applications/{applicationId}/enable")
+        Observable<Response<ResponseBody>> enableApplication(@Path("applicationId") String applicationId);
+
         @Headers({ "Content-Type: application/json-patch+json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient discoverServer" })
         @POST("v2/applications/discover")
         Observable<Response<ResponseBody>> discoverServer(@Body DiscoveryRequestApiModel request);
@@ -171,6 +189,10 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
         @Headers({ "Content-Type: application/json-patch+json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient queryApplications" })
         @POST("v2/applications/query")
         Observable<Response<ResponseBody>> queryApplications(@Body ApplicationRegistrationQueryApiModel query, @Query("pageSize") Integer pageSize);
+
+        @Headers({ "Content-Type: application/json-patch+json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient queryApplicationsById" })
+        @POST("v2/applications/querybyid")
+        Observable<Response<ResponseBody>> queryApplicationsById(@Body ApplicationRecordQueryApiModel query);
 
         @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient activateEndpoint" })
         @POST("v2/endpoints/{endpointId}/activate")
@@ -711,6 +733,502 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     }
 
     private ServiceResponse<Void> deleteAllDisabledApplicationsDelegate(Response<ResponseBody> response) throws RestException, IOException {
+        return this.restClient().responseBuilderFactory().<Void, RestException>newInstance(this.serializerAdapter())
+                .register(200, new TypeToken<Void>() { }.getType())
+                .build(response);
+    }
+
+    /**
+     * Approve a new application.
+     * A manager can approve a new application or force an application
+     from any state.
+     After approval the application is in the 'Approved' state.
+     Requires Manager role.
+     *
+     * @param applicationId The application id
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     */
+    public void approveApplication(String applicationId) {
+        approveApplicationWithServiceResponseAsync(applicationId).toBlocking().single().body();
+    }
+
+    /**
+     * Approve a new application.
+     * A manager can approve a new application or force an application
+     from any state.
+     After approval the application is in the 'Approved' state.
+     Requires Manager role.
+     *
+     * @param applicationId The application id
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    public ServiceFuture<Void> approveApplicationAsync(String applicationId, final ServiceCallback<Void> serviceCallback) {
+        return ServiceFuture.fromResponse(approveApplicationWithServiceResponseAsync(applicationId), serviceCallback);
+    }
+
+    /**
+     * Approve a new application.
+     * A manager can approve a new application or force an application
+     from any state.
+     After approval the application is in the 'Approved' state.
+     Requires Manager role.
+     *
+     * @param applicationId The application id
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<Void> approveApplicationAsync(String applicationId) {
+        return approveApplicationWithServiceResponseAsync(applicationId).map(new Func1<ServiceResponse<Void>, Void>() {
+            @Override
+            public Void call(ServiceResponse<Void> response) {
+                return response.body();
+            }
+        });
+    }
+
+    /**
+     * Approve a new application.
+     * A manager can approve a new application or force an application
+     from any state.
+     After approval the application is in the 'Approved' state.
+     Requires Manager role.
+     *
+     * @param applicationId The application id
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<ServiceResponse<Void>> approveApplicationWithServiceResponseAsync(String applicationId) {
+        if (applicationId == null) {
+            throw new IllegalArgumentException("Parameter applicationId is required and cannot be null.");
+        }
+        final Boolean force = null;
+        return service.approveApplication(applicationId, force)
+            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<Void>>>() {
+                @Override
+                public Observable<ServiceResponse<Void>> call(Response<ResponseBody> response) {
+                    try {
+                        ServiceResponse<Void> clientResponse = approveApplicationDelegate(response);
+                        return Observable.just(clientResponse);
+                    } catch (Throwable t) {
+                        return Observable.error(t);
+                    }
+                }
+            });
+    }
+
+    /**
+     * Approve a new application.
+     * A manager can approve a new application or force an application
+     from any state.
+     After approval the application is in the 'Approved' state.
+     Requires Manager role.
+     *
+     * @param applicationId The application id
+     * @param force optional, force application in new state
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     */
+    public void approveApplication(String applicationId, Boolean force) {
+        approveApplicationWithServiceResponseAsync(applicationId, force).toBlocking().single().body();
+    }
+
+    /**
+     * Approve a new application.
+     * A manager can approve a new application or force an application
+     from any state.
+     After approval the application is in the 'Approved' state.
+     Requires Manager role.
+     *
+     * @param applicationId The application id
+     * @param force optional, force application in new state
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    public ServiceFuture<Void> approveApplicationAsync(String applicationId, Boolean force, final ServiceCallback<Void> serviceCallback) {
+        return ServiceFuture.fromResponse(approveApplicationWithServiceResponseAsync(applicationId, force), serviceCallback);
+    }
+
+    /**
+     * Approve a new application.
+     * A manager can approve a new application or force an application
+     from any state.
+     After approval the application is in the 'Approved' state.
+     Requires Manager role.
+     *
+     * @param applicationId The application id
+     * @param force optional, force application in new state
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<Void> approveApplicationAsync(String applicationId, Boolean force) {
+        return approveApplicationWithServiceResponseAsync(applicationId, force).map(new Func1<ServiceResponse<Void>, Void>() {
+            @Override
+            public Void call(ServiceResponse<Void> response) {
+                return response.body();
+            }
+        });
+    }
+
+    /**
+     * Approve a new application.
+     * A manager can approve a new application or force an application
+     from any state.
+     After approval the application is in the 'Approved' state.
+     Requires Manager role.
+     *
+     * @param applicationId The application id
+     * @param force optional, force application in new state
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<ServiceResponse<Void>> approveApplicationWithServiceResponseAsync(String applicationId, Boolean force) {
+        if (applicationId == null) {
+            throw new IllegalArgumentException("Parameter applicationId is required and cannot be null.");
+        }
+        return service.approveApplication(applicationId, force)
+            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<Void>>>() {
+                @Override
+                public Observable<ServiceResponse<Void>> call(Response<ResponseBody> response) {
+                    try {
+                        ServiceResponse<Void> clientResponse = approveApplicationDelegate(response);
+                        return Observable.just(clientResponse);
+                    } catch (Throwable t) {
+                        return Observable.error(t);
+                    }
+                }
+            });
+    }
+
+    private ServiceResponse<Void> approveApplicationDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
+        return this.restClient().responseBuilderFactory().<Void, RestException>newInstance(this.serializerAdapter())
+                .register(200, new TypeToken<Void>() { }.getType())
+                .build(response);
+    }
+
+    /**
+     * Reject a new application.
+     * A manager can approve a new application or force an application
+     from any state.
+     After approval the application is in the 'Rejected' state.
+     Requires Manager role.
+     *
+     * @param applicationId The application id
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     */
+    public void rejectApplication(String applicationId) {
+        rejectApplicationWithServiceResponseAsync(applicationId).toBlocking().single().body();
+    }
+
+    /**
+     * Reject a new application.
+     * A manager can approve a new application or force an application
+     from any state.
+     After approval the application is in the 'Rejected' state.
+     Requires Manager role.
+     *
+     * @param applicationId The application id
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    public ServiceFuture<Void> rejectApplicationAsync(String applicationId, final ServiceCallback<Void> serviceCallback) {
+        return ServiceFuture.fromResponse(rejectApplicationWithServiceResponseAsync(applicationId), serviceCallback);
+    }
+
+    /**
+     * Reject a new application.
+     * A manager can approve a new application or force an application
+     from any state.
+     After approval the application is in the 'Rejected' state.
+     Requires Manager role.
+     *
+     * @param applicationId The application id
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<Void> rejectApplicationAsync(String applicationId) {
+        return rejectApplicationWithServiceResponseAsync(applicationId).map(new Func1<ServiceResponse<Void>, Void>() {
+            @Override
+            public Void call(ServiceResponse<Void> response) {
+                return response.body();
+            }
+        });
+    }
+
+    /**
+     * Reject a new application.
+     * A manager can approve a new application or force an application
+     from any state.
+     After approval the application is in the 'Rejected' state.
+     Requires Manager role.
+     *
+     * @param applicationId The application id
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<ServiceResponse<Void>> rejectApplicationWithServiceResponseAsync(String applicationId) {
+        if (applicationId == null) {
+            throw new IllegalArgumentException("Parameter applicationId is required and cannot be null.");
+        }
+        final Boolean force = null;
+        return service.rejectApplication(applicationId, force)
+            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<Void>>>() {
+                @Override
+                public Observable<ServiceResponse<Void>> call(Response<ResponseBody> response) {
+                    try {
+                        ServiceResponse<Void> clientResponse = rejectApplicationDelegate(response);
+                        return Observable.just(clientResponse);
+                    } catch (Throwable t) {
+                        return Observable.error(t);
+                    }
+                }
+            });
+    }
+
+    /**
+     * Reject a new application.
+     * A manager can approve a new application or force an application
+     from any state.
+     After approval the application is in the 'Rejected' state.
+     Requires Manager role.
+     *
+     * @param applicationId The application id
+     * @param force optional, force application in new state
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     */
+    public void rejectApplication(String applicationId, Boolean force) {
+        rejectApplicationWithServiceResponseAsync(applicationId, force).toBlocking().single().body();
+    }
+
+    /**
+     * Reject a new application.
+     * A manager can approve a new application or force an application
+     from any state.
+     After approval the application is in the 'Rejected' state.
+     Requires Manager role.
+     *
+     * @param applicationId The application id
+     * @param force optional, force application in new state
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    public ServiceFuture<Void> rejectApplicationAsync(String applicationId, Boolean force, final ServiceCallback<Void> serviceCallback) {
+        return ServiceFuture.fromResponse(rejectApplicationWithServiceResponseAsync(applicationId, force), serviceCallback);
+    }
+
+    /**
+     * Reject a new application.
+     * A manager can approve a new application or force an application
+     from any state.
+     After approval the application is in the 'Rejected' state.
+     Requires Manager role.
+     *
+     * @param applicationId The application id
+     * @param force optional, force application in new state
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<Void> rejectApplicationAsync(String applicationId, Boolean force) {
+        return rejectApplicationWithServiceResponseAsync(applicationId, force).map(new Func1<ServiceResponse<Void>, Void>() {
+            @Override
+            public Void call(ServiceResponse<Void> response) {
+                return response.body();
+            }
+        });
+    }
+
+    /**
+     * Reject a new application.
+     * A manager can approve a new application or force an application
+     from any state.
+     After approval the application is in the 'Rejected' state.
+     Requires Manager role.
+     *
+     * @param applicationId The application id
+     * @param force optional, force application in new state
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<ServiceResponse<Void>> rejectApplicationWithServiceResponseAsync(String applicationId, Boolean force) {
+        if (applicationId == null) {
+            throw new IllegalArgumentException("Parameter applicationId is required and cannot be null.");
+        }
+        return service.rejectApplication(applicationId, force)
+            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<Void>>>() {
+                @Override
+                public Observable<ServiceResponse<Void>> call(Response<ResponseBody> response) {
+                    try {
+                        ServiceResponse<Void> clientResponse = rejectApplicationDelegate(response);
+                        return Observable.just(clientResponse);
+                    } catch (Throwable t) {
+                        return Observable.error(t);
+                    }
+                }
+            });
+    }
+
+    private ServiceResponse<Void> rejectApplicationDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
+        return this.restClient().responseBuilderFactory().<Void, RestException>newInstance(this.serializerAdapter())
+                .register(200, new TypeToken<Void>() { }.getType())
+                .build(response);
+    }
+
+    /**
+     * Disable an enabled application.
+     * A manager can disable an application.
+     *
+     * @param applicationId The application id
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     */
+    public void disableApplication(String applicationId) {
+        disableApplicationWithServiceResponseAsync(applicationId).toBlocking().single().body();
+    }
+
+    /**
+     * Disable an enabled application.
+     * A manager can disable an application.
+     *
+     * @param applicationId The application id
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    public ServiceFuture<Void> disableApplicationAsync(String applicationId, final ServiceCallback<Void> serviceCallback) {
+        return ServiceFuture.fromResponse(disableApplicationWithServiceResponseAsync(applicationId), serviceCallback);
+    }
+
+    /**
+     * Disable an enabled application.
+     * A manager can disable an application.
+     *
+     * @param applicationId The application id
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<Void> disableApplicationAsync(String applicationId) {
+        return disableApplicationWithServiceResponseAsync(applicationId).map(new Func1<ServiceResponse<Void>, Void>() {
+            @Override
+            public Void call(ServiceResponse<Void> response) {
+                return response.body();
+            }
+        });
+    }
+
+    /**
+     * Disable an enabled application.
+     * A manager can disable an application.
+     *
+     * @param applicationId The application id
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<ServiceResponse<Void>> disableApplicationWithServiceResponseAsync(String applicationId) {
+        if (applicationId == null) {
+            throw new IllegalArgumentException("Parameter applicationId is required and cannot be null.");
+        }
+        return service.disableApplication(applicationId)
+            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<Void>>>() {
+                @Override
+                public Observable<ServiceResponse<Void>> call(Response<ResponseBody> response) {
+                    try {
+                        ServiceResponse<Void> clientResponse = disableApplicationDelegate(response);
+                        return Observable.just(clientResponse);
+                    } catch (Throwable t) {
+                        return Observable.error(t);
+                    }
+                }
+            });
+    }
+
+    private ServiceResponse<Void> disableApplicationDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
+        return this.restClient().responseBuilderFactory().<Void, RestException>newInstance(this.serializerAdapter())
+                .register(200, new TypeToken<Void>() { }.getType())
+                .build(response);
+    }
+
+    /**
+     * Re-enable a disabled application.
+     * A manager can enable an application.
+     *
+     * @param applicationId The application id
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     */
+    public void enableApplication(String applicationId) {
+        enableApplicationWithServiceResponseAsync(applicationId).toBlocking().single().body();
+    }
+
+    /**
+     * Re-enable a disabled application.
+     * A manager can enable an application.
+     *
+     * @param applicationId The application id
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    public ServiceFuture<Void> enableApplicationAsync(String applicationId, final ServiceCallback<Void> serviceCallback) {
+        return ServiceFuture.fromResponse(enableApplicationWithServiceResponseAsync(applicationId), serviceCallback);
+    }
+
+    /**
+     * Re-enable a disabled application.
+     * A manager can enable an application.
+     *
+     * @param applicationId The application id
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<Void> enableApplicationAsync(String applicationId) {
+        return enableApplicationWithServiceResponseAsync(applicationId).map(new Func1<ServiceResponse<Void>, Void>() {
+            @Override
+            public Void call(ServiceResponse<Void> response) {
+                return response.body();
+            }
+        });
+    }
+
+    /**
+     * Re-enable a disabled application.
+     * A manager can enable an application.
+     *
+     * @param applicationId The application id
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<ServiceResponse<Void>> enableApplicationWithServiceResponseAsync(String applicationId) {
+        if (applicationId == null) {
+            throw new IllegalArgumentException("Parameter applicationId is required and cannot be null.");
+        }
+        return service.enableApplication(applicationId)
+            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<Void>>>() {
+                @Override
+                public Observable<ServiceResponse<Void>> call(Response<ResponseBody> response) {
+                    try {
+                        ServiceResponse<Void> clientResponse = enableApplicationDelegate(response);
+                        return Observable.just(clientResponse);
+                    } catch (Throwable t) {
+                        return Observable.error(t);
+                    }
+                }
+            });
+    }
+
+    private ServiceResponse<Void> enableApplicationDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<Void, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<Void>() { }.getType())
                 .build(response);
@@ -1555,6 +2073,144 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     private ServiceResponse<ApplicationInfoListApiModel> queryApplicationsDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<ApplicationInfoListApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<ApplicationInfoListApiModel>() { }.getType())
+                .build(response);
+    }
+
+    /**
+     * Query applications by id.
+     * A query model which supports the OPC UA Global Discovery Server query.
+     *
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     * @return the ApplicationRecordListApiModel object if successful.
+     */
+    public ApplicationRecordListApiModel queryApplicationsById() {
+        return queryApplicationsByIdWithServiceResponseAsync().toBlocking().single().body();
+    }
+
+    /**
+     * Query applications by id.
+     * A query model which supports the OPC UA Global Discovery Server query.
+     *
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    public ServiceFuture<ApplicationRecordListApiModel> queryApplicationsByIdAsync(final ServiceCallback<ApplicationRecordListApiModel> serviceCallback) {
+        return ServiceFuture.fromResponse(queryApplicationsByIdWithServiceResponseAsync(), serviceCallback);
+    }
+
+    /**
+     * Query applications by id.
+     * A query model which supports the OPC UA Global Discovery Server query.
+     *
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the ApplicationRecordListApiModel object
+     */
+    public Observable<ApplicationRecordListApiModel> queryApplicationsByIdAsync() {
+        return queryApplicationsByIdWithServiceResponseAsync().map(new Func1<ServiceResponse<ApplicationRecordListApiModel>, ApplicationRecordListApiModel>() {
+            @Override
+            public ApplicationRecordListApiModel call(ServiceResponse<ApplicationRecordListApiModel> response) {
+                return response.body();
+            }
+        });
+    }
+
+    /**
+     * Query applications by id.
+     * A query model which supports the OPC UA Global Discovery Server query.
+     *
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the ApplicationRecordListApiModel object
+     */
+    public Observable<ServiceResponse<ApplicationRecordListApiModel>> queryApplicationsByIdWithServiceResponseAsync() {
+        final ApplicationRecordQueryApiModel query = null;
+        return service.queryApplicationsById(query)
+            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<ApplicationRecordListApiModel>>>() {
+                @Override
+                public Observable<ServiceResponse<ApplicationRecordListApiModel>> call(Response<ResponseBody> response) {
+                    try {
+                        ServiceResponse<ApplicationRecordListApiModel> clientResponse = queryApplicationsByIdDelegate(response);
+                        return Observable.just(clientResponse);
+                    } catch (Throwable t) {
+                        return Observable.error(t);
+                    }
+                }
+            });
+    }
+
+    /**
+     * Query applications by id.
+     * A query model which supports the OPC UA Global Discovery Server query.
+     *
+     * @param query the ApplicationRecordQueryApiModel value
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     * @return the ApplicationRecordListApiModel object if successful.
+     */
+    public ApplicationRecordListApiModel queryApplicationsById(ApplicationRecordQueryApiModel query) {
+        return queryApplicationsByIdWithServiceResponseAsync(query).toBlocking().single().body();
+    }
+
+    /**
+     * Query applications by id.
+     * A query model which supports the OPC UA Global Discovery Server query.
+     *
+     * @param query the ApplicationRecordQueryApiModel value
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    public ServiceFuture<ApplicationRecordListApiModel> queryApplicationsByIdAsync(ApplicationRecordQueryApiModel query, final ServiceCallback<ApplicationRecordListApiModel> serviceCallback) {
+        return ServiceFuture.fromResponse(queryApplicationsByIdWithServiceResponseAsync(query), serviceCallback);
+    }
+
+    /**
+     * Query applications by id.
+     * A query model which supports the OPC UA Global Discovery Server query.
+     *
+     * @param query the ApplicationRecordQueryApiModel value
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the ApplicationRecordListApiModel object
+     */
+    public Observable<ApplicationRecordListApiModel> queryApplicationsByIdAsync(ApplicationRecordQueryApiModel query) {
+        return queryApplicationsByIdWithServiceResponseAsync(query).map(new Func1<ServiceResponse<ApplicationRecordListApiModel>, ApplicationRecordListApiModel>() {
+            @Override
+            public ApplicationRecordListApiModel call(ServiceResponse<ApplicationRecordListApiModel> response) {
+                return response.body();
+            }
+        });
+    }
+
+    /**
+     * Query applications by id.
+     * A query model which supports the OPC UA Global Discovery Server query.
+     *
+     * @param query the ApplicationRecordQueryApiModel value
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the ApplicationRecordListApiModel object
+     */
+    public Observable<ServiceResponse<ApplicationRecordListApiModel>> queryApplicationsByIdWithServiceResponseAsync(ApplicationRecordQueryApiModel query) {
+        Validator.validate(query);
+        return service.queryApplicationsById(query)
+            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<ApplicationRecordListApiModel>>>() {
+                @Override
+                public Observable<ServiceResponse<ApplicationRecordListApiModel>> call(Response<ResponseBody> response) {
+                    try {
+                        ServiceResponse<ApplicationRecordListApiModel> clientResponse = queryApplicationsByIdDelegate(response);
+                        return Observable.just(clientResponse);
+                    } catch (Throwable t) {
+                        return Observable.error(t);
+                    }
+                }
+            });
+    }
+
+    private ServiceResponse<ApplicationRecordListApiModel> queryApplicationsByIdDelegate(Response<ResponseBody> response) throws RestException, IOException {
+        return this.restClient().responseBuilderFactory().<ApplicationRecordListApiModel, RestException>newInstance(this.serializerAdapter())
+                .register(200, new TypeToken<ApplicationRecordListApiModel>() { }.getType())
                 .build(response);
     }
 

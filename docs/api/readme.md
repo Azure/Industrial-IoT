@@ -2,18 +2,16 @@
 
 ## OPC Vault Service
 
-- [REST API](vault/readme.md)
+* [REST API](vault/readme.md)
 
+## OPC Registry Service
 
-## OPC Registry Service 
-
-- [REST API](registry/readme.md) 
+* [REST API](registry/readme.md)
 
 ## OPC Twin Service
 
-- [REST API](twin/readme.md)
+* [REST API](twin/readme.md)
 
 ## OPC Historic Access Service
 
-- [REST API](history/readme.md)
-
+* [REST API](history/readme.md)

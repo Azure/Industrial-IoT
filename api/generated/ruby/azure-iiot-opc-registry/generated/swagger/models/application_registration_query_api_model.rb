@@ -14,7 +14,7 @@ module azure.iiot.opc.registry
     #
     class ApplicationRegistrationQueryApiModel
       # @return [ApplicationType] Type of application. Possible values include:
-      # 'Server', 'Client', 'ClientAndServer'
+      # 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
       attr_accessor :application_type
 
       # @return [String] Application uri
@@ -32,8 +32,19 @@ module azure.iiot.opc.registry
       # @return [String] Application capability to query with
       attr_accessor :capability
 
+      # @return [String] Discovery profile uri
+      attr_accessor :discovery_profile_uri
+
+      # @return [String] Gateway server uri
+      attr_accessor :gateway_server_uri
+
       # @return [String] Supervisor or site the application belongs to.
       attr_accessor :site_or_supervisor_id
+
+      # @return [ApplicationStateMask] State of application. Possible values
+      # include: 'Any', 'New', 'Approved', 'Rejected', 'Unregistered',
+      # 'Deleted'
+      attr_accessor :state
 
       # @return [Boolean] Whether to include apps that were soft deleted
       attr_accessor :include_not_seen_since
@@ -101,12 +112,37 @@ module azure.iiot.opc.registry
                   name: 'String'
                 }
               },
+              discovery_profile_uri: {
+                client_side_validation: true,
+                required: false,
+                serialized_name: 'discoveryProfileUri',
+                type: {
+                  name: 'String'
+                }
+              },
+              gateway_server_uri: {
+                client_side_validation: true,
+                required: false,
+                serialized_name: 'gatewayServerUri',
+                type: {
+                  name: 'String'
+                }
+              },
               site_or_supervisor_id: {
                 client_side_validation: true,
                 required: false,
                 serialized_name: 'siteOrSupervisorId',
                 type: {
                   name: 'String'
+                }
+              },
+              state: {
+                client_side_validation: true,
+                required: false,
+                serialized_name: 'state',
+                type: {
+                  name: 'Enum',
+                  module: 'ApplicationStateMask'
                 }
               },
               include_not_seen_since: {

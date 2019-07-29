@@ -19,15 +19,18 @@ class ApplicationRegistrationRequestApiModel {
    * Create a ApplicationRegistrationRequestApiModel.
    * @property {string} applicationUri Unique application uri
    * @property {string} [applicationType] Type of application. Possible values
-   * include: 'Server', 'Client', 'ClientAndServer'
+   * include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
    * @property {string} [productUri] Product uri of the application.
-   * @property {string} [applicationName] Name of the server or client.
-   * @property {string} [locale] Locale of name
+   * @property {string} [applicationName] Default name of the server or client.
+   * @property {string} [locale] Locale of default name
+   * @property {string} [siteId] Site of the application
+   * @property {object} [localizedNames] Localized names key off locale id.
    * @property {array} [capabilities] The OPC UA defined capabilities of the
    * server.
    * @property {array} [discoveryUrls] Discovery urls of the server.
    * @property {string} [discoveryProfileUri] The discovery profile uri of the
    * server.
+   * @property {string} [gatewayServerUri] Gateway server uri
    */
   constructor() {
   }
@@ -58,7 +61,7 @@ class ApplicationRegistrationRequestApiModel {
             serializedName: 'applicationType',
             type: {
               name: 'Enum',
-              allowedValues: [ 'Server', 'Client', 'ClientAndServer' ]
+              allowedValues: [ 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer' ]
             }
           },
           productUri: {
@@ -80,6 +83,27 @@ class ApplicationRegistrationRequestApiModel {
             serializedName: 'locale',
             type: {
               name: 'String'
+            }
+          },
+          siteId: {
+            required: false,
+            serializedName: 'siteId',
+            type: {
+              name: 'String'
+            }
+          },
+          localizedNames: {
+            required: false,
+            serializedName: 'localizedNames',
+            type: {
+              name: 'Dictionary',
+              value: {
+                  required: false,
+                  serializedName: 'StringElementType',
+                  type: {
+                    name: 'String'
+                  }
+              }
             }
           },
           capabilities: {
@@ -119,6 +143,13 @@ class ApplicationRegistrationRequestApiModel {
           discoveryProfileUri: {
             required: false,
             serializedName: 'discoveryProfileUri',
+            type: {
+              name: 'String'
+            }
+          },
+          gatewayServerUri: {
+            required: false,
+            serializedName: 'gatewayServerUri',
             type: {
               name: 'String'
             }

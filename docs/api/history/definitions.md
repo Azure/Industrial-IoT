@@ -554,7 +554,7 @@ Status response model
 |**$metadata**  <br>*optional*  <br>*read-only*|Optional meta data.|< string, string > map|
 |**currentTime**  <br>*optional*  <br>*read-only*|Current time|string|
 |**dependencies**  <br>*optional*  <br>*read-only*|A property bag with details about the internal dependencies|< string, string > map|
-|**name**  <br>*optional*  <br>*read-only*|Name of this service|string|
+|**name**  <br>*optional*|Name of this service|string|
 |**properties**  <br>*optional*  <br>*read-only*|A property bag with details about the service|< string, string > map|
 |**startTime**  <br>*optional*  <br>*read-only*|Start time of service|string|
 |**status**  <br>*optional*|Operational status|string|

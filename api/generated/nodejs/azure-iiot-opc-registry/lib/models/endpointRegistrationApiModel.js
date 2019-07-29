@@ -36,10 +36,9 @@ class EndpointRegistrationApiModel {
    * @property {string} [endpoint.securityPolicy] Security policy uri to use
    * for communication
    * default to best.
-   * @property {buffer} [endpoint.serverThumbprint] Thumbprint to validate
-   * against or null to trust any.
+   * @property {buffer} [endpoint.certificate] Endpoint certificate that was
+   * registered.
    * @property {number} [securityLevel] Security level of the endpoint
-   * @property {buffer} [certificate] Endpoint cert that was registered.
    * @property {array} [authenticationMethods] Supported authentication methods
    * that can be selected to
    * obtain a credential and used to interact with the endpoint.
@@ -95,13 +94,6 @@ class EndpointRegistrationApiModel {
             serializedName: 'securityLevel',
             type: {
               name: 'Number'
-            }
-          },
-          certificate: {
-            required: false,
-            serializedName: 'certificate',
-            type: {
-              name: 'ByteArray'
             }
           },
           authenticationMethods: {

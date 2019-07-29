@@ -282,6 +282,204 @@ class AzureOpcRegistryClient(object):
             return client_raw_response
     delete_all_disabled_applications.metadata = {'url': '/v2/applications'}
 
+    def approve_application(
+            self, application_id, force=None, custom_headers=None, raw=False, **operation_config):
+        """Approve a new application.
+
+        A manager can approve a new application or force an application
+        from any state.
+        After approval the application is in the 'Approved' state.
+        Requires Manager role.
+
+        :param application_id: The application id
+        :type application_id: str
+        :param force: optional, force application in new state
+        :type force: bool
+        :param dict custom_headers: headers that will be added to the request
+        :param bool raw: returns the direct response alongside the
+         deserialized response
+        :param operation_config: :ref:`Operation configuration
+         overrides<msrest:optionsforoperations>`.
+        :return: None or ClientRawResponse if raw=true
+        :rtype: None or ~msrest.pipeline.ClientRawResponse
+        :raises:
+         :class:`HttpOperationError<msrest.exceptions.HttpOperationError>`
+        """
+        # Construct URL
+        url = self.approve_application.metadata['url']
+        path_format_arguments = {
+            'applicationId': self._serialize.url("application_id", application_id, 'str')
+        }
+        url = self._client.format_url(url, **path_format_arguments)
+
+        # Construct parameters
+        query_parameters = {}
+        if force is not None:
+            query_parameters['force'] = self._serialize.query("force", force, 'bool')
+
+        # Construct headers
+        header_parameters = {}
+        header_parameters['Content-Type'] = 'application/json; charset=utf-8'
+        if custom_headers:
+            header_parameters.update(custom_headers)
+
+        # Construct and send request
+        request = self._client.post(url, query_parameters)
+        response = self._client.send(request, header_parameters, stream=False, **operation_config)
+
+        if response.status_code not in [200]:
+            raise HttpOperationError(self._deserialize, response)
+
+        if raw:
+            client_raw_response = ClientRawResponse(None, response)
+            return client_raw_response
+    approve_application.metadata = {'url': '/v2/applications/{applicationId}/approve'}
+
+    def reject_application(
+            self, application_id, force=None, custom_headers=None, raw=False, **operation_config):
+        """Reject a new application.
+
+        A manager can approve a new application or force an application
+        from any state.
+        After approval the application is in the 'Rejected' state.
+        Requires Manager role.
+
+        :param application_id: The application id
+        :type application_id: str
+        :param force: optional, force application in new state
+        :type force: bool
+        :param dict custom_headers: headers that will be added to the request
+        :param bool raw: returns the direct response alongside the
+         deserialized response
+        :param operation_config: :ref:`Operation configuration
+         overrides<msrest:optionsforoperations>`.
+        :return: None or ClientRawResponse if raw=true
+        :rtype: None or ~msrest.pipeline.ClientRawResponse
+        :raises:
+         :class:`HttpOperationError<msrest.exceptions.HttpOperationError>`
+        """
+        # Construct URL
+        url = self.reject_application.metadata['url']
+        path_format_arguments = {
+            'applicationId': self._serialize.url("application_id", application_id, 'str')
+        }
+        url = self._client.format_url(url, **path_format_arguments)
+
+        # Construct parameters
+        query_parameters = {}
+        if force is not None:
+            query_parameters['force'] = self._serialize.query("force", force, 'bool')
+
+        # Construct headers
+        header_parameters = {}
+        header_parameters['Content-Type'] = 'application/json; charset=utf-8'
+        if custom_headers:
+            header_parameters.update(custom_headers)
+
+        # Construct and send request
+        request = self._client.post(url, query_parameters)
+        response = self._client.send(request, header_parameters, stream=False, **operation_config)
+
+        if response.status_code not in [200]:
+            raise HttpOperationError(self._deserialize, response)
+
+        if raw:
+            client_raw_response = ClientRawResponse(None, response)
+            return client_raw_response
+    reject_application.metadata = {'url': '/v2/applications/{applicationId}/reject'}
+
+    def disable_application(
+            self, application_id, custom_headers=None, raw=False, **operation_config):
+        """Disable an enabled application.
+
+        A manager can disable an application.
+
+        :param application_id: The application id
+        :type application_id: str
+        :param dict custom_headers: headers that will be added to the request
+        :param bool raw: returns the direct response alongside the
+         deserialized response
+        :param operation_config: :ref:`Operation configuration
+         overrides<msrest:optionsforoperations>`.
+        :return: None or ClientRawResponse if raw=true
+        :rtype: None or ~msrest.pipeline.ClientRawResponse
+        :raises:
+         :class:`HttpOperationError<msrest.exceptions.HttpOperationError>`
+        """
+        # Construct URL
+        url = self.disable_application.metadata['url']
+        path_format_arguments = {
+            'applicationId': self._serialize.url("application_id", application_id, 'str')
+        }
+        url = self._client.format_url(url, **path_format_arguments)
+
+        # Construct parameters
+        query_parameters = {}
+
+        # Construct headers
+        header_parameters = {}
+        header_parameters['Content-Type'] = 'application/json; charset=utf-8'
+        if custom_headers:
+            header_parameters.update(custom_headers)
+
+        # Construct and send request
+        request = self._client.post(url, query_parameters)
+        response = self._client.send(request, header_parameters, stream=False, **operation_config)
+
+        if response.status_code not in [200]:
+            raise HttpOperationError(self._deserialize, response)
+
+        if raw:
+            client_raw_response = ClientRawResponse(None, response)
+            return client_raw_response
+    disable_application.metadata = {'url': '/v2/applications/{applicationId}/disable'}
+
+    def enable_application(
+            self, application_id, custom_headers=None, raw=False, **operation_config):
+        """Re-enable a disabled application.
+
+        A manager can enable an application.
+
+        :param application_id: The application id
+        :type application_id: str
+        :param dict custom_headers: headers that will be added to the request
+        :param bool raw: returns the direct response alongside the
+         deserialized response
+        :param operation_config: :ref:`Operation configuration
+         overrides<msrest:optionsforoperations>`.
+        :return: None or ClientRawResponse if raw=true
+        :rtype: None or ~msrest.pipeline.ClientRawResponse
+        :raises:
+         :class:`HttpOperationError<msrest.exceptions.HttpOperationError>`
+        """
+        # Construct URL
+        url = self.enable_application.metadata['url']
+        path_format_arguments = {
+            'applicationId': self._serialize.url("application_id", application_id, 'str')
+        }
+        url = self._client.format_url(url, **path_format_arguments)
+
+        # Construct parameters
+        query_parameters = {}
+
+        # Construct headers
+        header_parameters = {}
+        header_parameters['Content-Type'] = 'application/json; charset=utf-8'
+        if custom_headers:
+            header_parameters.update(custom_headers)
+
+        # Construct and send request
+        request = self._client.post(url, query_parameters)
+        response = self._client.send(request, header_parameters, stream=False, **operation_config)
+
+        if response.status_code not in [200]:
+            raise HttpOperationError(self._deserialize, response)
+
+        if raw:
+            client_raw_response = ClientRawResponse(None, response)
+            return client_raw_response
+    enable_application.metadata = {'url': '/v2/applications/{applicationId}/enable'}
+
     def discover_server(
             self, request, custom_headers=None, raw=False, **operation_config):
         """Discover servers.
@@ -671,6 +869,65 @@ class AzureOpcRegistryClient(object):
 
         return deserialized
     query_applications.metadata = {'url': '/v2/applications/query'}
+
+    def query_applications_by_id(
+            self, query=None, custom_headers=None, raw=False, **operation_config):
+        """Query applications by id.
+
+        A query model which supports the OPC UA Global Discovery Server query.
+
+        :param query:
+        :type query:
+         ~azure-iiot-opc-registry.models.ApplicationRecordQueryApiModel
+        :param dict custom_headers: headers that will be added to the request
+        :param bool raw: returns the direct response alongside the
+         deserialized response
+        :param operation_config: :ref:`Operation configuration
+         overrides<msrest:optionsforoperations>`.
+        :return: ApplicationRecordListApiModel or ClientRawResponse if
+         raw=true
+        :rtype: ~azure-iiot-opc-registry.models.ApplicationRecordListApiModel
+         or ~msrest.pipeline.ClientRawResponse
+        :raises:
+         :class:`HttpOperationError<msrest.exceptions.HttpOperationError>`
+        """
+        # Construct URL
+        url = self.query_applications_by_id.metadata['url']
+
+        # Construct parameters
+        query_parameters = {}
+
+        # Construct headers
+        header_parameters = {}
+        header_parameters['Content-Type'] = 'application/json-patch+json; charset=utf-8'
+        if custom_headers:
+            header_parameters.update(custom_headers)
+
+        # Construct body
+        if query is not None:
+            body_content = self._serialize.body(query, 'ApplicationRecordQueryApiModel')
+        else:
+            body_content = None
+
+        # Construct and send request
+        request = self._client.post(url, query_parameters)
+        response = self._client.send(
+            request, header_parameters, body_content, stream=False, **operation_config)
+
+        if response.status_code not in [200]:
+            raise HttpOperationError(self._deserialize, response)
+
+        deserialized = None
+
+        if response.status_code == 200:
+            deserialized = self._deserialize('ApplicationRecordListApiModel', response)
+
+        if raw:
+            client_raw_response = ClientRawResponse(deserialized, response)
+            return client_raw_response
+
+        return deserialized
+    query_applications_by_id.metadata = {'url': '/v2/applications/querybyid'}
 
     def activate_endpoint(
             self, endpoint_id, custom_headers=None, raw=False, **operation_config):

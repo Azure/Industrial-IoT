@@ -25,8 +25,6 @@ class EndpointRegistrationApiModel(Model):
     :type endpoint: ~azure-iiot-opc-registry.models.EndpointApiModel
     :param security_level: Security level of the endpoint
     :type security_level: int
-    :param certificate: Endpoint cert that was registered.
-    :type certificate: bytearray
     :param authentication_methods: Supported authentication methods that can
      be selected to
      obtain a credential and used to interact with the endpoint.
@@ -45,16 +43,14 @@ class EndpointRegistrationApiModel(Model):
         'site_id': {'key': 'siteId', 'type': 'str'},
         'endpoint': {'key': 'endpoint', 'type': 'EndpointApiModel'},
         'security_level': {'key': 'securityLevel', 'type': 'int'},
-        'certificate': {'key': 'certificate', 'type': 'bytearray'},
         'authentication_methods': {'key': 'authenticationMethods', 'type': '[AuthenticationMethodApiModel]'},
     }
 
-    def __init__(self, id, endpoint, endpoint_url=None, site_id=None, security_level=None, certificate=None, authentication_methods=None):
+    def __init__(self, id, endpoint, endpoint_url=None, site_id=None, security_level=None, authentication_methods=None):
         super(EndpointRegistrationApiModel, self).__init__()
         self.id = id
         self.endpoint_url = endpoint_url
         self.site_id = site_id
         self.endpoint = endpoint
         self.security_level = security_level
-        self.certificate = certificate
         self.authentication_methods = authentication_methods

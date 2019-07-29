@@ -21,6 +21,45 @@ import (
 // The package's fully qualified name.
 const fqdn = "go/azure-iiot-opc-registry"
 
+        // ApplicationState enumerates the values for application state.
+    type ApplicationState string
+
+    const (
+                // ApplicationStateApproved ...
+        ApplicationStateApproved ApplicationState = "Approved"
+                // ApplicationStateNew ...
+        ApplicationStateNew ApplicationState = "New"
+                // ApplicationStateRejected ...
+        ApplicationStateRejected ApplicationState = "Rejected"
+            )
+    // PossibleApplicationStateValues returns an array of possible values for the ApplicationState const type.
+    func PossibleApplicationStateValues() []ApplicationState {
+        return []ApplicationState{ApplicationStateApproved,ApplicationStateNew,ApplicationStateRejected}
+    }
+
+        // ApplicationStateMask enumerates the values for application state
+        // mask.
+    type ApplicationStateMask string
+
+    const (
+                // ApplicationStateMaskAny ...
+        ApplicationStateMaskAny ApplicationStateMask = "Any"
+                // ApplicationStateMaskApproved ...
+        ApplicationStateMaskApproved ApplicationStateMask = "Approved"
+                // ApplicationStateMaskDeleted ...
+        ApplicationStateMaskDeleted ApplicationStateMask = "Deleted"
+                // ApplicationStateMaskNew ...
+        ApplicationStateMaskNew ApplicationStateMask = "New"
+                // ApplicationStateMaskRejected ...
+        ApplicationStateMaskRejected ApplicationStateMask = "Rejected"
+                // ApplicationStateMaskUnregistered ...
+        ApplicationStateMaskUnregistered ApplicationStateMask = "Unregistered"
+            )
+    // PossibleApplicationStateMaskValues returns an array of possible values for the ApplicationStateMask const type.
+    func PossibleApplicationStateMaskValues() []ApplicationStateMask {
+        return []ApplicationStateMask{ApplicationStateMaskAny,ApplicationStateMaskApproved,ApplicationStateMaskDeleted,ApplicationStateMaskNew,ApplicationStateMaskRejected,ApplicationStateMaskUnregistered}
+    }
+
         // ApplicationType enumerates the values for application type.
     type ApplicationType string
 
@@ -29,12 +68,14 @@ const fqdn = "go/azure-iiot-opc-registry"
         Client ApplicationType = "Client"
                 // ClientAndServer ...
         ClientAndServer ApplicationType = "ClientAndServer"
+                // DiscoveryServer ...
+        DiscoveryServer ApplicationType = "DiscoveryServer"
                 // Server ...
         Server ApplicationType = "Server"
             )
     // PossibleApplicationTypeValues returns an array of possible values for the ApplicationType const type.
     func PossibleApplicationTypeValues() []ApplicationType {
-        return []ApplicationType{Client,ClientAndServer,Server}
+        return []ApplicationType{Client,ClientAndServer,DiscoveryServer,Server}
     }
 
         // CallbackMethodType enumerates the values for callback method type.
@@ -191,18 +232,22 @@ const fqdn = "go/azure-iiot-opc-registry"
 
             // ApplicationInfoAPIModel application info model
             type ApplicationInfoAPIModel struct {
+            // State - State. Possible values include: 'ApplicationStateNew', 'ApplicationStateApproved', 'ApplicationStateRejected'
+            State ApplicationState `json:"state,omitempty"`
             // ApplicationID - Unique application id
             ApplicationID *string `json:"applicationId,omitempty"`
-            // ApplicationType - Type of application. Possible values include: 'Server', 'Client', 'ClientAndServer'
+            // ApplicationType - Type of application. Possible values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
             ApplicationType ApplicationType `json:"applicationType,omitempty"`
             // ApplicationURI - Unique application uri
             ApplicationURI *string `json:"applicationUri,omitempty"`
             // ProductURI - Product uri
             ProductURI *string `json:"productUri,omitempty"`
-            // ApplicationName - Name of server
+            // ApplicationName - Default name of application
             ApplicationName *string `json:"applicationName,omitempty"`
-            // Locale - Locale of name - defaults to "en"
+            // Locale - Locale of default name - defaults to "en"
             Locale *string `json:"locale,omitempty"`
+            // LocalizedNames - Localized Names of application keyed on locale
+            LocalizedNames map[string]*string `json:"localizedNames"`
             // Certificate - Application public cert
             Certificate *[]byte `json:"certificate,omitempty"`
             // Capabilities - The capabilities advertised by the server.
@@ -211,6 +256,8 @@ const fqdn = "go/azure-iiot-opc-registry"
             DiscoveryUrls *[]string `json:"discoveryUrls,omitempty"`
             // DiscoveryProfileURI - Discovery profile uri
             DiscoveryProfileURI *string `json:"discoveryProfileUri,omitempty"`
+            // GatewayServerURI - Gateway server uri
+            GatewayServerURI *string `json:"gatewayServerUri,omitempty"`
             // HostAddresses - Host addresses of server application or null
             HostAddresses *[]string `json:"hostAddresses,omitempty"`
             // SiteID - Site of the application
@@ -219,7 +266,79 @@ const fqdn = "go/azure-iiot-opc-registry"
             SupervisorID *string `json:"supervisorId,omitempty"`
             // NotSeenSince - Last time application was seen
             NotSeenSince *date.Time `json:"notSeenSince,omitempty"`
+            // Created - Created
+            Created *RegistryOperationAPIModel `json:"created,omitempty"`
+            // Approved - Approved
+            Approved *RegistryOperationAPIModel `json:"approved,omitempty"`
+            // Updated - Updated
+            Updated *RegistryOperationAPIModel `json:"updated,omitempty"`
             }
+
+        // MarshalJSON is the custom marshaler for ApplicationInfoAPIModel.
+        func (aiam ApplicationInfoAPIModel)MarshalJSON() ([]byte, error){
+        objectMap := make(map[string]interface{})
+                if(aiam.State != "") {
+                objectMap["state"] = aiam.State
+                }
+                if(aiam.ApplicationID != nil) {
+                objectMap["applicationId"] = aiam.ApplicationID
+                }
+                if(aiam.ApplicationType != "") {
+                objectMap["applicationType"] = aiam.ApplicationType
+                }
+                if(aiam.ApplicationURI != nil) {
+                objectMap["applicationUri"] = aiam.ApplicationURI
+                }
+                if(aiam.ProductURI != nil) {
+                objectMap["productUri"] = aiam.ProductURI
+                }
+                if(aiam.ApplicationName != nil) {
+                objectMap["applicationName"] = aiam.ApplicationName
+                }
+                if(aiam.Locale != nil) {
+                objectMap["locale"] = aiam.Locale
+                }
+                if(aiam.LocalizedNames != nil) {
+                objectMap["localizedNames"] = aiam.LocalizedNames
+                }
+                if(aiam.Certificate != nil) {
+                objectMap["certificate"] = aiam.Certificate
+                }
+                if(aiam.Capabilities != nil) {
+                objectMap["capabilities"] = aiam.Capabilities
+                }
+                if(aiam.DiscoveryUrls != nil) {
+                objectMap["discoveryUrls"] = aiam.DiscoveryUrls
+                }
+                if(aiam.DiscoveryProfileURI != nil) {
+                objectMap["discoveryProfileUri"] = aiam.DiscoveryProfileURI
+                }
+                if(aiam.GatewayServerURI != nil) {
+                objectMap["gatewayServerUri"] = aiam.GatewayServerURI
+                }
+                if(aiam.HostAddresses != nil) {
+                objectMap["hostAddresses"] = aiam.HostAddresses
+                }
+                if(aiam.SiteID != nil) {
+                objectMap["siteId"] = aiam.SiteID
+                }
+                if(aiam.SupervisorID != nil) {
+                objectMap["supervisorId"] = aiam.SupervisorID
+                }
+                if(aiam.NotSeenSince != nil) {
+                objectMap["notSeenSince"] = aiam.NotSeenSince
+                }
+                if(aiam.Created != nil) {
+                objectMap["created"] = aiam.Created
+                }
+                if(aiam.Approved != nil) {
+                objectMap["approved"] = aiam.Approved
+                }
+                if(aiam.Updated != nil) {
+                objectMap["updated"] = aiam.Updated
+                }
+                return json.Marshal(objectMap)
+        }
 
             // ApplicationInfoListAPIModel list of registered applications
             type ApplicationInfoListAPIModel struct {
@@ -360,6 +479,44 @@ const fqdn = "go/azure-iiot-opc-registry"
             return ApplicationInfoListAPIModelPage{fn: getNextPage}
         }
 
+            // ApplicationRecordAPIModel application with optional list of
+            // endpoints
+            type ApplicationRecordAPIModel struct {
+            // RecordID - Record id
+            RecordID *int32 `json:"recordId,omitempty"`
+            // Application - Application information
+            Application *ApplicationInfoAPIModel `json:"application,omitempty"`
+            }
+
+            // ApplicationRecordListAPIModel create response
+            type ApplicationRecordListAPIModel struct {
+            autorest.Response `json:"-"`
+            // Applications - Applications found
+            Applications *[]ApplicationRecordAPIModel `json:"applications,omitempty"`
+            // LastCounterResetTime - Last counter reset
+            LastCounterResetTime *date.Time `json:"lastCounterResetTime,omitempty"`
+            // NextRecordID - Next record id
+            NextRecordID *int32 `json:"nextRecordId,omitempty"`
+            }
+
+            // ApplicationRecordQueryAPIModel query by id
+            type ApplicationRecordQueryAPIModel struct {
+            // StartingRecordID - Starting record id
+            StartingRecordID *int32 `json:"startingRecordId,omitempty"`
+            // MaxRecordsToReturn - Max records to return
+            MaxRecordsToReturn *int32 `json:"maxRecordsToReturn,omitempty"`
+            // ApplicationName - Application name
+            ApplicationName *string `json:"applicationName,omitempty"`
+            // ApplicationURI - Application uri
+            ApplicationURI *string `json:"applicationUri,omitempty"`
+            // ApplicationType - Application type. Possible values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
+            ApplicationType ApplicationType `json:"applicationType,omitempty"`
+            // ProductURI - Product uri
+            ProductURI *string `json:"productUri,omitempty"`
+            // ServerCapabilities - Server capabilities
+            ServerCapabilities *[]string `json:"serverCapabilities,omitempty"`
+            }
+
             // ApplicationRegistrationAPIModel application with list of
             // endpoints
             type ApplicationRegistrationAPIModel struct {
@@ -374,7 +531,7 @@ const fqdn = "go/azure-iiot-opc-registry"
 
             // ApplicationRegistrationQueryAPIModel application information
             type ApplicationRegistrationQueryAPIModel struct {
-            // ApplicationType - Type of application. Possible values include: 'Server', 'Client', 'ClientAndServer'
+            // ApplicationType - Type of application. Possible values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
             ApplicationType ApplicationType `json:"applicationType,omitempty"`
             // ApplicationURI - Application uri
             ApplicationURI *string `json:"applicationUri,omitempty"`
@@ -386,8 +543,14 @@ const fqdn = "go/azure-iiot-opc-registry"
             Locale *string `json:"locale,omitempty"`
             // Capability - Application capability to query with
             Capability *string `json:"capability,omitempty"`
+            // DiscoveryProfileURI - Discovery profile uri
+            DiscoveryProfileURI *string `json:"discoveryProfileUri,omitempty"`
+            // GatewayServerURI - Gateway server uri
+            GatewayServerURI *string `json:"gatewayServerUri,omitempty"`
             // SiteOrSupervisorID - Supervisor or site the application belongs to.
             SiteOrSupervisorID *string `json:"siteOrSupervisorId,omitempty"`
+            // State - State of application. Possible values include: 'ApplicationStateMaskAny', 'ApplicationStateMaskNew', 'ApplicationStateMaskApproved', 'ApplicationStateMaskRejected', 'ApplicationStateMaskUnregistered', 'ApplicationStateMaskDeleted'
+            State ApplicationStateMask `json:"state,omitempty"`
             // IncludeNotSeenSince - Whether to include apps that were soft deleted
             IncludeNotSeenSince *bool `json:"includeNotSeenSince,omitempty"`
             }
@@ -396,21 +559,66 @@ const fqdn = "go/azure-iiot-opc-registry"
             type ApplicationRegistrationRequestAPIModel struct {
             // ApplicationURI - Unique application uri
             ApplicationURI *string `json:"applicationUri,omitempty"`
-            // ApplicationType - Type of application. Possible values include: 'Server', 'Client', 'ClientAndServer'
+            // ApplicationType - Type of application. Possible values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
             ApplicationType ApplicationType `json:"applicationType,omitempty"`
             // ProductURI - Product uri of the application.
             ProductURI *string `json:"productUri,omitempty"`
-            // ApplicationName - Name of the server or client.
+            // ApplicationName - Default name of the server or client.
             ApplicationName *string `json:"applicationName,omitempty"`
-            // Locale - Locale of name
+            // Locale - Locale of default name
             Locale *string `json:"locale,omitempty"`
+            // SiteID - Site of the application
+            SiteID *string `json:"siteId,omitempty"`
+            // LocalizedNames - Localized names key off locale id.
+            LocalizedNames map[string]*string `json:"localizedNames"`
             // Capabilities - The OPC UA defined capabilities of the server.
             Capabilities *[]string `json:"capabilities,omitempty"`
             // DiscoveryUrls - Discovery urls of the server.
             DiscoveryUrls *[]string `json:"discoveryUrls,omitempty"`
             // DiscoveryProfileURI - The discovery profile uri of the server.
             DiscoveryProfileURI *string `json:"discoveryProfileUri,omitempty"`
+            // GatewayServerURI - Gateway server uri
+            GatewayServerURI *string `json:"gatewayServerUri,omitempty"`
             }
+
+        // MarshalJSON is the custom marshaler for ApplicationRegistrationRequestAPIModel.
+        func (arram ApplicationRegistrationRequestAPIModel)MarshalJSON() ([]byte, error){
+        objectMap := make(map[string]interface{})
+                if(arram.ApplicationURI != nil) {
+                objectMap["applicationUri"] = arram.ApplicationURI
+                }
+                if(arram.ApplicationType != "") {
+                objectMap["applicationType"] = arram.ApplicationType
+                }
+                if(arram.ProductURI != nil) {
+                objectMap["productUri"] = arram.ProductURI
+                }
+                if(arram.ApplicationName != nil) {
+                objectMap["applicationName"] = arram.ApplicationName
+                }
+                if(arram.Locale != nil) {
+                objectMap["locale"] = arram.Locale
+                }
+                if(arram.SiteID != nil) {
+                objectMap["siteId"] = arram.SiteID
+                }
+                if(arram.LocalizedNames != nil) {
+                objectMap["localizedNames"] = arram.LocalizedNames
+                }
+                if(arram.Capabilities != nil) {
+                objectMap["capabilities"] = arram.Capabilities
+                }
+                if(arram.DiscoveryUrls != nil) {
+                objectMap["discoveryUrls"] = arram.DiscoveryUrls
+                }
+                if(arram.DiscoveryProfileURI != nil) {
+                objectMap["discoveryProfileUri"] = arram.DiscoveryProfileURI
+                }
+                if(arram.GatewayServerURI != nil) {
+                objectMap["gatewayServerUri"] = arram.GatewayServerURI
+                }
+                return json.Marshal(objectMap)
+        }
 
             // ApplicationRegistrationResponseAPIModel result of an application
             // registration
@@ -425,10 +633,13 @@ const fqdn = "go/azure-iiot-opc-registry"
             type ApplicationRegistrationUpdateAPIModel struct {
             // ProductURI - Product uri
             ProductURI *string `json:"productUri,omitempty"`
-            // ApplicationName - Application name
+            // ApplicationName - Default name of the server or client.
             ApplicationName *string `json:"applicationName,omitempty"`
-            // Locale - Locale of name - defaults to "en"
+            // Locale - Locale of default name - defaults to "en"
             Locale *string `json:"locale,omitempty"`
+            // LocalizedNames - Localized names keyed off locale id.
+            // To remove entry, set value for locale id to null.
+            LocalizedNames map[string]*string `json:"localizedNames"`
             // Certificate - Application public cert
             Certificate *[]byte `json:"certificate,omitempty"`
             // Capabilities - Capabilities of the application
@@ -437,7 +648,42 @@ const fqdn = "go/azure-iiot-opc-registry"
             DiscoveryUrls *[]string `json:"discoveryUrls,omitempty"`
             // DiscoveryProfileURI - Discovery profile uri
             DiscoveryProfileURI *string `json:"discoveryProfileUri,omitempty"`
+            // GatewayServerURI - Gateway server uri
+            GatewayServerURI *string `json:"gatewayServerUri,omitempty"`
             }
+
+        // MarshalJSON is the custom marshaler for ApplicationRegistrationUpdateAPIModel.
+        func (aruam ApplicationRegistrationUpdateAPIModel)MarshalJSON() ([]byte, error){
+        objectMap := make(map[string]interface{})
+                if(aruam.ProductURI != nil) {
+                objectMap["productUri"] = aruam.ProductURI
+                }
+                if(aruam.ApplicationName != nil) {
+                objectMap["applicationName"] = aruam.ApplicationName
+                }
+                if(aruam.Locale != nil) {
+                objectMap["locale"] = aruam.Locale
+                }
+                if(aruam.LocalizedNames != nil) {
+                objectMap["localizedNames"] = aruam.LocalizedNames
+                }
+                if(aruam.Certificate != nil) {
+                objectMap["certificate"] = aruam.Certificate
+                }
+                if(aruam.Capabilities != nil) {
+                objectMap["capabilities"] = aruam.Capabilities
+                }
+                if(aruam.DiscoveryUrls != nil) {
+                objectMap["discoveryUrls"] = aruam.DiscoveryUrls
+                }
+                if(aruam.DiscoveryProfileURI != nil) {
+                objectMap["discoveryProfileUri"] = aruam.DiscoveryProfileURI
+                }
+                if(aruam.GatewayServerURI != nil) {
+                objectMap["gatewayServerUri"] = aruam.GatewayServerURI
+                }
+                return json.Marshal(objectMap)
+        }
 
             // ApplicationSiteListAPIModel list of application sites
             type ApplicationSiteListAPIModel struct {
@@ -687,8 +933,8 @@ const fqdn = "go/azure-iiot-opc-registry"
             // SecurityPolicy - Security policy uri to use for communication
             // default to best.
             SecurityPolicy *string `json:"securityPolicy,omitempty"`
-            // ServerThumbprint - Thumbprint to validate against or null to trust any.
-            ServerThumbprint *[]byte `json:"serverThumbprint,omitempty"`
+            // Certificate - Endpoint certificate that was registered.
+            Certificate *[]byte `json:"certificate,omitempty"`
             }
 
             // EndpointInfoAPIModel endpoint registration model
@@ -859,8 +1105,6 @@ const fqdn = "go/azure-iiot-opc-registry"
             Endpoint *EndpointAPIModel `json:"endpoint,omitempty"`
             // SecurityLevel - Security level of the endpoint
             SecurityLevel *int32 `json:"securityLevel,omitempty"`
-            // Certificate - Endpoint cert that was registered.
-            Certificate *[]byte `json:"certificate,omitempty"`
             // AuthenticationMethods - Supported authentication methods that can be selected to
             // obtain a credential and used to interact with the endpoint.
             AuthenticationMethods *[]AuthenticationMethodAPIModel `json:"authenticationMethods,omitempty"`
@@ -895,6 +1139,14 @@ const fqdn = "go/azure-iiot-opc-registry"
             User *CredentialAPIModel `json:"user,omitempty"`
             }
 
+            // RegistryOperationAPIModel registry operation log model
+            type RegistryOperationAPIModel struct {
+            // AuthorityID - Operation User
+            AuthorityID *string `json:"authorityId,omitempty"`
+            // Time - Operation time
+            Time *date.Time `json:"time,omitempty"`
+            }
+
             // ServerRegistrationRequestAPIModel application registration
             // request
             type ServerRegistrationRequestAPIModel struct {
@@ -915,21 +1167,21 @@ const fqdn = "go/azure-iiot-opc-registry"
             Name *string `json:"name,omitempty"`
             // Status - Operational status
             Status *string `json:"status,omitempty"`
-            // CurrentTime - Current time
+            // CurrentTime - READ-ONLY; Current time
             CurrentTime *string `json:"currentTime,omitempty"`
-            // StartTime - Start time of service
+            // StartTime - READ-ONLY; Start time of service
             StartTime *string `json:"startTime,omitempty"`
-            // UpTime - Up time of service
+            // UpTime - READ-ONLY; Up time of service
             UpTime *int64 `json:"upTime,omitempty"`
-            // UID - Value generated at bootstrap by each instance of the service and
+            // UID - READ-ONLY; Value generated at bootstrap by each instance of the service and
             // used to correlate logs coming from the same instance. The value
             // changes every time the service starts.
             UID *string `json:"uid,omitempty"`
-            // Properties - A property bag with details about the service
+            // Properties - READ-ONLY; A property bag with details about the service
             Properties map[string]*string `json:"properties"`
-            // Dependencies - A property bag with details about the internal dependencies
+            // Dependencies - READ-ONLY; A property bag with details about the internal dependencies
             Dependencies map[string]*string `json:"dependencies"`
-            // Metadata - Optional meta data.
+            // Metadata - READ-ONLY; Optional meta data.
             Metadata map[string]*string `json:"$metadata"`
             }
 
@@ -941,27 +1193,6 @@ const fqdn = "go/azure-iiot-opc-registry"
                 }
                 if(sram.Status != nil) {
                 objectMap["status"] = sram.Status
-                }
-                if(sram.CurrentTime != nil) {
-                objectMap["currentTime"] = sram.CurrentTime
-                }
-                if(sram.StartTime != nil) {
-                objectMap["startTime"] = sram.StartTime
-                }
-                if(sram.UpTime != nil) {
-                objectMap["upTime"] = sram.UpTime
-                }
-                if(sram.UID != nil) {
-                objectMap["uid"] = sram.UID
-                }
-                if(sram.Properties != nil) {
-                objectMap["properties"] = sram.Properties
-                }
-                if(sram.Dependencies != nil) {
-                objectMap["dependencies"] = sram.Dependencies
-                }
-                if(sram.Metadata != nil) {
-                objectMap["$metadata"] = sram.Metadata
                 }
                 return json.Marshal(objectMap)
         }

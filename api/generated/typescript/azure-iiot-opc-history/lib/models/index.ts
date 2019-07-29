@@ -14,314 +14,15 @@ import * as msRest from "@azure/ms-rest-js";
 
 /**
  * @interface
- * An interface representing CallbackApiModel.
- * A registered callback
+ * An interface representing DeleteValuesAtTimesDetailsApiModel.
+ * Deletes data at times
  *
  */
-export interface CallbackApiModel {
+export interface DeleteValuesAtTimesDetailsApiModel {
   /**
-   * @member {string} [uri] Uri to call - should use https scheme in which
-   * case security is enforced.
+   * @member {Date[] | string[]} reqTimes The timestamps to delete
    */
-  uri?: string;
-  /**
-   * @member {CallbackMethodType} [method] Http Method to use for callback.
-   * Possible values include: 'Get', 'Post', 'Put', 'Delete'
-   */
-  method?: CallbackMethodType;
-  /**
-   * @member {string} [authenticationHeader] Authentication header to add or
-   * null if not needed
-   */
-  authenticationHeader?: string;
-}
-
-/**
- * @interface
- * An interface representing EndpointActivationFilterApiModel.
- * Endpoint Activation Filter model
- *
- */
-export interface EndpointActivationFilterApiModel {
-  /**
-   * @member {string[]} [trustLists] Certificate trust list identifiers to use
-   * for
-   * activation, if null, all certificates are
-   * trusted.  If empty list, no certificates are
-   * trusted which is equal to no filter.
-   */
-  trustLists?: string[];
-  /**
-   * @member {string[]} [securityPolicies] Endpoint security policies to filter
-   * against.
-   * If set to null, all policies are in scope.
-   */
-  securityPolicies?: string[];
-  /**
-   * @member {SecurityMode} [securityMode] Security mode level to activate. If
-   * null,
-   * then Microsoft.Azure.IIoT.OpcUa.Registry.Models.SecurityMode.Best is
-   * assumed. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
-   */
-  securityMode?: SecurityMode;
-}
-
-/**
- * @interface
- * An interface representing ServerRegistrationRequestApiModel.
- * Application registration request
- *
- */
-export interface ServerRegistrationRequestApiModel {
-  /**
-   * @member {string} discoveryUrl Discovery url to use for registration
-   */
-  discoveryUrl: string;
-  /**
-   * @member {string} [id] Registration id
-   */
-  id?: string;
-  /**
-   * @member {CallbackApiModel} [callback] An optional callback hook to
-   * register.
-   */
-  callback?: CallbackApiModel;
-  /**
-   * @member {EndpointActivationFilterApiModel} [activationFilter] Upon
-   * discovery, activate all endpoints with this filter.
-   */
-  activationFilter?: EndpointActivationFilterApiModel;
-}
-
-/**
- * @interface
- * An interface representing ApplicationRegistrationRequestApiModel.
- * Application information
- *
- */
-export interface ApplicationRegistrationRequestApiModel {
-  /**
-   * @member {string} applicationUri Unique application uri
-   */
-  applicationUri: string;
-  /**
-   * @member {ApplicationType} [applicationType] Type of application. Possible
-   * values include: 'Server', 'Client', 'ClientAndServer'
-   */
-  applicationType?: ApplicationType;
-  /**
-   * @member {string} [productUri] Product uri of the application.
-   */
-  productUri?: string;
-  /**
-   * @member {string} [applicationName] Name of the server or client.
-   */
-  applicationName?: string;
-  /**
-   * @member {string} [locale] Locale of name
-   */
-  locale?: string;
-  /**
-   * @member {string[]} [capabilities] The OPC UA defined capabilities of the
-   * server.
-   */
-  capabilities?: string[];
-  /**
-   * @member {string[]} [discoveryUrls] Discovery urls of the server.
-   */
-  discoveryUrls?: string[];
-  /**
-   * @member {string} [discoveryProfileUri] The discovery profile uri of the
-   * server.
-   */
-  discoveryProfileUri?: string;
-}
-
-/**
- * @interface
- * An interface representing ApplicationRegistrationResponseApiModel.
- * Result of an application registration
- *
- */
-export interface ApplicationRegistrationResponseApiModel {
-  /**
-   * @member {string} [id] New id application was registered under
-   */
-  id?: string;
-}
-
-/**
- * @interface
- * An interface representing ApplicationInfoApiModel.
- * Application info model
- *
- */
-export interface ApplicationInfoApiModel {
-  /**
-   * @member {string} [applicationId] Unique application id
-   */
-  applicationId?: string;
-  /**
-   * @member {ApplicationType} [applicationType] Type of application. Possible
-   * values include: 'Server', 'Client', 'ClientAndServer'
-   */
-  applicationType?: ApplicationType;
-  /**
-   * @member {string} [applicationUri] Unique application uri
-   */
-  applicationUri?: string;
-  /**
-   * @member {string} [productUri] Product uri
-   */
-  productUri?: string;
-  /**
-   * @member {string} [applicationName] Name of server
-   */
-  applicationName?: string;
-  /**
-   * @member {string} [locale] Locale of name - defaults to "en"
-   */
-  locale?: string;
-  /**
-   * @member {Uint8Array} [certificate] Application public cert
-   */
-  certificate?: Uint8Array;
-  /**
-   * @member {string[]} [capabilities] The capabilities advertised by the
-   * server.
-   */
-  capabilities?: string[];
-  /**
-   * @member {string[]} [discoveryUrls] Discovery urls of the server
-   */
-  discoveryUrls?: string[];
-  /**
-   * @member {string} [discoveryProfileUri] Discovery profile uri
-   */
-  discoveryProfileUri?: string;
-  /**
-   * @member {string[]} [hostAddresses] Host addresses of server application or
-   * null
-   */
-  hostAddresses?: string[];
-  /**
-   * @member {string} [siteId] Site of the application
-   */
-  siteId?: string;
-  /**
-   * @member {string} [supervisorId] Supervisor having registered the
-   * application
-   */
-  supervisorId?: string;
-  /**
-   * @member {Date} [notSeenSince] Last time application was seen
-   */
-  notSeenSince?: Date;
-}
-
-/**
- * @interface
- * An interface representing ApplicationInfoListApiModel.
- * List of registered applications
- *
- */
-export interface ApplicationInfoListApiModel {
-  /**
-   * @member {ApplicationInfoApiModel[]} [items] Application infos
-   */
-  items?: ApplicationInfoApiModel[];
-  /**
-   * @member {string} [continuationToken] Continuation or null if final
-   */
-  continuationToken?: string;
-}
-
-/**
- * @interface
- * An interface representing DiscoveryConfigApiModel.
- * Discovery configuration
- *
- */
-export interface DiscoveryConfigApiModel {
-  /**
-   * @member {string} [addressRangesToScan] Address ranges to scan (null == all
-   * wired nics)
-   */
-  addressRangesToScan?: string;
-  /**
-   * @member {number} [networkProbeTimeoutMs] Network probe timeout
-   */
-  networkProbeTimeoutMs?: number;
-  /**
-   * @member {number} [maxNetworkProbes] Max network probes that should ever
-   * run.
-   */
-  maxNetworkProbes?: number;
-  /**
-   * @member {string} [portRangesToScan] Port ranges to scan (null == all
-   * unassigned)
-   */
-  portRangesToScan?: string;
-  /**
-   * @member {number} [portProbeTimeoutMs] Port probe timeout
-   */
-  portProbeTimeoutMs?: number;
-  /**
-   * @member {number} [maxPortProbes] Max port probes that should ever run.
-   */
-  maxPortProbes?: number;
-  /**
-   * @member {number} [minPortProbesPercent] Probes that must always be there
-   * as percent of max.
-   */
-  minPortProbesPercent?: number;
-  /**
-   * @member {number} [idleTimeBetweenScansSec] Delay time between discovery
-   * sweeps in seconds
-   */
-  idleTimeBetweenScansSec?: number;
-  /**
-   * @member {string[]} [discoveryUrls] List of preset discovery urls to use
-   */
-  discoveryUrls?: string[];
-  /**
-   * @member {string[]} [locales] List of locales to filter with during
-   * discovery
-   */
-  locales?: string[];
-  /**
-   * @member {CallbackApiModel[]} [callbacks] Callbacks to invoke once
-   * onboarding finishes
-   */
-  callbacks?: CallbackApiModel[];
-  /**
-   * @member {EndpointActivationFilterApiModel} [activationFilter] Activate all
-   * twins with this filter during onboarding.
-   */
-  activationFilter?: EndpointActivationFilterApiModel;
-}
-
-/**
- * @interface
- * An interface representing DiscoveryRequestApiModel.
- * Discovery request
- *
- */
-export interface DiscoveryRequestApiModel {
-  /**
-   * @member {string} [id] Id of discovery request
-   */
-  id?: string;
-  /**
-   * @member {DiscoveryMode} [discovery] Discovery mode to use. Possible values
-   * include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
-   */
-  discovery?: DiscoveryMode;
-  /**
-   * @member {DiscoveryConfigApiModel} [configuration] Scan configuration to
-   * use
-   */
-  configuration?: DiscoveryConfigApiModel;
+  reqTimes: Date[] | string[];
 }
 
 /**
@@ -345,354 +46,456 @@ export interface CredentialApiModel {
 
 /**
  * @interface
- * An interface representing EndpointApiModel.
- * Endpoint model
+ * An interface representing DiagnosticsApiModel.
+ * Diagnostics configuration
  *
  */
-export interface EndpointApiModel {
+export interface DiagnosticsApiModel {
   /**
-   * @member {string} url Endpoint url to use to connect with
+   * @member {DiagnosticsLevel} [level] Requested level of response
+   * diagnostics.
+   * (default: Status). Possible values include: 'None', 'Status',
+   * 'Operations', 'Diagnostics', 'Verbose'
    */
-  url: string;
+  level?: DiagnosticsLevel;
   /**
-   * @member {string[]} [alternativeUrls] Alternative endpoint urls that can be
-   * used for
-   * accessing and validating the server
+   * @member {string} [auditId] Client audit log entry.
+   * (default: client generated)
    */
-  alternativeUrls?: string[];
+  auditId?: string;
   /**
-   * @member {CredentialApiModel} [user] User Authentication
+   * @member {Date} [timeStamp] Timestamp of request.
+   * (default: client generated)
    */
-  user?: CredentialApiModel;
-  /**
-   * @member {SecurityMode} [securityMode] Security Mode to use for
-   * communication
-   * default to best. Possible values include: 'Best', 'Sign',
-   * 'SignAndEncrypt', 'None'. Default value: 'Best' .
-   */
-  securityMode?: SecurityMode;
-  /**
-   * @member {string} [securityPolicy] Security policy uri to use for
-   * communication
-   * default to best.
-   */
-  securityPolicy?: string;
-  /**
-   * @member {Uint8Array} [serverThumbprint] Thumbprint to validate against or
-   * null to trust any.
-   */
-  serverThumbprint?: Uint8Array;
+  timeStamp?: Date;
 }
 
 /**
  * @interface
- * An interface representing AuthenticationMethodApiModel.
- * Authentication Method model
+ * An interface representing RequestHeaderApiModel.
+ * Request header model
  *
  */
-export interface AuthenticationMethodApiModel {
+export interface RequestHeaderApiModel {
   /**
-   * @member {string} id Method id
+   * @member {CredentialApiModel} [elevation] Optional User elevation
    */
-  id: string;
+  elevation?: CredentialApiModel;
   /**
-   * @member {CredentialType} [credentialType] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'. Default
-   * value: 'None' .
+   * @member {string[]} [locales] Optional list of locales in preference order.
    */
-  credentialType?: CredentialType;
+  locales?: string[];
   /**
-   * @member {string} [securityPolicy] Security policy to use when passing
-   * credential.
+   * @member {DiagnosticsApiModel} [diagnostics] Optional diagnostics
+   * configuration
    */
-  securityPolicy?: string;
-  /**
-   * @member {any} [configuration] Method specific configuration
-   */
-  configuration?: any;
+  diagnostics?: DiagnosticsApiModel;
 }
 
 /**
  * @interface
- * An interface representing EndpointRegistrationApiModel.
- * Endpoint registration model
+ * An interface representing ServiceResultApiModel.
+ * Service result
  *
  */
-export interface EndpointRegistrationApiModel {
+export interface ServiceResultApiModel {
   /**
-   * @member {string} id Registered identifier of the endpoint
+   * @member {number} [statusCode] Error code - if null operation succeeded.
    */
-  id: string;
+  statusCode?: number;
   /**
-   * @member {string} [endpointUrl] Original endpoint url of the endpoint
+   * @member {string} [errorMessage] Error message in case of error or null.
    */
-  endpointUrl?: string;
+  errorMessage?: string;
   /**
-   * @member {string} [siteId] Registered site of the endpoint
+   * @member {any} [diagnostics] Additional diagnostics information
    */
-  siteId?: string;
-  /**
-   * @member {EndpointApiModel} endpoint Endpoint information of the
-   * registration
-   */
-  endpoint: EndpointApiModel;
-  /**
-   * @member {number} [securityLevel] Security level of the endpoint
-   */
-  securityLevel?: number;
-  /**
-   * @member {Uint8Array} [certificate] Endpoint cert that was registered.
-   */
-  certificate?: Uint8Array;
-  /**
-   * @member {AuthenticationMethodApiModel[]} [authenticationMethods] Supported
-   * authentication methods that can be selected to
-   * obtain a credential and used to interact with the endpoint.
-   */
-  authenticationMethods?: AuthenticationMethodApiModel[];
+  diagnostics?: any;
 }
 
 /**
  * @interface
- * An interface representing ApplicationRegistrationApiModel.
- * Application with list of endpoints
+ * An interface representing HistoryUpdateResponseApiModel.
+ * History update results
  *
  */
-export interface ApplicationRegistrationApiModel {
+export interface HistoryUpdateResponseApiModel {
   /**
-   * @member {ApplicationInfoApiModel} application Application information
+   * @member {ServiceResultApiModel[]} [results] List of results from the
+   * update operation
    */
-  application: ApplicationInfoApiModel;
+  results?: ServiceResultApiModel[];
   /**
-   * @member {EndpointRegistrationApiModel[]} [endpoints] List of endpoint
-   * twins
+   * @member {ServiceResultApiModel} [errorInfo] Service result in case of
+   * service call error
    */
-  endpoints?: EndpointRegistrationApiModel[];
-  /**
-   * @member {SecurityAssessment} [securityAssessment] Application security
-   * assessment. Possible values include: 'Unknown', 'Low', 'Medium', 'High'
-   */
-  securityAssessment?: SecurityAssessment;
+  errorInfo?: ServiceResultApiModel;
 }
 
 /**
  * @interface
- * An interface representing ApplicationRegistrationUpdateApiModel.
- * Application registration update request
+ * An interface representing DeleteValuesDetailsApiModel.
+ * Delete raw modified data
  *
  */
-export interface ApplicationRegistrationUpdateApiModel {
+export interface DeleteValuesDetailsApiModel {
   /**
-   * @member {string} [productUri] Product uri
+   * @member {Date} [startTime] Start time
    */
-  productUri?: string;
+  startTime?: Date;
   /**
-   * @member {string} [applicationName] Application name
+   * @member {Date} [endTime] End time to delete until
    */
-  applicationName?: string;
-  /**
-   * @member {string} [locale] Locale of name - defaults to "en"
-   */
-  locale?: string;
-  /**
-   * @member {Uint8Array} [certificate] Application public cert
-   */
-  certificate?: Uint8Array;
-  /**
-   * @member {string[]} [capabilities] Capabilities of the application
-   */
-  capabilities?: string[];
-  /**
-   * @member {string[]} [discoveryUrls] Discovery urls of the application
-   */
-  discoveryUrls?: string[];
-  /**
-   * @member {string} [discoveryProfileUri] Discovery profile uri
-   */
-  discoveryProfileUri?: string;
+  endTime?: Date;
 }
 
 /**
  * @interface
- * An interface representing ApplicationSiteListApiModel.
- * List of application sites
+ * An interface representing DeleteModifiedValuesDetailsApiModel.
+ * Delete raw modified data
  *
  */
-export interface ApplicationSiteListApiModel {
+export interface DeleteModifiedValuesDetailsApiModel {
   /**
-   * @member {string[]} [sites] Distinct list of sites applications were
-   * registered in.
+   * @member {Date} [startTime] Start time
    */
-  sites?: string[];
+  startTime?: Date;
   /**
-   * @member {string} [continuationToken] Continuation or null if final
+   * @member {Date} [endTime] End time to delete until
    */
-  continuationToken?: string;
+  endTime?: Date;
 }
 
 /**
  * @interface
- * An interface representing ApplicationRegistrationQueryApiModel.
- * Application information
+ * An interface representing DeleteEventsDetailsApiModel.
+ * The events to delete
  *
  */
-export interface ApplicationRegistrationQueryApiModel {
+export interface DeleteEventsDetailsApiModel {
   /**
-   * @member {ApplicationType} [applicationType] Type of application. Possible
-   * values include: 'Server', 'Client', 'ClientAndServer'
+   * @member {Uint8Array[]} eventIds Events to delete
    */
-  applicationType?: ApplicationType;
-  /**
-   * @member {string} [applicationUri] Application uri
-   */
-  applicationUri?: string;
-  /**
-   * @member {string} [productUri] Product uri
-   */
-  productUri?: string;
-  /**
-   * @member {string} [applicationName] Name of application
-   */
-  applicationName?: string;
-  /**
-   * @member {string} [locale] Locale of application name - default is "en"
-   */
-  locale?: string;
-  /**
-   * @member {string} [capability] Application capability to query with
-   */
-  capability?: string;
-  /**
-   * @member {string} [siteOrSupervisorId] Supervisor or site the application
-   * belongs to.
-   */
-  siteOrSupervisorId?: string;
-  /**
-   * @member {boolean} [includeNotSeenSince] Whether to include apps that were
-   * soft deleted
-   */
-  includeNotSeenSince?: boolean;
+  eventIds: Uint8Array[];
 }
 
 /**
  * @interface
- * An interface representing EndpointRegistrationUpdateApiModel.
- * Endpoint registration update request
+ * An interface representing HistoryReadNextRequestApiModel.
+ * Request node history read continuation
  *
  */
-export interface EndpointRegistrationUpdateApiModel {
+export interface HistoryReadNextRequestApiModel {
   /**
-   * @member {CredentialApiModel} [user] User authentication to change on the
-   * endpoint.
+   * @member {string} continuationToken Continuation token to continue reading
+   * more
+   * results.
    */
-  user?: CredentialApiModel;
+  continuationToken: string;
+  /**
+   * @member {boolean} [abort] Abort reading after this read. Default value:
+   * false .
+   */
+  abort?: boolean;
+  /**
+   * @member {RequestHeaderApiModel} [header] Optional request header
+   */
+  header?: RequestHeaderApiModel;
 }
 
 /**
  * @interface
- * An interface representing EndpointInfoApiModel.
- * Endpoint registration model
+ * An interface representing ModificationInfoApiModel.
+ * Modification information
  *
  */
-export interface EndpointInfoApiModel {
+export interface ModificationInfoApiModel {
   /**
-   * @member {EndpointRegistrationApiModel} registration Endpoint registration
+   * @member {Date} [modificationTime] Modification time
    */
-  registration: EndpointRegistrationApiModel;
+  modificationTime?: Date;
   /**
-   * @member {string} applicationId Application id endpoint is registered
-   * under.
+   * @member {HistoryUpdateOperation} [updateType] Operation. Possible values
+   * include: 'Insert', 'Replace', 'Update', 'Delete'
    */
-  applicationId: string;
+  updateType?: HistoryUpdateOperation;
   /**
-   * @member {EndpointActivationState} [activationState] Activation state of
-   * endpoint. Possible values include: 'Deactivated', 'Activated',
-   * 'ActivatedAndConnected'
+   * @member {string} [userName] User who made the change
    */
-  activationState?: EndpointActivationState;
-  /**
-   * @member {EndpointConnectivityState} [endpointState] Last state of the
-   * activated endpoint. Possible values include: 'Connecting', 'NotReachable',
-   * 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
-   */
-  endpointState?: EndpointConnectivityState;
-  /**
-   * @member {boolean} [outOfSync] Whether the registration is out of sync
-   */
-  outOfSync?: boolean;
-  /**
-   * @member {Date} [notSeenSince] Last time endpoint was seen
-   */
-  notSeenSince?: Date;
+  userName?: string;
 }
 
 /**
  * @interface
- * An interface representing EndpointInfoListApiModel.
- * Endpoint registration list
+ * An interface representing HistoricValueApiModel.
+ * Historic data
  *
  */
-export interface EndpointInfoListApiModel {
+export interface HistoricValueApiModel {
   /**
-   * @member {EndpointInfoApiModel[]} [items] Endpoint registrations
+   * @member {any} [value] ,
+   * The value of data value.
    */
-  items?: EndpointInfoApiModel[];
+  value?: any;
   /**
-   * @member {string} [continuationToken] Continuation or null if final
+   * @member {number} [statusCode] The status code associated with the value.
    */
-  continuationToken?: string;
+  statusCode?: number;
+  /**
+   * @member {Date} [sourceTimestamp] The source timestamp associated with the
+   * value.
+   */
+  sourceTimestamp?: Date;
+  /**
+   * @member {number} [sourcePicoseconds] Additional resolution for the source
+   * timestamp.
+   */
+  sourcePicoseconds?: number;
+  /**
+   * @member {Date} [serverTimestamp] The server timestamp associated with the
+   * value.
+   */
+  serverTimestamp?: Date;
+  /**
+   * @member {number} [serverPicoseconds] Additional resolution for the server
+   * timestamp.
+   */
+  serverPicoseconds?: number;
+  /**
+   * @member {ModificationInfoApiModel} [modificationInfo] modification
+   * information when reading modifications.
+   */
+  modificationInfo?: ModificationInfoApiModel;
 }
 
 /**
  * @interface
- * An interface representing EndpointRegistrationQueryApiModel.
- * Endpoint query
+ * An interface representing InsertValuesDetailsApiModel.
+ * Insert historic data
  *
  */
-export interface EndpointRegistrationQueryApiModel {
+export interface InsertValuesDetailsApiModel {
   /**
-   * @member {string} [url] Endoint url for direct server access
+   * @member {HistoricValueApiModel[]} values Values to insert
    */
-  url?: string;
+  values: HistoricValueApiModel[];
+}
+
+/**
+ * @interface
+ * An interface representing HistoricEventApiModel.
+ * Historic event
+ *
+ */
+export interface HistoricEventApiModel {
   /**
-   * @member {CredentialType} [userAuthentication] Type of credential selected
-   * for authentication. Possible values include: 'None', 'UserName',
-   * 'X509Certificate', 'JwtToken'
+   * @member {any[]} [eventFields] The selected fields of the event
    */
-  userAuthentication?: CredentialType;
+  eventFields?: any[];
+}
+
+/**
+ * @interface
+ * An interface representing InsertEventsDetailsApiModel.
+ * Insert historic events
+ *
+ */
+export interface InsertEventsDetailsApiModel {
   /**
-   * @member {Uint8Array} [certificate] Certificate of the endpoint
+   * @member {any} [filter] The filter to use to select the events
    */
-  certificate?: Uint8Array;
+  filter?: any;
   /**
-   * @member {SecurityMode} [securityMode] Security Mode. Possible values
-   * include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
+   * @member {HistoricEventApiModel[]} events The new events to insert
    */
-  securityMode?: SecurityMode;
+  events: HistoricEventApiModel[];
+}
+
+/**
+ * @interface
+ * An interface representing ReadEventsDetailsApiModel.
+ * Read event data
+ *
+ */
+export interface ReadEventsDetailsApiModel {
   /**
-   * @member {string} [securityPolicy] Security policy uri
+   * @member {Date} [startTime] Start time to read from
    */
-  securityPolicy?: string;
+  startTime?: Date;
   /**
-   * @member {boolean} [activated] Whether the endpoint was activated
+   * @member {Date} [endTime] End time to read to
    */
-  activated?: boolean;
+  endTime?: Date;
   /**
-   * @member {boolean} [connected] Whether the endpoint is connected on
-   * supervisor.
+   * @member {number} [numEvents] Number of events to read
    */
-  connected?: boolean;
+  numEvents?: number;
   /**
-   * @member {EndpointConnectivityState} [endpointState] The last state of the
-   * the activated endpoint. Possible values include: 'Connecting',
-   * 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
+   * @member {any} [filter] The filter to use to select the event fields
    */
-  endpointState?: EndpointConnectivityState;
+  filter?: any;
+}
+
+/**
+ * @interface
+ * An interface representing ReadValuesDetailsApiModel.
+ * Read historic values
+ *
+ */
+export interface ReadValuesDetailsApiModel {
   /**
-   * @member {boolean} [includeNotSeenSince] Whether to include endpoints that
-   * were soft deleted
+   * @member {Date} [startTime] Beginning of period to read. Set to null
+   * if no specific start time is specified.
    */
-  includeNotSeenSince?: boolean;
+  startTime?: Date;
+  /**
+   * @member {Date} [endTime] End of period to read. Set to null if no
+   * specific end time is specified.
+   */
+  endTime?: Date;
+  /**
+   * @member {number} [numValues] The maximum number of values returned for any
+   * Node
+   * over the time range. If only one time is specified,
+   * the time range shall extend to return this number
+   * of values. 0 or null indicates that there is no
+   * maximum.
+   */
+  numValues?: number;
+  /**
+   * @member {boolean} [returnBounds] Whether to return the bounding values or
+   * not.
+   */
+  returnBounds?: boolean;
+}
+
+/**
+ * @interface
+ * An interface representing ReadValuesAtTimesDetailsApiModel.
+ * Read data at specified times
+ *
+ */
+export interface ReadValuesAtTimesDetailsApiModel {
+  /**
+   * @member {Date[] | string[]} reqTimes Requested datums
+   */
+  reqTimes: Date[] | string[];
+  /**
+   * @member {boolean} [useSimpleBounds] Whether to use simple bounds
+   */
+  useSimpleBounds?: boolean;
+}
+
+/**
+ * @interface
+ * An interface representing AggregateConfigApiModel.
+ * Aggregate configuration
+ *
+ */
+export interface AggregateConfigApiModel {
+  /**
+   * @member {boolean} [useServerCapabilitiesDefaults] Whether to use the
+   * default server caps
+   */
+  useServerCapabilitiesDefaults?: boolean;
+  /**
+   * @member {boolean} [treatUncertainAsBad] Whether to treat uncertain as bad
+   */
+  treatUncertainAsBad?: boolean;
+  /**
+   * @member {number} [percentDataBad] Percent of data that is bad
+   */
+  percentDataBad?: number;
+  /**
+   * @member {number} [percentDataGood] Percent of data that is good
+   */
+  percentDataGood?: number;
+  /**
+   * @member {boolean} [useSlopedExtrapolation] Whether to use sloped
+   * extrapolation.
+   */
+  useSlopedExtrapolation?: boolean;
+}
+
+/**
+ * @interface
+ * An interface representing ReadProcessedValuesDetailsApiModel.
+ * Read processed historic data
+ *
+ */
+export interface ReadProcessedValuesDetailsApiModel {
+  /**
+   * @member {Date} [startTime] Start time to read from.
+   */
+  startTime?: Date;
+  /**
+   * @member {Date} [endTime] End time to read until
+   */
+  endTime?: Date;
+  /**
+   * @member {number} [processingInterval] Interval to process
+   */
+  processingInterval?: number;
+  /**
+   * @member {string} [aggregateTypeId] The aggregate type node ids
+   */
+  aggregateTypeId?: string;
+  /**
+   * @member {AggregateConfigApiModel} [aggregateConfiguration] A configuration
+   * for the aggregate
+   */
+  aggregateConfiguration?: AggregateConfigApiModel;
+}
+
+/**
+ * @interface
+ * An interface representing ReadModifiedValuesDetailsApiModel.
+ * Read modified data
+ *
+ */
+export interface ReadModifiedValuesDetailsApiModel {
+  /**
+   * @member {Date} [startTime] The start time to read from
+   */
+  startTime?: Date;
+  /**
+   * @member {Date} [endTime] The end time to read to
+   */
+  endTime?: Date;
+  /**
+   * @member {number} [numValues] The number of values to read
+   */
+  numValues?: number;
+}
+
+/**
+ * @interface
+ * An interface representing ReplaceValuesDetailsApiModel.
+ * Replace historic data
+ *
+ */
+export interface ReplaceValuesDetailsApiModel {
+  /**
+   * @member {HistoricValueApiModel[]} values Values to replace
+   */
+  values: HistoricValueApiModel[];
+}
+
+/**
+ * @interface
+ * An interface representing ReplaceEventsDetailsApiModel.
+ * Replace historic events
+ *
+ */
+export interface ReplaceEventsDetailsApiModel {
+  /**
+   * @member {any} [filter] The filter to use to select the events
+   */
+  filter?: any;
+  /**
+   * @member {HistoricEventApiModel[]} events The events to replace
+   */
+  events: HistoricEventApiModel[];
 }
 
 /**
@@ -704,10 +507,8 @@ export interface EndpointRegistrationQueryApiModel {
 export interface StatusResponseApiModel {
   /**
    * @member {string} [name] Name of this service
-   * **NOTE: This property will not be serialized. It can only be populated by
-   * the server.**
    */
-  readonly name?: string;
+  name?: string;
   /**
    * @member {string} [status] Operational status
    */
@@ -764,175 +565,634 @@ export interface StatusResponseApiModel {
 
 /**
  * @interface
- * An interface representing SupervisorApiModel.
- * Supervisor registration model
+ * An interface representing HistoryUpdateRequestApiModelDeleteValuesAtTimesDetailsApiModel.
+ * Request node history update
  *
  */
-export interface SupervisorApiModel {
+export interface HistoryUpdateRequestApiModelDeleteValuesAtTimesDetailsApiModel {
   /**
-   * @member {string} id Supervisor id
+   * @member {string} [nodeId] Node to update
    */
-  id: string;
+  nodeId?: string;
   /**
-   * @member {string} [siteId] Site of the supervisor
+   * @member {string[]} [browsePath] An optional path from NodeId instance to
+   * the actual node.
    */
-  siteId?: string;
+  browsePath?: string[];
   /**
-   * @member {DiscoveryMode} [discovery] Whether the supervisor is in discovery
-   * mode. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'.
-   * Default value: 'Off' .
+   * @member {DeleteValuesAtTimesDetailsApiModel} details The
+   * HistoryUpdateDetailsType extension object
+   * encoded as json Variant and containing the tunneled
+   * update request for the Historian server. The value
+   * is updated at edge using above node address.
    */
-  discovery?: DiscoveryMode;
+  details: DeleteValuesAtTimesDetailsApiModel;
   /**
-   * @member {DiscoveryConfigApiModel} [discoveryConfig] Supervisor
-   * configuration
+   * @member {RequestHeaderApiModel} [header] Optional request header
    */
-  discoveryConfig?: DiscoveryConfigApiModel;
-  /**
-   * @member {Uint8Array} [certificate] Supervisor public client cert
-   */
-  certificate?: Uint8Array;
-  /**
-   * @member {SupervisorLogLevel} [logLevel] Current log level. Possible values
-   * include: 'Error', 'Information', 'Debug', 'Verbose'. Default value:
-   * 'Information' .
-   */
-  logLevel?: SupervisorLogLevel;
-  /**
-   * @member {boolean} [outOfSync] Whether the registration is out of sync
-   * between
-   * client (module) and server (service) (default: false).
-   */
-  outOfSync?: boolean;
-  /**
-   * @member {boolean} [connected] Whether supervisor is connected on this
-   * registration
-   */
-  connected?: boolean;
+  header?: RequestHeaderApiModel;
 }
 
 /**
  * @interface
- * An interface representing SupervisorUpdateApiModel.
- * Supervisor registration update request
+ * An interface representing HistoryUpdateRequestApiModelDeleteValuesDetailsApiModel.
+ * Request node history update
  *
  */
-export interface SupervisorUpdateApiModel {
+export interface HistoryUpdateRequestApiModelDeleteValuesDetailsApiModel {
   /**
-   * @member {string} [siteId] Site of the supervisor
+   * @member {string} [nodeId] Node to update
    */
-  siteId?: string;
+  nodeId?: string;
   /**
-   * @member {DiscoveryMode} [discovery] Whether the supervisor is in discovery
-   * mode.
-   * If null, does not change. Possible values include: 'Off', 'Local',
-   * 'Network', 'Fast', 'Scan'. Default value: 'Off' .
+   * @member {string[]} [browsePath] An optional path from NodeId instance to
+   * the actual node.
    */
-  discovery?: DiscoveryMode;
+  browsePath?: string[];
   /**
-   * @member {DiscoveryConfigApiModel} [discoveryConfig] Supervisor discovery
-   * configuration
+   * @member {DeleteValuesDetailsApiModel} details The HistoryUpdateDetailsType
+   * extension object
+   * encoded as json Variant and containing the tunneled
+   * update request for the Historian server. The value
+   * is updated at edge using above node address.
    */
-  discoveryConfig?: DiscoveryConfigApiModel;
+  details: DeleteValuesDetailsApiModel;
   /**
-   * @member {CallbackApiModel[]} [discoveryCallbacks] Callbacks to add or
-   * remove (see below)
+   * @member {RequestHeaderApiModel} [header] Optional request header
    */
-  discoveryCallbacks?: CallbackApiModel[];
-  /**
-   * @member {boolean} [removeDiscoveryCallbacks] Whether to add or remove
-   * callbacks
-   */
-  removeDiscoveryCallbacks?: boolean;
-  /**
-   * @member {SupervisorLogLevel} [logLevel] Current log level. Possible values
-   * include: 'Error', 'Information', 'Debug', 'Verbose'
-   */
-  logLevel?: SupervisorLogLevel;
+  header?: RequestHeaderApiModel;
 }
 
 /**
  * @interface
- * An interface representing EndpointActivationStatusApiModel.
- * Endpoint Activation status model
+ * An interface representing HistoryUpdateRequestApiModelDeleteModifiedValuesDetailsApiModel.
+ * Request node history update
  *
  */
-export interface EndpointActivationStatusApiModel {
+export interface HistoryUpdateRequestApiModelDeleteModifiedValuesDetailsApiModel {
   /**
-   * @member {string} id Identifier of the endoint
+   * @member {string} [nodeId] Node to update
    */
-  id: string;
+  nodeId?: string;
   /**
-   * @member {EndpointActivationState} [activationState] Activation state.
-   * Possible values include: 'Deactivated', 'Activated',
-   * 'ActivatedAndConnected'
+   * @member {string[]} [browsePath] An optional path from NodeId instance to
+   * the actual node.
    */
-  activationState?: EndpointActivationState;
+  browsePath?: string[];
+  /**
+   * @member {DeleteModifiedValuesDetailsApiModel} details The
+   * HistoryUpdateDetailsType extension object
+   * encoded as json Variant and containing the tunneled
+   * update request for the Historian server. The value
+   * is updated at edge using above node address.
+   */
+  details: DeleteModifiedValuesDetailsApiModel;
+  /**
+   * @member {RequestHeaderApiModel} [header] Optional request header
+   */
+  header?: RequestHeaderApiModel;
 }
 
 /**
  * @interface
- * An interface representing SupervisorStatusApiModel.
- * Supervisor runtime status
+ * An interface representing HistoryUpdateRequestApiModelDeleteEventsDetailsApiModel.
+ * Request node history update
  *
  */
-export interface SupervisorStatusApiModel {
+export interface HistoryUpdateRequestApiModelDeleteEventsDetailsApiModel {
   /**
-   * @member {string} deviceId Edge device id
+   * @member {string} [nodeId] Node to update
    */
-  deviceId: string;
+  nodeId?: string;
   /**
-   * @member {string} [moduleId] Module id
+   * @member {string[]} [browsePath] An optional path from NodeId instance to
+   * the actual node.
    */
-  moduleId?: string;
+  browsePath?: string[];
   /**
-   * @member {string} [siteId] Site id
+   * @member {DeleteEventsDetailsApiModel} details The HistoryUpdateDetailsType
+   * extension object
+   * encoded as json Variant and containing the tunneled
+   * update request for the Historian server. The value
+   * is updated at edge using above node address.
    */
-  siteId?: string;
+  details: DeleteEventsDetailsApiModel;
   /**
-   * @member {EndpointActivationStatusApiModel[]} [endpoints] Endpoint
-   * activation status
+   * @member {RequestHeaderApiModel} [header] Optional request header
    */
-  endpoints?: EndpointActivationStatusApiModel[];
+  header?: RequestHeaderApiModel;
 }
 
 /**
  * @interface
- * An interface representing SupervisorListApiModel.
- * Supervisor registration list
+ * An interface representing HistoryReadRequestApiModelJToken.
+ * Request node history read
  *
  */
-export interface SupervisorListApiModel {
+export interface HistoryReadRequestApiModelJToken {
   /**
-   * @member {SupervisorApiModel[]} [items] Registrations
+   * @member {string} [nodeId] Node to read from (mandatory)
    */
-  items?: SupervisorApiModel[];
+  nodeId?: string;
   /**
-   * @member {string} [continuationToken] Continuation or null if final
+   * @member {string[]} [browsePath] An optional path from NodeId instance to
+   * the actual node.
+   */
+  browsePath?: string[];
+  /**
+   * @member {any} [details] The HistoryReadDetailsType extension object
+   * encoded in json and containing the tunneled
+   * Historian reader request.
+   */
+  details?: any;
+  /**
+   * @member {string} [indexRange] Index range to read, e.g. 1:2,0:1 for 2
+   * slices
+   * out of a matrix or 0:1 for the first item in
+   * an array, string or bytestring.
+   * See 7.22 of part 4: NumericRange.
+   */
+  indexRange?: string;
+  /**
+   * @member {RequestHeaderApiModel} [header] Optional request header
+   */
+  header?: RequestHeaderApiModel;
+}
+
+/**
+ * @interface
+ * An interface representing HistoryReadResponseApiModelJToken.
+ * History read results
+ *
+ */
+export interface HistoryReadResponseApiModelJToken {
+  /**
+   * @member {any} [history] History as json encoded extension object
+   */
+  history?: any;
+  /**
+   * @member {string} [continuationToken] Continuation token if more results
+   * pending.
    */
   continuationToken?: string;
+  /**
+   * @member {ServiceResultApiModel} [errorInfo] Service result in case of
+   * error
+   */
+  errorInfo?: ServiceResultApiModel;
 }
 
 /**
  * @interface
- * An interface representing SupervisorQueryApiModel.
- * Supervisor registration query
+ * An interface representing HistoryReadNextResponseApiModelJToken.
+ * History read continuation result
  *
  */
-export interface SupervisorQueryApiModel {
+export interface HistoryReadNextResponseApiModelJToken {
   /**
-   * @member {string} [siteId] Site of the supervisor
+   * @member {any} [history] History as json encoded extension object
    */
-  siteId?: string;
+  history?: any;
   /**
-   * @member {DiscoveryMode} [discovery] Discovery mode of supervisor. Possible
-   * values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
+   * @member {string} [continuationToken] Continuation token if more results
+   * pending.
    */
-  discovery?: DiscoveryMode;
+  continuationToken?: string;
   /**
-   * @member {boolean} [connected] Included connected or disconnected
+   * @member {ServiceResultApiModel} [errorInfo] Service result in case of
+   * error
    */
-  connected?: boolean;
+  errorInfo?: ServiceResultApiModel;
+}
+
+/**
+ * @interface
+ * An interface representing HistoryUpdateRequestApiModelJToken.
+ * Request node history update
+ *
+ */
+export interface HistoryUpdateRequestApiModelJToken {
+  /**
+   * @member {string} [nodeId] Node to update
+   */
+  nodeId?: string;
+  /**
+   * @member {string[]} [browsePath] An optional path from NodeId instance to
+   * the actual node.
+   */
+  browsePath?: string[];
+  /**
+   * @member {any} details The HistoryUpdateDetailsType extension object
+   * encoded as json Variant and containing the tunneled
+   * update request for the Historian server. The value
+   * is updated at edge using above node address.
+   */
+  details: any;
+  /**
+   * @member {RequestHeaderApiModel} [header] Optional request header
+   */
+  header?: RequestHeaderApiModel;
+}
+
+/**
+ * @interface
+ * An interface representing HistoryUpdateRequestApiModelInsertValuesDetailsApiModel.
+ * Request node history update
+ *
+ */
+export interface HistoryUpdateRequestApiModelInsertValuesDetailsApiModel {
+  /**
+   * @member {string} [nodeId] Node to update
+   */
+  nodeId?: string;
+  /**
+   * @member {string[]} [browsePath] An optional path from NodeId instance to
+   * the actual node.
+   */
+  browsePath?: string[];
+  /**
+   * @member {InsertValuesDetailsApiModel} details The HistoryUpdateDetailsType
+   * extension object
+   * encoded as json Variant and containing the tunneled
+   * update request for the Historian server. The value
+   * is updated at edge using above node address.
+   */
+  details: InsertValuesDetailsApiModel;
+  /**
+   * @member {RequestHeaderApiModel} [header] Optional request header
+   */
+  header?: RequestHeaderApiModel;
+}
+
+/**
+ * @interface
+ * An interface representing HistoryUpdateRequestApiModelInsertEventsDetailsApiModel.
+ * Request node history update
+ *
+ */
+export interface HistoryUpdateRequestApiModelInsertEventsDetailsApiModel {
+  /**
+   * @member {string} [nodeId] Node to update
+   */
+  nodeId?: string;
+  /**
+   * @member {string[]} [browsePath] An optional path from NodeId instance to
+   * the actual node.
+   */
+  browsePath?: string[];
+  /**
+   * @member {InsertEventsDetailsApiModel} details The HistoryUpdateDetailsType
+   * extension object
+   * encoded as json Variant and containing the tunneled
+   * update request for the Historian server. The value
+   * is updated at edge using above node address.
+   */
+  details: InsertEventsDetailsApiModel;
+  /**
+   * @member {RequestHeaderApiModel} [header] Optional request header
+   */
+  header?: RequestHeaderApiModel;
+}
+
+/**
+ * @interface
+ * An interface representing HistoryReadRequestApiModelReadEventsDetailsApiModel.
+ * Request node history read
+ *
+ */
+export interface HistoryReadRequestApiModelReadEventsDetailsApiModel {
+  /**
+   * @member {string} [nodeId] Node to read from (mandatory)
+   */
+  nodeId?: string;
+  /**
+   * @member {string[]} [browsePath] An optional path from NodeId instance to
+   * the actual node.
+   */
+  browsePath?: string[];
+  /**
+   * @member {ReadEventsDetailsApiModel} [details] The HistoryReadDetailsType
+   * extension object
+   * encoded in json and containing the tunneled
+   * Historian reader request.
+   */
+  details?: ReadEventsDetailsApiModel;
+  /**
+   * @member {string} [indexRange] Index range to read, e.g. 1:2,0:1 for 2
+   * slices
+   * out of a matrix or 0:1 for the first item in
+   * an array, string or bytestring.
+   * See 7.22 of part 4: NumericRange.
+   */
+  indexRange?: string;
+  /**
+   * @member {RequestHeaderApiModel} [header] Optional request header
+   */
+  header?: RequestHeaderApiModel;
+}
+
+/**
+ * @interface
+ * An interface representing HistoryReadResponseApiModelHistoricEventApiModel.
+ * History read results
+ *
+ */
+export interface HistoryReadResponseApiModelHistoricEventApiModel {
+  /**
+   * @member {HistoricEventApiModel[]} [history] History as json encoded
+   * extension object
+   */
+  history?: HistoricEventApiModel[];
+  /**
+   * @member {string} [continuationToken] Continuation token if more results
+   * pending.
+   */
+  continuationToken?: string;
+  /**
+   * @member {ServiceResultApiModel} [errorInfo] Service result in case of
+   * error
+   */
+  errorInfo?: ServiceResultApiModel;
+}
+
+/**
+ * @interface
+ * An interface representing HistoryReadNextResponseApiModelHistoricEventApiModel.
+ * History read continuation result
+ *
+ */
+export interface HistoryReadNextResponseApiModelHistoricEventApiModel {
+  /**
+   * @member {HistoricEventApiModel[]} [history] History as json encoded
+   * extension object
+   */
+  history?: HistoricEventApiModel[];
+  /**
+   * @member {string} [continuationToken] Continuation token if more results
+   * pending.
+   */
+  continuationToken?: string;
+  /**
+   * @member {ServiceResultApiModel} [errorInfo] Service result in case of
+   * error
+   */
+  errorInfo?: ServiceResultApiModel;
+}
+
+/**
+ * @interface
+ * An interface representing HistoryReadRequestApiModelReadValuesDetailsApiModel.
+ * Request node history read
+ *
+ */
+export interface HistoryReadRequestApiModelReadValuesDetailsApiModel {
+  /**
+   * @member {string} [nodeId] Node to read from (mandatory)
+   */
+  nodeId?: string;
+  /**
+   * @member {string[]} [browsePath] An optional path from NodeId instance to
+   * the actual node.
+   */
+  browsePath?: string[];
+  /**
+   * @member {ReadValuesDetailsApiModel} [details] The HistoryReadDetailsType
+   * extension object
+   * encoded in json and containing the tunneled
+   * Historian reader request.
+   */
+  details?: ReadValuesDetailsApiModel;
+  /**
+   * @member {string} [indexRange] Index range to read, e.g. 1:2,0:1 for 2
+   * slices
+   * out of a matrix or 0:1 for the first item in
+   * an array, string or bytestring.
+   * See 7.22 of part 4: NumericRange.
+   */
+  indexRange?: string;
+  /**
+   * @member {RequestHeaderApiModel} [header] Optional request header
+   */
+  header?: RequestHeaderApiModel;
+}
+
+/**
+ * @interface
+ * An interface representing HistoryReadResponseApiModelHistoricValueApiModel.
+ * History read results
+ *
+ */
+export interface HistoryReadResponseApiModelHistoricValueApiModel {
+  /**
+   * @member {HistoricValueApiModel[]} [history] History as json encoded
+   * extension object
+   */
+  history?: HistoricValueApiModel[];
+  /**
+   * @member {string} [continuationToken] Continuation token if more results
+   * pending.
+   */
+  continuationToken?: string;
+  /**
+   * @member {ServiceResultApiModel} [errorInfo] Service result in case of
+   * error
+   */
+  errorInfo?: ServiceResultApiModel;
+}
+
+/**
+ * @interface
+ * An interface representing HistoryReadRequestApiModelReadValuesAtTimesDetailsApiModel.
+ * Request node history read
+ *
+ */
+export interface HistoryReadRequestApiModelReadValuesAtTimesDetailsApiModel {
+  /**
+   * @member {string} [nodeId] Node to read from (mandatory)
+   */
+  nodeId?: string;
+  /**
+   * @member {string[]} [browsePath] An optional path from NodeId instance to
+   * the actual node.
+   */
+  browsePath?: string[];
+  /**
+   * @member {ReadValuesAtTimesDetailsApiModel} [details] The
+   * HistoryReadDetailsType extension object
+   * encoded in json and containing the tunneled
+   * Historian reader request.
+   */
+  details?: ReadValuesAtTimesDetailsApiModel;
+  /**
+   * @member {string} [indexRange] Index range to read, e.g. 1:2,0:1 for 2
+   * slices
+   * out of a matrix or 0:1 for the first item in
+   * an array, string or bytestring.
+   * See 7.22 of part 4: NumericRange.
+   */
+  indexRange?: string;
+  /**
+   * @member {RequestHeaderApiModel} [header] Optional request header
+   */
+  header?: RequestHeaderApiModel;
+}
+
+/**
+ * @interface
+ * An interface representing HistoryReadRequestApiModelReadProcessedValuesDetailsApiModel.
+ * Request node history read
+ *
+ */
+export interface HistoryReadRequestApiModelReadProcessedValuesDetailsApiModel {
+  /**
+   * @member {string} [nodeId] Node to read from (mandatory)
+   */
+  nodeId?: string;
+  /**
+   * @member {string[]} [browsePath] An optional path from NodeId instance to
+   * the actual node.
+   */
+  browsePath?: string[];
+  /**
+   * @member {ReadProcessedValuesDetailsApiModel} [details] The
+   * HistoryReadDetailsType extension object
+   * encoded in json and containing the tunneled
+   * Historian reader request.
+   */
+  details?: ReadProcessedValuesDetailsApiModel;
+  /**
+   * @member {string} [indexRange] Index range to read, e.g. 1:2,0:1 for 2
+   * slices
+   * out of a matrix or 0:1 for the first item in
+   * an array, string or bytestring.
+   * See 7.22 of part 4: NumericRange.
+   */
+  indexRange?: string;
+  /**
+   * @member {RequestHeaderApiModel} [header] Optional request header
+   */
+  header?: RequestHeaderApiModel;
+}
+
+/**
+ * @interface
+ * An interface representing HistoryReadRequestApiModelReadModifiedValuesDetailsApiModel.
+ * Request node history read
+ *
+ */
+export interface HistoryReadRequestApiModelReadModifiedValuesDetailsApiModel {
+  /**
+   * @member {string} [nodeId] Node to read from (mandatory)
+   */
+  nodeId?: string;
+  /**
+   * @member {string[]} [browsePath] An optional path from NodeId instance to
+   * the actual node.
+   */
+  browsePath?: string[];
+  /**
+   * @member {ReadModifiedValuesDetailsApiModel} [details] The
+   * HistoryReadDetailsType extension object
+   * encoded in json and containing the tunneled
+   * Historian reader request.
+   */
+  details?: ReadModifiedValuesDetailsApiModel;
+  /**
+   * @member {string} [indexRange] Index range to read, e.g. 1:2,0:1 for 2
+   * slices
+   * out of a matrix or 0:1 for the first item in
+   * an array, string or bytestring.
+   * See 7.22 of part 4: NumericRange.
+   */
+  indexRange?: string;
+  /**
+   * @member {RequestHeaderApiModel} [header] Optional request header
+   */
+  header?: RequestHeaderApiModel;
+}
+
+/**
+ * @interface
+ * An interface representing HistoryReadNextResponseApiModelHistoricValueApiModel.
+ * History read continuation result
+ *
+ */
+export interface HistoryReadNextResponseApiModelHistoricValueApiModel {
+  /**
+   * @member {HistoricValueApiModel[]} [history] History as json encoded
+   * extension object
+   */
+  history?: HistoricValueApiModel[];
+  /**
+   * @member {string} [continuationToken] Continuation token if more results
+   * pending.
+   */
+  continuationToken?: string;
+  /**
+   * @member {ServiceResultApiModel} [errorInfo] Service result in case of
+   * error
+   */
+  errorInfo?: ServiceResultApiModel;
+}
+
+/**
+ * @interface
+ * An interface representing HistoryUpdateRequestApiModelReplaceValuesDetailsApiModel.
+ * Request node history update
+ *
+ */
+export interface HistoryUpdateRequestApiModelReplaceValuesDetailsApiModel {
+  /**
+   * @member {string} [nodeId] Node to update
+   */
+  nodeId?: string;
+  /**
+   * @member {string[]} [browsePath] An optional path from NodeId instance to
+   * the actual node.
+   */
+  browsePath?: string[];
+  /**
+   * @member {ReplaceValuesDetailsApiModel} details The
+   * HistoryUpdateDetailsType extension object
+   * encoded as json Variant and containing the tunneled
+   * update request for the Historian server. The value
+   * is updated at edge using above node address.
+   */
+  details: ReplaceValuesDetailsApiModel;
+  /**
+   * @member {RequestHeaderApiModel} [header] Optional request header
+   */
+  header?: RequestHeaderApiModel;
+}
+
+/**
+ * @interface
+ * An interface representing HistoryUpdateRequestApiModelReplaceEventsDetailsApiModel.
+ * Request node history update
+ *
+ */
+export interface HistoryUpdateRequestApiModelReplaceEventsDetailsApiModel {
+  /**
+   * @member {string} [nodeId] Node to update
+   */
+  nodeId?: string;
+  /**
+   * @member {string[]} [browsePath] An optional path from NodeId instance to
+   * the actual node.
+   */
+  browsePath?: string[];
+  /**
+   * @member {ReplaceEventsDetailsApiModel} details The
+   * HistoryUpdateDetailsType extension object
+   * encoded as json Variant and containing the tunneled
+   * update request for the Historian server. The value
+   * is updated at edge using above node address.
+   */
+  details: ReplaceEventsDetailsApiModel;
+  /**
+   * @member {RequestHeaderApiModel} [header] Optional request header
+   */
+  header?: RequestHeaderApiModel;
 }
 
 /**
@@ -948,335 +1208,6 @@ export interface AzureOpcHistoryClientOptions extends ServiceClientOptions {
 }
 
 /**
- * @interface
- * An interface representing AzureOpcHistoryClientGetListOfApplicationsOptionalParams.
- * Optional Parameters.
- *
- * @extends RequestOptionsBase
- */
-export interface AzureOpcHistoryClientGetListOfApplicationsOptionalParams extends msRest.RequestOptionsBase {
-  /**
-   * @member {string} [continuationToken] Optional Continuation
-   * token
-   */
-  continuationToken?: string;
-  /**
-   * @member {number} [pageSize] Optional number of results to
-   * return
-   */
-  pageSize?: number;
-}
-
-/**
- * @interface
- * An interface representing AzureOpcHistoryClientDeleteAllDisabledApplicationsOptionalParams.
- * Optional Parameters.
- *
- * @extends RequestOptionsBase
- */
-export interface AzureOpcHistoryClientDeleteAllDisabledApplicationsOptionalParams extends msRest.RequestOptionsBase {
-  /**
-   * @member {string} [notSeenFor] A duration in milliseconds
-   */
-  notSeenFor?: string;
-}
-
-/**
- * @interface
- * An interface representing AzureOpcHistoryClientGetListOfSitesOptionalParams.
- * Optional Parameters.
- *
- * @extends RequestOptionsBase
- */
-export interface AzureOpcHistoryClientGetListOfSitesOptionalParams extends msRest.RequestOptionsBase {
-  /**
-   * @member {string} [continuationToken] Optional Continuation
-   * token
-   */
-  continuationToken?: string;
-  /**
-   * @member {number} [pageSize] Optional number of results to
-   * return
-   */
-  pageSize?: number;
-}
-
-/**
- * @interface
- * An interface representing AzureOpcHistoryClientGetFilteredListOfApplicationsOptionalParams.
- * Optional Parameters.
- *
- * @extends RequestOptionsBase
- */
-export interface AzureOpcHistoryClientGetFilteredListOfApplicationsOptionalParams extends msRest.RequestOptionsBase {
-  /**
-   * @member {number} [pageSize] Number of results to return
-   */
-  pageSize?: number;
-}
-
-/**
- * @interface
- * An interface representing AzureOpcHistoryClientQueryApplicationsOptionalParams.
- * Optional Parameters.
- *
- * @extends RequestOptionsBase
- */
-export interface AzureOpcHistoryClientQueryApplicationsOptionalParams extends msRest.RequestOptionsBase {
-  /**
-   * @member {number} [pageSize] Optional number of results to
-   * return
-   */
-  pageSize?: number;
-}
-
-/**
- * @interface
- * An interface representing AzureOpcHistoryClientGetEndpointOptionalParams.
- * Optional Parameters.
- *
- * @extends RequestOptionsBase
- */
-export interface AzureOpcHistoryClientGetEndpointOptionalParams extends msRest.RequestOptionsBase {
-  /**
-   * @member {boolean} [onlyServerState] Whether to include only server
-   * state, or display current client state of the endpoint if
-   * available
-   */
-  onlyServerState?: boolean;
-}
-
-/**
- * @interface
- * An interface representing AzureOpcHistoryClientGetListOfEndpointsOptionalParams.
- * Optional Parameters.
- *
- * @extends RequestOptionsBase
- */
-export interface AzureOpcHistoryClientGetListOfEndpointsOptionalParams extends msRest.RequestOptionsBase {
-  /**
-   * @member {boolean} [onlyServerState] Whether to include only server
-   * state, or display current client state of the endpoint if available
-   */
-  onlyServerState?: boolean;
-  /**
-   * @member {string} [continuationToken] Optional Continuation token
-   */
-  continuationToken?: string;
-  /**
-   * @member {number} [pageSize] Optional number of results to return
-   */
-  pageSize?: number;
-}
-
-/**
- * @interface
- * An interface representing AzureOpcHistoryClientGetFilteredListOfEndpointsOptionalParams.
- * Optional Parameters.
- *
- * @extends RequestOptionsBase
- */
-export interface AzureOpcHistoryClientGetFilteredListOfEndpointsOptionalParams extends msRest.RequestOptionsBase {
-  /**
-   * @member {string} [url] Endoint url for direct server access
-   */
-  url?: string;
-  /**
-   * @member {UserAuthentication} [userAuthentication] Type of credential
-   * selected for authentication. Possible values include: 'None', 'UserName',
-   * 'X509Certificate', 'JwtToken'
-   */
-  userAuthentication?: UserAuthentication;
-  /**
-   * @member {Uint8Array} [certificate] Certificate of the endpoint
-   */
-  certificate?: Uint8Array;
-  /**
-   * @member {SecurityMode1} [securityMode] Security Mode. Possible values
-   * include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
-   */
-  securityMode?: SecurityMode1;
-  /**
-   * @member {string} [securityPolicy] Security policy uri
-   */
-  securityPolicy?: string;
-  /**
-   * @member {boolean} [activated] Whether the endpoint was activated
-   */
-  activated?: boolean;
-  /**
-   * @member {boolean} [connected] Whether the endpoint is connected on
-   * supervisor.
-   */
-  connected?: boolean;
-  /**
-   * @member {EndpointState} [endpointState] The last state of the the
-   * activated endpoint. Possible values include: 'Connecting', 'NotReachable',
-   * 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
-   */
-  endpointState?: EndpointState;
-  /**
-   * @member {boolean} [includeNotSeenSince] Whether to include endpoints that
-   * were soft deleted
-   */
-  includeNotSeenSince?: boolean;
-  /**
-   * @member {boolean} [onlyServerState] Whether to include only server state,
-   * or display
-   * current client state of the endpoint if available
-   */
-  onlyServerState?: boolean;
-  /**
-   * @member {number} [pageSize] Optional number of results to
-   * return
-   */
-  pageSize?: number;
-}
-
-/**
- * @interface
- * An interface representing AzureOpcHistoryClientQueryEndpointsOptionalParams.
- * Optional Parameters.
- *
- * @extends RequestOptionsBase
- */
-export interface AzureOpcHistoryClientQueryEndpointsOptionalParams extends msRest.RequestOptionsBase {
-  /**
-   * @member {boolean} [onlyServerState] Whether to include only server
-   * state, or display current client state of the endpoint if available
-   */
-  onlyServerState?: boolean;
-  /**
-   * @member {number} [pageSize] Optional number of results to return
-   */
-  pageSize?: number;
-}
-
-/**
- * @interface
- * An interface representing AzureOpcHistoryClientGetSupervisorOptionalParams.
- * Optional Parameters.
- *
- * @extends RequestOptionsBase
- */
-export interface AzureOpcHistoryClientGetSupervisorOptionalParams extends msRest.RequestOptionsBase {
-  /**
-   * @member {boolean} [onlyServerState] Whether to include only server
-   * state, or display current client state of the endpoint if
-   * available
-   */
-  onlyServerState?: boolean;
-}
-
-/**
- * @interface
- * An interface representing AzureOpcHistoryClientGetListOfSupervisorsOptionalParams.
- * Optional Parameters.
- *
- * @extends RequestOptionsBase
- */
-export interface AzureOpcHistoryClientGetListOfSupervisorsOptionalParams extends msRest.RequestOptionsBase {
-  /**
-   * @member {boolean} [onlyServerState] Whether to include only server
-   * state, or display current client state of the endpoint if available
-   */
-  onlyServerState?: boolean;
-  /**
-   * @member {string} [continuationToken] Optional Continuation token
-   */
-  continuationToken?: string;
-  /**
-   * @member {number} [pageSize] Optional number of results to return
-   */
-  pageSize?: number;
-}
-
-/**
- * @interface
- * An interface representing AzureOpcHistoryClientGetFilteredListOfSupervisorsOptionalParams.
- * Optional Parameters.
- *
- * @extends RequestOptionsBase
- */
-export interface AzureOpcHistoryClientGetFilteredListOfSupervisorsOptionalParams extends msRest.RequestOptionsBase {
-  /**
-   * @member {string} [siteId] Site of the supervisor
-   */
-  siteId?: string;
-  /**
-   * @member {Discovery} [discovery] Discovery mode of supervisor. Possible
-   * values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
-   */
-  discovery?: Discovery;
-  /**
-   * @member {boolean} [connected] Included connected or disconnected
-   */
-  connected?: boolean;
-  /**
-   * @member {boolean} [onlyServerState] Whether to include only server
-   * state, or display current client state of the endpoint if
-   * available
-   */
-  onlyServerState?: boolean;
-  /**
-   * @member {number} [pageSize] Number of results to return
-   */
-  pageSize?: number;
-}
-
-/**
- * @interface
- * An interface representing AzureOpcHistoryClientQuerySupervisorsOptionalParams.
- * Optional Parameters.
- *
- * @extends RequestOptionsBase
- */
-export interface AzureOpcHistoryClientQuerySupervisorsOptionalParams extends msRest.RequestOptionsBase {
-  /**
-   * @member {boolean} [onlyServerState] Whether to include only server
-   * state, or display current client state of the endpoint if
-   * available
-   */
-  onlyServerState?: boolean;
-  /**
-   * @member {number} [pageSize] Number of results to return
-   */
-  pageSize?: number;
-}
-
-/**
- * Defines values for CallbackMethodType.
- * Possible values include: 'Get', 'Post', 'Put', 'Delete'
- * @readonly
- * @enum {string}
- */
-export type CallbackMethodType = 'Get' | 'Post' | 'Put' | 'Delete';
-
-/**
- * Defines values for SecurityMode.
- * Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
- * @readonly
- * @enum {string}
- */
-export type SecurityMode = 'Best' | 'Sign' | 'SignAndEncrypt' | 'None';
-
-/**
- * Defines values for ApplicationType.
- * Possible values include: 'Server', 'Client', 'ClientAndServer'
- * @readonly
- * @enum {string}
- */
-export type ApplicationType = 'Server' | 'Client' | 'ClientAndServer';
-
-/**
- * Defines values for DiscoveryMode.
- * Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
- * @readonly
- * @enum {string}
- */
-export type DiscoveryMode = 'Off' | 'Local' | 'Network' | 'Fast' | 'Scan';
-
-/**
  * Defines values for CredentialType.
  * Possible values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
  * @readonly
@@ -1285,75 +1216,25 @@ export type DiscoveryMode = 'Off' | 'Local' | 'Network' | 'Fast' | 'Scan';
 export type CredentialType = 'None' | 'UserName' | 'X509Certificate' | 'JwtToken';
 
 /**
- * Defines values for SecurityAssessment.
- * Possible values include: 'Unknown', 'Low', 'Medium', 'High'
+ * Defines values for DiagnosticsLevel.
+ * Possible values include: 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
  * @readonly
  * @enum {string}
  */
-export type SecurityAssessment = 'Unknown' | 'Low' | 'Medium' | 'High';
+export type DiagnosticsLevel = 'None' | 'Status' | 'Operations' | 'Diagnostics' | 'Verbose';
 
 /**
- * Defines values for EndpointActivationState.
- * Possible values include: 'Deactivated', 'Activated', 'ActivatedAndConnected'
+ * Defines values for HistoryUpdateOperation.
+ * Possible values include: 'Insert', 'Replace', 'Update', 'Delete'
  * @readonly
  * @enum {string}
  */
-export type EndpointActivationState = 'Deactivated' | 'Activated' | 'ActivatedAndConnected';
+export type HistoryUpdateOperation = 'Insert' | 'Replace' | 'Update' | 'Delete';
 
 /**
- * Defines values for EndpointConnectivityState.
- * Possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid',
- * 'Ready', 'Error'
- * @readonly
- * @enum {string}
+ * Contains response data for the historyDeleteValuesAtTimes operation.
  */
-export type EndpointConnectivityState = 'Connecting' | 'NotReachable' | 'Busy' | 'NoTrust' | 'CertificateInvalid' | 'Ready' | 'Error';
-
-/**
- * Defines values for SupervisorLogLevel.
- * Possible values include: 'Error', 'Information', 'Debug', 'Verbose'
- * @readonly
- * @enum {string}
- */
-export type SupervisorLogLevel = 'Error' | 'Information' | 'Debug' | 'Verbose';
-
-/**
- * Defines values for UserAuthentication.
- * Possible values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
- * @readonly
- * @enum {string}
- */
-export type UserAuthentication = 'None' | 'UserName' | 'X509Certificate' | 'JwtToken';
-
-/**
- * Defines values for SecurityMode1.
- * Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
- * @readonly
- * @enum {string}
- */
-export type SecurityMode1 = 'Best' | 'Sign' | 'SignAndEncrypt' | 'None';
-
-/**
- * Defines values for EndpointState.
- * Possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid',
- * 'Ready', 'Error'
- * @readonly
- * @enum {string}
- */
-export type EndpointState = 'Connecting' | 'NotReachable' | 'Busy' | 'NoTrust' | 'CertificateInvalid' | 'Ready' | 'Error';
-
-/**
- * Defines values for Discovery.
- * Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
- * @readonly
- * @enum {string}
- */
-export type Discovery = 'Off' | 'Local' | 'Network' | 'Fast' | 'Scan';
-
-/**
- * Contains response data for the getListOfApplications operation.
- */
-export type GetListOfApplicationsResponse = ApplicationInfoListApiModel & {
+export type HistoryDeleteValuesAtTimesResponse = HistoryUpdateResponseApiModel & {
   /**
    * The underlying HTTP response.
    */
@@ -1365,14 +1246,14 @@ export type GetListOfApplicationsResponse = ApplicationInfoListApiModel & {
       /**
        * The response body as parsed JSON or XML
        */
-      parsedBody: ApplicationInfoListApiModel;
+      parsedBody: HistoryUpdateResponseApiModel;
     };
 };
 
 /**
- * Contains response data for the createApplication operation.
+ * Contains response data for the historyDeleteValues operation.
  */
-export type CreateApplicationResponse = ApplicationRegistrationResponseApiModel & {
+export type HistoryDeleteValuesResponse = HistoryUpdateResponseApiModel & {
   /**
    * The underlying HTTP response.
    */
@@ -1384,14 +1265,14 @@ export type CreateApplicationResponse = ApplicationRegistrationResponseApiModel 
       /**
        * The response body as parsed JSON or XML
        */
-      parsedBody: ApplicationRegistrationResponseApiModel;
+      parsedBody: HistoryUpdateResponseApiModel;
     };
 };
 
 /**
- * Contains response data for the getApplicationRegistration operation.
+ * Contains response data for the historyDeleteModifiedValues operation.
  */
-export type GetApplicationRegistrationResponse = ApplicationRegistrationApiModel & {
+export type HistoryDeleteModifiedValuesResponse = HistoryUpdateResponseApiModel & {
   /**
    * The underlying HTTP response.
    */
@@ -1403,14 +1284,14 @@ export type GetApplicationRegistrationResponse = ApplicationRegistrationApiModel
       /**
        * The response body as parsed JSON or XML
        */
-      parsedBody: ApplicationRegistrationApiModel;
+      parsedBody: HistoryUpdateResponseApiModel;
     };
 };
 
 /**
- * Contains response data for the getListOfSites operation.
+ * Contains response data for the historyDeleteEvents operation.
  */
-export type GetListOfSitesResponse = ApplicationSiteListApiModel & {
+export type HistoryDeleteEventsResponse = HistoryUpdateResponseApiModel & {
   /**
    * The underlying HTTP response.
    */
@@ -1422,14 +1303,14 @@ export type GetListOfSitesResponse = ApplicationSiteListApiModel & {
       /**
        * The response body as parsed JSON or XML
        */
-      parsedBody: ApplicationSiteListApiModel;
+      parsedBody: HistoryUpdateResponseApiModel;
     };
 };
 
 /**
- * Contains response data for the getFilteredListOfApplications operation.
+ * Contains response data for the historyReadRaw operation.
  */
-export type GetFilteredListOfApplicationsResponse = ApplicationInfoListApiModel & {
+export type HistoryReadRawResponse = HistoryReadResponseApiModelJToken & {
   /**
    * The underlying HTTP response.
    */
@@ -1441,14 +1322,14 @@ export type GetFilteredListOfApplicationsResponse = ApplicationInfoListApiModel 
       /**
        * The response body as parsed JSON or XML
        */
-      parsedBody: ApplicationInfoListApiModel;
+      parsedBody: HistoryReadResponseApiModelJToken;
     };
 };
 
 /**
- * Contains response data for the queryApplications operation.
+ * Contains response data for the historyReadRawNext operation.
  */
-export type QueryApplicationsResponse = ApplicationInfoListApiModel & {
+export type HistoryReadRawNextResponse = HistoryReadNextResponseApiModelJToken & {
   /**
    * The underlying HTTP response.
    */
@@ -1460,14 +1341,14 @@ export type QueryApplicationsResponse = ApplicationInfoListApiModel & {
       /**
        * The response body as parsed JSON or XML
        */
-      parsedBody: ApplicationInfoListApiModel;
+      parsedBody: HistoryReadNextResponseApiModelJToken;
     };
 };
 
 /**
- * Contains response data for the getEndpoint operation.
+ * Contains response data for the historyUpdateRaw operation.
  */
-export type GetEndpointResponse = EndpointInfoApiModel & {
+export type HistoryUpdateRawResponse = HistoryUpdateResponseApiModel & {
   /**
    * The underlying HTTP response.
    */
@@ -1479,14 +1360,14 @@ export type GetEndpointResponse = EndpointInfoApiModel & {
       /**
        * The response body as parsed JSON or XML
        */
-      parsedBody: EndpointInfoApiModel;
+      parsedBody: HistoryUpdateResponseApiModel;
     };
 };
 
 /**
- * Contains response data for the getListOfEndpoints operation.
+ * Contains response data for the historyInsertValues operation.
  */
-export type GetListOfEndpointsResponse = EndpointInfoListApiModel & {
+export type HistoryInsertValuesResponse = HistoryUpdateResponseApiModel & {
   /**
    * The underlying HTTP response.
    */
@@ -1498,14 +1379,14 @@ export type GetListOfEndpointsResponse = EndpointInfoListApiModel & {
       /**
        * The response body as parsed JSON or XML
        */
-      parsedBody: EndpointInfoListApiModel;
+      parsedBody: HistoryUpdateResponseApiModel;
     };
 };
 
 /**
- * Contains response data for the getFilteredListOfEndpoints operation.
+ * Contains response data for the historyInsertEvents operation.
  */
-export type GetFilteredListOfEndpointsResponse = EndpointInfoListApiModel & {
+export type HistoryInsertEventsResponse = HistoryUpdateResponseApiModel & {
   /**
    * The underlying HTTP response.
    */
@@ -1517,14 +1398,14 @@ export type GetFilteredListOfEndpointsResponse = EndpointInfoListApiModel & {
       /**
        * The response body as parsed JSON or XML
        */
-      parsedBody: EndpointInfoListApiModel;
+      parsedBody: HistoryUpdateResponseApiModel;
     };
 };
 
 /**
- * Contains response data for the queryEndpoints operation.
+ * Contains response data for the historyReadEvents operation.
  */
-export type QueryEndpointsResponse = EndpointInfoListApiModel & {
+export type HistoryReadEventsResponse = HistoryReadResponseApiModelHistoricEventApiModel & {
   /**
    * The underlying HTTP response.
    */
@@ -1536,7 +1417,159 @@ export type QueryEndpointsResponse = EndpointInfoListApiModel & {
       /**
        * The response body as parsed JSON or XML
        */
-      parsedBody: EndpointInfoListApiModel;
+      parsedBody: HistoryReadResponseApiModelHistoricEventApiModel;
+    };
+};
+
+/**
+ * Contains response data for the historyReadEventsNext operation.
+ */
+export type HistoryReadEventsNextResponse = HistoryReadNextResponseApiModelHistoricEventApiModel & {
+  /**
+   * The underlying HTTP response.
+   */
+  _response: msRest.HttpResponse & {
+      /**
+       * The response body as text (string format)
+       */
+      bodyAsText: string;
+      /**
+       * The response body as parsed JSON or XML
+       */
+      parsedBody: HistoryReadNextResponseApiModelHistoricEventApiModel;
+    };
+};
+
+/**
+ * Contains response data for the historyReadValues operation.
+ */
+export type HistoryReadValuesResponse = HistoryReadResponseApiModelHistoricValueApiModel & {
+  /**
+   * The underlying HTTP response.
+   */
+  _response: msRest.HttpResponse & {
+      /**
+       * The response body as text (string format)
+       */
+      bodyAsText: string;
+      /**
+       * The response body as parsed JSON or XML
+       */
+      parsedBody: HistoryReadResponseApiModelHistoricValueApiModel;
+    };
+};
+
+/**
+ * Contains response data for the historyReadValuesAtTimes operation.
+ */
+export type HistoryReadValuesAtTimesResponse = HistoryReadResponseApiModelHistoricValueApiModel & {
+  /**
+   * The underlying HTTP response.
+   */
+  _response: msRest.HttpResponse & {
+      /**
+       * The response body as text (string format)
+       */
+      bodyAsText: string;
+      /**
+       * The response body as parsed JSON or XML
+       */
+      parsedBody: HistoryReadResponseApiModelHistoricValueApiModel;
+    };
+};
+
+/**
+ * Contains response data for the historyReadProcessedValues operation.
+ */
+export type HistoryReadProcessedValuesResponse = HistoryReadResponseApiModelHistoricValueApiModel & {
+  /**
+   * The underlying HTTP response.
+   */
+  _response: msRest.HttpResponse & {
+      /**
+       * The response body as text (string format)
+       */
+      bodyAsText: string;
+      /**
+       * The response body as parsed JSON or XML
+       */
+      parsedBody: HistoryReadResponseApiModelHistoricValueApiModel;
+    };
+};
+
+/**
+ * Contains response data for the historyReadModifiedValues operation.
+ */
+export type HistoryReadModifiedValuesResponse = HistoryReadResponseApiModelHistoricValueApiModel & {
+  /**
+   * The underlying HTTP response.
+   */
+  _response: msRest.HttpResponse & {
+      /**
+       * The response body as text (string format)
+       */
+      bodyAsText: string;
+      /**
+       * The response body as parsed JSON or XML
+       */
+      parsedBody: HistoryReadResponseApiModelHistoricValueApiModel;
+    };
+};
+
+/**
+ * Contains response data for the historyReadValueNext operation.
+ */
+export type HistoryReadValueNextResponse = HistoryReadNextResponseApiModelHistoricValueApiModel & {
+  /**
+   * The underlying HTTP response.
+   */
+  _response: msRest.HttpResponse & {
+      /**
+       * The response body as text (string format)
+       */
+      bodyAsText: string;
+      /**
+       * The response body as parsed JSON or XML
+       */
+      parsedBody: HistoryReadNextResponseApiModelHistoricValueApiModel;
+    };
+};
+
+/**
+ * Contains response data for the historyReplaceValues operation.
+ */
+export type HistoryReplaceValuesResponse = HistoryUpdateResponseApiModel & {
+  /**
+   * The underlying HTTP response.
+   */
+  _response: msRest.HttpResponse & {
+      /**
+       * The response body as text (string format)
+       */
+      bodyAsText: string;
+      /**
+       * The response body as parsed JSON or XML
+       */
+      parsedBody: HistoryUpdateResponseApiModel;
+    };
+};
+
+/**
+ * Contains response data for the historyReplaceEvents operation.
+ */
+export type HistoryReplaceEventsResponse = HistoryUpdateResponseApiModel & {
+  /**
+   * The underlying HTTP response.
+   */
+  _response: msRest.HttpResponse & {
+      /**
+       * The response body as text (string format)
+       */
+      bodyAsText: string;
+      /**
+       * The response body as parsed JSON or XML
+       */
+      parsedBody: HistoryUpdateResponseApiModel;
     };
 };
 
@@ -1556,100 +1589,5 @@ export type GetStatusResponse = StatusResponseApiModel & {
        * The response body as parsed JSON or XML
        */
       parsedBody: StatusResponseApiModel;
-    };
-};
-
-/**
- * Contains response data for the getSupervisor operation.
- */
-export type GetSupervisorResponse = SupervisorApiModel & {
-  /**
-   * The underlying HTTP response.
-   */
-  _response: msRest.HttpResponse & {
-      /**
-       * The response body as text (string format)
-       */
-      bodyAsText: string;
-      /**
-       * The response body as parsed JSON or XML
-       */
-      parsedBody: SupervisorApiModel;
-    };
-};
-
-/**
- * Contains response data for the getSupervisorStatus operation.
- */
-export type GetSupervisorStatusResponse = SupervisorStatusApiModel & {
-  /**
-   * The underlying HTTP response.
-   */
-  _response: msRest.HttpResponse & {
-      /**
-       * The response body as text (string format)
-       */
-      bodyAsText: string;
-      /**
-       * The response body as parsed JSON or XML
-       */
-      parsedBody: SupervisorStatusApiModel;
-    };
-};
-
-/**
- * Contains response data for the getListOfSupervisors operation.
- */
-export type GetListOfSupervisorsResponse = SupervisorListApiModel & {
-  /**
-   * The underlying HTTP response.
-   */
-  _response: msRest.HttpResponse & {
-      /**
-       * The response body as text (string format)
-       */
-      bodyAsText: string;
-      /**
-       * The response body as parsed JSON or XML
-       */
-      parsedBody: SupervisorListApiModel;
-    };
-};
-
-/**
- * Contains response data for the getFilteredListOfSupervisors operation.
- */
-export type GetFilteredListOfSupervisorsResponse = SupervisorListApiModel & {
-  /**
-   * The underlying HTTP response.
-   */
-  _response: msRest.HttpResponse & {
-      /**
-       * The response body as text (string format)
-       */
-      bodyAsText: string;
-      /**
-       * The response body as parsed JSON or XML
-       */
-      parsedBody: SupervisorListApiModel;
-    };
-};
-
-/**
- * Contains response data for the querySupervisors operation.
- */
-export type QuerySupervisorsResponse = SupervisorListApiModel & {
-  /**
-   * The underlying HTTP response.
-   */
-  _response: msRest.HttpResponse & {
-      /**
-       * The response body as text (string format)
-       */
-      bodyAsText: string;
-      /**
-       * The response body as parsed JSON or XML
-       */
-      parsedBody: SupervisorListApiModel;
     };
 };

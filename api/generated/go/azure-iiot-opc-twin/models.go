@@ -1020,21 +1020,21 @@ const fqdn = "go/azure-iiot-opc-twin"
             Name *string `json:"name,omitempty"`
             // Status - Operational status
             Status *string `json:"status,omitempty"`
-            // CurrentTime - Current time
+            // CurrentTime - READ-ONLY; Current time
             CurrentTime *string `json:"currentTime,omitempty"`
-            // StartTime - Start time of service
+            // StartTime - READ-ONLY; Start time of service
             StartTime *string `json:"startTime,omitempty"`
-            // UpTime - Up time of service
+            // UpTime - READ-ONLY; Up time of service
             UpTime *int64 `json:"upTime,omitempty"`
-            // UID - Value generated at bootstrap by each instance of the service and
+            // UID - READ-ONLY; Value generated at bootstrap by each instance of the service and
             // used to correlate logs coming from the same instance. The value
             // changes every time the service starts.
             UID *string `json:"uid,omitempty"`
-            // Properties - A property bag with details about the service
+            // Properties - READ-ONLY; A property bag with details about the service
             Properties map[string]*string `json:"properties"`
-            // Dependencies - A property bag with details about the internal dependencies
+            // Dependencies - READ-ONLY; A property bag with details about the internal dependencies
             Dependencies map[string]*string `json:"dependencies"`
-            // Metadata - Optional meta data.
+            // Metadata - READ-ONLY; Optional meta data.
             Metadata map[string]*string `json:"$metadata"`
             }
 
@@ -1046,27 +1046,6 @@ const fqdn = "go/azure-iiot-opc-twin"
                 }
                 if(sram.Status != nil) {
                 objectMap["status"] = sram.Status
-                }
-                if(sram.CurrentTime != nil) {
-                objectMap["currentTime"] = sram.CurrentTime
-                }
-                if(sram.StartTime != nil) {
-                objectMap["startTime"] = sram.StartTime
-                }
-                if(sram.UpTime != nil) {
-                objectMap["upTime"] = sram.UpTime
-                }
-                if(sram.UID != nil) {
-                objectMap["uid"] = sram.UID
-                }
-                if(sram.Properties != nil) {
-                objectMap["properties"] = sram.Properties
-                }
-                if(sram.Dependencies != nil) {
-                objectMap["dependencies"] = sram.Dependencies
-                }
-                if(sram.Metadata != nil) {
-                objectMap["$metadata"] = sram.Metadata
                 }
                 return json.Marshal(objectMap)
         }

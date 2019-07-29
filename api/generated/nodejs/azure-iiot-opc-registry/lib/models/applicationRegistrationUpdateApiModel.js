@@ -18,12 +18,15 @@ class ApplicationRegistrationUpdateApiModel {
   /**
    * Create a ApplicationRegistrationUpdateApiModel.
    * @property {string} [productUri] Product uri
-   * @property {string} [applicationName] Application name
-   * @property {string} [locale] Locale of name - defaults to "en"
+   * @property {string} [applicationName] Default name of the server or client.
+   * @property {string} [locale] Locale of default name - defaults to "en"
+   * @property {object} [localizedNames] Localized names keyed off locale id.
+   * To remove entry, set value for locale id to null.
    * @property {buffer} [certificate] Application public cert
    * @property {array} [capabilities] Capabilities of the application
    * @property {array} [discoveryUrls] Discovery urls of the application
    * @property {string} [discoveryProfileUri] Discovery profile uri
+   * @property {string} [gatewayServerUri] Gateway server uri
    */
   constructor() {
   }
@@ -61,6 +64,20 @@ class ApplicationRegistrationUpdateApiModel {
             serializedName: 'locale',
             type: {
               name: 'String'
+            }
+          },
+          localizedNames: {
+            required: false,
+            serializedName: 'localizedNames',
+            type: {
+              name: 'Dictionary',
+              value: {
+                  required: false,
+                  serializedName: 'StringElementType',
+                  type: {
+                    name: 'String'
+                  }
+              }
             }
           },
           certificate: {
@@ -107,6 +124,13 @@ class ApplicationRegistrationUpdateApiModel {
           discoveryProfileUri: {
             required: false,
             serializedName: 'discoveryProfileUri',
+            type: {
+              name: 'String'
+            }
+          },
+          gatewayServerUri: {
+            required: false,
+            serializedName: 'gatewayServerUri',
             type: {
               name: 'String'
             }

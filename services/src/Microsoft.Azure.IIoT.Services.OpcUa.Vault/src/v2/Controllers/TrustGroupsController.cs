@@ -116,7 +116,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Controllers {
         [HttpPut("root")]
         [Authorize(Policy = Policies.CanManage)]
         public async Task<TrustGroupRegistrationResponseApiModel> CreateRootAsync(
-            TrustGroupRootCreateRequestApiModel request) {
+            [FromBody] [Required] TrustGroupRootCreateRequestApiModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -154,10 +154,9 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Controllers {
         /// </remark>
         /// <param name="groupId"></param>
         /// <returns>The new Issuer CA certificate</returns>
-        [HttpPost("{groupId}")]
+        [HttpPost("{groupId}/renew")]
         [Authorize(Policy = Policies.CanManage)]
-        public async Task RenewIssuerCertificateAsync(
-            string groupId) {
+        public async Task RenewIssuerCertificateAsync(string groupId) {
             await _services.RenewCertificateAsync(groupId);
         }
 

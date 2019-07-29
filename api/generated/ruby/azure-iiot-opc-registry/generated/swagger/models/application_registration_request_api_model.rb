@@ -17,17 +17,23 @@ module azure.iiot.opc.registry
       attr_accessor :application_uri
 
       # @return [ApplicationType] Type of application. Possible values include:
-      # 'Server', 'Client', 'ClientAndServer'
+      # 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
       attr_accessor :application_type
 
       # @return [String] Product uri of the application.
       attr_accessor :product_uri
 
-      # @return [String] Name of the server or client.
+      # @return [String] Default name of the server or client.
       attr_accessor :application_name
 
-      # @return [String] Locale of name
+      # @return [String] Locale of default name
       attr_accessor :locale
+
+      # @return [String] Site of the application
+      attr_accessor :site_id
+
+      # @return [Hash{String => String}] Localized names key off locale id.
+      attr_accessor :localized_names
 
       # @return [Array<String>] The OPC UA defined capabilities of the server.
       attr_accessor :capabilities
@@ -37,6 +43,9 @@ module azure.iiot.opc.registry
 
       # @return [String] The discovery profile uri of the server.
       attr_accessor :discovery_profile_uri
+
+      # @return [String] Gateway server uri
+      attr_accessor :gateway_server_uri
 
 
       #
@@ -93,6 +102,30 @@ module azure.iiot.opc.registry
                   name: 'String'
                 }
               },
+              site_id: {
+                client_side_validation: true,
+                required: false,
+                serialized_name: 'siteId',
+                type: {
+                  name: 'String'
+                }
+              },
+              localized_names: {
+                client_side_validation: true,
+                required: false,
+                serialized_name: 'localizedNames',
+                type: {
+                  name: 'Dictionary',
+                  value: {
+                      client_side_validation: true,
+                      required: false,
+                      serialized_name: 'StringElementType',
+                      type: {
+                        name: 'String'
+                      }
+                  }
+                }
+              },
               capabilities: {
                 client_side_validation: true,
                 required: false,
@@ -135,6 +168,14 @@ module azure.iiot.opc.registry
                 client_side_validation: true,
                 required: false,
                 serialized_name: 'discoveryProfileUri',
+                type: {
+                  name: 'String'
+                }
+              },
+              gateway_server_uri: {
+                client_side_validation: true,
+                required: false,
+                serialized_name: 'gatewayServerUri',
                 type: {
                   name: 'String'
                 }

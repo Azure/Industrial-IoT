@@ -8,8 +8,8 @@ services:
       - "10080:10080"
     depends_on:
       - registryservice
-      - onboardingservice
       - gatewayservice
+      - vaultservice
       - twinservice
       - historyservice
   registryservice:
@@ -31,22 +31,8 @@ services:
       - PCS_WEBUI_AUTH_AAD_AUTHORITY
       - PCS_WEBUI_AUTH_AAD_TENANT
       - PCS_CORS_WHITELIST
-  onboardingservice:
-    image: ${REPOSITORY:-localhost:5000/azure-iiot-}opc-onboarding-service:${IMAGE_VERSION:-latest}
-    build: 
-      context: ./services
-      dockerfile: ./src/Microsoft.Azure.IIoT.Services.OpcUa.Onboarding/docker/Dockerfile
-    environment:
-      - PCS_KEYVAULT_URL
-      - PCS_SERVICEBUS_CONNSTRING
-      - PCS_IOTHUB_CONNSTRING
-      - PCS_IOTHUBREACT_HUB_ENDPOINT
-      - PCS_IOTHUBREACT_HUB_PARTITIONS
-      - PCS_IOTHUBREACT_HUB_NAME
-      - PCS_IOTHUBREACT_HUB_CONSUMERGROUP
-      - PCS_IOTHUBREACT_AZUREBLOB_ACCOUNT
-      - PCS_IOTHUBREACT_AZUREBLOB_KEY
-      - PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX
+      - PCS_APPINSIGHTS_NAME
+      - PCS_APPINSIGHTS_INSTRUMENTATIONKEY
   twinservice:
     image: ${REPOSITORY:-localhost:5000/azure-iiot-}opc-twin-service:${IMAGE_VERSION:-latest}
     build: 
@@ -65,6 +51,8 @@ services:
       - PCS_WEBUI_AUTH_AAD_AUTHORITY
       - PCS_WEBUI_AUTH_AAD_TENANT
       - PCS_CORS_WHITELIST
+      - PCS_APPINSIGHTS_NAME
+      - PCS_APPINSIGHTS_INSTRUMENTATIONKEY
   historyservice:
     image: ${REPOSITORY:-localhost:5000/azure-iiot-}opc-history-service:${IMAGE_VERSION:-latest}
     build: 
@@ -83,6 +71,8 @@ services:
       - PCS_WEBUI_AUTH_AAD_AUTHORITY
       - PCS_WEBUI_AUTH_AAD_TENANT
       - PCS_CORS_WHITELIST
+      - PCS_APPINSIGHTS_NAME
+      - PCS_APPINSIGHTS_INSTRUMENTATIONKEY
   gatewayservice:
     image: ${REPOSITORY:-localhost:5000/azure-iiot-}opc-gateway-service:${IMAGE_VERSION:-latest}
     build: 
@@ -102,6 +92,8 @@ services:
       - PCS_WEBUI_AUTH_AAD_AUTHORITY
       - PCS_WEBUI_AUTH_AAD_TENANT
       - PCS_CORS_WHITELIST
+      - PCS_APPINSIGHTS_NAME
+      - PCS_APPINSIGHTS_INSTRUMENTATIONKEY
   vaultservice:
     image: ${REPOSITORY:-localhost:5000/azure-iiot-}opc-vault-service:${IMAGE_VERSION:-latest}
     build: 
@@ -121,6 +113,39 @@ services:
       - PCS_WEBUI_AUTH_AAD_AUTHORITY
       - PCS_WEBUI_AUTH_AAD_TENANT
       - PCS_CORS_WHITELIST
+      - PCS_APPINSIGHTS_NAME
+      - PCS_APPINSIGHTS_INSTRUMENTATIONKEY
+  alertingservice:
+    image: ${REPOSITORY:-localhost:5000/azure-iiot-}opc-alerting-service:${IMAGE_VERSION:-latest}
+    build: 
+      context: ./services
+      dockerfile: ./src/Microsoft.Azure.IIoT.Services.OpcUa.Alerting/docker/Dockerfile
+    environment:
+      - PCS_KEYVAULT_URL
+      - PCS_WORKSPACE_NAME
+      - PCS_IOTHUB_CONNSTRING
+      - PCS_SERVICEBUS_CONNSTRING
+      - PCS_CORS_WHITELIST
+      - PCS_APPINSIGHTS_NAME
+      - PCS_APPINSIGHTS_INSTRUMENTATIONKEY
+  onboardingservice:
+    image: ${REPOSITORY:-localhost:5000/azure-iiot-}opc-onboarding-service:${IMAGE_VERSION:-latest}
+    build: 
+      context: ./services
+      dockerfile: ./src/Microsoft.Azure.IIoT.Services.OpcUa.Onboarding/docker/Dockerfile
+    environment:
+      - PCS_KEYVAULT_URL
+      - PCS_SERVICEBUS_CONNSTRING
+      - PCS_IOTHUB_CONNSTRING
+      - PCS_IOTHUBREACT_HUB_ENDPOINT
+      - PCS_IOTHUBREACT_HUB_PARTITIONS
+      - PCS_IOTHUBREACT_HUB_NAME
+      - PCS_IOTHUBREACT_HUB_CONSUMERGROUP
+      - PCS_IOTHUBREACT_AZUREBLOB_ACCOUNT
+      - PCS_IOTHUBREACT_AZUREBLOB_KEY
+      - PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX
+      - PCS_APPINSIGHTS_NAME
+      - PCS_APPINSIGHTS_INSTRUMENTATIONKEY
   modelprocessor:
     image: ${REPOSITORY:-localhost:5000/azure-iiot-}opc-processor-service:${IMAGE_VERSION:-latest}
     build: 
@@ -138,6 +163,8 @@ services:
       - PCS_IOTHUBREACT_AZUREBLOB_ACCOUNT
       - PCS_IOTHUBREACT_AZUREBLOB_KEY
       - PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX
+      - PCS_APPINSIGHTS_NAME
+      - PCS_APPINSIGHTS_INSTRUMENTATIONKEY
   blobnotification:
     image: ${REPOSITORY:-localhost:5000/azure-iiot-}blob-notification-service:${IMAGE_VERSION:-latest}
     build: 
@@ -155,6 +182,8 @@ services:
       - PCS_IOTHUBREACT_AZUREBLOB_ACCOUNT
       - PCS_IOTHUBREACT_AZUREBLOB_KEY
       - PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX
+      - PCS_APPINSIGHTS_NAME
+      - PCS_APPINSIGHTS_INSTRUMENTATIONKEY
   twinmodule:
     image: ${REPOSITORY:-localhost:5000/azure-iiot-}opc-twin:host-${IMAGE_VERSION:-latest}
     build: ./modules/opc-twin
