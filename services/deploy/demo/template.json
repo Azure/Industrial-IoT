@@ -532,7 +532,7 @@
                     "properties": {
                         "accessPolicies": [
                             {
-                                "tenantId": "[parameters('aadTenantId')]",
+                                "tenantId": "[variables('tenantId')]",
                                 "objectId": "[parameters('aadServicePrincipalId')]",
                                 "permissions": {
                                     "keys": [ 
@@ -549,7 +549,7 @@
                                 }
                             },
                             {
-                                "tenantId": "[parameters('aadTenantId')]",
+                                "tenantId": "[variables('tenantId')]",
                                 "objectId": "[parameters('aadUserPrincipalId')]",
                                 "permissions": {
                                     "keys": [ 

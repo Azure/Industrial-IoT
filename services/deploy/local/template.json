@@ -366,38 +366,38 @@
             "properties": {
                 "accessPolicies": [
                     {
-                        "tenantId": "[parameters('aadTenantId')]",
+                        "tenantId": "[variables('tenantId')]",
                         "objectId": "[parameters('aadServicePrincipalId')]",
                         "permissions": {
-                            "secrets": [ 
-                                "get" 
+                            "secrets": [
+                                "get"
                             ],
-                            "certificates": [ 
+                            "certificates": [
                                 "get",
-                                "list" 
+                                "list"
                             ]
                         }
                     },
                     {
-                        "tenantId": "[parameters('aadTenantId')]",
+                        "tenantId": "[variables('tenantId')]",
                         "objectId": "[parameters('aadUserPrincipalId')]",
                         "permissions": {
-                            "keys": [ 
-                                "get", 
-                                "list", 
-                                "sign" 
+                            "keys": [
+                                "get",
+                                "list",
+                                "sign"
                             ],
-                            "secrets": [ 
-                                "get", 
-                                "list", 
-                                "set", 
-                                "delete" 
+                            "secrets": [
+                                "get",
+                                "list",
+                                "set",
+                                "delete"
                             ],
-                            "certificates": [ 
-                                "get", 
-                                "list", 
-                                "update", 
-                                "create", 
+                            "certificates": [
+                                "get",
+                                "list",
+                                "update",
+                                "create",
                                 "import"
                             ]
                         }
