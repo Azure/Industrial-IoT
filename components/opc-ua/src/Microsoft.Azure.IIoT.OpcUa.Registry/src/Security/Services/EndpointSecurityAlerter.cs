@@ -18,6 +18,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Security.Services {
     using System.Linq;
     using System.Threading.Tasks;
     using System.Security.Cryptography.X509Certificates;
+    using Microsoft.Azure.IIoT.Services.Diagnostics;
 
     /// <summary>
     /// Sending security notifications for unsecure endpoints
@@ -65,7 +66,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Security.Services {
         /// <inheritdoc/>
         public Task OnEndpointUpdatedAsync(RegistryOperationContextModel context,
             EndpointInfoModel endpoint) {
-            return CheckEndpointInfoAsync(endpoint);
+            using (new TimeLogger(nameof(OnEndpointUpdatedAsync), _metrics)) {
+                return CheckEndpointInfoAsync(endpoint);
+            }
         }
 
         /// <inheritdoc/>
@@ -77,19 +80,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Security.Services {
         /// <inheritdoc/>
         public Task OnEndpointNewAsync(RegistryOperationContextModel context,
             EndpointInfoModel endpoint) {
-            return CheckEndpointInfoAsync(endpoint);
+            using (new TimeLogger(nameof(OnEndpointNewAsync), _metrics)) {
+                return CheckEndpointInfoAsync(endpoint);
+            }
         }
 
         /// <inheritdoc/>
         public Task OnApplicationNewAsync(RegistryOperationContextModel context,
             ApplicationInfoModel application) {
-            return CheckApplicationInfoAsync(application);
+            using (new TimeLogger(nameof(OnApplicationNewAsync), _metrics)) {
+                return CheckApplicationInfoAsync(application);
+            }
         }
 
         /// <inheritdoc/>
         public Task OnApplicationUpdatedAsync(RegistryOperationContextModel context,
             ApplicationInfoModel application) {
-            return CheckApplicationInfoAsync(application);
+            using (new TimeLogger(nameof(OnApplicationUpdatedAsync), _metrics)) {
+                return CheckApplicationInfoAsync(application);
+            }
         }
 
         /// <inheritdoc/>
@@ -131,11 +140,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Security.Services {
             var mode = endpoint.Registration.Endpoint.SecurityMode ?? SecurityMode.None;
             var policy = endpoint.Registration.Endpoint.SecurityPolicy ?? "None";
 
-            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
             var unsecure = mode.Equals(SecurityMode.None) || policy.Contains("None");
             if (unsecure) {
                 await SendEndpointAlertAsync(endpoint, "Unsecured endpoint found.");
-                _metrics.Count("endpointSecurityPolicyNone");
+                _metrics.TrackEvent("endpointSecurityPolicyNone");
             }
 
             // Test endpoint certificate
@@ -143,27 +151,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Security.Services {
             if (certEncoded == null && !unsecure) {
                 await SendEndpointAlertAsync(endpoint,
                     "Secured endpoint without certificate found.");
-                _metrics.Count("endpointWithoutCertificate");
+                _metrics.TrackEvent("endpointWithoutCertificate");
             }
             else {
                 using (var cert = new X509Certificate2(certEncoded)) {
                     if (cert.SubjectName.RawData.SequenceEqual(cert.IssuerName.RawData)) {
                         await SendEndpointAlertAsync(endpoint,
                             "Secured endpoint with self-signed certificate found.");
-                        _metrics.Count("endpointWithSelfSignedCert");
+                        _metrics.TrackEvent("endpointWithSelfSignedCert");
                     }
                     else if (cert.NotAfter < DateTime.UtcNow || cert.NotBefore > DateTime.UtcNow) {
                         await SendEndpointAlertAsync(endpoint,
                             "Endpoint with expired certificate found.");
-                        _metrics.Count("endpointWithExpiredCert");
+                        _metrics.TrackEvent("endpointWithExpiredCert");
                     }
                     else {
                         _logger.Verbose("Endpoint certificate is valid.");
                     }
                 }
             }
-            stopwatch.Stop();
-            _metrics.TimeIt("sendSecurityMessage", stopwatch.Elapsed.TotalMilliseconds);
         }
 
         /// <summary>

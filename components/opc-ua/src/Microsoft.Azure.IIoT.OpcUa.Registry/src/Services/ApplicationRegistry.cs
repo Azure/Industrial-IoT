@@ -447,9 +447,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 _logger.Information("... processed discovery results from {supervisorId}: " +
                     "{added} applications added, {updated} enabled, {removed} disabled, and " +
                     "{unchanged} unchanged.", supervisorId, added, updated, removed, unchanged);
-                _metrics.Store("applicationsAdded", added);
-                _metrics.Store("applicationsUpdated", updated);
-                _metrics.Store("applicationsUnchanged", unchanged);
+                _metrics.TrackValue("applicationsAdded", added);
+                _metrics.TrackValue("applicationsUpdated", updated);
+                _metrics.TrackValue("applicationsUnchanged", unchanged);
             }
         }
 

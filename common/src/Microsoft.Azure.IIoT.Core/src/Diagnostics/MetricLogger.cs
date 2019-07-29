@@ -13,8 +13,6 @@ namespace Microsoft.Azure.IIoT.Services.Diagnostics {
     /// Metric logger
     /// </summary>
     public sealed class MetricLogger : IMetricLogger  {
-        private readonly TelemetryClient telemetryClient;
-        private readonly TelemetryConfiguration telemetryConfiguration;
 
         /// <summary>
         /// Create metric logger
@@ -28,15 +26,13 @@ namespace Microsoft.Azure.IIoT.Services.Diagnostics {
         }
 
          /// <inheritdoc/>
-        public void Count(string name) {
-            telemetryClient.GetMetric("counter-" + name).TrackValue(1);
-            telemetryClient.Flush();
+        public void TrackEvent(string name) {
+            telemetryClient.GetMetric("trackEvent-" + name).TrackValue(1);
         }
 
         /// <inheritdoc/>
-        public void Store(string name, int value) {
-            telemetryClient.GetMetric("gauge-" + name).TrackValue(value);
-            telemetryClient.Flush();
+        public void TrackValue(string name, int value) {
+            telemetryClient.GetMetric("trackValue-" + name).TrackValue(value);
         }
 
         /// <inheritdoc/>
@@ -44,7 +40,9 @@ namespace Microsoft.Azure.IIoT.Services.Diagnostics {
             var metrics = new Dictionary<string, double>
                 {{"processingTime-" + name, milliseconds}};
             telemetryClient.TrackEvent("processingTime-" + name, null, metrics);
-            telemetryClient.Flush();
         }
+
+        private readonly TelemetryClient telemetryClient;
+        private readonly TelemetryConfiguration telemetryConfiguration;
     }
 }
