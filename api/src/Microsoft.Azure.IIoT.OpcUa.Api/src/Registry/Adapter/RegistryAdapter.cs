@@ -162,18 +162,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
         }
 
         /// <inheritdoc/>
-        public Task ApproveApplicationAsync(string applicationId, bool force,
-            RegistryOperationContextModel context, CancellationToken ct) {
-            return _client.ApproveApplicationAsync(applicationId, force, ct);
-        }
-
-        /// <inheritdoc/>
-        public Task RejectApplicationAsync(string applicationId, bool force,
-            RegistryOperationContextModel context, CancellationToken ct) {
-            return _client.RejectApplicationAsync(applicationId, force, ct);
-        }
-
-        /// <inheritdoc/>
         public Task DisableApplicationAsync(string applicationId,
             RegistryOperationContextModel context, CancellationToken ct) {
             return _client.DisableApplicationAsync(applicationId, ct);

@@ -37,47 +37,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
     }
 
     /// <summary>
-    /// State of the application
-    /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
-    public enum ApplicationState {
-
-        /// <summary>
-        /// New
-        /// </summary>
-        New,
-
-        /// <summary>
-        /// Activated
-        /// </summary>
-        Approved,
-
-        /// <summary>
-        /// Rejected
-        /// </summary>
-        Rejected,
-
-        /// <summary>
-        /// Unregistered
-        /// </summary>
-        Unregistered,
-
-        /// <summary>
-        /// Deleted
-        /// </summary>
-        Deleted
-    }
-
-    /// <summary>
     /// Application info model
     /// </summary>
     public class ApplicationInfoApiModel {
-
-        /// <summary>
-        /// State
-        /// </summary>
-        [JsonProperty(PropertyName = "state")]
-        public ApplicationState State { get; set; }
 
         /// <summary>
         /// Unique application id
@@ -194,13 +156,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         [JsonProperty(PropertyName = "created",
             NullValueHandling = NullValueHandling.Ignore)]
         public RegistryOperationApiModel Created { get; set; }
-
-        /// <summary>
-        /// Approved
-        /// </summary>
-        [JsonProperty(PropertyName = "approved",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public RegistryOperationApiModel Approved { get; set; }
 
         /// <summary>
         /// Updated

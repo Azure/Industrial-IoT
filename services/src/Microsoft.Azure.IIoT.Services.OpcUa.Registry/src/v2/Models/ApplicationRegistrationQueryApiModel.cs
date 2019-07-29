@@ -33,7 +33,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
             IncludeNotSeenSince = model.IncludeNotSeenSince;
             DiscoveryProfileUri = model.DiscoveryProfileUri;
             GatewayServerUri = model.GatewayServerUri;
-            State = model.State;
         }
 
         /// <summary>
@@ -51,8 +50,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
                 SiteOrSupervisorId = SiteOrSupervisorId,
                 IncludeNotSeenSince = IncludeNotSeenSince,
                 GatewayServerUri = GatewayServerUri,
-                DiscoveryProfileUri = DiscoveryProfileUri,
-                State = State
+                DiscoveryProfileUri = DiscoveryProfileUri
             };
         }
 
@@ -127,14 +125,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
            NullValueHandling = NullValueHandling.Ignore)]
         [DefaultValue(null)]
         public string SiteOrSupervisorId { get; set; }
-
-        /// <summary>
-        /// State of application
-        /// </summary>
-        [JsonProperty(PropertyName = "state",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
-        public ApplicationStateMask? State { get; set; }
 
         /// <summary>
         /// Whether to include apps that were soft deleted

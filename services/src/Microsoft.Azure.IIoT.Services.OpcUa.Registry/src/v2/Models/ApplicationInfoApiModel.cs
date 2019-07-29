@@ -43,12 +43,9 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
             DiscoveryUrls = model.DiscoveryUrls;
             Capabilities = model.Capabilities;
             NotSeenSince = model.NotSeenSince;
-            State = model.State;
             GatewayServerUri = model.GatewayServerUri;
             Created = model.Created == null ? null :
                 new RegistryOperationApiModel(model.Created);
-            Approved = model.Created == null ? null :
-                new RegistryOperationApiModel(model.Approved);
             Updated = model.Created == null ? null :
                 new RegistryOperationApiModel(model.Updated);
         }
@@ -73,20 +70,11 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
                 DiscoveryUrls = DiscoveryUrls,
                 Capabilities = Capabilities,
                 NotSeenSince = NotSeenSince,
-                State = State,
                 GatewayServerUri = GatewayServerUri,
                 Created = Created?.ToServiceModel(),
-                Approved = Approved?.ToServiceModel(),
                 Updated = Updated?.ToServiceModel(),
             };
         }
-
-        /// <summary>
-        /// State
-        /// </summary>
-        [JsonProperty(PropertyName = "state")]
-        [DefaultValue(ApplicationState.New)]
-        public ApplicationState State { get; set; }
 
         /// <summary>
         /// Unique application id
@@ -222,14 +210,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
             NullValueHandling = NullValueHandling.Ignore)]
         [DefaultValue(null)]
         public RegistryOperationApiModel Created { get; set; }
-
-        /// <summary>
-        /// Approved
-        /// </summary>
-        [JsonProperty(PropertyName = "approved",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
-        public RegistryOperationApiModel Approved { get; set; }
 
         /// <summary>
         /// Updated

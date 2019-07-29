@@ -86,30 +86,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
             CancellationToken ct = default);
 
         /// <summary>
-        /// Approve a new application.
-        /// Application is in approved state after this call.
-        /// </summary>
-        /// <param name="applicationId">The applicationId</param>
-        /// <param name="force">Ignore state check</param>
-        /// <param name="context"></param>
-        /// <param name="ct"></param>
-        Task ApproveApplicationAsync(string applicationId,
-            bool force = false, RegistryOperationContextModel context = null,
-            CancellationToken ct = default);
-
-        /// <summary>
-        /// Reject a new application.
-        /// Application is in rejected state after this call.
-        /// </summary>
-        /// <param name="applicationId">The applicationId</param>
-        /// <param name="force">Ignore state check</param>
-        /// <param name="context"></param>
-        /// <param name="ct"></param>
-        Task RejectApplicationAsync(string applicationId,
-            bool force = false, RegistryOperationContextModel context = null,
-            CancellationToken ct = default);
-
-        /// <summary>
         /// Disable the application. Does not remove the application
         /// from the database.
         /// </summary>

@@ -26,16 +26,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2.Models {
         Disabled,
 
         /// <summary>
-        /// Approved
-        /// </summary>
-        Approved,
-
-        /// <summary>
-        /// Rejected
-        /// </summary>
-        Rejected,
-
-        /// <summary>
         /// Updated
         /// </summary>
         Updated,

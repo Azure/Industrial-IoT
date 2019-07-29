@@ -56,13 +56,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     update.ApplicationType == ApplicationType.DiscoveryServer);
             }
 
-            if ((update?.ApplicationState ?? ApplicationState.New) !=
-                registration?.ApplicationState) {
-                twin.Tags.Add(nameof(ApplicationRegistration.ApplicationState),
-                    JToken.FromObject(
-                        update?.ApplicationState ?? ApplicationState.New));
-            }
-
             if (update?.ApplicationUri != registration?.ApplicationUri) {
                 twin.Tags.Add(nameof(ApplicationRegistration.ApplicationUri),
                     update?.ApplicationUri);
@@ -129,16 +122,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 twin.Tags.Add(nameof(ApplicationRegistration.HostAddresses),
                     update?.HostAddresses == null ?
                     null : JToken.FromObject(update.HostAddresses));
-            }
-
-
-            if (update?.ApproveAuthorityId != registration?.ApproveAuthorityId) {
-                twin.Tags.Add(nameof(ApplicationRegistration.ApproveAuthorityId),
-                    update?.ApproveAuthorityId);
-            }
-            if (update?.ApproveTime != registration?.ApproveTime) {
-                twin.Tags.Add(nameof(ApplicationRegistration.ApproveTime),
-                    update?.ApproveTime);
             }
 
             if (update?.CreateAuthorityId != registration?.CreateAuthorityId) {
@@ -362,8 +345,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     tags.GetValueOrDefault<string>(nameof(ApplicationId), null),
                 ApplicationType =
                     tags.GetValueOrDefault<ApplicationType>(nameof(ApplicationType), null),
-                ApplicationState =
-                    tags.GetValueOrDefault<ApplicationState>(nameof(ApplicationState), null),
                 Capabilities =
                     tags.GetValueOrDefault<Dictionary<string, bool>>(nameof(ApplicationRegistration.Capabilities), null),
                 HostAddresses =
@@ -375,10 +356,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 Thumbprint =
                     tags.GetValueOrDefault<string>(nameof(ApplicationRegistration.Thumbprint), null),
 
-                ApproveTime =
-                    tags.GetValueOrDefault<DateTime>(nameof(ApplicationRegistration.ApproveTime), null),
-                ApproveAuthorityId =
-                    tags.GetValueOrDefault<string>(nameof(ApplicationRegistration.ApproveAuthorityId), null),
                 CreateTime =
                     tags.GetValueOrDefault<DateTime>(nameof(ApplicationRegistration.CreateTime), null),
                 CreateAuthorityId =
@@ -420,7 +397,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 GatewayServerUri = registration.GatewayServerUri,
                 ApplicationId = registration.ApplicationId,
                 ApplicationType = registration.ApplicationType,
-                ApplicationState = registration.ApplicationState,
                 Capabilities = registration.Capabilities?
                     .ToDictionary(k => k.Key, v => v.Value),
                 HostAddresses = registration.HostAddresses?
@@ -430,8 +406,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 Certificate = registration.Certificate?
                     .ToDictionary(k => k.Key, v => v.Value),
                 Thumbprint = registration.Thumbprint,
-                ApproveTime = registration.ApproveTime,
-                ApproveAuthorityId = registration.ApproveAuthorityId,
                 CreateTime = registration.CreateTime,
                 CreateAuthorityId = registration.CreateAuthorityId,
                 UpdateTime = registration.UpdateTime,
@@ -465,7 +439,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 LocalizedNames = model.LocalizedNames,
                 HostAddresses = model.HostAddresses?.ToList().EncodeAsDictionary(),
                 ApplicationType = model.ApplicationType,
-                ApplicationState = model.State,
                 ApplicationUri = model.ApplicationUri,
                 ProductUri = model.ProductUri,
                 NotSeenSince = model.NotSeenSince,
@@ -475,8 +448,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 Certificate = model.Certificate.EncodeAsDictionary(),
                 Thumbprint = model.Certificate.ToSha1Hash(),
                 DiscoveryUrls = model.DiscoveryUrls?.ToList().EncodeAsDictionary(),
-                ApproveAuthorityId = model.Approved?.AuthorityId,
-                ApproveTime = model.Approved?.Time,
                 CreateAuthorityId = model.Created?.AuthorityId,
                 CreateTime = model.Created?.Time,
                 UpdateAuthorityId = model.Updated?.AuthorityId,
@@ -499,7 +470,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 HostAddresses = registration.HostAddresses.DecodeAsList().ToHashSetSafe(),
                 NotSeenSince = registration.NotSeenSince,
                 ApplicationType = registration.ApplicationType ?? ApplicationType.Server,
-                State = registration.ApplicationState ?? ApplicationState.New,
                 ApplicationUri = string.IsNullOrEmpty(registration.ApplicationUri) ?
                     registration.ApplicationUriLC : registration.ApplicationUri,
                 ProductUri = registration.ProductUri,
@@ -512,7 +482,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 DiscoveryProfileUri = registration.DiscoveryProfileUri,
                 GatewayServerUri = registration.GatewayServerUri,
                 Capabilities = registration.Capabilities?.DecodeAsSet(),
-                Approved = ToOperationModel(registration.ApproveAuthorityId, registration.ApproveTime),
                 Created = ToOperationModel(registration.CreateAuthorityId, registration.CreateTime),
                 Updated = ToOperationModel(registration.UpdateAuthorityId, registration.UpdateTime),
             };
@@ -530,14 +499,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             return model != null &&
                 registration.ApplicationId == model.ApplicationId &&
                 registration.ApplicationType == model.ApplicationType &&
-                (registration.ApplicationState ?? ApplicationState.New) == model.State &&
                 registration.ApplicationUri == model.ApplicationUri &&
                 registration.HostAddresses.DecodeAsList().SequenceEqualsSafe(
                     model.HostAddresses) &&
-                registration.ApproveAuthorityId == model.Approved?.AuthorityId &&
                 registration.CreateAuthorityId == model.Created?.AuthorityId &&
                 registration.UpdateAuthorityId == model.Updated?.AuthorityId &&
-                registration.ApproveTime == model.Approved?.Time &&
                 registration.CreateTime == model.Created?.Time &&
                 registration.UpdateTime == model.Updated?.Time &&
                 registration.DiscoveryProfileUri == model.DiscoveryProfileUri &&
