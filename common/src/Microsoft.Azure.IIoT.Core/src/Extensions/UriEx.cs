@@ -85,12 +85,8 @@ namespace System {
             };
             string fileDevice;
             string pathAndQuery;
-            var index = localPath.IndexOf(".sock", StringComparison.InvariantCultureIgnoreCase);
-            if (index != -1) {
-                fileDevice = localPath.Substring(0, index + 5);
-                pathAndQuery = localPath.Substring(index + 5);
-            }
-            else if ((index = localPath.IndexOf("sock", StringComparison.InvariantCultureIgnoreCase)) != -1) {
+            var index = localPath.IndexOf("sock", StringComparison.InvariantCultureIgnoreCase);
+            if (index  != -1) {
                 fileDevice = localPath.Substring(0, index + 4);
                 pathAndQuery = localPath.Substring(index + 4);
             }
