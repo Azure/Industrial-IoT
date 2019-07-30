@@ -26,7 +26,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Runtime {
             GetStringOrDefault(EDGEHUB_CONNSTRING_KEY);
         /// <summary>Whether to bypass cert validation</summary>
         public bool BypassCertVerification =>
-            GetBoolOrDefault(nameof(BypassCertVerification));
+            GetBoolOrDefault(nameof(BypassCertVerification), true);
         /// <summary>Transports to use</summary>
         public TransportOption Transport => Enum.Parse<TransportOption>(
             GetStringOrDefault(nameof(Transport), nameof(TransportOption.Amqp)), true);

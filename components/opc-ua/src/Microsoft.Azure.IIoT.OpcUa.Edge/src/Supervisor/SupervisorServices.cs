@@ -339,8 +339,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
                         throw new InvalidConfigurationException(
                             "Missing IOTEDGE_IOTHUBHOSTNAME variable in environment");
                     }
-                    cs = $"HostName={hostName};DeviceId={endpointId};SharedAccessKey={secret}";
                     var edgeName = Environment.GetEnvironmentVariable("IOTEDGE_GATEWAYHOSTNAME");
+                    if (string.IsNullOrEmpty(edgeName)) {
+                        cs = $"HostName={hostName};DeviceId={endpointId};SharedAccessKey={secret}";                        
+                    }
+                    else {
+                        cs = $"HostName={hostName};DeviceId={endpointId};GatewayHostName={edgeName};SharedAccessKey={secret}";
+                    }                    
                 }
                 else {
                     // Use existing connection string as a master plan
@@ -353,7 +358,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
                         throw new InvalidConfigurationException(
                             "Missing HostName in connection string");
                     }
-                    cs = $"HostName={hostName};DeviceId={endpointId};SharedAccessKey={secret}";
+
+                    if (!lookup.TryGetValue("GatewayHostName", out var edgeName) ||
+                         string.IsNullOrEmpty(edgeName)) {
+                        cs = $"HostName={hostName};DeviceId={endpointId};SharedAccessKey={secret}";
+                    }
+                    else {                        
+                        cs = $"HostName={hostName};DeviceId={endpointId};GatewayHostName={edgeName};SharedAccessKey={secret}";
+                    }
                 }
                 return cs;
             }
