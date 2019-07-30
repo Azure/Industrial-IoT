@@ -521,69 +521,71 @@
                     "family": "A"
                 },
                 "accessPolicies": []
-            }
-        },
-        {
-            "type": "accessPolicies",
-            "name": "add",
-            "apiVersion": "[variables('keyVaultApiVersion')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
-            ],
-            "properties": {
-                "accessPolicies": [
-                    {
-                        "tenantId": "[variables('tenantId')]",
-                        "objectId": "[parameters('aadServicePrincipalId')]",
-                        "permissions": {
-                            "keys": [ 
-                            ],
-                            "secrets": [ 
-                                "get" 
-                            ],
-                            "certificates": [ 
-                                "get",
-                                "list" 
-                            ],
-                            "storage": [ 
-                            ]
-                        }
-                    },
-                    {
-                        "tenantId": "[variables('tenantId')]",
-                        "objectId": "[parameters('aadUserPrincipalId')]",
-                        "permissions": {
-                            "keys": [ 
-                                "get", 
-                                "list", 
-                                "encrypt",
-                                "decrypt",
-                                "sign" 
-                            ],
-                            "secrets": [ 
-                                "get", 
-                                "list", 
-                                "set", 
-                                "delete" 
-                            ],
-                            "certificates": [ 
-                                "get", 
-                                "list", 
-                                "update", 
-                                "create", 
-                                "import",
-                                "getissuers",
-                                "listissuers",
-                                "setissuers",
-                                "deleteissuers",
-                                "manageissuers"
-                            ],
-                            "storage": [ 
-                            ]
-                        }
+            },
+            "resources": [
+                {
+                    "type": "accessPolicies",
+                    "name": "add",
+                    "apiVersion": "[variables('keyVaultApiVersion')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
+                    ],
+                    "properties": {
+                        "accessPolicies": [
+                            {
+                                "tenantId": "[variables('tenantId')]",
+                                "objectId": "[parameters('aadServicePrincipalId')]",
+                                "permissions": {
+                                    "keys": [ 
+                                    ],
+                                    "secrets": [ 
+                                        "get" 
+                                    ],
+                                    "certificates": [ 
+                                        "get",
+                                        "list" 
+                                    ],
+                                    "storage": [ 
+                                    ]
+                                }
+                            },
+                            {
+                                "tenantId": "[variables('tenantId')]",
+                                "objectId": "[parameters('aadUserPrincipalId')]",
+                                "permissions": {
+                                    "keys": [ 
+                                        "get", 
+                                        "list", 
+                                        "encrypt",
+                                        "decrypt",
+                                        "sign" 
+                                    ],
+                                    "secrets": [ 
+                                        "get", 
+                                        "list", 
+                                        "set", 
+                                        "delete" 
+                                    ],
+                                    "certificates": [ 
+                                        "get", 
+                                        "list", 
+                                        "update", 
+                                        "create", 
+                                        "import",
+                                        "getissuers",
+                                        "listissuers",
+                                        "setissuers",
+                                        "deleteissuers",
+                                        "manageissuers"
+                                    ],
+                                    "storage": [ 
+                                    ]
+                                }
+                            }
+                        ]
                     }
-                ]
-            }
+                }
+            ]
         },
         {
             "type": "Microsoft.KeyVault/vaults/secrets",
