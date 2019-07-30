@@ -495,6 +495,7 @@
         "appServicePlanVersion": "2018-02-01",
         "appServiceSku": "S1",
         "appServiceWorkerSize": "0",
+        "keyVaultVersion": "2015-06-01",
         "appInsightsPriceArray": [
             "Basic",
             "Application Insights Enterprise"
@@ -520,71 +521,69 @@
                     "family": "A"
                 },
                 "accessPolicies": []
-            },
-            "resources": [
-                {
-                    "type": "accessPolicies",
-                    "name": "add",
-                    "apiVersion": "[variables('keyVaultApiVersion')]",
-                    "dependsOn": [
-                        "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
-                    ],
-                    "properties": {
-                        "accessPolicies": [
-                            {
-                                "tenantId": "[variables('tenantId')]",
-                                "objectId": "[parameters('aadServicePrincipalId')]",
-                                "permissions": {
-                                    "keys": [ 
-                                    ],
-                                    "secrets": [ 
-                                        "get" 
-                                    ],
-                                    "certificates": [ 
-                                        "get",
-                                        "list" 
-                                    ],
-                                    "storage": [ 
-                                    ]
-                                }
-                            },
-                            {
-                                "tenantId": "[variables('tenantId')]",
-                                "objectId": "[parameters('aadUserPrincipalId')]",
-                                "permissions": {
-                                    "keys": [ 
-                                        "get", 
-                                        "list", 
-                                        "encrypt",
-                                        "decrypt",
-                                        "sign" 
-                                    ],
-                                    "secrets": [ 
-                                        "get", 
-                                        "list", 
-                                        "set", 
-                                        "delete" 
-                                    ],
-                                    "certificates": [ 
-                                        "get", 
-                                        "list", 
-                                        "update", 
-                                        "create", 
-                                        "import",
-                                        "getissuers",
-                                        "listissuers",
-                                        "setissuers",
-                                        "deleteissuers",
-                                        "manageissuers"
-                                    ],
-                                    "storage": [ 
-                                    ]
-                                }
-                            }
-                        ]
+            }
+        },
+        {
+            "type": "accessPolicies",
+            "name": "add",
+            "apiVersion": "[variables('keyVaultApiVersion')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
+            ],
+            "properties": {
+                "accessPolicies": [
+                    {
+                        "tenantId": "[variables('tenantId')]",
+                        "objectId": "[parameters('aadServicePrincipalId')]",
+                        "permissions": {
+                            "keys": [ 
+                            ],
+                            "secrets": [ 
+                                "get" 
+                            ],
+                            "certificates": [ 
+                                "get",
+                                "list" 
+                            ],
+                            "storage": [ 
+                            ]
+                        }
+                    },
+                    {
+                        "tenantId": "[variables('tenantId')]",
+                        "objectId": "[parameters('aadUserPrincipalId')]",
+                        "permissions": {
+                            "keys": [ 
+                                "get", 
+                                "list", 
+                                "encrypt",
+                                "decrypt",
+                                "sign" 
+                            ],
+                            "secrets": [ 
+                                "get", 
+                                "list", 
+                                "set", 
+                                "delete" 
+                            ],
+                            "certificates": [ 
+                                "get", 
+                                "list", 
+                                "update", 
+                                "create", 
+                                "import",
+                                "getissuers",
+                                "listissuers",
+                                "setissuers",
+                                "deleteissuers",
+                                "manageissuers"
+                            ],
+                            "storage": [ 
+                            ]
+                        }
                     }
-                }
-            ]
+                ]
+            }
         },
         {
             "type": "Microsoft.KeyVault/vaults/secrets",
@@ -863,26 +862,6 @@
                 "[variables('eventHubNamespaceResourceId')]",
                 "[variables('eventHubResourceId')]"
             ]
-        },
-        {
-            "type": "Microsoft.KeyVault/vaults",
-            "name": "[parameters('keyVaultName')]",
-            "apiVersion": "[variables('keyVaultVersion')]",
-            "location": "[resourceGroup().location]",
-            "tags": {
-                "displayName": "[parameters('keyVaultDisplayName')]"
-            },
-            "properties": {
-                "enabledForDeployment": true,
-                "enabledForTemplateDeployment": false,
-                "enabledForVolumeEncryption": false,
-                "sku": {
-                    "name": "[parameters('keyVaultSkuName')]",
-                    "family": "A"
-                },
-                "tenantId": "[parameters('aadTenantId')]",
-                "accessPolicies": []
-            }
         },
         {
             "type": "Microsoft.OperationalInsights/workspaces",

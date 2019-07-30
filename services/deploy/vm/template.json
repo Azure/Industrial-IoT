@@ -495,6 +495,7 @@
         "appServicePlanVersion": "2018-02-01",
         "appServiceSku": "S1",
         "appServiceWorkerSize": "0",
+        "keyVaultVersion": "2015-06-01",
         "appInsightsPriceArray": [
             "Basic",
             "Application Insights Enterprise"
@@ -549,7 +550,7 @@
                                 }
                             },
                             {
-                                "tenantId": "[variables('tenantId')]",
+                                "tenantId": "[[variables('tenantId')]",
                                 "objectId": "[parameters('aadUserPrincipalId')]",
                                 "permissions": {
                                     "keys": [ 
@@ -863,26 +864,6 @@
                 "[variables('eventHubNamespaceResourceId')]",
                 "[variables('eventHubResourceId')]"
             ]
-        },
-        {
-            "type": "Microsoft.KeyVault/vaults",
-            "name": "[parameters('keyVaultName')]",
-            "apiVersion": "[variables('keyVaultVersion')]",
-            "location": "[resourceGroup().location]",
-            "tags": {
-                "displayName": "[parameters('keyVaultDisplayName')]"
-            },
-            "properties": {
-                "enabledForDeployment": true,
-                "enabledForTemplateDeployment": false,
-                "enabledForVolumeEncryption": false,
-                "sku": {
-                    "name": "[parameters('keyVaultSkuName')]",
-                    "family": "A"
-                },
-                "tenantId": "[parameters('aadTenantId')]",
-                "accessPolicies": []
-            }
         },
         {
             "type": "Microsoft.OperationalInsights/workspaces",
