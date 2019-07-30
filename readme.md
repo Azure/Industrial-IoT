@@ -1,14 +1,12 @@
-# Azure/Industrial-IoT
+# Azure Industrial IoT
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Open Manufacturing and Industrial IoT Platform on Azure
-
 ## Features
 
-### Discover, register and manage your Industrial Assets in Azure
+### Discover, register and manage your Industrial Assets with Azure
 
-Azure Industrial IoT Platform allows plant operators to discover OPC UA enabled servers in a factory network and register them in Azure IoT Hub.  
+Azure Industrial IoT allows plant operators to discover OPC UA enabled servers in a factory network and register them in Azure IoT Hub.  
 
 ### Analyze, react to events, and control equipment from anywhere
 
@@ -20,7 +18,7 @@ The [REST API](docs/api/readme.md) can be used with any programming language thr
 
 ### Manage certificates and trust groups
 
-The platform also allows OT and IT to manage OPC UA Application Certificates and Trust Lists of factory floor machinery and control systems to keep OPC UA client to server communication secure and manage which client is allowed to talk to which server.  Storage of private keys and signing of certificates is backed by Azure Key Vault, which supports hardware based security (HSM).
+Azure Industrial IoT manages OPC UA Application Certificates and Trust Lists of factory floor machinery and control systems to keep OPC UA client to server communication secure. It restricts which client is allowed to talk to which server.  Storage of private keys and signing of certificates is backed by Azure Key Vault, which supports hardware based security (HSM).
 
 ## Components
 
@@ -28,7 +26,7 @@ The platform also allows OT and IT to manage OPC UA Application Certificates and
 
 [![Build Status](https://msazure.visualstudio.com/One/_apis/build/status/Custom/Azure_IOT/Industrial/Components/Azure.Industrial-IoT?branchName=master)](https://msazure.visualstudio.com/One/_build/latest?definitionId=86580&branchName=master)
 
-This repository includes the Industrial IoT platform component:
+This repository includes the following Industrial IoT components:
 
 * Cloud Management and Data Plane, including
    * [OPC Twin](docs/services/twin.md) Microservices provide discovery, registration, and remote control of industrial devices through REST APIs.  
@@ -37,14 +35,13 @@ This repository includes the Industrial IoT platform component:
 * Edge components
   * [OPC Twin module](docs/modules/twin.md)
   * [OPC Publisher module](docs/modules/publisher.md)
-* Components and protocol stacks including
-  * [OPC Unified Architecture (OPC UA)](https://github.com/Azure/azure-iiot-opc-ua)
 
 ## Learn more
 
 * [Deploy Azure Industrial IoT](docs/readme.md)
 * [Deploy the Microservices](docs/howto-deploy-microservices.md)
 * Explore the samples
+  * [Connected Factory](https://github.com/Azure/Azure-IoT-Connected-Factory) Solution Accelerator which you can try out [here](https://www.azureiotsolutions.com/Accelerators).
   * [OPC Vault Dashboard](https://github.com/Azure/azure-iiot-opc-vault-service/tree/master/app)
   * [OPC Twin Browser](https://github.com/Azure/azure-iiot-opc-twin-webui)
 * Read more about Industrial IoT Components [here](docs/industrial-iot-components.md)

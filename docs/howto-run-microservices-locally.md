@@ -1,6 +1,6 @@
 # Run the Azure Industrial IoT Microservices locally
 
-The Industrial IoT Microservices contained in this repository provide a REST like API on top of our Azure Industrial IoT components, for example our [OPC UA components](https://github.com/Azure/azure-iiot-opc-ua).  
+The Industrial IoT Microservices contained in this repository provide a REST like API exposing the Industrial IoT Platform capabilities.  
 
 ## Prerequisites
 
