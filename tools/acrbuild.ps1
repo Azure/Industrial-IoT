@@ -135,12 +135,14 @@ Write-Debug "Building for source tag $($sourceTag)"
 
 # Try get branch name
 $branchName = $env:BUILD_SOURCEBRANCH
+$isDeveloperBuild = $true
 if (![string]::IsNullOrEmpty($branchName)) {
     if ($branchName.StartsWith("refs/heads/")) {
-        $branchName = $branchName.Replace("refs/heads/")
+        $branchName = $branchName.Replace("refs/heads/", "")
+        $isDeveloperBuild = $branchName -ne "master"
     }
     else {
-        $branchName = "pr"
+        $branchName = $null
     }
 }
 if ([string]::IsNullOrEmpty($branchName)) {
@@ -150,20 +152,18 @@ if ([string]::IsNullOrEmpty($branchName)) {
         # any build other than from master branch is a developer build.
     }
     catch {
-        $branchName = "master"
+        $branchName = $null
     }
 }
-$isDeveloperBuild = $branchName -ne "master"
 if ([string]::IsNullOrEmpty($branchName) -or ($branchName -eq "HEAD")) {
-    # set master, but treat as developer initiated build
-    $branchName = "master"
+    $branchName = "deletemesoon"
 }
 
 # Set image name and namespace in acr based on branch and source tag
 $imageName = $metadata.name
 $namespace = "public/"
 if ($isDeveloperBuild -eq $true) {
-    $namespace = ("internal/{0}/" -f $branchName)
+    $namespace = "internal/$($branchName)/"
     Write-Host "Pushing developer build for $($branchName)."
 }
 else {

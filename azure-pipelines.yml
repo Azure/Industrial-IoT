@@ -38,12 +38,12 @@ jobs:
   steps:
   - task: PowerShell@2
     name: jobmatrix
-    displayName: "Prepare Tests"
+    displayName: Prepare Tests
     inputs:
       targetType: filePath
       filePath: ./tools/jobmatrix.ps1
 - job: testall
-  displayName: Test
+  displayName: Run Tests for
   dependsOn: testprep
   strategy:
     matrix: $[ dependencies.testprep.outputs['jobmatrix.jobMatrix'] ]
@@ -100,12 +100,12 @@ jobs:
   steps:
   - task: PowerShell@2
     name: acrmatrix
-    displayName: "Prepare Builds"
+    displayName: Prepare Builds
     inputs:
       targetType: filePath
       filePath: ./tools/acrmatrix.ps1
 - job: imagesall
-  displayName: Build
+  displayName: Build Images for
   pool:
     name: Hosted Windows 2019 with VS2019
   dependsOn: imagesprep
@@ -114,7 +114,7 @@ jobs:
   steps:
   - task: AzureCLI@1
     name: acrbuild
-    displayName: "Build Image"
+    displayName: Build Image
     inputs:
       azureSubscription: azureiiot
       scriptLocation: inlineScript
