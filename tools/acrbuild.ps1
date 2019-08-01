@@ -107,7 +107,7 @@ $metadata = Get-Content -Raw -Path (join-path $path "mcr.json") `
     | ConvertFrom-Json
 
 # get and set build information from git or content
-$sourceVersion = $env.BUILD_SOURCEVERSION
+$sourceVersion = $env:BUILD_SOURCEVERSION
 # Try get current tag
 try {
     $argumentList = @("tag", "--points-at", $sourceVersion)
@@ -134,20 +134,29 @@ if ([string]::IsNullOrEmpty($sourceTag)) {
 Write-Debug "Building for source tag $($sourceTag)"
 
 # Try get branch name
-try {
-    $argumentList = @("rev-parse", "--abbrev-ref", "HEAD")
-    $branchName = (& "git" $argumentList 2>&1 | %{ "$_" });
-    # any build other than from master branch is a developer build.
-    $isDeveloperBuild = $branchName -ne "master"
+$branchName = $env:BUILD_SOURCEBRANCH
+if (![string]::IsNullOrEmpty($branchName)) {
+    if ($branchName.StartsWith("refs/heads/")) {
+        $branchName = $branchName.Replace("refs/heads/")
+    }
+    else {
+        $branchName = "pr"
+    }
 }
-catch {
-    $branchName = $null
-}
-
 if ([string]::IsNullOrEmpty($branchName)) {
+    try {
+        $argumentList = @("rev-parse", "--abbrev-ref", "HEAD")
+        $branchName = (& "git" $argumentList 2>&1 | %{ "$_" });
+        # any build other than from master branch is a developer build.
+    }
+    catch {
+        $branchName = "master"
+    }
+}
+$isDeveloperBuild = $branchName -ne "master"
+if ([string]::IsNullOrEmpty($branchName) -or ($branchName -eq "HEAD")) {
     # set master, but treat as developer initiated build
     $branchName = "master"
-    $isDeveloperBuild = true
 }
 
 # Set image name and namespace in acr based on branch and source tag
@@ -216,10 +225,11 @@ Get-ChildItem $path -Recurse `
             $buildContext
     )
     $jobs += Start-Job -Name $platform -ArgumentList $argumentList `
-        -ScriptBlock { 
+        -ScriptBlock {
+            Write-Host "az $($args)"
             & az $args 2>&1 | %{ "$_" }
             if ($LastExitCode -ne 0) {
-                throw "Error: az $($args) failed with $($LastExitCode)."
+                throw "Error: 'az $($args)' failed with $($LastExitCode)."
             }
         }
 
