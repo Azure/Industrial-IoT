@@ -43,7 +43,7 @@ jobs:
       filePath: ./tools/jobmatrix.ps1
 - job: testall
   displayName: Test
-  dependsOn: imagesprep
+  dependsOn: testprep
   strategy:
     matrix: $[ dependencies.testprep.outputs['jobmatrix.jobMatrix'] ]
   pool:
