@@ -68,4 +68,4 @@ Get-ChildItem $BuildRoot -Recurse `
 
 # Set pipeline variable
 Write-Host ("##vso[task.setVariable variable=jobMatrix;isOutput=true] {0}" `
-    -f ($jobMatrix | ConvertTo-Json))
+    -f ($jobMatrix | ConvertTo-Json -Compress))
