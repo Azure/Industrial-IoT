@@ -278,10 +278,15 @@ else {
 }
 try {
     # Download and verify manifest tool
+    $wc = New-Object System.Net.WebClient
     $url += $manifestTool
-    Invoke-WebRequest -Uri $url -OutFile $manifestTool | Out-Host
+    Write-Host "Downloading $($manifestTool)..."
+    $wc.DownloadFile($url, $manifestTool)
+    # Invoke-WebRequest -Uri $url -OutFile $manifestTool | Out-Host
+    Write-Host "Downloading $($manifestTool).asc..."
     $url = $url + ".asc"
-    Invoke-WebRequest -Uri $url -OutFile ($manifestTool + ".asc") | Out-Host
+    $wc.DownloadFile($url, "$($manifestTool).asc")
+    # Invoke-WebRequest -Uri $url -OutFile ($manifestTool + ".asc") | Out-Host
     # TODO: validate 0F386284C03A1162
 
     Write-Host "Building and pushing manifest file:"
