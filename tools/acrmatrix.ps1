@@ -15,7 +15,7 @@
 
 Param(
     [string] $BuildRoot = $null,
-    [switch] $Pipelined = $false
+    [switch] $Pipelined = $true
 )
 
 if ([string]::IsNullOrEmpty($BuildRoot)) {

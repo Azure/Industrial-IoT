@@ -31,55 +31,21 @@ jobs:
 #
 # Test all components on multiple platforms
 #
+- job: testprep
+  pool:
+    name: Hosted Windows 2019 with VS2019
+  steps:
+  - task: PowerShell@2
+    name: jobmatrix
+    displayName: "Prepare Tests"
+    inputs:
+      targetType: filePath
+      filePath: ./tools/jobmatrix.ps1
 - job: testall
   displayName: Test
+  dependsOn: imagesprep
   strategy:
-    matrix:
-      common_linux:
-        folder: "common"
-        poolName: "Hosted Ubuntu 1604"
-      components_linux:
-        folder: "components"
-        poolName: "Hosted Ubuntu 1604"
-      services_linux:
-        folder: "services"
-        poolName: "Hosted Ubuntu 1604"
-      modules_linux:
-        folder: "modules"
-        poolName: "Hosted Ubuntu 1604"
-      api_linux:
-        folder: "api"
-        poolName: "Hosted Ubuntu 1604"
-      common_windows:
-        folder: "common"
-        poolName: "Hosted Windows 2019 with VS2019"
-      components_windows:
-        folder: "components"
-        poolName: "Hosted Windows 2019 with VS2019"
-      services_windows:
-        folder: "services"
-        poolName: "Hosted Windows 2019 with VS2019"
-      modules_windows:
-        folder: "modules"
-        poolName: "Hosted Windows 2019 with VS2019"
-      api_windows:
-        folder: "api"
-        poolName: "Hosted Windows 2019 with VS2019"
-      common_mac:
-        folder: "common"
-        poolName: "Hosted macOS"
-      components_mac:
-        folder: "components"
-        poolName: "Hosted macOS"
-      services_mac:
-        folder: "services"
-        poolName: "Hosted macOS"
-      modules_mac:
-        folder: "modules"
-        poolName: "Hosted macOS"
-      api_mac:
-        folder: "api"
-        poolName: "Hosted macOS"
+    matrix: $[ dependencies.testprep.outputs['jobmatrix.jobMatrix'] ]
   pool:
     name: $(poolName)
   steps:
@@ -147,7 +113,7 @@ jobs:
     name: Hosted Windows 2019 with VS2019
   dependsOn: imagesprep
   strategy:
-    matrix: $[ dependencies.images.outputs['acrmatrix.acrMatrix'] ]
+    matrix: $[ dependencies.imagesprep.outputs['acrmatrix.acrMatrix'] ]
   steps:
   - task: AzureCLI@1
     name: acrbuild
