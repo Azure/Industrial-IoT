@@ -3,6 +3,10 @@
     Creates the container build matrix from the mcr.json files in the tree.
 
  .DESCRIPTION
+    The script requires az to be installed and already logged on to a 
+    subscription.  This means it should be run in a azcliv2 task in the
+    azure pipeline or "az login" must have been performed already.
+
     The script traverses the build root to find all folders with an mcr.json
     file.  
     
@@ -15,116 +19,132 @@
     Finally it stores the container build matrix and the manifest build matrix and 
     echos each as VSO variables to create the individual build jobs.
 
- .PARAMETER dockerFolder
+ .PARAMETER path
     The folder to build the docker files from
-
- .PARAMETER subscription
-    The Subscription where the ACR instance resides
-
- .PARAMETER resourceGroup
-    The Resource group of the ACR instance
 
  .PARAMETER registry
     The name of the registry in ACR
 
- .PARAMETER user
-    The registry user name to log on with
-
- .PARAMETER password
-    The registry credentials
+ .PARAMETER registry
+    The subscription to use - otherwise uses default
 #>
 
 Param(
-    [string] $dockerFolder = $null,
+    [string] $path = $null,
     [string] $registry = $null,
-    [string] $resourceGroup = $null,
-    [string] $subscription = $null,
-    [string] $user = $null,
-    [string] $password = $null
+    [string] $subscription = $null
 )
 
-# find the top most folder with .dockerignore in it
+# find the top most folder with file in it and return the path
 Function GetTopMostFolder() {
     param(
         [string] $startDir,
         [string] $fileName
     ) 
     $cur = $startDir
-    while ($True) {
-        if ([string]::IsNullOrEmpty($cur)) {
-            break
-        }
-        $test = Join-Path $cur $fileName
-        if (Test-Path $test) {
-            $found = $cur
-        }
-        elseif (![string]::IsNullOrEmpty($found)) {
-            break
+    while (![string]::IsNullOrEmpty($cur)) {
+        if (Test-Path -Path (Join-Path $cur $fileName) -PathType Leaf) {
+            return $cur
         }
         $cur = Split-Path $cur
-    }
-    if (![string]::IsNullOrEmpty($found)) {
-        return $found
     }
     return $startDir
 }
 
-# Do some argument checking
-if ([string]::IsNullOrEmpty($dockerFolder)) {
-    throw "No folder specified - exiting prematurely."
+# Check path argument
+if ([string]::IsNullOrEmpty($path)) {
+    throw "No docker folder specified."
 }
+if (!(Test-Path -Path $path -PathType Container)) {
+    $cur = Join-Path `
+        (Split-Path $script:MyInvocation.MyCommand.Path) $path
+    if (!(Test-Path -Path $cur -PathType Container)) {
+    $cur = Join-Path (Split-Path `
+        (Split-Path $script:MyInvocation.MyCommand.Path)) $path
+        if (!(Test-Path -Path $cur -PathType Container)) {
+            throw "$($path) does not exist."
+        }
+    }
+    $path = $cur
+}
+$path = Resolve-Path -LiteralPath $path
+
+# Check and set registry
 if ([string]::IsNullOrEmpty($registry)) {
     $registry = $env.BUILD_REGISTRY
     if ([string]::IsNullOrEmpty($registry)) {
-        Write-Warning "No registry specified - exiting prematurely."
-        Exit 0
+        Write-Warning "No registry specified - using default name."
+        $registry = "industrialiot"
     }
 }
-if ([string]::IsNullOrEmpty($subscription)) {
-    $subscription = $env.BUILD_SUBSCRIPTION
-}
-if ([string]::IsNullOrEmpty($resourceGroup)) {
-    $resourceGroup = $env.BUILD_RESOURCEGROUP
+
+# set default subscription
+if (![string]::IsNullOrEmpty($subscription)) {
+    Write-Debug "Setting subscription to $($subscription)"
+    $argumentList = @("account", "set", "--subscription", $subscription)
+    & "az" $argumentList 2`>`&1 | %{ "$_" }
 }
 
-# Get build context
-$buildContext = GetTopMostFolder -startDir $dockerFolder -fileName ".dockerignore"
-$metadata = Get-Content -Raw -Path (join-path $dockerFolder "mcr.json") `
+# get registry information
+$argumentList = @("acr", "show", "--name", $registry)
+$registryInfo = (& "az" $argumentList 2>&1 | %{ "$_" }) | ConvertFrom-Json
+$resourceGroup = $registryInfo.resourceGroup
+Write-Debug "Using resource group $($resourceGroup)"
+
+# get credentials
+$argumentList = @("acr", "credential", "show", "--name", $registry)
+$credentials = (& "az" $argumentList 2>&1 | %{ "$_" }) | ConvertFrom-Json
+$user = $credentials.username
+$password = $credentials.passwords[0].value
+Write-Debug "Using User name $($user) and passsword ****"
+
+# Get build context - this is the top most folder with .dockerignore
+$buildContext = GetTopMostFolder -startDir $path `
+    -fileName ".dockerignore"
+
+# Get meta data
+$metadata = Get-Content -Raw -Path (join-path $path "mcr.json") `
     | ConvertFrom-Json
 
 # get and set build information from git or content
 $sourceVersion = $env.BUILD_SOURCEVERSION
-
 # Try get current tag
 try {
-    $sourceTag = ("{0}" -f (cmd /c "git tag --points-at $sourceVersion" 2`>`&1));
+    $argumentList = @("tag", "--points-at", $sourceVersion)
+    $sourceTag = (& "git" $argumentList 2>&1 | %{ "$_" });
 }
 catch {
     $sourceTag = $null
 }
 if ([string]::IsNullOrEmpty($sourceTag)) {
     try {
+        $buildRoot = GetTopMostFolder -startDir $path `
+            -fileName "version.props"
         # set version number from first encountered version.props
-        [xml] $props=Get-Content -Path (join-path `
-            GetTopMostFolder -startDir $dockerFolder -fileName "version.props" `
-                "version.props")
+        [xml] $props=Get-Content -Path (Join-Path $buildRoot "version.props")
         $sourceTag=$props.Project.PropertyGroup.VersionPrefix
     }
     catch {
         $sourceTag = $null
     }
-    if ([string]::IsNullOrEmpty($sourceTag)) {
-        $sourceTag = "latest"
-    }
 }
+if ([string]::IsNullOrEmpty($sourceTag)) {
+    $sourceTag = "latest"
+}
+Write-Debug "Building for source tag $($sourceTag)"
 
 # Try get branch name
 try {
-    $branchName = ("{0}" -f (cmd /c "git rev-parse --abbrev-ref HEAD" 2`>`&1));
+    $argumentList = @("rev-parse", "--abbrev-ref", "HEAD")
+    $branchName = (& "git" $argumentList 2>&1 | %{ "$_" });
     # any build other than from master branch is a developer build.
     $isDeveloperBuild = $branchName -ne "master"
 }
 catch {
+    $branchName = $null
+}
+
+if ([string]::IsNullOrEmpty($branchName)) {
     # set master, but treat as developer initiated build
     $branchName = "master"
     $isDeveloperBuild = true
@@ -133,8 +153,12 @@ catch {
 # Set image name and namespace in acr based on branch and source tag
 $imageName = $metadata.name
 $namespace = "public/"
-if (?$isDeveloperBuild) {
+if ($isDeveloperBuild -eq $true) {
     $namespace = ("internal/{0}/" -f $branchName)
+    Write-Host "Pushing developer build for $($branchName)."
+}
+else {
+    Write-Host "Pushing release build to public"
 }
 
 # Create manifest file
@@ -144,27 +168,31 @@ if ($versionParts.Count -gt 0) {
     $versionTag = $versionParts[0]
     $tags += $versionTag
     for ($i = 1; $i -lt $versionParts.Count; $i++) {
-        $versionTag = ("$(versionTag).{0}" -f $versionParts[$i])
+        $versionTag = ("$($versionTag).{0}" -f $versionParts[$i])
         $tags += $versionTag
     }
     $tagList = ("'{0}'" -f ($tags -join "', '"))
 }
 
 $manifest = @" 
-image: $(registry).azurecr.io/$(namespace)$(imageName):latest
-tags: [$(tagList)]
+image: $($registry).azurecr.io/$($namespace)$($imageName):latest
+tags: [$($tagList)]
 manifests:
 "@
 
-# Build all dockerfiles
+Write-Host "Building $($path) in $($buildContext) and "
+Write-Host "pushing to $($registry)/$($namespace)$($imageName)"
+
+# Start build jobs for every Dockerfile
 $jobs = @()
-Get-ChildItem $dockerFolder -Recurse `
+Get-ChildItem $path -Recurse `
     | Where-Object Name -eq "Dockerfile" `
     | ForEach-Object {
 
-    $platformFolder = $_.DirectoryName.Replace($dockerFolder, "").Substring(1)
-    $dockerfile = $_.FullName.Replace($dockerFolder, "").Substring(1)
-    $platform = $platformFolder.Replace("\", "/")
+    $dockerfile = $_.FullName
+
+    $platformFolder = $_.DirectoryName.Replace($path, "")
+    $platform = $platformFolder.Substring(1).Replace("\", "/")
     if ($platform -eq "linux/arm32v7") {
         # Backcompat
         $platform = "linux/arm/v7"
@@ -175,34 +203,32 @@ Get-ChildItem $dockerFolder -Recurse `
         $platformTag = "linux-arm32v7"
     }
 
-    $image = "$(namespace)$(imageName):$(sourceTag)-$(platformTag)"
+    $image = "$($namespace)$($imageName):$($sourceTag)-$($platformTag)"
 
+    Write-Host "Start build job for $($image)"
     # Create acr command line - TODO: Consider az powershell module?
-    $cmd = "az acr build --verbose"
-    $cmd += " --registry $(registry)"
-    if (![string]::IsNullOrEmpty($subscription)) {
-        $cmd += " --subscription $(subscription)"
-    }
-    if (![string]::IsNullOrEmpty($resourceGroup)) {
-        $cmd += " --resource-group $(resourceGroup)"
-    }
-    $cmd += " --platform $(platform)"
-    $cmd += " --file $(dockerfile)"
-    $cmd += " --image $(image)"
-    $cmd += " $(buildContext)"
-
-    Write-Host "Start building $(image)"
-    $jobs += Start-Job -Name $platform -ArgumentList @($cmd ) -ScriptBlock {
-        Write-Host "Calling {0}" -f $args[0]
-        cmd /c $args[0]
-    }
+    $argumentList = @("acr", "build", "--verbose",
+        "--registry", $registry,
+        "--resource-group", $resourceGroup,
+        "--platform", $platform,
+        "--file", $dockerfile,
+        "--image", $image,
+            $buildContext
+    )
+    $jobs += Start-Job -Name $platform -ArgumentList $argumentList `
+        -ScriptBlock { 
+            & az $args 2>&1 | %{ "$_" }
+            if ($LastExitCode -ne 0) {
+                throw "Error: az $($args) failed with $($LastExitCode)."
+            }
+        }
 
     # Append image with platform information to manifest
     $os = ""
     $osArchArr = $platform.Split('/')
     if ($osArchArr.Count -gt 1) {
         $os = ("os: {0}" -f $osArchArr[0])
-        $arch = ("architecture: {0}" -f $osArchArr[1])
+        $architecture = ("architecture: {0}" -f $osArchArr[1])
         $variant = ""
         if ($osArchArr.Count -gt 2) {
             $variant = ("variant: {0}" -f $osArchArr[2])
@@ -210,52 +236,76 @@ Get-ChildItem $dockerFolder -Recurse `
     }
     if (![string]::IsNullOrEmpty($os)) {
         $manifest +=
-@" 
+@"
+
   - 
-    image: $(registry).azurecr.io/$(image)
+    image: $($registry).azurecr.io/$($image)
     platform: 
-      $(os)
-      $(architecture)
-      $(variant)
+      $($os)
+      $($architecture)
+      $($variant)
 "@
     }
 }
 
 # Wait until all jobs are completed
-$results = Receive-Job -Job $jobs -Wait -WriteJobInResults
-for ($i = 0; $i -le $results.Count; $i += 2) {
-    $job = $results[$i]
-    Write-Host ("Build result for {0}" -f $job.Name)
-    Write-Host ("{0}" -f $results[$i + 1])
-    if ($job.State -ne "Completed") {
-        throw "ERROR: Building $(job.Name). resulted in $(job.State)."
-    }
+Receive-Job -Job $jobs -WriteEvents -Wait | Out-Host
+$jobs | Out-Host
+$jobs | Where-Object { $_.State -ne "Completed" } | ForEach-Object {
+    throw "ERROR: Building $($_.Name). resulted in $($_.State)."
 }
+Write-Host "All build jobs completed successfully."
+Write-Host ""
 
 # Build manifest using the manifest tool
-if ([string]::IsNullOrEmpty($user)) {
-    Write-Warning "No User - Exiting before pushing manifest..."
-    Exit 0        
+$manifestFile = New-TemporaryFile
+$url = "https://github.com/estesp/manifest-tool/releases/download/v0.9.0/"
+if ($env:OS -eq "windows_nt") {
+    $manifestTool = "manifest-tool-windows-amd64.exe"
 }
-if ([string]::IsNullOrEmpty($password)) {
-    $password = $env.REGISTRY_PASSWORD
-    if ([string]::IsNullOrEmpty($password)) {
-        Write-Warning "No Password - Exiting before pushing manifest..."
-        Exit 0        
-    }
+else {
+    $manifestTool = "manifest-tool-linux-amd64"
 }
-$manifest | Out-File -Encoding ascii -FilePath "manifest.yml"
 try {
-    Write-Host "Pushing manifest"
-    cmd /c "--username $(user) --password $(password) push from-spec manifest.yml"
-    Remove-Object "manifest.yml"
+    # Download and verify manifest tool
+    $url += $manifestTool
+    Invoke-WebRequest -Uri $url -OutFile $manifestTool | Out-Host
+    $url = $url + ".asc"
+    Invoke-WebRequest -Uri $url -OutFile ($manifestTool + ".asc") | Out-Host
+    # TODO: validate 0F386284C03A1162
+
+    Write-Host "Building and pushing manifest file:"
+    Write-Host ""
+    $manifest | Out-Host
+
+    $manifest | Out-File -Encoding ascii -FilePath $manifestFile.FullName
+    $argumentList = @( 
+        "--username", $user,
+        "--password", $password,
+        "push",
+        "from-spec", $manifestFile.FullName
+    )
+
+    & (Join-Path $PSScriptRoot $manifestTool) $argumentList | Out-Host
+    if ($LastExitCode -ne 0) {
+        throw "$($manifestTool) failed with $($LastExitCode)."
+    }
+
+    Write-Host ""
+    Write-Host "Manifest pushed successfully."
 }
 catch {
-    if (?$isDeveloperBuild) {
+    if ($isDeveloperBuild -eq $true) {
         Write-Error "Could not push manifest"
+        Write-Error $_.Exception.Message
     }
     else {
-        throw $_
+        throw $_.Exception
     }
+}
+finally {
+    Remove-Item -Force -Path $manifestFile.FullName
+    Remove-Item -Force -Path $manifestTool
+    Remove-Item -Force -Path ($manifestTool + ".asc")
 }
 

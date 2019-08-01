@@ -1,16 +1,13 @@
-.dockerignore
 .git
+**/[b|B]in
+**/[o|O]bj
 /**/.gitignore
 docker-compose.yml
 docker-compose.*.yml
 /**/*.user
 /**/*.user.json
 /**/*.nupkg
-/**/obj/**
 /**/.vs
-/**/bin/**
-/**/csx/**
-/**/ecf/**
 /**/*.log
 /**/*.err
 /**/*.sdf
@@ -18,16 +15,7 @@ docker-compose.*.yml
 /**/*.opensdf
 /**/*.vc.db
 .vscode/**
-/**/*.dll
-/**/*.so
-/**/*.pdb
-/**/*.der
-/**/*.pfx
-/**/*.exe
-/_tmpout/**
 /TestResults/**
-/**/swagger/*.json
 /**/packages/**
 /**/.env
-
 

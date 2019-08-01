@@ -1,4 +1,7 @@
 jobs:
+#
+# Build everything on all platforms
+#
 - job: buildall
   displayName: Build
   strategy:
@@ -24,6 +27,10 @@ jobs:
       command: build
       projects: 'Industrial-IoT.sln'
       arguments: '--configuration Debug'
+
+#
+# Test all components on multiple platforms
+#
 - job: testall
   displayName: Test
   strategy:
@@ -82,8 +89,12 @@ jobs:
       command: test
       projects: '$(folder)/**/tests/*.csproj'
       arguments: '--configuration Release'
-- job: package
-  displayName: Package
+      
+#
+# Pack developer nugets for consumption
+#
+- job: devpack
+  displayName: Pack and Push Developer Packages
   dependsOn:
     - buildall
     - testall
@@ -114,3 +125,39 @@ jobs:
       packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.snupkg'
       nuGetFeedType: external
       publishFeedCredentials: azureiiot-dev
+
+#
+# Build developer or release images
+#
+- job: imagesprep
+  displayName: Build container images
+  pool:
+    name: Hosted Windows 2019 with VS2019
+  dependsOn:
+    - devpack
+  steps:
+  - task: PowerShell@2
+    name: acrmatrix
+    displayName: "Prepare Container Build"
+    inputs:
+      targetType: filePath
+      filePath: ./tools/acrmatrix.ps1
+- job: imagesall
+  condition: and(succeeded(), ne(variables.Subscription, 'false'))
+  pool:
+    name: Hosted Windows 2019 with VS2019
+  dependsOn: imagesprep
+  strategy:
+    matrix: $[ dependencies.images.outputs['acrmatrix.acrMatrix'] ]
+  steps:
+  - task: AzureCLI@1
+    name: acrbuild
+    displayName: "Prepare Container Build"
+    inputs:
+      azureSubscription: $(Subscription)
+      scriptLocation: inlineScript
+      inlineScript: powershell ./tools/acrbuild.ps1 $(dockerFolder)
+      
+#
+# Done
+#

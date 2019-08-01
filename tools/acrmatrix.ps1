@@ -8,11 +8,14 @@
 
  .PARAMETER BuildRoot
     The root folder to start traversing the repository from
+
+ .PARAMETER Pipelined
+    The task generates jobs in azure pipeline.  Default is $true.
 #>
 
 Param(
-    [string]
-    $BuildRoot = $null
+    [string] $BuildRoot = $null,
+    [switch] $Pipelined = $false
 )
 
 if ([string]::IsNullOrEmpty($BuildRoot)) {
@@ -27,13 +30,13 @@ Get-ChildItem $BuildRoot -Recurse `
     | ForEach-Object {
 
     # Get root
-    $dockerFolder = $_.DirectoryName.Replace($BuildRoot, "")
+    $dockerFolder = $_.DirectoryName.Replace($BuildRoot, "").Substring(1)
     $metadata = Get-Content -Raw -Path $_.FullName | ConvertFrom-Json
 
     try {
         $jobName = "Build and Push " + $metadata.name
         if (![string]::IsNullOrEmpty($metadata.name)) {
-            $acrMatrix.Add($jobName, @{ dockerFolder = $dockerFolder })
+            $acrMatrix.Add($jobName, @{ "dockerFolder" = $dockerFolder })
         }
     }
     catch {
@@ -41,6 +44,13 @@ Get-ChildItem $BuildRoot -Recurse `
     }
 }
 
-# Set pipeline variable
-Write-Host ("##vso[task.setVariable variable=acrMatrix;isOutput=true] {0}" `
-    -f ($acrMatrix | ConvertTo-Json -Compress))
+if ($Pipelined -eq $false) {
+    $acrMatrix.Values | ForEach-Object {
+        & (Join-Path $PSScriptRoot "acrbuild.ps1") -path $_.dockerFolder
+    }
+}
+else {
+    # Set pipeline variable
+    Write-Host ("##vso[task.setVariable variable=acrMatrix;isOutput=true] {0}" `
+        -f ($acrMatrix | ConvertTo-Json -Compress))
+}

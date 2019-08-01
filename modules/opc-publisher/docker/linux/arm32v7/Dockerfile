@@ -1,23 +1,14 @@
-ARG runtime_base_tag=2.2-runtime-bionic-arm32v7
-ARG build_base_tag=2.2-sdk-bionic-arm32v7
+FROM mcr.microsoft.com/dotnet/core/sdk:2.2-alpine AS build
+WORKDIR /src
+COPY opcpublisher/Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.csproj src/
+COPY NuGet.Config NuGet.Config
+COPY *.props /
+RUN dotnet restore --configfile NuGet.Config -nowarn:msb3202,nu1503 src/Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.csproj
+COPY . .
+WORKDIR /src/src
+RUN dotnet publish Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.csproj -c Release -o /app -r linux-arm
 
-FROM microsoft/dotnet:${build_base_tag} AS build
+FROM mcr.microsoft.com/dotnet/core/runtime-deps:2.2-bionic-arm32v7 AS base
 WORKDIR /app
-
-# copy csproj and restore as distinct layers
-COPY opcpublisher/*.csproj ./opcpublisher/
-WORKDIR /app/opcpublisher
-RUN dotnet restore
-
-# copy and publish app
-WORKDIR /app
-COPY opcpublisher/. ./opcpublisher/
-WORKDIR /app/opcpublisher
-RUN dotnet publish -c Release -o out
-
-# start it up
-FROM microsoft/dotnet:${runtime_base_tag} AS runtime
-WORKDIR /app
-COPY --from=build /app/opcpublisher/out ./
-WORKDIR /appdata
-ENTRYPOINT ["dotnet", "/app/opcpublisher.dll"]
+COPY --from=build /app .
+ENTRYPOINT ["./opcpublisher"]
