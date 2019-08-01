@@ -7,15 +7,15 @@
     file and populates the matrix to create the individual build jobs.
 
  .PARAMETER BuildRoot
-    The root folder to start traversing the repository from
+    The root folder to start traversing the repository from.
 
- .PARAMETER Pipelined
-    The task generates jobs in azure pipeline.  Default is $true.
+ .PARAMETER Build
+    If not set the task generates jobs in azure pipeline.
 #>
 
 Param(
     [string] $BuildRoot = $null,
-    [switch] $Pipelined = $true
+    [switch] $Build
 )
 
 if ([string]::IsNullOrEmpty($BuildRoot)) {
@@ -44,7 +44,7 @@ Get-ChildItem $BuildRoot -Recurse `
     }
 }
 
-if ($Pipelined -eq $false) {
+if ($Build.IsPresent) {
     $acrMatrix.Values | ForEach-Object {
         & (Join-Path $PSScriptRoot "acrbuild.ps1") -path $_.dockerFolder
     }
