@@ -182,7 +182,7 @@ jobs:
 # Pack developer nugets for consumption
 #
 - job: devpack
-  displayName: Pack and Push Developer Packages
+  displayName: Push Developer Packages
   dependsOn:
     - sdl
     - buildall
