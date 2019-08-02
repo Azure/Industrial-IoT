@@ -1,4 +1,6 @@
 FROM mcr.microsoft.com/dotnet/core/sdk:2.2-alpine AS build
+ARG BUILD_SOURCEVERSION
+ENV BUILD_SOURCEVERSION=${BUILD_SOURCEVERSION}
 WORKDIR /src
 COPY opcpublisher/Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.csproj opcpublisher/
 COPY NuGet.Config NuGet.Config

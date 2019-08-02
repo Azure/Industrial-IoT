@@ -1,5 +1,7 @@
 FROM microsoft/dotnet:2.2-runtime AS base
 WORKDIR /app
+ARG BUILD_SOURCEVERSION
+ENV BUILD_SOURCEVERSION=${BUILD_SOURCEVERSION}
 
 FROM microsoft/dotnet:2.2-sdk AS build
 WORKDIR /src

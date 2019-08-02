@@ -1,4 +1,6 @@
 FROM microsoft/dotnet:2.2-sdk-stretch
+ARG BUILD_SOURCEVERSION
+ENV BUILD_SOURCEVERSION=${BUILD_SOURCEVERSION}
 
 RUN apt-get update && apt-get install -y unzip \
         && curl -sSL https://aka.ms/getvsdbgsh | bash /dev/stdin -v latest -l ~/vsdbg

@@ -3,6 +3,8 @@ ARG build_base_tag=2.2-sdk-alpine
 
 FROM microsoft/dotnet:${build_base_tag} AS build
 WORKDIR /app
+ARG BUILD_SOURCEVERSION
+ENV BUILD_SOURCEVERSION=${BUILD_SOURCEVERSION}
 
 # copy csproj and restore as distinct layers
 COPY opcpublisher/*.csproj ./opcpublisher/

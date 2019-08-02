@@ -1,6 +1,8 @@
 FROM microsoft/dotnet:2.2-aspnetcore-runtime-nanoserver-1809 AS base
 WORKDIR /app
 EXPOSE 9043
+ARG BUILD_SOURCEVERSION
+ENV BUILD_SOURCEVERSION=${BUILD_SOURCEVERSION}
 
 FROM microsoft/dotnet:2.2-sdk-nanoserver-1809 AS build
 WORKDIR /src

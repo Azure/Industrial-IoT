@@ -1,4 +1,7 @@
 FROM microsoft/dotnet:2.2-sdk AS build
+ARG BUILD_SOURCEVERSION
+ENV BUILD_SOURCEVERSION=${BUILD_SOURCEVERSION}
+
 WORKDIR /src
 COPY src/Microsoft.Azure.IIoT.Modules.OpcUa.Twin.csproj src/
 COPY NuGet.Config NuGet.Config
