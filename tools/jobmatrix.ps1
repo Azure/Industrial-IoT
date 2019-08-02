@@ -50,13 +50,13 @@ Get-ChildItem $BuildRoot -Recurse `
     | Where-Object Name -like $FileName `
     | ForEach-Object {
 
-    $folder = $_.DirectoryName.Replace($BuildRoot, "").TrimStart("/").TrimStart("\\")
-    $file = $_.FullName.Replace($BuildRoot, "").TrimStart("/").TrimStart("\\")
+    $folder = $_.DirectoryName.Replace($BuildRoot, "").Replace("\", "/").TrimStart("/")
+    $file = $_.FullName.Replace($BuildRoot, "").Replace("\", "/").TrimStart("/")
     $postFix = $folder
     if ([string]::IsNullOrEmpty($postFix)) {
         $postFix = $file
     }
-    $postFix = $postFix.Replace("\", "-").Replace("/", "-")
+    $postFix = $postFix.Replace("/", "-")
 
     $agents.keys | ForEach-Object {
         $jobName = "$($JobPrefix)$($postFix)-$($_)"
