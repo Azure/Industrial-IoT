@@ -122,7 +122,7 @@ The easiest way to deploy the modules to an Azure IoT Edge gateway device is thr
 	```
 	
 	When running the industrial iot edge modules in host (transparent) network, the containers will require IP addresses assignment. There are 2 possibilitues : 
-	* dynamic IP address from a local DHCP server accessible from the host's network interface assciated to the container's 'host' network.  
+	* dynamic IP address from a local DHCP server accessible from the host's network interface associated to the container's 'host' network.  
 	* static IP address assigned on the container create options statement
 	
 		Windows Static IP Example:		
