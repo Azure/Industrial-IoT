@@ -26,7 +26,7 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.Storage" Version="$(CommonPrereleaseVersion)" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Storage" Version="$(PrereleaseVersion)" />
       </ItemGroup>
     </Otherwise>
   </Choose>

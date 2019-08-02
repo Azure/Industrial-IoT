@@ -21,10 +21,10 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.Auth" Version="$(CommonVersion)" />
-        <PackageReference Include="Microsoft.Azure.IIoT.Hub.Client" Version="$(CommonVersion)" />
-        <PackageReference Include="Microsoft.Azure.IIoT.Hub.Processor" Version="$(CommonVersion)" />
-        <PackageReference Include="Microsoft.Azure.IIoT.Storage" Version="$(CommonPrereleaseVersion)" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Auth" Version="$(ReleaseVersion)" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Hub.Client" Version="$(ReleaseVersion)" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Hub.Processor" Version="$(ReleaseVersion)" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Storage" Version="$(PrereleaseVersion)" />
       </ItemGroup>
     </Otherwise>
   </Choose>
@@ -36,7 +36,7 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.OpcUa.Graph" Version="$(ComponentsOpcUaPrereleaseVersion)" />
+        <PackageReference Include="Microsoft.Azure.IIoT.OpcUa.Graph" Version="$(PrereleaseVersion)" />
       </ItemGroup>
     </Otherwise>
   </Choose>

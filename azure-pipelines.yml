@@ -56,13 +56,114 @@ jobs:
       command: test
       projects: '$(folder)/**/tests/*.csproj'
       arguments: '--configuration Release'
-      
+
+#
+# Run Sdl tools
+#
+- job: sdl
+  displayName: SDL Tasks
+  pool:
+    name: Hosted Windows 2019 with VS2019
+    demands:
+    - msbuild
+    - npm
+  steps:
+  - task: DotNetCoreCLI@2
+    displayName: Restore
+    inputs:
+      command: restore
+      projects: 'Industrial-IoT.sln'
+  - task: MSBuild@1
+    displayName: Build
+    inputs:
+      solution: 'Industrial-IoT.sln'
+      configuration: Release
+  - task: securedevelopmentteam.vss-secure-development-tools.build-task-credscan.CredScan@2
+    displayName: 'Credential Scanner'
+    inputs:
+      debugMode: false
+    continueOnError: true
+  - task: securedevelopmentteam.vss-secure-development-tools.build-task-tslint.TSLint@1
+    displayName: 'Run TSLint'
+    inputs:
+      Files: '**\*.ts;**\*.js'
+      ExcludeFiles: 'api\**'
+    continueOnError: true
+  - task: securedevelopmentteam.vss-secure-development-tools.build-task-roslynanalyzers.RoslynAnalyzers@2
+    displayName: 'Run Roslyn Analyzers'
+    continueOnError: true
+  - task: securedevelopmentteam.vss-secure-development-tools.build-task-binskim.BinSkim@3
+    displayName: 'BinSkim '
+    inputs:
+      InputType: Basic
+      AnalyzeTarget: '*.IIoT.*.dll;*.exe'
+    continueOnError: true
+  - task: securedevelopmentteam.vss-secure-development-tools.build-task-autoapplicability.AutoApplicability@1
+    displayName: 'Auto Applicability'
+    inputs:
+      ExternalRelease: true
+      InternalRelease: true
+      IsService: true
+    continueOnError: true
+  - task: securedevelopmentteam.vss-secure-development-tools.build-task-vulnerabilityassessment.VulnerabilityAssessment@0
+    displayName: 'Run Vulnerability Assessment'
+    continueOnError: true
+    condition: succeededOrFailed()
+  - task: securedevelopmentteam.vss-secure-development-tools.build-task-policheck.PoliCheck@1
+    displayName: PoliCheck
+    inputs:
+      targetType: F
+      termTypeT: 0001aCustom
+      termTypeTCustom: '9,1031'
+      toolVersion: 5.8.2.1
+    continueOnError: true
+    timeoutInMinutes: 15
+  - task: securedevelopmentteam.vss-secure-development-tools.build-task-report.SdtReport@1
+    displayName: 'Create Security Analysis Report'
+    inputs:
+      BinSkim: true
+      CredScan: true
+      PoliCheck: true
+      RoslynAnalyzers: true
+    continueOnError: true
+    condition: succeededOrFailed()
+  - task: securedevelopmentteam.vss-secure-development-tools.build-task-postanalysis.PostAnalysis@1
+    displayName: 'Post Analysis'
+    inputs:
+      BinSkim: true
+      CredScan: true
+      RoslynAnalyzers: true
+  - script: |
+    if not "%BUILD_SOURCEBRANCHNAME%" == "master" echo ##vso[task.setvariable variable=MY_BRANCH;]develop
+    if "%BUILD_SOURCEBRANCHNAME%" == "master" echo ##vso[task.setvariable variable=MY_BRANCH;]master
+  - task: securedevelopmentteam.vss-secure-development-tools.build-task-uploadtotsa.TSAUpload@1
+    displayName: 'Upload to Stamp'
+    inputs:
+      tsaVersion: TsaV2
+      codebase: NewOrUpdate
+      codeBaseName: 'Industrial_IoT_$(MY_BRANCH)'
+      notificationAlias: 'azureiiot@microsoft.com'
+      codeBaseAdmins: 'redmond\mschier;redmond\erichb'
+      instanceUrlForTsaV2: MSAZURE
+      projectNameMSAZURE: One
+      areaPath: 'One\IoT\Industrial'
+      iterationPath: 'One\IoT'
+      uploadAPIScan: false
+      uploadFortifySCA: false
+      uploadFxCop: false
+      uploadModernCop: false
+      uploadPREfast: false
+      uploadRoslyn: false
+      uploadTSLint: false
+    continueOnError: true
+
 #
 # Pack developer nugets for consumption
 #
 - job: devpack
   displayName: Pack and Push Developer Packages
   dependsOn:
+    - sdl
     - buildall
     - testall
   pool:

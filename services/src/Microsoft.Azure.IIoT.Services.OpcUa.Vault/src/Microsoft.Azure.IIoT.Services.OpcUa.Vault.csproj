@@ -33,9 +33,9 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.Services" Version="$(CommonVersion)" />
-        <PackageReference Include="Microsoft.Azure.IIoT.Storage" Version="$(CommonPrereleaseVersion)" />
-        <PackageReference Include="Microsoft.Azure.IIoT.Messaging" Version="$(CommonVersion)" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Services" Version="$(ReleaseVersion)" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Storage" Version="$(PrereleaseVersion)" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Messaging" Version="$(ReleaseVersion)" />
       </ItemGroup>
     </Otherwise>
   </Choose>
@@ -47,7 +47,7 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.OpcUa.Api" Version="$(ComponentsOpcUaVersion)" />
+        <PackageReference Include="Microsoft.Azure.IIoT.OpcUa.Api" Version="$(ReleaseVersion)" />
       </ItemGroup>
     </Otherwise>
   </Choose>
@@ -59,7 +59,7 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.OpcUa.Vault" Version="$(ComponentsOpcUaVersion)" />
+        <PackageReference Include="Microsoft.Azure.IIoT.OpcUa.Vault" Version="$(ReleaseVersion)" />
       </ItemGroup>
     </Otherwise>
   </Choose>

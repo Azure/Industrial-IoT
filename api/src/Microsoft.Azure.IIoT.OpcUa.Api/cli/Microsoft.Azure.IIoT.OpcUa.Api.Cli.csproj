@@ -21,7 +21,7 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.Auth" Version="$(CommonVersion)" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Auth" Version="$(ReleaseVersion)" />
       </ItemGroup>
     </Otherwise>
   </Choose>

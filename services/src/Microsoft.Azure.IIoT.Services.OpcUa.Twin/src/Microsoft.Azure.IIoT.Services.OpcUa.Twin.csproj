@@ -28,7 +28,7 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.Services" Version="$(CommonVersion)" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Services" Version="$(ReleaseVersion)" />
       </ItemGroup>
     </Otherwise>
   </Choose>
@@ -40,7 +40,7 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.OpcUa.Twin" Version="$(ComponentsOpcUaVersion)" />
+        <PackageReference Include="Microsoft.Azure.IIoT.OpcUa.Twin" Version="$(ReleaseVersion)" />
       </ItemGroup>
     </Otherwise>
   </Choose>

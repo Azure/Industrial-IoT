@@ -19,7 +19,7 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.OpcUa" Version="$(ComponentsOpcUaVersion)" />
+        <PackageReference Include="Microsoft.Azure.IIoT.OpcUa" Version="$(ReleaseVersion)" />
       </ItemGroup>
     </Otherwise>
   </Choose>

@@ -18,7 +18,7 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.Crypto" Version="$(CommonVersion)" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Crypto" Version="$(ReleaseVersion)" />
       </ItemGroup>
     </Otherwise>
   </Choose>

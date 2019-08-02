@@ -19,8 +19,8 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.Auth" Version="$(CommonVersion)" />
-        <PackageReference Include="Microsoft.Azure.IIoT.Hub.Client" Version="$(CommonVersion)" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Auth" Version="$(ReleaseVersion)" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Hub.Client" Version="$(ReleaseVersion)" />
       </ItemGroup>
     </Otherwise>
   </Choose>

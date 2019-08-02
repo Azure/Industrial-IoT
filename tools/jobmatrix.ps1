@@ -1,26 +1,28 @@
 <#
  .SYNOPSIS
-    Creates the build matrix from the specified file names in the tree.
+    Creates buildjob matrix based on the specified file names in the tree.
 
  .DESCRIPTION
-    The script traverses the build root to find all folders with a
-    matching a file and populates the matrix to create the individual 
-    jobs.
+    The script traverses the build root to find all folders with a matching 
+    file and populates the matrix.  The matrix is used to spawn jobs that
+    run on multiple different environments for each file.  E.g. build all
+    solution files on all platforms, run tests per particular folder of 
+    the tree, etc.
 
  .PARAMETER BuildRoot
-    The root folder to start traversing the repository from
+    The root folder to start traversing the repository from.
 
  .PARAMETER FileName
-    File pattern to find
+    File patterns to match defining the folders and files in the matrix
 
  .PARAMETER JobPrefix
-    Name prefix for job
+    Optional name prefix for each job
 #>
 
 Param(
     [string] $BuildRoot = $null,
-    [string] $JobPrefix = "",
-    [string] $FileName = $null
+    [string] $FileName = $null,
+    [string] $JobPrefix = ""
 )
 
 if ([string]::IsNullOrEmpty($BuildRoot)) {
@@ -28,7 +30,7 @@ if ([string]::IsNullOrEmpty($BuildRoot)) {
 }
 
 if ([string]::IsNullOrEmpty($FileName)) {
-    $FileName = "project.props"
+    $FileName = "Directory.Build.props"
 }
 
 if (![string]::IsNullOrEmpty($JobPrefix)) {
@@ -43,7 +45,7 @@ $agents = @{
 
 $jobMatrix = @{}
 
-# Traverse from build root and find all project.props files for test matrix
+# Traverse from build root and find all files to create job matrix
 Get-ChildItem $BuildRoot -Recurse `
     | Where-Object Name -like $FileName `
     | ForEach-Object {
