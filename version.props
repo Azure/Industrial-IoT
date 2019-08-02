@@ -7,8 +7,8 @@
     <PrereleaseVersion>[$(VersionPrefix)-$(VersionSuffix)]</PrereleaseVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(BUILD_SOURCEVERSION)' != ''">
-    <VersionSuffix>$(BUILD_SOURCEVERSION)</VersionSuffix>
-    <PrereleaseVersion>[$(VersionPrefix)-$(BUILD_SOURCEVERSION)]</PrereleaseVersion>
+    <VersionSuffix>dev$(BUILD_SOURCEVERSION)</VersionSuffix>
+    <PrereleaseVersion>[$(VersionPrefix)-$(VersionSuffix)]</PrereleaseVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(RELEASE_BUILD)' != ''">
     <VersionSuffix></VersionSuffix>
