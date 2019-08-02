@@ -107,14 +107,16 @@ $metadata = Get-Content -Raw -Path (join-path $path "mcr.json") `
     | ConvertFrom-Json
 
 # get and set build information from git or content
-$sourceVersion = $env:BUILD_SOURCEVERSION
-# Try get current tag
-try {
-    $argumentList = @("tag", "--points-at", $sourceVersion)
-    $sourceTag = (& "git" $argumentList 2>&1 | %{ "$_" });
-}
-catch {
-    $sourceTag = $null
+$sourceTag = $null
+if (![string]::IsNullOrEmpty($env:BUILD_SOURCEVERSION)) {
+    # Try get current tag
+    try {
+        $argumentList = @("tag", "--points-at", $env:BUILD_SOURCEVERSION)
+        $sourceTag = (& "git" $argumentList 2>&1 | %{ "$_" });
+    }
+    catch {
+        $sourceTag = $null
+    }
 }
 if ([string]::IsNullOrEmpty($sourceTag)) {
     try {
@@ -221,9 +223,17 @@ Get-ChildItem $path -Recurse `
         "--resource-group", $resourceGroup,
         "--platform", $platform,
         "--file", $dockerfile,
-        "--image", $image,
-            $buildContext
+        "--image", $image
     )
+    if ($isDeveloperBuild -eq $true) {
+        if (![string]::IsNullOrEmpty($env:BUILD_SOURCEVERSION)) {
+            # Add build source version so nuget restore can match the correct 
+            # nuget for the developer build from the nuget feed.
+            $argumentList.Add("--build-arg")
+            $argumentList.Add("BUILD_SOURCEVERSION=$($env:BUILD_SOURCEVERSION)")
+        }
+    }
+    $argumentList.Add($buildContext)
     $jobs += Start-Job -Name $platform -ArgumentList $argumentList `
         -ScriptBlock {
             Write-Host "az $($args)"
