@@ -34,8 +34,8 @@ Get-ChildItem $BuildRoot -Recurse `
     $metadata = Get-Content -Raw -Path $_.FullName | ConvertFrom-Json
 
     try {
-        $jobName = "Build and Push " + $metadata.name
-        if (![string]::IsNullOrEmpty($metadata.name)) {
+        $jobName = $metadata.name
+        if (![string]::IsNullOrEmpty($jobName)) {
             $acrMatrix.Add($jobName, @{ "dockerFolder" = $dockerFolder })
         }
     }
