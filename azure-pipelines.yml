@@ -78,38 +78,49 @@ jobs:
     inputs:
       solution: 'Industrial-IoT.sln'
       configuration: Release
-  - task: securedevelopmentteam.vss-secure-development-tools.build-task-credscan.CredScan@2
+  - task: AntiMalware@3
+    displayName: 'Run Virus scan'
+    inputs:
+      InputType: 'Basic'
+      ScanType: 'CustomScan'
+      FileDirPath: '$(Build.StagingDirectory)'
+      EnableServices: false
+      SupportLogOnError: false
+      TreatSignatureUpdateFailureAs: 'Warning'
+      SignatureFreshness: 'UpToDate'
+      TreatStaleSignatureAs: 'Error'
+  - task: CredScan@2
     displayName: 'Credential Scanner'
     inputs:
       debugMode: false
     continueOnError: true
-  - task: securedevelopmentteam.vss-secure-development-tools.build-task-tslint.TSLint@1
+  - task: TSLint@1
     displayName: 'Run TSLint'
     inputs:
       Files: '**\*.ts;**\*.js'
       ExcludeFiles: 'api\**'
     continueOnError: true
-  - task: securedevelopmentteam.vss-secure-development-tools.build-task-roslynanalyzers.RoslynAnalyzers@2
+  - task: RoslynAnalyzers@2
     displayName: 'Run Roslyn Analyzers'
     continueOnError: true
-  - task: securedevelopmentteam.vss-secure-development-tools.build-task-binskim.BinSkim@3
+  - task: BinSkim@3
     displayName: 'BinSkim '
     inputs:
       InputType: Basic
       AnalyzeTarget: '*.IIoT.*.dll;*.exe'
     continueOnError: true
-  - task: securedevelopmentteam.vss-secure-development-tools.build-task-autoapplicability.AutoApplicability@1
+  - task: AutoApplicability@1
     displayName: 'Auto Applicability'
     inputs:
       ExternalRelease: true
       InternalRelease: true
       IsService: true
     continueOnError: true
-  - task: securedevelopmentteam.vss-secure-development-tools.build-task-vulnerabilityassessment.VulnerabilityAssessment@0
+  - task: VulnerabilityAssessment@0
     displayName: 'Run Vulnerability Assessment'
     continueOnError: true
     condition: succeededOrFailed()
-  - task: securedevelopmentteam.vss-secure-development-tools.build-task-policheck.PoliCheck@1
+  - task: PoliCheck@1
     displayName: PoliCheck
     inputs:
       targetType: F
@@ -118,7 +129,7 @@ jobs:
       toolVersion: 5.8.2.1
     continueOnError: true
     timeoutInMinutes: 15
-  - task: securedevelopmentteam.vss-secure-development-tools.build-task-report.SdtReport@1
+  - task: SdtReport@1
     displayName: 'Create Security Analysis Report'
     inputs:
       BinSkim: true
@@ -127,34 +138,40 @@ jobs:
       RoslynAnalyzers: true
     continueOnError: true
     condition: succeededOrFailed()
-  - task: securedevelopmentteam.vss-secure-development-tools.build-task-postanalysis.PostAnalysis@1
+  - task: PostAnalysis@1
     displayName: 'Post Analysis'
     inputs:
       BinSkim: true
       CredScan: true
       RoslynAnalyzers: true
   - script: |
-    if not "%BUILD_SOURCEBRANCHNAME%" == "master" echo ##vso[task.setvariable variable=MY_BRANCH;]develop
-    if "%BUILD_SOURCEBRANCHNAME%" == "master" echo ##vso[task.setvariable variable=MY_BRANCH;]master
-  - task: securedevelopmentteam.vss-secure-development-tools.build-task-uploadtotsa.TSAUpload@1
+      if not "%BUILD_SOURCEBRANCHNAME%" == "master" echo ##vso[task.setvariable variable=MY_BRANCH;]develop
+          if "%BUILD_SOURCEBRANCHNAME%" == "master" echo ##vso[task.setvariable variable=MY_BRANCH;]master
+  - task: TSAUpload@1
     displayName: 'Upload to Stamp'
     inputs:
       tsaVersion: TsaV2
+      tsaEnvironment: 'PROD'
+      serviceTreeID: 'sdfgsdfgsdfgsdfg'
       codebase: NewOrUpdate
       codeBaseName: 'Industrial_IoT_$(MY_BRANCH)'
       notificationAlias: 'azureiiot@microsoft.com'
       codeBaseAdmins: 'redmond\mschier;redmond\erichb'
       instanceUrlForTsaV2: MSAZURE
       projectNameMSAZURE: One
-      areaPath: 'One\IoT\Industrial'
-      iterationPath: 'One\IoT'
-      uploadAPIScan: false
+      areaPath: 'One\IoT\Industrial\Components'
+      iterationPath: 'One\IoT\Backlog'
+      uploadAPIScan: true
+      uploadBinSkim: true
+      uploadCredScan: true
       uploadFortifySCA: false
       uploadFxCop: false
       uploadModernCop: false
+      uploadPoliCheck: true
       uploadPREfast: false
       uploadRoslyn: false
       uploadTSLint: false
+      uploadAsync: true
     continueOnError: true
 
 #
