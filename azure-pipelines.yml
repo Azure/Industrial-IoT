@@ -104,9 +104,6 @@ jobs:
       Files: '**\*.ts;**\*.js'
       ExcludeFiles: 'api\**'
     continueOnError: true
-  - task: RoslynAnalyzers@2
-    displayName: 'Run Roslyn Analyzers'
-    continueOnError: true
   - task: BinSkim@3
     displayName: 'BinSkim '
     inputs:
@@ -133,6 +130,9 @@ jobs:
       toolVersion: 5.8.2.1
     continueOnError: true
     timeoutInMinutes: 15
+  - task: RoslynAnalyzers@2
+    displayName: 'Run Roslyn Analyzers'
+    continueOnError: true
   - task: SdtReport@1
     displayName: 'Create Security Analysis Report'
     inputs:
@@ -173,7 +173,7 @@ jobs:
       uploadModernCop: false
       uploadPoliCheck: true
       uploadPREfast: false
-      uploadRoslyn: false
+      uploadRoslyn: true
       uploadTSLint: false
       uploadAsync: true
     continueOnError: true
