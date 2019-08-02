@@ -89,7 +89,7 @@ jobs:
       TreatSignatureUpdateFailureAs: 'Warning'
       SignatureFreshness: 'UpToDate'
       TreatStaleSignatureAs: 'Error'
-  - task: CredScan@2
+  - task: securedevelopmentteam.vss-secure-development-tools.build-task-credscan.CredScan@2
     displayName: 'Credential Scanner'
     inputs:
       debugMode: false
