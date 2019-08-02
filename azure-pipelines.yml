@@ -78,22 +78,13 @@ jobs:
     inputs:
       solution: 'Industrial-IoT.sln'
       configuration: Release
-  - task: AntiMalware@3
-    displayName: 'Run Virus scan'
-    inputs:
-      InputType: 'Basic'
-      ScanType: 'CustomScan'
-      FileDirPath: '$(Build.StagingDirectory)'
-      EnableServices: true
-      SupportLogOnError: false
-      TreatSignatureUpdateFailureAs: 'Warning'
-      SignatureFreshness: 'UpToDate'
-      TreatStaleSignatureAs: 'Error'
   - task: securedevelopmentteam.vss-secure-development-tools.build-task-credscan.CredScan@2
     displayName: 'Credential Scanner'
     inputs:
       debugMode: false
     continueOnError: true
+  - task: ComponentGovernanceComponentDetection@0
+    displayName: 'Component Detection'
   - task: TSLint@1
     displayName: 'Run TSLint'
     inputs:
@@ -191,6 +182,17 @@ jobs:
     inputs:
       projects: 'Industrial-IoT.sln'
       arguments: '--configuration Release'
+  - task: AntiMalware@3
+    displayName: 'Run Virus scan'
+    inputs:
+      InputType: 'Basic'
+      ScanType: 'CustomScan'
+      FileDirPath: '$(Build.StagingDirectory)'
+      EnableServices: true
+      SupportLogOnError: false
+      TreatSignatureUpdateFailureAs: 'Warning'
+      SignatureFreshness: 'UpToDate'
+      TreatStaleSignatureAs: 'Error'
   - task: DotNetCoreCLI@2
     displayName: Pack
     inputs:
@@ -198,6 +200,8 @@ jobs:
       packagesToPack: 'Industrial-IoT.sln'
       configuration: Release
       nobuild: true
+  - task: ComponentGovernanceComponentDetection@0
+    displayName: 'Component Detection'
   - task: NuGetCommand@2
     displayName: Push
     inputs:

@@ -136,12 +136,16 @@ if ([string]::IsNullOrEmpty($sourceTag)) {
 Write-Debug "Building for source tag $($sourceTag)"
 
 # Try get branch name
+$isDeveloperBuild = [string]::IsNullOrEmpty($env:BUILD_RELEASE)
 $branchName = $env:BUILD_SOURCEBRANCH
-$isDeveloperBuild = $true
 if (![string]::IsNullOrEmpty($branchName)) {
     if ($branchName.StartsWith("refs/heads/")) {
         $branchName = $branchName.Replace("refs/heads/", "")
-        $isDeveloperBuild = $branchName -ne "master"
+        if ($isDeveloperBuild -eq $true) {
+            if ($branchName -ne "master") {
+                throw "ERROR: Not building release builds of $($branchName)"
+            }
+        }
     }
     else {
         $branchName = $null
