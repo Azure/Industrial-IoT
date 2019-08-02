@@ -19,12 +19,6 @@
   </PropertyGroup>
   <Import Project="version.props" />
   <PropertyGroup>
-    <PrereleaseVersion Condition="'$(PrereleaseTag)' == ''">$(VersionPrefix)-*</PrereleaseVersion>
-    <PrereleaseVersion Condition="'$(PrereleaseTag)' == ''">$(VersionPrefix)-$(PrereleaseTag)</PrereleaseVersion>
-    <ReleaseVersion Condition="'$(VersionSuffix)' == ''">$(VersionPrefix)</ReleaseVersion>
-    <ReleaseVersion Condition="'$(VersionSuffix)' != ''">$(PrereleaseVersion)</ReleaseVersion>
-  </PropertyGroup>
-  <PropertyGroup>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
