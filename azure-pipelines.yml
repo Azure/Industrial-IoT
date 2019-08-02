@@ -125,9 +125,6 @@ jobs:
     displayName: PoliCheck
     inputs:
       targetType: F
-      termTypeT: 0001aCustom
-      termTypeTCustom: '9,1031'
-      toolVersion: 5.8.2.1
     continueOnError: true
     timeoutInMinutes: 15
   - task: RoslynAnalyzers@2
