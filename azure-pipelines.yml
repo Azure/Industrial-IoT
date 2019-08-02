@@ -1,35 +1,42 @@
 jobs:
 #
-# Build everything on all platforms
+# Build all solutions on all platforms
 #
+- job: buildprep
+  displayName: Prepare Build Jobs
+  pool:
+    name: Hosted Windows 2019 with VS2019
+  steps:
+  - task: PowerShell@2
+    name: buildmatrix
+    displayName: Prepare Solutions
+    inputs:
+      targetType: filePath
+      filePath: ./tools/jobmatrix.ps1
+      arguments: -FileName *.sln
 - job: buildall
-  displayName: Build
+  displayName: Building
+  dependsOn: buildprep
   strategy:
-    matrix:
-      linux:
-        poolName: "Hosted Ubuntu 1604"
-      mac:
-        poolName: "Hosted macOS"
-      windows:
-        poolName: "Hosted Windows 2019 with VS2019"
+    matrix: $[dependencies.buildprep.outputs['buildmatrix.jobMatrix'] ]
   pool:
     name: $(poolName)
   steps:
   - task: DotNetCoreCLI@2
-    displayName: Build
+    displayName: Release Build
     inputs:
       command: build
-      projects: 'Industrial-IoT.sln'
+      projects: '$(file)'
       arguments: '--configuration Release'
   - task: DotNetCoreCLI@2
-    displayName: Build
+    displayName: Debug Build
     inputs:
       command: build
-      projects: 'Industrial-IoT.sln'
+      projects: '$(file)'
       arguments: '--configuration Debug'
 
 #
-# Test all components on multiple platforms
+# Test all components on all platforms
 #
 - job: testprep
   displayName: Prepare Test Jobs
@@ -37,16 +44,17 @@ jobs:
     name: Hosted Windows 2019 with VS2019
   steps:
   - task: PowerShell@2
-    name: jobmatrix
+    name: testmatrix
     displayName: Prepare Tests
     inputs:
       targetType: filePath
       filePath: ./tools/jobmatrix.ps1
+      arguments:
 - job: testall
   displayName: Run Tests for
   dependsOn: testprep
   strategy:
-    matrix: $[ dependencies.testprep.outputs['jobmatrix.jobMatrix'] ]
+    matrix: $[dependencies.testprep.outputs['testmatrix.jobMatrix'] ]
   pool:
     name: $(poolName)
   steps:
