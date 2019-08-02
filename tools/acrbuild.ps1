@@ -115,6 +115,7 @@ if (![string]::IsNullOrEmpty($env:BUILD_SOURCEVERSION)) {
         $sourceTag = (& "git" $argumentList 2>&1 | %{ "$_" });
     }
     catch {
+        Write-Error "Error reading tag from $($env:BUILD_SOURCEVERSION)"
         $sourceTag = $null
     }
 }
@@ -124,7 +125,7 @@ if ([string]::IsNullOrEmpty($sourceTag)) {
             -fileName "version.props"
         # set version number from first encountered version.props
         [xml] $props=Get-Content -Path (Join-Path $buildRoot "version.props")
-        $sourceTag=$props.Project.PropertyGroup.VersionPrefix
+        $sourceTag="$($props.Project.PropertyGroup.VersionPrefix)".Trim()
     }
     catch {
         $sourceTag = $null
@@ -133,19 +134,14 @@ if ([string]::IsNullOrEmpty($sourceTag)) {
 if ([string]::IsNullOrEmpty($sourceTag)) {
     $sourceTag = "latest"
 }
-Write-Debug "Building for source tag $($sourceTag)"
 
 # Try get branch name
-$isDeveloperBuild = [string]::IsNullOrEmpty($env:BUILD_RELEASE)
 $branchName = $env:BUILD_SOURCEBRANCH
+$isDeveloperBuild = $true
 if (![string]::IsNullOrEmpty($branchName)) {
     if ($branchName.StartsWith("refs/heads/")) {
         $branchName = $branchName.Replace("refs/heads/", "")
-        if ($isDeveloperBuild -eq $true) {
-            if ($branchName -ne "master") {
-                throw "ERROR: Not building release builds of $($branchName)"
-            }
-        }
+        $isDeveloperBuild = $branchName -ne "master"
     }
     else {
         $branchName = $null
@@ -170,10 +166,10 @@ $imageName = $metadata.name
 $namespace = "public/"
 if ($isDeveloperBuild -eq $true) {
     $namespace = "internal/$($branchName)/"
-    Write-Host "Pushing developer build for $($branchName)."
+    Write-Host "Pushing '$($sourceTag)' developer build for $($branchName)."
 }
 else {
-    Write-Host "Pushing release build to public"
+    Write-Host "Pushing release build '$($sourceTag)' to public."
 }
 
 # Create manifest file
@@ -233,11 +229,11 @@ Get-ChildItem $path -Recurse `
         if (![string]::IsNullOrEmpty($env:BUILD_SOURCEVERSION)) {
             # Add build source version so nuget restore can match the correct 
             # nuget for the developer build from the nuget feed.
-            $argumentList.Add("--build-arg")
-            $argumentList.Add("BUILD_SOURCEVERSION=$($env:BUILD_SOURCEVERSION)")
+            $argumentList += "--build-arg"
+            $argumentList += "BUILD_SOURCEVERSION=$($env:BUILD_SOURCEVERSION)"
         }
     }
-    $argumentList.Add($buildContext)
+    $argumentList += $buildContext
     $jobs += Start-Job -Name $platform -ArgumentList $argumentList `
         -ScriptBlock {
             Write-Host "az $($args)"

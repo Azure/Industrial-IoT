@@ -143,7 +143,7 @@ jobs:
     inputs:
       tsaVersion: TsaV2
       tsaEnvironment: 'PROD'
-      serviceTreeID: 'sdfgsdfgsdfgsdfg'
+      serviceTreeID: '59eec07a-6f20-42b9-b41b-d20e0a6322da'
       codebase: NewOrUpdate
       codeBaseName: 'Industrial_IoT_$(MY_BRANCH)'
       notificationAlias: 'azureiiot@microsoft.com'
