@@ -1,16 +1,27 @@
-FROM mcr.microsoft.com/dotnet/core/sdk:2.2-alpine AS build
-ARG BUILD_SOURCEVERSION
-ENV BUILD_SOURCEVERSION=${BUILD_SOURCEVERSION}
-WORKDIR /src
-COPY src/Microsoft.Azure.IIoT.Modules.OpcUa.Twin.csproj src/
-COPY NuGet.Config NuGet.Config
-COPY *.props /
-RUN dotnet restore --configfile NuGet.Config -nowarn:msb3202,nu1503 src/Microsoft.Azure.IIoT.Modules.OpcUa.Twin.csproj
-COPY . .
-WORKDIR /src/src
-RUN dotnet publish Microsoft.Azure.IIoT.Modules.OpcUa.Twin.csproj -c Release -o /app -r linux-arm
-
 FROM mcr.microsoft.com/dotnet/core/runtime-deps:2.2-bionic-arm32v7 AS base
+FROM mcr.microsoft.com/dotnet/core/sdk:2.2-alpine AS build
+ENV PROJECT=Microsoft.Azure.IIoT.Modules.OpcUa.Twin
+ENV PROJECT_ROOT=modules/opc-twin
+
+ARG BUILD_SOURCEVERSION
+ARG RELEASE_BUILD
+ENV PROJECT_BUILD=1
 WORKDIR /app
-COPY --from=build /app .
-ENTRYPOINT ["./Microsoft.Azure.IIoT.Modules.OpcUa.Twin"]
+COPY *.props /
+WORKDIR /app/project
+COPY NuGet.Config NuGet.Config
+COPY ${PROJECT_ROOT}/*.props /
+COPY ${PROJECT_ROOT}/src/${PROJECT}/src/${PROJECT}.csproj src/${PROJECT}/src/${PROJECT}.csproj
+ENV BUILD_SOURCEVERSION=${BUILD_SOURCEVERSION}
+ENV RELEASE_BUILD=${RELEASE_BUILD}
+RUN dotnet restore --configfile NuGet.Config -nowarn:msb3202,nu1503 src/${PROJECT}/src/${PROJECT}.csproj
+
+FROM build AS publish
+COPY ${PROJECT_ROOT}/src ./src
+WORKDIR /app/project/src/${PROJECT}/src
+RUN dotnet publish "${PROJECT}.csproj" -c Release -o /out -r linux-arm
+
+FROM base AS final
+WORKDIR /app
+COPY --from=publish /out .
+ENTRYPOINT ["./${PROJECT}"]

@@ -1,23 +1,29 @@
+ENV PROJECT=Microsoft.Azure.IIoT.Services.OpcUa.Twin
 FROM microsoft/dotnet:2.2-aspnetcore-runtime-nanoserver-1809 AS base
-WORKDIR /app
-EXPOSE 9041
-ARG BUILD_SOURCEVERSION
-ENV BUILD_SOURCEVERSION=${BUILD_SOURCEVERSION}
-
 FROM microsoft/dotnet:2.2-sdk-nanoserver-1809 AS build
-WORKDIR /src
-COPY src/Microsoft.Azure.IIoT.Services.OpcUa.Twin/src/Microsoft.Azure.IIoT.Services.OpcUa.Twin.csproj src/Microsoft.Azure.IIoT.Services.OpcUa.Twin/src/
-COPY NuGet.Config NuGet.Config
+ENV PROJECT_ROOT=services
+EXPOSE 9041
+
+ARG BUILD_SOURCEVERSION
+ARG RELEASE_BUILD
+ENV PROJECT_BUILD=1
+WORKDIR /app
 COPY *.props /
-RUN dotnet restore --configfile NuGet.Config -nowarn:msb3202,nu1503 src/Microsoft.Azure.IIoT.Services.OpcUa.Twin/src/Microsoft.Azure.IIoT.Services.OpcUa.Twin.csproj
-COPY . .
-WORKDIR /src/src/Microsoft.Azure.IIoT.Services.OpcUa.Twin/src
-RUN dotnet build Microsoft.Azure.IIoT.Services.OpcUa.Twin.csproj -c Release -o /app
+WORKDIR /app/project
+COPY NuGet.Config NuGet.Config
+COPY ${PROJECT_ROOT}/*.props /
+COPY ${PROJECT_ROOT}/src/${PROJECT}/src/${PROJECT}.csproj src/${PROJECT}/src/${PROJECT}.csproj
+ENV BUILD_SOURCEVERSION=${BUILD_SOURCEVERSION}
+ENV RELEASE_BUILD=${RELEASE_BUILD}
+RUN dotnet restore --configfile NuGet.Config -nowarn:msb3202,nu1503 src/${PROJECT}/src/${PROJECT}.csproj
 
 FROM build AS publish
-RUN dotnet publish Microsoft.Azure.IIoT.Services.OpcUa.Twin.csproj -c Release -o /app
+COPY ${PROJECT_ROOT}/src ./src
+WORKDIR /app/project/src/${PROJECT}/src
+RUN dotnet publish "${PROJECT}.csproj" -c Release -o /out
 
 FROM base AS final
 WORKDIR /app
-COPY --from=publish /app .
-ENTRYPOINT ["dotnet", "Microsoft.Azure.IIoT.Services.OpcUa.Twin.dll"]
+COPY --from=publish /out .
+ENTRYPOINT ["dotnet", "${PROJECT}.dll"]
+

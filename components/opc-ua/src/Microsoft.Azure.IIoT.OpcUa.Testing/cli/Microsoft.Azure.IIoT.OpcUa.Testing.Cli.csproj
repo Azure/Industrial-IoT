@@ -13,7 +13,7 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="2.2.0" />
   </ItemGroup>
   <Choose>
-    <When Condition="Exists('..\..\..\..\..\common')">
+    <When Condition="'$(PROJECT_BUILD)' == ''">
       <ItemGroup>
         <ProjectReference Include="..\..\..\..\..\common\src\Microsoft.Azure.IIoT.Messaging\src\Microsoft.Azure.IIoT.Messaging.csproj" />
       </ItemGroup>

@@ -4,17 +4,13 @@
   </PropertyGroup>
   <PropertyGroup>
     <VersionSuffix>prerelease$([System.DateTime]::Now.ToString("yyMMddmm"))</VersionSuffix>
-    <PrereleaseVersion>[$(VersionPrefix)-$(VersionSuffix)]</PrereleaseVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(BUILD_SOURCEVERSION)' != ''">
-    <VersionSuffix>dev$(BUILD_SOURCEVERSION)</VersionSuffix>
-    <PrereleaseVersion>[$(VersionPrefix)-$(VersionSuffix)]</PrereleaseVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(RELEASE_BUILD)' != ''">
-    <VersionSuffix></VersionSuffix>
-    <PrereleaseVersion>$(VersionPrefix)-*</PrereleaseVersion>
+    <VersionSuffix Condition="'$(BUILD_SOURCEVERSION)' != ''">dev$(BUILD_SOURCEVERSION)</VersionSuffix>
+    <VersionSuffix Condition="'$(RELEASE_BUILD)' != ''"></VersionSuffix>
   </PropertyGroup>
   <PropertyGroup>
+    <PrereleaseVersion Condition="'$(BUILD_SOURCEVERSION)' != ''">[$(VersionPrefix)-$(VersionSuffix)]</PrereleaseVersion>
+    <PrereleaseVersion Condition="'$(BUILD_SOURCEVERSION)' == ''">$(VersionPrefix)-*</PrereleaseVersion>
+    <PrereleaseVersion Condition="'$(RELEASE_BUILD)' != ''">$(VersionPrefix)-*</PrereleaseVersion>
     <ReleaseVersion Condition="'$(VersionSuffix)' == ''">$(VersionPrefix)</ReleaseVersion>
     <ReleaseVersion Condition="'$(VersionSuffix)' != ''">$(PrereleaseVersion)</ReleaseVersion>
   </PropertyGroup>

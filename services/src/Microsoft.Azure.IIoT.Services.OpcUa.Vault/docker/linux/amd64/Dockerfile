@@ -1,23 +1,29 @@
-FROM microsoft/dotnet:2.2-aspnetcore-runtime AS base
-WORKDIR /app
+FROM mcr.microsoft.com/dotnet/core/aspnet:2.2-stretch-slim AS base
+FROM mcr.microsoft.com/dotnet/core/sdk:2.2-stretch AS build
+ENV PROJECT=Microsoft.Azure.IIoT.Services.OpcUa.Vault
+ENV PROJECT_ROOT=services
 EXPOSE 9044
-ARG BUILD_SOURCEVERSION
-ENV BUILD_SOURCEVERSION=${BUILD_SOURCEVERSION}
 
-FROM microsoft/dotnet:2.2-sdk AS build
-WORKDIR /src
-COPY src/Microsoft.Azure.IIoT.Services.OpcUa.Vault/src/Microsoft.Azure.IIoT.Services.OpcUa.Vault.csproj src/Microsoft.Azure.IIoT.Services.OpcUa.Vault/src/
-COPY NuGet.Config NuGet.Config
+ARG BUILD_SOURCEVERSION
+ARG RELEASE_BUILD
+ENV PROJECT_BUILD=1
+WORKDIR /app
 COPY *.props /
-RUN dotnet restore --configfile NuGet.Config -nowarn:msb3202,nu1503 src/Microsoft.Azure.IIoT.Services.OpcUa.Vault/src/Microsoft.Azure.IIoT.Services.OpcUa.Vault.csproj
-COPY . .
-WORKDIR /src/src/Microsoft.Azure.IIoT.Services.OpcUa.Vault/src
-RUN dotnet build Microsoft.Azure.IIoT.Services.OpcUa.Vault.csproj -c Release -o /app
+WORKDIR /app/project
+COPY NuGet.Config NuGet.Config
+COPY ${PROJECT_ROOT}/*.props /
+COPY ${PROJECT_ROOT}/src/${PROJECT}/src/${PROJECT}.csproj src/${PROJECT}/src/${PROJECT}.csproj
+ENV BUILD_SOURCEVERSION=${BUILD_SOURCEVERSION}
+ENV RELEASE_BUILD=${RELEASE_BUILD}
+RUN dotnet restore --configfile NuGet.Config -nowarn:msb3202,nu1503 src/${PROJECT}/src/${PROJECT}.csproj
 
 FROM build AS publish
-RUN dotnet publish Microsoft.Azure.IIoT.Services.OpcUa.Vault.csproj -c Release -o /app
+COPY ${PROJECT_ROOT}/src ./src
+WORKDIR /app/project/src/${PROJECT}/src
+RUN dotnet publish "${PROJECT}.csproj" -c Release -o /out
 
 FROM base AS final
 WORKDIR /app
-COPY --from=publish /app .
-ENTRYPOINT ["dotnet", "Microsoft.Azure.IIoT.Services.OpcUa.Vault.dll"]
+COPY --from=publish /out .
+ENTRYPOINT ["dotnet", "${PROJECT}.dll"]
+

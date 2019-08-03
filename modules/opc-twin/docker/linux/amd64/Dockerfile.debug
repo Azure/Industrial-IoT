@@ -1,25 +1,41 @@
+FROM microsoft/dotnet:2.2-runtime AS base
 FROM microsoft/dotnet:2.2-sdk AS build
-ARG BUILD_SOURCEVERSION
-ENV BUILD_SOURCEVERSION=${BUILD_SOURCEVERSION}
+ENV PROJECT=Microsoft.Azure.IIoT.Modules.OpcUa.Twin
+ENV PROJECT_ROOT=modules/opc-twin
 
-WORKDIR /src
-COPY src/Microsoft.Azure.IIoT.Modules.OpcUa.Twin.csproj src/
-COPY NuGet.Config NuGet.Config
+ARG BUILD_SOURCEVERSION
+ARG RELEASE_BUILD
+ENV PROJECT_BUILD=1
+WORKDIR /app
 COPY *.props /
-RUN dotnet restore --configfile NuGet.Config -nowarn:msb3202,nu1503 src/Microsoft.Azure.IIoT.Modules.OpcUa.Twin.csproj
-COPY . .
-WORKDIR /src/src
-RUN dotnet build Microsoft.Azure.IIoT.Modules.OpcUa.Twin.csproj -c Debug -o /app
+WORKDIR /app/project
+COPY NuGet.Config NuGet.Config
+COPY ${PROJECT_ROOT}/*.props /
+COPY ${PROJECT_ROOT}/src/${PROJECT}/src/${PROJECT}.csproj src/${PROJECT}/src/${PROJECT}.csproj
+ENV BUILD_SOURCEVERSION=${BUILD_SOURCEVERSION}
+ENV RELEASE_BUILD=${RELEASE_BUILD}
+RUN dotnet restore --configfile NuGet.Config -nowarn:msb3202,nu1503 src/${PROJECT}/src/${PROJECT}.csproj
 
 FROM build AS publish
-RUN dotnet publish Microsoft.Azure.IIoT.Modules.OpcUa.Twin.csproj -c Debug -o /app
+COPY ${PROJECT_ROOT}/src ./src
+WORKDIR /app/project/src/${PROJECT}/src
+RUN dotnet publish "${PROJECT}.csproj" -c Debug -o /out
 
-FROM build AS final
+FROM base AS final
 WORKDIR /app
-COPY --from=publish /app .
+COPY --from=publish /out .
 
-RUN apt-get update && apt-get install -y unzip \
-	&& curl -sSL https://aka.ms/getvsdbgsh | bash /dev/stdin -v latest -l ~/vsdbg
+RUN apt-get update && apt-get install -y --no-install-recommends unzip curl procps \
+    && rm -rf /var/lib/apt/lists/* \
+    && curl -sSL https://aka.ms/getvsdbgsh | bash /dev/stdin -v latest -l /vsdbg
 ENV PATH="${PATH}:/root/vsdbg/vsdbg"
+RUN apt-get update && apt-get install -y --no-install-recommends openssh-server \
+    && mkdir /var/run/sshd \
+    && echo 'root:Passw0rd' | chpasswd \
+    && sed -i 's/PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config \
+    && sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd \
+    && echo "export VISIBLE=now" >> /etc/profile
+ENV NOTVISIBLE "in users profile"
 
-ENTRYPOINT ["dotnet", "Microsoft.Azure.IIoT.Modules.OpcUa.Twin.dll"]
+ENTRYPOINT ["dotnet", "${PROJECT}.dll"]
+
