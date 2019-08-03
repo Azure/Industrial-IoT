@@ -709,7 +709,7 @@ namespace OpcPublisher
                 // start our server interface
                 try
                 {
-                    Logger.Information($"Starting server on endpoint {OpcApplicationConfiguration.ApplicationConfiguration.ServerConfiguration.BaseAddresses[0]} ...");
+                    Logger.Information($"Starting server on endpoint {OpcApplicationConfiguration.ApplicationConfiguration.ServerConfiguration.BaseAddresses[0].ToString(CultureInfo.InvariantCulture)} ...");
                     _publisherServer = new PublisherServer();
                     _publisherServer.Start(OpcApplicationConfiguration.ApplicationConfiguration);
                     Logger.Information("Server started.");
