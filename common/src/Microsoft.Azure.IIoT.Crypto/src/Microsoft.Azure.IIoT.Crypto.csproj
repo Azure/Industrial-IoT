@@ -5,7 +5,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Description>Azure Industrial IoT Cryptography core</Description>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <VersionSuffix>prerelease001</VersionSuffix>
+    <VersionSuffix>$(PrereleaseSuffix)</VersionSuffix>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Azure.KeyVault" Version="3.0.4" />

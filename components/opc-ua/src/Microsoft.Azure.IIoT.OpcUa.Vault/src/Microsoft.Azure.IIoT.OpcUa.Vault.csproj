@@ -5,7 +5,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Description>Azure Industrial IoT OPC Vault component</Description>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <VersionSuffix>prerelease001</VersionSuffix>
+    <VersionSuffix>$(PrereleaseSuffix)</VersionSuffix>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa.Protocol\src\Microsoft.Azure.IIoT.OpcUa.Protocol.csproj" />
