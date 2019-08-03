@@ -1,8 +1,12 @@
-FROM microsoft/dotnet:2.2-aspnetcore-runtime AS base
-FROM microsoft/dotnet:2.2-sdk AS build
-ENV PROJECT=Microsoft.Azure.IIoT.Services.OpcUa.Gateway
+FROM microsoft/dotnet:2.2-aspnetcore-runtime-nanoserver-1809 AS base
+FROM microsoft/dotnet:2.2-sdk-nanoserver-1809 AS build
+ENV PROJECT=Microsoft.Azure.IIoT.Services.All
 ENV PROJECT_ROOT=services
 EXPOSE 9040
+EXPOSE 9041
+EXPOSE 9042
+EXPOSE 9043
+EXPOSE 9044
 EXPOSE 51111
 
 ARG BUILD_SOURCEVERSION
@@ -13,13 +17,12 @@ COPY *.props /
 WORKDIR /app/project
 COPY NuGet.Config NuGet.Config
 COPY ${PROJECT_ROOT}/*.props /
-COPY ${PROJECT_ROOT}/src/${PROJECT}/src/${PROJECT}.csproj src/${PROJECT}/src/${PROJECT}.csproj
+COPY ${PROJECT_ROOT}/src ./src
 ENV BUILD_SOURCEVERSION=${BUILD_SOURCEVERSION}
 ENV RELEASE_BUILD=${RELEASE_BUILD}
 RUN dotnet restore --configfile NuGet.Config -nowarn:msb3202,nu1503 src/${PROJECT}/src/${PROJECT}.csproj
 
 FROM build AS publish
-COPY ${PROJECT_ROOT}/src ./src
 WORKDIR /app/project/src/${PROJECT}/src
 RUN dotnet publish "${PROJECT}.csproj" -c Release -o /out
 

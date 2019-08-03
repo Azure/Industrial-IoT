@@ -1,7 +1,7 @@
-ENV PROJECT=Microsoft.Azure.IIoT.OpcUa.Api.Cli
-ENV PROJECT_ROOT=api
 FROM microsoft/dotnet:2.2-runtime-nanoserver-1809 AS base
 FROM microsoft/dotnet:2.2-sdk-nanoserver-1809 AS build
+ENV PROJECT=Microsoft.Azure.IIoT.OpcUa.Api
+ENV PROJECT_ROOT=api
 ENV _HOST=host.docker.internal
 
 ARG BUILD_SOURCEVERSION
@@ -9,20 +9,21 @@ ARG RELEASE_BUILD
 ENV PROJECT_BUILD=1
 WORKDIR /app
 COPY *.props /
-WORKDIR /app/build
+WORKDIR /app/project
+COPY NuGet.Config NuGet.Config
 COPY ${PROJECT_ROOT}/*.props /
-COPY ["${PROJECT_ROOT}/src/**/*.csproj", "src/"]
+COPY ${PROJECT_ROOT}/src/${PROJECT}/cli/${PROJECT}.Cli.csproj src/${PROJECT}/cli/${PROJECT}.Cli.csproj
 ENV BUILD_SOURCEVERSION=${BUILD_SOURCEVERSION}
 ENV RELEASE_BUILD=${RELEASE_BUILD}
-RUN dotnet restore --configfile NuGet.Config -nowarn:msb3202,nu1503 src/${PROJECT}/src/${PROJECT}.csproj
+RUN dotnet restore --configfile NuGet.Config -nowarn:msb3202,nu1503 src/${PROJECT}/cli/${PROJECT}.Cli.csproj
 
 FROM build AS publish
-COPY ["${PROJECT_ROOT}/src", "."]
-WORKDIR "/app/build/src/${PROJECT}/src"
-RUN dotnet publish "${PROJECT}.csproj" -c Release -o /out
+COPY ${PROJECT_ROOT}/src ./src
+WORKDIR /app/project/src/${PROJECT}/cli
+RUN dotnet publish "${PROJECT}.Cli.csproj" -c Release -o /out
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /out .
-ENTRYPOINT ["dotnet", "${PROJECT}.dll"]
+ENTRYPOINT ["dotnet", "${PROJECT}.Cli.dll"]
 

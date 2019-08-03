@@ -1,7 +1,9 @@
-FROM microsoft/dotnet:2.2-runtime-nanoserver-1809 AS base
+FROM microsoft/dotnet:2.2-aspnetcore-runtime-nanoserver-1809 AS base
 FROM microsoft/dotnet:2.2-sdk-nanoserver-1809 AS build
 ENV PROJECT=Microsoft.Azure.IIoT.Services.OpcUa.Gateway
 ENV PROJECT_ROOT=services
+EXPOSE 9040
+EXPOSE 51111
 
 ARG BUILD_SOURCEVERSION
 ARG RELEASE_BUILD

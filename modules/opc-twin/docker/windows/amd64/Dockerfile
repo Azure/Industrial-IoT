@@ -11,14 +11,14 @@ COPY *.props /
 WORKDIR /app/project
 COPY NuGet.Config NuGet.Config
 COPY ${PROJECT_ROOT}/*.props /
-COPY ${PROJECT_ROOT}/src/${PROJECT}/src/${PROJECT}.csproj src/${PROJECT}/src/${PROJECT}.csproj
+COPY ${PROJECT_ROOT}/src/${PROJECT}.csproj src/${PROJECT}.csproj
 ENV BUILD_SOURCEVERSION=${BUILD_SOURCEVERSION}
 ENV RELEASE_BUILD=${RELEASE_BUILD}
-RUN dotnet restore --configfile NuGet.Config -nowarn:msb3202,nu1503 src/${PROJECT}/src/${PROJECT}.csproj
+RUN dotnet restore --configfile NuGet.Config -nowarn:msb3202,nu1503 src/${PROJECT}.csproj
 
 FROM build AS publish
 COPY ${PROJECT_ROOT}/src ./src
-WORKDIR /app/project/src/${PROJECT}/src
+WORKDIR /app/project/src
 RUN dotnet publish "${PROJECT}.csproj" -c Release -o /out
 
 FROM base AS final

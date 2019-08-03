@@ -11,14 +11,14 @@ COPY *.props /
 WORKDIR /app/project
 COPY NuGet.Config NuGet.Config
 COPY ${PROJECT_ROOT}/*.props /
-COPY ["opcpublisher/${PROJECT}.csproj", "opcpublisher/"]
+COPY ${PROJECT_ROOT}/opcpublisher/${PROJECT}.csproj opcpublisher/${PROJECT}.csproj
 ENV BUILD_SOURCEVERSION=${BUILD_SOURCEVERSION}
 ENV RELEASE_BUILD=${RELEASE_BUILD}
-RUN dotnet restore --configfile NuGet.Config -nowarn:msb3202,nu1503 "opcpublisher/${PROJECT}.csproj"
+RUN dotnet restore --configfile NuGet.Config -nowarn:msb3202,nu1503 opcpublisher/${PROJECT}.csproj
 
 FROM build AS publish
-COPY ${PROJECT_ROOT}/src ./src
-WORKDIR "/app/project/opcpublisher"
+COPY ${PROJECT_ROOT}/opcpublisher ./opcpublisher
+WORKDIR /app/project/opcpublisher
 RUN dotnet publish "${PROJECT}.csproj" -c Release -o /out -r linux-arm
 
 FROM base AS final

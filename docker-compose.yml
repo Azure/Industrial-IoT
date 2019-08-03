@@ -188,7 +188,7 @@ services:
     image: ${REPOSITORY:-localhost:5000/azure-iiot-}opc-twin:host-${IMAGE_VERSION:-latest}
     build: 
       context: .
-      dockerfile: ./modules/opc-twin/docker/linux/amd64/Dockerfile.Host
+      dockerfile: ./modules/opc-twin/docker/linux/amd64/Dockerfile.host
     network_mode: "${HOST_NETWORK:-host}"
     cap_add:
       - NET_ADMIN
@@ -223,7 +223,7 @@ services:
     image: ${REPOSITORY:-localhost:5000/azure-iiot-}opc-ua-testing:${IMAGE_VERSION:-latest}
     build: 
       context: .
-      dockerfile: ./components/opc-ua/Microsoft.Azure.IIoT.OpcUa.Testing/docker/linux/amd64/Dockerfile
+      dockerfile: ./components/opc-ua/src/Microsoft.Azure.IIoT.OpcUa.Testing/docker/linux/amd64/Dockerfile
     hostname: opcserver1
     command: --sample -p 51211
     ports:
@@ -232,7 +232,7 @@ services:
     image: ${REPOSITORY:-localhost:5000/azure-iiot-}opc-ua-testing:${IMAGE_VERSION:-latest}
     build: 
       context: .
-      dockerfile: ./components/opc-ua/Microsoft.Azure.IIoT.OpcUa.Testing/docker/linux/amd64/Dockerfile
+      dockerfile: ./components/opc-ua/src/Microsoft.Azure.IIoT.OpcUa.Testing/docker/linux/amd64/Dockerfile
     hostname: opcserver2
     command: --sample -p 51212
     ports:
