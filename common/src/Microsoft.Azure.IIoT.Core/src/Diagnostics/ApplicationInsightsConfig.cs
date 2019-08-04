@@ -3,26 +3,32 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Services.Diagnostics {
+namespace Microsoft.Azure.IIoT.Diagnostics {
+    using System;
+    using Microsoft.ApplicationInsights.Extensibility;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
 
     /// <summary>
     /// Metric logger configuration
     /// </summary>
-    public class MetricLoggerConfig : ConfigBase, IMetricLoggerConfig {
+    public class ApplicationInsightsConfig : ConfigBase, IApplicationInsightsConfig {
 
         private const string InstrumentationKey = "PCS_APPINSIGHTS_INSTRUMENTATIONKEY";
 
-        /// <summary> ApplicationInsightsInstrumentationKey </summary>
-        public string ApplicationInsightsInstrumentationKey => GetStringOrDefault(InstrumentationKey, null);
+        /// <summary> Telemetry configuration </summary>
+        public TelemetryConfiguration TelemetryConfiguration => GetTelemetryConfiguration();
+
+        private TelemetryConfiguration GetTelemetryConfiguration() {
+            return new TelemetryConfiguration(GetStringOrDefault(InstrumentationKey, null));
+        }
 
         /// <summary>
         /// Configuration constructor
         /// </summary>
         /// <param name="configuration"></param>
-        public MetricLoggerConfig(IConfigurationRoot configuration) :
-        base(configuration) {
+        public ApplicationInsightsConfig(IConfigurationRoot configuration) :
+            base(configuration) {
         }
     }
 }

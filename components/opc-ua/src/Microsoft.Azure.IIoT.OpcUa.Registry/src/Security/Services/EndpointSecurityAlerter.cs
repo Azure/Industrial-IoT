@@ -18,7 +18,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Security.Services {
     using System.Linq;
     using System.Threading.Tasks;
     using System.Security.Cryptography.X509Certificates;
-    using Microsoft.Azure.IIoT.Services.Diagnostics;
 
     /// <summary>
     /// Sending security notifications for unsecure endpoints
@@ -66,7 +65,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Security.Services {
         /// <inheritdoc/>
         public Task OnEndpointUpdatedAsync(RegistryOperationContextModel context,
             EndpointInfoModel endpoint) {
-            using (new TimeLogger(nameof(OnEndpointUpdatedAsync), _metrics)) {
+            using (_metrics.TrackDuration(nameof(OnEndpointUpdatedAsync))) {
                 return CheckEndpointInfoAsync(endpoint);
             }
         }
@@ -80,7 +79,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Security.Services {
         /// <inheritdoc/>
         public Task OnEndpointNewAsync(RegistryOperationContextModel context,
             EndpointInfoModel endpoint) {
-            using (new TimeLogger(nameof(OnEndpointNewAsync), _metrics)) {
+            using (_metrics.TrackDuration(nameof(OnEndpointNewAsync))) {
                 return CheckEndpointInfoAsync(endpoint);
             }
         }
@@ -88,7 +87,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Security.Services {
         /// <inheritdoc/>
         public Task OnApplicationNewAsync(RegistryOperationContextModel context,
             ApplicationInfoModel application) {
-            using (new TimeLogger(nameof(OnApplicationNewAsync), _metrics)) {
+            using (_metrics.TrackDuration(nameof(OnApplicationNewAsync))) {
                 return CheckApplicationInfoAsync(application);
             }
         }
@@ -96,7 +95,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Security.Services {
         /// <inheritdoc/>
         public Task OnApplicationUpdatedAsync(RegistryOperationContextModel context,
             ApplicationInfoModel application) {
-            using (new TimeLogger(nameof(OnApplicationUpdatedAsync), _metrics)) {
+            using (_metrics.TrackDuration(nameof(OnApplicationUpdatedAsync))) {
                 return CheckApplicationInfoAsync(application);
             }
         }

@@ -3,10 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Services.Diagnostics {
+namespace Microsoft.Azure.IIoT.Diagnostics {
     using Microsoft.ApplicationInsights;
-    using Microsoft.ApplicationInsights.Extensibility;
-    using Microsoft.Azure.IIoT.Diagnostics;
     using System.Collections.Generic;
 
     /// <summary>
@@ -18,31 +16,27 @@ namespace Microsoft.Azure.IIoT.Services.Diagnostics {
         /// Create metric logger
         /// </summary>
         /// <param name="config"></param>
-        public MetricLogger(IMetricLoggerConfig config) {
-            telemetryConfiguration = TelemetryConfiguration.Active;
-            telemetryConfiguration.InstrumentationKey = config.ApplicationInsightsInstrumentationKey;
-
-            telemetryClient = new TelemetryClient(telemetryConfiguration);
+        public MetricLogger(IApplicationInsightsConfig config) {
+            _telemetryClient = new TelemetryClient(config.TelemetryConfiguration);
         }
 
          /// <inheritdoc/>
         public void TrackEvent(string name) {
-            telemetryClient.GetMetric("trackEvent-" + name).TrackValue(1);
+            _telemetryClient.GetMetric("trackEvent-" + name).TrackValue(1);
         }
 
         /// <inheritdoc/>
         public void TrackValue(string name, int value) {
-            telemetryClient.GetMetric("trackValue-" + name).TrackValue(value);
+            _telemetryClient.GetMetric("trackValue-" + name).TrackValue(value);
         }
 
         /// <inheritdoc/>
-        public void TimeIt(string name, double milliseconds) {
+        public void TrackDuration(string name, double milliseconds) {
             var metrics = new Dictionary<string, double>
                 {{"processingTime-" + name, milliseconds}};
-            telemetryClient.TrackEvent("processingTime-" + name, null, metrics);
+            _telemetryClient.TrackEvent("processingTime-" + name, null, metrics);
         }
 
-        private readonly TelemetryClient telemetryClient;
-        private readonly TelemetryConfiguration telemetryConfiguration;
+        private readonly TelemetryClient _telemetryClient;
     }
 }

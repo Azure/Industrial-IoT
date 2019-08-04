@@ -18,12 +18,14 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Runtime {
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
     using System;
+    using Microsoft.Azure.IIoT.Diagnostics;
+    using Microsoft.ApplicationInsights.Extensibility;
 
     /// <summary>
     /// Common web service configuration aggregation
     /// </summary>
     public class Config : ConfigBase, IAuthConfig, IIoTHubConfig,
-        ICorsConfig, IClientConfig, ISwaggerConfig, IEventHubConfig {
+        ICorsConfig, IClientConfig, ISwaggerConfig, IEventHubConfig, IApplicationInsightsConfig {
 
         /// <inheritdoc/>
         public string IoTHubConnString => _hub.IoTHubConnString;
@@ -74,6 +76,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Runtime {
         /// Whether to use role based access
         /// </summary>
         public bool UseRoles => GetBoolOrDefault("PCS_AUTH_ROLES");
+        /// <inheritdoc/>
+        public TelemetryConfiguration TelemetryConfiguration => _ai.TelemetryConfiguration;
 
         /// <summary>
         /// Configuration constructor
@@ -87,12 +91,14 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Runtime {
             _hub = new IoTHubConfig(configuration);
             _cors = new CorsConfig(configuration);
             _eh = new EventHubConfig(configuration);
+            _ai = new ApplicationInsightsConfig(configuration);
         }
 
         private readonly SwaggerConfig _swagger;
         private readonly AuthConfig _auth;
         private readonly CorsConfig _cors;
         private readonly EventHubConfig _eh;
+        private readonly ApplicationInsightsConfig _ai;
         private readonly IoTHubConfig _hub;
     }
 }

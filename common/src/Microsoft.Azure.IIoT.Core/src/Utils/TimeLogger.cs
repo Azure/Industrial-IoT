@@ -3,8 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Services.Diagnostics {
+namespace Microsoft.Azure.IIoT.Utils {
     using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using System;
     using System.Diagnostics;
 
@@ -18,7 +19,7 @@ namespace Microsoft.Azure.IIoT.Services.Diagnostics {
         /// </summary>
         /// <param name="watchName"> Watch name eg. method name.</param>
         /// <param name="metrics"> Metrics Logger.</param>
-        public TimeLogger(string watchName = "", IMetricLogger metrics = null) {
+        public TimeLogger(string watchName, IMetricLogger metrics) {
             _stopWatch = Stopwatch.StartNew();
             _watchName = watchName;
             _metrics = metrics;
@@ -36,8 +37,14 @@ namespace Microsoft.Azure.IIoT.Services.Diagnostics {
         /// <inheritdoc/>
         public void Print() {
             if (_stopWatch != null) {
-                _metrics.TimeIt(_watchName, _stopWatch.ElapsedMilliseconds);
+                if (_metrics != null && !string.IsNullOrEmpty(_watchName)) {
+                    _metrics.TrackDuration(_watchName, _stopWatch.ElapsedMilliseconds);
+                }
+                else {
+                    Log.Logger.Warning("Please provide name of the execution code you want to track.");
+                }
             }
+            
         }
 
         /// <inheritdoc/>

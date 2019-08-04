@@ -3,16 +3,17 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Services.Diagnostics {
+namespace Microsoft.Azure.IIoT.Diagnostics {
+    using Microsoft.ApplicationInsights.Extensibility;
 
     /// <summary>
-    /// Metric logger configuration
+    /// Application insights configuration
     /// </summary>
-    public interface IMetricLoggerConfig {
+    public interface IApplicationInsightsConfig {
 
         /// <summary>
-        /// Application Insights Instrumentation key
+        /// Application insights telemetry configuration
         /// </summary>
-        string ApplicationInsightsInstrumentationKey { get; }
+        TelemetryConfiguration TelemetryConfiguration { get; }
     }
 }

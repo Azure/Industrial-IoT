@@ -31,6 +31,6 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
         /// </summary>
         /// <param name="name">The name of the metric to define</param>
         /// <param name="milliseconds">The name of the metric to define</param>
-        void TimeIt(string name, double milliseconds);
+        void TrackDuration(string name, double milliseconds);
     }
 }

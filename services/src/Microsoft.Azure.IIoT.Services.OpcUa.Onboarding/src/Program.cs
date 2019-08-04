@@ -5,12 +5,11 @@
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Onboarding {
     using Microsoft.Azure.IIoT.Services.OpcUa.Onboarding.Runtime;
-    using Microsoft.Azure.IIoT.Services.Diagnostics;
+    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Handlers;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Services;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
-    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub.Processor.EventHub;
     using Microsoft.Azure.IIoT.Hub.Processor.Services;
@@ -110,7 +109,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Onboarding {
                 .AsImplementedInterfaces().SingleInstance();
 
             // register logger
-            builder.RegisterLogger(LogEx.ApplicationInsights(configuration));
+            builder.RegisterLogger(LogEx.ApplicationInsights(configuration, config));
             // Register metrics logger
             builder.RegisterType<MetricLogger>()
                 .AsImplementedInterfaces().SingleInstance();
