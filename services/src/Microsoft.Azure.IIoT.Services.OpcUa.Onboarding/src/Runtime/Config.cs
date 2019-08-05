@@ -11,17 +11,19 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Onboarding.Runtime {
     using Microsoft.Azure.IIoT.Messaging.EventHub;
     using Microsoft.Azure.IIoT.Messaging.ServiceBus;
     using Microsoft.Azure.IIoT.Messaging.ServiceBus.Runtime;
+    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Tasks;
     using Microsoft.Azure.IIoT.Tasks.Runtime;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
     using System;
+    using Microsoft.ApplicationInsights.Extensibility;
 
     /// <summary>
     /// Onboarding service configuration
     /// </summary>
     public class Config : ConfigBase, IEventProcessorConfig, IIoTHubConfig,
-        ITaskProcessorConfig, IEventHubConfig, IServiceBusConfig {
+        ITaskProcessorConfig, IEventHubConfig, IServiceBusConfig, IApplicationInsightsConfig {
 
         /// <inheritdoc/>
         public string IoTHubConnString => _hub.IoTHubConnString;
@@ -49,6 +51,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Onboarding.Runtime {
         public int MaxQueueSize => _tasks.MaxQueueSize;
         /// <inheritdoc/>
         public string ServiceBusConnString => _sb.ServiceBusConnString;
+        /// <inheritdoc/>
+        public TelemetryConfiguration TelemetryConfiguration => _ai.TelemetryConfiguration;
 
         /// <summary>
         /// Configuration constructor
@@ -56,12 +60,12 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Onboarding.Runtime {
         /// <param name="configuration"></param>
         public Config(IConfigurationRoot configuration) :
             base(configuration) {
-
             _tasks = new TaskProcessorConfig(configuration);
             _ep = new EventProcessorConfig(configuration);
             _eh = new IoTHubEventConfig(configuration);
             _hub = new IoTHubConfig(configuration);
             _sb = new ServiceBusConfig(configuration);
+            _ai = new ApplicationInsightsConfig(configuration);
         }
 
         private readonly TaskProcessorConfig _tasks;
@@ -69,5 +73,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Onboarding.Runtime {
         private readonly IoTHubEventConfig _eh;
         private readonly IoTHubConfig _hub;
         private readonly ServiceBusConfig _sb;
+        private readonly ApplicationInsightsConfig _ai;
     }
 }
