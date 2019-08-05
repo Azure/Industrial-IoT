@@ -9,7 +9,7 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
     /// <summary>
     /// Metric logger extensions
     /// </summary>
-    public static class MetricEx {
+    public static class MetricLoggerEx {
 
         /// <summary>
         /// Create time logger
