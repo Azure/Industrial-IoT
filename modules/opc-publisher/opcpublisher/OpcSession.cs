@@ -338,9 +338,8 @@ namespace OpcPublisher
         /// </summary>
         public virtual async Task ConnectAndMonitorAsync()
         {
-            uint lastNodeConfigVersion = 0;
-
-            WaitHandle[] connectAndMonitorEvents = {
+            WaitHandle[] connectAndMonitorEvents = new WaitHandle[]
+            {
                 _sessionCancelationToken.WaitHandle,
                 ConnectAndMonitorSession
             };
@@ -351,7 +350,7 @@ namespace OpcPublisher
                 try
                 {
                     // wait till:
-                    // - cancelation is requested
+                    // - cancellation is requested
                     // - got signaled because we need to check for pending session activity
                     // - timeout to try to reestablish any disconnected sessions
                     try
@@ -377,13 +376,6 @@ namespace OpcPublisher
 
                     await RemoveUnusedSessionsAsync(_sessionCancelationToken).ConfigureAwait(false);
                     _sessionCancelationToken.ThrowIfCancellationRequested();
-
-                    // update the config file if required
-                    if (NodeConfigVersion != lastNodeConfigVersion)
-                    {
-                        lastNodeConfigVersion = (uint)NodeConfigVersion;
-                        await NodeConfiguration.UpdateNodeConfigurationFileAsync().ConfigureAwait(false);
-                    }
                 }
                 catch (Exception e)
                 {
@@ -395,6 +387,11 @@ namespace OpcPublisher
                     {
                         break;
                     }
+                }
+                finally
+                {
+                    // update the config file if required
+                    await NodeConfiguration.UpdateNodeConfigurationFileAsync().ConfigureAwait(false);
                 }
             }
         }
@@ -563,14 +560,14 @@ namespace OpcPublisher
                     }
 
                     // process all unmonitored items.
-                    var unmonitoredItems = opcSubscription.OpcMonitoredItems.Where(i => i.State == OpcMonitoredItemState.Unmonitored || i.State == OpcMonitoredItemState.UnmonitoredNamespaceUpdateRequested);
+                    var unmonitoredItems = opcSubscription.OpcMonitoredItems.Where(i => (i.State == OpcMonitoredItemState.Unmonitored || i.State == OpcMonitoredItemState.UnmonitoredNamespaceUpdateRequested));
                     int additionalMonitoredItemsCount = 0;
                     int monitoredItemsCount = 0;
                     bool haveUnmonitoredItems = false;
                     if (unmonitoredItems.Count() != 0)
                     {
                         haveUnmonitoredItems = true;
-                        monitoredItemsCount = opcSubscription.OpcMonitoredItems.Count(i => i.State == OpcMonitoredItemState.Monitored);
+                        monitoredItemsCount = opcSubscription.OpcMonitoredItems.Count(i => (i.State == OpcMonitoredItemState.Monitored));
                         Logger.Information($"Start monitoring items on endpoint '{EndpointUrl}'. Currently monitoring {monitoredItemsCount} items.");
                     }
 
@@ -734,7 +731,7 @@ namespace OpcPublisher
                     stopWatch.Stop();
                     if (haveUnmonitoredItems == true)
                     {
-                        monitoredItemsCount = opcSubscription.OpcMonitoredItems.Count(i => i.State == OpcMonitoredItemState.Monitored);
+                        monitoredItemsCount = opcSubscription.OpcMonitoredItems.Count(i => (i.State == OpcMonitoredItemState.Monitored));
                         Logger.Information($"Done processing unmonitored items on endpoint '{EndpointUrl}' took {stopWatch.ElapsedMilliseconds} msec. Now monitoring {monitoredItemsCount} items in subscription with id '{opcSubscription.OpcUaClientSubscription.Id}'.");
                     }
                 }
@@ -778,7 +775,7 @@ namespace OpcPublisher
                 foreach (var opcSubscription in OpcSubscriptions)
                 {
                     // remove items tagged to stop in the stack
-                    var itemsToRemove = opcSubscription.OpcMonitoredItems.Where(i => i.State == OpcMonitoredItemState.RemovalRequested);
+                    var itemsToRemove = opcSubscription.OpcMonitoredItems.Where(i => i.State == OpcMonitoredItemState.RemovalRequested).ToArray();
                     if (itemsToRemove.Any())
                     {
                         try
@@ -796,7 +793,7 @@ namespace OpcPublisher
                         // stop heartbeat timer for all items to remove
                         foreach (var itemToRemove in itemsToRemove)
                         {
-                            itemToRemove?.HeartbeatSendTimer?.Change(Timeout.Infinite, Timeout.Infinite);
+                            itemToRemove.HeartbeatSendTimer?.Change(Timeout.Infinite, Timeout.Infinite);
                         }
                         // remove them in our data structure
                         opcSubscription.OpcMonitoredItems.RemoveAll(i => i.State == OpcMonitoredItemState.RemovalRequested);
@@ -1032,7 +1029,7 @@ namespace OpcPublisher
                     }
                     if (nodeId == null)
                     {
-                        nodeIdCheck = new NodeId(expandedNodeId.Identifier, (ushort)_namespaceTable.GetIndex(expandedNodeId.NamespaceUri));
+                        nodeIdCheck = new NodeId(expandedNodeId.Identifier, (ushort)(_namespaceTable.GetIndex(expandedNodeId.NamespaceUri)));
                     }
                 }
 
@@ -1109,7 +1106,7 @@ namespace OpcPublisher
                     }
                     if (nodeId == null)
                     {
-                        nodeIdCheck = new NodeId(expandedNodeId.Identifier, (ushort)_namespaceTable.GetIndex(expandedNodeId.NamespaceUri));
+                        nodeIdCheck = new NodeId(expandedNodeId.Identifier, (ushort)(_namespaceTable.GetIndex(expandedNodeId.NamespaceUri)));
                     }
 
                 }
