@@ -146,12 +146,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                                 case "update":
                                     await UpdateApplicationAsync(registry, options);
                                     break;
-                                case "approve":
-                                    await ApproveApplicationAsync(registry, options);
-                                    break;
-                                case "reject":
-                                    await RejectApplicationAsync(registry, options);
-                                    break;
                                 case "disable":
                                     await DisableApplicationAsync(registry, options);
                                     break;
@@ -901,24 +895,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         }
 
         /// <summary>
-        /// Approve application
-        /// </summary>
-        private static async Task ApproveApplicationAsync(IRegistryServiceApi service,
-            CliOptions options) {
-            await service.ApproveApplicationAsync(options.GetValue<string>("-i", "--id"),
-                options.GetValueOrDefault("-f", "--force", false));
-        }
-
-        /// <summary>
-        /// Reject application
-        /// </summary>
-        private static async Task RejectApplicationAsync(IRegistryServiceApi service,
-            CliOptions options) {
-            await service.RejectApplicationAsync(options.GetValue<string>("-i", "--id"),
-                options.GetValueOrDefault("-f", "--force", false));
-        }
-
-        /// <summary>
         /// Disable application
         /// </summary>
         private static async Task DisableApplicationAsync(IRegistryServiceApi service,
@@ -953,8 +929,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                 ProductUri = options.GetValueOrDefault<string>("-p", "--product", null),
                 GatewayServerUri = options.GetValueOrDefault<string>("-g", "--gwuri", null),
                 DiscoveryProfileUri = options.GetValueOrDefault<string>("-d", "--dpuri", null),
-                Locale = options.GetValueOrDefault<string>("-l", "--locale", null),
-                State = options.GetValueOrDefault<ApplicationState>("-s", "--state", null)
+                Locale = options.GetValueOrDefault<string>("-l", "--locale", null)
             };
 
             // Unregister all applications
@@ -1027,7 +1002,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                 ApplicationType = options.GetValueOrDefault<ApplicationType>("-t", "--type", null),
                 ApplicationName = options.GetValueOrDefault<string>("-n", "--name", null),
                 Locale = options.GetValueOrDefault<string>("-l", "--locale", null),
-                State = options.GetValueOrDefault<ApplicationState>("-s", "--state", null),
                 IncludeNotSeenSince = options.IsProvidedOrNull("-d", "--deleted")
             };
             if (options.IsSet("-A", "--all")) {
@@ -1512,16 +1486,6 @@ Commands and Options
         with ...
         -i, --id        Id of application to get (mandatory)
         -F, --format    Json format for result
-
-     approve     Approve application
-        with ...
-        -i, --id        Id of application to get (mandatory)
-        -f, --force     Force approve
-
-     reject      Reject application
-        with ...
-        -i, --id        Id of application to get (mandatory)
-        -f, --force     Force reject
 
      disable     Disable application
         with ...

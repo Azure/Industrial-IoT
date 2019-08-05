@@ -7,7 +7,6 @@ namespace Serilog {
     using Serilog.Events;
     using Microsoft.Extensions.Configuration;
     using Serilog.Core;
-    using System;
 
     /// <summary>
     /// Serilog extensions
@@ -40,9 +39,21 @@ namespace Serilog {
         /// <summary>
         /// Create standard console logger
         /// </summary>
+        /// <returns></returns>
+        public static ILogger Console() {
+            var level = LogEventLevel.Information;
+#if DEBUG
+            level = LogEventLevel.Debug;
+#endif
+            return Console(level);
+        }
+
+        /// <summary>
+        /// Create standard console logger
+        /// </summary>
         /// <param name="level"></param>
         /// <returns></returns>
-        public static ILogger Console(LogEventLevel level = LogEventLevel.Debug) {
+        public static ILogger Console(LogEventLevel level) {
             Level.MinimumLevel = level;
             return new LoggerConfiguration().Console().CreateLogger();
         }
@@ -71,9 +82,22 @@ namespace Serilog {
         /// Create rolling file logger
         /// </summary>
         /// <param name="path"></param>
+        /// <returns></returns>
+        public static ILogger RollingFile(string path) {
+            var level = LogEventLevel.Information;
+#if DEBUG
+            level = LogEventLevel.Debug;
+#endif
+            return RollingFile(path, level);
+        }
+
+        /// <summary>
+        /// Create rolling file logger
+        /// </summary>
+        /// <param name="path"></param>
         /// <param name="level"></param>
         /// <returns></returns>
-        public static ILogger RollingFile(string path, LogEventLevel level = LogEventLevel.Debug) {
+        public static ILogger RollingFile(string path, LogEventLevel level) {
             Level.MinimumLevel = level;
             return new LoggerConfiguration().RollingFile(path).CreateLogger();
         }
@@ -93,30 +117,23 @@ namespace Serilog {
         /// <summary>
         /// Create console out like logger
         /// </summary>
-        /// <param name="level"></param>
         /// <returns></returns>
-        public static ILogger ConsoleOut(LogEventLevel level = LogEventLevel.Debug) {
-            Level.MinimumLevel = level;
-            return new LoggerConfiguration().ConsoleOut().CreateLogger();
+        public static ILogger ConsoleOut() {
+            var level = LogEventLevel.Information;
+#if DEBUG
+            level = LogEventLevel.Debug;
+#endif
+            return ConsoleOut(level);
         }
 
         /// <summary>
-        /// Create trace logger
+        /// Create console out like logger
         /// </summary>
-        /// <param name="configuration"></param>
-        /// <param name="config"></param>
+        /// <param name="level"></param>
         /// <returns></returns>
-        public static LoggerConfiguration Trace(this LoggerConfiguration configuration,
-            IConfiguration config = null) {
-            if (config != null) {
-                configuration = configuration.ReadFrom.Configuration(config);
-            }
-
-            return configuration
-                .Enrich.WithProperty("SourceContext", null)
-                .Enrich.FromLogContext()
-                .WriteTo.Trace(outputTemplate: kDefaultTemplate)
-                .MinimumLevel.ControlledBy(Level);
+        public static ILogger ConsoleOut(LogEventLevel level) {
+            Level.MinimumLevel = level;
+            return new LoggerConfiguration().ConsoleOut().CreateLogger();
         }
 
         /// <summary>
@@ -147,10 +164,23 @@ namespace Serilog {
         /// <summary>
         /// Create application insights logger
         /// </summary>
-         /// <param name="config"></param>
+        /// <param name="config"></param>
+        /// <returns></returns>
+        public static ILogger ApplicationInsights(IConfiguration config) {
+            var level = LogEventLevel.Information;
+#if DEBUG
+            level = LogEventLevel.Debug;
+#endif
+            return ApplicationInsights(config, level);
+        }
+
+        /// <summary>
+        /// Create application insights logger
+        /// </summary>
+        /// <param name="config"></param>
         /// <param name="level"></param>
         /// <returns></returns>
-        public static ILogger ApplicationInsights(IConfiguration config, LogEventLevel level = LogEventLevel.Debug) {
+        public static ILogger ApplicationInsights(IConfiguration config, LogEventLevel level) {
             Level.MinimumLevel = level;
             return new LoggerConfiguration().ApplicationInsights(config).CreateLogger();
         }
@@ -158,9 +188,40 @@ namespace Serilog {
         /// <summary>
         /// Create trace logger
         /// </summary>
+        /// <param name="configuration"></param>
+        /// <param name="config"></param>
+        /// <returns></returns>
+        public static LoggerConfiguration Trace(this LoggerConfiguration configuration,
+            IConfiguration config = null) {
+            if (config != null) {
+                configuration = configuration.ReadFrom.Configuration(config);
+            }
+
+            return configuration
+                .Enrich.WithProperty("SourceContext", null)
+                .Enrich.FromLogContext()
+                .WriteTo.Trace(outputTemplate: kDefaultTemplate)
+                .MinimumLevel.ControlledBy(Level);
+        }
+
+        /// <summary>
+        /// Create trace logger
+        /// </summary>
+        /// <returns></returns>
+        public static ILogger Trace() {
+            var level = LogEventLevel.Information;
+#if DEBUG
+            level = LogEventLevel.Debug;
+#endif
+            return Trace(level);
+        }
+
+        /// <summary>
+        /// Create trace logger
+        /// </summary>
         /// <param name="level"></param>
         /// <returns></returns>
-        public static ILogger Trace(LogEventLevel level = LogEventLevel.Debug) {
+        public static ILogger Trace(LogEventLevel level) {
             Level.MinimumLevel = level;
             return new LoggerConfiguration().Trace().CreateLogger();
         }

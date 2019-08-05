@@ -31,24 +31,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
             ApplicationInfoModel application);
 
         /// <summary>
-        /// Called when application is activated
-        /// </summary>
-        /// <param name="context"></param>
-        /// <param name="application"></param>
-        /// <returns></returns>
-        Task OnApplicationApprovedAsync(RegistryOperationContextModel context,
-            ApplicationInfoModel application);
-
-        /// <summary>
-        /// Called when application is rejected
-        /// </summary>
-        /// <param name="context"></param>
-        /// <param name="application"></param>
-        /// <returns></returns>
-        Task OnApplicationRejectedAsync(RegistryOperationContextModel context,
-            ApplicationInfoModel application);
-
-        /// <summary>
         /// Called when application is enabled
         /// </summary>
         /// <param name="context"></param>

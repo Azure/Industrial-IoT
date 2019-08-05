@@ -22,7 +22,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// <summary>
         /// Create registry services
         /// </summary>
-        /// <param name="config"></param>
         /// <param name="database"></param>
         /// <param name="endpoints"></param>
         /// <param name="bulk"></param>
@@ -30,7 +29,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// <param name="logger"></param>
         public ApplicationRegistry(IApplicationRepository database,
             IApplicationEndpointRegistry endpoints, IEndpointBulkProcessor bulk,
-            IApplicationEventBroker broker, ILogger logger, IRegistryConfig config = null) {
+            IApplicationEventBroker broker, ILogger logger) {
 
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _broker = broker ?? throw new ArgumentNullException(nameof(broker));
@@ -38,7 +37,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
             _bulk = bulk ?? throw new ArgumentNullException(nameof(bulk));
             _endpoints = endpoints ?? throw new ArgumentNullException(nameof(endpoints));
-            _config = config;
         }
 
         /// <inheritdoc/>
@@ -53,69 +51,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
             var context = request.Context.Validate();
 
-            var application = await _database.AddAsync(request.ToApplicationInfo(context,
-                _config?.ApplicationsAutoApprove ?? true), null, ct);
+            var application = await _database.AddAsync(request.ToApplicationInfo(context),
+                null, ct);
 
             await _broker.NotifyAllAsync(
                 l => l.OnApplicationNewAsync(context, application));
             await _broker.NotifyAllAsync(
                 l => l.OnApplicationEnabledAsync(context, application));
-            if (application.State == ApplicationState.Approved) {
-                await _broker.NotifyAllAsync(
-                    l => l.OnApplicationApprovedAsync(context, application));
-            }
 
             return new ApplicationRegistrationResultModel {
                 Id = application.ApplicationId
             };
-        }
-
-        /// <inheritdoc/>
-        public async Task ApproveApplicationAsync(string applicationId, bool force,
-            RegistryOperationContextModel context, CancellationToken ct) {
-            context = context.Validate();
-
-            var app = await _database.UpdateAsync(applicationId, (application, disabled) => {
-                if (disabled ?? false) {
-                    throw new ResourceInvalidStateException("The application is disabled.");
-                }
-                if (application.State == ApplicationState.Approved) {
-                    return (null, null);
-                }
-                if (!force && application.State != ApplicationState.New) {
-                    throw new ResourceInvalidStateException(
-                        "The application is not in a valid state for this operation.");
-                }
-                application.State = ApplicationState.Approved;
-                application.Approved = context;
-                return (true, null);
-            }, ct);
-
-            await _broker.NotifyAllAsync(l => l.OnApplicationApprovedAsync(context, app));
-        }
-
-        /// <inheritdoc/>
-        public async Task RejectApplicationAsync(string applicationId, bool force,
-            RegistryOperationContextModel context, CancellationToken ct) {
-            context = context.Validate();
-
-            var app = await _database.UpdateAsync(applicationId, (application, disabled) => {
-                if (disabled ?? false) {
-                    throw new ResourceInvalidStateException("The application is disabled.");
-                }
-                if (application.State == ApplicationState.Rejected) {
-                    return (null, null);
-                }
-                if (!force && application.State != ApplicationState.New) {
-                    throw new ResourceInvalidStateException(
-                        "The application is not in a valid state for this operation.");
-                }
-                application.State = ApplicationState.Rejected;
-                application.Approved = context;
-                return (true, null);
-            }, ct);
-
-            await _broker.NotifyAllAsync(l => l.OnApplicationRejectedAsync(context, app));
         }
 
         /// <inheritdoc/>
@@ -363,17 +309,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                     application.NotSeenSince = null;
                     application.SupervisorId = supervisorId;
                     application.SiteId = siteId;
-                    application.State = (_config?.ApplicationsAutoApprove ?? true) ?
-                        ApplicationState.Approved : ApplicationState.New;
 
                     var app = await _database.AddAsync(application, false);
 
                     // Notify addition!
                     await _broker.NotifyAllAsync(l => l.OnApplicationNewAsync(context, app));
                     await _broker.NotifyAllAsync(l => l.OnApplicationEnabledAsync(context, app));
-                    if (app.State == ApplicationState.Approved) {
-                        await _broker.NotifyAllAsync(l => l.OnApplicationApprovedAsync(context, app));
-                    }
 
                     // Now - add all new endpoints
                     endpoints.TryGetValue(app.ApplicationId, out var epFound);
@@ -451,6 +392,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         private readonly IEndpointBulkProcessor _bulk;
         private readonly IApplicationEndpointRegistry _endpoints;
         private readonly IApplicationEventBroker _broker;
-        private readonly IRegistryConfig _config;
     }
 }

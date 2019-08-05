@@ -54,18 +54,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2 {
                             eventData.Context, eventData.Application)
                         .ContinueWith(t => Task.CompletedTask)));
                     break;
-                case ApplicationEventType.Rejected:
-                    await Task.WhenAll(_listeners
-                        .Select(l => l.OnApplicationRejectedAsync(
-                            eventData.Context, eventData.Application)
-                        .ContinueWith(t => Task.CompletedTask)));
-                    break;
-                case ApplicationEventType.Approved:
-                    await Task.WhenAll(_listeners
-                        .Select(l => l.OnApplicationApprovedAsync(
-                            eventData.Context, eventData.Application)
-                        .ContinueWith(t => Task.CompletedTask)));
-                    break;
                 case ApplicationEventType.Updated:
                     await Task.WhenAll(_listeners
                         .Select(l => l.OnApplicationUpdatedAsync(

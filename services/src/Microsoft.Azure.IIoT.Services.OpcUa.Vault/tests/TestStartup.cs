@@ -3,14 +3,12 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
-    using Microsoft.Azure.IIoT.Services.OpcUa.Twin.v2;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Control;
+namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
+    using Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Export;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.OpcUa.Twin.Default;
-    using Microsoft.Azure.IIoT.OpcUa.Testing.Runtime;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
@@ -40,30 +38,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
         public override void ConfigureContainer(ContainerBuilder builder) {
             base.ConfigureContainer(builder);
 
-            builder.RegisterType<TestIoTHubConfig>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<TestModule>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<ClientServices>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<TestClientServicesConfig>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<AddressSpaceServices>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<PublishServicesStub<EndpointModel>>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<UploadServicesStub<EndpointModel>>()
-                .AsImplementedInterfaces();
             builder.RegisterType<JsonVariantEncoder>()
                 .AsImplementedInterfaces().SingleInstance();
-        }
-
-        public class TestIoTHubConfig : IIoTHubConfig {
-            public string IoTHubConnString =>
-                ConnectionString.CreateServiceConnectionString(
-                    "test.test.org", "iothubowner", Convert.ToBase64String(
-                        Encoding.UTF8.GetBytes(Guid.NewGuid().ToString()))).ToString();
-            public string IoTHubResourceId => null;
         }
     }
 

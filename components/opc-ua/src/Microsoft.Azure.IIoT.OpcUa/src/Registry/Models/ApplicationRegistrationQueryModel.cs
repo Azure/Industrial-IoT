@@ -56,11 +56,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public string SiteOrSupervisorId { get; set; }
 
         /// <summary>
-        /// State of application
-        /// </summary>
-        public ApplicationStateMask? State { get; set; }
-
-        /// <summary>
         /// Whether to include applications that were soft deleted
         /// </summary>
         public bool? IncludeNotSeenSince { get; set; }

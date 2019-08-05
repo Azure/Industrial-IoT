@@ -24,12 +24,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2 {
         }
 
         /// <inheritdoc/>
-        public Task OnApplicationApprovedAsync(
-            RegistryOperationContextModel context, ApplicationInfoModel application) {
-            return _bus.PublishAsync(Wrap(ApplicationEventType.Approved, context, application));
-        }
-
-        /// <inheritdoc/>
         public Task OnApplicationDeletedAsync(
             RegistryOperationContextModel context, ApplicationInfoModel application) {
             return _bus.PublishAsync(Wrap(ApplicationEventType.Deleted, context, application));
@@ -54,17 +48,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2 {
         }
 
         /// <inheritdoc/>
-        public Task OnApplicationRejectedAsync(
-            RegistryOperationContextModel context, ApplicationInfoModel application) {
-            return _bus.PublishAsync(Wrap(ApplicationEventType.Rejected, context, application));
-        }
-
-        /// <inheritdoc/>
         public Task OnApplicationUpdatedAsync(
             RegistryOperationContextModel context, ApplicationInfoModel application) {
             return _bus.PublishAsync(Wrap(ApplicationEventType.Updated, context, application));
         }
-
 
         /// <summary>
         /// Create application event

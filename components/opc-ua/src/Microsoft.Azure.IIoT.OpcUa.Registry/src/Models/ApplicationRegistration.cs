@@ -84,11 +84,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public ApplicationType? ApplicationType { get; set; }
 
         /// <summary>
-        /// Application state
-        /// </summary>
-        public ApplicationState? ApplicationState { get; set; }
-
-        /// <summary>
         /// Returns discovery urls of the application
         /// </summary>
         public Dictionary<string, string> DiscoveryUrls { get; set; }
@@ -112,16 +107,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// Authority
         /// </summary>
         public string CreateAuthorityId { get; set; }
-
-        /// <summary>
-        /// Approval time
-        /// </summary>
-        public DateTime? ApproveTime { get; set; }
-
-        /// <summary>
-        /// Authority
-        /// </summary>
-        public string ApproveAuthorityId { get; set; }
 
         /// <summary>
         /// Update time
@@ -151,13 +136,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             var registration = obj as ApplicationRegistration;
             return base.Equals(registration) &&
                 ApplicationType == registration.ApplicationType &&
-                ApplicationState == registration.ApplicationState &&
                 ApplicationUriLC == registration.ApplicationUriLC &&
                 DiscoveryProfileUri == registration.DiscoveryProfileUri &&
                 UpdateTime == registration.UpdateTime &&
                 UpdateAuthorityId == registration.UpdateAuthorityId &&
-                ApproveAuthorityId == registration.ApproveAuthorityId &&
-                ApproveTime == registration.ApproveTime &&
                 CreateAuthorityId == registration.CreateAuthorityId &&
                 CreateTime == registration.CreateTime &&
                 GatewayServerUri == registration.GatewayServerUri &&
@@ -184,8 +166,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <inheritdoc/>
         public override int GetHashCode() {
             var hashCode = base.GetHashCode();
-            hashCode = (hashCode * -1521134295) +
-                EqualityComparer<ApplicationState?>.Default.GetHashCode(ApplicationState);
             hashCode = (hashCode * -1521134295) +
                 EqualityComparer<ApplicationType?>.Default.GetHashCode(ApplicationType);
             hashCode = (hashCode * -1521134295) +

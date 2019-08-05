@@ -19,7 +19,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// </summary>
         /// <param name="endpoint"></param>
         public EndpointIdentifier(EndpointModel endpoint) {
-            Endpoint = endpoint ?? throw new ArgumentNullException(nameof(endpoint));
+            Endpoint = endpoint?.Clone() ??
+                throw new ArgumentNullException(nameof(endpoint));
+            _hash = CreateHash(Endpoint);
         }
 
         /// <summary>
@@ -55,20 +57,31 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
 
         /// <inheritdoc/>
         public override int GetHashCode() {
+            return _hash;
+        }
+
+        /// <summary>
+        /// Create unique hash
+        /// </summary>
+        /// <param name="endpoint"></param>
+        /// <returns></returns>
+        public static int CreateHash(EndpointModel endpoint) {
             var hashCode = -1971667340;
             hashCode = (hashCode * -1521134295) +
-                EqualityComparer<string>.Default.GetHashCode(Endpoint.SecurityPolicy);
+                EqualityComparer<string>.Default.GetHashCode(endpoint.SecurityPolicy);
             hashCode = (hashCode * -1521134295) +
-                EqualityComparer<string>.Default.GetHashCode(Endpoint.Url);
+                EqualityComparer<string>.Default.GetHashCode(endpoint.Url);
             hashCode = (hashCode * -1521134295) +
                 EqualityComparer<CredentialType?>.Default.GetHashCode(
-                    Endpoint.User?.Type ?? CredentialType.None);
+                   endpoint.User?.Type ?? CredentialType.None);
             hashCode = (hashCode * -1521134295) +
-               EqualityComparer<SecurityMode?>.Default.GetHashCode(
-                   Endpoint.SecurityMode ?? SecurityMode.Best);
+                EqualityComparer<SecurityMode?>.Default.GetHashCode(
+                    endpoint.SecurityMode ?? SecurityMode.Best);
             hashCode = (hashCode * -1521134295) +
-                JToken.EqualityComparer.GetHashCode(Endpoint.User?.Value);
+                JToken.EqualityComparer.GetHashCode(endpoint.User?.Value);
             return hashCode;
         }
+
+        private readonly int _hash;
     }
 }

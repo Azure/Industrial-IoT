@@ -18,12 +18,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Default {
         IApplicationRegistry {
 
         /// <inheritdoc/>
-        public Task ApproveApplicationAsync(string applicationId, bool force,
-            RegistryOperationContextModel context, CancellationToken ct) {
-            return Task.FromException(new ResourceNotFoundException());
-        }
-
-        /// <inheritdoc/>
         public Task DisableApplicationAsync(string applicationId,
             RegistryOperationContextModel context, CancellationToken ct) {
             return Task.FromException(new ResourceNotFoundException());
@@ -38,7 +32,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Default {
         /// <inheritdoc/>
         public Task<ApplicationRegistrationModel> GetApplicationAsync(
             string applicationId, bool filterInactiveEndpoints, CancellationToken ct) {
-            return Task.FromException<ApplicationRegistrationModel>(new ResourceNotFoundException());
+            return Task.FromException<ApplicationRegistrationModel>(
+                new ResourceNotFoundException());
         }
 
         /// <inheritdoc/>
@@ -74,13 +69,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Default {
         /// <inheritdoc/>
         public Task<ApplicationRegistrationResultModel> RegisterApplicationAsync(
             ApplicationRegistrationRequestModel request, CancellationToken ct) {
-            return Task.FromException<ApplicationRegistrationResultModel>(new NotSupportedException());
-        }
-
-        /// <inheritdoc/>
-        public Task RejectApplicationAsync(string applicationId, bool force,
-            RegistryOperationContextModel context, CancellationToken ct) {
-            return Task.FromException(new ResourceNotFoundException());
+            return Task.FromException<ApplicationRegistrationResultModel>(
+                new NotSupportedException());
         }
 
         /// <inheritdoc/>
