@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Diagnostics {
-    using System;
     using Microsoft.ApplicationInsights.Extensibility;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
@@ -20,7 +19,7 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
         public TelemetryConfiguration TelemetryConfiguration => GetTelemetryConfiguration();
 
         private TelemetryConfiguration GetTelemetryConfiguration() {
-            return new TelemetryConfiguration(GetStringOrDefault(InstrumentationKey, null));
+            return new TelemetryConfiguration(GetStringOrDefault(InstrumentationKey));
         }
 
         /// <summary>
