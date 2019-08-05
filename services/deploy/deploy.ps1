@@ -260,6 +260,11 @@ Function SelectSubscription() {
     }
     $script:subscriptionId = $subscriptionId
     Write-Host "Azure subscriptionId '$subscriptionId' selected."
+    $subscriptionDetails = Get-AzureRmSubscription -SubscriptionId $subscriptionId
+    if ($subscriptionDetails){
+        $script:tenantId = $subscriptionDetails.TenantId
+        Write-Host "Fetched tenantId '$script:tenantId' from subscription."
+    }
 }
 
 #*******************************************************************************************************
@@ -437,7 +442,7 @@ Function SelectAzureADTenantId() {
 Function ConnectToAzureADTenant() {
     if ($script:interactive) {
         # Interactive selecting tenant to connect to
-        if (!$script:tenantId) {
+        if (!$script:tenantId -or $script:type -ne "vm") {
             $script:tenantId = SelectAzureADTenantId
         }
     }
