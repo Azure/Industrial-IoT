@@ -428,7 +428,7 @@ namespace OpcPublisher
 
         public virtual IOpcSession CreateOpcSession(string endpointUrl, bool useSecurity, uint sessionTimeout, OpcAuthenticationMode opcAuthenticationMode, EncryptedNetworkCredential encryptedAuthCredential)
         {
-            return new OpcSession(endpointUrl, _nodePublishingConfiguration.Where(n => n.EndpointUrl == endpointUrl).First().UseSecurity, OpcSessionCreationTimeout, opcAuthenticationMode, encryptedAuthCredential);
+            return new OpcSession(endpointUrl, _nodePublishingConfiguration.First(n => n.EndpointUrl == endpointUrl).UseSecurity, OpcSessionCreationTimeout, opcAuthenticationMode, encryptedAuthCredential);
         }
 
         /// <summary>
@@ -446,7 +446,7 @@ namespace OpcPublisher
                 var uniqueEndpointUrls = _nodePublishingConfiguration.Select(n => n.EndpointUrl).Distinct();
                 foreach (var endpointUrl in uniqueEndpointUrls)
                 {
-                    var currentNodePublishingConfiguration = _nodePublishingConfiguration.Where(n => n.EndpointUrl == endpointUrl).First();
+                    var currentNodePublishingConfiguration = _nodePublishingConfiguration.First(n => n.EndpointUrl == endpointUrl);
 
                     EncryptedNetworkCredential encryptedAuthCredential = null;
 
