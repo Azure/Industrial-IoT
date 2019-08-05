@@ -1,9 +1,7 @@
-.git
 **/[b|B]in
 **/[o|O]bj
 **/packages/**
 **/.env
-**/.gitignore
 docker-compose.yml
 docker-compose.*.yml
 **/*.user

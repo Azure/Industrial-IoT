@@ -286,17 +286,17 @@ if ($env:OS -eq "windows_nt") {
 else {
     $manifestTool = "manifest-tool-linux-amd64"
 }
+$manifestToolPath = Join-Path $PSScriptRoot $manifestTool
 try {
     # Download and verify manifest tool
     $wc = New-Object System.Net.WebClient
     $url += $manifestTool
     Write-Host "Downloading $($manifestTool)..."
-    $wc.DownloadFile($url, $manifestTool)
-    # Invoke-WebRequest -Uri $url -OutFile $manifestTool | Out-Host
+    $wc.DownloadFile($url, $manifestToolPath)
     Write-Host "Downloading $($manifestTool).asc..."
     $url = $url + ".asc"
-    $wc.DownloadFile($url, "$($manifestTool).asc")
-    # Invoke-WebRequest -Uri $url -OutFile ($manifestTool + ".asc") | Out-Host
+    $wc.DownloadFile($url, "$($manifestToolPath).asc")
+
     # TODO: validate 0F386284C03A1162
 
     Write-Host "Building and pushing manifest file:"
@@ -311,9 +311,9 @@ try {
         "from-spec", $manifestFile.FullName
     )
 
-    & (Join-Path $PSScriptRoot $manifestTool) $argumentList | Out-Host
+    (& $manifestToolPath $argumentList) | Out-Host
     if ($LastExitCode -ne 0) {
-        throw "$($manifestTool) failed with $($LastExitCode)."
+        throw "$($manifestToolPath) failed with $($LastExitCode)."
     }
 
     Write-Host ""
@@ -330,7 +330,7 @@ catch {
 }
 finally {
     Remove-Item -Force -Path $manifestFile.FullName
-    Remove-Item -Force -Path $manifestTool
-    Remove-Item -Force -Path ($manifestTool + ".asc")
+    Remove-Item -Force -Path $manifestToolPath
+    Remove-Item -Force -Path "$($manifestToolPath).asc"
 }
 
