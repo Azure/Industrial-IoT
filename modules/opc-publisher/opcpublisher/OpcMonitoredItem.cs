@@ -616,7 +616,7 @@ namespace OpcPublisher
                     if (DateTime.TryParse(HeartbeatMessage.SourceTimestamp, out sourceTimestamp))
                     {
                         sourceTimestamp = sourceTimestamp.AddSeconds(HeartbeatInterval);
-                        HeartbeatMessage.SourceTimestamp = sourceTimestamp.ToUniversalTime().ToString("o", CultureInfo.InvariantCulture);
+                        HeartbeatMessage.SourceTimestamp = sourceTimestamp.ToString("o", CultureInfo.InvariantCulture);
                     }
 
                     // enqueue the message

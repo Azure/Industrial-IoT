@@ -95,29 +95,34 @@
                 if (string.IsNullOrEmpty(DeviceConnectionString))
                 {
                     Logger.Information($"Attempting to register ourselves with IoT Hub using owner connection string.");
-                    RegistryManager manager = RegistryManager.CreateFromConnectionString(IotHubOwnerConnectionString);
+                    using (RegistryManager manager =
+                        RegistryManager.CreateFromConnectionString(IotHubOwnerConnectionString))
+                    {
 
-                    // remove any existing device
-                    Device existingDevice = manager.GetDeviceAsync(ApplicationName).Result;
-                    if (existingDevice != null)
-                    {
-                        Logger.Information($"Device '{ApplicationName}' found in IoTHub registry. Remove it.");
-                        manager.RemoveDeviceAsync(ApplicationName).Wait();
-                    }
+                        // remove any existing device
+                        Device existingDevice = manager.GetDeviceAsync(ApplicationName).Result;
+                        if (existingDevice != null)
+                        {
+                            Logger.Information($"Device '{ApplicationName}' found in IoTHub registry. Remove it.");
+                            manager.RemoveDeviceAsync(ApplicationName).Wait();
+                        }
 
-                    Logger.Information($"Adding device '{ApplicationName}' to IoTHub registry.");
-                    Device newDevice = manager.AddDeviceAsync(new Device(ApplicationName)).Result;
-                    if (newDevice != null)
-                    {
-                        Logger.Information($"Generate device connection string.");
-                        string hostname = IotHubOwnerConnectionString.Substring(0, IotHubOwnerConnectionString.IndexOf(";", StringComparison.InvariantCulture));
-                        DeviceConnectionString = hostname + ";DeviceId=" + ApplicationName + ";SharedAccessKey=" + newDevice.Authentication.SymmetricKey.PrimaryKey;
-                    }
-                    else
-                    {
-                        string errorMessage = $"Can not register ourselves with IoT Hub. Exiting...";
-                        Logger.Fatal(errorMessage);
-                        throw new Exception(errorMessage);
+                        Logger.Information($"Adding device '{ApplicationName}' to IoTHub registry.");
+                        Device newDevice = manager.AddDeviceAsync(new Device(ApplicationName)).Result;
+                        if (newDevice != null)
+                        {
+                            Logger.Information($"Generate device connection string.");
+                            string hostname = IotHubOwnerConnectionString.Substring(0,
+                                IotHubOwnerConnectionString.IndexOf(";", StringComparison.InvariantCulture));
+                            DeviceConnectionString = hostname + ";DeviceId=" + ApplicationName + ";SharedAccessKey=" +
+                                                     newDevice.Authentication.SymmetricKey.PrimaryKey;
+                        }
+                        else
+                        {
+                            string errorMessage = $"Can not register ourselves with IoT Hub. Exiting...";
+                            Logger.Fatal(errorMessage);
+                            throw new Exception(errorMessage);
+                        }
                     }
                 }
                 else
