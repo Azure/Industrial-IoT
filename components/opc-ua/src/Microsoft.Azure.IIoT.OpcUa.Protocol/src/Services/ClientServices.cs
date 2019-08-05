@@ -147,8 +147,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 // Add a persistent session
                 if (!_clients.TryGetValue(id, out var _)) {
                     _clients.Add(id, new ClientSession(
-                        _opcApplicationConfig, id.Endpoint, _logger, NotifyStateChangeAsync,
-                        true, _maxOpTimeout));
+                        _opcApplicationConfig, id.Endpoint.Clone(), _logger,
+                        NotifyStateChangeAsync, true, _maxOpTimeout));
+                    _logger.Debug("Registrered session for {id} ({@endpoint}).",
+                        id, endpoint);
                 }
             }
             finally {
@@ -162,7 +164,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 throw new ArgumentNullException(nameof(endpoint));
             }
             var id = new EndpointIdentifier(endpoint);
-
             _callbacks.TryRemove(id, out _);
 
             await _lock.WaitAsync();
@@ -170,7 +171,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 // Remove any session
                 if (_clients.TryGetValue(id, out var client)) {
                     await Try.Async(client.CloseAsync);
+                    Try.Op(client.Dispose);
+
                     _clients.Remove(id);
+                    _logger.Debug("Endpoint {id} unregistered and removed.", id);
+                }
+                else {
+                    _logger.Debug(
+                        "Failed to unregister {id} - endpoint {@endpoint} not found.",
+                        id, endpoint);
                 }
             }
             finally {
@@ -346,8 +355,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             try {
                 if (!_clients.TryGetValue(id, out var session)) {
                     session = new ClientSession(
-                        _opcApplicationConfig, id.Endpoint, _logger, NotifyStateChangeAsync,
-                        false, _maxOpTimeout);
+                        _opcApplicationConfig, id.Endpoint.Clone(), _logger,
+                        NotifyStateChangeAsync, false, _maxOpTimeout);
                     _clients.Add(id, session);
                     _logger.Debug("Add new session to session cache.");
                 }
