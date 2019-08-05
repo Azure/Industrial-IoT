@@ -1,6 +1,5 @@
-FROM microsoft/dotnet:2.2-runtime AS base
-FROM microsoft/dotnet:2.2-sdk AS build
-ENV PROJECT=Microsoft.Azure.IIoT.Services.OpcUa.Jobs
+FROM mcr.microsoft.com/dotnet/core/runtime:2.2 AS base
+FROM mcr.microsoft.com/dotnet/core/sdk:2.2 AS build
 ENV PROJECT_ROOT=services
 
 ARG BUILD_SOURCEVERSION
@@ -11,18 +10,18 @@ COPY *.props /
 WORKDIR /app/project
 COPY NuGet.Config NuGet.Config
 COPY ${PROJECT_ROOT}/*.props /
-COPY ${PROJECT_ROOT}/src/${PROJECT}/src/${PROJECT}.csproj src/${PROJECT}/src/${PROJECT}.csproj
+COPY ${PROJECT_ROOT}/src/Microsoft.Azure.IIoT.Services.OpcUa.Jobs/src/Microsoft.Azure.IIoT.Services.OpcUa.Jobs.csproj src/Microsoft.Azure.IIoT.Services.OpcUa.Jobs/src/Microsoft.Azure.IIoT.Services.OpcUa.Jobs.csproj
 ENV BUILD_SOURCEVERSION=${BUILD_SOURCEVERSION}
 ENV RELEASE_BUILD=${RELEASE_BUILD}
-RUN dotnet restore --configfile NuGet.Config -nowarn:msb3202,nu1503 src/${PROJECT}/src/${PROJECT}.csproj
+RUN dotnet restore --configfile NuGet.Config -nowarn:msb3202,nu1503 src/Microsoft.Azure.IIoT.Services.OpcUa.Jobs/src/Microsoft.Azure.IIoT.Services.OpcUa.Jobs.csproj
 
 FROM build AS publish
 COPY ${PROJECT_ROOT}/src ./src
-WORKDIR /app/project/src/${PROJECT}/src
-RUN dotnet publish "${PROJECT}.csproj" -c Release -o /out
+WORKDIR /app/project/src/Microsoft.Azure.IIoT.Services.OpcUa.Jobs/src
+RUN dotnet publish "Microsoft.Azure.IIoT.Services.OpcUa.Jobs.csproj" -c Release -o /out
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /out .
-ENTRYPOINT ["dotnet", "${PROJECT}.dll"]
+ENTRYPOINT ["dotnet", "Microsoft.Azure.IIoT.Services.OpcUa.Jobs.dll"]
 

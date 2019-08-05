@@ -1,6 +1,5 @@
-FROM microsoft/dotnet:2.2-runtime-nanoserver-1809 AS base
-FROM microsoft/dotnet:2.2-sdk-nanoserver-1809 AS build
-ENV PROJECT=Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
+FROM mcr.microsoft.com/dotnet/core/runtime:2.2-nanoserver-1809 AS base
+FROM mcr.microsoft.com/dotnet/core/sdk:2.2 AS build
 ENV PROJECT_ROOT=modules/opc-publisher
 
 ARG BUILD_SOURCEVERSION
@@ -11,15 +10,15 @@ COPY *.props /
 WORKDIR /app/project
 COPY NuGet.Config NuGet.Config
 COPY ${PROJECT_ROOT}/*.props /
-COPY ${PROJECT_ROOT}/opcpublisher/${PROJECT}.csproj opcpublisher/${PROJECT}.csproj
+COPY ${PROJECT_ROOT}/opcpublisher/Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.csproj opcpublisher/Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.csproj
 ENV BUILD_SOURCEVERSION=${BUILD_SOURCEVERSION}
 ENV RELEASE_BUILD=${RELEASE_BUILD}
-RUN dotnet restore --configfile NuGet.Config -nowarn:msb3202,nu1503 opcpublisher/${PROJECT}.csproj
+RUN dotnet restore --configfile NuGet.Config -nowarn:msb3202,nu1503 opcpublisher/Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.csproj
 
 FROM build AS publish
 COPY ${PROJECT_ROOT}/opcpublisher ./opcpublisher
 WORKDIR /app/project/opcpublisher
-RUN dotnet publish "${PROJECT}.csproj" -c Release -o /out
+RUN dotnet publish "Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.csproj" -c Release -o /out
 
 FROM base AS final
 WORKDIR /app

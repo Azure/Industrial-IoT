@@ -1,6 +1,5 @@
-FROM microsoft/dotnet:2.2-runtime-nanoserver-1809 AS base
-FROM microsoft/dotnet:2.2-sdk-nanoserver-1809 AS build
-ENV PROJECT=Microsoft.Azure.IIoT.OpcUa.Api
+FROM mcr.microsoft.com/dotnet/core/runtime:2.2 AS base
+FROM mcr.microsoft.com/dotnet/core/sdk:2.2 AS build
 ENV PROJECT_ROOT=api
 ENV _HOST=host.docker.internal
 
@@ -12,18 +11,18 @@ COPY *.props /
 WORKDIR /app/project
 COPY NuGet.Config NuGet.Config
 COPY ${PROJECT_ROOT}/*.props /
-COPY ${PROJECT_ROOT}/src/${PROJECT}/cli/${PROJECT}.Cli.csproj src/${PROJECT}/cli/${PROJECT}.Cli.csproj
+COPY ${PROJECT_ROOT}/src/Microsoft.Azure.IIoT.OpcUa.Api/cli/Microsoft.Azure.IIoT.OpcUa.Api.Cli.csproj src/Microsoft.Azure.IIoT.OpcUa.Api/cli/Microsoft.Azure.IIoT.OpcUa.Api.Cli.csproj
 ENV BUILD_SOURCEVERSION=${BUILD_SOURCEVERSION}
 ENV RELEASE_BUILD=${RELEASE_BUILD}
-RUN dotnet restore --configfile NuGet.Config -nowarn:msb3202,nu1503 src/${PROJECT}/cli/${PROJECT}.Cli.csproj
+RUN dotnet restore --configfile NuGet.Config -nowarn:msb3202,nu1503 src/Microsoft.Azure.IIoT.OpcUa.Api/cli/Microsoft.Azure.IIoT.OpcUa.Api.Cli.csproj
 
 FROM build AS publish
 COPY ${PROJECT_ROOT}/src ./src
-WORKDIR /app/project/src/${PROJECT}/cli
-RUN dotnet publish "${PROJECT}.Cli.csproj" -c Release -o /out
+WORKDIR /app/project/src/Microsoft.Azure.IIoT.OpcUa.Api/cli
+RUN dotnet publish "Microsoft.Azure.IIoT.OpcUa.Api.Cli.csproj" -c Release -o /out
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /out .
-ENTRYPOINT ["dotnet", "${PROJECT}.Cli.dll"]
+ENTRYPOINT ["dotnet", "Microsoft.Azure.IIoT.OpcUa.Api.Cli.dll"]
 

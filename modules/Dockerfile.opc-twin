@@ -1,6 +1,5 @@
-FROM microsoft/dotnet:2.2-runtime AS base
-FROM microsoft/dotnet:2.2-sdk AS build
-ENV PROJECT=Microsoft.Azure.IIoT.Modules.OpcUa.Twin
+FROM mcr.microsoft.com/dotnet/core/runtime:2.2 AS base
+FROM mcr.microsoft.com/dotnet/core/sdk:2.2 AS build
 ENV PROJECT_ROOT=modules/opc-twin
 
 ARG BUILD_SOURCEVERSION
@@ -28,5 +27,5 @@ RUN apt-get update && apt-get install -y --no-install-recommends openssh-server 
     && echo "export VISIBLE=now" >> /etc/profile
 ENV NOTVISIBLE "in users profile"
 
-ENTRYPOINT ["dotnet", "${PROJECT}.dll"]
+ENTRYPOINT ["dotnet", "Microsoft.Azure.IIoT.Modules.OpcUa.Twin.dll"]
 
