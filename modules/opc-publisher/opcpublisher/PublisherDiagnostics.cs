@@ -371,7 +371,7 @@ namespace OpcPublisher
             {
                 exceptionLog = new List<string>();
                 exceptionLog.Add(logEvent.Exception.Message);
-                exceptionLog.Add(logEvent.Exception.StackTrace);
+                exceptionLog.Add(logEvent.Exception.StackTrace.ToString(CultureInfo.InvariantCulture));
             }
             return exceptionLog;
         }

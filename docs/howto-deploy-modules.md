@@ -48,20 +48,20 @@ All modules are deployed using a deployment manifest.  An example manifest to de
             "version": "1.0",
             "type": "docker",
             "status": "running",
-            "restartPolicy": "never",
+            "restartPolicy": "always",
             "settings": {
               "image": "mcr.microsoft.com/iotedge/opc-twin:latest",
-              "createOptions": "{\"NetworkingConfig\":{\"EndpointsConfig\":{\"host\":{}}},\"HostConfig\":{\"NetworkMode\": \"host\",\"CapAdd\":[\"NET_ADMIN\"]}}"
+              "createOptions": "{\"Hostname\":\"opctwin\",\"Cmd\":[\"PkiRootPath=\\\\mount\\\\pki\",\"AutoAccept=true\"],\"NetworkingConfig\":{\"EndpointsConfig\":{\"host\":{}}},\"HostConfig\":{\"NetworkMode\":\"host\",\"CapAdd\":[\"NET_ADMIN\"],\"Mounts\":[{\"Type\":\"bind\",\"Source\":\"C:\\\\IoTEdgeMapping\",\"Target\":\"C:\\\\mount\"}]}}"              
             }
           },
           "opcpublisher": {
-            "version": "2.0",
+            "version": "1.0",
             "type": "docker",
             "status": "running",
-            "restartPolicy": "never",
+            "restartPolicy": "always",
             "settings": {
               "image": "mcr.microsoft.com/iotedge/opc-publisher:latest",
-              "createOptions": "{\"Hostname\":\"publisher\",\"Cmd\":[ \"publisher\",\"--pf=./pn.json\",\"--di=60\",\"--to\", \"--aa\",\"--si=0\",\"--ms=0\"],\"ExposedPorts\":{ \"62222/tcp\":{}},\"HostConfig\":{\"PortBindings\":{\"62222/tcp\":[{\"HostPort\":\"62222\" }]}}}"
+              "createOptions": "{\"Hostname\":\"opcpublisher\",\"Cmd\":[\"publisher\",\"--ap=\\\\publisher\",\"--pf=\\\\publisher\\\\publishednodes.json\",\"--di=60\",\"--to\",\"--aa\",\"--si=0\",\"--ms=0\",\"--appcertstoretype=X509Store\"],\"ExposedPorts\":{\"62222/tcp\":{}},\"NetworkingConfig\":{\"EndpointsConfig\":{\"host\":{}}},\"HostConfig\":{\"NetworkMode\":\"host\",\"CapAdd\":[\"NET_ADMIN\"],\"Mounts\":[{\"Type\":\"bind\",\"Source\":\"C:\\\\IoTEdgeMapping\",\"Target\":\"C:\\\\publisher\"}],\"PortBindings\":{\"62222/tcp\":[{\"HostPort\":\"62222\"}]}}}"              
             }
           }
         }
@@ -71,8 +71,8 @@ All modules are deployed using a deployment manifest.  An example manifest to de
       "properties.desired": {
         "schemaVersion": "1.0",
         "routes": {
-          "opctwinToIoTHub": "FROM /messages/modules/opctwin/outputs/* INTO $upstream",
-          "opcpublisherToIoTHub": "FROM /messages/modules/opcpublisher/outputs/* INTO $upstream"
+          "opctwinToIoTHub": "FROM /messages/modules/opctwin/* INTO $upstream",
+          "opcpublisherToIoTHub": "FROM /messages/modules/opcpublisher/* INTO $upstream"
         },
         "storeAndForwardConfiguration": {
           "timeToLiveSecs": 7200
@@ -89,9 +89,56 @@ The easiest way to deploy the modules to an Azure IoT Edge gateway device is thr
 
 ### Prerequisites
 
-1. Deploy the OPC Twin [dependencies](../services/dependencies.md) and obtained the resulting `.env` file. Note the deployed `hub name` of the `PCS_IOTHUBREACT_HUB_NAME` variable in the `.env` file.
+1. Deploy the OPC Twin [dependencies](services/dependencies.md) and obtained the resulting `.env` file. Note the deployed `hub name` of the `PCS_IOTHUBREACT_HUB_NAME` variable in the `.env` file.
 
-2. Register and start a [Linux](https://docs.microsoft.com/azure/iot-edge/how-to-install-iot-edge-linux) or [Windows](https://docs.microsoft.com/azure/iot-edge/how-to-install-iot-edge-windows) IoT Edge gateway and note its `device id`.
+2. For a windows Windows IoT Edge runtime deoplyment:
+	* Hyper-V must be active  
+	* Create a new virtual switch named host having attached to an external network interface (e.g. "Ethernet 2").
+	```bash
+	New-VMSwitch -name host -NetAdapterName "<Adapter Name>" -AllowManagementOS $true
+	```
+
+3. Register and start a [Linux](https://docs.microsoft.com/azure/iot-edge/how-to-install-iot-edge-linux) or [Windows](https://docs.microsoft.com/azure/iot-edge/how-to-install-iot-edge-windows) IoT Edge gateway and note its `device id`.
+
+4. Validate the presence of `host` network in the docker instance 
+	
+	Linux containers:
+	```bash
+	docker network ls
+		NETWORK ID          NAME                DRIVER              SCOPE
+		beceb3bd61c4        azure-iot-edge      bridge              local
+		97eccb2b9f82        bridge              bridge              local
+		758d949c5343        host                host                local
+		72fb3597ef74        none                null                local
+	```
+	
+	Windows containers:
+	```bash
+	docker -H npipe:////.//pipe//iotedge_moby_engine network ls
+		NETWORK ID          NAME                DRIVER              SCOPE
+		8e0ea888dbd4        host                transparent         local
+		f3390c998f90        nat                 nat                 local
+		6750449db22d        none                null                local
+	```
+	
+	When running the industrial iot edge modules in host (transparent) network, the containers will require IP addresses assignment. There are 2 possibilitues : 
+	* dynamic IP address from a local DHCP server accessible from the host's network interface associated to the container's 'host' network.  
+	* static IP address assigned on the container create options statement
+	
+		Windows Static IP Example:		
+		In order to allow static IP address assignment on a container, the docker network requires to be created having the the subnet speciffied identical to the host's interface
+				
+		```bash 
+		docker -H npipe:////.//pipe//iotedge_moby_engine network create -d transparent -o com.docker.network.windowsshim.interface="Ethernet 2" -o com.docker.network.windowsshim.networkname=host --subnet=192.168.30.0/24 --gateway=192.168.30.1 host
+		```
+		Furthermore, the container's create option will look like:
+		
+		```json 
+		"createOptions": "{\"Hostname\":\"opctwin\",\"Cmd\":[\"PkiRootPath=\\\\mount\\\\pki\",\"AutoAccept=true\"],\"NetworkingConfig\":{\"EndpointsConfig\":{\"host\":{\"IPAMConfig\":{\"IPv4Address\":\"192.168.30.100\"}}}},\"HostConfig\":{\"NetworkMode\":\"host\",\"CapAdd\":[\"NET_ADMIN\"],\"Mounts\":[{\"Type\":\"bind\",\"Source\":\"C:\\\\IoTEdgeMapping\",\"Target\":\"C:\\\\mount\"}]}}"
+		```
+		
+		
+
 
 ### Deploy to Edge device
 
@@ -140,8 +187,8 @@ The easiest way to deploy the modules to an Azure IoT Edge gateway device is thr
     ```json
     {
       "routes": {
-        "opctwinToIoTHub": "FROM /messages/modules/opctwin/outputs/* INTO $upstream",
-        "opcpublisherToIoTHub": "FROM /messages/modules/opcpublisher/outputs/* INTO $upstream"
+        "opctwinToIoTHub": "FROM /messages/modules/opctwin/* INTO $upstream",
+        "opcpublisherToIoTHub": "FROM /messages/modules/opcpublisher/* INTO $upstream"
       }
     }
     ```
@@ -186,75 +233,6 @@ The easiest way to deploy the modules to an Azure IoT Edge gateway device is thr
    ```
 
    The device id parameter is case-sensitive. ![az iot hub module-identity list output](https://docs.microsoft.com/azure/iot-edge/media/how-to-deploy-cli/list-modules.png)
-
-## Run and debug locally
-
-For trouble shooting and debugging it is useful to run the Edge modules locally using the [IoT Edge Development Simulator](https://github.com/Azure/iotedgehubdev).  It provides a local development experience with a simulator for creating, developing, testing, running, and debugging Azure IoT Edge modules and solutions using the same bits/code that are used in production.
-
-### Prerequisites
-
-1. Deploy the OPC Twin [dependencies](../services/dependencies.md).
-
-2. Install [Docker CE (18.02.0+)](https://www.docker.com/community-edition) on [Windows](https://docs.docker.com/docker-for-windows/install/), [macOS](https://docs.docker.com/docker-for-mac/install/) or [Linux](https://docs.docker.com/install/linux/docker-ce/ubuntu/#install-docker-ce).
-
-3. Install [Docker Compose (1.20.0+)](https://docs.docker.com/compose/install/#install-compose) (Only required for **Linux**. Compose is included in Windows/macOS Docker CE installation)
-
-4. Install [Python (2.7/3.5+) and Pip](https://www.python.org/)
-
-5. Install iotedgehubdev by running below command in your terminal
-
-   ```bash
-   pip install --upgrade iotedgehubdev
-   ```
-
-   **Note**: Please install `iotedgehubdev` to **root** on Linux/macOS (*Don't use '--user' option in the 'pip install' command*).
-
-**Please make sure there is no Azure IoT Edge runtime running on the same machine with iotedgehubdev since they require the same ports.**
-
-### Quick start
-
-1. Follow the instructions to [create a Edge Device in the Azure Portal](https://docs.microsoft.com/azure/iot-edge/how-to-register-device-portal).  Copy the edge device connection string.
-
-2. Setup the simulator using the edge connection string.
-
-    ```bash
-    iotedgehubdev setup -c <edge-device-connection-string>
-    ```
-
-3. Copy above manifest into a `deployment.json` file in the same folder.  Start the deployment in the simulator using
-
-    ```bash
-    iotedgehubdev start -d deployment.json
-    ```
-
-    > Note: [Issue #183](https://github.com/Azure/iotedgehubdev/issues/183) currently prevents you from specifying `"NetworkingMode""` as `"host"`. As a workaround, specify empty `"createOptions": {}` for the twin module until the issue has been addressed.
-
-4. Stop the simulator using
-
-   ```bash
-   iotedgehubdev stop
-   ```
-
-### Advanced options
-
-1. Start the module with specific input(s)
-
-    ```bash
-    iotedgehubdev start -i <module-inputs>
-    ```
-
-    For example: `iotedgehubdev start -i "input1,input2"`
-
-2. Output the module credential environment variables
-
-    ```bash
-    iotedgehubdev modulecred
-    ```
-
-3. Send message to the module through RESTful API.
-
-    For example:
-    `curl --header "Content-Type: application/json" --request POST --data '{"inputName": "input1","data": "hello world"}' http://localhost:53000/api/v1/messages`
 
 ## Next steps
 
