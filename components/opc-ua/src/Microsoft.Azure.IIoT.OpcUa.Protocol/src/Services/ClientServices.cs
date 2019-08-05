@@ -149,8 +149,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     _clients.Add(id, new ClientSession(
                         _opcApplicationConfig, id.Endpoint.Clone(), _logger,
                         NotifyStateChangeAsync, true, _maxOpTimeout));
-                    _logger.Debug("Registrered session for {id} ({@endpoint}).",
-                        id, endpoint);
+                    _logger.Debug("Open session for endpoint {id} ({endpoint}).",
+                        id, endpoint.Url);
                 }
             }
             finally {
@@ -174,12 +174,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     Try.Op(client.Dispose);
 
                     _clients.Remove(id);
-                    _logger.Debug("Endpoint {id} unregistered and removed.", id);
+                    _logger.Debug("Endpoint {id} ({endpoint}) closed.",
+                        id, endpoint.Url);
                 }
                 else {
                     _logger.Debug(
-                        "Failed to unregister {id} - endpoint {@endpoint} not found.",
-                        id, endpoint);
+                        "Session for endpoint {id} ({endpoint}) not found.",
+                        endpoint.Url, id);
                 }
             }
             finally {
