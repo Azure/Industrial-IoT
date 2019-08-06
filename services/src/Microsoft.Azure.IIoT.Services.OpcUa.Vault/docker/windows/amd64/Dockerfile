@@ -8,7 +8,9 @@ ARG RELEASE_BUILD
 ENV PROJECT_BUILD=1
 WORKDIR /app
 COPY *.props /
-WORKDIR /app/project
+COPY .git .
+
+WORKDIR /app/${PROJECT_ROOT}
 COPY NuGet.Config NuGet.Config
 COPY ${PROJECT_ROOT}/*.props /
 COPY ${PROJECT_ROOT}/src/Microsoft.Azure.IIoT.Services.OpcUa.Vault/src/Microsoft.Azure.IIoT.Services.OpcUa.Vault.csproj src/Microsoft.Azure.IIoT.Services.OpcUa.Vault/src/Microsoft.Azure.IIoT.Services.OpcUa.Vault.csproj
@@ -16,13 +18,12 @@ ENV BUILD_SOURCEVERSION=${BUILD_SOURCEVERSION}
 ENV RELEASE_BUILD=${RELEASE_BUILD}
 RUN dotnet restore --configfile NuGet.Config -nowarn:msb3202,nu1503 src/Microsoft.Azure.IIoT.Services.OpcUa.Vault/src/Microsoft.Azure.IIoT.Services.OpcUa.Vault.csproj
 
-FROM build AS publish
 COPY ${PROJECT_ROOT}/src ./src
-WORKDIR /app/project/src/Microsoft.Azure.IIoT.Services.OpcUa.Vault/src
+WORKDIR /app/${PROJECT_ROOT}/src/Microsoft.Azure.IIoT.Services.OpcUa.Vault/src
 RUN dotnet publish "Microsoft.Azure.IIoT.Services.OpcUa.Vault.csproj" -c Release -o /out
 
 FROM base AS final
 WORKDIR /app
-COPY --from=publish /out .
+COPY --from=build /out .
 ENTRYPOINT ["dotnet", "Microsoft.Azure.IIoT.Services.OpcUa.Vault.dll"]
 

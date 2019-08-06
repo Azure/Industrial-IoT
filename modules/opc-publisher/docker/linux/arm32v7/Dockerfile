@@ -7,7 +7,9 @@ ARG RELEASE_BUILD
 ENV PROJECT_BUILD=1
 WORKDIR /app
 COPY *.props /
-WORKDIR /app/project
+COPY .git .
+
+WORKDIR /app/${PROJECT_ROOT}
 COPY NuGet.Config NuGet.Config
 COPY ${PROJECT_ROOT}/*.props /
 COPY ${PROJECT_ROOT}/opcpublisher/Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.csproj opcpublisher/Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.csproj
@@ -15,13 +17,12 @@ ENV BUILD_SOURCEVERSION=${BUILD_SOURCEVERSION}
 ENV RELEASE_BUILD=${RELEASE_BUILD}
 RUN dotnet restore --configfile NuGet.Config -nowarn:msb3202,nu1503 opcpublisher/Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.csproj
 
-FROM build AS publish
 COPY ${PROJECT_ROOT}/opcpublisher ./opcpublisher
-WORKDIR /app/project/opcpublisher
+WORKDIR /app/${PROJECT_ROOT}/opcpublisher
 RUN dotnet publish "Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.csproj" -c Release -o /out -r linux-arm
 
 FROM base AS final
 WORKDIR /app
-COPY --from=publish /out .
+COPY --from=build /out .
 WORKDIR /appdata
 ENTRYPOINT ["./app/opcpublisher"]
