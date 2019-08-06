@@ -66,7 +66,7 @@ jobs:
       arguments: '--configuration Release'
 
 #
-# Run Sdl tools
+# Run compliance tooling
 #
 - job: sdl
   displayName: SDL Tasks
@@ -126,7 +126,6 @@ jobs:
     inputs:
       targetType: F
     continueOnError: true
-    timeoutInMinutes: 15
   - task: RoslynAnalyzers@2
     displayName: 'Run Roslyn Analyzers'
     continueOnError: true
@@ -155,13 +154,7 @@ jobs:
       tsaEnvironment: 'PROD'
       serviceTreeID: '59eec07a-6f20-42b9-b41b-d20e0a6322da'
       codebase: NewOrUpdate
-      codeBaseName: 'Industrial_IoT_master'
-      notificationAlias: 'azureiiot@microsoft.com'
-      codeBaseAdmins: 'redmond\mschier;redmond\erichb'
-      instanceUrlForTsaV2: MSAZURE
-      projectNameMSAZURE: One
-      areaPath: 'One\IoT\Industrial\Components'
-      iterationPath: 'One\IoT\Backlog'
+      codeBaseName: 'Industrial_IoT_$(MY_BRANCH)'
       uploadAPIScan: true
       uploadBinSkim: true
       uploadCredScan: true
@@ -329,23 +322,24 @@ jobs:
   - task: ComponentGovernanceComponentDetection@0
     displayName: 'Component Detection'
   - powershell: |
-     [xml] $props=Get-Content -Path "version.props"
-     $Version="$($props.Project.PropertyGroup.VersionPrefix)".Trim()
-     Write-Output ("##vso[task.setvariable variable=DropVersion;]$Version")
+      [xml] $props=Get-Content -Path "version.props"
+      $Version="$($props.Project.PropertyGroup.VersionPrefix)".Trim()
+      Write-Output ("##vso[task.setvariable variable=DropVersion;]$Version")
+
     displayName: 'Set Version'
   - task: PublishBuildArtifacts@1
     displayName: 'Publish Artifact'
     inputs:
       ArtifactName: 'drop_$(DropVersion)'
-#  - task: NuGetCommand@2
-#    displayName: 'NuGet Release Push'
-#    inputs:
-#      command: push
-#      packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.snupkg'
-#      nuGetFeedType: external
-#      publishFeedCredentials: 'azureiiot-nuget'
-#      verbosityPush: Normal
-#    continueOnError: true
+  - task: NuGetCommand@2
+    displayName: 'NuGet Release Push'
+    inputs:
+      command: push
+      packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.snupkg'
+      nuGetFeedType: external
+      publishFeedCredentials: 'azureiiot-nuget'
+      verbosityPush: Normal
+    continueOnError: true
   - task: PublishSymbols@2
     displayName: 'Publish symbols path'
     inputs:
