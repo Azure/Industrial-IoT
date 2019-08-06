@@ -77,20 +77,15 @@ jobs:
     - npm
   steps:
   - task: DotNetCoreCLI@2
+    displayName: Restore
+    inputs:
+      command: restore
+      projects: 'Industrial-IoT.sln'
+  - task: MSBuild@1
     displayName: Build
     inputs:
-      projects: 'Industrial-IoT.sln'
-      arguments: '--configuration Release'
-#  - task: DotNetCoreCLI@2
-#    displayName: Restore
-#    inputs:
-#      command: restore
-#      projects: 'Industrial-IoT.sln'
-#  - task: MSBuild@1
-#    displayName: Build
-#    inputs:
-#      solution: 'Industrial-IoT.sln'
-#      configuration: Release
+      solution: 'Industrial-IoT.sln'
+      configuration: Release
   - task: securedevelopmentteam.vss-secure-development-tools.build-task-credscan.CredScan@2
     displayName: 'Credential Scanner'
     inputs:
@@ -160,7 +155,7 @@ jobs:
       tsaEnvironment: 'PROD'
       serviceTreeID: '59eec07a-6f20-42b9-b41b-d20e0a6322da'
       codebase: NewOrUpdate
-      codeBaseName: 'Industrial_IoT_$(MY_BRANCH)'
+      codeBaseName: 'Industrial_IoT_master'
       notificationAlias: 'azureiiot@microsoft.com'
       codeBaseAdmins: 'redmond\mschier;redmond\erichb'
       instanceUrlForTsaV2: MSAZURE
