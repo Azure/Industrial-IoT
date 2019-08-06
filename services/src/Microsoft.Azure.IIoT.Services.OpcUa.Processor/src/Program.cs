@@ -23,6 +23,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Processor {
     using System.IO;
     using System.Runtime.Loader;
     using System.Threading.Tasks;
+    using Microsoft.Azure.IIoT.Diagnostics;
 
     /// <summary>
     /// Model import processor - processes uploaded models and inserts
@@ -102,8 +103,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Processor {
                 .AsImplementedInterfaces().SingleInstance();
 
             // register logger
-            builder.RegisterLogger(LogEx.ApplicationInsights(configuration));
-
+            builder.RegisterLogger(LogEx.ApplicationInsights(configuration, config));
+            // Register metrics logger
+            builder.RegisterType<MetricLogger>()
+                .AsImplementedInterfaces().SingleInstance();
             // Now Monitor model upload notification using ...
             if (!config.UseFileNotificationHost) {
 
