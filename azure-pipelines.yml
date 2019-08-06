@@ -77,15 +77,20 @@ jobs:
     - npm
   steps:
   - task: DotNetCoreCLI@2
-    displayName: Restore
-    inputs:
-      command: restore
-      projects: 'Industrial-IoT.sln'
-  - task: MSBuild@1
     displayName: Build
     inputs:
-      solution: 'Industrial-IoT.sln'
-      configuration: Release
+      projects: 'Industrial-IoT.sln'
+      arguments: '--configuration Release'
+#  - task: DotNetCoreCLI@2
+#    displayName: Restore
+#    inputs:
+#      command: restore
+#      projects: 'Industrial-IoT.sln'
+#  - task: MSBuild@1
+#    displayName: Build
+#    inputs:
+#      solution: 'Industrial-IoT.sln'
+#      configuration: Release
   - task: securedevelopmentteam.vss-secure-development-tools.build-task-credscan.CredScan@2
     displayName: 'Credential Scanner'
     inputs:
