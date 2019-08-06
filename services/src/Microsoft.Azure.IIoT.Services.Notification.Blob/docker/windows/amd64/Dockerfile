@@ -7,7 +7,7 @@ ARG RELEASE_BUILD
 ENV PROJECT_BUILD=1
 WORKDIR /app
 COPY *.props /
-COPY .git .
+ADD .git .git
 
 WORKDIR /app/${PROJECT_ROOT}
 COPY NuGet.Config NuGet.Config
