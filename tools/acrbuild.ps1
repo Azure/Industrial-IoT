@@ -128,6 +128,7 @@ if ([string]::IsNullOrEmpty($sourceTag)) {
         $sourceTag="$($props.Project.PropertyGroup.VersionPrefix)".Trim()
     }
     catch {
+        Write-Warning $_.Exception
         $sourceTag = $null
     }
 }
@@ -144,6 +145,7 @@ if (![string]::IsNullOrEmpty($branchName)) {
         $isDeveloperBuild = $branchName -ne "master"
     }
     else {
+        Write-Warning "Error - '$($branchName)' not recognized as branch."
         $branchName = $null
     }
 }
@@ -154,10 +156,12 @@ if ([string]::IsNullOrEmpty($branchName)) {
         # any build other than from master branch is a developer build.
     }
     catch {
+        Write-Warning $_.Exception
         $branchName = $null
     }
 }
 if ([string]::IsNullOrEmpty($branchName) -or ($branchName -eq "HEAD")) {
+    Write-Warning "Error - Branch '$($branchName)' invalid - fall back to default."
     $branchName = "deletemesoon"
 }
 
