@@ -23,13 +23,15 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Gateway.Runtime {
     using System;
     using System.IdentityModel.Selectors;
     using System.Security.Cryptography.X509Certificates;
+    using Microsoft.Azure.IIoT.Diagnostics;
+    using Microsoft.ApplicationInsights.Extensibility;
 
     /// <summary>
     /// Common web service configuration aggregation
     /// </summary>
     public class Config : ConfigBase, IAuthConfig, IIoTHubConfig,
         ICorsConfig, IClientConfig, IEventHubConfig, ITcpListenerConfig,
-        IWebListenerConfig, ISessionServicesConfig, IRegistryConfig {
+        IWebListenerConfig, ISessionServicesConfig, IRegistryConfig, IApplicationInsightsConfig {
 
         /// <inheritdoc/>
         public string IoTHubConnString => _hub.IoTHubConnString;
@@ -91,6 +93,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Gateway.Runtime {
         public string OpcUaRegistryServiceUrl => _api.OpcUaRegistryServiceUrl;
         /// <inheritdoc/>
         public string OpcUaRegistryServiceResourceId => _api.OpcUaRegistryServiceResourceId;
+        /// <inheritdoc/>
+        public TelemetryConfiguration TelemetryConfiguration => _ai.TelemetryConfiguration;
 
         /// <summary>
         /// Configuration constructor
@@ -105,6 +109,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Gateway.Runtime {
             _eh = new EventHubConfig(configuration);
             _sessions = new SessionServicesConfig(configuration);
             _api = new ApiConfig(configuration);
+            _ai = new ApplicationInsightsConfig(configuration);
         }
 
         private readonly AuthConfig _auth;
@@ -113,5 +118,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Gateway.Runtime {
         private readonly IoTHubConfig _hub;
         private readonly SessionServicesConfig _sessions;
         private readonly ApiConfig _api;
+        private readonly ApplicationInsightsConfig _ai;
     }
 }

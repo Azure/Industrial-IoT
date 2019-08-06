@@ -91,10 +91,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Servers {
                 _logger.Debug("Publisher module {moduleId} method call uncuccessful." +
                     " Fallback to UA server...", moduleId, error);
             }
-
-            // Try shortcut of finding it on localhost
+            
             using (var cts = new CancellationTokenSource()) {
-                var uri = new Uri($"opc.tcp://{Utils.GetHostName()}:62222");
+                // Try shortcut of finding it on default publisher edge module 
+                var edgeUri = new Uri($"opc.tcp://{kPublisherName}:{kPublisherPort}");
+                var edgeEndpoints = await _discovery.FindEndpointsAsync(edgeUri, null, cts.Token);
+                if (edgeEndpoints.Any()) {
+#if !TEST_PNP_SCAN
+                    var publisher = new PublisherServerClient(_client, edgeUri, _logger);
+                    var error = await TestConnectivityAsync(publisher);
+                    if (error == null) {
+                        _logger.Information("Using publisher server on localhost.");
+                        return publisher;
+                    }
+#endif
+                }
+
+                // Try shortcut of finding it on localhost
+                var uri = new Uri($"opc.tcp://{Utils.GetHostName()}:{kPublisherPort}");
                 var localEndpoints = await _discovery.FindEndpointsAsync(uri, null, cts.Token);
                 if (localEndpoints.Any()) {
 #if !TEST_PNP_SCAN

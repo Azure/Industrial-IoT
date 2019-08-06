@@ -20,6 +20,11 @@ namespace OpcPublisher
     public class PublisherNodeConfiguration : IPublisherNodeConfiguration, IDisposable
     {
         /// <summary>
+        /// Keeps the version of the node configuration that has lastly been persisted
+        /// </summary>
+        private uint _lastNodeConfigVersion;
+
+        /// <summary>
         /// Name of the node configuration file.
         /// </summary>
         public static string PublisherNodeConfigurationFilename { get; set; } = $"{System.IO.Directory.GetCurrentDirectory()}{Path.DirectorySeparatorChar}publishednodes.json";
@@ -687,10 +692,15 @@ namespace OpcPublisher
         /// </summary>
         public async Task UpdateNodeConfigurationFileAsync()
         {
+            if (NodeConfigVersion == _lastNodeConfigVersion)
+                return;
+
             try
             {
-                // itereate through all sessions, subscriptions and monitored items and create config file entries
-                List<PublisherConfigurationFileEntryModel> publisherNodeConfiguration = GetPublisherConfigurationFileEntries(null, true, out uint nodeConfigVersion);
+                // iterate through all sessions, subscriptions and monitored items and create config file entries
+                List<PublisherConfigurationFileEntryModel> publisherNodeConfiguration = GetPublisherConfigurationFileEntries(null, true, out _lastNodeConfigVersion);
+
+                Logger.Debug($"Update node configuration file, version: {_lastNodeConfigVersion:X8}");
 
                 // update the config file
                 try

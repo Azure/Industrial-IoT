@@ -43,6 +43,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
     using Swashbuckle.AspNetCore.Swagger;
     using System;
     using ILogger = Serilog.ILogger;
+    using Microsoft.Azure.IIoT.Diagnostics;
 
     /// <summary>
     /// Webservice startup
@@ -228,8 +229,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
                 .AsImplementedInterfaces().SingleInstance();
 
             // register the serilog logger
-            builder.RegisterLogger();
-
+            builder.RegisterLogger(LogEx.ApplicationInsights(Config.Configuration, Config));
+            // Register metrics logger
+            builder.RegisterType<MetricLogger>()
+                .AsImplementedInterfaces().SingleInstance();
             // CORS setup
             builder.RegisterType<CorsSetup>()
                 .AsImplementedInterfaces().SingleInstance();

@@ -59,6 +59,66 @@ If no OPC Publisher module is deployed alongside OPC Twin module, OPC Twin publi
 
 For more information about OPC Publisher, see [here](publisher.md).
 
+## Command line options
+
+The command line options of aplicable for OPC Twin Module are as follows:
+        
+        Usage: dotnet Microsoft.Azure.IIoT.Modules.OpcUa.Twin.dll
+        
+        The configuration of the twin can be made either by command line options or environment variables. 
+        The command line option will overule the environment variable
+        
+        Options: 
+            EdgeHubConnectionString=VALUE 
+                mandatory option
+                default: <empty>
+                when deployed in the iotedge module context, the environment variuable is already set 
+                as part of the container deployment
+            
+            AppCertStoreType=VALUE 
+                defines the Twin's OPC UA security management certificate PKI store type
+                allowed values: `X509Store` and `Directory`
+                default: `X509Store` for Windows and `Directory` for Linux
+                Note: on Windows, due to a platform limitation, only X509Store is possible
+            
+            PkiRootPath=VALUE 
+                Twin's OPC UA own certificate directory root path
+                default: `pki`
+            
+            OwnCertPath=VALUE 
+                path to store the Twin's own certificate, both public and private keys
+                default: `<PkiRootPath>/own`
+
+            TrustedCertPath=VALUE 
+                path to store the Twin's trusted peer certificate list. Path contains the
+                public keys of the OPC UA server applicatins allowed by the OPC Twin to establish a secure connection
+                default: `<PkiRootPath>/trusted`
+                
+                Note: since in OPC UA the application's trust is symetrical, the OPC UA Servers must trust the 
+                    Twins's certificate as well before establishing a secure connection. 
+                For convenience, the OPC Twin will copy the it's own certificate public key to this location
+                
+            IssuerCertPath=VALUE 
+                the path of the trusted issuer (Certificate Authority) certificate store
+                default: `<PkiRootPath>/issuer`
+            
+            RejectedCertPath=VALUE 
+                the path to store the certificates of applications attempted to communicate that were rejected 
+                default: `<PkiRootPath>/rejected`
+            
+            AutoAccept=VALUE
+                flag to instruct the OPC Twin to automatically trust the new OPC UA Servers that were not connected
+                are not yet trusted. The certificates of the new servers will be automatically copied in the Trusted 
+                store so that will be trusted from now on                
+                allowed values: `true`, `false`
+                default: `false`
+                Note: setting AutoAccept to true is a security risk and should not be used in production.
+                
+            OwnCertX509StorePathDefault=VALUE                
+                Defines the Windows Certificate Store location where the Own certificate is placed
+                Advanced setting applicable only when certificate store type is X509Store under Windows.
+                default: CurrentUser\\UA_MachineDefault
+
 ## Next steps
 
 * [Learn how to deploy OPC Twin Module](../howto-deploy-modules.md)
