@@ -134,6 +134,17 @@ services:
       - PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX
       - PCS_APPINSIGHTS_NAME
       - PCS_APPINSIGHTS_INSTRUMENTATIONKEY
+  jobsservice:
+    image: ${REPOSITORY:-localhost:5000/azure-iiot-}opc-jobs-service:${IMAGE_VERSION:-latest}
+    build: 
+      context: .
+      dockerfile: ./services/src/Microsoft.Azure.IIoT.Services.OpcUa.Jobs/docker/${IMAGE_OS:-linux}/amd64/Dockerfile
+    environment:
+      - PCS_KEYVAULT_URL
+      - PCS_SERVICEBUS_CONNSTRING
+      - PCS_IOTHUB_CONNSTRING
+      - PCS_APPINSIGHTS_NAME
+      - PCS_APPINSIGHTS_INSTRUMENTATIONKEY
   modelprocessor:
     image: ${REPOSITORY:-localhost:5000/azure-iiot-}opc-processor-service:${IMAGE_VERSION:-latest}
     build: 
