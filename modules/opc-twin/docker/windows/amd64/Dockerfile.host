@@ -1,6 +1,5 @@
-FROM microsoft/dotnet:2.2-runtime-nanoserver-1809 AS base
-FROM microsoft/dotnet:2.2-sdk-nanoserver-1809 AS build
-ENV PROJECT=Microsoft.Azure.IIoT.Modules.OpcUa.Twin
+FROM mcr.microsoft.com/dotnet/core/runtime:2.2 AS base
+FROM mcr.microsoft.com/dotnet/core/sdk:2.2 AS build
 ENV PROJECT_ROOT=modules/opc-twin
 
 ARG BUILD_SOURCEVERSION
@@ -11,20 +10,20 @@ COPY *.props /
 WORKDIR /app/project
 COPY NuGet.Config NuGet.Config
 COPY ${PROJECT_ROOT}/*.props /
-COPY ${PROJECT_ROOT}/src/${PROJECT}.csproj src/${PROJECT}.csproj
-COPY ${PROJECT_ROOT}/cli/${PROJECT}.Cli.csproj cli/${PROJECT}.Cli.csproj
+COPY ${PROJECT_ROOT}/src/Microsoft.Azure.IIoT.Modules.OpcUa.Twin.csproj src/Microsoft.Azure.IIoT.Modules.OpcUa.Twin.csproj
+COPY ${PROJECT_ROOT}/cli/Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Cli.csproj cli/Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Cli.csproj
 ENV BUILD_SOURCEVERSION=${BUILD_SOURCEVERSION}
 ENV RELEASE_BUILD=${RELEASE_BUILD}
-RUN dotnet restore --configfile NuGet.Config -nowarn:msb3202,nu1503 cli/${PROJECT}.Cli.csproj
+RUN dotnet restore --configfile NuGet.Config -nowarn:msb3202,nu1503 cli/Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Cli.csproj
 
 FROM build AS publish
 COPY ${PROJECT_ROOT}/src ./src
 COPY ${PROJECT_ROOT}/cli ./cli
 WORKDIR /app/project/cli
-RUN dotnet publish "${PROJECT}.Cli.csproj" -c Release -o /out
+RUN dotnet publish "Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Cli.csproj" -c Release -o /out
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /out .
-ENTRYPOINT ["dotnet", "${PROJECT}.Cli.dll", "--host"]
+ENTRYPOINT ["dotnet", "Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Cli.dll", "--host"]
 

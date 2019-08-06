@@ -1,6 +1,5 @@
-FROM microsoft/dotnet:2.2-aspnetcore-runtime-nanoserver-1809 AS base
-FROM microsoft/dotnet:2.2-sdk-nanoserver-1809 AS build
-ENV PROJECT=Microsoft.Azure.IIoT.Services.All
+FROM mcr.microsoft.com/dotnet/core/aspnet:2.2 AS base
+FROM mcr.microsoft.com/dotnet/core/sdk:2.2 AS build
 ENV PROJECT_ROOT=services
 EXPOSE 9040
 EXPOSE 9041
@@ -20,14 +19,14 @@ COPY ${PROJECT_ROOT}/*.props /
 COPY ${PROJECT_ROOT}/src ./src
 ENV BUILD_SOURCEVERSION=${BUILD_SOURCEVERSION}
 ENV RELEASE_BUILD=${RELEASE_BUILD}
-RUN dotnet restore --configfile NuGet.Config -nowarn:msb3202,nu1503 src/${PROJECT}/src/${PROJECT}.csproj
+RUN dotnet restore --configfile NuGet.Config -nowarn:msb3202,nu1503 src/Microsoft.Azure.IIoT.Services.All/src/Microsoft.Azure.IIoT.Services.All.csproj
 
 FROM build AS publish
-WORKDIR /app/project/src/${PROJECT}/src
-RUN dotnet publish "${PROJECT}.csproj" -c Release -o /out
+WORKDIR /app/project/src/Microsoft.Azure.IIoT.Services.All/src
+RUN dotnet publish "Microsoft.Azure.IIoT.Services.All.csproj" -c Release -o /out
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /out .
-ENTRYPOINT ["dotnet", "${PROJECT}.dll"]
+ENTRYPOINT ["dotnet", "Microsoft.Azure.IIoT.Services.All.dll"]
 
