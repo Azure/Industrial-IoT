@@ -31,6 +31,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Gateway {
     using System;
     using ILogger = Serilog.ILogger;
     using Serilog;
+    using Microsoft.Azure.IIoT.Diagnostics;
 
     /// <summary>
     /// Webservice startup
@@ -153,8 +154,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Gateway {
                 .AsImplementedInterfaces().SingleInstance();
 
             // Register logger
-            builder.RegisterLogger(LogEx.ApplicationInsights(Config.Configuration));
-
+            builder.RegisterLogger(LogEx.ApplicationInsights(Config.Configuration, Config));
+            // Register metrics logger
+            builder.RegisterType<MetricLogger>()
+                .AsImplementedInterfaces().SingleInstance();
             // CORS setup
             builder.RegisterType<CorsSetup>()
                 .AsImplementedInterfaces().SingleInstance();

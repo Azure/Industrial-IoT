@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.Exceptions;
+    using Microsoft.Azure.IIoT.Diagnostics;
     using Serilog;
     using System;
     using System.Collections.Generic;
@@ -28,11 +29,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// <param name="bulk"></param>
         /// <param name="broker"></param>
         /// <param name="logger"></param>
+        /// <param name="metrics"></param>
         public ApplicationRegistry(IApplicationRepository database,
             IApplicationEndpointRegistry endpoints, IEndpointBulkProcessor bulk,
-            IApplicationEventBroker broker, ILogger logger, IRegistryConfig config = null) {
+            IApplicationEventBroker broker, ILogger logger,
+            IMetricLogger metrics, IRegistryConfig config = null) {
 
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _metrics = metrics ?? throw new ArgumentNullException(nameof(metrics));
             _broker = broker ?? throw new ArgumentNullException(nameof(broker));
             _database = database ?? throw new ArgumentNullException(nameof(database));
 
@@ -443,11 +447,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 _logger.Information("... processed discovery results from {supervisorId}: " +
                     "{added} applications added, {updated} enabled, {removed} disabled, and " +
                     "{unchanged} unchanged.", supervisorId, added, updated, removed, unchanged);
+                _metrics.TrackValue("applicationsAdded", added);
+                _metrics.TrackValue("applicationsUpdated", updated);
+                _metrics.TrackValue("applicationsUnchanged", unchanged);
             }
         }
 
         private readonly IApplicationRepository _database;
         private readonly ILogger _logger;
+        private readonly IMetricLogger _metrics;
         private readonly IEndpointBulkProcessor _bulk;
         private readonly IApplicationEndpointRegistry _endpoints;
         private readonly IApplicationEventBroker _broker;
