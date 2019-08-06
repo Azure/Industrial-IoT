@@ -176,10 +176,10 @@ jobs:
     continueOnError: true
 
 #
-# Pack developer nugets for consumption
+# Pack nugets for consumption
 #
 - job: devpack
-  displayName: Build Packages
+  displayName: Developer Packages
   condition: and(succeeded(), eq(variables['RELEASE_BUILD'], ''))
   dependsOn:
     - sdl
@@ -220,10 +220,6 @@ jobs:
       packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.snupkg'
       nuGetFeedType: external
       publishFeedCredentials: azureiiot-dev
-
-#
-# Release nugets 
-#
 - job: releasepack
   displayName: Release packages
   condition: and(succeeded(), ne(variables['RELEASE_BUILD'], ''))
@@ -251,7 +247,7 @@ jobs:
       SignatureFreshness: 'UpToDate'
       TreatStaleSignatureAs: 'Error'
   - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
-    displayName: 'ESRP Code Signing'
+    displayName: Code Signing'
     inputs:
       ConnectedServiceName: 'Code Signing Certificate'
       FolderPath: '$(agent.builddirectory)'
@@ -305,7 +301,7 @@ jobs:
       configuration: Release
       nobuild: true
   - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
-    displayName: 'ESRP Nuget Signing'
+    displayName: 'Nuget Signing'
     inputs:
       ConnectedServiceName: 'Code Signing Certificate'
       FolderPath: '$(Build.ArtifactStagingDirectory)'
@@ -370,6 +366,7 @@ jobs:
   dependsOn:
     - devpack
     - releasepack
+  condition: or(succeeded('devpack'), succeeded('releasepack'))
   steps:
   - task: PowerShell@2
     name: acrmatrix
