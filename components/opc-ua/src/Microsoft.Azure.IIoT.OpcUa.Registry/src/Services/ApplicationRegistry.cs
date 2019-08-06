@@ -349,7 +349,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                                 return (null, null);
                             }
 
-                            wasDisabled = !(disabled ?? false);
+                            wasDisabled = (disabled ?? false) && (application.NotSeenSince != null);
                             wasUpdated = true;
 
                             application.Patch(update);
@@ -361,6 +361,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                             return (true, false);
                         });
 
+                    if (wasDisabled) {
+                        await _broker.NotifyAllAsync(l => l.OnApplicationEnabledAsync(context, app));
+                    }
+
                     if (wasUpdated) {
                         endpoints.TryGetValue(app.ApplicationId, out var epFound);
                         // TODO: Handle case where we take ownership of all endpoints
@@ -368,9 +372,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                             app.ApplicationId, false);
 
                         await _broker.NotifyAllAsync(l => l.OnApplicationUpdatedAsync(context, app));
-                    }
-                    if (wasDisabled && app.NotSeenSince != null) {
-                        await _broker.NotifyAllAsync(l => l.OnApplicationEnabledAsync(context, app));
                     }
                 }
                 catch (Exception ex) {
