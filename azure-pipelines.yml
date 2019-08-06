@@ -180,6 +180,7 @@ jobs:
 #
 - job: devpack
   displayName: Build Packages
+  condition: and(succeeded(), eq(variables['RELEASE_BUILD'], ''))
   dependsOn:
     - sdl
     - buildall
@@ -238,6 +239,17 @@ jobs:
     inputs:
       projects: 'Industrial-IoT.sln'
       arguments: '--configuration Release'
+  - task: AntiMalware@3
+    displayName: 'Run Virus scan'
+    inputs:
+      InputType: 'Basic'
+      ScanType: 'CustomScan'
+      FileDirPath: '$(Build.StagingDirectory)'
+      EnableServices: true
+      SupportLogOnError: false
+      TreatSignatureUpdateFailureAs: 'Warning'
+      SignatureFreshness: 'UpToDate'
+      TreatStaleSignatureAs: 'Error'
   - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
     displayName: 'ESRP Code Signing'
     inputs:
@@ -247,41 +259,41 @@ jobs:
       UseMinimatch: true
       signConfigType: inlineSignParams
       inlineOperation: |
-      [{
-          "keyCode": "CP-230012",
-          "operationSetCode": "SigntoolSign",
-          "parameters": [
-          {
-              "parameterName": "OpusName",
-              "parameterValue": "Microsoft"
-          },
-          {
-              "parameterName": "OpusInfo",
-              "parameterValue": "http://www.microsoft.com"
-          },
-          {
-              "parameterName": "FileDigest",
-              "parameterValue": "/fd \"SHA256\""
-          },
-          {
-              "parameterName": "PageHash",
-              "parameterValue": "/NPH"
-          },
-          {
-              "parameterName": "TimeStamp",
-              "parameterValue": "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
-          }
-          ],
-          "toolName": "sign",
-          "toolVersion": "1.0"
-      },
-      {
-          "keyCode": "CP-230012",
-          "operationSetCode": "SigntoolVerify",
-          "parameters": [ ],
-          "toolName": "sign",
-          "toolVersion": "1.0"
-      }]
+        [{
+            "keyCode": "CP-230012",
+            "operationSetCode": "SigntoolSign",
+            "parameters": [
+            {
+                "parameterName": "OpusName",
+                "parameterValue": "Microsoft"
+            },
+            {
+                "parameterName": "OpusInfo",
+                "parameterValue": "http://www.microsoft.com"
+            },
+            {
+                "parameterName": "FileDigest",
+                "parameterValue": "/fd \"SHA256\""
+            },
+            {
+                "parameterName": "PageHash",
+                "parameterValue": "/NPH"
+            },
+            {
+                "parameterName": "TimeStamp",
+                "parameterValue": "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
+            }
+            ],
+            "toolName": "sign",
+            "toolVersion": "1.0"
+        },
+        {
+            "keyCode": "CP-230012",
+            "operationSetCode": "SigntoolVerify",
+            "parameters": [ ],
+            "toolName": "sign",
+            "toolVersion": "1.0"
+        }]
       MaxConcurrency: 1
       MaxRetryAttempts: 50
       VerboseLogin: true
@@ -301,20 +313,20 @@ jobs:
       UseMinimatch: true
       signConfigType: inlineSignParams
       inlineOperation: |
-      [{
-          "keyCode": "CP-401405",
-          "operationSetCode": "NuGetSign",
-          "parameters": [],
-          "toolName": "sign",
-          "toolVersion": "1.0"
-      },
-      {
-          "keyCode": "CP-401405",
-          "operationSetCode": "NuGetVerify",
-          "parameters": [],
-          "toolName": "sign",
-          "toolVersion": "1.0"
-      }]
+        [{
+            "keyCode": "CP-401405",
+            "operationSetCode": "NuGetSign",
+            "parameters": [],
+            "toolName": "sign",
+            "toolVersion": "1.0"
+        },
+        {
+            "keyCode": "CP-401405",
+            "operationSetCode": "NuGetVerify",
+            "parameters": [],
+            "toolName": "sign",
+            "toolVersion": "1.0"
+        }]
       MaxConcurrency: 1
       MaxRetryAttempts: 50
       VerboseLogin: true
