@@ -260,6 +260,11 @@ Function SelectSubscription() {
     }
     $script:subscriptionId = $subscriptionId
     Write-Host "Azure subscriptionId '$subscriptionId' selected."
+    $subscriptionDetails = Get-AzureRmSubscription -SubscriptionId $subscriptionId
+    if ($subscriptionDetails){
+        $script:tenantId = $subscriptionDetails.TenantId
+        Write-Host "Fetched tenantId '$script:tenantId' from subscription."
+    }
 }
 
 #*******************************************************************************************************
@@ -357,90 +362,10 @@ Function AcquireToken() {
     return $authResult
 }
 
-
-#*******************************************************************************************************
-# Select azure ad tenant available to user
-#*******************************************************************************************************
-Function SelectAzureADTenantId() {
-    $tenants = Get-AzureRmTenant
-    $tenantId = $script:tenantId
-    if ([string]::IsNullOrEmpty($tenantId)) {
-        if ($tenants.Count -eq 0) {
-            throw ("No Active Directory tenants found for '{0}'" -f $script:accountName)
-        }
-        if ($tenants.Count -eq 1) {
-            $tenantId = $tenants[0].Id
-        }
-        else {
-            if (!$script:interactive) {
-                throw new "Provide a valid AAD tenantId to use for non-interactive mode using -tenantId"
-            }
-        }
-    }
-    else {
-        # Test id is valid
-        if (!$tenants.Id.Contains($tenantId)) {
-            if (!$script:interactive) {
-                throw new "Invalid AAD tenant id provided with -tenantId"
-            }
-            Write-Error "Invalid tenant id provided"
-        }
-    }
-    $tenantId = $null
-    while ([string]::IsNullOrEmpty($tenantId)) {
-        # List Active directories associated with account
-        $directories = @()
-        $index = 1
-        [int]$selectedIndex = -1
-        foreach ($tenantObj in $tenants) {
-            $tenant = $tenantObj.Id
-            $uri = "{0}{1}/me?api-version=1.6" -f $script:environment.GraphUrl, $tenant
-            $token = AcquireToken $tenant $script:environment.ActiveDirectoryAuthority `
-                $script:environment.GraphUrl $script:accountName "Auto"
-            $result = Invoke-RestMethod -Method "GET" -Uri $uri -Headers @{ `
-                "Authorization"=$($token.CreateAuthorizationHeader()); `
-                "Content-Type"="application/json" `
-            }
-            $directory = New-Object System.Object
-            $directory | Add-Member -MemberType NoteProperty `
-                -Name "Option" -Value $index
-            $directory | Add-Member -MemberType NoteProperty `
-                -Name "Directory Name" -Value ($result.userPrincipalName.Split('@')[1])
-            $directory | Add-Member -MemberType NoteProperty `
-                -Name "Tenant Id" -Value $tenant
-            $directories += $directory
-            $index += 1
-        }
-        if ($selectedIndex -eq -1) {
-            Write-Host
-            Write-Host "Select an Active Directory Tenant to use..."
-            Write-Host "Available:"
-            Write-Host
-            Write-Host ($directories | Out-String) -NoNewline
-            while ($selectedIndex -lt 1 -or $selectedIndex -ge $index) {
-                try {
-                    [int]$selectedIndex = Read-Host "Select an option"
-                }
-                catch {
-                    Write-Host "Must be a number"
-                }
-            }
-        }
-        $tenantId = $tenants[$selectedIndex - 1].Id
-    }
-    return $tenantId
-}
-
 #*******************************************************************************************************
 # Login to Azure AD (interactive if credentials are not already provided.
 #*******************************************************************************************************
 Function ConnectToAzureADTenant() {
-    if ($script:interactive) {
-        # Interactive selecting tenant to connect to
-        if (!$script:tenantId) {
-            $script:tenantId = SelectAzureADTenantId
-        }
-    }
     if (!$script:credentials) {
         if (!$script:tenantId) {
             throw "No tenant selected for AAD connect - provide a tenant id if not using interactive mode."

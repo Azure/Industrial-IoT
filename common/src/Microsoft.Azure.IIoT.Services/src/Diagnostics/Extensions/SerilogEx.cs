@@ -6,6 +6,7 @@
 namespace Serilog {
     using Serilog.Events;
     using Microsoft.AspNetCore.Hosting;
+    using Microsoft.Azure.IIoT.Diagnostics;
 
     /// <summary>
     /// Serilog extensions
@@ -30,7 +31,7 @@ namespace Serilog {
         /// <param name="configuration"></param>
         public static void ApplicationInsights(WebHostBuilderContext context,
             LoggerConfiguration configuration) {
-            configuration.ApplicationInsights(context.Configuration)
+            configuration.ApplicationInsights(new ApplicationInsightsConfig(null), context.Configuration)
                 .MinimumLevel.Override("Microsoft", LogEventLevel.Information);
         }
 

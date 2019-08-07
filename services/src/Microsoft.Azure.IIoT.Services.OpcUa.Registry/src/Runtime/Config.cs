@@ -21,13 +21,15 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Runtime {
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
     using System;
+    using Microsoft.Azure.IIoT.Diagnostics;
+    using Microsoft.ApplicationInsights.Extensibility;
 
     /// <summary>
     /// Common web service configuration aggregation
     /// </summary>
     public class Config : ConfigBase, IAuthConfig, IIoTHubConfig,
         ICorsConfig, IClientConfig, ISwaggerConfig, IServiceBusConfig,
-        ICosmosDbConfig, IItemContainerConfig {
+        ICosmosDbConfig, IItemContainerConfig, IApplicationInsightsConfig {
 
         /// <inheritdoc/>
         public string IoTHubConnString => _hub.IoTHubConnString;
@@ -78,6 +80,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Runtime {
         /// Whether to use role based access
         /// </summary>
         public bool UseRoles => GetBoolOrDefault("PCS_AUTH_ROLES");
+        /// <inheritdoc/>
+        public TelemetryConfiguration TelemetryConfiguration => _ai.TelemetryConfiguration;
 
         /// <summary>
         /// Configuration constructor
@@ -92,6 +96,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Runtime {
             _cors = new CorsConfig(configuration);
             _sb = new ServiceBusConfig(configuration);
             _cosmos = new CosmosDbConfig(configuration);
+            _ai = new ApplicationInsightsConfig(configuration);
         }
 
         private readonly SwaggerConfig _swagger;
@@ -99,6 +104,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Runtime {
         private readonly CorsConfig _cors;
         private readonly ServiceBusConfig _sb;
         private readonly CosmosDbConfig _cosmos;
+        private readonly ApplicationInsightsConfig _ai;
         private readonly IoTHubConfig _hub;
     }
 }

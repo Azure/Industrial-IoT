@@ -27,7 +27,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Models {
             Status = isOk ? "OK" : "ERROR";
             if (!string.IsNullOrEmpty(msg)) {
                 Status += ":" + msg;
-
             }
         }
 

@@ -5,8 +5,9 @@
 
 namespace Serilog {
     using Serilog.Events;
-    using Microsoft.Extensions.Configuration;
     using Serilog.Core;
+    using Microsoft.Extensions.Configuration;
+    using Microsoft.Azure.IIoT.Diagnostics;
 
     /// <summary>
     /// Serilog extensions
@@ -140,49 +141,49 @@ namespace Serilog {
         /// Create application insights logger
         /// </summary>
         /// <param name="configuration"></param>
+        /// <param name="aiConfig"></param>
         /// <param name="config"></param>
         /// <returns></returns>
-        public static LoggerConfiguration ApplicationInsights(this LoggerConfiguration configuration,
-            IConfiguration config = null) {
-
-            string applicationInsightsInstrumentationKey = "";
+        public static LoggerConfiguration ApplicationInsights(
+            this LoggerConfiguration configuration,
+            IApplicationInsightsConfig aiConfig = null, IConfiguration config = null) {
             if (config != null) {
-                applicationInsightsInstrumentationKey = config.GetValue<string>("PCS_APPINSIGHTS_INSTRUMENTATIONKEY", null);
                 configuration = configuration.ReadFrom.Configuration(config);
-            }
-            if (string.IsNullOrEmpty(applicationInsightsInstrumentationKey)) {
-                Log.Information("Application Insights (AI) key was not found. Logs won't be sent to AI for monitoring.");
             }
             return configuration
                 .Enrich.WithProperty("SourceContext", null)
                 .Enrich.FromLogContext()
                 .WriteTo.Console(outputTemplate: kDefaultTemplate)
-                .WriteTo.ApplicationInsights(applicationInsightsInstrumentationKey, TelemetryConverter.Traces)
+                .WriteTo.ApplicationInsights(aiConfig?.TelemetryConfiguration ?? null, TelemetryConverter.Traces)
                 .MinimumLevel.ControlledBy(Level);
         }
 
         /// <summary>
         /// Create application insights logger
         /// </summary>
+        /// <param name="aiConfig"></param>
         /// <param name="config"></param>
         /// <returns></returns>
-        public static ILogger ApplicationInsights(IConfiguration config) {
+        public static ILogger ApplicationInsights(IApplicationInsightsConfig aiConfig,
+            IConfiguration config = null) {
             var level = LogEventLevel.Information;
 #if DEBUG
             level = LogEventLevel.Debug;
 #endif
-            return ApplicationInsights(config, level);
+            return ApplicationInsights(aiConfig, config, level);
         }
 
         /// <summary>
         /// Create application insights logger
         /// </summary>
+        /// <param name="aiConfig"></param>
         /// <param name="config"></param>
         /// <param name="level"></param>
         /// <returns></returns>
-        public static ILogger ApplicationInsights(IConfiguration config, LogEventLevel level) {
+        public static ILogger ApplicationInsights(IApplicationInsightsConfig aiConfig,
+            IConfiguration config, LogEventLevel level) {
             Level.MinimumLevel = level;
-            return new LoggerConfiguration().ApplicationInsights(config).CreateLogger();
+            return new LoggerConfiguration().ApplicationInsights(aiConfig, config).CreateLogger();
         }
 
         /// <summary>
@@ -196,7 +197,6 @@ namespace Serilog {
             if (config != null) {
                 configuration = configuration.ReadFrom.Configuration(config);
             }
-
             return configuration
                 .Enrich.WithProperty("SourceContext", null)
                 .Enrich.FromLogContext()

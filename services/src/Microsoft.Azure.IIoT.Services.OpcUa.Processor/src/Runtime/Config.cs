@@ -4,6 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Processor.Runtime {
+    using Microsoft.ApplicationInsights.Extensibility;
+    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Hub.Client.Runtime;
     using Microsoft.Azure.IIoT.Storage;
@@ -20,7 +22,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Processor.Runtime {
     /// Graph model upload agent configuration
     /// </summary>
     public class Config : ConfigBase, IIoTHubConfig, ITaskProcessorConfig,
-        ICosmosDbConfig, IStorageConfig, IItemContainerConfig {
+        ICosmosDbConfig, IStorageConfig, IItemContainerConfig, IApplicationInsightsConfig {
 
         /// <inheritdoc/>
         public string IoTHubConnString => _hub.IoTHubConnString;
@@ -38,7 +40,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Processor.Runtime {
         public string ContainerName => null;
         /// <inheritdoc/>
         public string DatabaseName => null; // TODO
-
+        /// <inheritdoc/>
+        public TelemetryConfiguration TelemetryConfiguration => _ai.TelemetryConfiguration;
         /// <summary>
         /// Listen with file notification host instead of event
         /// processor for development.
@@ -58,11 +61,13 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Processor.Runtime {
             _db = new CosmosDbConfig(configuration);
             _storage = new StorageConfig(configuration);
             _hub = new IoTHubConfig(configuration);
+            _ai = new ApplicationInsightsConfig(configuration);
         }
 
         private readonly TaskProcessorConfig _tasks;
         private readonly CosmosDbConfig _db;
         private readonly StorageConfig _storage;
         private readonly IoTHubConfig _hub;
+        private readonly ApplicationInsightsConfig _ai;
     }
 }
