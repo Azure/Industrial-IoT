@@ -1,21 +1,27 @@
-FROM mcr.microsoft.com/dotnet/core/runtime-deps:2.2-stretch-slim-arm32v7 AS base
+FROM mcr.microsoft.com/dotnet/core/runtime-deps:2.2-bionic-arm32v7 AS base
+FROM mcr.microsoft.com/dotnet/core/sdk:2.2-alpine AS build
+ENV PROJECT_ROOT=modules/opc-twin
+
+ARG BUILD_SOURCEVERSION
+ARG RELEASE_BUILD
+ENV PROJECT_BUILD=1
 WORKDIR /app
-
-FROM mcr.microsoft.com/dotnet/core/sdk:2.2-stretch-arm32v7 AS build
-WORKDIR /src
-COPY src/Microsoft.Azure.IIoT.Modules.OpcUa.Twin.csproj src/
-COPY NuGet.Config NuGet.Config
 COPY *.props /
-RUN dotnet restore --configfile NuGet.Config -nowarn:msb3202,nu1503 src/Microsoft.Azure.IIoT.Modules.OpcUa.Twin.csproj
-COPY . .
-WORKDIR /src/src
-RUN dotnet add package ILLink.Tasks -v 0.1.5-preview-1841731 -s https://dotnet.myget.org/F/dotnet-core/api/v3/index.json
-RUN dotnet build Microsoft.Azure.IIoT.Modules.OpcUa.Twin.csproj -c Release -o /app
+# ADD .git .git
 
-FROM build AS publish
-RUN dotnet publish Microsoft.Azure.IIoT.Modules.OpcUa.Twin.csproj -c Release -o /app -r linux-arm /p:ShowLinkerSizeComparison=true
+WORKDIR /app/${PROJECT_ROOT}
+COPY NuGet.Config NuGet.Config
+COPY ${PROJECT_ROOT}/*.props /
+COPY ${PROJECT_ROOT}/src/Microsoft.Azure.IIoT.Modules.OpcUa.Twin.csproj src/Microsoft.Azure.IIoT.Modules.OpcUa.Twin.csproj
+ENV BUILD_SOURCEVERSION=${BUILD_SOURCEVERSION}
+ENV RELEASE_BUILD=${RELEASE_BUILD}
+RUN dotnet restore --configfile NuGet.Config -nowarn:msb3202,nu1503 src/Microsoft.Azure.IIoT.Modules.OpcUa.Twin.csproj
+
+COPY ${PROJECT_ROOT}/src ./src
+WORKDIR /app/${PROJECT_ROOT}/src
+RUN dotnet publish "Microsoft.Azure.IIoT.Modules.OpcUa.Twin.csproj" -c Release -o /out -r linux-arm
 
 FROM base AS final
 WORKDIR /app
-COPY --from=publish /app .
-ENTRYPOINT ["dotnet", "Microsoft.Azure.IIoT.Modules.OpcUa.Twin.dll"]
+COPY --from=build /out .
+ENTRYPOINT ["./Microsoft.Azure.IIoT.Modules.OpcUa.Twin"]

@@ -11,14 +11,14 @@
     <ProjectReference Include="..\src\Microsoft.Azure.IIoT.Modules.OpcUa.Twin.csproj" />
   </ItemGroup>
   <Choose>
-    <When Condition="Exists('..\..\..\common')">
+    <When Condition="'$(PROJECT_BUILD)' == ''">
       <ItemGroup>
         <ProjectReference Include="..\..\..\common\src\Microsoft.Azure.IIoT.Hub\src\Microsoft.Azure.IIoT.Hub.csproj" />
       </ItemGroup>
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.Hub" Version="$(CommonVersion)" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Hub" Version="$(ReleaseVersion)" />
       </ItemGroup>
     </Otherwise>
   </Choose>

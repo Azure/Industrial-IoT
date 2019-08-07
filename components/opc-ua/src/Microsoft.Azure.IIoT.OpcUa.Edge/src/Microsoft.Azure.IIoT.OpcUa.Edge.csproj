@@ -9,7 +9,7 @@
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa.Protocol\src\Microsoft.Azure.IIoT.OpcUa.Protocol.csproj" />
   </ItemGroup>
   <Choose>
-    <When Condition="Exists('..\..\..\..\..\common')">
+    <When Condition="'$(PROJECT_BUILD)' == ''">
       <ItemGroup>
         <ProjectReference Include="..\..\..\..\..\common\src\Microsoft.Azure.IIoT.Net.Scan\src\Microsoft.Azure.IIoT.Net.Scan.csproj" />
         <ProjectReference Include="..\..\..\..\..\common\src\Microsoft.Azure.IIoT.Module.Framework\src\Microsoft.Azure.IIoT.Module.Framework.csproj" />
@@ -17,8 +17,8 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.Module.Framework" Version="$(CommonVersion)" />
-        <PackageReference Include="Microsoft.Azure.IIoT.Net.Scan" Version="$(CommonVersion)" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Module.Framework" Version="$(ReleaseVersion)" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Net.Scan" Version="$(ReleaseVersion)" />
       </ItemGroup>
     </Otherwise>
   </Choose>

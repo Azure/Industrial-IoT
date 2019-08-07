@@ -5,20 +5,20 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Description>Azure Industrial IoT OPC Vault component</Description>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <VersionSuffix>prerelease001</VersionSuffix>
+    <VersionSuffix>$(PrereleaseSuffix)</VersionSuffix>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa.Protocol\src\Microsoft.Azure.IIoT.OpcUa.Protocol.csproj" />
   </ItemGroup>
   <Choose>
-    <When Condition="Exists('..\..\..\..\..\common')">
+    <When Condition="'$(PROJECT_BUILD)' == ''">
       <ItemGroup>
         <ProjectReference Include="..\..\..\..\..\common\src\Microsoft.Azure.IIoT.Crypto\src\Microsoft.Azure.IIoT.Crypto.csproj" />
       </ItemGroup>
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.Crypto" Version="$(CommonVersion)" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Crypto" Version="$(ReleaseVersion)" />
       </ItemGroup>
     </Otherwise>
   </Choose>

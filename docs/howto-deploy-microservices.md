@@ -58,18 +58,6 @@ The deployment script tries to register 2 AAD applications in Azure Active Direc
 
 **WARNING**:  NEVER continue without Authentication.  If you choose to do so, anyone can access your OPC Device Management endpoints from the Internet unauthenticated.   You can always choose the ["local" deployment option](howto-deploy-dependencies.md) to kick the tires.
 
-## Deploy an all-in-one Industrial IoT Microservices Demo
-
-Instead of just the Microservices and dependencies you can also deploy an all-in-one demo.  The all in one demo contains 3 OPC UA servers, the OPC Twin module, and all Microservices as well as a sample Web Application.  It is intended for demonstration purposes.
-
-1. Make sure you have a clone of the repository (see above). Open a command prompt or terminal in the  root of the repository and run:
-
-   ```bash
-   deploy -type demo
-   ```
-
-2. Follow the prompts to assign a new name to the resource group and a name to the website.  Once deployed successfully, the script will display the URL of the web application endpoint.  Follow the steps [above](#troubleshooting-deployment-failures) if you run into any deployment failures.
-
 ## Deployment script options
 
 To support automation scenarios, the script takes the following parameters:
@@ -78,7 +66,7 @@ To support automation scenarios, the script takes the following parameters:
 -type
 ```
 
-The type of deployment (vm, local, demo)
+The type of deployment (vm, local)
 
 ```bash
 -resourceGroupName
