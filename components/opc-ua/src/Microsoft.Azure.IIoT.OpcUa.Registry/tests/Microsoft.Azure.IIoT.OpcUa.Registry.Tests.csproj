@@ -16,14 +16,14 @@
     </PackageReference>
   </ItemGroup>
   <Choose>
-    <When Condition="Exists('..\..\..\..\..\common')">
+    <When Condition="'$(PROJECT_BUILD)' == ''">
       <ItemGroup>
         <ProjectReference Include="..\..\..\..\..\common\src\Microsoft.Azure.IIoT.Hub\mock\Microsoft.Azure.IIoT.Hub.Mock.csproj" />
       </ItemGroup>
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.Hub.Mock" Version="$(CommonVersion)" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Hub.Mock" Version="$(ReleaseVersion)" />
       </ItemGroup>
     </Otherwise>
   </Choose>

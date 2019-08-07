@@ -19,14 +19,14 @@
     <PackageReference Include="Xunit.SkippableFact" Version="1.3.12" />
   </ItemGroup>
   <Choose>
-    <When Condition="Exists('..\..\..\..\..\common')">
+    <When Condition="'$(PROJECT_BUILD)' == ''">
       <ItemGroup>
         <ProjectReference Include="..\..\..\..\..\common\src\Microsoft.Azure.IIoT.Storage\src\Microsoft.Azure.IIoT.Storage.csproj" />
       </ItemGroup>
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.Storage" Version="$(CommonPrereleaseVersion)" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Storage" Version="$(PrereleaseVersion)" />
       </ItemGroup>
     </Otherwise>
   </Choose>

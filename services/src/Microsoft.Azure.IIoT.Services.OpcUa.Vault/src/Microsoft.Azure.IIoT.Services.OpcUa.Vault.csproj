@@ -10,12 +10,6 @@
     <DocumentationFile>bin\Release\netcoreapp2.2\Microsoft.Azure.IIoT.Services.OpcUa.Vault.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Remove="OPC Foundation\**" />
-    <Content Remove="OPC Foundation\**" />
-    <EmbeddedResource Remove="OPC Foundation\**" />
-    <None Remove="OPC Foundation\**" />
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="4.4.0" />
     <PackageReference Include="Microsoft.AspNetCore.AzureKeyVault.HostingStartup" Version="2.0.4" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.2.0" />
@@ -24,55 +18,27 @@
     <PackageReference Include="Serilog.AspNetCore" Version="2.1.1" />
   </ItemGroup>
   <Choose>
-    <When Condition="Exists('..\..\..\..\common')">
+    <When Condition="'$(PROJECT_BUILD)' == ''">
       <ItemGroup>
         <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Services\src\Microsoft.Azure.IIoT.Services.csproj" />
         <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Storage\src\Microsoft.Azure.IIoT.Storage.csproj" />
         <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Messaging\src\Microsoft.Azure.IIoT.Messaging.csproj" />
-      </ItemGroup>
-    </When>
-    <Otherwise>
-      <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.Services" Version="$(CommonVersion)" />
-        <PackageReference Include="Microsoft.Azure.IIoT.Storage" Version="$(CommonPrereleaseVersion)" />
-        <PackageReference Include="Microsoft.Azure.IIoT.Messaging" Version="$(CommonVersion)" />
-      </ItemGroup>
-    </Otherwise>
-  </Choose>
-  <Choose>
-    <When Condition="Exists('..\..\..\..\api')">
-      <ItemGroup>
+        <ProjectReference Include="..\..\..\..\components\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.Vault\src\Microsoft.Azure.IIoT.OpcUa.Vault.csproj" />
         <ProjectReference Include="..\..\..\..\api\src\Microsoft.Azure.IIoT.OpcUa.Api\src\Microsoft.Azure.IIoT.OpcUa.Api.csproj" />
       </ItemGroup>
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.OpcUa.Api" Version="$(ComponentsOpcUaVersion)" />
-      </ItemGroup>
-    </Otherwise>
-  </Choose>
-  <Choose>
-    <When Condition="Exists('..\..\..\..\components\opc-ua')">
-      <ItemGroup>
-        <ProjectReference Include="..\..\..\..\components\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.Vault\src\Microsoft.Azure.IIoT.OpcUa.Vault.csproj" />
-      </ItemGroup>
-    </When>
-    <Otherwise>
-      <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.OpcUa.Vault" Version="$(ComponentsOpcUaVersion)" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Services" Version="$(ReleaseVersion)" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Storage" Version="$(PrereleaseVersion)" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Messaging" Version="$(ReleaseVersion)" />
+        <PackageReference Include="Microsoft.Azure.IIoT.OpcUa.Vault" Version="$(ReleaseVersion)" />
+        <PackageReference Include="Microsoft.Azure.IIoT.OpcUa.Api" Version="$(ReleaseVersion)" />
       </ItemGroup>
     </Otherwise>
   </Choose>
   <ItemGroup>
     <Folder Include="Properties" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Update="appsettings.Development.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Update="appsettings.*.json" CopyToPublishDirectory="Never" />
   </ItemGroup>
   <ItemGroup>
     <DotNetCliToolReference Include="Swashbuckle.AspNetCore.Cli" Version="2.4.0-beta1" />
