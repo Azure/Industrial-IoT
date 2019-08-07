@@ -16,14 +16,14 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="2.2.0" />
   </ItemGroup>
   <Choose>
-    <When Condition="Exists('..\..\..\..\common')">
+    <When Condition="'$(PROJECT_BUILD)' == ''">
       <ItemGroup>
         <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Core\src\Microsoft.Azure.IIoT.Core.csproj" />
       </ItemGroup>
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.Core" Version="$(CommonVersion)" />
+        <PackageReference Include="Microsoft.Azure.IIoT.Core" Version="$(ReleaseVersion)" />
       </ItemGroup>
     </Otherwise>
   </Choose>

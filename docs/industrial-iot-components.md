@@ -4,7 +4,7 @@
 
 Industrial IoT or IIoT connects machines and devices in industries. This connectivity allows for data collection, exchange and analysis, potentially  improving productivity and efficiency. To read more about Microsoft Azure IoT, click [here](https://azure.microsoft.com/overview/iot/) and about Industry 4.0, [here](https://azure.microsoft.com/overview/iot/industry/discrete-manufacturing/)
 
-Watch a [demo](https://azure.microsoft.com/features/iot-accelerators/connected-factory/) about improving industrial efficiencies with a connected factory. Connected Factory is basically an implementation of Azure Industrial IoT reference architecture, packaged as on open-source solution.
+Watch a [demo](https://azure.microsoft.com/features/iot-accelerators/connected-factory/) of connected factory improving industrial equipment efficiency. 
 
 ## Industrial IoT Components
 

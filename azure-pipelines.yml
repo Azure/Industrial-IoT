@@ -1,78 +1,60 @@
 jobs:
+#
+# Build all solutions on all platforms
+#
+- job: buildprep
+  displayName: Prepare Build Jobs
+  pool:
+    name: Hosted Windows 2019 with VS2019
+  steps:
+  - task: PowerShell@2
+    name: buildmatrix
+    displayName: Prepare Solutions
+    inputs:
+      targetType: filePath
+      filePath: ./tools/jobmatrix.ps1
+      arguments: -FileName *.sln
 - job: buildall
-  displayName: Build
+  displayName: Building
+  dependsOn: buildprep
   strategy:
-    matrix:
-      linux:
-        poolName: "Hosted Ubuntu 1604"
-      mac:
-        poolName: "Hosted macOS"
-      windows:
-        poolName: "Hosted Windows 2019 with VS2019"
+    matrix: $[dependencies.buildprep.outputs['buildmatrix.jobMatrix'] ]
   pool:
     name: $(poolName)
   steps:
   - task: DotNetCoreCLI@2
-    displayName: Build
+    displayName: Release Build
     inputs:
       command: build
-      projects: 'Industrial-IoT.sln'
+      projects: '$(file)'
       arguments: '--configuration Release'
   - task: DotNetCoreCLI@2
-    displayName: Build
+    displayName: Debug Build
     inputs:
       command: build
-      projects: 'Industrial-IoT.sln'
+      projects: '$(file)'
       arguments: '--configuration Debug'
+
+#
+# Test all components on all platforms
+#
+- job: testprep
+  displayName: Prepare Test Jobs
+  pool:
+    name: Hosted Windows 2019 with VS2019
+  steps:
+  - task: PowerShell@2
+    name: testmatrix
+    displayName: Prepare Tests
+    inputs:
+      targetType: filePath
+      filePath: ./tools/jobmatrix.ps1
+      arguments:
 - job: testall
-  displayName: Test
+  displayName: Run Tests for
+  dependsOn: testprep
   strategy:
-    matrix:
-      common_linux:
-        folder: "common"
-        poolName: "Hosted Ubuntu 1604"
-      components_linux:
-        folder: "components"
-        poolName: "Hosted Ubuntu 1604"
-      services_linux:
-        folder: "services"
-        poolName: "Hosted Ubuntu 1604"
-      modules_linux:
-        folder: "modules"
-        poolName: "Hosted Ubuntu 1604"
-      api_linux:
-        folder: "api"
-        poolName: "Hosted Ubuntu 1604"
-      common_windows:
-        folder: "common"
-        poolName: "Hosted Windows 2019 with VS2019"
-      components_windows:
-        folder: "components"
-        poolName: "Hosted Windows 2019 with VS2019"
-      services_windows:
-        folder: "services"
-        poolName: "Hosted Windows 2019 with VS2019"
-      modules_windows:
-        folder: "modules"
-        poolName: "Hosted Windows 2019 with VS2019"
-      api_windows:
-        folder: "api"
-        poolName: "Hosted Windows 2019 with VS2019"
-      common_mac:
-        folder: "common"
-        poolName: "Hosted macOS"
-      components_mac:
-        folder: "components"
-        poolName: "Hosted macOS"
-      services_mac:
-        folder: "services"
-        poolName: "Hosted macOS"
-      modules_mac:
-        folder: "modules"
-        poolName: "Hosted macOS"
-      api_mac:
-        folder: "api"
-        poolName: "Hosted macOS"
+    matrix: $[dependencies.testprep.outputs['testmatrix.jobMatrix'] ]
   pool:
     name: $(poolName)
   steps:
@@ -82,9 +64,120 @@ jobs:
       command: test
       projects: '$(folder)/**/tests/*.csproj'
       arguments: '--configuration Release'
-- job: package
-  displayName: Package
+
+#
+# Run compliance tooling
+#
+- job: sdl
+  displayName: SDL Tasks
+  pool:
+    name: Hosted Windows 2019 with VS2019
+    demands:
+    - msbuild
+    - npm
+  steps:
+  - task: DotNetCoreCLI@2
+    displayName: Restore
+    inputs:
+      command: restore
+      projects: 'Industrial-IoT.sln'
+  - task: MSBuild@1
+    displayName: Build
+    inputs:
+      solution: 'Industrial-IoT.sln'
+      configuration: Release
+  - task: securedevelopmentteam.vss-secure-development-tools.build-task-credscan.CredScan@2
+    displayName: 'Credential Scanner'
+    inputs:
+      debugMode: false
+    continueOnError: true
+  - task: ComponentGovernanceComponentDetection@0
+    displayName: 'Component Detection'
+  - task: 'msospo.ospo-extension.8d7f9abb-6896-461d-9e25-4f74ed65ddb2.notice@0'
+    displayName: Generate 3rd Party Notices
+    inputs:
+      outputfile: thirdpartynotices.txt
+    continueOnError: true
+  - task: TSLint@1
+    displayName: 'Run TSLint'
+    inputs:
+      Files: '**\*.ts;**\*.js'
+      ExcludeFiles: 'api\**'
+    continueOnError: true
+  - task: BinSkim@3
+    displayName: 'BinSkim '
+    inputs:
+      InputType: Basic
+      AnalyzeTarget: '*.IIoT.*.dll;*.exe'
+    continueOnError: true
+  - task: AutoApplicability@1
+    displayName: 'Auto Applicability'
+    inputs:
+      ExternalRelease: true
+      InternalRelease: true
+      IsService: true
+    continueOnError: true
+  - task: VulnerabilityAssessment@0
+    displayName: 'Run Vulnerability Assessment'
+    continueOnError: true
+    condition: succeededOrFailed()
+  - task: PoliCheck@1
+    displayName: PoliCheck
+    inputs:
+      targetType: F
+    continueOnError: true
+  - task: RoslynAnalyzers@2
+    displayName: 'Run Roslyn Analyzers'
+    continueOnError: true
+  - task: SdtReport@1
+    displayName: 'Create Security Analysis Report'
+    inputs:
+      BinSkim: true
+      CredScan: true
+      PoliCheck: true
+      RoslynAnalyzers: true
+    continueOnError: true
+    condition: succeededOrFailed()
+  - task: PostAnalysis@1
+    displayName: 'Post Analysis'
+    inputs:
+      BinSkim: true
+      CredScan: true
+      RoslynAnalyzers: true
+  - script: |
+      if not "%BUILD_SOURCEBRANCHNAME%" == "master" echo ##vso[task.setvariable variable=MY_BRANCH;]develop
+          if "%BUILD_SOURCEBRANCHNAME%" == "master" echo ##vso[task.setvariable variable=MY_BRANCH;]master
+  - task: TSAUpload@1
+    displayName: 'Upload to Stamp'
+    inputs:
+      tsaVersion: TsaV2
+      tsaEnvironment: 'PROD'
+      serviceTreeID: '59eec07a-6f20-42b9-b41b-d20e0a6322da'
+      codebase: Existing
+      codeBaseName: 'Industrial_IoT_$(MY_BRANCH)'
+      instanceUrlForTsaV2: MSAZURE
+      projectNameMSAZURE: One
+      uploadAPIScan: true
+      uploadBinSkim: true
+      uploadCredScan: true
+      uploadFortifySCA: false
+      uploadFxCop: false
+      uploadModernCop: false
+      uploadPoliCheck: true
+      uploadPREfast: false
+      uploadRoslyn: true
+      uploadTSLint: false
+      uploadAsync: true
+    continueOnError: true
+
+#
+# Pack nugets for consumption
+#
+- job: devpack
+  displayName: Developer Packages
+  condition: and(succeeded(), eq(variables['RELEASE_BUILD'], ''))
   dependsOn:
+    - sdl
     - buildall
     - testall
   pool:
@@ -95,11 +188,17 @@ jobs:
     inputs:
       projects: 'Industrial-IoT.sln'
       arguments: '--configuration Release'
-  - task: ComponentGovernanceComponentDetection@0
+  - task: AntiMalware@3
+    displayName: 'Run Virus scan'
     inputs:
-      scanType: 'Register'
-      verbosity: 'Verbose'
-      alertWarningLevel: 'High'
+      InputType: 'Basic'
+      ScanType: 'CustomScan'
+      FileDirPath: '$(Build.StagingDirectory)'
+      EnableServices: true
+      SupportLogOnError: false
+      TreatSignatureUpdateFailureAs: 'Warning'
+      SignatureFreshness: 'UpToDate'
+      TreatStaleSignatureAs: 'Error'
   - task: DotNetCoreCLI@2
     displayName: Pack
     inputs:
@@ -107,6 +206,8 @@ jobs:
       packagesToPack: 'Industrial-IoT.sln'
       configuration: Release
       nobuild: true
+  - task: ComponentGovernanceComponentDetection@0
+    displayName: 'Component Detection'
   - task: NuGetCommand@2
     displayName: Push
     inputs:
@@ -114,3 +215,174 @@ jobs:
       packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.snupkg'
       nuGetFeedType: external
       publishFeedCredentials: azureiiot-dev
+- job: releasepack
+  displayName: Release packages
+  condition: and(succeeded(), ne(variables['RELEASE_BUILD'], ''))
+  dependsOn:
+    - sdl
+    - buildall
+    - testall
+  pool:
+    name: Hosted Windows 2019 with VS2019
+  steps:
+  - task: DotNetCoreCLI@2
+    displayName: Build
+    inputs:
+      projects: 'Industrial-IoT.sln'
+      arguments: '--configuration Release'
+  - task: AntiMalware@3
+    displayName: 'Run Virus scan'
+    inputs:
+      InputType: 'Basic'
+      ScanType: 'CustomScan'
+      FileDirPath: '$(Build.StagingDirectory)'
+      EnableServices: true
+      SupportLogOnError: false
+      TreatSignatureUpdateFailureAs: 'Warning'
+      SignatureFreshness: 'UpToDate'
+      TreatStaleSignatureAs: 'Error'
+  - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
+    displayName: Code Signing'
+    inputs:
+      ConnectedServiceName: 'Code Signing Certificate'
+      FolderPath: '$(agent.builddirectory)'
+      Pattern: '/**/Microsoft.Azure.IIoT.*.dll'
+      UseMinimatch: true
+      signConfigType: inlineSignParams
+      inlineOperation: |
+        [{
+            "keyCode": "CP-230012",
+            "operationSetCode": "SigntoolSign",
+            "parameters": [
+            {
+                "parameterName": "OpusName",
+                "parameterValue": "Microsoft"
+            },
+            {
+                "parameterName": "OpusInfo",
+                "parameterValue": "http://www.microsoft.com"
+            },
+            {
+                "parameterName": "FileDigest",
+                "parameterValue": "/fd \"SHA256\""
+            },
+            {
+                "parameterName": "PageHash",
+                "parameterValue": "/NPH"
+            },
+            {
+                "parameterName": "TimeStamp",
+                "parameterValue": "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
+            }
+            ],
+            "toolName": "sign",
+            "toolVersion": "1.0"
+        },
+        {
+            "keyCode": "CP-230012",
+            "operationSetCode": "SigntoolVerify",
+            "parameters": [ ],
+            "toolName": "sign",
+            "toolVersion": "1.0"
+        }]
+      MaxConcurrency: 1
+      MaxRetryAttempts: 50
+      VerboseLogin: true
+  - task: DotNetCoreCLI@2
+    displayName: Pack
+    inputs:
+      command: pack
+      packagesToPack: 'Industrial-IoT.sln'
+      configuration: Release
+      nobuild: true
+  - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
+    displayName: 'Nuget Signing'
+    inputs:
+      ConnectedServiceName: 'Code Signing Certificate'
+      FolderPath: '$(Build.ArtifactStagingDirectory)'
+      Pattern: 'Microsoft.Azure.IIoT.*.nupkg'
+      UseMinimatch: true
+      signConfigType: inlineSignParams
+      inlineOperation: |
+        [{
+            "keyCode": "CP-401405",
+            "operationSetCode": "NuGetSign",
+            "parameters": [],
+            "toolName": "sign",
+            "toolVersion": "1.0"
+        },
+        {
+            "keyCode": "CP-401405",
+            "operationSetCode": "NuGetVerify",
+            "parameters": [],
+            "toolName": "sign",
+            "toolVersion": "1.0"
+        }]
+      MaxConcurrency: 1
+      MaxRetryAttempts: 50
+      VerboseLogin: true
+  - task: ComponentGovernanceComponentDetection@0
+    displayName: 'Component Detection'
+  - powershell: |
+      [xml] $props=Get-Content -Path "version.props"
+      $Version="$($props.Project.PropertyGroup.VersionPrefix)".Trim()
+      Write-Output ("##vso[task.setvariable variable=DropVersion;]$Version")
+
+    displayName: 'Set Version'
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish Artifact'
+    inputs:
+      ArtifactName: 'drop_$(DropVersion)'
+  - task: NuGetCommand@2
+    displayName: 'NuGet Release Push'
+    inputs:
+      command: push
+      packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.snupkg'
+      nuGetFeedType: external
+      publishFeedCredentials: 'azureiiot-nuget'
+      verbosityPush: Normal
+    continueOnError: true
+  - task: PublishSymbols@2
+    displayName: 'Publish symbols path'
+    inputs:
+      IndexSources: false
+      SymbolServerType: TeamServices
+      SymbolsMaximumWaitTime: 10
+      SymbolsProduct: azureiiot
+      SymbolsVersion: '$(DropVersion)'
+    continueOnError: true
+
+#
+# Build developer or release images
+#
+- job: imagesprep
+  displayName: Prepare Image Jobs
+  pool:
+    name: Hosted Windows 2019 with VS2019
+  dependsOn:
+    - devpack
+    - releasepack
+  condition: or(succeeded('devpack'), succeeded('releasepack'))
+  steps:
+  - task: PowerShell@2
+    name: acrmatrix
+    displayName: Prepare Builds
+    inputs:
+      targetType: filePath
+      filePath: ./tools/acrmatrix.ps1
+- job: imagesall
+  displayName: Build Images for
+  pool:
+    name: Hosted Windows 2019 with VS2019
+  dependsOn: imagesprep
+  strategy:
+    matrix: $[ dependencies.imagesprep.outputs['acrmatrix.acrMatrix'] ]
+  steps:
+  - task: AzureCLI@1
+    name: acrbuild
+    displayName: Build Image
+    inputs:
+      azureSubscription: azureiiot
+      scriptLocation: inlineScript
+      inlineScript: powershell ./tools/acrbuild.ps1 $(dockerFolder)
+      

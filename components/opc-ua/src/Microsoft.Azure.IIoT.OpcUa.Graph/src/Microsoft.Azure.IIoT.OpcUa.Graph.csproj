@@ -4,7 +4,7 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Description>Azure Industrial IoT OPC UA Graph components</Description>
-    <VersionSuffix>prerelease001</VersionSuffix>
+    <VersionSuffix>$(PrereleaseSuffix)</VersionSuffix>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Gremlin.Net.CosmosDb" Version="0.3.4.4-rc1" />

@@ -1,22 +1,10 @@
 version: '3'
 services:
-  reverseproxy:
-    build: 
-      context: ./services
-      dockerfile: ./reverse-proxy/Dockerfile
-    ports:
-      - "10080:10080"
-    depends_on:
-      - registryservice
-      - gatewayservice
-      - vaultservice
-      - twinservice
-      - historyservice
   registryservice:
     image: ${REPOSITORY:-localhost:5000/azure-iiot-}opc-registry-service:${IMAGE_VERSION:-latest}
     build: 
-      context: ./services
-      dockerfile: ./src/Microsoft.Azure.IIoT.Services.OpcUa.Registry/docker/Dockerfile
+      context: .
+      dockerfile: ./services/src/Microsoft.Azure.IIoT.Services.OpcUa.Registry/docker/${IMAGE_OS:-linux}/amd64/Dockerfile
     ports:
       - "9042:9042"
     environment:
@@ -36,8 +24,8 @@ services:
   twinservice:
     image: ${REPOSITORY:-localhost:5000/azure-iiot-}opc-twin-service:${IMAGE_VERSION:-latest}
     build: 
-      context: ./services
-      dockerfile: ./src/Microsoft.Azure.IIoT.Services.OpcUa.Twin/docker/Dockerfile
+      context: .
+      dockerfile: ./services/src/Microsoft.Azure.IIoT.Services.OpcUa.Twin/docker/${IMAGE_OS:-linux}/amd64/Dockerfile
     ports:
       - "9041:9041"
     environment:
@@ -56,8 +44,8 @@ services:
   historyservice:
     image: ${REPOSITORY:-localhost:5000/azure-iiot-}opc-history-service:${IMAGE_VERSION:-latest}
     build: 
-      context: ./services
-      dockerfile: ./src/Microsoft.Azure.IIoT.Services.OpcUa.History/docker/Dockerfile
+      context: .
+      dockerfile: ./services/src/Microsoft.Azure.IIoT.Services.OpcUa.History/docker/${IMAGE_OS:-linux}/amd64/Dockerfile
     ports:
       - "9043:9043"
     environment:
@@ -76,8 +64,8 @@ services:
   gatewayservice:
     image: ${REPOSITORY:-localhost:5000/azure-iiot-}opc-gateway-service:${IMAGE_VERSION:-latest}
     build: 
-      context: ./services
-      dockerfile: ./src/Microsoft.Azure.IIoT.Services.OpcUa.Gateway/docker/Dockerfile
+      context: .
+      dockerfile: ./services/src/Microsoft.Azure.IIoT.Services.OpcUa.Gateway/docker/${IMAGE_OS:-linux}/amd64/Dockerfile
     ports:
       - "9040:9040"
       - "51111:51111"
@@ -97,8 +85,8 @@ services:
   vaultservice:
     image: ${REPOSITORY:-localhost:5000/azure-iiot-}opc-vault-service:${IMAGE_VERSION:-latest}
     build: 
-      context: ./services
-      dockerfile: ./src/Microsoft.Azure.IIoT.Services.OpcUa.Vault/docker/Dockerfile
+      context: .
+      dockerfile: ./services/src/Microsoft.Azure.IIoT.Services.OpcUa.Vault/docker/${IMAGE_OS:-linux}/amd64/Dockerfile
     ports:
       - "9044:9044"
     environment:
@@ -118,8 +106,8 @@ services:
   alertingservice:
     image: ${REPOSITORY:-localhost:5000/azure-iiot-}opc-alerting-service:${IMAGE_VERSION:-latest}
     build: 
-      context: ./services
-      dockerfile: ./src/Microsoft.Azure.IIoT.Services.OpcUa.Alerting/docker/Dockerfile
+      context: .
+      dockerfile: ./services/src/Microsoft.Azure.IIoT.Services.OpcUa.Alerting/docker/${IMAGE_OS:-linux}/amd64/Dockerfile
     environment:
       - PCS_KEYVAULT_URL
       - PCS_WORKSPACE_NAME
@@ -131,8 +119,8 @@ services:
   onboardingservice:
     image: ${REPOSITORY:-localhost:5000/azure-iiot-}opc-onboarding-service:${IMAGE_VERSION:-latest}
     build: 
-      context: ./services
-      dockerfile: ./src/Microsoft.Azure.IIoT.Services.OpcUa.Onboarding/docker/Dockerfile
+      context: .
+      dockerfile: ./services/src/Microsoft.Azure.IIoT.Services.OpcUa.Onboarding/docker/${IMAGE_OS:-linux}/amd64/Dockerfile
     environment:
       - PCS_KEYVAULT_URL
       - PCS_SERVICEBUS_CONNSTRING
@@ -146,11 +134,22 @@ services:
       - PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX
       - PCS_APPINSIGHTS_NAME
       - PCS_APPINSIGHTS_INSTRUMENTATIONKEY
+  jobsservice:
+    image: ${REPOSITORY:-localhost:5000/azure-iiot-}opc-jobs-service:${IMAGE_VERSION:-latest}
+    build: 
+      context: .
+      dockerfile: ./services/src/Microsoft.Azure.IIoT.Services.OpcUa.Jobs/docker/${IMAGE_OS:-linux}/amd64/Dockerfile
+    environment:
+      - PCS_KEYVAULT_URL
+      - PCS_SERVICEBUS_CONNSTRING
+      - PCS_IOTHUB_CONNSTRING
+      - PCS_APPINSIGHTS_NAME
+      - PCS_APPINSIGHTS_INSTRUMENTATIONKEY
   modelprocessor:
     image: ${REPOSITORY:-localhost:5000/azure-iiot-}opc-processor-service:${IMAGE_VERSION:-latest}
     build: 
-      context: ./services
-      dockerfile: ./src/Microsoft.Azure.IIoT.Services.OpcUa.Processor/docker/Dockerfile
+      context: .
+      dockerfile: ./services/src/Microsoft.Azure.IIoT.Services.OpcUa.Processor/docker/${IMAGE_OS:-linux}/amd64/Dockerfile
     environment:
       - PCS_KEYVAULT_URL
       - PCS_SERVICEBUS_CONNSTRING
@@ -168,8 +167,8 @@ services:
   blobnotification:
     image: ${REPOSITORY:-localhost:5000/azure-iiot-}blob-notification-service:${IMAGE_VERSION:-latest}
     build: 
-      context: ./services
-      dockerfile: ./src/Microsoft.Azure.IIoT.Services.Notification.Blob/docker/Dockerfile
+      context: .
+      dockerfile: ./services/src/Microsoft.Azure.IIoT.Services.Notification.Blob/docker/${IMAGE_OS:-linux}/amd64/Dockerfile
     environment:
       - PCS_KEYVAULT_URL
       - PCS_SERVICEBUS_CONNSTRING
@@ -184,20 +183,27 @@ services:
       - PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX
       - PCS_APPINSIGHTS_NAME
       - PCS_APPINSIGHTS_INSTRUMENTATIONKEY
-  twinmodule:
+  twinmodulehost:
     image: ${REPOSITORY:-localhost:5000/azure-iiot-}opc-twin:host-${IMAGE_VERSION:-latest}
-    build: ./modules/opc-twin
+    build: 
+      context: .
+      dockerfile: ./modules/opc-twin/docker/${IMAGE_OS:-linux}/amd64/Dockerfile.host
     network_mode: "${HOST_NETWORK:-host}"
     cap_add:
       - NET_ADMIN
     environment:
       - PCS_KEYVAULT_URL
       - PCS_IOTHUB_CONNSTRING
+  twinmodule:
+    image: ${REPOSITORY:-localhost:5000/azure-iiot-}opc-twin:${IMAGE_VERSION:-latest}
+    build: 
+      context: .
+      dockerfile: ./modules/opc-twin/docker/${IMAGE_OS:-linux}/amd64/Dockerfile
   publishermodule:
     image: ${REPOSITORY:-localhost:5000/azure-iiot-}opc-publisher:${IMAGE_VERSION:-latest}
     build: 
-      context: ./modules/opc-publisher
-      dockerfile: ./docker/linux/amd64/Dockerfile
+      context: .
+      dockerfile: ./modules/opc-publisher/docker/${IMAGE_OS:-linux}/amd64/Dockerfile
     ports:
       - "62222:62222"
     environment:
@@ -205,33 +211,42 @@ services:
     command: --aa
   opcserver0:
     image: ${REPOSITORY:-localhost:5000/azure-iiot-}opc-ua-testing:${IMAGE_VERSION:-latest}
-    build: ./components/opc-ua
+    build: 
+      context: .
+      dockerfile: ./components/opc-ua/src/Microsoft.Azure.IIoT.OpcUa.Testing/docker/${IMAGE_OS:-linux}/amd64/Dockerfile
     hostname: opcserver0
     command: --sample -p 51210
     ports:
       - "51210:51210"
   opcserver1:
     image: ${REPOSITORY:-localhost:5000/azure-iiot-}opc-ua-testing:${IMAGE_VERSION:-latest}
-    build: ./components/opc-ua
+    build: 
+      context: .
+      dockerfile: ./components/opc-ua/src/Microsoft.Azure.IIoT.OpcUa.Testing/docker/${IMAGE_OS:-linux}/amd64/Dockerfile
     hostname: opcserver1
     command: --sample -p 51211
     ports:
       - "51211:51211"
   opcserver2:
     image: ${REPOSITORY:-localhost:5000/azure-iiot-}opc-ua-testing:${IMAGE_VERSION:-latest}
-    build: ./components/opc-ua
+    build: 
+      context: .
+      dockerfile: ./components/opc-ua/src/Microsoft.Azure.IIoT.OpcUa.Testing/docker/${IMAGE_OS:-linux}/amd64/Dockerfile
     hostname: opcserver2
     command: --sample -p 51212
     ports:
       - "51212:51212"
   twinconsole:
     image: ${REPOSITORY:-localhost:5000/azure-iiot-}opc-ua-api:${IMAGE_VERSION:-latest}
-    build: ./api
+    build: 
+      context: .
+      dockerfile: ./api/src/Microsoft.Azure.IIoT.OpcUa.Api/docker/${IMAGE_OS:-linux}/amd64/Dockerfile
     command: exit
     environment:
       - PCS_KEYVAULT_URL
       - PCS_TWIN_REGISTRY_URL=http://twinregistry:9042
       - PCS_TWIN_SERVICE_URL=http://twinservice:9041
+      - PCS_VAULT_SERVICE_URL=http://vaultservice:9044
       - PCS_WEBUI_AUTH_AAD_APPID
       - PCS_WEBUI_AUTH_AAD_TENANT
       - PCS_WEBUI_AUTH_AAD_INSTANCE
