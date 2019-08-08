@@ -138,11 +138,10 @@ if ([string]::IsNullOrEmpty($sourceTag)) {
 
 # Try get branch name
 $branchName = $env:BUILD_SOURCEBRANCH
-$isDeveloperBuild = $true
+$isDeveloperBuild = [string]::IsNullOrEmpty($env:RELEASE_BUILD)
 if (![string]::IsNullOrEmpty($branchName)) {
     if ($branchName.StartsWith("refs/heads/")) {
         $branchName = $branchName.Replace("refs/heads/", "")
-        $isDeveloperBuild = $branchName -ne "master"
     }
     else {
         Write-Warning "Error - '$($branchName)' not recognized as branch."
