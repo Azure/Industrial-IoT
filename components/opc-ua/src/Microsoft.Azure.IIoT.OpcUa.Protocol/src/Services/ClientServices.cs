@@ -218,7 +218,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 var nextServer = queue.Dequeue();
                 discoveryUrl = nextServer.Item1;
                 var sw = Stopwatch.StartNew();
-                _logger.Verbose("Discover endpoints at {discoveryUrl}...", discoveryUrl);
+                _logger.Debug("Try finding endpoints at {discoveryUrl}...", discoveryUrl);
                 try {
                     await Retry.Do(_logger, ct, () => DiscoverAsync(discoveryUrl,
                             localeIds, nextServer.Item2, 20000, visitedUris,
@@ -227,12 +227,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         kMaxDiscoveryAttempts - 1).ConfigureAwait(false);
                 }
                 catch (Exception ex) {
-                    _logger.Error(ex, "Error at {discoveryUrl} (after {elapsed}).",
-                        discoveryUrl, sw.Elapsed);
+                    _logger.Debug(ex, "Exception occurred duringing FindEndpoints at {discoveryUrl}.",
+                        discoveryUrl);
+                    _logger.Error("Could not find endpoints at {discoveryUrl} " +
+                        "due to {error} (after {elapsed}).",
+                        discoveryUrl, ex.Message, sw.Elapsed);
                     return new HashSet<DiscoveredEndpointModel>();
                 }
                 ct.ThrowIfCancellationRequested();
-                _logger.Verbose("Discovery at {discoveryUrl} completed in {elapsed}.",
+                _logger.Debug("Finding endpoints at {discoveryUrl} completed in {elapsed}.",
                     discoveryUrl, sw.Elapsed);
             }
             return results;
