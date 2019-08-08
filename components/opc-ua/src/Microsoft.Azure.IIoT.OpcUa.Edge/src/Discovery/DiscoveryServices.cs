@@ -51,6 +51,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
         internal DiscoveryRequest Request { get; set; } = new DiscoveryRequest();
 
         /// <summary>
+        /// Default idle time is 6 hours
+        /// </summary>
+        internal static TimeSpan DefaultIdleTime { get; set; } = TimeSpan.FromHours(6);
+
+        /// <summary>
         /// Create services
         /// </summary>
         /// <param name="client"></param>
@@ -146,11 +151,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
             List<ApplicationRegistrationModel> discovered;
             try {
                 discovered = await DiscoverServersAsync(request, ct);
-                if (discovered.Count == 0 && request.Mode == DiscoveryMode.Off) {
-                    // Optimize
-                    _logger.Debug("Discovery request ended with 0 results");
-                    return;
-                }
             }
             catch (Exception ex) {
                 diagnostics = ex;
@@ -231,7 +231,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                     if (!ct.IsCancellationRequested) {
                         GC.Collect();
                         var idle = request.Configuration.IdleTimeBetweenScans ??
-                            TimeSpan.FromMinutes(3);
+                            DefaultIdleTime;
                         if (idle.Ticks != 0) {
                             _logger.Debug("Idle for {idle}...", idle);
                             await Task.Delay(idle, ct);
