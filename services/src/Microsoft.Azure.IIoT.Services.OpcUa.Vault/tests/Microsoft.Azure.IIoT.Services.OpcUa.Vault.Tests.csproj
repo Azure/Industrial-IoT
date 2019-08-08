@@ -21,7 +21,7 @@
     <ProjectReference Include="..\src\Microsoft.Azure.IIoT.Services.OpcUa.Vault.csproj" />
   </ItemGroup>
   <Choose>
-    <When Condition="Exists('..\..\..\..\api')">
+    <When Condition="'$(PROJECT_BUILD)' == ''">
       <ItemGroup>
         <ProjectReference Include="..\..\..\..\api\src\Microsoft.Azure.IIoT.OpcUa.Api\src\Microsoft.Azure.IIoT.OpcUa.Api.csproj" />
       </ItemGroup>

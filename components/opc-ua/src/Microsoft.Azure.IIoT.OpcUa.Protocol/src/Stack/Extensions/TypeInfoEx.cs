@@ -47,8 +47,7 @@ namespace Opc.Ua {
             }
             if (!(value is Variant var)) {
                 if (typeInfo.BuiltInType == BuiltInType.Enumeration) {
-                    typeInfo = new TypeInfo(BuiltInType.Int32,
-                        typeInfo.ValueRank);
+                    typeInfo = new TypeInfo(BuiltInType.Int32, typeInfo.ValueRank);
                 }
                 var systemType = TypeInfo.GetSystemType(typeInfo.BuiltInType,
                     typeInfo.ValueRank);
@@ -77,11 +76,20 @@ namespace Opc.Ua {
                 var constructor = typeof(Variant).GetConstructor(new Type[] {
                     systemType
                 });
-                if (constructor != null) {
-                    var = (Variant)constructor.Invoke(new object[] { value });
+                try {
+                    try {
+                        if (constructor != null) {
+                            return (Variant)constructor.Invoke(new object[] { value });
+                        }
+                    }
+                    catch {
+
+                    }
+                    return new Variant(value, typeInfo);
                 }
-                else {
-                    var = new Variant(value, typeInfo);
+                catch (Exception ex) {
+                    throw new ArgumentException($"Cannot convert {value} " +
+                        $"({value.GetType()}/{systemType}/{typeInfo}) to Variant.", ex);
                 }
             }
             return var;

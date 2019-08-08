@@ -91,9 +91,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Servers {
                 _logger.Debug("Publisher module {moduleId} method call uncuccessful." +
                     " Fallback to UA server...", moduleId, error);
             }
-            
+
             using (var cts = new CancellationTokenSource()) {
-                // Try shortcut of finding it on default publisher edge module 
+                // Try shortcut of finding it on default publisher edge module
                 var edgeUri = new Uri($"opc.tcp://{kPublisherName}:{kPublisherPort}");
                 var edgeEndpoints = await _discovery.FindEndpointsAsync(edgeUri, null, cts.Token);
                 if (edgeEndpoints.Any()) {

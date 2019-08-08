@@ -164,8 +164,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             _logger.Debug("{session}: Session to {Url} created.", _sessionId, _url);
                         }
                         catch (Exception e) {
-                            _logger.Debug(e,
-                                "{session}: Failed to create session to {Url} - retry.", _sessionId, _url);
+                            _logger.Error("{session}: {message} creating session to {Url} - retry.",
+                                _sessionId, e.Message, _url);
+                            _logger.Debug(e, "{session}: Error connecting - retry.", _sessionId);
                             ex = e;
                         }
                     }
@@ -181,9 +182,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         }
                         catch (Exception e) {
                             ex = e;
-                            _logger.Error(e,
-                                "{session}: Failed to recreate session with {Url} - create new one.",
-                                _sessionId, _url);
+                            _logger.Error(
+                                "{session}: {message} while recreating session to {Url} - create new one.",
+                                _sessionId, e.Message, _url);
+                            _logger.Debug(e, "{session}: Error connecting - create new session.", _sessionId);
                             _session?.Close();
                             _session = null;
                         }
@@ -208,15 +210,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                     sre.StatusCode == StatusCodes.BadCommunicationError ||
                                     sre.StatusCode == StatusCodes.BadNotConnected) {
                                     if (retryCount < kMaxReconnectAttempts && Pending > 0) {
-                                        _logger.Error(e,
-                                            "{session}: Failed to reconnect session to {Url} - retry...",
-                                            _sessionId, _url);
+                                        _logger.Error(
+                                            "{session}: {message} while reconnecting session to {Url} - retry...",
+                                            _sessionId, sre.Message, _url);
                                         recreate = false;
                                         reconnect = true; // Try again
                                     }
                                 }
                             }
-                            _logger.Debug(e,"{session}: Failed to reconnect to {Url} - recreating session...",
+                            _logger.Debug(e,"{session}: Error reconnecting to {Url} - recreating session...",
                                 _sessionId, _url);
                         }
                     }
@@ -335,15 +337,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         switch (e) {
                             case TimeoutException te:
                             case ServerBusyException sb:
+                                _logger.Debug(e, "{session}: Server timeout error.", _sessionId);
                                 if (everSuccessful && operation.ShouldRetry(e)) {
-                                    _logger.Information(e,
-                                        "{session}: Server busy or timeout, try again later...", _sessionId);
+                                    _logger.Information("{session}: {error}, try again later...",
+                                        _sessionId, e.Message);
                                     _queue.Enqueue(priority, operation);
                                     operation = null;
                                 }
                                 else {
-                                    _logger.Error(e, "{session}: Service call timeout - fail operation.",
-                                        _sessionId);
+                                    _logger.Error("{session}: {error} - fail operation.", _sessionId, e.Message);
                                     operation.Fail(e);
                                     reconnect = operation is KeepAlive;
                                     operation = null;
@@ -352,15 +354,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             case ConnectionException cn:
                             case ProtocolException pe:
                             case CommunicationException ce:
+                                _logger.Debug(e, "{session}: Server communication error.", _sessionId);
                                 if (everSuccessful && operation.ShouldRetry(e)) {
-                                    _logger.Information(e, "{session}: Reconnect and try operation again...",
-                                        _sessionId);
+                                    _logger.Information(
+                                        "{session}: {error} - Reconnect and try operation again...",
+                                        _sessionId, e.Message);
                                     // Reconnect session
                                     reconnect = true;
                                 }
                                 else {
-                                    _logger.Error(e, "{session}: Server communication error - fail operation.",
-                                        _sessionId);
+                                    _logger.Error("{session}: {error} - fail operation.", _sessionId, e.Message);
                                     operation.Fail(e);
                                     reconnect = operation is KeepAlive;
                                     operation = null;
@@ -368,8 +371,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                 break;
                             default:
                                 // App error - fail and continue
-                                _logger.Debug(e, "{session}: Application error - fail operation.",
-                                    _sessionId);
+                                _logger.Debug(e, "{session}: Application error.", _sessionId);
+                                _logger.Error("{session}: {error} - fail operation.", _sessionId, e.Message);
                                 operation.Fail(e);
                                 reconnect = operation is KeepAlive;
                                 operation = null;
