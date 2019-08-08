@@ -28,6 +28,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
     using System.Diagnostics;
     using System.Threading;
     using Serilog;
+    using Serilog.Events;
 
     /// <summary>
     /// Module Process
@@ -130,7 +131,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
             builder.RegisterInstance(this)
                 .AsImplementedInterfaces().SingleInstance();
             // register logger
-            builder.RegisterLogger(LogEx.Console());
+            builder.RegisterLogger(LogEx.Console(LogEventLevel.Information));
 
             // Register module framework
             builder.RegisterModule<ModuleFramework>();
