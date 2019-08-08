@@ -15,6 +15,7 @@ services:
       - vaultservice
       - twinservice
       - historyservice
+      - twinwebui
     volumes:
       - /app:/app:ro
       - /logs:/logs:rw
@@ -176,3 +177,16 @@ services:
       - PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX
       - PCS_APPINSIGHTS_NAME
       - PCS_APPINSIGHTS_INSTRUMENTATIONKEY
+  twinwebui:
+    image: mcr.microsoft.com/iot/opc-twin-webui:latest
+    restart: always
+    command: npm start
+    environment:
+      - REACT_APP_PCS_AUTH_REQUIRED
+      - REACT_APP_PCS_AUTH_ISSUER
+      - REACT_APP_PCS_AUTH_AUDIENCE
+      - REACT_APP_PCS_WEBUI_AUTH_AAD_APPID
+      - REACT_APP_PCS_WEBUI_AUTH_AAD_AUTHORITY
+      - REACT_APP_PCS_WEBUI_AUTH_AAD_TENANT
+      - REACT_APP_PCS_TWIN_REGISTRY_URL=/registry/
+      - REACT_APP_PCS_TWIN_SERVICE_URL=/twin/
