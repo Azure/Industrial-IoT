@@ -107,6 +107,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Processor {
             // Register metrics logger
             builder.RegisterType<MetricLogger>()
                 .AsImplementedInterfaces().SingleInstance();
+
             // Now Monitor model upload notification using ...
             if (!config.UseFileNotificationHost) {
 

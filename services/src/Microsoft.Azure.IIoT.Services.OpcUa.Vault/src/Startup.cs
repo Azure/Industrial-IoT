@@ -28,6 +28,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Http.Auth;
     using Microsoft.Azure.IIoT.Http.Default;
+    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.KeyVault;
     using Microsoft.Azure.Services.AppAuthentication;
     using Microsoft.Extensions.Configuration;
@@ -43,7 +44,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
     using Swashbuckle.AspNetCore.Swagger;
     using System;
     using ILogger = Serilog.ILogger;
-    using Microsoft.Azure.IIoT.Diagnostics;
 
     /// <summary>
     /// Webservice startup

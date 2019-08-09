@@ -10,6 +10,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Alerting {
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Http.Ssl;
     using Microsoft.Azure.IIoT.Hub.Client;
+    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Messaging.Default;
     using Microsoft.Azure.IIoT.Messaging.ServiceBus.Services;
     using Microsoft.Azure.IIoT.Messaging.ServiceBus.Clients;
@@ -94,7 +95,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Alerting {
                 .AsImplementedInterfaces().SingleInstance();
 
             // register logger
-            builder.RegisterLogger(LogEx.Console());
+            builder.RegisterLogger(LogEx.ApplicationInsights(config, configuration));
+            // Register metrics logger
+            builder.RegisterType<MetricLogger>()
+                .AsImplementedInterfaces().SingleInstance();
 
             // Register http client module
             builder.RegisterModule<HttpClientModule>();
