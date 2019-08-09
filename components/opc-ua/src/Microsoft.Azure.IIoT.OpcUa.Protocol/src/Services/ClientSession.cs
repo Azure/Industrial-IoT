@@ -93,9 +93,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 // Unblock keep alives and retries.
                 _enqueueEvent.TrySetResult(true);
                 // Wait for processor to finish
-               // if (_processor.Status != TaskStatus.WaitingForActivation) {
-                    await Try.Async(() => _processor);
-                // }
+                await Try.Async(() => _processor);
                 _logger.Verbose("{session}: Processor closed.", _sessionId);
             }
             // Clear queue and cancel all remaining outstanding operations

@@ -4,21 +4,14 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
-    using Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Export;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Twin.Default;
-    using Microsoft.Azure.IIoT.Hub.Client;
-    using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
     using Microsoft.AspNetCore;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Mvc.Testing;
     using Autofac;
-    using System;
     using System.Net.Http;
-    using System.Text;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Startup class for tests
@@ -40,6 +33,21 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
 
             builder.RegisterType<JsonVariantEncoder>()
                 .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<MockHost>()
+                .AsImplementedInterfaces().SingleInstance();
+        }
+
+        public class MockHost : IHost {
+
+            /// <inheritdoc/>
+            public Task StartAsync() {
+                return Task.CompletedTask;
+            }
+
+            /// <inheritdoc/>
+            public Task StopAsync() {
+                return Task.CompletedTask;
+            }
         }
     }
 

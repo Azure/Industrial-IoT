@@ -17,6 +17,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures {
     using Serilog.Events;
     using System.Threading;
     using System.Security.Cryptography.X509Certificates;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Adds sample server as fixture to unit tests
@@ -95,7 +96,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures {
             }
             if (_client.IsValueCreated) {
                 Logger.Information("Disposing client...");
-                _client.Value.Dispose();
+                Task.Run(() => _client.Value.Dispose()).Wait();
                 Logger.Information("Client disposed - cleaning up client certificates...");
                 _config?.Dispose();
             }

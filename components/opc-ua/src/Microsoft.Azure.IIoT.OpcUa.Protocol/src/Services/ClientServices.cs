@@ -191,15 +191,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <inheritdoc/>
         public void Dispose() {
             if (!_cts.IsCancellationRequested) {
-                _cts.Cancel();
-                _timer.Dispose();
+                Try.Op(() => _cts.Cancel());
+                Try.Op(() => _timer.Dispose());
 
                 foreach (var client in _clients.Values) {
                     Try.Op(client.Dispose);
                 }
                 _clients.Clear();
             }
-            _cts.Dispose();
+            Try.Op(() => _cts.Dispose());
         }
 
         /// <inheritdoc/>
