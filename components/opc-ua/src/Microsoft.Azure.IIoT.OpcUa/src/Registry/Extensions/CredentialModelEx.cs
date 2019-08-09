@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
+    using Newtonsoft.Json.Linq;
 
     /// <summary>
     /// Credential model extensions
@@ -24,9 +25,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             if (model == null || that == null) {
                 return false;
             }
-            return
-                (that.Type ?? CredentialType.None) ==
-                    (model.Type ?? CredentialType.None);
+            if ((that.Type ?? CredentialType.None) !=
+                    (model.Type ?? CredentialType.None)) {
+                return false;
+            }
+            if (that.Value == model.Value) {
+                return true;
+            }
+            if (that.Value == null || model.Value == null) {
+                return false;
+            }
+            if (!JToken.DeepEquals(that.Value, model.Value)) {
+                return false;
+            }
+            return true;
         }
 
         /// <summary>

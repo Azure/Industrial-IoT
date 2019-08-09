@@ -141,7 +141,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Security.Services {
 
             var unsecure = mode.Equals(SecurityMode.None) || policy.Contains("None");
             if (unsecure) {
-                await SendEndpointAlertAsync(endpoint, "Unsecured endpoint found.");
+                await SendEndpointAlertAsync(endpoint, "Unsecured endpoint found.",
+                    $"SecurityMode: {mode}, SecurityProfile: {policy}");
                 _metrics.TrackEvent("endpointSecurityPolicyNone");
             }
 
@@ -149,23 +150,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Security.Services {
             var certEncoded = endpoint.Registration.Endpoint.Certificate;
             if (certEncoded == null && !unsecure) {
                 await SendEndpointAlertAsync(endpoint,
-                    "Secured endpoint without certificate found.");
+                    "Secure endpoint without certificate found.", "No Certificate");
                 _metrics.TrackEvent("endpointWithoutCertificate");
             }
             else {
                 using (var cert = new X509Certificate2(certEncoded)) {
                     if (cert.SubjectName.RawData.SequenceEqual(cert.IssuerName.RawData)) {
                         await SendEndpointAlertAsync(endpoint,
-                            "Secured endpoint with self-signed certificate found.");
-                        _metrics.TrackEvent("endpointWithSelfSignedCert");
+                            "Endpoint with self-signed certificate found.",
+                            $"Certificate is self signed by {cert.SubjectName.Name}");
                     }
-                    else if (cert.NotAfter < DateTime.UtcNow || cert.NotBefore > DateTime.UtcNow) {
+                    else if (cert.NotAfter < DateTime.UtcNow) {
                         await SendEndpointAlertAsync(endpoint,
-                            "Endpoint with expired certificate found.");
-                        _metrics.TrackEvent("endpointWithExpiredCert");
+                            "Endpoint has expired certificate.",
+                            $"Certificate expired {cert.NotAfter}");
+                    }
+                    else if (cert.NotBefore > DateTime.UtcNow) {
+                        await SendEndpointAlertAsync(endpoint,
+                            "Endpoint has certificate that is not yet valid.",
+                            $"Certificate is valid from {cert.NotBefore}");
                     }
                     else {
-                        _logger.Verbose("Endpoint certificate is valid.");
+                        _logger.Verbose("Application certificate is valid.");
                     }
                 }
             }
@@ -181,17 +187,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Security.Services {
             var certEncoded = application.Certificate;
             if (certEncoded == null) {
                 await SendApplicationAlertAsync(application,
-                    "Application without certificate found.");
+                    "Application without certificate found.", "No Certificate");
             }
             else {
                 using (var cert = new X509Certificate2(certEncoded)) {
                     if (cert.SubjectName.RawData.SequenceEqual(cert.IssuerName.RawData)) {
                         await SendApplicationAlertAsync(application,
-                            "Application with self-signed certificate found.");
+                            "Application with self-signed certificate found.",
+                            $"Certificate is self signed by {cert.SubjectName.Name}");
                     }
-                    else if (cert.NotAfter < DateTime.UtcNow || cert.NotBefore > DateTime.UtcNow) {
+                    else if (cert.NotAfter < DateTime.UtcNow) {
                         await SendApplicationAlertAsync(application,
-                            "Application with expired certificate found.");
+                            "Application has expired certificate.",
+                            $"Certificate expired {cert.NotAfter}");
+                    }
+                    else if (cert.NotBefore > DateTime.UtcNow) {
+                        await SendApplicationAlertAsync(application,
+                            "Application has certificate that is not yet valid.",
+                            $"Certificate is valid from {cert.NotBefore}");
                     }
                     else {
                         _logger.Verbose("Application certificate is valid.");
@@ -205,8 +218,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Security.Services {
         /// </summary>
         /// <param name="endpoint"></param>
         /// <param name="message"></param>
+        /// <param name="usedConfiguration"></param>
         /// <returns></returns>
-        private Task SendEndpointAlertAsync(EndpointInfoModel endpoint, string message) {
+        private Task SendEndpointAlertAsync(EndpointInfoModel endpoint,
+            string message, string usedConfiguration) {
 #if USE_SUPERVISOR_IDENTITY
             var deviceId = SupervisorModelEx.ParseDeviceId(
                 endpoint.Registration.SupervisorId, out var moduleId);
@@ -214,7 +229,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Security.Services {
             var deviceId = endpoint.Registration.Id;
             var moduleId = (string)null;
 #endif
-            return SendAlertAsync(deviceId, moduleId, message,
+            return SendAlertAsync(deviceId, moduleId, message, usedConfiguration,
                 FlattenToDict(endpoint.Registration));
         }
 
@@ -223,9 +238,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Security.Services {
         /// </summary>
         /// <param name="application"></param>
         /// <param name="message"></param>
+        /// <param name="usedConfiguration"></param>
         /// <returns></returns>
         private Task SendApplicationAlertAsync(ApplicationInfoModel application,
-            string message) {
+            string message, string usedConfiguration) {
 #if !USE_APPLICATION_IDENTITY
             var deviceId = SupervisorModelEx.ParseDeviceId(
                 application.SupervisorId, out var moduleId);
@@ -233,7 +249,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Security.Services {
             var deviceId = application.ApplicationId;
             var moduleId = (string)null;
 #endif
-            return SendAlertAsync(deviceId, moduleId, message,
+            return SendAlertAsync(deviceId, moduleId, message, usedConfiguration,
                 FlattenToDict(application));
         }
 
@@ -243,15 +259,30 @@ namespace Microsoft.Azure.IIoT.OpcUa.Security.Services {
         /// <param name="deviceId"></param>
         /// <param name="moduleId"></param>
         /// <param name="message"></param>
+        /// <param name="usedConfiguration"></param>
         /// <param name="properties"></param>
         /// <returns></returns>
         private async Task SendAlertAsync(string deviceId, string moduleId,
-            string message, IDictionary<string, string> properties) {
-            var securityInfoModel = new EndpointSecurityInfoModel {
+            string message, string usedConfiguration, IDictionary<string, string> properties) {
+            var alert = new SecurityAgentMessageModel {
+                AgentVersion  = "0.0.1",
+                AgentId= "e00dc5f5-feac-4c3e-87e2-93c16f010c00",
+                MessageSchemaVersion = "1.0",
                 Events = new List<SecurityEventModel> {
                     new SecurityEventModel {
+                        EventType = "Operational",
+                        Category = "Triggered",
+                        Name = "ConfigurationError",
+                        IsEmpty = false,
+                        PayloadSchemaVersion = "1.0",
+                        Id = "1111db0b-44fe-42e9-9cff-bbb2d8fd0000",
+                        TimestampLocal = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ssZ"),
+                        TimestampUTC = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ssZ"),
                         Payload = new List<SecurityEventPayloadModel> {
                             new SecurityEventPayloadModel {
+                                ConfigurationName = "EndpointSecurity",
+                                ErrorType = "NotOptimal",
+                                UsedConfiguration = usedConfiguration,
                                 Message = message,
                                 ExtraDetails = properties
                             }
@@ -266,9 +297,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Security.Services {
                         [SystemProperties.InterfaceId] =
                             "http://security.azureiot.com/SecurityAgent/1.0.0"
                     },
-                    Payload = JToken.FromObject(securityInfoModel)
+                    Payload = JToken.FromObject(alert)
                 });
-            _logger.Information("Endpoint alert sent to security center.");
+            _logger.Verbose("Security Agent Message {@alert} sent.", alert);
         }
 
         /// <summary>

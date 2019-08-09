@@ -297,6 +297,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     // Not set by user, but by config, so fake user desiring it.
                     desired.SiteId = consolidated.SiteId;
                 }
+                if (desired.LogLevel == null && consolidated.LogLevel != null) {
+                    // Not set by user, but reported, so set as desired
+                    desired.LogLevel = consolidated.LogLevel;
+                }
             }
 
             if (!onlyServerState) {

@@ -144,7 +144,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                         }
                     }
                     // Patch
-                    await _iothub.PatchAsync(registration.Patch(patched.ToSupervisorRegistration()), false, ct);
+                    await _iothub.PatchAsync(registration.Patch(
+                        patched.ToSupervisorRegistration()), false, ct);
                     return;
                 }
                 catch (ResourceOutOfDateException ex) {

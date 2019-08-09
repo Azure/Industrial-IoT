@@ -15,17 +15,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Security.Models {
         /// <summary>
         /// Event Type
         /// </summary>
-        public string EventType { get; set; } = "Operational";
+        public string EventType { get; set; }
 
         /// <summary>
         /// Category of the event
         /// </summary>
-        public string Category { get; set; } = "Triggered";
+        public string Category { get; set; }
 
         /// <summary>
         /// Name of the event
         /// </summary>
-        public string Name { get; set; } = "ConfigurationError";
+        public string Name { get; set; }
 
         /// <summary>
         /// Whether event is empty or not
@@ -35,22 +35,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Security.Models {
         /// <summary>
         /// Payload Schema Version
         /// </summary>
-        public string PayloadSchemaVersion { get; set; } = "1.0";
+        public string PayloadSchemaVersion { get; set; }
 
         /// <summary>
         /// Id of the event
         /// </summary>
-        public string Id { get; set; } = "1111db0b-44fe-42e9-9cff-bbb2d8fd0000";
+        public string Id { get; set; }
 
         /// <summary>
         /// TimestmapLocal
         /// </summary>
-        public string TimestampLocal { get; set; } = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ssZ");
+        public string TimestampLocal { get; set; }
 
         /// <summary>
         /// TimestampUTC
         /// </summary>
-        public string TimestampUTC { get; set; } = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ssZ");
+        public string TimestampUTC { get; set; }
 
         /// <summary>
         /// Payload
