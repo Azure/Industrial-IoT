@@ -22,8 +22,6 @@ Azure Industrial IoT manages OPC UA Application Certificates and Trust Lists of 
 
 ## Components
 
-[![Build Status](https://msazure.visualstudio.com/One/_apis/build/status/Custom/Azure_IOT/Industrial/Components/Industrial-IoT-CI?branchName=master)](https://msazure.visualstudio.com/One/_build/latest?definitionId=33971&branchName=master)
-
 [![Build Status](https://msazure.visualstudio.com/One/_apis/build/status/Custom/Azure_IOT/Industrial/Components/Azure.Industrial-IoT?branchName=master)](https://msazure.visualstudio.com/One/_build/latest?definitionId=86580&branchName=master)
 
 This repository includes the following Industrial IoT components:
