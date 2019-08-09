@@ -28,7 +28,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin {
         /// <inheritdoc/>
         public async Task<BrowseResultModel> NodeBrowseFirstAsync(
             string endpoint, BrowseRequestModel request) {
-            var result = await _client.NodeBrowseAsync(endpoint,
+            var result = await _client.NodeBrowseFirstAsync(endpoint,
                 Map<BrowseRequestApiModel>(request));
             return Map<BrowseResultModel>(result);
         }

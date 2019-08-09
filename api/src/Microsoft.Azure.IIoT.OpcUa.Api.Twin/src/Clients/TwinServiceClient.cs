@@ -48,7 +48,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task<BrowseResponseApiModel> NodeBrowseAsync(string endpointId,
+        public async Task<BrowseResponseApiModel> NodeBrowseFirstAsync(string endpointId,
             BrowseRequestApiModel content, CancellationToken ct) {
             if (string.IsNullOrEmpty(endpointId)) {
                 throw new ArgumentNullException(nameof(endpointId));
