@@ -5,6 +5,7 @@
 
 namespace Opc.Ua {
     using System;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Typeinfo extensions
@@ -46,6 +47,7 @@ namespace Opc.Ua {
                 value = typeInfo.GetDefaultValue();
             }
             if (!(value is Variant var)) {
+                var aex = new List<Exception>();
                 if (typeInfo.BuiltInType == BuiltInType.Enumeration) {
                     typeInfo = new TypeInfo(BuiltInType.Int32, typeInfo.ValueRank);
                 }
@@ -66,7 +68,8 @@ namespace Opc.Ua {
                         Array.Copy(boxed, array, boxed.Length);
                         value = array;
                     }
-                    catch {
+                    catch (Exception ex) {
+                        aex.Add(ex);
                         value = boxed;
                     }
                 }
@@ -77,19 +80,21 @@ namespace Opc.Ua {
                     systemType
                 });
                 try {
-                    try {
-                        if (constructor != null) {
-                            return (Variant)constructor.Invoke(new object[] { value });
-                        }
+                    if (constructor != null) {
+                        return (Variant)constructor.Invoke(new object[] { value });
                     }
-                    catch {
-
-                    }
+                }
+                catch (Exception ex) {
+                    aex.Add(ex);
+                }
+                try {
                     return new Variant(value, typeInfo);
                 }
                 catch (Exception ex) {
+                    aex.Add(ex);
                     throw new ArgumentException($"Cannot convert {value} " +
-                        $"({value.GetType()}/{systemType}/{typeInfo}) to Variant.", ex);
+                        $"({value.GetType()}/{systemType}/{typeInfo}) to Variant.",
+                        new AggregateException(aex));
                 }
             }
             return var;
