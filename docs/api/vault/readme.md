@@ -21,7 +21,7 @@ Azure Industrial IoT OPC UA Vault Service
 Information Access
 services.
 * Requests : Certificate request services.
-* Status : The status service.
+* Status : Status checks
 * TrustGroups : Trust group services.
 * TrustLists : Trust lists services.
 
@@ -62,6 +62,13 @@ GET /v2/certificates/{serialNumber}
 * `application/json`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="getissuercrlchain"></a>
 #### Get Issuer CA CRL chain.
 ```
@@ -86,6 +93,13 @@ GET /v2/certificates/{serialNumber}/crl
 ##### Produces
 
 * `application/json`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="distribution_resource"></a>
@@ -186,6 +200,13 @@ available.
 * `application/json`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="startnewkeypairrequest"></a>
 #### Create a certificate request with a new key pair.
 ```
@@ -225,6 +246,13 @@ Requires Writer or Manager role.
 * `application/json`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="finishnewkeypairrequest"></a>
 #### Fetch certificate request result.
 ```
@@ -257,6 +285,13 @@ Requires Writer role.
 ##### Produces
 
 * `application/json`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="queryrequests"></a>
@@ -300,6 +335,13 @@ available.  Use ListRequests to continue.
 * `application/json`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="startsigningrequest"></a>
 #### Create a certificate request with a certificate signing request (CSR).
 ```
@@ -339,6 +381,13 @@ Requires Writer or Manager role.
 * `application/json`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="finishsigningrequest"></a>
 #### Fetch signing request results.
 ```
@@ -372,6 +421,13 @@ Requires Writer role.
 * `application/json`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="getrequest"></a>
 #### Get a specific certificate request.
 ```
@@ -396,6 +452,13 @@ GET /v2/requests/{requestId}
 ##### Produces
 
 * `application/json`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="deleterequest"></a>
@@ -430,6 +493,13 @@ Requires Manager role.
 * `application/json`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="acceptrequest"></a>
 #### Cancel request
 ```
@@ -459,6 +529,13 @@ Requires Writer role.
 ##### Produces
 
 * `application/json`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="approverequest"></a>
@@ -501,6 +578,13 @@ Validates the request with the application database.
 * `application/json`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="rejectrequest"></a>
 #### Reject the certificate request.
 ```
@@ -533,13 +617,20 @@ Approver needs signing rights in KeyVault.
 * `application/json`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="status_resource"></a>
 ### Status
-The status service.
+Status checks
 
 
 <a name="getstatus"></a>
-#### Get the status.
+#### Return the service status in the form of the service status api model.
 ```
 GET /v2/status
 ```
@@ -596,6 +687,13 @@ issued certificates for.
 * `application/json`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="creategroup"></a>
 #### Create new sub-group of an existing group.
 ```
@@ -634,6 +732,13 @@ Requires manager role.
 * `application/json`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="createroot"></a>
 #### Create new root group.
 ```
@@ -670,6 +775,13 @@ Requires manager role.
 ##### Produces
 
 * `application/json`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="updategroup"></a>
@@ -713,6 +825,13 @@ Requires manager role.
 * `application/json`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="getgroup"></a>
 #### Get group information.
 ```
@@ -744,6 +863,13 @@ issued certificates for.
 ##### Produces
 
 * `application/json`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="deletegroup"></a>
@@ -778,6 +904,13 @@ Requires manager role.
 * `application/json`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="renewissuercertificate"></a>
 #### Renew a group CA Certificate.
 ```
@@ -802,6 +935,13 @@ POST /v2/groups/{groupId}/renew
 ##### Produces
 
 * `application/json`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="trustlists_resource"></a>
@@ -842,6 +982,13 @@ applied trust configuration.
 * `application/json`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="addtrustrelationship"></a>
 #### Add trust relationship
 ```
@@ -874,6 +1021,13 @@ of application, groups, or endpoints.
 * `application/json`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="removetrustrelationship"></a>
 #### Remove a trust relationship
 ```
@@ -904,6 +1058,13 @@ of application, groups, or endpoints.
 ##### Produces
 
 * `application/json`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 

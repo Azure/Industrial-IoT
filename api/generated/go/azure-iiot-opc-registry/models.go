@@ -21,45 +21,6 @@ import (
 // The package's fully qualified name.
 const fqdn = "go/azure-iiot-opc-registry"
 
-        // ApplicationState enumerates the values for application state.
-    type ApplicationState string
-
-    const (
-                // ApplicationStateApproved ...
-        ApplicationStateApproved ApplicationState = "Approved"
-                // ApplicationStateNew ...
-        ApplicationStateNew ApplicationState = "New"
-                // ApplicationStateRejected ...
-        ApplicationStateRejected ApplicationState = "Rejected"
-            )
-    // PossibleApplicationStateValues returns an array of possible values for the ApplicationState const type.
-    func PossibleApplicationStateValues() []ApplicationState {
-        return []ApplicationState{ApplicationStateApproved,ApplicationStateNew,ApplicationStateRejected}
-    }
-
-        // ApplicationStateMask enumerates the values for application state
-        // mask.
-    type ApplicationStateMask string
-
-    const (
-                // ApplicationStateMaskAny ...
-        ApplicationStateMaskAny ApplicationStateMask = "Any"
-                // ApplicationStateMaskApproved ...
-        ApplicationStateMaskApproved ApplicationStateMask = "Approved"
-                // ApplicationStateMaskDeleted ...
-        ApplicationStateMaskDeleted ApplicationStateMask = "Deleted"
-                // ApplicationStateMaskNew ...
-        ApplicationStateMaskNew ApplicationStateMask = "New"
-                // ApplicationStateMaskRejected ...
-        ApplicationStateMaskRejected ApplicationStateMask = "Rejected"
-                // ApplicationStateMaskUnregistered ...
-        ApplicationStateMaskUnregistered ApplicationStateMask = "Unregistered"
-            )
-    // PossibleApplicationStateMaskValues returns an array of possible values for the ApplicationStateMask const type.
-    func PossibleApplicationStateMaskValues() []ApplicationStateMask {
-        return []ApplicationStateMask{ApplicationStateMaskAny,ApplicationStateMaskApproved,ApplicationStateMaskDeleted,ApplicationStateMaskNew,ApplicationStateMaskRejected,ApplicationStateMaskUnregistered}
-    }
-
         // ApplicationType enumerates the values for application type.
     type ApplicationType string
 
@@ -232,8 +193,6 @@ const fqdn = "go/azure-iiot-opc-registry"
 
             // ApplicationInfoAPIModel application info model
             type ApplicationInfoAPIModel struct {
-            // State - State. Possible values include: 'ApplicationStateNew', 'ApplicationStateApproved', 'ApplicationStateRejected'
-            State ApplicationState `json:"state,omitempty"`
             // ApplicationID - Unique application id
             ApplicationID *string `json:"applicationId,omitempty"`
             // ApplicationType - Type of application. Possible values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
@@ -268,8 +227,6 @@ const fqdn = "go/azure-iiot-opc-registry"
             NotSeenSince *date.Time `json:"notSeenSince,omitempty"`
             // Created - Created
             Created *RegistryOperationAPIModel `json:"created,omitempty"`
-            // Approved - Approved
-            Approved *RegistryOperationAPIModel `json:"approved,omitempty"`
             // Updated - Updated
             Updated *RegistryOperationAPIModel `json:"updated,omitempty"`
             }
@@ -277,9 +234,6 @@ const fqdn = "go/azure-iiot-opc-registry"
         // MarshalJSON is the custom marshaler for ApplicationInfoAPIModel.
         func (aiam ApplicationInfoAPIModel)MarshalJSON() ([]byte, error){
         objectMap := make(map[string]interface{})
-                if(aiam.State != "") {
-                objectMap["state"] = aiam.State
-                }
                 if(aiam.ApplicationID != nil) {
                 objectMap["applicationId"] = aiam.ApplicationID
                 }
@@ -330,9 +284,6 @@ const fqdn = "go/azure-iiot-opc-registry"
                 }
                 if(aiam.Created != nil) {
                 objectMap["created"] = aiam.Created
-                }
-                if(aiam.Approved != nil) {
-                objectMap["approved"] = aiam.Approved
                 }
                 if(aiam.Updated != nil) {
                 objectMap["updated"] = aiam.Updated
@@ -549,8 +500,6 @@ const fqdn = "go/azure-iiot-opc-registry"
             GatewayServerURI *string `json:"gatewayServerUri,omitempty"`
             // SiteOrSupervisorID - Supervisor or site the application belongs to.
             SiteOrSupervisorID *string `json:"siteOrSupervisorId,omitempty"`
-            // State - State of application. Possible values include: 'ApplicationStateMaskAny', 'ApplicationStateMaskNew', 'ApplicationStateMaskApproved', 'ApplicationStateMaskRejected', 'ApplicationStateMaskUnregistered', 'ApplicationStateMaskDeleted'
-            State ApplicationStateMask `json:"state,omitempty"`
             // IncludeNotSeenSince - Whether to include apps that were soft deleted
             IncludeNotSeenSince *bool `json:"includeNotSeenSince,omitempty"`
             }

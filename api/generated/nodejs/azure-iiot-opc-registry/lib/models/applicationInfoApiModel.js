@@ -17,8 +17,6 @@
 class ApplicationInfoApiModel {
   /**
    * Create a ApplicationInfoApiModel.
-   * @property {string} [state] State. Possible values include: 'New',
-   * 'Approved', 'Rejected'. Default value: 'New' .
    * @property {string} [applicationId] Unique application id
    * @property {string} [applicationType] Type of application. Possible values
    * include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
@@ -43,9 +41,6 @@ class ApplicationInfoApiModel {
    * @property {object} [created] Created
    * @property {string} [created.authorityId] Operation User
    * @property {date} [created.time] Operation time
-   * @property {object} [approved] Approved
-   * @property {string} [approved.authorityId] Operation User
-   * @property {date} [approved.time] Operation time
    * @property {object} [updated] Updated
    * @property {string} [updated.authorityId] Operation User
    * @property {date} [updated.time] Operation time
@@ -67,15 +62,6 @@ class ApplicationInfoApiModel {
         name: 'Composite',
         className: 'ApplicationInfoApiModel',
         modelProperties: {
-          state: {
-            required: false,
-            serializedName: 'state',
-            defaultValue: 'New',
-            type: {
-              name: 'Enum',
-              allowedValues: [ 'New', 'Approved', 'Rejected' ]
-            }
-          },
           applicationId: {
             required: false,
             serializedName: 'applicationId',
@@ -229,14 +215,6 @@ class ApplicationInfoApiModel {
           created: {
             required: false,
             serializedName: 'created',
-            type: {
-              name: 'Composite',
-              className: 'RegistryOperationApiModel'
-            }
-          },
-          approved: {
-            required: false,
-            serializedName: 'approved',
             type: {
               name: 'Composite',
               className: 'RegistryOperationApiModel'

@@ -419,142 +419,6 @@ export default class AzureOpcRegistryClient extends ServiceClient {
 
 
   /**
-   * @summary Approve a new application.
-   *
-   * A manager can approve a new application or force an application
-   * from any state.
-   * After approval the application is in the 'Approved' state.
-   * Requires Manager role.
-   *
-   * @param {string} applicationId The application id
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {boolean} [options.force] optional, force application in new state
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
-   *
-   * @reject {Error|ServiceError} - The error object.
-   */
-  approveApplicationWithHttpOperationResponse(applicationId: string, options?: { force? : boolean, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<void>>;
-
-  /**
-   * @summary Approve a new application.
-   *
-   * A manager can approve a new application or force an application
-   * from any state.
-   * After approval the application is in the 'Approved' state.
-   * Requires Manager role.
-   *
-   * @param {string} applicationId The application id
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {boolean} [options.force] optional, force application in new state
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {ServiceCallback} [optionalCallback] - The optional callback.
-   *
-   * @returns {ServiceCallback|Promise} If a callback was passed as the last
-   * parameter then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned.
-   *
-   *                      @resolve {null} - The deserialized result object.
-   *
-   *                      @reject {Error|ServiceError} - The error object.
-   *
-   * {ServiceCallback} optionalCallback(err, result, request, response)
-   *
-   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {null} [result]   - The deserialized result object if an error did not occur.
-   *
-   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
-   */
-  approveApplication(applicationId: string, options?: { force? : boolean, customHeaders? : { [headerName: string]: string; } }): Promise<void>;
-  approveApplication(applicationId: string, callback: ServiceCallback<void>): void;
-  approveApplication(applicationId: string, options: { force? : boolean, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
-
-
-  /**
-   * @summary Reject a new application.
-   *
-   * A manager can approve a new application or force an application
-   * from any state.
-   * After approval the application is in the 'Rejected' state.
-   * Requires Manager role.
-   *
-   * @param {string} applicationId The application id
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {boolean} [options.force] optional, force application in new state
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
-   *
-   * @reject {Error|ServiceError} - The error object.
-   */
-  rejectApplicationWithHttpOperationResponse(applicationId: string, options?: { force? : boolean, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<void>>;
-
-  /**
-   * @summary Reject a new application.
-   *
-   * A manager can approve a new application or force an application
-   * from any state.
-   * After approval the application is in the 'Rejected' state.
-   * Requires Manager role.
-   *
-   * @param {string} applicationId The application id
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {boolean} [options.force] optional, force application in new state
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {ServiceCallback} [optionalCallback] - The optional callback.
-   *
-   * @returns {ServiceCallback|Promise} If a callback was passed as the last
-   * parameter then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned.
-   *
-   *                      @resolve {null} - The deserialized result object.
-   *
-   *                      @reject {Error|ServiceError} - The error object.
-   *
-   * {ServiceCallback} optionalCallback(err, result, request, response)
-   *
-   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {null} [result]   - The deserialized result object if an error did not occur.
-   *
-   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
-   */
-  rejectApplication(applicationId: string, options?: { force? : boolean, customHeaders? : { [headerName: string]: string; } }): Promise<void>;
-  rejectApplication(applicationId: string, callback: ServiceCallback<void>): void;
-  rejectApplication(applicationId: string, options: { force? : boolean, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
-
-
-  /**
    * @summary Disable an enabled application.
    *
    * A manager can disable an application.
@@ -1167,9 +1031,6 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    * @param {string} [query.siteOrSupervisorId] Supervisor or site the
    * application belongs to.
    *
-   * @param {string} [query.state] State of application. Possible values include:
-   * 'Any', 'New', 'Approved', 'Rejected', 'Unregistered', 'Deleted'
-   *
    * @param {boolean} [query.includeNotSeenSince] Whether to include apps that
    * were soft deleted
    *
@@ -1218,9 +1079,6 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {string} [query.siteOrSupervisorId] Supervisor or site the
    * application belongs to.
-   *
-   * @param {string} [query.state] State of application. Possible values include:
-   * 'Any', 'New', 'Approved', 'Rejected', 'Unregistered', 'Deleted'
    *
    * @param {boolean} [query.includeNotSeenSince] Whether to include apps that
    * were soft deleted
@@ -1291,9 +1149,6 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    * @param {string} [query.siteOrSupervisorId] Supervisor or site the
    * application belongs to.
    *
-   * @param {string} [query.state] State of application. Possible values include:
-   * 'Any', 'New', 'Approved', 'Rejected', 'Unregistered', 'Deleted'
-   *
    * @param {boolean} [query.includeNotSeenSince] Whether to include apps that
    * were soft deleted
    *
@@ -1343,9 +1198,6 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {string} [query.siteOrSupervisorId] Supervisor or site the
    * application belongs to.
-   *
-   * @param {string} [query.state] State of application. Possible values include:
-   * 'Any', 'New', 'Approved', 'Rejected', 'Unregistered', 'Deleted'
    *
    * @param {boolean} [query.includeNotSeenSince] Whether to include apps that
    * were soft deleted

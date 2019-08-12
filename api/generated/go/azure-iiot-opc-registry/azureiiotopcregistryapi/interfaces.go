@@ -17,7 +17,6 @@ import (
         // BaseClientAPI contains the set of methods on the BaseClient type.
         type BaseClientAPI interface {
             ActivateEndpoint(ctx context.Context, endpointID string) (result autorest.Response, err error)
-            ApproveApplication(ctx context.Context, applicationID string, force *bool) (result autorest.Response, err error)
             CreateApplication(ctx context.Context, request azureiiotopcregistry.ApplicationRegistrationRequestAPIModel) (result azureiiotopcregistry.ApplicationRegistrationResponseAPIModel, err error)
             DeactivateEndpoint(ctx context.Context, endpointID string) (result autorest.Response, err error)
             DeleteAllDisabledApplications(ctx context.Context, notSeenFor string) (result autorest.Response, err error)
@@ -42,7 +41,6 @@ import (
             QueryEndpoints(ctx context.Context, query azureiiotopcregistry.EndpointRegistrationQueryAPIModel, onlyServerState *bool, pageSize *int32) (result azureiiotopcregistry.EndpointInfoListAPIModel, err error)
             QuerySupervisors(ctx context.Context, query azureiiotopcregistry.SupervisorQueryAPIModel, onlyServerState *bool, pageSize *int32) (result azureiiotopcregistry.SupervisorListAPIModel, err error)
             RegisterServer(ctx context.Context, request azureiiotopcregistry.ServerRegistrationRequestAPIModel) (result autorest.Response, err error)
-            RejectApplication(ctx context.Context, applicationID string, force *bool) (result autorest.Response, err error)
             ResetSupervisor(ctx context.Context, supervisorID string) (result autorest.Response, err error)
             UpdateApplicationRegistration(ctx context.Context, applicationID string, request azureiiotopcregistry.ApplicationRegistrationUpdateAPIModel) (result autorest.Response, err error)
             UpdateEndpoint(ctx context.Context, endpointID string, request azureiiotopcregistry.EndpointRegistrationUpdateAPIModel) (result autorest.Response, err error)

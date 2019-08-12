@@ -153,10 +153,6 @@ export interface RegistryOperationApiModel {
  */
 export interface ApplicationInfoApiModel {
   /**
-   * State. Possible values include: 'New', 'Approved', 'Rejected'
-   */
-  state?: string;
-  /**
    * Unique application id
    */
   applicationId?: string;
@@ -225,10 +221,6 @@ export interface ApplicationInfoApiModel {
    * Created
    */
   created?: RegistryOperationApiModel;
-  /**
-   * Approved
-   */
-  approved?: RegistryOperationApiModel;
   /**
    * Updated
    */
@@ -537,11 +529,6 @@ export interface ApplicationRegistrationQueryApiModel {
    * Supervisor or site the application belongs to.
    */
   siteOrSupervisorId?: string;
-  /**
-   * State of application. Possible values include: 'Any', 'New', 'Approved', 'Rejected',
-   * 'Unregistered', 'Deleted'
-   */
-  state?: string;
   /**
    * Whether to include apps that were soft deleted
    */

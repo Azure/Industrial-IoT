@@ -52,7 +52,14 @@
               "$ref": "#/definitions/HistoryUpdateResponseApiModel"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/delete/{endpointId}/values": {
@@ -97,7 +104,14 @@
               "$ref": "#/definitions/HistoryUpdateResponseApiModel"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/delete/{endpointId}/values/modified": {
@@ -142,7 +156,14 @@
               "$ref": "#/definitions/HistoryUpdateResponseApiModel"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/delete/{endpointId}/events": {
@@ -187,7 +208,14 @@
               "$ref": "#/definitions/HistoryUpdateResponseApiModel"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/history/read/{endpointId}": {
@@ -232,7 +260,14 @@
               "$ref": "#/definitions/HistoryReadResponseApiModel[JToken]"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/history/read/{endpointId}/next": {
@@ -277,7 +312,14 @@
               "$ref": "#/definitions/HistoryReadNextResponseApiModel[JToken]"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/history/update/{endpointId}": {
@@ -322,7 +364,14 @@
               "$ref": "#/definitions/HistoryUpdateResponseApiModel"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/insert/{endpointId}/values": {
@@ -367,7 +416,14 @@
               "$ref": "#/definitions/HistoryUpdateResponseApiModel"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/insert/{endpointId}/events": {
@@ -412,7 +468,14 @@
               "$ref": "#/definitions/HistoryUpdateResponseApiModel"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/read/{endpointId}/events": {
@@ -457,7 +520,14 @@
               "$ref": "#/definitions/HistoryReadResponseApiModel[HistoricEventApiModel[]]"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/read/{endpointId}/events/next": {
@@ -502,7 +572,14 @@
               "$ref": "#/definitions/HistoryReadNextResponseApiModel[HistoricEventApiModel[]]"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/read/{endpointId}/values": {
@@ -547,7 +624,14 @@
               "$ref": "#/definitions/HistoryReadResponseApiModel[HistoricValueApiModel[]]"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/read/{endpointId}/values/pick": {
@@ -592,7 +676,14 @@
               "$ref": "#/definitions/HistoryReadResponseApiModel[HistoricValueApiModel[]]"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/read/{endpointId}/values/processed": {
@@ -637,7 +728,14 @@
               "$ref": "#/definitions/HistoryReadResponseApiModel[HistoricValueApiModel[]]"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/read/{endpointId}/values/modified": {
@@ -682,7 +780,14 @@
               "$ref": "#/definitions/HistoryReadResponseApiModel[HistoricValueApiModel[]]"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/read/{endpointId}/values/next": {
@@ -727,7 +832,14 @@
               "$ref": "#/definitions/HistoryReadNextResponseApiModel[HistoricValueApiModel[]]"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/replace/{endpointId}/values": {
@@ -772,7 +884,14 @@
               "$ref": "#/definitions/HistoryUpdateResponseApiModel"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/replace/{endpointId}/events": {
@@ -817,7 +936,14 @@
               "$ref": "#/definitions/HistoryUpdateResponseApiModel"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/status": {
@@ -1979,6 +2105,17 @@
           "readOnly": true
         }
       }
+    }
+  },
+  "securityDefinitions": {
+    "oauth2": {
+      "flow": "implicit",
+      "authorizationUrl": "https://login.microsoftonline.com/6e660ce4-d51a-4585-80c6-58035e212354/oauth2/authorize",
+      "scopes": {
+        "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication": "Access http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication operations"
+      },
+      "type": "oauth2",
+      "description": "Implicit oauth2 token flow."
     }
   },
   "tags": [

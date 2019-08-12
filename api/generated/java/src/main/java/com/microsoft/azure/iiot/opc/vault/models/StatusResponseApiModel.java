@@ -18,13 +18,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class StatusResponseApiModel {
     /**
-     * Service name.
+     * Name of this service.
      */
     @JsonProperty(value = "name")
     private String name;
 
     /**
-     * Status.
+     * Operational status.
      */
     @JsonProperty(value = "status")
     private String status;
@@ -36,13 +36,13 @@ public class StatusResponseApiModel {
     private String currentTime;
 
     /**
-     * Service start time.
+     * Start time of service.
      */
     @JsonProperty(value = "startTime", access = JsonProperty.Access.WRITE_ONLY)
     private String startTime;
 
     /**
-     * Uptime.
+     * Up time of service.
      */
     @JsonProperty(value = "upTime", access = JsonProperty.Access.WRITE_ONLY)
     private Long upTime;
@@ -68,13 +68,13 @@ public class StatusResponseApiModel {
     private Map<String, String> dependencies;
 
     /**
-     * Meta data.
+     * Optional meta data.
      */
     @JsonProperty(value = "$metadata", access = JsonProperty.Access.WRITE_ONLY)
     private Map<String, String> metadata;
 
     /**
-     * Get service name.
+     * Get name of this service.
      *
      * @return the name value
      */
@@ -83,7 +83,7 @@ public class StatusResponseApiModel {
     }
 
     /**
-     * Set service name.
+     * Set name of this service.
      *
      * @param name the name value to set
      * @return the StatusResponseApiModel object itself.
@@ -94,7 +94,7 @@ public class StatusResponseApiModel {
     }
 
     /**
-     * Get status.
+     * Get operational status.
      *
      * @return the status value
      */
@@ -103,7 +103,7 @@ public class StatusResponseApiModel {
     }
 
     /**
-     * Set status.
+     * Set operational status.
      *
      * @param status the status value to set
      * @return the StatusResponseApiModel object itself.
@@ -123,7 +123,7 @@ public class StatusResponseApiModel {
     }
 
     /**
-     * Get service start time.
+     * Get start time of service.
      *
      * @return the startTime value
      */
@@ -132,7 +132,7 @@ public class StatusResponseApiModel {
     }
 
     /**
-     * Get uptime.
+     * Get up time of service.
      *
      * @return the upTime value
      */
@@ -170,7 +170,7 @@ public class StatusResponseApiModel {
     }
 
     /**
-     * Get meta data.
+     * Get optional meta data.
      *
      * @return the metadata value
      */

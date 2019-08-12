@@ -13,7 +13,6 @@ Application info model
 |**applicationName**  <br>*optional*|Default name of application|string|
 |**applicationType**  <br>*optional*|Type of application  <br>**Example** : `"Server"`|enum (Server, Client, ClientAndServer, DiscoveryServer)|
 |**applicationUri**  <br>*optional*|Unique application uri|string|
-|**approved**  <br>*optional*|Approved|[RegistryOperationApiModel](definitions.md#registryoperationapimodel)|
 |**capabilities**  <br>*optional*|The capabilities advertised by the server.  <br>**Example** : `"LDS"`|< string > array|
 |**certificate**  <br>*optional*|Application public cert  <br>**Pattern** : `"^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==\|[A-Za-z0-9+/]{3}=)?$"`|string (byte)|
 |**created**  <br>*optional*|Created|[RegistryOperationApiModel](definitions.md#registryoperationapimodel)|
@@ -26,7 +25,6 @@ Application info model
 |**notSeenSince**  <br>*optional*|Last time application was seen|string (date-time)|
 |**productUri**  <br>*optional*|Product uri|string|
 |**siteId**  <br>*optional*|Site of the application  <br>**Example** : `"productionlineA"`|string|
-|**state**  <br>*optional*|State  <br>**Default** : `"New"`|enum (New, Approved, Rejected)|
 |**supervisorId**  <br>*optional*|Supervisor having registered the application|string|
 |**updated**  <br>*optional*|Updated|[RegistryOperationApiModel](definitions.md#registryoperationapimodel)|
 
@@ -110,7 +108,6 @@ Application information
 |**locale**  <br>*optional*|Locale of application name - default is "en"|string|
 |**productUri**  <br>*optional*|Product uri|string|
 |**siteOrSupervisorId**  <br>*optional*|Supervisor or site the application belongs to.|string|
-|**state**  <br>*optional*|State of application|enum (Any, New, Approved, Rejected, Unregistered, Deleted)|
 
 
 <a name="applicationregistrationrequestapimodel"></a>

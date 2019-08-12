@@ -276,18 +276,6 @@ export const ApplicationInfoApiModel: msRest.CompositeMapper = {
     name: "Composite",
     className: "ApplicationInfoApiModel",
     modelProperties: {
-      state: {
-        serializedName: "state",
-        defaultValue: 'New',
-        type: {
-          name: "Enum",
-          allowedValues: [
-            "New",
-            "Approved",
-            "Rejected"
-          ]
-        }
-      },
       applicationId: {
         serializedName: "applicationId",
         type: {
@@ -421,13 +409,6 @@ export const ApplicationInfoApiModel: msRest.CompositeMapper = {
       },
       created: {
         serializedName: "created",
-        type: {
-          name: "Composite",
-          className: "RegistryOperationApiModel"
-        }
-      },
-      approved: {
-        serializedName: "approved",
         type: {
           name: "Composite",
           className: "RegistryOperationApiModel"
@@ -1014,20 +995,6 @@ export const ApplicationRegistrationQueryApiModel: msRest.CompositeMapper = {
         serializedName: "siteOrSupervisorId",
         type: {
           name: "String"
-        }
-      },
-      state: {
-        serializedName: "state",
-        type: {
-          name: "Enum",
-          allowedValues: [
-            "Any",
-            "New",
-            "Approved",
-            "Rejected",
-            "Unregistered",
-            "Deleted"
-          ]
         }
       },
       includeNotSeenSince: {

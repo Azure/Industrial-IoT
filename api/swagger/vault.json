@@ -38,6 +38,13 @@
             }
           }
         },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ],
         "x-ms-pageable": {
           "nextLinkName": "nextPageLink"
         }
@@ -70,7 +77,14 @@
               "$ref": "#/definitions/X509CrlChainApiModel"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/issuer/{serialNumber}": {
@@ -162,7 +176,14 @@
               "$ref": "#/definitions/StartSigningRequestResponseApiModel"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/requests/sign/{requestId}": {
@@ -193,7 +214,14 @@
               "$ref": "#/definitions/FinishSigningRequestResponseApiModel"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/requests/keypair": {
@@ -231,7 +259,14 @@
               "$ref": "#/definitions/StartNewKeyPairRequestResponseApiModel"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/requests/keypair/{requestId}": {
@@ -262,7 +297,14 @@
               "$ref": "#/definitions/FinishNewKeyPairRequestResponseApiModel"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/requests/{requestId}/approve": {
@@ -290,7 +332,14 @@
           "200": {
             "description": "Success"
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/requests/{requestId}/reject": {
@@ -318,7 +367,14 @@
           "200": {
             "description": "Success"
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/requests/{requestId}/accept": {
@@ -346,7 +402,14 @@
           "200": {
             "description": "Success"
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/requests/{requestId}": {
@@ -376,7 +439,14 @@
               "$ref": "#/definitions/CertificateRequestRecordApiModel"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       },
       "delete": {
         "tags": [
@@ -402,7 +472,14 @@
           "200": {
             "description": "Success"
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/requests/query": {
@@ -448,7 +525,14 @@
               "$ref": "#/definitions/CertificateRequestQueryResponseApiModel"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/requests": {
@@ -488,6 +572,13 @@
             }
           }
         },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ],
         "x-ms-pageable": {
           "nextLinkName": "nextPageLink"
         }
@@ -498,7 +589,7 @@
         "tags": [
           "Status"
         ],
-        "summary": "Get the status.",
+        "summary": "Return the service status in the form of the service status\r\napi model.",
         "operationId": "GetStatus",
         "consumes": [],
         "produces": [
@@ -552,6 +643,13 @@
             }
           }
         },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ],
         "x-ms-pageable": {
           "nextLinkName": "nextPageLink"
         }
@@ -590,7 +688,14 @@
               "$ref": "#/definitions/TrustGroupRegistrationResponseApiModel"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/groups/{groupId}": {
@@ -621,7 +726,14 @@
               "$ref": "#/definitions/TrustGroupRegistrationApiModel"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       },
       "post": {
         "tags": [
@@ -661,7 +773,14 @@
           "200": {
             "description": "Success"
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       },
       "delete": {
         "tags": [
@@ -687,7 +806,14 @@
           "200": {
             "description": "Success"
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/groups/root": {
@@ -725,7 +851,14 @@
               "$ref": "#/definitions/TrustGroupRegistrationResponseApiModel"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/groups/{groupId}/renew": {
@@ -752,7 +885,14 @@
           "200": {
             "description": "Success"
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/trustlists/{entityId}/{trustedEntityId}": {
@@ -787,7 +927,14 @@
           "200": {
             "description": "Success"
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/trustlists/{entityId}": {
@@ -834,6 +981,13 @@
             }
           }
         },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ],
         "x-ms-pageable": {
           "nextLinkName": "nextPageLink"
         }
@@ -871,7 +1025,14 @@
           "200": {
             "description": "Success"
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     }
   },
@@ -1294,11 +1455,11 @@
       "type": "object",
       "properties": {
         "name": {
-          "description": "Service name",
+          "description": "Name of this service",
           "type": "string"
         },
         "status": {
-          "description": "Status",
+          "description": "Operational status",
           "type": "string"
         },
         "currentTime": {
@@ -1307,13 +1468,13 @@
           "readOnly": true
         },
         "startTime": {
-          "description": "Service start time",
+          "description": "Start time of service",
           "type": "string",
           "readOnly": true
         },
         "upTime": {
           "format": "int64",
-          "description": "Uptime",
+          "description": "Up time of service",
           "type": "integer",
           "readOnly": true
         },
@@ -1339,7 +1500,7 @@
           "readOnly": true
         },
         "$metadata": {
-          "description": "Meta data",
+          "description": "Optional meta data.",
           "type": "object",
           "additionalProperties": {
             "type": "string"
@@ -1668,6 +1829,17 @@
       }
     }
   },
+  "securityDefinitions": {
+    "oauth2": {
+      "flow": "implicit",
+      "authorizationUrl": "https://login.microsoftonline.com/6e660ce4-d51a-4585-80c6-58035e212354/oauth2/authorize",
+      "scopes": {
+        "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication": "Access http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication operations"
+      },
+      "type": "oauth2",
+      "description": "Implicit oauth2 token flow."
+    }
+  },
   "tags": [
     {
       "name": "Certificates",
@@ -1683,7 +1855,7 @@
     },
     {
       "name": "Status",
-      "description": "The status service."
+      "description": "Status checks"
     },
     {
       "name": "TrustGroups",

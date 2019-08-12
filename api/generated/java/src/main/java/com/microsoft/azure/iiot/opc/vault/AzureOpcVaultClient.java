@@ -905,7 +905,8 @@ public interface AzureOpcVaultClient {
     Observable<ServiceResponse<CertificateRequestQueryResponseApiModel>> listRequestsWithServiceResponseAsync(String nextPageLink, Integer pageSize);
 
     /**
-     * Get the status.
+     * Return the service status in the form of the service status
+     api model.
      *
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
@@ -915,7 +916,8 @@ public interface AzureOpcVaultClient {
     StatusResponseApiModel getStatus();
 
     /**
-     * Get the status.
+     * Return the service status in the form of the service status
+     api model.
      *
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -924,7 +926,8 @@ public interface AzureOpcVaultClient {
     ServiceFuture<StatusResponseApiModel> getStatusAsync(final ServiceCallback<StatusResponseApiModel> serviceCallback);
 
     /**
-     * Get the status.
+     * Return the service status in the form of the service status
+     api model.
      *
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the StatusResponseApiModel object
@@ -932,7 +935,8 @@ public interface AzureOpcVaultClient {
     Observable<StatusResponseApiModel> getStatusAsync();
 
     /**
-     * Get the status.
+     * Return the service status in the form of the service status
+     api model.
      *
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the StatusResponseApiModel object

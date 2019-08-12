@@ -13,19 +13,19 @@ module azure.iiot.opc.vault
     # Status model
     #
     class StatusResponseApiModel
-      # @return [String] Service name
+      # @return [String] Name of this service
       attr_accessor :name
 
-      # @return [String] Status
+      # @return [String] Operational status
       attr_accessor :status
 
       # @return [String] Current time
       attr_accessor :current_time
 
-      # @return [String] Service start time
+      # @return [String] Start time of service
       attr_accessor :start_time
 
-      # @return [Integer] Uptime
+      # @return [Integer] Up time of service
       attr_accessor :up_time
 
       # @return [String] Value generated at bootstrap by each instance of the
@@ -42,7 +42,7 @@ module azure.iiot.opc.vault
       # internal dependencies
       attr_accessor :dependencies
 
-      # @return [Hash{String => String}] Meta data
+      # @return [Hash{String => String}] Optional meta data.
       attr_accessor :metadata
 
 
