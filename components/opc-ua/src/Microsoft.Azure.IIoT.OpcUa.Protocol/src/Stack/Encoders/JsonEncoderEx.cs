@@ -21,6 +21,7 @@ namespace Opc.Ua.Encoders {
     using System.Linq;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
+    using Opc.Ua.Design.Schema;
 
     /// <summary>
     /// Writes objects to a json
@@ -887,8 +888,35 @@ namespace Opc.Ua.Encoders {
         private void WriteVariantContents(object value, int valueRank,
             BuiltInType builtInType) {
 
+            // Handle special value ranks
+            if (valueRank <= -2) {
+                if (valueRank < -3) {
+                    throw new ServiceResultException(StatusCodes.BadEncodingError,
+                        $"Value rank '{valueRank}' is invalid.");
+                }
+                // Cannot deduce rank - write null
+                if (value == null) {
+                    WriteNull(null);
+                    return;
+                }
+                // Handle Any (-2) or scalar or one dimension (-3)
+                if (value.GetType().IsArray) {
+                    var rank = value.GetType().GetArrayRank();
+                    if (valueRank == -3 && rank != 1) {
+                        throw new ServiceResultException(StatusCodes.BadEncodingError,
+                            $"Scalar or one dimension, but passed matrix value.");
+                    }
+                    // Write as array or matrix
+                    valueRank = rank;
+                }
+                else {
+                    // Force write as scalar
+                    valueRank = -1;
+                }
+            }
+
             // write scalar.
-            if (valueRank < 0) {
+            if (valueRank == -1) {
                 switch (builtInType) {
                     case BuiltInType.Null:
                         WriteNull(null);
@@ -936,7 +964,7 @@ namespace Opc.Ua.Encoders {
                         WriteGuid(null, (Uuid)value);
                         return;
                     case BuiltInType.ByteString:
-                        WriteByteString(null, (byte[])value);
+                        WriteByteString(null, (byte[])(value ?? new byte[0]));
                         return;
                     case BuiltInType.XmlElement:
                         WriteXmlElement(null, (XmlElement)value);
@@ -976,79 +1004,80 @@ namespace Opc.Ua.Encoders {
             }
 
             // write array.
-            else if (valueRank <= 1) {
+            if (valueRank == 1) {
+                var array = (object[])value;
                 switch (builtInType) {
                     case BuiltInType.Null:
                         WriteNull(null);
                         return;
                     case BuiltInType.Boolean:
-                        WriteBooleanArray(null, (bool[])value);
+                        WriteBooleanArray(null, array.Cast<bool>());
                         return;
                     case BuiltInType.SByte:
-                        WriteSByteArray(null, (sbyte[])value);
+                        WriteSByteArray(null, array.Cast<sbyte>());
                         return;
                     case BuiltInType.Byte:
-                        WriteByteArray(null, (byte[])value);
+                        WriteByteArray(null, array.Cast<byte>());
                         return;
                     case BuiltInType.Int16:
-                        WriteInt16Array(null, (short[])value);
+                        WriteInt16Array(null, array.Cast<short>());
                         return;
                     case BuiltInType.UInt16:
-                        WriteUInt16Array(null, (ushort[])value);
+                        WriteUInt16Array(null, array.Cast<ushort>());
                         return;
                     case BuiltInType.Int32:
-                        WriteInt32Array(null, (int[])value);
+                        WriteInt32Array(null, array.Cast<int>());
                         return;
                     case BuiltInType.UInt32:
-                        WriteUInt32Array(null, (uint[])value);
+                        WriteUInt32Array(null, array.Cast<uint>());
                         return;
                     case BuiltInType.Int64:
-                        WriteInt64Array(null, (long[])value);
+                        WriteInt64Array(null, array.Cast<long>());
                         return;
                     case BuiltInType.UInt64:
-                        WriteUInt64Array(null, (ulong[])value);
+                        WriteUInt64Array(null, array.Cast<ulong>());
                         return;
                     case BuiltInType.Float:
-                        WriteFloatArray(null, (float[])value);
+                        WriteFloatArray(null, array.Cast<float>());
                         return;
                     case BuiltInType.Double:
-                        WriteDoubleArray(null, (double[])value);
+                        WriteDoubleArray(null, array.Cast<double>());
                         return;
                     case BuiltInType.String:
-                        WriteStringArray(null, (string[])value);
+                        WriteStringArray(null, array.Cast<string>());
                         return;
                     case BuiltInType.DateTime:
-                        WriteDateTimeArray(null, (DateTime[])value);
+                        WriteDateTimeArray(null, array.Cast<DateTime>());
                         return;
                     case BuiltInType.Guid:
-                        WriteGuidArray(null, (Uuid[])value);
+                        WriteGuidArray(null, array.Cast<Uuid>());
                         return;
                     case BuiltInType.ByteString:
-                        WriteByteStringArray(null, (byte[][])value);
+                        WriteByteStringArray(null, array.Cast<byte[]>());
                         return;
                     case BuiltInType.XmlElement:
-                        WriteXmlElementArray(null, (XmlElement[])value);
+                        WriteXmlElementArray(null, array.Cast<XmlElement>());
                         return;
                     case BuiltInType.NodeId:
-                        WriteNodeIdArray(null, (NodeId[])value);
+                        WriteNodeIdArray(null, array.Cast<NodeId>());
                         return;
                     case BuiltInType.ExpandedNodeId:
-                        WriteExpandedNodeIdArray(null, (ExpandedNodeId[])value);
+                        WriteExpandedNodeIdArray(null, array.Cast<ExpandedNodeId>());
                         return;
                     case BuiltInType.StatusCode:
-                        WriteStatusCodeArray(null, (StatusCode[])value);
+                        WriteStatusCodeArray(null, array.Cast<StatusCode>());
                         return;
                     case BuiltInType.QualifiedName:
-                        WriteQualifiedNameArray(null, (QualifiedName[])value);
+                        WriteQualifiedNameArray(null, array.Cast<QualifiedName>());
                         return;
                     case BuiltInType.LocalizedText:
-                        WriteLocalizedTextArray(null, (LocalizedText[])value);
+                        WriteLocalizedTextArray(null, array.Cast<LocalizedText>());
                         return;
                     case BuiltInType.ExtensionObject:
-                        WriteExtensionObjectArray(null, (ExtensionObject[])value);
+                        WriteExtensionObjectArray(null, array.Cast<ExtensionObject>());
                         return;
                     case BuiltInType.DataValue:
-                        WriteDataValueArray(null, (DataValue[])value);
+                        WriteDataValueArray(null, array.Cast<DataValue>());
                         return;
                     case BuiltInType.Enumeration:
                         var enums = value as Enum[];
@@ -1081,7 +1110,8 @@ namespace Opc.Ua.Encoders {
                 }
             }
 
-            else {
+            if (valueRank > 1) {
+                // Write matrix
                 if (value == null) {
                     WriteNull(null);
                     return;
@@ -1092,6 +1122,7 @@ namespace Opc.Ua.Encoders {
                     return;
                 }
             }
+
             // oops - should never happen.
             throw new ServiceResultException(StatusCodes.BadEncodingError,
                 $"Type '{value.GetType().FullName}' is not allowed in an Variant.");
