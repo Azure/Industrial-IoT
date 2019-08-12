@@ -21,7 +21,6 @@ namespace Opc.Ua.Encoders {
     using System.Linq;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
-    using Opc.Ua.Design.Schema;
 
     /// <summary>
     /// Writes objects to a json
