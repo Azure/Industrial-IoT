@@ -1630,7 +1630,8 @@ public class AzureOpcVaultClientImpl extends ServiceClient implements AzureOpcVa
     }
 
     /**
-     * Get the status.
+     * Return the service status in the form of the service status
+     api model.
      *
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
@@ -1642,7 +1643,8 @@ public class AzureOpcVaultClientImpl extends ServiceClient implements AzureOpcVa
     }
 
     /**
-     * Get the status.
+     * Return the service status in the form of the service status
+     api model.
      *
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -1653,7 +1655,8 @@ public class AzureOpcVaultClientImpl extends ServiceClient implements AzureOpcVa
     }
 
     /**
-     * Get the status.
+     * Return the service status in the form of the service status
+     api model.
      *
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the StatusResponseApiModel object
@@ -1668,7 +1671,8 @@ public class AzureOpcVaultClientImpl extends ServiceClient implements AzureOpcVa
     }
 
     /**
-     * Get the status.
+     * Return the service status in the form of the service status
+     api model.
      *
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the StatusResponseApiModel object

@@ -188,11 +188,6 @@ export interface RegistryOperationApiModel {
  */
 export interface ApplicationInfoApiModel {
   /**
-   * @member {ApplicationState} [state] State. Possible values include: 'New',
-   * 'Approved', 'Rejected'. Default value: 'New' .
-   */
-  state?: ApplicationState;
-  /**
    * @member {string} [applicationId] Unique application id
    */
   applicationId?: string;
@@ -265,10 +260,6 @@ export interface ApplicationInfoApiModel {
    * @member {RegistryOperationApiModel} [created] Created
    */
   created?: RegistryOperationApiModel;
-  /**
-   * @member {RegistryOperationApiModel} [approved] Approved
-   */
-  approved?: RegistryOperationApiModel;
   /**
    * @member {RegistryOperationApiModel} [updated] Updated
    */
@@ -637,12 +628,6 @@ export interface ApplicationRegistrationQueryApiModel {
    * belongs to.
    */
   siteOrSupervisorId?: string;
-  /**
-   * @member {ApplicationStateMask} [state] State of application. Possible
-   * values include: 'Any', 'New', 'Approved', 'Rejected', 'Unregistered',
-   * 'Deleted'
-   */
-  state?: ApplicationStateMask;
   /**
    * @member {boolean} [includeNotSeenSince] Whether to include apps that were
    * soft deleted
@@ -1133,34 +1118,6 @@ export interface AzureOpcRegistryClientDeleteAllDisabledApplicationsOptionalPara
 
 /**
  * @interface
- * An interface representing AzureOpcRegistryClientApproveApplicationOptionalParams.
- * Optional Parameters.
- *
- * @extends RequestOptionsBase
- */
-export interface AzureOpcRegistryClientApproveApplicationOptionalParams extends msRest.RequestOptionsBase {
-  /**
-   * @member {boolean} [force] optional, force application in new state
-   */
-  force?: boolean;
-}
-
-/**
- * @interface
- * An interface representing AzureOpcRegistryClientRejectApplicationOptionalParams.
- * Optional Parameters.
- *
- * @extends RequestOptionsBase
- */
-export interface AzureOpcRegistryClientRejectApplicationOptionalParams extends msRest.RequestOptionsBase {
-  /**
-   * @member {boolean} [force] optional, force application in new state
-   */
-  force?: boolean;
-}
-
-/**
- * @interface
  * An interface representing AzureOpcRegistryClientGetListOfSitesOptionalParams.
  * Optional Parameters.
  *
@@ -1461,14 +1418,6 @@ export type SecurityMode = 'Best' | 'Sign' | 'SignAndEncrypt' | 'None';
 export type ApplicationType = 'Server' | 'Client' | 'ClientAndServer' | 'DiscoveryServer';
 
 /**
- * Defines values for ApplicationState.
- * Possible values include: 'New', 'Approved', 'Rejected'
- * @readonly
- * @enum {string}
- */
-export type ApplicationState = 'New' | 'Approved' | 'Rejected';
-
-/**
  * Defines values for DiscoveryMode.
  * Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
  * @readonly
@@ -1491,14 +1440,6 @@ export type CredentialType = 'None' | 'UserName' | 'X509Certificate' | 'JwtToken
  * @enum {string}
  */
 export type SecurityAssessment = 'Unknown' | 'Low' | 'Medium' | 'High';
-
-/**
- * Defines values for ApplicationStateMask.
- * Possible values include: 'Any', 'New', 'Approved', 'Rejected', 'Unregistered', 'Deleted'
- * @readonly
- * @enum {string}
- */
-export type ApplicationStateMask = 'Any' | 'New' | 'Approved' | 'Rejected' | 'Unregistered' | 'Deleted';
 
 /**
  * Defines values for EndpointActivationState.

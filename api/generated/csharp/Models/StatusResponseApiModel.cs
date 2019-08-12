@@ -31,11 +31,11 @@ namespace Microsoft.Azure.IIoT.Opc.Vault.Models
         /// <summary>
         /// Initializes a new instance of the StatusResponseApiModel class.
         /// </summary>
-        /// <param name="name">Service name</param>
-        /// <param name="status">Status</param>
+        /// <param name="name">Name of this service</param>
+        /// <param name="status">Operational status</param>
         /// <param name="currentTime">Current time</param>
-        /// <param name="startTime">Service start time</param>
-        /// <param name="upTime">Uptime</param>
+        /// <param name="startTime">Start time of service</param>
+        /// <param name="upTime">Up time of service</param>
         /// <param name="uid">Value generated at bootstrap by each instance of
         /// the service and
         /// used to correlate logs coming from the same instance. The value
@@ -44,7 +44,7 @@ namespace Microsoft.Azure.IIoT.Opc.Vault.Models
         /// service</param>
         /// <param name="dependencies">A property bag with details about the
         /// internal dependencies</param>
-        /// <param name="metadata">Meta data</param>
+        /// <param name="metadata">Optional meta data.</param>
         public StatusResponseApiModel(string name = default(string), string status = default(string), string currentTime = default(string), string startTime = default(string), long? upTime = default(long?), string uid = default(string), IDictionary<string, string> properties = default(IDictionary<string, string>), IDictionary<string, string> dependencies = default(IDictionary<string, string>), IDictionary<string, string> metadata = default(IDictionary<string, string>))
         {
             Name = name;
@@ -65,13 +65,13 @@ namespace Microsoft.Azure.IIoT.Opc.Vault.Models
         partial void CustomInit();
 
         /// <summary>
-        /// Gets or sets service name
+        /// Gets or sets name of this service
         /// </summary>
         [JsonProperty(PropertyName = "name")]
         public string Name { get; set; }
 
         /// <summary>
-        /// Gets or sets status
+        /// Gets or sets operational status
         /// </summary>
         [JsonProperty(PropertyName = "status")]
         public string Status { get; set; }
@@ -83,13 +83,13 @@ namespace Microsoft.Azure.IIoT.Opc.Vault.Models
         public string CurrentTime { get; private set; }
 
         /// <summary>
-        /// Gets service start time
+        /// Gets start time of service
         /// </summary>
         [JsonProperty(PropertyName = "startTime")]
         public string StartTime { get; private set; }
 
         /// <summary>
-        /// Gets uptime
+        /// Gets up time of service
         /// </summary>
         [JsonProperty(PropertyName = "upTime")]
         public long? UpTime { get; private set; }
@@ -116,7 +116,7 @@ namespace Microsoft.Azure.IIoT.Opc.Vault.Models
         public IDictionary<string, string> Dependencies { get; private set; }
 
         /// <summary>
-        /// Gets meta data
+        /// Gets optional meta data.
         /// </summary>
         [JsonProperty(PropertyName = "$metadata")]
         public IDictionary<string, string> Metadata { get; private set; }

@@ -45,12 +45,9 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         /// <param name="gatewayServerUri">Gateway server uri</param>
         /// <param name="siteOrSupervisorId">Supervisor or site the application
         /// belongs to.</param>
-        /// <param name="state">State of application. Possible values include:
-        /// 'Any', 'New', 'Approved', 'Rejected', 'Unregistered',
-        /// 'Deleted'</param>
         /// <param name="includeNotSeenSince">Whether to include apps that were
         /// soft deleted</param>
-        public ApplicationRegistrationQueryApiModel(ApplicationType? applicationType = default(ApplicationType?), string applicationUri = default(string), string productUri = default(string), string applicationName = default(string), string locale = default(string), string capability = default(string), string discoveryProfileUri = default(string), string gatewayServerUri = default(string), string siteOrSupervisorId = default(string), ApplicationStateMask? state = default(ApplicationStateMask?), bool? includeNotSeenSince = default(bool?))
+        public ApplicationRegistrationQueryApiModel(ApplicationType? applicationType = default(ApplicationType?), string applicationUri = default(string), string productUri = default(string), string applicationName = default(string), string locale = default(string), string capability = default(string), string discoveryProfileUri = default(string), string gatewayServerUri = default(string), string siteOrSupervisorId = default(string), bool? includeNotSeenSince = default(bool?))
         {
             ApplicationType = applicationType;
             ApplicationUri = applicationUri;
@@ -61,7 +58,6 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
             DiscoveryProfileUri = discoveryProfileUri;
             GatewayServerUri = gatewayServerUri;
             SiteOrSupervisorId = siteOrSupervisorId;
-            State = state;
             IncludeNotSeenSince = includeNotSeenSince;
             CustomInit();
         }
@@ -125,13 +121,6 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         /// </summary>
         [JsonProperty(PropertyName = "siteOrSupervisorId")]
         public string SiteOrSupervisorId { get; set; }
-
-        /// <summary>
-        /// Gets or sets state of application. Possible values include: 'Any',
-        /// 'New', 'Approved', 'Rejected', 'Unregistered', 'Deleted'
-        /// </summary>
-        [JsonProperty(PropertyName = "state")]
-        public ApplicationStateMask? State { get; set; }
 
         /// <summary>
         /// Gets or sets whether to include apps that were soft deleted

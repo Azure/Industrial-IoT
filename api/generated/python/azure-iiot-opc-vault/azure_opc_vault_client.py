@@ -881,7 +881,8 @@ class AzureOpcVaultClient(object):
 
     def get_status(
             self, custom_headers=None, raw=False, **operation_config):
-        """Get the status.
+        """Return the service status in the form of the service status
+        api model.
 
         :param dict custom_headers: headers that will be added to the request
         :param bool raw: returns the direct response alongside the

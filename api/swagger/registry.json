@@ -47,6 +47,13 @@
             }
           }
         },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ],
         "x-ms-pageable": {
           "nextLinkName": "continuationToken"
         }
@@ -85,7 +92,14 @@
               "$ref": "#/definitions/ApplicationRegistrationResponseApiModel"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       },
       "post": {
         "tags": [
@@ -118,7 +132,14 @@
           "200": {
             "description": "Success"
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       },
       "delete": {
         "tags": [
@@ -144,77 +165,14 @@
           "200": {
             "description": "Success"
           }
-        }
-      }
-    },
-    "/v2/applications/{applicationId}/approve": {
-      "post": {
-        "tags": [
-          "Applications"
-        ],
-        "summary": "Approve a new application.",
-        "description": "A manager can approve a new application or force an application\r\nfrom any state.\r\nAfter approval the application is in the 'Approved' state.\r\nRequires Manager role.",
-        "operationId": "ApproveApplication",
-        "consumes": [],
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
+        },
+        "security": [
           {
-            "name": "applicationId",
-            "in": "path",
-            "description": "The application id",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "force",
-            "in": "query",
-            "description": "optional, force application in new state",
-            "required": false,
-            "type": "boolean"
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
           }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success"
-          }
-        }
-      }
-    },
-    "/v2/applications/{applicationId}/reject": {
-      "post": {
-        "tags": [
-          "Applications"
-        ],
-        "summary": "Reject a new application.",
-        "description": "A manager can approve a new application or force an application\r\nfrom any state.\r\nAfter approval the application is in the 'Rejected' state.\r\nRequires Manager role.",
-        "operationId": "RejectApplication",
-        "consumes": [],
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "applicationId",
-            "in": "path",
-            "description": "The application id",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "force",
-            "in": "query",
-            "description": "optional, force application in new state",
-            "required": false,
-            "type": "boolean"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success"
-          }
-        }
+        ]
       }
     },
     "/v2/applications/{applicationId}/disable": {
@@ -242,7 +200,14 @@
           "200": {
             "description": "Success"
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/applications/{applicationId}/enable": {
@@ -270,7 +235,14 @@
           "200": {
             "description": "Success"
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/applications/discover": {
@@ -305,7 +277,14 @@
           "200": {
             "description": "Success"
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/applications/{applicationId}": {
@@ -335,7 +314,14 @@
               "$ref": "#/definitions/ApplicationRegistrationApiModel"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       },
       "delete": {
         "tags": [
@@ -361,7 +347,14 @@
           "200": {
             "description": "Success"
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       },
       "patch": {
         "tags": [
@@ -401,7 +394,14 @@
           "200": {
             "description": "Success"
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/applications/sites": {
@@ -441,6 +441,13 @@
             }
           }
         },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ],
         "x-ms-pageable": {
           "nextLinkName": "continuationToken"
         }
@@ -489,7 +496,14 @@
               "$ref": "#/definitions/ApplicationInfoListApiModel"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       },
       "post": {
         "tags": [
@@ -533,7 +547,14 @@
               "$ref": "#/definitions/ApplicationInfoListApiModel"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/applications/querybyid": {
@@ -571,7 +592,14 @@
               "$ref": "#/definitions/ApplicationRecordListApiModel"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/endpoints/{endpointId}/activate": {
@@ -599,7 +627,14 @@
           "200": {
             "description": "Success"
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/endpoints/{endpointId}": {
@@ -637,7 +672,14 @@
               "$ref": "#/definitions/EndpointInfoApiModel"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       },
       "patch": {
         "tags": [
@@ -676,7 +718,14 @@
           "200": {
             "description": "Success"
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/endpoints": {
@@ -723,6 +772,13 @@
             }
           }
         },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ],
         "x-ms-pageable": {
           "nextLinkName": "continuationToken"
         }
@@ -849,7 +905,14 @@
               "$ref": "#/definitions/EndpointInfoListApiModel"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       },
       "post": {
         "tags": [
@@ -900,7 +963,14 @@
               "$ref": "#/definitions/EndpointInfoListApiModel"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/endpoints/{endpointId}/deactivate": {
@@ -928,7 +998,14 @@
           "200": {
             "description": "Success"
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/status": {
@@ -988,7 +1065,14 @@
               "$ref": "#/definitions/SupervisorApiModel"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       },
       "patch": {
         "tags": [
@@ -1028,7 +1112,14 @@
           "200": {
             "description": "Success"
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/supervisors/{supervisorId}/status": {
@@ -1059,7 +1150,14 @@
               "$ref": "#/definitions/SupervisorStatusApiModel"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/supervisors/{supervisorId}/reset": {
@@ -1087,7 +1185,14 @@
           "200": {
             "description": "Success"
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/supervisors": {
@@ -1134,6 +1239,13 @@
             }
           }
         },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ],
         "x-ms-pageable": {
           "nextLinkName": "continuationToken"
         }
@@ -1203,7 +1315,14 @@
               "$ref": "#/definitions/SupervisorListApiModel"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       },
       "post": {
         "tags": [
@@ -1254,7 +1373,14 @@
               "$ref": "#/definitions/SupervisorListApiModel"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     }
   },
@@ -1457,20 +1583,6 @@
       "description": "Application info model",
       "type": "object",
       "properties": {
-        "state": {
-          "description": "State",
-          "default": "New",
-          "enum": [
-            "New",
-            "Approved",
-            "Rejected"
-          ],
-          "type": "string",
-          "x-ms-enum": {
-            "name": "ApplicationState",
-            "modelAsString": false
-          }
-        },
         "applicationId": {
           "description": "Unique application id",
           "type": "string"
@@ -1568,10 +1680,6 @@
         "created": {
           "$ref": "#/definitions/RegistryOperationApiModel",
           "description": "Created"
-        },
-        "approved": {
-          "$ref": "#/definitions/RegistryOperationApiModel",
-          "description": "Approved"
         },
         "updated": {
           "$ref": "#/definitions/RegistryOperationApiModel",
@@ -2004,22 +2112,6 @@
         "siteOrSupervisorId": {
           "description": "Supervisor or site the application belongs to.",
           "type": "string"
-        },
-        "state": {
-          "description": "State of application",
-          "enum": [
-            "Any",
-            "New",
-            "Approved",
-            "Rejected",
-            "Unregistered",
-            "Deleted"
-          ],
-          "type": "string",
-          "x-ms-enum": {
-            "name": "ApplicationStateMask",
-            "modelAsString": false
-          }
         },
         "includeNotSeenSince": {
           "description": "Whether to include apps that were soft deleted",
@@ -2566,6 +2658,17 @@
           "type": "boolean"
         }
       }
+    }
+  },
+  "securityDefinitions": {
+    "oauth2": {
+      "flow": "implicit",
+      "authorizationUrl": "https://login.microsoftonline.com/6e660ce4-d51a-4585-80c6-58035e212354/oauth2/authorize",
+      "scopes": {
+        "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication": "Access http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication operations"
+      },
+      "type": "oauth2",
+      "description": "Implicit oauth2 token flow."
     }
   },
   "tags": [

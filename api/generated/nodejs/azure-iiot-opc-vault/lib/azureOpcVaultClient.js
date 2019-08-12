@@ -1793,7 +1793,8 @@ function _listRequests(options, callback) {
 }
 
 /**
- * @summary Get the status.
+ * @summary Return the service status in the form of the service status
+ * api model.
  *
  * @param {object} [options] Optional Parameters.
  *
@@ -4605,7 +4606,8 @@ class AzureOpcVaultClient extends ServiceClient {
   }
 
   /**
-   * @summary Get the status.
+   * @summary Return the service status in the form of the service status
+   * api model.
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -4633,7 +4635,8 @@ class AzureOpcVaultClient extends ServiceClient {
   }
 
   /**
-   * @summary Get the status.
+   * @summary Return the service status in the form of the service status
+   * api model.
    *
    * @param {object} [options] Optional Parameters.
    *

@@ -72,13 +72,6 @@ public class ApplicationRegistrationQueryApiModel {
     private String siteOrSupervisorId;
 
     /**
-     * State of application. Possible values include: 'Any', 'New', 'Approved',
-     * 'Rejected', 'Unregistered', 'Deleted'.
-     */
-    @JsonProperty(value = "state")
-    private ApplicationStateMask state;
-
-    /**
      * Whether to include apps that were soft deleted.
      */
     @JsonProperty(value = "includeNotSeenSince")
@@ -261,26 +254,6 @@ public class ApplicationRegistrationQueryApiModel {
      */
     public ApplicationRegistrationQueryApiModel withSiteOrSupervisorId(String siteOrSupervisorId) {
         this.siteOrSupervisorId = siteOrSupervisorId;
-        return this;
-    }
-
-    /**
-     * Get state of application. Possible values include: 'Any', 'New', 'Approved', 'Rejected', 'Unregistered', 'Deleted'.
-     *
-     * @return the state value
-     */
-    public ApplicationStateMask state() {
-        return this.state;
-    }
-
-    /**
-     * Set state of application. Possible values include: 'Any', 'New', 'Approved', 'Rejected', 'Unregistered', 'Deleted'.
-     *
-     * @param state the state value to set
-     * @return the ApplicationRegistrationQueryApiModel object itself.
-     */
-    public ApplicationRegistrationQueryApiModel withState(ApplicationStateMask state) {
-        this.state = state;
         return this;
     }
 

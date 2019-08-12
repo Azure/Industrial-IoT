@@ -379,15 +379,15 @@ const fqdn = "go/azure-iiot-opc-vault"
             // StatusResponseAPIModel status model
             type StatusResponseAPIModel struct {
             autorest.Response `json:"-"`
-            // Name - Service name
+            // Name - Name of this service
             Name *string `json:"name,omitempty"`
-            // Status - Status
+            // Status - Operational status
             Status *string `json:"status,omitempty"`
             // CurrentTime - READ-ONLY; Current time
             CurrentTime *string `json:"currentTime,omitempty"`
-            // StartTime - READ-ONLY; Service start time
+            // StartTime - READ-ONLY; Start time of service
             StartTime *string `json:"startTime,omitempty"`
-            // UpTime - READ-ONLY; Uptime
+            // UpTime - READ-ONLY; Up time of service
             UpTime *int64 `json:"upTime,omitempty"`
             // UID - READ-ONLY; Value generated at bootstrap by each instance of the service and
             // used to correlate logs coming from the same instance. The value
@@ -397,7 +397,7 @@ const fqdn = "go/azure-iiot-opc-vault"
             Properties map[string]*string `json:"properties"`
             // Dependencies - READ-ONLY; A property bag with details about the internal dependencies
             Dependencies map[string]*string `json:"dependencies"`
-            // Metadata - READ-ONLY; Meta data
+            // Metadata - READ-ONLY; Optional meta data.
             Metadata map[string]*string `json:"$metadata"`
             }
 

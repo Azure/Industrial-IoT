@@ -640,7 +640,8 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
             }
 
             /// <summary>
-            /// Get the status.
+            /// Return the service status in the form of the service status
+            /// api model.
             /// </summary>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -651,7 +652,8 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
             }
 
             /// <summary>
-            /// Get the status.
+            /// Return the service status in the form of the service status
+            /// api model.
             /// </summary>
             /// <param name='operations'>
             /// The operations group for this extension method.

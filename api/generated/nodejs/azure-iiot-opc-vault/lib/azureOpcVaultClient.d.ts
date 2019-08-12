@@ -1032,7 +1032,8 @@ export default class AzureOpcVaultClient extends ServiceClient {
 
 
   /**
-   * @summary Get the status.
+   * @summary Return the service status in the form of the service status
+   * api model.
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -1048,7 +1049,8 @@ export default class AzureOpcVaultClient extends ServiceClient {
   getStatusWithHttpOperationResponse(options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.StatusResponseApiModel>>;
 
   /**
-   * @summary Get the status.
+   * @summary Return the service status in the form of the service status
+   * api model.
    *
    * @param {object} [options] Optional Parameters.
    *

@@ -18,8 +18,6 @@ class ApplicationRegistrationApiModel {
   /**
    * Create a ApplicationRegistrationApiModel.
    * @property {object} application Application information
-   * @property {string} [application.state] State. Possible values include:
-   * 'New', 'Approved', 'Rejected'
    * @property {string} [application.applicationId] Unique application id
    * @property {string} [application.applicationType] Type of application.
    * Possible values include: 'Server', 'Client', 'ClientAndServer',
@@ -47,9 +45,6 @@ class ApplicationRegistrationApiModel {
    * @property {object} [application.created] Created
    * @property {string} [application.created.authorityId] Operation User
    * @property {date} [application.created.time] Operation time
-   * @property {object} [application.approved] Approved
-   * @property {string} [application.approved.authorityId] Operation User
-   * @property {date} [application.approved.time] Operation time
    * @property {object} [application.updated] Updated
    * @property {string} [application.updated.authorityId] Operation User
    * @property {date} [application.updated.time] Operation time

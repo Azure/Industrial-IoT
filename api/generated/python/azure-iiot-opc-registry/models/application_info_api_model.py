@@ -15,9 +15,6 @@ from msrest.serialization import Model
 class ApplicationInfoApiModel(Model):
     """Application info model.
 
-    :param state: State. Possible values include: 'New', 'Approved',
-     'Rejected'. Default value: "New" .
-    :type state: str or ~azure-iiot-opc-registry.models.ApplicationState
     :param application_id: Unique application id
     :type application_id: str
     :param application_type: Type of application. Possible values include:
@@ -54,8 +51,6 @@ class ApplicationInfoApiModel(Model):
     :type not_seen_since: datetime
     :param created: Created
     :type created: ~azure-iiot-opc-registry.models.RegistryOperationApiModel
-    :param approved: Approved
-    :type approved: ~azure-iiot-opc-registry.models.RegistryOperationApiModel
     :param updated: Updated
     :type updated: ~azure-iiot-opc-registry.models.RegistryOperationApiModel
     """
@@ -67,7 +62,6 @@ class ApplicationInfoApiModel(Model):
     }
 
     _attribute_map = {
-        'state': {'key': 'state', 'type': 'ApplicationState'},
         'application_id': {'key': 'applicationId', 'type': 'str'},
         'application_type': {'key': 'applicationType', 'type': 'ApplicationType'},
         'application_uri': {'key': 'applicationUri', 'type': 'str'},
@@ -85,13 +79,11 @@ class ApplicationInfoApiModel(Model):
         'supervisor_id': {'key': 'supervisorId', 'type': 'str'},
         'not_seen_since': {'key': 'notSeenSince', 'type': 'iso-8601'},
         'created': {'key': 'created', 'type': 'RegistryOperationApiModel'},
-        'approved': {'key': 'approved', 'type': 'RegistryOperationApiModel'},
         'updated': {'key': 'updated', 'type': 'RegistryOperationApiModel'},
     }
 
-    def __init__(self, state="New", application_id=None, application_type=None, application_uri=None, product_uri=None, application_name=None, locale=None, localized_names=None, certificate=None, capabilities=None, discovery_urls=None, discovery_profile_uri=None, gateway_server_uri=None, host_addresses=None, site_id=None, supervisor_id=None, not_seen_since=None, created=None, approved=None, updated=None):
+    def __init__(self, application_id=None, application_type=None, application_uri=None, product_uri=None, application_name=None, locale=None, localized_names=None, certificate=None, capabilities=None, discovery_urls=None, discovery_profile_uri=None, gateway_server_uri=None, host_addresses=None, site_id=None, supervisor_id=None, not_seen_since=None, created=None, updated=None):
         super(ApplicationInfoApiModel, self).__init__()
-        self.state = state
         self.application_id = application_id
         self.application_type = application_type
         self.application_uri = application_uri
@@ -109,5 +101,4 @@ class ApplicationInfoApiModel(Model):
         self.supervisor_id = supervisor_id
         self.not_seen_since = not_seen_since
         self.created = created
-        self.approved = approved
         self.updated = updated

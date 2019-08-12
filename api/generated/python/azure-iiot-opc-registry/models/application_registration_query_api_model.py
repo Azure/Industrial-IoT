@@ -36,9 +36,6 @@ class ApplicationRegistrationQueryApiModel(Model):
     :param site_or_supervisor_id: Supervisor or site the application belongs
      to.
     :type site_or_supervisor_id: str
-    :param state: State of application. Possible values include: 'Any', 'New',
-     'Approved', 'Rejected', 'Unregistered', 'Deleted'
-    :type state: str or ~azure-iiot-opc-registry.models.ApplicationStateMask
     :param include_not_seen_since: Whether to include apps that were soft
      deleted
     :type include_not_seen_since: bool
@@ -54,11 +51,10 @@ class ApplicationRegistrationQueryApiModel(Model):
         'discovery_profile_uri': {'key': 'discoveryProfileUri', 'type': 'str'},
         'gateway_server_uri': {'key': 'gatewayServerUri', 'type': 'str'},
         'site_or_supervisor_id': {'key': 'siteOrSupervisorId', 'type': 'str'},
-        'state': {'key': 'state', 'type': 'ApplicationStateMask'},
         'include_not_seen_since': {'key': 'includeNotSeenSince', 'type': 'bool'},
     }
 
-    def __init__(self, application_type=None, application_uri=None, product_uri=None, application_name=None, locale=None, capability=None, discovery_profile_uri=None, gateway_server_uri=None, site_or_supervisor_id=None, state=None, include_not_seen_since=None):
+    def __init__(self, application_type=None, application_uri=None, product_uri=None, application_name=None, locale=None, capability=None, discovery_profile_uri=None, gateway_server_uri=None, site_or_supervisor_id=None, include_not_seen_since=None):
         super(ApplicationRegistrationQueryApiModel, self).__init__()
         self.application_type = application_type
         self.application_uri = application_uri
@@ -69,5 +65,4 @@ class ApplicationRegistrationQueryApiModel(Model):
         self.discovery_profile_uri = discovery_profile_uri
         self.gateway_server_uri = gateway_server_uri
         self.site_or_supervisor_id = site_or_supervisor_id
-        self.state = state
         self.include_not_seen_since = include_not_seen_since

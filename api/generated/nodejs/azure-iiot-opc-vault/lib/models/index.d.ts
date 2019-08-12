@@ -322,11 +322,11 @@ export interface CertificateRequestQueryResponseApiModel {
  */
 export interface StatusResponseApiModel {
   /**
-   * Service name
+   * Name of this service
    */
   name?: string;
   /**
-   * Status
+   * Operational status
    */
   status?: string;
   /**
@@ -334,11 +334,11 @@ export interface StatusResponseApiModel {
    */
   readonly currentTime?: string;
   /**
-   * Service start time
+   * Start time of service
    */
   readonly startTime?: string;
   /**
-   * Uptime
+   * Up time of service
    */
   readonly upTime?: number;
   /**
@@ -356,7 +356,7 @@ export interface StatusResponseApiModel {
    */
   readonly dependencies?: { [propertyName: string]: string };
   /**
-   * Meta data
+   * Optional meta data.
    */
   readonly metadata?: { [propertyName: string]: string };
 }

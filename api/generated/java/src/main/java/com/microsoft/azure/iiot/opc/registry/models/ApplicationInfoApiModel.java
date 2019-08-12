@@ -20,12 +20,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class ApplicationInfoApiModel {
     /**
-     * State. Possible values include: 'New', 'Approved', 'Rejected'.
-     */
-    @JsonProperty(value = "state")
-    private ApplicationState state;
-
-    /**
      * Unique application id.
      */
     @JsonProperty(value = "applicationId")
@@ -129,36 +123,10 @@ public class ApplicationInfoApiModel {
     private RegistryOperationApiModel created;
 
     /**
-     * Approved.
-     */
-    @JsonProperty(value = "approved")
-    private RegistryOperationApiModel approved;
-
-    /**
      * Updated.
      */
     @JsonProperty(value = "updated")
     private RegistryOperationApiModel updated;
-
-    /**
-     * Get state. Possible values include: 'New', 'Approved', 'Rejected'.
-     *
-     * @return the state value
-     */
-    public ApplicationState state() {
-        return this.state;
-    }
-
-    /**
-     * Set state. Possible values include: 'New', 'Approved', 'Rejected'.
-     *
-     * @param state the state value to set
-     * @return the ApplicationInfoApiModel object itself.
-     */
-    public ApplicationInfoApiModel withState(ApplicationState state) {
-        this.state = state;
-        return this;
-    }
 
     /**
      * Get unique application id.
@@ -497,26 +465,6 @@ public class ApplicationInfoApiModel {
      */
     public ApplicationInfoApiModel withCreated(RegistryOperationApiModel created) {
         this.created = created;
-        return this;
-    }
-
-    /**
-     * Get approved.
-     *
-     * @return the approved value
-     */
-    public RegistryOperationApiModel approved() {
-        return this.approved;
-    }
-
-    /**
-     * Set approved.
-     *
-     * @param approved the approved value to set
-     * @return the ApplicationInfoApiModel object itself.
-     */
-    public ApplicationInfoApiModel withApproved(RegistryOperationApiModel approved) {
-        this.approved = approved;
         return this;
     }
 

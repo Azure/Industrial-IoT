@@ -75,6 +75,13 @@ and server must trust each other.
 * `application/json`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="historydeletevalues"></a>
 #### Delete historic values
 ```
@@ -114,6 +121,13 @@ and server must trust each other.
 ##### Produces
 
 * `application/json`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="historydeletemodifiedvalues"></a>
@@ -157,6 +171,13 @@ and server must trust each other.
 * `application/json`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="historydeletevaluesattimes"></a>
 #### Delete value history at specified times
 ```
@@ -196,6 +217,13 @@ and server must trust each other.
 ##### Produces
 
 * `application/json`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="history_resource"></a>
@@ -244,6 +272,13 @@ and server must trust each other.
 * `application/json`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="historyreadrawnext"></a>
 #### Read next batch of history as json
 ```
@@ -285,6 +320,13 @@ and server must trust each other.
 * `application/json`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="historyupdateraw"></a>
 #### Update node history using raw json
 ```
@@ -324,6 +366,13 @@ and server must trust each other.
 ##### Produces
 
 * `application/json`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="insert_resource"></a>
@@ -372,6 +421,13 @@ and server must trust each other.
 * `application/json`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="historyinsertvalues"></a>
 #### Insert historic values
 ```
@@ -411,6 +467,13 @@ and server must trust each other.
 ##### Produces
 
 * `application/json`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="read_resource"></a>
@@ -459,6 +522,13 @@ and server must trust each other.
 * `application/json`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="historyreadeventsnext"></a>
 #### Read next batch of historic events
 ```
@@ -498,6 +568,13 @@ and server must trust each other.
 ##### Produces
 
 * `application/json`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="historyreadvalues"></a>
@@ -541,6 +618,13 @@ and server must trust each other.
 * `application/json`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="historyreadmodifiedvalues"></a>
 #### Read historic modified values at specified times
 ```
@@ -580,6 +664,13 @@ and server must trust each other.
 ##### Produces
 
 * `application/json`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="historyreadvaluenext"></a>
@@ -623,6 +714,13 @@ and server must trust each other.
 * `application/json`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="historyreadvaluesattimes"></a>
 #### Read historic values at specified times
 ```
@@ -664,6 +762,13 @@ and server must trust each other.
 * `application/json`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="historyreadprocessedvalues"></a>
 #### Read historic processed values at specified times
 ```
@@ -703,6 +808,13 @@ and server must trust each other.
 ##### Produces
 
 * `application/json`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="replace_resource"></a>
@@ -751,6 +863,13 @@ and server must trust each other.
 * `application/json`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="historyreplacevalues"></a>
 #### Replace historic values
 ```
@@ -790,6 +909,13 @@ and server must trust each other.
 ##### Produces
 
 * `application/json`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="status_resource"></a>

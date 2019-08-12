@@ -28,8 +28,6 @@ class ApplicationRegistrationQueryApiModel {
    * @property {string} [gatewayServerUri] Gateway server uri
    * @property {string} [siteOrSupervisorId] Supervisor or site the application
    * belongs to.
-   * @property {string} [state] State of application. Possible values include:
-   * 'Any', 'New', 'Approved', 'Rejected', 'Unregistered', 'Deleted'
    * @property {boolean} [includeNotSeenSince] Whether to include apps that
    * were soft deleted
    */
@@ -112,14 +110,6 @@ class ApplicationRegistrationQueryApiModel {
             serializedName: 'siteOrSupervisorId',
             type: {
               name: 'String'
-            }
-          },
-          state: {
-            required: false,
-            serializedName: 'state',
-            type: {
-              name: 'Enum',
-              allowedValues: [ 'Any', 'New', 'Approved', 'Rejected', 'Unregistered', 'Deleted' ]
             }
           },
           includeNotSeenSince: {

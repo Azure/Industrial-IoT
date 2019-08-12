@@ -72,6 +72,13 @@ located by a supervisor in its network using the discovery url.
 * `application/json`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="getlistofapplications"></a>
 #### Get list of applications
 ```
@@ -104,6 +111,13 @@ Call this operation again using the token to retrieve more results.
 ##### Produces
 
 * `application/json`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="createapplication"></a>
@@ -147,6 +161,13 @@ in a network not reachable through a Twin module.
 * `application/json`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="deletealldisabledapplications"></a>
 #### Purge applications
 ```
@@ -175,6 +196,13 @@ Purges all applications that have not been seen for a specified amount of time.
 ##### Produces
 
 * `application/json`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="discoverserver"></a>
@@ -214,6 +242,13 @@ network. Requires that the onboarding agent service is running.
 ##### Produces
 
 * `application/json`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="queryapplications"></a>
@@ -259,6 +294,13 @@ more results.
 * `application/json`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="getfilteredlistofapplications"></a>
 #### Get filtered list of applications
 ```
@@ -302,6 +344,13 @@ more results.
 * `application/json`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="queryapplicationsbyid"></a>
 #### Query applications by id.
 ```
@@ -340,6 +389,13 @@ A query model which supports the OPC UA Global Discovery Server query.
 * `application/json`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="getlistofsites"></a>
 #### Get list of sites
 ```
@@ -371,6 +427,13 @@ List all sites applications are registered in.
 * `application/json`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="getapplicationregistration"></a>
 #### Get application registration
 ```
@@ -395,6 +458,13 @@ GET /v2/applications/{applicationId}
 ##### Produces
 
 * `application/json`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="deleteapplication"></a>
@@ -425,6 +495,13 @@ Unregisters and deletes application and all its associated endpoints.
 ##### Produces
 
 * `application/json`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="updateapplicationregistration"></a>
@@ -468,38 +545,11 @@ during a discovery run (recurring or one-time).
 * `application/json`
 
 
-<a name="approveapplication"></a>
-#### Approve a new application.
-```
-POST /v2/applications/{applicationId}/approve
-```
+##### Security
 
-
-##### Description
-A manager can approve a new application or force an application
-from any state.
-After approval the application is in the 'Approved' state.
-Requires Manager role.
-
-
-##### Parameters
-
-|Type|Name|Description|Schema|
-|---|---|---|---|
-|**Path**|**applicationId**  <br>*required*|The application id|string|
-|**Query**|**force**  <br>*optional*|optional, force application in new state|boolean|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
+|Type|Name|Scopes|
 |---|---|---|
-|**200**|Success|No Content|
-
-
-##### Produces
-
-* `application/json`
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="disableapplication"></a>
@@ -532,6 +582,13 @@ A manager can disable an application.
 * `application/json`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="enableapplication"></a>
 #### Re-enable a disabled application.
 ```
@@ -562,38 +619,11 @@ A manager can enable an application.
 * `application/json`
 
 
-<a name="rejectapplication"></a>
-#### Reject a new application.
-```
-POST /v2/applications/{applicationId}/reject
-```
+##### Security
 
-
-##### Description
-A manager can approve a new application or force an application
-from any state.
-After approval the application is in the 'Rejected' state.
-Requires Manager role.
-
-
-##### Parameters
-
-|Type|Name|Description|Schema|
-|---|---|---|---|
-|**Path**|**applicationId**  <br>*required*|The application id|string|
-|**Query**|**force**  <br>*optional*|optional, force application in new state|boolean|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
+|Type|Name|Scopes|
 |---|---|---|
-|**200**|Success|No Content|
-
-
-##### Produces
-
-* `application/json`
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="endpoints_resource"></a>
@@ -634,6 +664,13 @@ Call this operation again using the token to retrieve more results.
 ##### Produces
 
 * `application/json`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="queryendpoints"></a>
@@ -680,6 +717,13 @@ more results.
 * `application/json`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="getfilteredlistofendpoints"></a>
 #### Get filtered list of endpoints
 ```
@@ -724,6 +768,13 @@ more results.
 * `application/json`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="getendpoint"></a>
 #### Get endpoint information
 ```
@@ -753,6 +804,13 @@ Gets information about an endpoint.
 ##### Produces
 
 * `application/json`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="updateendpoint"></a>
@@ -790,6 +848,13 @@ PATCH /v2/endpoints/{endpointId}
 * `application/json`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="activateendpoint"></a>
 #### Activate endpoint
 ```
@@ -822,6 +887,13 @@ activation filter during application registration or discovery.
 * `application/json`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="deactivateendpoint"></a>
 #### Deactivate endpoint
 ```
@@ -850,6 +922,13 @@ Deactivates the endpoint and disable access through twin service.
 ##### Produces
 
 * `application/json`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="status_resource"></a>
@@ -916,6 +995,13 @@ Call this operation again using the token to retrieve more results.
 * `application/json`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="querysupervisors"></a>
 #### Query supervisors
 ```
@@ -960,6 +1046,13 @@ more results.
 * `application/json`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="getfilteredlistofsupervisors"></a>
 #### Get filtered list of supervisors
 ```
@@ -998,6 +1091,13 @@ more results.
 * `application/json`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="getsupervisor"></a>
 #### Get supervisor registration information
 ```
@@ -1028,6 +1128,13 @@ A supervisor id corresponds to the twin modules module identity.
 ##### Produces
 
 * `application/json`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="updatesupervisor"></a>
@@ -1070,6 +1177,13 @@ identified by the supervisor id or update site information.
 * `application/json`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="resetsupervisor"></a>
 #### Reset supervisor
 ```
@@ -1101,6 +1215,13 @@ identity identifier.
 * `application/json`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="getsupervisorstatus"></a>
 #### Get runtime status of supervisor
 ```
@@ -1129,6 +1250,13 @@ Allows a caller to get runtime status for a supervisor.
 ##### Produces
 
 * `application/json`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 

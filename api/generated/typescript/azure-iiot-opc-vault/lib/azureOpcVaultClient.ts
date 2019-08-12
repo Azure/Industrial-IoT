@@ -483,7 +483,8 @@ class AzureOpcVaultClient extends AzureOpcVaultClientContext {
   }
 
   /**
-   * @summary Get the status.
+   * @summary Return the service status in the form of the service status
+   * api model.
    * @param [options] The optional parameters
    * @returns Promise<Models.GetStatusResponse>
    */
