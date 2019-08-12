@@ -28,6 +28,10 @@ jobs:
       packageType: sdk
       version: 2.2.x
       installationPath: $(Agent.ToolsDirectory)/dotnet
+  - task: gittools.gitversion.gitversion-task.GitVersion@5
+    displayName: Versioning
+    inputs:
+      updateAssemblyInfo: true
   - task: DotNetCoreCLI@2
     displayName: Release Build
     inputs:
@@ -94,6 +98,8 @@ jobs:
       packageType: sdk
       version: 2.2.x
       installationPath: $(Agent.ToolsDirectory)/dotnet
+  - task: gittools.gitversion.gitversion-task.GitVersion@5
+    displayName: Versioning
   - task: DotNetCoreCLI@2
     displayName: Restore
     inputs:
@@ -207,6 +213,10 @@ jobs:
       packageType: sdk
       version: 2.2.x
       installationPath: $(Agent.ToolsDirectory)/dotnet
+  - task: gittools.gitversion.gitversion-task.GitVersion@5
+    displayName: Versioning
+    inputs:
+      updateAssemblyInfo: true
   - task: DotNetCoreCLI@2
     displayName: Build
     inputs:
@@ -255,6 +265,10 @@ jobs:
       packageType: sdk
       version: 2.2.x
       installationPath: $(Agent.ToolsDirectory)/dotnet
+  - task: gittools.gitversion.gitversion-task.GitVersion@5
+    displayName: Versioning
+    inputs:
+      updateAssemblyInfo: true
   - task: DotNetCoreCLI@2
     displayName: Build
     inputs:
@@ -353,16 +367,10 @@ jobs:
       VerboseLogin: true
   - task: ComponentGovernanceComponentDetection@0
     displayName: 'Component Detection'
-  - powershell: |
-      [xml] $props=Get-Content -Path "version.props"
-      $Version="$($props.Project.PropertyGroup.VersionPrefix)".Trim()
-      Write-Output ("##vso[task.setvariable variable=DropVersion;]$Version")
-
-    displayName: 'Set Version'
   - task: PublishBuildArtifacts@1
     displayName: 'Publish Artifact'
     inputs:
-      ArtifactName: 'drop_$(DropVersion)'
+      ArtifactName: 'drop_$(GitVersion.MajorMinorPatch)'
   - task: NuGetCommand@2
     displayName: 'NuGet Release Push'
     inputs:
@@ -379,7 +387,7 @@ jobs:
       SymbolServerType: TeamServices
       SymbolsMaximumWaitTime: 10
       SymbolsProduct: azureiiot
-      SymbolsVersion: '$(DropVersion)'
+      SymbolsVersion: '$(GitVersion.MajorMinorPatch)'
     continueOnError: true
 
 #
@@ -408,6 +416,8 @@ jobs:
   strategy:
     matrix: $[ dependencies.imagesprep.outputs['acrmatrix.acrMatrix'] ]
   steps:
+  - task: gittools.gitversion.gitversion-task.GitVersion@5
+    displayName: Versioning
   - task: AzureCLI@1
     name: acrbuild
     displayName: Build Image

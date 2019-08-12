@@ -17,7 +17,19 @@
     <NeutralLanguage>en-US</NeutralLanguage>
     <LangVersion>7.3</LangVersion>
   </PropertyGroup>
-  <Import Project="version.props" />
+  <ItemGroup>
+    <PackageReference Include="GitVersionTask" Version="5.0.0">
+      <PrivateAssets>All</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+  <PropertyGroup>
+    <PrereleaseSuffix>$(NuGetPreReleaseTag)</PrereleaseSuffix>
+    <PrereleaseVersion Condition="'$(BUILD_SOURCEVERSION)' != ''">[$(NuGetVersion)]</PrereleaseVersion>
+    <PrereleaseVersion Condition="'$(BUILD_SOURCEVERSION)' == ''">$(VersionPrefix)-$(PreReleaseLabel)*</PrereleaseVersion>
+    <PrereleaseVersion Condition="'$(RELEASE_BUILD)' != ''">$(VersionPrefix)-*</PrereleaseVersion>
+    <ReleaseVersion Condition="'$(RELEASE_BUILD)' != ''">$(VersionPrefix)</ReleaseVersion>
+    <ReleaseVersion Condition="'$(RELEASE_BUILD)' == ''">$(NuGetVersion)</ReleaseVersion>
+  </PropertyGroup>
   <PropertyGroup>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>

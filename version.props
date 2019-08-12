@@ -2,17 +2,4 @@
   <PropertyGroup>
     <VersionPrefix>2.5.0</VersionPrefix>
   </PropertyGroup>
-  <PropertyGroup>
-    <PrereleaseSuffix>prerelease$([System.DateTime]::Now.ToString("yyMMddmm"))</PrereleaseSuffix>
-    <PrereleaseSuffix Condition="'$(BUILD_SOURCEVERSION)' != ''">dev$(BUILD_SOURCEVERSION)</PrereleaseSuffix>
-    <VersionSuffix Condition="'$(RELEASE_BUILD)' == ''">$(PrereleaseSuffix)</VersionSuffix>
-    <VersionSuffix Condition="'$(RELEASE_BUILD)' != ''"></VersionSuffix>
-  </PropertyGroup>
-  <PropertyGroup>
-    <PrereleaseVersion Condition="'$(BUILD_SOURCEVERSION)' != ''">[$(VersionPrefix)-$(PrereleaseSuffix)]</PrereleaseVersion>
-    <PrereleaseVersion Condition="'$(BUILD_SOURCEVERSION)' == ''">$(VersionPrefix)-*</PrereleaseVersion>
-    <PrereleaseVersion Condition="'$(RELEASE_BUILD)' != ''">$(VersionPrefix)-*</PrereleaseVersion>
-    <ReleaseVersion Condition="'$(PrereleaseSuffix)' == ''">$(VersionPrefix)</ReleaseVersion>
-    <ReleaseVersion Condition="'$(PrereleaseSuffix)' != ''">$(PrereleaseVersion)</ReleaseVersion>
-  </PropertyGroup>
 </Project>
