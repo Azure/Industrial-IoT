@@ -45,7 +45,14 @@
               "$ref": "#/definitions/BrowseResponseApiModel"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       },
       "post": {
         "tags": [
@@ -88,7 +95,14 @@
               "$ref": "#/definitions/BrowseResponseApiModel"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/browse/{endpointId}/next": {
@@ -127,6 +141,13 @@
             }
           }
         },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ],
         "x-ms-pageable": {
           "nextLinkName": "continuationToken"
         }
@@ -172,7 +193,14 @@
               "$ref": "#/definitions/BrowseNextResponseApiModel"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/browse/{endpointId}/path": {
@@ -217,7 +245,14 @@
               "$ref": "#/definitions/BrowsePathResponseApiModel"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/call/{endpointId}/metadata": {
@@ -262,7 +297,14 @@
               "$ref": "#/definitions/MethodMetadataResponseApiModel"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/call/{endpointId}": {
@@ -307,7 +349,14 @@
               "$ref": "#/definitions/MethodCallResponseApiModel"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/publish/{endpointId}/start": {
@@ -352,7 +401,14 @@
               "$ref": "#/definitions/PublishStartResponseApiModel"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/publish/{endpointId}/stop": {
@@ -397,7 +453,14 @@
               "$ref": "#/definitions/PublishStopResponseApiModel"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/publish/{endpointId}": {
@@ -436,6 +499,13 @@
             }
           }
         },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ],
         "x-ms-pageable": {
           "nextLinkName": "continuationToken"
         }
@@ -481,7 +551,14 @@
               "$ref": "#/definitions/PublishedItemListResponseApiModel"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/read/{endpointId}": {
@@ -519,7 +596,14 @@
               "$ref": "#/definitions/ValueReadResponseApiModel"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       },
       "post": {
         "tags": [
@@ -562,7 +646,14 @@
               "$ref": "#/definitions/ValueReadResponseApiModel"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/read/{endpointId}/attributes": {
@@ -607,7 +698,14 @@
               "$ref": "#/definitions/ReadResponseApiModel"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/status": {
@@ -674,7 +772,14 @@
               "$ref": "#/definitions/ValueWriteResponseApiModel"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/v2/write/{endpointId}/attributes": {
@@ -719,7 +824,14 @@
               "$ref": "#/definitions/WriteResponseApiModel"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     }
   },
@@ -2073,6 +2185,17 @@
           "description": "Service result in case of error"
         }
       }
+    }
+  },
+  "securityDefinitions": {
+    "oauth2": {
+      "flow": "implicit",
+      "authorizationUrl": "https://login.microsoftonline.com/6e660ce4-d51a-4585-80c6-58035e212354/oauth2/authorize",
+      "scopes": {
+        "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication": "Access http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication operations"
+      },
+      "type": "oauth2",
+      "description": "Implicit oauth2 token flow."
     }
   },
   "tags": [

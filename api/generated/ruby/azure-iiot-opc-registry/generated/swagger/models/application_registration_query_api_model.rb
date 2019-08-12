@@ -41,11 +41,6 @@ module azure.iiot.opc.registry
       # @return [String] Supervisor or site the application belongs to.
       attr_accessor :site_or_supervisor_id
 
-      # @return [ApplicationStateMask] State of application. Possible values
-      # include: 'Any', 'New', 'Approved', 'Rejected', 'Unregistered',
-      # 'Deleted'
-      attr_accessor :state
-
       # @return [Boolean] Whether to include apps that were soft deleted
       attr_accessor :include_not_seen_since
 
@@ -134,15 +129,6 @@ module azure.iiot.opc.registry
                 serialized_name: 'siteOrSupervisorId',
                 type: {
                   name: 'String'
-                }
-              },
-              state: {
-                client_side_validation: true,
-                required: false,
-                serialized_name: 'state',
-                type: {
-                  name: 'Enum',
-                  module: 'ApplicationStateMask'
                 }
               },
               include_not_seen_since: {

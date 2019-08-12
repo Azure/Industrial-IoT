@@ -19,8 +19,6 @@ final class AzureOpcRegistryClient
         $this->_CreateApplication_operation = $_client->createOperation('CreateApplication');
         $this->_RegisterServer_operation = $_client->createOperation('RegisterServer');
         $this->_DeleteAllDisabledApplications_operation = $_client->createOperation('DeleteAllDisabledApplications');
-        $this->_ApproveApplication_operation = $_client->createOperation('ApproveApplication');
-        $this->_RejectApplication_operation = $_client->createOperation('RejectApplication');
         $this->_DisableApplication_operation = $_client->createOperation('DisableApplication');
         $this->_EnableApplication_operation = $_client->createOperation('EnableApplication');
         $this->_DiscoverServer_operation = $_client->createOperation('DiscoverServer');
@@ -95,42 +93,6 @@ located by a supervisor in its network using the discovery url.
     public function deleteAllDisabledApplications($notSeenFor = null)
     {
         return $this->_DeleteAllDisabledApplications_operation->call(['notSeenFor' => $notSeenFor]);
-    }
-    /**
-     * A manager can approve a new application or force an application
-from any state.
-After approval the application is in the 'Approved' state.
-Requires Manager role.
-     * @param string $applicationId
-     * @param boolean|null $force
-     */
-    public function approveApplication(
-        $applicationId,
-        $force = null
-    )
-    {
-        return $this->_ApproveApplication_operation->call([
-            'applicationId' => $applicationId,
-            'force' => $force
-        ]);
-    }
-    /**
-     * A manager can approve a new application or force an application
-from any state.
-After approval the application is in the 'Rejected' state.
-Requires Manager role.
-     * @param string $applicationId
-     * @param boolean|null $force
-     */
-    public function rejectApplication(
-        $applicationId,
-        $force = null
-    )
-    {
-        return $this->_RejectApplication_operation->call([
-            'applicationId' => $applicationId,
-            'force' => $force
-        ]);
     }
     /**
      * A manager can disable an application.
@@ -546,14 +508,6 @@ more results.
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
-    private $_ApproveApplication_operation;
-    /**
-     * @var \Microsoft\Rest\OperationInterface
-     */
-    private $_RejectApplication_operation;
-    /**
-     * @var \Microsoft\Rest\OperationInterface
-     */
     private $_DisableApplication_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
@@ -705,42 +659,6 @@ more results.
                     'responses' => ['200' => []]
                 ]
             ],
-            '/v2/applications/{applicationId}/approve' => ['post' => [
-                'operationId' => 'ApproveApplication',
-                'parameters' => [
-                    [
-                        'name' => 'applicationId',
-                        'in' => 'path',
-                        'required' => TRUE,
-                        'type' => 'string'
-                    ],
-                    [
-                        'name' => 'force',
-                        'in' => 'query',
-                        'required' => FALSE,
-                        'type' => 'boolean'
-                    ]
-                ],
-                'responses' => ['200' => []]
-            ]],
-            '/v2/applications/{applicationId}/reject' => ['post' => [
-                'operationId' => 'RejectApplication',
-                'parameters' => [
-                    [
-                        'name' => 'applicationId',
-                        'in' => 'path',
-                        'required' => TRUE,
-                        'type' => 'string'
-                    ],
-                    [
-                        'name' => 'force',
-                        'in' => 'query',
-                        'required' => FALSE,
-                        'type' => 'boolean'
-                    ]
-                ],
-                'responses' => ['200' => []]
-            ]],
             '/v2/applications/{applicationId}/disable' => ['post' => [
                 'operationId' => 'DisableApplication',
                 'parameters' => [[
@@ -1351,14 +1269,6 @@ more results.
             ],
             'ApplicationInfoApiModel' => [
                 'properties' => [
-                    'state' => [
-                        'type' => 'string',
-                        'enum' => [
-                            'New',
-                            'Approved',
-                            'Rejected'
-                        ]
-                    ],
                     'applicationId' => ['type' => 'string'],
                     'applicationType' => [
                         'type' => 'string',
@@ -1402,7 +1312,6 @@ more results.
                         'format' => 'date-time'
                     ],
                     'created' => ['$ref' => '#/definitions/RegistryOperationApiModel'],
-                    'approved' => ['$ref' => '#/definitions/RegistryOperationApiModel'],
                     'updated' => ['$ref' => '#/definitions/RegistryOperationApiModel']
                 ],
                 'additionalProperties' => FALSE,
@@ -1640,17 +1549,6 @@ more results.
                     'discoveryProfileUri' => ['type' => 'string'],
                     'gatewayServerUri' => ['type' => 'string'],
                     'siteOrSupervisorId' => ['type' => 'string'],
-                    'state' => [
-                        'type' => 'string',
-                        'enum' => [
-                            'Any',
-                            'New',
-                            'Approved',
-                            'Rejected',
-                            'Unregistered',
-                            'Deleted'
-                        ]
-                    ],
                     'includeNotSeenSince' => ['type' => 'boolean']
                 ],
                 'additionalProperties' => FALSE,

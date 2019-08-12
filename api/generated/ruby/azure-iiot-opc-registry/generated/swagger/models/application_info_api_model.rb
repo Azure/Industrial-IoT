@@ -13,10 +13,6 @@ module azure.iiot.opc.registry
     # Application info model
     #
     class ApplicationInfoApiModel
-      # @return [ApplicationState] State. Possible values include: 'New',
-      # 'Approved', 'Rejected'. Default value: 'New' .
-      attr_accessor :state
-
       # @return [String] Unique application id
       attr_accessor :application_id
 
@@ -70,9 +66,6 @@ module azure.iiot.opc.registry
       # @return [RegistryOperationApiModel] Created
       attr_accessor :created
 
-      # @return [RegistryOperationApiModel] Approved
-      attr_accessor :approved
-
       # @return [RegistryOperationApiModel] Updated
       attr_accessor :updated
 
@@ -90,16 +83,6 @@ module azure.iiot.opc.registry
             name: 'Composite',
             class_name: 'ApplicationInfoApiModel',
             model_properties: {
-              state: {
-                client_side_validation: true,
-                required: false,
-                serialized_name: 'state',
-                default_value: 'New',
-                type: {
-                  name: 'Enum',
-                  module: 'ApplicationState'
-                }
-              },
               application_id: {
                 client_side_validation: true,
                 required: false,
@@ -274,15 +257,6 @@ module azure.iiot.opc.registry
                 client_side_validation: true,
                 required: false,
                 serialized_name: 'created',
-                type: {
-                  name: 'Composite',
-                  class_name: 'RegistryOperationApiModel'
-                }
-              },
-              approved: {
-                client_side_validation: true,
-                required: false,
-                serialized_name: 'approved',
                 type: {
                   name: 'Composite',
                   class_name: 'RegistryOperationApiModel'

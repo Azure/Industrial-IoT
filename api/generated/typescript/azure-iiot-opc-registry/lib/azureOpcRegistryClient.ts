@@ -141,70 +141,6 @@ class AzureOpcRegistryClient extends AzureOpcRegistryClientContext {
   }
 
   /**
-   * A manager can approve a new application or force an application
-   * from any state.
-   * After approval the application is in the 'Approved' state.
-   * Requires Manager role.
-   * @summary Approve a new application.
-   * @param applicationId The application id
-   * @param [options] The optional parameters
-   * @returns Promise<msRest.RestResponse>
-   */
-  approveApplication(applicationId: string, options?: Models.AzureOpcRegistryClientApproveApplicationOptionalParams): Promise<msRest.RestResponse>;
-  /**
-   * @param applicationId The application id
-   * @param callback The callback
-   */
-  approveApplication(applicationId: string, callback: msRest.ServiceCallback<void>): void;
-  /**
-   * @param applicationId The application id
-   * @param options The optional parameters
-   * @param callback The callback
-   */
-  approveApplication(applicationId: string, options: Models.AzureOpcRegistryClientApproveApplicationOptionalParams, callback: msRest.ServiceCallback<void>): void;
-  approveApplication(applicationId: string, options?: Models.AzureOpcRegistryClientApproveApplicationOptionalParams | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
-    return this.sendOperationRequest(
-      {
-        applicationId,
-        options
-      },
-      approveApplicationOperationSpec,
-      callback);
-  }
-
-  /**
-   * A manager can approve a new application or force an application
-   * from any state.
-   * After approval the application is in the 'Rejected' state.
-   * Requires Manager role.
-   * @summary Reject a new application.
-   * @param applicationId The application id
-   * @param [options] The optional parameters
-   * @returns Promise<msRest.RestResponse>
-   */
-  rejectApplication(applicationId: string, options?: Models.AzureOpcRegistryClientRejectApplicationOptionalParams): Promise<msRest.RestResponse>;
-  /**
-   * @param applicationId The application id
-   * @param callback The callback
-   */
-  rejectApplication(applicationId: string, callback: msRest.ServiceCallback<void>): void;
-  /**
-   * @param applicationId The application id
-   * @param options The optional parameters
-   * @param callback The callback
-   */
-  rejectApplication(applicationId: string, options: Models.AzureOpcRegistryClientRejectApplicationOptionalParams, callback: msRest.ServiceCallback<void>): void;
-  rejectApplication(applicationId: string, options?: Models.AzureOpcRegistryClientRejectApplicationOptionalParams | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
-    return this.sendOperationRequest(
-      {
-        applicationId,
-        options
-      },
-      rejectApplicationOperationSpec,
-      callback);
-  }
-
-  /**
    * A manager can disable an application.
    * @summary Disable an enabled application.
    * @param applicationId The application id
@@ -1011,38 +947,6 @@ const deleteAllDisabledApplicationsOperationSpec: msRest.OperationSpec = {
   path: "v2/applications",
   queryParameters: [
     Parameters.notSeenFor
-  ],
-  responses: {
-    200: {},
-    default: {}
-  },
-  serializer
-};
-
-const approveApplicationOperationSpec: msRest.OperationSpec = {
-  httpMethod: "POST",
-  path: "v2/applications/{applicationId}/approve",
-  urlParameters: [
-    Parameters.applicationId
-  ],
-  queryParameters: [
-    Parameters.force
-  ],
-  responses: {
-    200: {},
-    default: {}
-  },
-  serializer
-};
-
-const rejectApplicationOperationSpec: msRest.OperationSpec = {
-  httpMethod: "POST",
-  path: "v2/applications/{applicationId}/reject",
-  urlParameters: [
-    Parameters.applicationId
-  ],
-  queryParameters: [
-    Parameters.force
   ],
   responses: {
     200: {},

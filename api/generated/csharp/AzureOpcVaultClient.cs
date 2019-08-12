@@ -2395,7 +2395,8 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
         }
 
         /// <summary>
-        /// Get the status.
+        /// Return the service status in the form of the service status
+        /// api model.
         /// </summary>
         /// <param name='customHeaders'>
         /// Headers that will be added to request.

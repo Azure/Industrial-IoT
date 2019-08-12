@@ -75,6 +75,13 @@ and server must trust each other.
 * `application/json`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="getsetofuniquenodes"></a>
 #### Browse set of unique target nodes
 ```
@@ -111,6 +118,13 @@ and the targetNodesOnly flag set to true.
 ##### Produces
 
 * `application/json`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="browsenext"></a>
@@ -154,6 +168,13 @@ and server must trust each other.
 * `application/json`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="getnextsetofuniquenodes"></a>
 #### Browse next set of unique target nodes
 ```
@@ -188,6 +209,13 @@ the continuation token and the targetNodesOnly flag set to true.
 ##### Produces
 
 * `application/json`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="browseusingpath"></a>
@@ -230,6 +258,13 @@ and server must trust each other.
 ##### Produces
 
 * `application/json`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="call_resource"></a>
@@ -278,6 +313,13 @@ and server must trust each other.
 * `application/json`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="getcallmetadata"></a>
 #### Get method meta data
 ```
@@ -318,6 +360,13 @@ and server must trust each other.
 ##### Produces
 
 * `application/json`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="publish_resource"></a>
@@ -366,6 +415,13 @@ and server must trust each other.
 * `application/json`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="getnextlistofpublishednodes"></a>
 #### Get next set of published nodes
 ```
@@ -397,6 +453,13 @@ and server must trust each other.
 ##### Produces
 
 * `application/json`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="startpublishingvalues"></a>
@@ -440,6 +503,13 @@ and server must trust each other.
 * `application/json`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="stoppublishingvalues"></a>
 #### Stop publishing node values
 ```
@@ -479,6 +549,13 @@ and server must trust each other.
 ##### Produces
 
 * `application/json`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="read_resource"></a>
@@ -527,6 +604,13 @@ and server must trust each other.
 * `application/json`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="getvalue"></a>
 #### Get variable value
 ```
@@ -558,6 +642,13 @@ and server must trust each other.
 ##### Produces
 
 * `application/json`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="readattributes"></a>
@@ -599,6 +690,13 @@ and server must trust each other.
 ##### Produces
 
 * `application/json`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="status_resource"></a>
@@ -671,6 +769,13 @@ and server must trust each other.
 * `application/json`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="writeattributes"></a>
 #### Write node attributes
 ```
@@ -710,6 +815,13 @@ and server must trust each other.
 ##### Produces
 
 * `application/json`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 

@@ -17,11 +17,11 @@
 class StatusResponseApiModel {
   /**
    * Create a StatusResponseApiModel.
-   * @property {string} [name] Service name
-   * @property {string} [status] Status
+   * @property {string} [name] Name of this service
+   * @property {string} [status] Operational status
    * @property {string} [currentTime] Current time
-   * @property {string} [startTime] Service start time
-   * @property {number} [upTime] Uptime
+   * @property {string} [startTime] Start time of service
+   * @property {number} [upTime] Up time of service
    * @property {string} [uid] Value generated at bootstrap by each instance of
    * the service and
    * used to correlate logs coming from the same instance. The value
@@ -30,7 +30,7 @@ class StatusResponseApiModel {
    * service
    * @property {object} [dependencies] A property bag with details about the
    * internal dependencies
-   * @property {object} [metadata] Meta data
+   * @property {object} [metadata] Optional meta data.
    */
   constructor() {
   }

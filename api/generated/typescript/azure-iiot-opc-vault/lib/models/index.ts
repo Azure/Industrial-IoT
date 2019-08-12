@@ -378,11 +378,11 @@ export interface CertificateRequestQueryResponseApiModel {
  */
 export interface StatusResponseApiModel {
   /**
-   * @member {string} [name] Service name
+   * @member {string} [name] Name of this service
    */
   name?: string;
   /**
-   * @member {string} [status] Status
+   * @member {string} [status] Operational status
    */
   status?: string;
   /**
@@ -392,13 +392,13 @@ export interface StatusResponseApiModel {
    */
   readonly currentTime?: string;
   /**
-   * @member {string} [startTime] Service start time
+   * @member {string} [startTime] Start time of service
    * **NOTE: This property will not be serialized. It can only be populated by
    * the server.**
    */
   readonly startTime?: string;
   /**
-   * @member {number} [upTime] Uptime
+   * @member {number} [upTime] Up time of service
    * **NOTE: This property will not be serialized. It can only be populated by
    * the server.**
    */
@@ -427,7 +427,8 @@ export interface StatusResponseApiModel {
    */
   readonly dependencies?: { [propertyName: string]: string };
   /**
-   * @member {{ [propertyName: string]: string }} [metadata] Meta data
+   * @member {{ [propertyName: string]: string }} [metadata] Optional meta
+   * data.
    * **NOTE: This property will not be serialized. It can only be populated by
    * the server.**
    */

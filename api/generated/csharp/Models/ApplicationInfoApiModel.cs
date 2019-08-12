@@ -32,8 +32,6 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         /// <summary>
         /// Initializes a new instance of the ApplicationInfoApiModel class.
         /// </summary>
-        /// <param name="state">State. Possible values include: 'New',
-        /// 'Approved', 'Rejected'</param>
         /// <param name="applicationId">Unique application id</param>
         /// <param name="applicationType">Type of application. Possible values
         /// include: 'Server', 'Client', 'ClientAndServer',
@@ -58,11 +56,9 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         /// application</param>
         /// <param name="notSeenSince">Last time application was seen</param>
         /// <param name="created">Created</param>
-        /// <param name="approved">Approved</param>
         /// <param name="updated">Updated</param>
-        public ApplicationInfoApiModel(ApplicationState? state = default(ApplicationState?), string applicationId = default(string), ApplicationType? applicationType = default(ApplicationType?), string applicationUri = default(string), string productUri = default(string), string applicationName = default(string), string locale = default(string), IDictionary<string, string> localizedNames = default(IDictionary<string, string>), byte[] certificate = default(byte[]), IList<string> capabilities = default(IList<string>), IList<string> discoveryUrls = default(IList<string>), string discoveryProfileUri = default(string), string gatewayServerUri = default(string), IList<string> hostAddresses = default(IList<string>), string siteId = default(string), string supervisorId = default(string), System.DateTime? notSeenSince = default(System.DateTime?), RegistryOperationApiModel created = default(RegistryOperationApiModel), RegistryOperationApiModel approved = default(RegistryOperationApiModel), RegistryOperationApiModel updated = default(RegistryOperationApiModel))
+        public ApplicationInfoApiModel(string applicationId = default(string), ApplicationType? applicationType = default(ApplicationType?), string applicationUri = default(string), string productUri = default(string), string applicationName = default(string), string locale = default(string), IDictionary<string, string> localizedNames = default(IDictionary<string, string>), byte[] certificate = default(byte[]), IList<string> capabilities = default(IList<string>), IList<string> discoveryUrls = default(IList<string>), string discoveryProfileUri = default(string), string gatewayServerUri = default(string), IList<string> hostAddresses = default(IList<string>), string siteId = default(string), string supervisorId = default(string), System.DateTime? notSeenSince = default(System.DateTime?), RegistryOperationApiModel created = default(RegistryOperationApiModel), RegistryOperationApiModel updated = default(RegistryOperationApiModel))
         {
-            State = state;
             ApplicationId = applicationId;
             ApplicationType = applicationType;
             ApplicationUri = applicationUri;
@@ -80,7 +76,6 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
             SupervisorId = supervisorId;
             NotSeenSince = notSeenSince;
             Created = created;
-            Approved = approved;
             Updated = updated;
             CustomInit();
         }
@@ -89,13 +84,6 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         /// An initialization method that performs custom operations like setting defaults
         /// </summary>
         partial void CustomInit();
-
-        /// <summary>
-        /// Gets or sets state. Possible values include: 'New', 'Approved',
-        /// 'Rejected'
-        /// </summary>
-        [JsonProperty(PropertyName = "state")]
-        public ApplicationState? State { get; set; }
 
         /// <summary>
         /// Gets or sets unique application id
@@ -201,12 +189,6 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         public RegistryOperationApiModel Created { get; set; }
 
         /// <summary>
-        /// Gets or sets approved
-        /// </summary>
-        [JsonProperty(PropertyName = "approved")]
-        public RegistryOperationApiModel Approved { get; set; }
-
-        /// <summary>
         /// Gets or sets updated
         /// </summary>
         [JsonProperty(PropertyName = "updated")]
@@ -244,10 +226,6 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
             if (Created != null)
             {
                 Created.Validate();
-            }
-            if (Approved != null)
-            {
-                Approved.Validate();
             }
             if (Updated != null)
             {

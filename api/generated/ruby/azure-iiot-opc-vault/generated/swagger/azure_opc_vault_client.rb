@@ -1414,7 +1414,8 @@ module azure.iiot.opc.vault
     end
 
     #
-    # Get the status.
+    # Return the service status in the form of the service status
+    # api model.
     #
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
@@ -1427,7 +1428,8 @@ module azure.iiot.opc.vault
     end
 
     #
-    # Get the status.
+    # Return the service status in the form of the service status
+    # api model.
     #
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
@@ -1439,7 +1441,8 @@ module azure.iiot.opc.vault
     end
 
     #
-    # Get the status.
+    # Return the service status in the form of the service status
+    # api model.
     #
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.

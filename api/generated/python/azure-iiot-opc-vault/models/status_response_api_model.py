@@ -18,15 +18,15 @@ class StatusResponseApiModel(Model):
     Variables are only populated by the server, and will be ignored when
     sending a request.
 
-    :param name: Service name
+    :param name: Name of this service
     :type name: str
-    :param status: Status
+    :param status: Operational status
     :type status: str
     :ivar current_time: Current time
     :vartype current_time: str
-    :ivar start_time: Service start time
+    :ivar start_time: Start time of service
     :vartype start_time: str
-    :ivar up_time: Uptime
+    :ivar up_time: Up time of service
     :vartype up_time: long
     :ivar uid: Value generated at bootstrap by each instance of the service
      and
@@ -38,7 +38,7 @@ class StatusResponseApiModel(Model):
     :ivar dependencies: A property bag with details about the internal
      dependencies
     :vartype dependencies: dict[str, str]
-    :ivar metadata: Meta data
+    :ivar metadata: Optional meta data.
     :vartype metadata: dict[str, str]
     """
 

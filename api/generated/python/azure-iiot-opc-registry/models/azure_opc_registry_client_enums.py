@@ -36,13 +36,6 @@ class ApplicationType(Enum):
     discovery_server = "DiscoveryServer"
 
 
-class ApplicationState(Enum):
-
-    new = "New"
-    approved = "Approved"
-    rejected = "Rejected"
-
-
 class DiscoveryMode(Enum):
 
     off = "Off"
@@ -66,16 +59,6 @@ class SecurityAssessment(Enum):
     low = "Low"
     medium = "Medium"
     high = "High"
-
-
-class ApplicationStateMask(Enum):
-
-    any = "Any"
-    new = "New"
-    approved = "Approved"
-    rejected = "Rejected"
-    unregistered = "Unregistered"
-    deleted = "Deleted"
 
 
 class EndpointActivationState(Enum):
