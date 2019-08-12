@@ -66,19 +66,6 @@ namespace System {
         /// <typeparam name="T"></typeparam>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static T[] Cast<T>(this object[] value) {
-            if (value == null) {
-                return default;
-            }
-            return Enumerable.Cast<T>(value).ToArray();
-        }
-
-        /// <summary>
-        /// Using type converter, convert type
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="value"></param>
-        /// <returns></returns>
         public static T As<T>(this object value) {
             return (T)As(value, typeof(T));
         }
