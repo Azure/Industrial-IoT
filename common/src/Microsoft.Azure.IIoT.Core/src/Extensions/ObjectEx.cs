@@ -6,6 +6,7 @@
 namespace System {
     using System.Collections.Generic;
     using System.ComponentModel;
+    using System.Linq;
 
     /// <summary>
     /// Base object extensions
@@ -66,11 +67,7 @@ namespace System {
         /// <param name="value"></param>
         /// <returns></returns>
         public static T As<T>(this object value) {
-            var converter = TypeDescriptor.GetConverter(typeof(T));
-            if (value == null) {
-                return default;
-            }
-            return (T)converter.ConvertFrom(value);
+            return (T)As(value, typeof(T));
         }
 
         /// <summary>
@@ -80,6 +77,9 @@ namespace System {
         /// <param name="type"></param>
         /// <returns></returns>
         public static object As(this object value, Type type) {
+            if (value == null || value.GetType() == type) {
+                return value;
+            }
             var converter = TypeDescriptor.GetConverter(type);
             return converter.ConvertFrom(value);
         }
