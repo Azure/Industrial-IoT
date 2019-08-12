@@ -888,27 +888,31 @@ namespace Opc.Ua.Encoders {
             BuiltInType builtInType) {
 
             // Handle special value ranks
-            if (valueRank <= -2) {
+            if (valueRank <= -2 || valueRank == 0) {
                 if (valueRank < -3) {
                     throw new ServiceResultException(StatusCodes.BadEncodingError,
-                        $"Value rank '{valueRank}' is invalid.");
+                        $"Bad variant: Value rank '{valueRank}' is invalid.");
                 }
                 // Cannot deduce rank - write null
                 if (value == null) {
                     WriteNull(null);
                     return;
                 }
-                // Handle Any (-2) or scalar or one dimension (-3)
+                // Handle one or more (0), Any (-2) or scalar or one dimension (-3)
                 if (value.GetType().IsArray) {
                     var rank = value.GetType().GetArrayRank();
                     if (valueRank == -3 && rank != 1) {
                         throw new ServiceResultException(StatusCodes.BadEncodingError,
-                            $"Scalar or one dimension, but passed matrix value.");
+                            $"Bad variant: Scalar or one dimension with matrix value.");
                     }
                     // Write as array or matrix
                     valueRank = rank;
                 }
                 else {
+                    if (valueRank == 0) {
+                        throw new ServiceResultException(StatusCodes.BadEncodingError,
+                            $"Bad variant: One or more dimension rank with scalar value.");
+                    }
                     // Force write as scalar
                     valueRank = -1;
                 }
@@ -997,7 +1001,7 @@ namespace Opc.Ua.Encoders {
                     case BuiltInType.UInteger:
                     case BuiltInType.Variant:
                         throw ServiceResultException.Create(StatusCodes.BadEncodingError,
-                            "Unexpected type encountered while encoding variant " +
+                            "Bad variant: Unexpected type encountered while encoding " +
                             value.GetType());
                 }
             }
@@ -1103,8 +1107,8 @@ namespace Opc.Ua.Encoders {
                             return;
                         }
                         throw ServiceResultException.Create(StatusCodes.BadEncodingError,
-                            "Unexpected type encountered while encoding an array" +
-                            $" of Variants:{value.GetType()}");
+                            "Bad variant: Unexpected type encountered while encoding an array" +
+                            $" of Variants: {value.GetType()}");
                 }
             }
 
@@ -1123,7 +1127,7 @@ namespace Opc.Ua.Encoders {
 
             // oops - should never happen.
             throw new ServiceResultException(StatusCodes.BadEncodingError,
-                $"Type '{value.GetType().FullName}' is not allowed in an Variant.");
+                $"Bad variant: Type '{value.GetType().FullName}' is not allowed in Variant.");
         }
 
         /// <summary>
@@ -1143,7 +1147,7 @@ namespace Opc.Ua.Encoders {
                 return t;
             }
             throw new ServiceResultException(StatusCodes.BadEncodingError,
-                $"Value '{value}' of type '{value.GetType().FullName}' is not " +
+                $"Bad variant: Value '{value}' of type '{value.GetType().FullName}' is not " +
                 $"an array of type '{typeof(T).GetType().FullName}'.");
         }
 
@@ -1161,7 +1165,7 @@ namespace Opc.Ua.Encoders {
                 return t;
             }
             throw new ServiceResultException(StatusCodes.BadEncodingError,
-                $"Value '{value}' of type '{value.GetType().FullName}' is not " +
+                $"Bad variant: Value '{value}' of type '{value.GetType().FullName}' is not " +
                 $"a scalar of type '{typeof(T).GetType().FullName}'.");
         }
 
