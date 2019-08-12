@@ -11,7 +11,7 @@
     file.  
     
     In each folder with mcr.json it finds the dockerfiles for the platform 
-    specific build.   
+    specific build. 
     
     It then traverses back up to the closest .dockerignore file. This folder 
     becomes the context of the build.
@@ -25,15 +25,20 @@
  .PARAMETER registry
     The name of the registry in ACR
 
- .PARAMETER registry
+ .PARAMETER subscription
     The subscription to use - otherwise uses default
+
+ .PARAMETER configuration
+    The build configuration - defaults to "release"
 #>
 
 Param(
     [string] $path = $null,
     [string] $registry = $null,
-    [string] $subscription = $null
+    [string] $subscription = $null,
+    [string] $configuration = "Release"
 )
+
 
 # find the top most folder with file in it and return the path
 Function GetTopMostFolder() {
@@ -98,8 +103,8 @@ $user = $credentials.username
 $password = $credentials.passwords[0].value
 Write-Debug "Using User name $($user) and passsword ****"
 
-# Get build context - this is the top most folder with .dockerignore
-$buildContext = GetTopMostFolder -startDir $path `
+# Get build root - this is the top most folder with .dockerignore
+$buildRoot = GetTopMostFolder -startDir $path `
     -fileName ".dockerignore"
 
 # Get meta data
@@ -194,28 +199,107 @@ tags: [$($tagList)]
 manifests:
 "@
 
-Write-Host "Building $($path) in $($buildContext) and "
-Write-Host "pushing to $($registry)/$($namespace)$($imageName)"
+$definitions = @()
 
-# Start build jobs for every Dockerfile
+# Create job definitions from dotnet project in current folder
+$projFile = Get-ChildItem $path -Filter *.csproj | Select-Object -First 1
+if ($projFile -ne $null) {
+    $runtimes = @{
+        "linux-arm" = @{
+            platform = "linux/arm/v7"
+        }
+        "linux-x64" =  @{
+            platform = "linux/amd64"
+        }
+        "win-x64" =  @{
+            platform = "windows/amd64"
+        }
+    }
+    $runtimes.Keys | ForEach-Object {
+        $runtimeId = $_
+
+        Write-Host "Build and publish for $($runtimeId)"
+        $output = (join-path "publish" $configuration $runtimeId);
+        # Create dotnet command line 
+        $argumentList = @("publish", 
+            "-r", $runtimeId,
+            "-o", $output,
+            "-c", $configuration,
+            $projFile.FullName
+        )
+        & dotnet $argumentList
+
+        $rtc = $runtimes.Item($_)
+
+
+
+        $dockerFile = join-path $output "Dockerfile"
+@"
+FROM mcr.microsoft.com/dotnet/core/runtime:2.2 
+WORKDIR /app
+COPY . .
+ENTRYPOINT ["$($entryPoint)"]
+"@ | Out-File $dockerFile
+        $definitions += @{
+            dockerfile = $dockerFile
+            platform = $rtc.platform
+            platformTag = $rtc.platformTag
+            buildContext = $output
+            osVersion = $null
+        }
+    }
+
+}
+
+if ($definitions.Count -eq 0) {
+    # Create job definitions from dockerfile structure in current folder
+    Get-ChildItem $path -Recurse `
+        | Where-Object Name -eq "Dockerfile" `
+        | ForEach-Object {
+
+        $dockerfile = $_.FullName
+
+        $platformFolder = $_.DirectoryName.Replace($path, "")
+        $platform = $platformFolder.Substring(1).Replace("\", "/")
+
+        if ($platform -eq "linux/arm32v7") {
+            # Backcompat
+            $platform = "linux/arm/v7"
+        }
+
+        $platformTag = $platform.Replace("/", "-")
+        if ($platformTag -eq "linux-arm-v7") {
+            # Backcompat
+            $platformTag = "linux-arm32v7"
+        }
+
+        $definitions += @{
+            dockerfile = $dockerfile
+            platform = $platform
+            platformTag = $platformTag
+            buildContext = $buildRoot
+            osVersion = $null
+        }
+    }
+
+    if ($definitions.Count -eq 0) {
+        Write-Host "Nothing to build."
+        return
+    }
+}
+
+Write-Host "Building $($definitions.Count) images in $($path) in $($buildRoot)"
+Write-Host " and pushing to $($registry)/$($namespace)$($imageName)..."
+
+# Create build jobs from build definitions
 $jobs = @()
-Get-ChildItem $path -Recurse `
-    | Where-Object Name -eq "Dockerfile" `
-    | ForEach-Object {
+$definitions | ForEach-Object {
 
-    $dockerfile = $_.FullName
-
-    $platformFolder = $_.DirectoryName.Replace($path, "")
-    $platform = $platformFolder.Substring(1).Replace("\", "/")
-    if ($platform -eq "linux/arm32v7") {
-        # Backcompat
-        $platform = "linux/arm/v7"
-    }
-    $platformTag = $platform.Replace("/", "-")
-    if ($platformTag -eq "linux-arm-v7") {
-        # Backcompat
-        $platformTag = "linux-arm32v7"
-    }
+    $dockerfile = $_.dockerfile
+    $platform = $_.platform
+    $platformTag = $_.platformTag
+    $osVersion = $_.osVersion
+    $buildContext = $_.buildContext
 
     $image = "$($namespace)$($imageName):$($sourceTag)-$($platformTag)"
 
@@ -228,14 +312,7 @@ Get-ChildItem $path -Recurse `
         "--file", $dockerfile,
         "--image", $image
     )
-    if ($isDeveloperBuild -eq $true) {
-        if (![string]::IsNullOrEmpty($env:BUILD_SOURCEVERSION)) {
-            # Add build source version so nuget restore can match the correct 
-            # nuget for the developer build from the nuget feed.
-            $argumentList += "--build-arg"
-            $argumentList += "BUILD_SOURCEVERSION=$($env:BUILD_SOURCEVERSION)"
-        }
-    }
+
     $argumentList += $buildContext
     $jobs += Start-Job -Name $platform -ArgumentList $argumentList `
         -ScriptBlock {
@@ -246,17 +323,23 @@ Get-ChildItem $path -Recurse `
             }
         }
 
-    # Append image with platform information to manifest
     $os = ""
     $osArchArr = $platform.Split('/')
     if ($osArchArr.Count -gt 1) {
         $os = ("os: {0}" -f $osArchArr[0])
+        if (![string]::IsNullOrEmpty($osVersion)) {
+            $osVersion = ("osversion: {0}" -f $osVersion)
+        }
+        else {
+            $osVersion = ""
+        }
         $architecture = ("architecture: {0}" -f $osArchArr[1])
         $variant = ""
         if ($osArchArr.Count -gt 2) {
             $variant = ("variant: {0}" -f $osArchArr[2])
         }
     }
+    # Append to manifest
     if (![string]::IsNullOrEmpty($os)) {
         $manifest +=
 @"
@@ -265,6 +348,7 @@ Get-ChildItem $path -Recurse `
     image: $($registry).azurecr.io/$($image)
     platform: 
       $($os)
+      $($osVersion)
       $($architecture)
       $($variant)
 "@
