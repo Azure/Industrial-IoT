@@ -64,9 +64,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             _opTimeout = maxOpTimeout ?? TimeSpan.FromMilliseconds(
                 _config.TransportQuotas.OperationTimeout * 4);
 
-            _url = _endpoint.Url;
-            _urlQueue = new ConcurrentQueue<string>(_endpoint.Url.YieldReturn()
-                .Concat(_endpoint.AlternativeUrls ?? Enumerable.Empty<string>()));
+            _urlQueue = new ConcurrentQueue<string>(_endpoint.GetAllUrls());
             _queue = new PriorityQueue<int, SessionOperation>();
             _enqueueEvent = new TaskCompletionSource<bool>(
                 TaskContinuationOptions.RunContinuationsAsynchronously);
@@ -74,6 +72,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             _processor = Task.Factory.StartNew(() => RunAsync(), _cts.Token,
                 TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();
 #pragma warning restore RECS0002 // Convert anonymous method to method group
+            _logger.Information("{session}: Session created.", _sessionId);
         }
 
         /// <inhjeritdoc/>
@@ -81,22 +80,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             CloseAsync().Wait();
             _cts.Dispose();
             _config.CertificateValidator.CertificateValidation -= OnValidate;
+            _logger.Information("{session}: Session closed.", _sessionId);
         }
 
         /// <inheritdoc/>
         public async Task CloseAsync() {
             if (!_cts.IsCancellationRequested) {
+                _logger.Debug("{session}: Closing processor {processor}@{status}...",
+                    _sessionId, _processor.Id, _processor.Status);
                 // Cancel operations
                 _cts.Cancel();
                 // Unblock keep alives and retries.
                 _enqueueEvent.TrySetResult(true);
-                _logger.Debug("Waiting for processor {processor} to close - {status}...",
-                    _processor.Id, _processor.Status);
                 // Wait for processor to finish
-                if (_processor.Status != TaskStatus.WaitingForActivation) {
-                    await Try.Async(() => _processor);
-                }
-                _logger.Verbose("Processor closed.");
+                await Try.Async(() => _processor);
+                _logger.Verbose("{session}: Processor closed.", _sessionId);
             }
             // Clear queue and cancel all remaining outstanding operations
             while (_queue.TryDequeue(out var result)) {
@@ -156,31 +154,40 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         recreate = false;
                         reconnect = false;
                         try {
-                            _logger.Debug("Creating new session to {Url}...", _url);
+                            _logger.Debug("{session}: Creating new session to {url} via {endpoint}...",
+                                _sessionId, _endpoint.Url, _endpointUrl);
                             _session = await CreateSessionAsync(identity);
-                            _logger.Debug("Session to {Url} created.", _url);
+                            _logger.Debug("{session}: Session to {url} via {endpoint} created.",
+                                _sessionId, _endpoint.Url, _endpointUrl);
                         }
                         catch (Exception e) {
-                            _logger.Debug(e,
-                                "Failed to create session to {Url} - retry.", _url);
+                            _logger.Information(
+                                "{session}: {message} creating session to {url} via {endpoint} - retry.",
+                                _sessionId, e.Message, _endpoint.Url, _endpointUrl);
+                            _logger.Debug(e, "{session}: Error connecting - retry.",
+                                _sessionId);
                             ex = e;
                         }
                     }
                     if (recreate) {
                         // Try recreate session from current one
                         try {
-                            _logger.Debug("Recreating session to {Url}...", _url);
+                            _logger.Debug("{session}: Recreating session to {url} via {endpoint}...",
+                                _sessionId, _endpoint.Url, _endpointUrl);
                             var session = await Task.Run(() => Session.Recreate(_session), _cts.Token);
-                            _logger.Debug("Session recreated to {Url}.", _url);
+                            _logger.Debug("{session}: Session recreated to {url} via {endpoint}.",
+                                _sessionId, _endpoint.Url, _endpointUrl);
                             _session.Close();
                             _session = session;
                             recreate = false;
                         }
                         catch (Exception e) {
                             ex = e;
-                            _logger.Error(e,
-                                "Failed to recreate session with {Url} - create new one." +
-                                _url);
+                            _logger.Information("{session}: {message} while recreating session " +
+                                "to {url} via {endpoint} - create new one.",
+                                _sessionId, e.Message, _endpoint.Url, _endpointUrl);
+                            _logger.Debug(e, "{session}: Error connecting - create new session.",
+                                _sessionId);
                             _session?.Close();
                             _session = null;
                         }
@@ -188,11 +195,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     if (reconnect) {
                         // Try reconnect the session
                         try {
-                            _logger.Debug("Reconnecting session to {Url}...", _url);
+                            _logger.Debug("{session}: Reconnecting session to {url} via {endpoint}...",
+                                _sessionId, _endpoint.Url, _endpointUrl);
 #pragma warning disable RECS0002 // Convert anonymous method to method group
                             await Task.Run(() => _session.Reconnect(), _cts.Token);
 #pragma warning restore RECS0002 // Convert anonymous method to method group
-                            _logger.Debug("Session reconnected to {Url}.", _url);
+                            _logger.Debug("{session}: Session reconnected to {url} via {endpoint}.",
+                                _sessionId, _endpoint.Url, _endpointUrl);
                             reconnect = false;
                         }
                         catch (Exception e) {
@@ -205,17 +214,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                     sre.StatusCode == StatusCodes.BadCommunicationError ||
                                     sre.StatusCode == StatusCodes.BadNotConnected) {
                                     if (retryCount < kMaxReconnectAttempts && Pending > 0) {
-                                        _logger.Error(e,
-                                            "Failed to reconnect session to {Url} - retry...",
-                                            _url);
+                                        _logger.Information("{session}: {message} while reconnecting session" +
+                                            " to {url} via {endpoint} - retry...",
+                                            _sessionId, sre.Message, _endpoint.Url, _endpointUrl);
                                         recreate = false;
                                         reconnect = true; // Try again
                                     }
                                 }
                             }
                             _logger.Debug(e,
-                                "Failed to reconnect to {Url} - recreating session...",
-                                _url);
+                                "{session}: Error reconnecting to {url} via {endpoint} - recreating session...",
+                                _sessionId, _endpoint.Url, _endpointUrl);
                         }
                     }
 
@@ -246,18 +255,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
                         ++retryCount;
                         if (!_persistent && retryCount > kMaxEmptyReconnectAttempts && Pending == 0) {
-                            _logger.Error("Give up on empty non-persistent session to {Url}...",
-                                _url);
+                            _logger.Warning(
+                                "{session}: Give up on empty non-persistent session to {url} via {endpoint}...",
+                                _sessionId, _endpoint.Url, _endpointUrl);
                             break;
                         }
                         // Try again to connect with an exponential delay
-                        var delay = Retry.GetExponentialDelay(retryCount, kMaxReconnectDelay / 2,
-                            kMaxRetries);
-                        // If pending operations, do not delay longer than 5 seconds
-                        if (Pending != 0 && delay > kMaxReconnectDelay) {
-                            delay = kMaxReconnectDelay;
+                        var delay = Retry.GetExponentialDelay(retryCount,
+                            kMaxReconnectDelayWhenPendingOperations / 2, kMaxRetries);
+                        if (delay > kMaxReconnectDelayWhenPendingOperations) {
+                            //
+                            // If pending operations, do not delay longer than 5 seconds
+                            // otherwise wait for 2 hours or until new operation is queued.
+                            //
+                            delay = Pending != 0 ? kMaxReconnectDelayWhenPendingOperations :
+                                kMaxReconnectDelayWhenNoPendingOperations;
                         }
-                        _logger.Debug("Try to connect to {Url} in {delay} ms...", _url, delay);
+                        _logger.Information("{session}: Try to connect to {url} via {endpoint} in {delay} ms...",
+                            _sessionId, _endpoint.Url, _endpointUrl, delay);
                         // Wait for either the retry delay to pass or until new operation is added
                         await WaitForNewlyEnqueuedOperationAsync(delay);
                         continue;
@@ -289,7 +304,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         continue;
                     }
                     if (operation is KeepAlive) {
-                        _logger.Verbose("Sending keep alive message...");
+                        _logger.Verbose("{session}: Sending keep alive message...", _sessionId);
                     }
                     try {
                         // Check if the desired user identity is the same as the current one
@@ -297,14 +312,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                 _session.Identity.GetIdentityToken())) {
                             // Try Elevate or de-elevate session
                             try {
-                                _logger.Verbose("Updating session user identity...");
+                                _logger.Verbose("{session}: Updating session user identity...", _sessionId);
                                 await Task.Run(() => _session.UpdateSession(operation.Identity,
                                     _session.PreferredLocales));
-                                _logger.Debug("Updated session user identity.");
+                                _logger.Debug("{session}: Updated session user identity.", _sessionId);
                             }
                             catch (ServiceResultException sre) {
                                 if (StatusCodeEx.IsSecurityError(sre.StatusCode)) {
-                                    _logger.Debug(sre, "Failed updating session identity");
+                                    _logger.Debug(sre, "{session}: Failed updating session identity",
+                                        _sessionId);
                                     await NotifyConnectivityStateChangeAsync(ToConnectivityState(sre));
                                     operation.Fail(sre.ToTypedException());
                                     operation = null;
@@ -318,7 +334,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         _lastActivity = DateTime.UtcNow;
                         await NotifyConnectivityStateChangeAsync(EndpointConnectivityState.Ready);
                         everSuccessful = true;
-                        _logger.Verbose("Session operation completed.");
+                        _logger.Verbose("{session}: Session operation completed.", _sessionId);
                         operation = null;
                     }
                     catch (Exception e) {
@@ -331,39 +347,54 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         switch (e) {
                             case TimeoutException te:
                             case ServerBusyException sb:
+                                _logger.Debug(e, "{session}: Server timeout error.", _sessionId);
                                 if (everSuccessful && operation.ShouldRetry(e)) {
-                                    _logger.Information(e,
-                                        "Server busy or timeout, try again later...");
+                                    _logger.Information("{session}: Timeout error talking to " +
+                                        "{url} via {endpoint} - {error} - try again later...",
+                                        _sessionId, _endpoint.Url, _endpointUrl, e.Message);
                                     _queue.Enqueue(priority, operation);
                                     operation = null;
                                 }
                                 else {
-                                    _logger.Error(e, "Service call timeout - fail operation.");
-                                    operation.Fail(e);
                                     reconnect = operation is KeepAlive;
+                                    if (!reconnect) {
+                                        _logger.Error("{session}: Timeout error  talking to " +
+                                            "{url} via {endpoint}- {error} - fail user operation.",
+                                            _sessionId, _endpoint.Url, _endpointUrl, e.Message);
+                                    }
+                                    operation.Fail(e);
                                     operation = null;
                                 }
                                 break;
                             case ConnectionException cn:
                             case ProtocolException pe:
                             case CommunicationException ce:
+                                _logger.Debug(e, "{session}: Server communication error.", _sessionId);
                                 if (everSuccessful && operation.ShouldRetry(e)) {
-                                    _logger.Information(e, "Reconnect and try operation again...");
+                                    _logger.Information("{session}: Communication error talking to " +
+                                        "{url} via {endpoint} - {error} - Reconnect and try again...",
+                                        _sessionId, _endpoint.Url, _endpointUrl, e.Message);
                                     // Reconnect session
                                     reconnect = true;
                                 }
                                 else {
-                                    _logger.Error(e, "Server communication error - fail operation.");
-                                    operation.Fail(e);
                                     reconnect = operation is KeepAlive;
+                                    if (!reconnect) {
+                                        _logger.Error("{session}: Communication error talking to " +
+                                            "{url} via {endpoint} - {error} - fail user operation.",
+                                            _sessionId, _endpoint.Url, _endpointUrl, e.Message);
+                                    }
+                                    operation.Fail(e);
                                     operation = null;
                                 }
                                 break;
                             default:
                                 // App error - fail and continue
-                                _logger.Debug(e, "Application error - fail operation.");
-                                operation.Fail(e);
+                                _logger.Debug(e, "{session}: Application error occurred talking to " +
+                                    "{url} via {endpoint} - fail operation.",
+                                    _sessionId, _endpoint.Url, _endpointUrl, e.Message);
                                 reconnect = operation is KeepAlive;
+                                operation.Fail(e);
                                 operation = null;
                                 break;
                         }
@@ -380,7 +411,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 // Expected on cancellation
             }
             catch (Exception ex) {
-                _logger.Error(ex, "Session operation processor exited with exception");
+                _logger.Error(ex, "{session}: Session operation processor exited with exception",
+                    _sessionId);
             }
             finally {
                 if (operation != null) {
@@ -388,19 +420,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
                 _lastActivity = DateTime.MinValue;
 
-                _logger.Verbose("Closing session...");
+                _logger.Verbose("{session}: Closing session...", _sessionId);
                 _session?.Close();
                 _session = null;
-                _logger.Debug("Session closed.");
+                _logger.Debug("{session}: Session closed.", _sessionId);
             }
-            _logger.Verbose("Processor stopped.");
+            _logger.Verbose("{session}: Processor stopped.", _sessionId);
         }
 
         /// <summary>
         /// Wait for a newly enqueued operation using a timeout.
         /// </summary>
         public Task<bool> WaitForNewlyEnqueuedOperationAsync(int timeout) {
-            while (true) {
+            while (!_cts.IsCancellationRequested) {
                 var tcs = _enqueueEvent;
                 // Wait on a fresh task or on the not yet completed on
                 if (tcs.Task.IsCompleted) {
@@ -411,9 +443,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         tcs = newEvent;
                     }
                 }
-                return Task.WhenAny(tcs.Task, Task.Delay(timeout))
+                return Task.WhenAny(tcs.Task, Task.Delay(timeout, _cts.Token))
                     .ContinueWith(t => t.Result == tcs.Task);
             }
+            return Task.FromException<bool>(new TaskCanceledException());
         }
 
         /// <summary>
@@ -457,6 +490,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             state = reconnecting ? EndpointConnectivityState.NoTrust :
                                 EndpointConnectivityState.Error;
                             break;
+                        case StatusCodes.BadRequestTimeout:
                         case StatusCodes.BadNotConnected:
                             state = EndpointConnectivityState.NotReachable;
                             break;
@@ -464,11 +498,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             state = EndpointConnectivityState.Error;
                             break;
                     }
-                    _logger.Debug("{result} => {state}", sre.Result, state);
+                    _logger.Debug("{session}: {result} => {state}", _sessionId, sre.Result, state);
                     break;
                 default:
                     state = EndpointConnectivityState.Error;
-                    _logger.Debug("{message} => {state}", ex.Message, state);
+                    _logger.Debug("{session}: {message} => {state}", _sessionId, ex.Message, state);
                     break;
             }
             return state;
@@ -489,18 +523,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 state == EndpointConnectivityState.Error) {
                 // Do not change state to generic error once we have
                 // a specific error state already set...
-                _logger.Debug("Error, but leaving {Url} state at {previous}.",
-                    _url, previous);
+                _logger.Debug(
+                    "{session}: Error, but leaving {url} via {endpoint} state at {previous}.",
+                    _sessionId, _endpoint.Url, _endpointUrl, previous);
                 return;
             }
             _lastState = state;
-            _logger.Information("Endpoint {Url} changed from {previous} to {state}",
-                _url, previous, state);
+            _logger.Information(
+                "{session}: Endpoint {url} via {endpoint} changed from {previous} to {state}",
+                _sessionId, _endpoint.Url, _endpointUrl, previous, state);
             try {
                 await _statusCb?.Invoke(_endpoint, state);
             }
             catch (Exception ex) {
-                _logger.Error(ex, "Exception during state callback");
+                _logger.Error(ex, "{session}: Exception during state callback", _sessionId);
             }
         }
 
@@ -511,25 +547,26 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <returns></returns>
         private async Task<Session> CreateSessionAsync(IUserIdentity identity) {
 
-            if (_endpoint.SecurityMode == SecurityMode.None) {
-                _logger.Warning("Using unsecure connection.");
+            if (_endpoint.SecurityMode != SecurityMode.SignAndEncrypt) {
+                _logger.Warning("{session}: Establishing unecrypted connection to {url}.",
+                    _sessionId, _endpoint.Url);
             }
 
             if (_urlQueue.TryDequeue(out var next)) {
-                if (_endpoint.Url != null && _endpoint.Url != next) {
-                    _urlQueue.Enqueue(_endpoint.Url);
+                if (_endpointUrl != null && _endpointUrl != next) {
+                    _urlQueue.Enqueue(_endpointUrl);
                 }
-                _endpoint.Url = next;
-                _logger.Information("Creating session to {url} via {endpoint}.",
-                    _url, _endpoint.Url);
+                _endpointUrl = next;
+                _logger.Information("{session}: Creating session to {url} via {endpoint}.",
+                    _sessionId, _endpoint.Url, _endpointUrl);
             }
 
             var selectedEndpoint = await DiscoverEndpointsAsync(_config,
-                _endpoint, new Uri(_endpoint.Url), (server, endpoints, channel) =>
+                _endpoint, new Uri(_endpointUrl), (server, endpoints, channel) =>
                     SelectServerEndpoint(server, endpoints, channel, true));
             if (selectedEndpoint == null) {
                 throw new ConnectionException(
-                    $"Unable to select secure endpoint on {_url} via {_endpoint.Url}");
+                    $"Unable to select secure endpoint on {_endpoint.Url} via {_endpointUrl}");
             }
 
             var configuredEndpoint = new ConfiguredEndpoint(selectedEndpoint.Server,
@@ -540,7 +577,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 _sessionName, (uint)(_timeout.TotalMilliseconds * 1.2), identity, null);
             if (session == null) {
                 throw new ExternalDependencyException(
-                    $"Cannot establish session to {_url} via {_endpoint.Url}.");
+                    $"Cannot establish session to {_endpoint.Url} via {_endpointUrl}.");
             }
             session.KeepAlive += (_, e) => e.CancelKeepAlive = true;
             session.KeepAliveInterval = -1; // No keep alives - we handle those ourselves.
@@ -618,7 +655,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
             // use a short timeout.
             var configuration = EndpointConfiguration.Create(config);
-            configuration.OperationTimeout = kMaxReconnectDelay;
+            configuration.OperationTimeout = kMaxReconnectDelayWhenPendingOperations;
 
             using (var client = DiscoveryClient.Create(discoveryUrl, configuration)) {
                 var response = await client.GetEndpointsAsync(null,
@@ -825,14 +862,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         private const int kMaxReconnectAttempts = 4;
         private const int kMaxEmptyReconnectAttempts = 2;
         private const int kMaxRetries = 15;
-        private const int kMaxReconnectDelay = 5000;
+        private const int kMaxReconnectDelayWhenPendingOperations = 5 * 1000;
+        private const int kMaxReconnectDelayWhenNoPendingOperations = 300 * 1000;
 
+        private static int _sessionCounter;
         private DateTime _lastActivity;
         private Session _session;
         private EndpointConnectivityState _lastState;
+        private string _endpointUrl;
+        private readonly int _sessionId = Interlocked.Increment(ref _sessionCounter);
         private readonly bool _persistent;
         private readonly TimeSpan _opTimeout;
-        private readonly string _url;
         private readonly string _sessionName;
         private readonly ILogger _logger;
         private readonly TimeSpan _timeout;

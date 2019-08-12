@@ -68,13 +68,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         public string GatewayServerUri { get; set; }
 
         /// <summary>
-        /// State of application
-        /// </summary>
-        [JsonProperty(PropertyName = "state",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public ApplicationState? State { get; set; }
-
-        /// <summary>
         /// Supervisor or site the application belongs to.
         /// </summary>
         [JsonProperty(PropertyName = "siteOrSupervisorId",

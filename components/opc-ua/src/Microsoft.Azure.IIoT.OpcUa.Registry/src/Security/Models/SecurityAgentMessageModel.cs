@@ -9,7 +9,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Security.Models {
     /// <summary>
     /// Endpoint security
     /// </summary>
-    public class EndpointSecurityInfoModel {
+    public class SecurityAgentMessageModel {
 
         /// <summary>
         /// Agent Version

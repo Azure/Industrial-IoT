@@ -1,23 +1,19 @@
-// Copyright (c) Microsoft. All rights reserved.
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Tests.v2.Controllers {
-    using Microsoft.Azure.IIoT.Services.OpcUa.Vault.Tests.Helpers;
-    using Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Controllers;
+namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Controllers {
     using Microsoft.Azure.IIoT.OpcUa.Vault;
     using Microsoft.Azure.IIoT.OpcUa.Vault.Models;
     using Moq;
     using Xunit;
     using System.Threading;
 
-    public class GroupControllerTest {
+    public class TrustGroupsControllerTest {
 
         // Execute this code before every test
-        // Note: for complex setups, where many dependencies need to be
-        // prepared before a test, and this method grows too big:
-        // 1. First try to reduce the complexity of the class under test
-        // 2. If #1 is not possible, use a context object, e.g.
-        //      see https://dzone.com/articles/introducing-unit-testing
-        public GroupControllerTest() {
+        public TrustGroupsControllerTest() {
 
             // This is a dependency of the controller, that we mock, so that
             // we can test the class in isolation
@@ -29,8 +25,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Tests.v2.Controllers {
             _target = new TrustGroupsController(_groups.Object, _services.Object);
         }
 
-        [Fact, Trait(Constants.Type, Constants.ControllerTest)]
-        public void ItFetchesACertificateGroupConfigurationFromTheServiceLayer() {
+        [Fact]
+        public void ItFetchesAGroupFromTheServiceLayer() {
             var id = "Default";
             var configuration = new TrustGroupRegistrationModel {
                 Id = id
@@ -39,7 +35,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Tests.v2.Controllers {
             // Moq Quickstart: https://github.com/Moq/moq4/wiki/Quickstart
 
             // Arrange
-            _groups.Setup(x => x.GetGroupAsync(id, CancellationToken.None)).ReturnsAsync(configuration);
+            _groups.Setup(x => x.GetGroupAsync(id, CancellationToken.None))
+                .ReturnsAsync(configuration);
 
             // Act
             var result = _target.GetGroupAsync(id).Result;
@@ -52,7 +49,5 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Tests.v2.Controllers {
         private readonly Mock<ITrustGroupStore> _groups;
         private readonly Mock<ITrustGroupServices> _services;
         private readonly TrustGroupsController _target;
-
-        public const string DateFormat = "yyyy-MM-dd'T'HH:mm:sszzz";
     }
 }

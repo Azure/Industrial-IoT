@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Twin {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using Microsoft.Azure.IIoT.Utils;
     using System;
     using System.Threading.Tasks;
 
@@ -33,13 +34,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin {
                     try {
                         var next = await service.NodeBrowseNextAsync(endpoint,
                             new BrowseNextRequestModel {
-                                ContinuationToken = result.ContinuationToken
+                                ContinuationToken = result.ContinuationToken,
+                                Header = request.Header,
+                                NodeIdsOnly = request.NodeIdsOnly,
+                                ReadVariableValues = request.ReadVariableValues,
+                                TargetNodesOnly = request.TargetNodesOnly
                             });
                         result.References.AddRange(next.References);
                         result.ContinuationToken = next.ContinuationToken;
                     }
                     catch (Exception) {
-                        // TODO: Catch other exceptions and continue, e.g. in case of timeout
+                        await Try.Async(() => service.NodeBrowseNextAsync(endpoint,
+                            new BrowseNextRequestModel {
+                                ContinuationToken = result.ContinuationToken,
+                                Abort = true
+                            }));
                         throw;
                     }
                 }

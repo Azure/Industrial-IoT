@@ -88,11 +88,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public string SupervisorId { get; set; }
 
         /// <summary>
-        /// State
-        /// </summary>
-        public ApplicationState State { get; set; }
-
-        /// <summary>
         /// Last time application was seen
         /// </summary>
         public DateTime? NotSeenSince { get; set; }
@@ -101,11 +96,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// Created
         /// </summary>
         public RegistryOperationContextModel Created { get; set; }
-
-        /// <summary>
-        /// Approved
-        /// </summary>
-        public RegistryOperationContextModel Approved { get; set; }
 
         /// <summary>
         /// Updated

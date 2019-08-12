@@ -31,7 +31,7 @@ namespace Serilog {
         /// <param name="configuration"></param>
         public static void ApplicationInsights(WebHostBuilderContext context,
             LoggerConfiguration configuration) {
-            configuration.ApplicationInsights(context.Configuration, new ApplicationInsightsConfig(null))
+            configuration.ApplicationInsights(new ApplicationInsightsConfig(null), context.Configuration)
                 .MinimumLevel.Override("Microsoft", LogEventLevel.Information);
         }
 

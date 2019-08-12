@@ -79,11 +79,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 query += $"AND tags.{nameof(ApplicationRegistration.ApplicationUriLC)} = " +
                     $"'{model.ApplicationUri.ToLowerInvariant()}' ";
             }
-            if (model?.State != null) {
-                // If searching for state include it in search
-                query += $"AND tags.{nameof(ApplicationRegistration.ApplicationState)} = " +
-                    $"'{model.State}' ";
-            }
             if (model?.ApplicationType == ApplicationType.Client ||
                 model?.ApplicationType == ApplicationType.ClientAndServer) {
                 // If searching for clients include it in search

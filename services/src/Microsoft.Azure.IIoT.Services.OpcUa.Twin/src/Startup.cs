@@ -177,7 +177,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
                 .AsImplementedInterfaces().SingleInstance();
 
             // Register logger
-            builder.RegisterLogger(LogEx.ApplicationInsights(Config.Configuration, Config));
+            builder.RegisterLogger(LogEx.ApplicationInsights(Config, Config.Configuration));
             // Register metrics logger
             builder.RegisterType<MetricLogger>()
                 .AsImplementedInterfaces().SingleInstance();

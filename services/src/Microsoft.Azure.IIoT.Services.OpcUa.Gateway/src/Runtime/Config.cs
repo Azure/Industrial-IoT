@@ -19,12 +19,12 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Gateway.Runtime {
     using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Utils;
+    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Extensions.Configuration;
+    using Microsoft.ApplicationInsights.Extensibility;
     using System;
     using System.IdentityModel.Selectors;
     using System.Security.Cryptography.X509Certificates;
-    using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.ApplicationInsights.Extensibility;
 
     /// <summary>
     /// Common web service configuration aggregation

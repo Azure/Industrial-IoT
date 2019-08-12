@@ -109,7 +109,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Onboarding {
                 .AsImplementedInterfaces().SingleInstance();
 
             // register logger
-            builder.RegisterLogger(LogEx.ApplicationInsights(configuration, config));
+            builder.RegisterLogger(LogEx.ApplicationInsights(config, configuration));
             // Register metrics logger
             builder.RegisterType<MetricLogger>()
                 .AsImplementedInterfaces().SingleInstance();

@@ -337,10 +337,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 await Assert.ThrowsAsync<ArgumentNullException>(
                     () => service.RegisterApplicationAsync(null));
                 await Assert.ThrowsAsync<ArgumentNullException>(
-                    () => service.RejectApplicationAsync(null, false, null));
-                await Assert.ThrowsAsync<ArgumentNullException>(
-                    () => service.RejectApplicationAsync("", false, null));
-                await Assert.ThrowsAsync<ArgumentNullException>(
                     () => service.GetApplicationAsync(null, false));
                 await Assert.ThrowsAsync<ArgumentNullException>(
                     () => service.GetApplicationAsync("", false));
@@ -348,118 +344,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                     () => service.GetApplicationAsync("abc", false));
                 await Assert.ThrowsAsync<ResourceNotFoundException>(
                     () => service.GetApplicationAsync(Guid.NewGuid().ToString(), false));
-            }
-        }
-
-        /// <summary>
-        /// Test the approve reject state machine.
-        /// </summary>
-        /// <remarks>After this test all applications are in the approved state.</remarks>
-        [Fact]
-        public void ApproveNewApplication() {
-            CreateAppFixtures(out var site, out var super, out var apps, out var devices);
-
-            using (var mock = AutoMock.GetLoose()) {
-                var hub = IoTHubServices.Create(devices);
-                mock.Provide<IIoTHubTwinServices>(hub);
-                mock.Provide<IApplicationRepository, ApplicationTwins>();
-                IApplicationRegistry service = mock.Create<ApplicationRegistry>();
-
-                var app = apps.First();
-                service.ApproveApplicationAsync(app.ApplicationId, false, null).Wait();
-                var registration = service.GetApplicationAsync(app.ApplicationId, false).Result;
-
-                Assert.Equal(ApplicationState.Approved, registration.Application.State);
-
-                // reject approved app should fail
-                Assert.ThrowsAsync<ResourceInvalidStateException>(
-                    () => service.RejectApplicationAsync(app.ApplicationId, false, null)).Wait();
-
-                service.RejectApplicationAsync(app.ApplicationId, true, null).Wait();
-                registration = service.GetApplicationAsync(app.ApplicationId, false).Result;
-
-                Assert.Equal(ApplicationState.Rejected, registration.Application.State);
-            }
-        }
-
-        [Fact]
-        public void RejectNewApplication() {
-            CreateAppFixtures(out var site, out var super, out var apps, out var devices);
-
-            using (var mock = AutoMock.GetLoose()) {
-                var hub = IoTHubServices.Create(devices);
-                mock.Provide<IIoTHubTwinServices>(hub);
-                mock.Provide<IApplicationRepository, ApplicationTwins>();
-                IApplicationRegistry service = mock.Create<ApplicationRegistry>();
-
-                var app = apps.First();
-                service.RejectApplicationAsync(app.ApplicationId, false, null).Wait();
-                var registration = service.GetApplicationAsync(app.ApplicationId, false).Result;
-
-                Assert.Equal(ApplicationState.Rejected, registration.Application.State);
-
-                // reject approved app should fail
-                Assert.ThrowsAsync<ResourceInvalidStateException>(
-                    () => service.ApproveApplicationAsync(app.ApplicationId, false, null)).Wait();
-
-                service.ApproveApplicationAsync(app.ApplicationId, true, null).Wait();
-                registration = service.GetApplicationAsync(app.ApplicationId, false).Result;
-
-                Assert.Equal(ApplicationState.Approved, registration.Application.State);
-            }
-        }
-
-        [Fact]
-        public void RejectApprovedApplicationForce() {
-            CreateAppFixtures(out var site, out var super, out var apps, out var devices);
-
-            using (var mock = AutoMock.GetLoose()) {
-                var hub = IoTHubServices.Create(devices);
-                mock.Provide<IIoTHubTwinServices>(hub);
-                mock.Provide<IApplicationRepository, ApplicationTwins>();
-                IApplicationRegistry service = mock.Create<ApplicationRegistry>();
-
-                var app = apps.First();
-                service.RejectApplicationAsync(app.ApplicationId, false, null).Wait();
-                service.ApproveApplicationAsync(app.ApplicationId, true, null).Wait();
-                var registration = service.GetApplicationAsync(app.ApplicationId, false).Result;
-                Assert.Equal(ApplicationState.Approved, registration.Application.State);
-            }
-        }
-
-        [Fact]
-        public void ApproveRejectedApplicationForce() {
-            CreateAppFixtures(out var site, out var super, out var apps, out var devices);
-
-            using (var mock = AutoMock.GetLoose()) {
-                var hub = IoTHubServices.Create(devices);
-                mock.Provide<IIoTHubTwinServices>(hub);
-                mock.Provide<IApplicationRepository, ApplicationTwins>();
-                IApplicationRegistry service = mock.Create<ApplicationRegistry>();
-
-                var app = apps.First();
-                service.ApproveApplicationAsync(app.ApplicationId, false, null).Wait();
-                service.RejectApplicationAsync(app.ApplicationId, true, null).Wait();
-                var registration = service.GetApplicationAsync(app.ApplicationId, false).Result;
-                Assert.Equal(ApplicationState.Rejected, registration.Application.State);
-            }
-        }
-
-        [Fact]
-        public void DoubleApproveApplicationDoesNothing() {
-            CreateAppFixtures(out var site, out var super, out var apps, out var devices);
-
-            using (var mock = AutoMock.GetLoose()) {
-                var hub = IoTHubServices.Create(devices);
-                mock.Provide<IIoTHubTwinServices>(hub);
-                mock.Provide<IApplicationRepository, ApplicationTwins>();
-                IApplicationRegistry service = mock.Create<ApplicationRegistry>();
-
-                var app = apps.First();
-                service.ApproveApplicationAsync(app.ApplicationId, false, null).Wait();
-                service.ApproveApplicationAsync(app.ApplicationId, false, null).Wait();
-                var registration = service.GetApplicationAsync(app.ApplicationId, false).Result;
-                Assert.Equal(ApplicationState.Approved, registration.Application.State);
             }
         }
 
@@ -482,42 +366,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 Assert.Null(registration.Application.NotSeenSince);
             }
         }
-
-        [Fact]
-        public void RejectApproveWhenDisabledApplicationShouldAlwaysFail() {
-            CreateAppFixtures(out var site, out var super, out var apps, out var devices);
-
-            using (var mock = AutoMock.GetLoose()) {
-                var hub = IoTHubServices.Create(devices);
-                mock.Provide<IIoTHubTwinServices>(hub);
-                mock.Provide<IApplicationRepository, ApplicationTwins>();
-                IApplicationRegistry service = mock.Create<ApplicationRegistry>();
-
-                var app = apps.First();
-                service.DisableApplicationAsync(app.ApplicationId, null).Wait();
-
-                Assert.ThrowsAsync<ResourceInvalidStateException>(
-                    () => service.ApproveApplicationAsync(app.ApplicationId, false, null)).Wait();
-                Assert.ThrowsAsync<ResourceInvalidStateException>(
-                    () => service.RejectApplicationAsync(app.ApplicationId, false, null)).Wait();
-                Assert.ThrowsAsync<ResourceInvalidStateException>(
-                    () => service.ApproveApplicationAsync(app.ApplicationId, true, null)).Wait();
-                Assert.ThrowsAsync<ResourceInvalidStateException>(
-                    () => service.RejectApplicationAsync(app.ApplicationId, true, null)).Wait();
-            }
-        }
-
-#if FALSE
-        [Fact]
-        public async Task QueryApplicationsByIdInAnyStateReturnsAllApplications() {
-            var response = await ((IApplicationRecordQuery)_registry).QueryApplicationsAsync(
-                new ApplicationRecordQueryModel {
-                    ApplicationState = ApplicationStateMask.Any
-                });
-            Assert.NotNull(response);
-            Assert.Equal(_applicationTestSet.Count, response.Items.Count);
-        }
-#endif
 
         /// <summary>
         /// Helper to create app fixtures

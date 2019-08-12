@@ -400,7 +400,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             if (maxRecordsToReturn == null || maxRecordsToReturn < 0) {
                 maxRecordsToReturn = kDefaultRecordsPerQuery;
             }
-            var query = CreateServerQuery(0, maxRecordsToReturn.Value, request.State);
+            var query = CreateServerQuery(0, maxRecordsToReturn.Value);
             while (query.HasMore()) {
                 var applications = await query.ReadAsync(ct);
                 foreach (var application in applications.Select(a => a.Value)) {
@@ -444,10 +444,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// </summary>
         /// <param name="startingRecordId">The first record Id</param>
         /// <param name="maxRecordsToQuery">The max number of records</param>
-        /// <param name="applicationState">The application state query filter</param>
         /// <returns></returns>
         private IResultFeed<IDocumentInfo<ApplicationRegistration>> CreateServerQuery(
-            uint startingRecordId, int maxRecordsToQuery, ApplicationStateMask? applicationState = null) {
+            uint startingRecordId, int maxRecordsToQuery) {
             string query;
             var queryParameters = new Dictionary<string, object>();
             if (maxRecordsToQuery != 0) {
@@ -459,32 +458,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             }
             query += $"WHERE a.{nameof(ApplicationRegistration.RecordId)} >= @startingRecord";
             queryParameters.Add("@startingRecord", startingRecordId);
-            var queryState = applicationState ?? ApplicationStateMask.Approved;
-            if (queryState != 0) {
-                var first = true;
-                foreach (ApplicationStateMask state in Enum.GetValues(
-                    typeof(ApplicationStateMask))) {
-                    if (state == 0) {
-                        continue;
-                    }
-
-                    if ((queryState & state) == state) {
-                        var sqlParm = "@" + state.ToString().ToLower();
-                        if (first) {
-                            query += " AND (";
-                        }
-                        else {
-                            query += " OR";
-                        }
-                        query += $" a.{nameof(ApplicationRegistration.ApplicationState)} = {sqlParm}";
-                        queryParameters.Add(sqlParm, state.ToString());
-                        first = false;
-                    }
-                }
-                if (!first) {
-                    query += " )";
-                }
-            }
             query += $" AND a.{ nameof(ApplicationRegistration.DeviceType)} = @classType";
             queryParameters.Add("@classType", "Application");
             query += $" ORDER BY a.{nameof(ApplicationRegistration.RecordId)}";

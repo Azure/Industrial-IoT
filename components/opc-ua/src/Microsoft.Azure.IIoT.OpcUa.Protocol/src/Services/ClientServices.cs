@@ -147,8 +147,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 // Add a persistent session
                 if (!_clients.TryGetValue(id, out var _)) {
                     _clients.Add(id, new ClientSession(
-                        _opcApplicationConfig, id.Endpoint, _logger, NotifyStateChangeAsync,
-                        true, _maxOpTimeout));
+                        _opcApplicationConfig, id.Endpoint.Clone(), _logger,
+                        NotifyStateChangeAsync, true, _maxOpTimeout));
+                    _logger.Debug("Open session for endpoint {id} ({endpoint}).",
+                        id, endpoint.Url);
                 }
             }
             finally {
@@ -162,7 +164,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 throw new ArgumentNullException(nameof(endpoint));
             }
             var id = new EndpointIdentifier(endpoint);
-
             _callbacks.TryRemove(id, out _);
 
             await _lock.WaitAsync();
@@ -170,7 +171,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 // Remove any session
                 if (_clients.TryGetValue(id, out var client)) {
                     await Try.Async(client.CloseAsync);
+                    Try.Op(client.Dispose);
+
                     _clients.Remove(id);
+                    _logger.Debug("Endpoint {id} ({endpoint}) closed.",
+                        id, endpoint.Url);
+                }
+                else {
+                    _logger.Debug(
+                        "Session for endpoint {id} ({endpoint}) not found.",
+                        endpoint.Url, id);
                 }
             }
             finally {
@@ -181,15 +191,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <inheritdoc/>
         public void Dispose() {
             if (!_cts.IsCancellationRequested) {
-                _cts.Cancel();
-                _timer.Dispose();
+                Try.Op(() => _cts.Cancel());
+                Try.Op(() => _timer.Dispose());
 
                 foreach (var client in _clients.Values) {
                     Try.Op(client.Dispose);
                 }
                 _clients.Clear();
             }
-            _cts.Dispose();
+            Try.Op(() => _cts.Dispose());
         }
 
         /// <inheritdoc/>
@@ -208,7 +218,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 var nextServer = queue.Dequeue();
                 discoveryUrl = nextServer.Item1;
                 var sw = Stopwatch.StartNew();
-                _logger.Verbose("Discover endpoints at {discoveryUrl}...", discoveryUrl);
+                _logger.Debug("Try finding endpoints at {discoveryUrl}...", discoveryUrl);
                 try {
                     await Retry.Do(_logger, ct, () => DiscoverAsync(discoveryUrl,
                             localeIds, nextServer.Item2, 20000, visitedUris,
@@ -217,12 +227,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         kMaxDiscoveryAttempts - 1).ConfigureAwait(false);
                 }
                 catch (Exception ex) {
-                    _logger.Error(ex, "Error at {discoveryUrl} (after {elapsed}).",
-                        discoveryUrl, sw.Elapsed);
+                    _logger.Debug(ex, "Exception occurred duringing FindEndpoints at {discoveryUrl}.",
+                        discoveryUrl);
+                    _logger.Error("Could not find endpoints at {discoveryUrl} " +
+                        "due to {error} (after {elapsed}).",
+                        discoveryUrl, ex.Message, sw.Elapsed);
                     return new HashSet<DiscoveredEndpointModel>();
                 }
                 ct.ThrowIfCancellationRequested();
-                _logger.Verbose("Discovery at {discoveryUrl} completed in {elapsed}.",
+                _logger.Debug("Finding endpoints at {discoveryUrl} completed in {elapsed}.",
                     discoveryUrl, sw.Elapsed);
             }
             return results;
@@ -346,8 +359,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             try {
                 if (!_clients.TryGetValue(id, out var session)) {
                     session = new ClientSession(
-                        _opcApplicationConfig, id.Endpoint, _logger, NotifyStateChangeAsync,
-                        false, _maxOpTimeout);
+                        _opcApplicationConfig, id.Endpoint.Clone(), _logger,
+                        NotifyStateChangeAsync, false, _maxOpTimeout);
                     _clients.Add(id, session);
                     _logger.Debug("Add new session to session cache.");
                 }

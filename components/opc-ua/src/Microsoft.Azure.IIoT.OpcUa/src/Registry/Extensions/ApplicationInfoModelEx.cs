@@ -32,7 +32,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <returns></returns>
         public static string CreateApplicationId(ApplicationInfoModel model) {
             return CreateApplicationId(model.SiteId ?? model.SupervisorId, model.ApplicationUri,
-model.ApplicationType);
+                model.ApplicationType);
         }
 
         /// <summary>
@@ -122,8 +122,6 @@ model.ApplicationType);
                 ProductUri = model.ProductUri,
                 SiteId = model.SiteId,
                 GatewayServerUri = model.GatewayServerUri,
-                State = model.State,
-                Approved = model.Approved.Clone(),
                 Created = model.Created.Clone(),
                 Updated = model.Updated.Clone(),
                 SupervisorId = model.SupervisorId
@@ -159,12 +157,11 @@ model.ApplicationType);
         /// </summary>
         /// <param name="request"></param>
         /// <param name="context"></param>
-        /// <param name="approved"></param>
         /// <param name="disabled"></param>
         /// <returns></returns>
         public static ApplicationInfoModel ToApplicationInfo(
             this ApplicationRegistrationRequestModel request,
-            RegistryOperationContextModel context, bool approved = false,
+            RegistryOperationContextModel context,
             bool disabled = true) {
             return new ApplicationInfoModel {
                 ApplicationName = request.ApplicationName,
@@ -177,10 +174,8 @@ model.ApplicationType);
                 Capabilities = request.Capabilities,
                 GatewayServerUri = request.GatewayServerUri,
                 SiteId = request.SiteId,
-                State = approved ? ApplicationState.Approved : ApplicationState.New,
                 NotSeenSince = disabled ? DateTime.UtcNow : (DateTime?)null,
                 Created = context,
-                Approved = null,
                 Updated = null,
                 Certificate = null,
                 ApplicationId = null,
@@ -232,8 +227,6 @@ model.ApplicationType);
             application.SiteId = model.SiteId;
             application.SupervisorId = model.SupervisorId;
             application.GatewayServerUri = model.GatewayServerUri;
-            application.State = model.State;
-            application.Approved = model.Approved;
             application.Created = model.Created;
             application.Updated = model.Updated;
             return application;
@@ -344,7 +337,6 @@ model.ApplicationType);
                 return
                     x.GetSiteOrSupervisorId() == y.GetSiteOrSupervisorId() &&
                     x.ApplicationType == y.ApplicationType &&
-                    x.State == y.State &&
                     x.ApplicationUri.EqualsIgnoreCase(y.ApplicationUri) &&
                     x.DiscoveryProfileUri == y.DiscoveryProfileUri &&
                     x.GatewayServerUri == y.GatewayServerUri &&
@@ -359,8 +351,6 @@ model.ApplicationType);
             /// <inheritdoc />
             public int GetHashCode(ApplicationInfoModel obj) {
                 var hashCode = 1200389859;
-                hashCode = (hashCode * -1521134295) +
-                    EqualityComparer<ApplicationState?>.Default.GetHashCode(obj.State);
                 hashCode = (hashCode * -1521134295) +
                     EqualityComparer<ApplicationType?>.Default.GetHashCode(obj.ApplicationType);
                 hashCode = (hashCode * -1521134295) +

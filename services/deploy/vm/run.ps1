@@ -223,15 +223,18 @@ $templateParameters = @{
 }
 
 try {
-    # Try set branch name as current branch
-    $output = cmd /c "git rev-parse --abbrev-ref HEAD" 2`>`&1
-    $branchName = ("{0}" -f $output);
-    Write-Host "VM deployment will use configuration from '$branchName' branch."
-    $templateParameters.Add("branchName", $branchName)
+    # Try set branch name as current branch - if git does not exist will fail and use master
+    $branchName = (& "git" @("rev-parse", "--abbrev-ref", "HEAD") 2>&1 | %{ "$_" });
 }
 catch {
-    $templateParameters.Add("branchName", "master")
+    $branchName = $null
 }
+if ([string]::IsNullOrEmpty($branchName) -or ($branchName -eq "HEAD")) {
+    $branchName = "master"
+}
+
+Write-Host "VM deployment will use configuration from '$branchName' branch."
+$templateParameters.Add("branchName", $branchName)
 
 # Configure auth
 if ($aadConfig) {

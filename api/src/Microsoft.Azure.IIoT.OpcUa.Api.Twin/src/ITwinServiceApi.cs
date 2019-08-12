@@ -28,7 +28,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin {
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<BrowseResponseApiModel> NodeBrowseAsync(string endpointId,
+        Task<BrowseResponseApiModel> NodeBrowseFirstAsync(string endpointId,
             BrowseRequestApiModel request, CancellationToken ct = default);
 
         /// <summary>

@@ -191,37 +191,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task ApproveApplicationAsync(string applicationId, bool force,
-            CancellationToken ct) {
-            if (string.IsNullOrEmpty(applicationId)) {
-                throw new ArgumentNullException(nameof(applicationId));
-            }
-            var uri = $"{_serviceUri}/v2/applications/{applicationId}/approve";
-            if (force) {
-                uri += $"?force=true";
-            }
-            var request = _httpClient.NewRequest(uri);
-            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-        }
-
-
-        /// <inheritdoc/>
-        public async Task RejectApplicationAsync(string applicationId, bool force,
-            CancellationToken ct) {
-            if (string.IsNullOrEmpty(applicationId)) {
-                throw new ArgumentNullException(nameof(applicationId));
-            }
-            var uri = $"{_serviceUri}/v2/applications/{applicationId}/reject";
-            if (force) {
-                uri += $"?force=true";
-            }
-            var request = _httpClient.NewRequest(uri);
-            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-        }
-
-        /// <inheritdoc/>
         public async Task EnableApplicationAsync(string applicationId, CancellationToken ct) {
             if (string.IsNullOrEmpty(applicationId)) {
                 throw new ArgumentNullException(nameof(applicationId));

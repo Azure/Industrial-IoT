@@ -5,8 +5,8 @@
 
 namespace Serilog {
     using Serilog.Events;
-    using Microsoft.Extensions.Configuration;
     using Serilog.Core;
+    using Microsoft.Extensions.Configuration;
     using Microsoft.Azure.IIoT.Diagnostics;
 
     /// <summary>
@@ -40,9 +40,21 @@ namespace Serilog {
         /// <summary>
         /// Create standard console logger
         /// </summary>
+        /// <returns></returns>
+        public static ILogger Console() {
+            var level = LogEventLevel.Information;
+#if DEBUG
+            level = LogEventLevel.Debug;
+#endif
+            return Console(level);
+        }
+
+        /// <summary>
+        /// Create standard console logger
+        /// </summary>
         /// <param name="level"></param>
         /// <returns></returns>
-        public static ILogger Console(LogEventLevel level = LogEventLevel.Debug) {
+        public static ILogger Console(LogEventLevel level) {
             Level.MinimumLevel = level;
             return new LoggerConfiguration().Console().CreateLogger();
         }
@@ -71,9 +83,22 @@ namespace Serilog {
         /// Create rolling file logger
         /// </summary>
         /// <param name="path"></param>
+        /// <returns></returns>
+        public static ILogger RollingFile(string path) {
+            var level = LogEventLevel.Information;
+#if DEBUG
+            level = LogEventLevel.Debug;
+#endif
+            return RollingFile(path, level);
+        }
+
+        /// <summary>
+        /// Create rolling file logger
+        /// </summary>
+        /// <param name="path"></param>
         /// <param name="level"></param>
         /// <returns></returns>
-        public static ILogger RollingFile(string path, LogEventLevel level = LogEventLevel.Debug) {
+        public static ILogger RollingFile(string path, LogEventLevel level) {
             Level.MinimumLevel = level;
             return new LoggerConfiguration().RollingFile(path).CreateLogger();
         }
@@ -93,54 +118,36 @@ namespace Serilog {
         /// <summary>
         /// Create console out like logger
         /// </summary>
+        /// <returns></returns>
+        public static ILogger ConsoleOut() {
+            var level = LogEventLevel.Information;
+#if DEBUG
+            level = LogEventLevel.Debug;
+#endif
+            return ConsoleOut(level);
+        }
+
+        /// <summary>
+        /// Create console out like logger
+        /// </summary>
         /// <param name="level"></param>
         /// <returns></returns>
-        public static ILogger ConsoleOut(LogEventLevel level = LogEventLevel.Debug) {
+        public static ILogger ConsoleOut(LogEventLevel level) {
             Level.MinimumLevel = level;
             return new LoggerConfiguration().ConsoleOut().CreateLogger();
-        }
-
-        /// <summary>
-        /// Create trace logger
-        /// </summary>
-        /// <param name="configuration"></param>
-        /// <param name="config"></param>
-        /// <returns></returns>
-        public static LoggerConfiguration Trace(this LoggerConfiguration configuration,
-            IConfiguration config = null) {
-            if (config != null) {
-                configuration = configuration.ReadFrom.Configuration(config);
-            }
-
-            return configuration
-                .Enrich.WithProperty("SourceContext", null)
-                .Enrich.FromLogContext()
-                .WriteTo.Trace(outputTemplate: kDefaultTemplate)
-                .MinimumLevel.ControlledBy(Level);
-        }
-
-        /// <summary>
-        /// Create trace logger
-        /// </summary>
-        /// <param name="level"></param>
-        /// <returns></returns>
-        public static ILogger Trace(LogEventLevel level = LogEventLevel.Debug) {
-            Level.MinimumLevel = level;
-            return new LoggerConfiguration().Trace().CreateLogger();
         }
 
         /// <summary>
         /// Create application insights logger
         /// </summary>
         /// <param name="configuration"></param>
-        /// <param name="config"></param>
         /// <param name="aiConfig"></param>
+        /// <param name="config"></param>
         /// <returns></returns>
-        public static LoggerConfiguration ApplicationInsights(this LoggerConfiguration configuration,
-            IConfiguration config = null, IApplicationInsightsConfig aiConfig = null) {
-            if(config == null) {
-                Log.Information("Application Insights (AI) key was not found. Logs won't be sent to AI for monitoring.");
-            } else {
+        public static LoggerConfiguration ApplicationInsights(
+            this LoggerConfiguration configuration,
+            IApplicationInsightsConfig aiConfig = null, IConfiguration config = null) {
+            if (config != null) {
                 configuration = configuration.ReadFrom.Configuration(config);
             }
             return configuration
@@ -154,15 +161,69 @@ namespace Serilog {
         /// <summary>
         /// Create application insights logger
         /// </summary>
-        /// <param name="config"></param>
         /// <param name="aiConfig"></param>
+        /// <param name="config"></param>
+        /// <returns></returns>
+        public static ILogger ApplicationInsights(IApplicationInsightsConfig aiConfig,
+            IConfiguration config = null) {
+            var level = LogEventLevel.Information;
+#if DEBUG
+            level = LogEventLevel.Debug;
+#endif
+            return ApplicationInsights(aiConfig, config, level);
+        }
+
+        /// <summary>
+        /// Create application insights logger
+        /// </summary>
+        /// <param name="aiConfig"></param>
+        /// <param name="config"></param>
         /// <param name="level"></param>
         /// <returns></returns>
-        public static ILogger ApplicationInsights(IConfiguration config,
-            IApplicationInsightsConfig aiConfig,
-            LogEventLevel level = LogEventLevel.Debug) {
+        public static ILogger ApplicationInsights(IApplicationInsightsConfig aiConfig,
+            IConfiguration config, LogEventLevel level) {
             Level.MinimumLevel = level;
-            return new LoggerConfiguration().ApplicationInsights(config, aiConfig).CreateLogger();
+            return new LoggerConfiguration().ApplicationInsights(aiConfig, config).CreateLogger();
+        }
+
+        /// <summary>
+        /// Create trace logger
+        /// </summary>
+        /// <param name="configuration"></param>
+        /// <param name="config"></param>
+        /// <returns></returns>
+        public static LoggerConfiguration Trace(this LoggerConfiguration configuration,
+            IConfiguration config = null) {
+            if (config != null) {
+                configuration = configuration.ReadFrom.Configuration(config);
+            }
+            return configuration
+                .Enrich.WithProperty("SourceContext", null)
+                .Enrich.FromLogContext()
+                .WriteTo.Trace(outputTemplate: kDefaultTemplate)
+                .MinimumLevel.ControlledBy(Level);
+        }
+
+        /// <summary>
+        /// Create trace logger
+        /// </summary>
+        /// <returns></returns>
+        public static ILogger Trace() {
+            var level = LogEventLevel.Information;
+#if DEBUG
+            level = LogEventLevel.Debug;
+#endif
+            return Trace(level);
+        }
+
+        /// <summary>
+        /// Create trace logger
+        /// </summary>
+        /// <param name="level"></param>
+        /// <returns></returns>
+        public static ILogger Trace(LogEventLevel level) {
+            Level.MinimumLevel = level;
+            return new LoggerConfiguration().Trace().CreateLogger();
         }
 
         private const string kDefaultTemplate =

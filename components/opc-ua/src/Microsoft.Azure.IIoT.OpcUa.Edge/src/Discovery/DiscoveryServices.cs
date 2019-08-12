@@ -75,9 +75,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
 
         /// <inheritdoc/>
         public async Task ScanAsync() {
+            await _lock.WaitAsync();
             try {
-                await _lock.WaitAsync();
                 await StopAsync();
+
                 if (Mode != DiscoveryMode.Off) {
                     _discovery = new CancellationTokenSource();
                     _completed = _processor.Scheduler.Run(() =>
@@ -113,6 +114,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
             }
             finally {
                 _discovery?.Dispose();
+                _discovery = null;
                 _lock.Release();
                 _lock.Dispose();
             }
@@ -123,16 +125,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
         /// </summary>
         /// <returns></returns>
         private async Task StopAsync() {
-            if (_completed == null) {
-                return;
+            Debug.Assert(_lock.CurrentCount == 0);
+
+            // Try cancel discovery
+            Try.Op(() => _discovery?.Cancel());
+            // Wait for completion
+            try {
+                var completed = _completed;
+                _completed = null;
+                if (completed != null) {
+                    await completed;
+                }
             }
-            var completed = _completed;
-            _discovery.Cancel();
-            _discovery.Dispose();
-            _discovery = null;
-            _completed = null;
-            _discovered.Clear();
-            await completed;
+            catch (OperationCanceledException) { }
+            catch (Exception ex) {
+                _logger.Error(ex, "Unexpected exception stopping current discover thread.");
+            }
+            finally {
+                Try.Op(() => _discovery?.Dispose());
+                _discovery = null;
+                _discovered.Clear();
+            }
         }
 
         /// <summary>

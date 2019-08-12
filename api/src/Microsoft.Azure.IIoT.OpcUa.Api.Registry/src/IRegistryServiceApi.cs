@@ -106,28 +106,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
             CancellationToken ct = default);
 
         /// <summary>
-        /// Approve the application
-        /// </summary>
-        /// <param name="applicationId"></param>
-        /// <param name="force"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        Task ApproveApplicationAsync(string applicationId,
-            bool force = false,
-            CancellationToken ct = default);
-
-        /// <summary>
-        /// Reject the application
-        /// </summary>
-        /// <param name="applicationId"></param>
-        /// <param name="force"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        Task RejectApplicationAsync(string applicationId,
-            bool force = false,
-            CancellationToken ct = default);
-
-        /// <summary>
         /// Enable the application
         /// </summary>
         /// <param name="applicationId"></param>

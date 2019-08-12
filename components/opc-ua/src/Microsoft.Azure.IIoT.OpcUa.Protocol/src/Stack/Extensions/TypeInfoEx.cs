@@ -5,6 +5,7 @@
 
 namespace Opc.Ua {
     using System;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Typeinfo extensions
@@ -46,9 +47,9 @@ namespace Opc.Ua {
                 value = typeInfo.GetDefaultValue();
             }
             if (!(value is Variant var)) {
+                var aex = new List<Exception>();
                 if (typeInfo.BuiltInType == BuiltInType.Enumeration) {
-                    typeInfo = new TypeInfo(BuiltInType.Int32,
-                        typeInfo.ValueRank);
+                    typeInfo = new TypeInfo(BuiltInType.Int32, typeInfo.ValueRank);
                 }
                 var systemType = TypeInfo.GetSystemType(typeInfo.BuiltInType,
                     typeInfo.ValueRank);
@@ -67,7 +68,8 @@ namespace Opc.Ua {
                         Array.Copy(boxed, array, boxed.Length);
                         value = array;
                     }
-                    catch {
+                    catch (Exception ex) {
+                        aex.Add(ex);
                         value = boxed;
                     }
                 }
@@ -77,11 +79,22 @@ namespace Opc.Ua {
                 var constructor = typeof(Variant).GetConstructor(new Type[] {
                     systemType
                 });
-                if (constructor != null) {
-                    var = (Variant)constructor.Invoke(new object[] { value });
+                try {
+                    if (constructor != null) {
+                        return (Variant)constructor.Invoke(new object[] { value });
+                    }
                 }
-                else {
-                    var = new Variant(value, typeInfo);
+                catch (Exception ex) {
+                    aex.Add(ex);
+                }
+                try {
+                    return new Variant(value, typeInfo);
+                }
+                catch (Exception ex) {
+                    aex.Add(ex);
+                    throw new ArgumentException($"Cannot convert {value} " +
+                        $"({value.GetType()}/{systemType}/{typeInfo}) to Variant.",
+                        new AggregateException(aex));
                 }
             }
             return var;

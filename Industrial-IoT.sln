@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
-VisualStudioVersion = 16.0.28917.182
+VisualStudioVersion = 16.0.29201.188
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.Api.Cli", "api\src\Microsoft.Azure.IIoT.OpcUa.Api\cli\Microsoft.Azure.IIoT.OpcUa.Api.Cli.csproj", "{D14C979A-E41B-459B-97CE-E3DA62E02369}"
 EndProject
@@ -124,8 +124,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.Edge.Tests", "components\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.Edge\tests\Microsoft.Azure.IIoT.OpcUa.Edge.Tests.csproj", "{7CB8AF37-EB52-4B94-A9A0-103FB9E38506}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.Testing.Cli", "components\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.Testing\cli\Microsoft.Azure.IIoT.OpcUa.Testing.Cli.csproj", "{23029DA0-F9B3-46CC-B279-1BBA855D1996}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.Vault.Tests", "components\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.Vault\tests\Microsoft.Azure.IIoT.OpcUa.Vault.Tests.csproj", "{77FB3A10-77AB-49E5-A11D-7AD8E382D201}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.Protocol.Tests", "components\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.Protocol\tests\Microsoft.Azure.IIoT.OpcUa.Protocol.Tests.csproj", "{CE5A3795-B3A9-4AEA-9319-B594E2794A0F}"
 EndProject
@@ -557,12 +555,6 @@ Global
 		{23029DA0-F9B3-46CC-B279-1BBA855D1996}.Develop|Any CPU.Build.0 = Debug|Any CPU
 		{23029DA0-F9B3-46CC-B279-1BBA855D1996}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{23029DA0-F9B3-46CC-B279-1BBA855D1996}.Release|Any CPU.Build.0 = Release|Any CPU
-		{77FB3A10-77AB-49E5-A11D-7AD8E382D201}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{77FB3A10-77AB-49E5-A11D-7AD8E382D201}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{77FB3A10-77AB-49E5-A11D-7AD8E382D201}.Develop|Any CPU.ActiveCfg = Debug|Any CPU
-		{77FB3A10-77AB-49E5-A11D-7AD8E382D201}.Develop|Any CPU.Build.0 = Debug|Any CPU
-		{77FB3A10-77AB-49E5-A11D-7AD8E382D201}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{77FB3A10-77AB-49E5-A11D-7AD8E382D201}.Release|Any CPU.Build.0 = Release|Any CPU
 		{CE5A3795-B3A9-4AEA-9319-B594E2794A0F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{CE5A3795-B3A9-4AEA-9319-B594E2794A0F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CE5A3795-B3A9-4AEA-9319-B594E2794A0F}.Develop|Any CPU.ActiveCfg = Debug|Any CPU
@@ -671,7 +663,6 @@ Global
 		{FE3E720B-0C94-4883-AD71-7620F0660FAB} = {1266F300-8BD2-4F1E-BA88-911F5F3AC36C}
 		{7CB8AF37-EB52-4B94-A9A0-103FB9E38506} = {1266F300-8BD2-4F1E-BA88-911F5F3AC36C}
 		{23029DA0-F9B3-46CC-B279-1BBA855D1996} = {E68AE69D-D585-4FFA-A820-5D1636E9656E}
-		{77FB3A10-77AB-49E5-A11D-7AD8E382D201} = {1266F300-8BD2-4F1E-BA88-911F5F3AC36C}
 		{CE5A3795-B3A9-4AEA-9319-B594E2794A0F} = {1266F300-8BD2-4F1E-BA88-911F5F3AC36C}
 		{8D447937-CCE7-49E9-9C7B-697514F56058} = {1266F300-8BD2-4F1E-BA88-911F5F3AC36C}
 		{9F067677-4226-4929-B13F-4EE4495AEB4A} = {BBEE26AC-8733-469B-B816-0A54EA99FC59}

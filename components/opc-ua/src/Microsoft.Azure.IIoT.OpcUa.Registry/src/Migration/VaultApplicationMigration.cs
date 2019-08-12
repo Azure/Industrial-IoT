@@ -108,7 +108,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Migration {
         /// <returns></returns>
         internal static ApplicationInfoModel ToServiceModel(Application application) {
             var app = new ApplicationInfoModel {
-                State = application.ApplicationState,
                 ApplicationUri = application.ApplicationUri,
                 ApplicationName = GetApplicationName(application, out var locale),
                 Locale = locale,
@@ -119,8 +118,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Migration {
                 Capabilities = ToServiceModel(application.ServerCapabilities),
                 GatewayServerUri = application.GatewayServerUri,
                 DiscoveryProfileUri = application.DiscoveryProfileUri,
-                Approved = ToServiceModel(
-                    application.ApproveTime, application.AuthorityId),
                 Created = ToServiceModel(
                     application.CreateTime, null),
                 Updated = ToServiceModel(
@@ -156,7 +153,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Migration {
             internal string ETag { get; set; }
             internal string ClassType { get; set; }
             internal int ID { get; set; }
-            internal ApplicationState ApplicationState { get; set; }
             internal string ApplicationUri { get; set; }
             internal string ApplicationName { get; set; }
             internal ApplicationType ApplicationType { get; set; }
@@ -168,7 +164,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Migration {
             internal string DiscoveryProfileUri { get; set; }
             internal string AuthorityId { get; set; }
             internal DateTime? CreateTime { get; set; }
-            internal DateTime? ApproveTime { get; set; }
             internal DateTime? UpdateTime { get; set; }
             internal DateTime? DeleteTime { get; set; }
         }

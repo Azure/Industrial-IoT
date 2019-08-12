@@ -80,7 +80,6 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
             while (!_cts.IsCancellationRequested) {
                 var notification = await receiver.ReceiveAsync();
                 if (notification == null) {
-                    _logger.Error("Received null notification.");
                     continue;
                 }
 

@@ -42,7 +42,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Twin {
             // Unregister old endpoint
             if (Endpoint != null) {
                 await _client.UnregisterAsync(Endpoint);
-                _logger.Information("Endpoint {@endpoint} unregistered.", Endpoint);
             }
 
             // Set new endpoint
@@ -52,7 +51,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Twin {
             if (Endpoint != null) {
                 await _client.RegisterAsync(Endpoint,
                     state => _events?.SendAsync("State", state));
-                _logger.Information("Endpoint {@endpoint} registered.", Endpoint);
             }
         }
 
