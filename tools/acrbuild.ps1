@@ -1,23 +1,22 @@
 <#
  .SYNOPSIS
-    Creates the container build matrix from the mcr.json files in the tree.
+    Builds all containers from the mcr.json file in the path.
 
  .DESCRIPTION
     The script requires az to be installed and already logged on to a 
     subscription.  This means it should be run in a azcliv2 task in the
     azure pipeline or "az login" must have been performed already.
 
-    The script traverses the build root to find all folders with an mcr.json
-    file.  
+    The script traverses the build root to find all folders with an
+    mcr.json file.  
     
-    In each folder with mcr.json it finds the dockerfiles for the platform 
-    specific build. 
+    In each folder with mcr.json it checks whether there is a csproj file
+    in there.  If it finds it it publishes it and builds container images
+    with the output as content of the images.  
     
-    It then traverses back up to the closest .dockerignore file. This folder 
+    If there is no project file we find all the dockerfiles and build each 
+    one. It traverses back up to the closest .dockerignore file. This folder 
     becomes the context of the build.
-    
-    Finally it stores the container build matrix and the manifest build matrix and 
-    echos each as VSO variables to create the individual build jobs.
 
  .PARAMETER path
     The folder to build the docker files from
@@ -29,7 +28,7 @@
     The subscription to use - otherwise uses default
 
  .PARAMETER debug
-    Build debug
+    Build debug and include debugger into images (where applicable)
 #>
 
 Param(
