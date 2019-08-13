@@ -28,15 +28,15 @@
  .PARAMETER subscription
     The subscription to use - otherwise uses default
 
- .PARAMETER configuration
-    The build configuration - defaults to "release"
+ .PARAMETER debug
+    Build debug
 #>
 
 Param(
     [string] $path = $null,
     [string] $registry = $null,
     [string] $subscription = $null,
-    [string] $configuration = "Release"
+    [switch] $debug
 )
 
 
@@ -180,6 +180,13 @@ else {
     Write-Host "Pushing release build '$($sourceTag)' to public."
 }
 
+$imageTag = ""
+$configuration = "Release"
+if ($debug.IsPresent) {
+    $configuration = "Debug"
+    $imageTag = "-debug"
+}
+
 # Create manifest file
 $tags = @()
 $versionParts = $sourceTag.Split('.')
@@ -188,67 +195,157 @@ if ($versionParts.Count -gt 0) {
     $tags += $versionTag
     for ($i = 1; $i -lt $versionParts.Count; $i++) {
         $versionTag = ("$($versionTag).{0}" -f $versionParts[$i])
-        $tags += $versionTag
+        $tags += "$($versionTag)$($imageTag)"
     }
     $tagList = ("'{0}'" -f ($tags -join "', '"))
 }
 
 $manifest = @" 
-image: $($registry).azurecr.io/$($namespace)$($imageName):latest
+image: $($registry).azurecr.io/$($namespace)$($imageName):latest$($imageTag)
 tags: [$($tagList)]
 manifests:
 "@
 
 $definitions = @()
 
-# Create job definitions from dotnet project in current folder
+# Create build job definitions from dotnet project in current folder
 $projFile = Get-ChildItem $path -Filter *.csproj | Select-Object -First 1
 if ($projFile -ne $null) {
-    $runtimes = @{
-        "linux-arm" = @{
-            platform = "linux/arm/v7"
-        }
-        "linux-x64" =  @{
-            platform = "linux/amd64"
-        }
-        "win-x64" =  @{
-            platform = "windows/amd64"
-        }
-    }
-    $runtimes.Keys | ForEach-Object {
+    $output = (join-path $path (join-path "bin" (join-path "publish" $configuration)))
+    @("linux-arm", "linux-x64", "win-x64", "win-arm", "win-arm64", "") `
+        | ForEach-Object {
         $runtimeId = $_
 
-        Write-Host "Build and publish for $($runtimeId)"
-        $output = (join-path "publish" $configuration $runtimeId);
         # Create dotnet command line 
-        $argumentList = @("publish", 
-            "-r", $runtimeId,
-            "-o", $output,
-            "-c", $configuration,
-            $projFile.FullName
-        )
-        & dotnet $argumentList
+        $argumentList = @("publish", "-c", $configuration)
+        if (![string]::IsNullOrEmpty($runtimeId)) {
+            $argumentList += "-r"
+            $argumentList += $runtimeId
+        }
+        else {
+            $runtimeId = "portable"
+        }
+        $argumentList += "-o"
+        $argumentList += (join-path $output $runtimeId)
+        $argumentList += $projFile.FullName
 
-        $rtc = $runtimes.Item($_)
+        Write-Host "Publish $($projFile.FullName) with $($runtimeId) runtime..."
+        & dotnet $argumentList 2>&1 | %{ "$_" }
+        if ($LastExitCode -ne 0) {
+            throw "Error: 'dotnet $($argumentList)' failed with $($LastExitCode)."
+        }
+    }
+
+    $installLinuxDebugger = @"
+RUN apt-get update && apt-get install -y --no-install-recommends unzip curl procps \
+    && rm -rf /var/lib/apt/lists/* \
+    && curl -sSL https://aka.ms/getvsdbgsh | bash /dev/stdin -v latest -l /vsdbg
+ENV PATH="${PATH}:/root/vsdbg/vsdbg"
+RUN apt-get update && apt-get install -y --no-install-recommends openssh-server \
+    && mkdir /var/run/sshd \
+    && echo 'root:Passw0rd' | chpasswd \
+    && sed -i 's/PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config \
+    && sed 's@session\s*required\s*pam_loginuid.so@session optional \
+        pam_loginuid.so@g' -i /etc/pam.d/sshd \
+    && echo "export VISIBLE=now" >> /etc/profile
+ENV NOTVISIBLE "in users profile"
+"@
+
+    # Default platform definitions
+    $platforms = @{
+        "linux/arm/v7" = @{
+            runtimeId = "linux-arm"
+            image = "mcr.microsoft.com/dotnet/core/runtime-deps:2.2"
+            platformTag = "linux-arm32v7"
+            debugger = $installLinuxDebugger
+        }
+        "linux/amd64" = @{
+            runtimeId = "linux-x64"
+            image = "mcr.microsoft.com/dotnet/core/runtime-deps:2.2"
+            platformTag = "linux-amd64"
+            debugger = $installLinuxDebugger
+        }
+        "windows/amd64:10.0.17134.885" = @{
+            runtimeId = "win-x64"
+            image = "mcr.microsoft.com/windows/nanoserver:1803"
+            platformTag = "nanoserver-amd64-1803"
+            debugger = $null
+        }
+        "windows/amd64:10.0.17763.615" = @{
+            runtimeId = "win-x64"
+            image = "mcr.microsoft.com/windows/nanoserver:1809"
+            platformTag = "nanoserver-amd64-1809"
+            debugger = $null
+        }
+        "windows/amd64" = @{
+            runtimeId = "win-arm"
+            image = "mcr.microsoft.com/windows/nanoserver:1809-arm32v7"
+            platformTag = "nanoserver-arm32v7-1809"
+            debugger = $null
+        }
+        "windows/amd64:10.0.18362.239" = @{
+            runtimeId = "win-x64"
+            image = "mcr.microsoft.com/windows/nanoserver:1903"
+            platformTag = "nanoserver-amd64-1903"
+            debugger = $null
+        }
+    }
+
+    # Get entry point from project file
+    $entryPoint = $projFile.BaseName
+
+    # todo - get actual endpoint
 
 
+    # Create build definitions
+    $platforms.Keys | ForEach-Object {
+        $platformInfo = $platforms.Item($_)
 
-        $dockerFile = join-path $output "Dockerfile"
-@"
-FROM mcr.microsoft.com/dotnet/core/runtime:2.2 
+        $runtimeId = $platformInfo.runtimeId
+        $baseImage = $platformInfo.image
+        $platformTag = $platformInfo.platformTag
+
+        # Check for overridden base image name - e.g. aspnet core images
+        if (![string]::IsNullOrEmpty($metadata.base)) {
+            $baseImage = $metadata.base
+            $runtimeId = $null
+        }
+
+        # Set where to obtain image content
+        $imageContent = (join-path $output "portable")
+        if (![string]::IsNullOrEmpty($runtimeId)) {
+            $imageContent = (join-path $output $runtimeId)
+        }
+
+        $installExtra = ""
+        if ($debug.IsPresent) {
+            if (![string]::IsNullOrEmpty($platformInfo.debugger)) {
+                $installExtra = $platformInfo.debugger
+            }
+        }
+        $exposes = ""
+        if ($metadata.exposes -ne $null) {
+            $metadata.exposes | ForEach-Object {
+                $exposes = "$("EXPOSE $($_)" | Out-String)$($exposes)"
+            }
+        }
+        $dockerFileContent = @"
+FROM $($baseImage)
+$($exposes)
+$($installExtra)
 WORKDIR /app
 COPY . .
 ENTRYPOINT ["$($entryPoint)"]
-"@ | Out-File $dockerFile
+"@ 
+        $dockerFile = (join-path $imageContent "Dockerfile.$($platformTag)")
+        $dockerFileContent | Out-File -Encoding ascii -FilePath $dockerFile
         $definitions += @{
+            platform = $_
             dockerfile = $dockerFile
-            platform = $rtc.platform
-            platformTag = $rtc.platformTag
-            buildContext = $output
-            osVersion = $null
+            platformTag = $platformTag
+            buildContext = $imageContent
         }
     }
-
 }
 
 if ($definitions.Count -eq 0) {
@@ -262,32 +359,24 @@ if ($definitions.Count -eq 0) {
         $platformFolder = $_.DirectoryName.Replace($path, "")
         $platform = $platformFolder.Substring(1).Replace("\", "/")
 
+        # Backcompat folder structure
         if ($platform -eq "linux/arm32v7") {
-            # Backcompat
             $platform = "linux/arm/v7"
-        }
-
-        $platformTag = $platform.Replace("/", "-")
-        if ($platformTag -eq "linux-arm-v7") {
-            # Backcompat
-            $platformTag = "linux-arm32v7"
         }
 
         $definitions += @{
             dockerfile = $dockerfile
             platform = $platform
-            platformTag = $platformTag
+            platformTag = $null
             buildContext = $buildRoot
-            osVersion = $null
         }
-    }
-
-    if ($definitions.Count -eq 0) {
-        Write-Host "Nothing to build."
-        return
     }
 }
 
+if ($definitions.Count -eq 0) {
+    Write-Host "Nothing to build."
+    return
+}
 Write-Host "Building $($definitions.Count) images in $($path) in $($buildRoot)"
 Write-Host " and pushing to $($registry)/$($namespace)$($imageName)..."
 
@@ -298,11 +387,35 @@ $definitions | ForEach-Object {
     $dockerfile = $_.dockerfile
     $platform = $_.platform
     $platformTag = $_.platformTag
-    $osVersion = $_.osVersion
     $buildContext = $_.buildContext
 
-    $image = "$($namespace)$($imageName):$($sourceTag)-$($platformTag)"
+    $os = ""
+    $osVersion = ""
+    $osVerArr = $platform.Split(':')
+    if ($osVerArr.Count -gt 1) {
+        # --platform argument must be without os version
+        $platform = $osVerArr[0]
+        $osVersion = ("osversion: {0}" -f $osVerArr[1])
+    }
+    $osArchArr = $platform.Split('/')
+    if ($osArchArr.Count -gt 1) {
+        $os = ("os: {0}" -f $osArchArr[0])
+        $architecture = ("architecture: {0}" -f $osArchArr[1])
+        $variant = ""
+        if ($osArchArr.Count -gt 2) {
+            $variant = ("variant: {0}" -f $osArchArr[2])
+        }
+    }
 
+    if ([string]::IsNullOrEmpty($platformTag)) {
+        $platformTag = $platform.Replace("/", "-")
+        if ($platformTag -eq "linux-arm-v7") {
+            # Backcompat
+            $platformTag = "linux-arm32v7"
+        }
+    }
+
+    $image = "$($namespace)$($imageName):$($sourceTag)-$($platformTag)$($imageTag)"
     Write-Host "Start build job for $($image)"
     # Create acr command line - TODO: Consider az powershell module?
     $argumentList = @("acr", "build", "--verbose",
@@ -322,23 +435,6 @@ $definitions | ForEach-Object {
                 throw "Error: 'az $($args)' failed with $($LastExitCode)."
             }
         }
-
-    $os = ""
-    $osArchArr = $platform.Split('/')
-    if ($osArchArr.Count -gt 1) {
-        $os = ("os: {0}" -f $osArchArr[0])
-        if (![string]::IsNullOrEmpty($osVersion)) {
-            $osVersion = ("osversion: {0}" -f $osVersion)
-        }
-        else {
-            $osVersion = ""
-        }
-        $architecture = ("architecture: {0}" -f $osArchArr[1])
-        $variant = ""
-        if ($osArchArr.Count -gt 2) {
-            $variant = ("variant: {0}" -f $osArchArr[2])
-        }
-    }
     # Append to manifest
     if (![string]::IsNullOrEmpty($os)) {
         $manifest +=
@@ -348,8 +444,8 @@ $definitions | ForEach-Object {
     image: $($registry).azurecr.io/$($image)
     platform: 
       $($os)
-      $($osVersion)
       $($architecture)
+      $($osVersion)
       $($variant)
 "@
     }
