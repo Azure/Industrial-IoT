@@ -391,7 +391,7 @@ jobs:
     continueOnError: true
 
 #
-# Build developer or release images
+# Build release and debug images
 #
 - job: imagesprep
   displayName: Prepare Image Jobs
@@ -420,9 +420,16 @@ jobs:
     displayName: Versioning
   - task: AzureCLI@1
     name: acrbuild
-    displayName: Build Image
+    displayName: Build Release Images
     inputs:
       azureSubscription: azureiiot
       scriptLocation: inlineScript
       inlineScript: powershell ./tools/acrbuild.ps1 $(dockerFolder)
+  - task: AzureCLI@1
+    name: acrbuild
+    displayName: Build Debug Images
+    inputs:
+      azureSubscription: azureiiot
+      scriptLocation: inlineScript
+      inlineScript: powershell ./tools/acrbuild.ps1 $(dockerFolder) -debug
       

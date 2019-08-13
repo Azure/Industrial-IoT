@@ -39,7 +39,6 @@ Param(
     [switch] $debug
 )
 
-
 # find the top most folder with file in it and return the path
 Function GetTopMostFolder() {
     param(
@@ -56,7 +55,7 @@ Function GetTopMostFolder() {
     return $startDir
 }
 
-# Check path argument
+# Check path argument and resolve to full existing path
 if ([string]::IsNullOrEmpty($path)) {
     throw "No docker folder specified."
 }
@@ -74,57 +73,34 @@ if (!(Test-Path -Path $path -PathType Container)) {
 }
 $path = Resolve-Path -LiteralPath $path
 
-# Check and set registry
-if ([string]::IsNullOrEmpty($registry)) {
-    $registry = $env.BUILD_REGISTRY
-    if ([string]::IsNullOrEmpty($registry)) {
-        Write-Warning "No registry specified - using default name."
-        $registry = "industrialiot"
-    }
-}
-
-# set default subscription
-if (![string]::IsNullOrEmpty($subscription)) {
-    Write-Debug "Setting subscription to $($subscription)"
-    $argumentList = @("account", "set", "--subscription", $subscription)
-    & "az" $argumentList 2`>`&1 | %{ "$_" }
-}
-
-# get registry information
-$argumentList = @("acr", "show", "--name", $registry)
-$registryInfo = (& "az" $argumentList 2>&1 | %{ "$_" }) | ConvertFrom-Json
-$resourceGroup = $registryInfo.resourceGroup
-Write-Debug "Using resource group $($resourceGroup)"
-
-# get credentials
-$argumentList = @("acr", "credential", "show", "--name", $registry)
-$credentials = (& "az" $argumentList 2>&1 | %{ "$_" }) | ConvertFrom-Json
-$user = $credentials.username
-$password = $credentials.passwords[0].value
-Write-Debug "Using User name $($user) and passsword ****"
-
 # Get build root - this is the top most folder with .dockerignore
 $buildRoot = GetTopMostFolder -startDir $path `
     -fileName ".dockerignore"
-
 # Get meta data
 $metadata = Get-Content -Raw -Path (join-path $path "mcr.json") `
     | ConvertFrom-Json
 
-# get and set build information from git or content
-$sourceTag = $null
-if (![string]::IsNullOrEmpty($env:BUILD_SOURCEVERSION)) {
-    # Try get current tag
-    try {
-        $argumentList = @("tag", "--points-at", $env:BUILD_SOURCEVERSION)
-        $sourceTag = (& "git" $argumentList 2>&1 | %{ "$_" });
-    }
-    catch {
-        Write-Error "Error reading tag from $($env:BUILD_SOURCEVERSION)"
-        $sourceTag = $null
+# get and set build information from gitversion, git or version content
+$sourceTag = $env:GITVERSION_MajorMinorPatch
+if (![string]::IsNullOrEmpty($sourceTag)) {
+    Write-Host "Using version $($sourceTag) from GitVersion"
+}
+else {
+    # Otherwise look at git tag
+    if (![string]::IsNullOrEmpty($env:BUILD_SOURCEVERSION)) {
+        # Try get current tag
+        try {
+            $argumentList = @("tag", "--points-at", $env:BUILD_SOURCEVERSION)
+            $sourceTag = (& "git" $argumentList 2>&1 | %{ "$_" });
+        }
+        catch {
+            Write-Error "Error reading tag from $($env:BUILD_SOURCEVERSION)"
+            $sourceTag = $null
+        }
     }
 }
 if ([string]::IsNullOrEmpty($sourceTag)) {
+    # Finally - try old version.props
     try {
         $buildRoot = GetTopMostFolder -startDir $path `
             -fileName "version.props"
@@ -169,14 +145,47 @@ if ([string]::IsNullOrEmpty($branchName) -or ($branchName -eq "HEAD")) {
     $branchName = "deletemesoon"
 }
 
+# Check and set registry
+$namespacePrefix = "internal/"
+if ([string]::IsNullOrEmpty($registry)) {
+    $registry = $env.BUILD_REGISTRY
+    if ([string]::IsNullOrEmpty($registry)) {
+        $registry = "industrialiot"
+        if ($isDeveloperBuild -eq $true) {
+            $registry = "industrialiotdev"
+            $namespacePrefix = ""
+        }
+        Write-Warning "No registry specified - using $($registry).azurecr.io."
+    }
+}
+
+# set default subscription
+if (![string]::IsNullOrEmpty($subscription)) {
+    Write-Debug "Setting subscription to $($subscription)"
+    $argumentList = @("account", "set", "--subscription", $subscription)
+    & "az" $argumentList 2`>`&1 | %{ "$_" }
+}
+
+# get registry information
+$argumentList = @("acr", "show", "--name", $registry)
+$registryInfo = (& "az" $argumentList 2>&1 | %{ "$_" }) | ConvertFrom-Json
+$resourceGroup = $registryInfo.resourceGroup
+Write-Debug "Using resource group $($resourceGroup)"
+# get credentials
+$argumentList = @("acr", "credential", "show", "--name", $registry)
+$credentials = (& "az" $argumentList 2>&1 | %{ "$_" }) | ConvertFrom-Json
+$user = $credentials.username
+$password = $credentials.passwords[0].value
+Write-Debug "Using User name $($user) and passsword ****"
 # Set image name and namespace in acr based on branch and source tag
 $imageName = $metadata.name
-$namespace = "public/"
+# Set namespace name
 if ($isDeveloperBuild -eq $true) {
-    $namespace = "internal/$($branchName)/"
+    $namespace = "$($namespacePrefix)$($branchName)/"
     Write-Host "Pushing '$($sourceTag)' developer build for $($branchName)."
 }
 else {
+    $namespace = "public/"
     Write-Host "Pushing release build '$($sourceTag)' to public."
 }
 
@@ -211,6 +220,7 @@ $definitions = @()
 # Create build job definitions from dotnet project in current folder
 $projFile = Get-ChildItem $path -Filter *.csproj | Select-Object -First 1
 if ($projFile -ne $null) {
+
     $output = (join-path $path (join-path "bin" (join-path "publish" $configuration)))
     @("linux-arm", "linux-x64", "win-x64", "win-arm", "win-arm64", "") `
         | ForEach-Object {
@@ -251,6 +261,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends openssh-server 
 ENV NOTVISIBLE "in users profile"
 "@
 
+    # Get project's output base name
+    $projBase = $projFile.BaseName
+    # todo - get actual project's output name
+
+    # todo
+    # todo
+    # todo
+
     # Default platform definitions
     $platforms = @{
         "linux/arm/v7" = @{
@@ -258,57 +276,59 @@ ENV NOTVISIBLE "in users profile"
             image = "mcr.microsoft.com/dotnet/core/runtime-deps:2.2"
             platformTag = "linux-arm32v7"
             debugger = $installLinuxDebugger
+            entryPoint = "[`"./$($projBase)`"]"
         }
         "linux/amd64" = @{
             runtimeId = "linux-x64"
             image = "mcr.microsoft.com/dotnet/core/runtime-deps:2.2"
             platformTag = "linux-amd64"
             debugger = $installLinuxDebugger
+            entryPoint = "[`"./$($projBase)`"]"
         }
         "windows/amd64:10.0.17134.885" = @{
             runtimeId = "win-x64"
             image = "mcr.microsoft.com/windows/nanoserver:1803"
             platformTag = "nanoserver-amd64-1803"
             debugger = $null
+            entryPoint = "[`"$($projBase).exe`"]"
         }
         "windows/amd64:10.0.17763.615" = @{
             runtimeId = "win-x64"
             image = "mcr.microsoft.com/windows/nanoserver:1809"
             platformTag = "nanoserver-amd64-1809"
             debugger = $null
+            entryPoint = "[`"$($projBase).exe`"]"
         }
-        "windows/amd64" = @{
+        "windows/arm" = @{
             runtimeId = "win-arm"
             image = "mcr.microsoft.com/windows/nanoserver:1809-arm32v7"
             platformTag = "nanoserver-arm32v7-1809"
             debugger = $null
+            entryPoint = "[`"$($projBase).exe`"]"
         }
         "windows/amd64:10.0.18362.239" = @{
             runtimeId = "win-x64"
             image = "mcr.microsoft.com/windows/nanoserver:1903"
             platformTag = "nanoserver-amd64-1903"
             debugger = $null
+            entryPoint = "[`"$($projBase).exe`"]"
         }
     }
 
-    # Get entry point from project file
-    $entryPoint = $projFile.BaseName
-
-    # todo - get actual endpoint
-
-
-    # Create build definitions
+    # Create dockerfile in publish output and build definitions
     $platforms.Keys | ForEach-Object {
         $platformInfo = $platforms.Item($_)
 
         $runtimeId = $platformInfo.runtimeId
         $baseImage = $platformInfo.image
         $platformTag = $platformInfo.platformTag
+        $entryPoint = $platformInfo.entryPoint
 
         # Check for overridden base image name - e.g. aspnet core images
         if (![string]::IsNullOrEmpty($metadata.base)) {
             $baseImage = $metadata.base
             $runtimeId = $null
+            $entryPoint = '["dotnet", "$($projBase).dll"]'
         }
 
         # Set where to obtain image content
@@ -335,9 +355,11 @@ $($exposes)
 $($installExtra)
 WORKDIR /app
 COPY . .
-ENTRYPOINT ["$($entryPoint)"]
+ENTRYPOINT $($entryPoint)
 "@ 
         $dockerFile = (join-path $imageContent "Dockerfile.$($platformTag)")
+        Write-Host Writing $($dockerFile)
+        $dockerFileContent | Out-Host
         $dockerFileContent | Out-File -Encoding ascii -FilePath $dockerFile
         $definitions += @{
             platform = $_
@@ -349,7 +371,7 @@ ENTRYPOINT ["$($entryPoint)"]
 }
 
 if ($definitions.Count -eq 0) {
-    # Create job definitions from dockerfile structure in current folder
+    # Non-.net - Create job definitions from dockerfile structure in current folder
     Get-ChildItem $path -Recurse `
         | Where-Object Name -eq "Dockerfile" `
         | ForEach-Object {
@@ -362,6 +384,10 @@ if ($definitions.Count -eq 0) {
         # Backcompat folder structure
         if ($platform -eq "linux/arm32v7") {
             $platform = "linux/arm/v7"
+        }
+        $platformTag = $platform.Replace("/", "-")
+        if ($platformTag -eq "linux-arm-v7") {
+            $platformTag = "linux-arm32v7"
         }
 
         $definitions += @{
@@ -407,17 +433,14 @@ $definitions | ForEach-Object {
         }
     }
 
-    if ([string]::IsNullOrEmpty($platformTag)) {
-        $platformTag = $platform.Replace("/", "-")
-        if ($platformTag -eq "linux-arm-v7") {
-            # Backcompat
-            $platformTag = "linux-arm32v7"
-        }
-    }
-
     $image = "$($namespace)$($imageName):$($sourceTag)-$($platformTag)$($imageTag)"
     Write-Host "Start build job for $($image)"
-    # Create acr command line - TODO: Consider az powershell module?
+
+    # Create acr command line 
+    #BUGBUG :  ACR fails with arm
+    if ($platform -eq "windows/arm") {
+        $platform = "windows/amd64"
+    }
     $argumentList = @("acr", "build", "--verbose",
         "--registry", $registry,
         "--resource-group", $resourceGroup,
