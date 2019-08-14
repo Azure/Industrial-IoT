@@ -381,7 +381,7 @@ if ($definitions.Count -eq 0) {
         $definitions += @{
             dockerfile = $dockerfile
             platform = $platform
-            platformTag = $null
+            platformTag = $platformTag
             buildContext = $buildRoot
         }
     }
@@ -401,8 +401,8 @@ $definitions | ForEach-Object {
 
     $dockerfile = $_.dockerfile
     $buildContext = $_.buildContext
-    $platform = $_.platform
-    $platformTag = $_.platformTag
+    $platform = $_.platform.ToLower()
+    $platformTag = $_.platformTag.ToLower()
 
     if ($platform -eq "linux/arm32v7") {
         $platform = "linux/arm/v7"
