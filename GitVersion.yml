@@ -1,9 +1,11 @@
 assembly-versioning-scheme: MajorMinorPatch
-mode: ContinuousDeployment
-next-version: 2.5.0
+mode: ContinuousDelivery
 branches:
+  develop:
+    regex: ^master$
+    tag: alpha
   master:
-    mode: ContinuousDelivery
-ignore:
-  sha: []
-merge-message-formats: {}
+    regex: ^stable$
+  release:
+    regex: ^staging[/-]
+    tag: prerelease

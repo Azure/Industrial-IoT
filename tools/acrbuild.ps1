@@ -205,8 +205,12 @@ $projFile = Get-ChildItem $path -Filter *.csproj | Select-Object -First 1
 if ($projFile -ne $null) {
 
     $output = (join-path $path (join-path "bin" (join-path "publish" $configuration)))
-    @("linux-arm", "linux-x64", "win-x64", "win-arm", "win-arm64", "") `
-        | ForEach-Object {
+    $runtimes = @("linux-arm", "linux-x64", "win-x64", "win-arm", "win-arm64", "")
+    if (![string]::IsNullOrEmpty($metadata.base)) {
+        # Shortcut - only build portable
+        $runtimes = @("")
+    }
+    $runtimes | ForEach-Object {
         $runtimeId = $_
 
         # Create dotnet command line 
@@ -308,19 +312,19 @@ ENV NOTVISIBLE "in users profile"
         $platformTag = $platformInfo.platformTag
         $entryPoint = $platformInfo.entryPoint
 
+        #
         # Check for overridden base image name - e.g. aspnet core images
-        # this script only supports portable then and default dotnet entry 
+        # this script only supports portable and defaults to dotnet entry 
         # point
+        #
         if (![string]::IsNullOrEmpty($metadata.base)) {
             $baseImage = $metadata.base
             $runtimeId = $null
             $entryPoint = '["dotnet", "$($assemblyName).dll"]'
         }
 
-        # Set where to obtain image content
-        $imageContent = (join-path $output "portable")
-        if (![string]::IsNullOrEmpty($runtimeId)) {
-            $imageContent = (join-path $output $runtimeId)
+        if ([string]::IsNullOrEmpty($runtimeId)) {
+            $runtimeId = "portable"
         }
 
         $installExtra = ""
@@ -329,6 +333,7 @@ ENV NOTVISIBLE "in users profile"
                 $installExtra = $platformInfo.debugger
             }
         }
+
         $exposes = ""
         if ($metadata.exposes -ne $null) {
             $metadata.exposes | ForEach-Object {
@@ -343,6 +348,7 @@ WORKDIR /app
 COPY . .
 ENTRYPOINT $($entryPoint)
 "@ 
+        $imageContent = (join-path $output $runtimeId)
         $dockerFile = (join-path $imageContent "Dockerfile.$($platformTag)")
         Write-Host Writing $($dockerFile)
         $dockerFileContent | Out-Host
