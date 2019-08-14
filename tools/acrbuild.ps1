@@ -252,11 +252,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends openssh-server 
 ENV NOTVISIBLE "in users profile"
 "@
 
-    # Get project's assembly name to create entry point
+    # Get project's assembly name to create entry point entry in dockerfile
     $assemblyName = $null
     ([xml] (Get-Content -Path $projFile.FullName)).Project.PropertyGroup `
         | Where-Object { ![string]::IsNullOrWhiteSpace($_.AssemblyName) } `
-        | Foreach-Object { $assemblyName = $_ }
+        | Foreach-Object { $assemblyName = $_.AssemblyName }
     if ([string]::IsNullOrWhiteSpace($assemblyName)) {
         $assemblyName = $projFile.BaseName
     }

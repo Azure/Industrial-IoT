@@ -419,14 +419,14 @@ jobs:
   - task: gittools.gitversion.gitversion-task.GitVersion@5
     displayName: Versioning
   - task: AzureCLI@1
-    name: acrbuild
+    name: acrbuildr
     displayName: Build Release Images
     inputs:
       azureSubscription: azureiiot
       scriptLocation: inlineScript
       inlineScript: powershell ./tools/acrbuild.ps1 $(dockerFolder)
   - task: AzureCLI@1
-    name: acrbuild
+    name: acrbuildd
     displayName: Build Debug Images
     inputs:
       azureSubscription: azureiiot
