@@ -38,22 +38,6 @@ Param(
     [switch] $debug
 )
 
-# find the top most folder with file in it and return the path
-Function GetTopMostFolder() {
-    param(
-        [string] $startDir,
-        [string] $fileName
-    ) 
-    $cur = $startDir
-    while (![string]::IsNullOrEmpty($cur)) {
-        if (Test-Path -Path (Join-Path $cur $fileName) -PathType Leaf) {
-            return $cur
-        }
-        $cur = Split-Path $cur
-    }
-    return $startDir
-}
-
 # Check path argument and resolve to full existing path
 if ([string]::IsNullOrEmpty($path)) {
     throw "No docker folder specified."
@@ -260,13 +244,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends openssh-server 
 ENV NOTVISIBLE "in users profile"
 "@
 
-    # Get project's output base name
-    $projBase = $projFile.BaseName
-    # todo - get actual project's output name
-
-    # todo
-    # todo
-    # todo
+    # Get project's assembly name to create entry point
+    $assemblyName = $null
+    ([xml] (Get-Content -Path $projFile.FullName)).Project.PropertyGroup `
+        | Where-Object { ![string]::IsNullOrWhiteSpace($_.AssemblyName) } `
+        | Foreach-Object { $assemblyName = $_ }
+    if ([string]::IsNullOrWhiteSpace($assemblyName)) {
+        $assemblyName = $projFile.BaseName
+    }
 
     # Default platform definitions
     $platforms = @{
@@ -275,42 +260,42 @@ ENV NOTVISIBLE "in users profile"
             image = "mcr.microsoft.com/dotnet/core/runtime-deps:2.2"
             platformTag = "linux-arm32v7"
             debugger = $installLinuxDebugger
-            entryPoint = "[`"./$($projBase)`"]"
+            entryPoint = "[`"./$($assemblyName)`"]"
         }
         "linux/amd64" = @{
             runtimeId = "linux-x64"
             image = "mcr.microsoft.com/dotnet/core/runtime-deps:2.2"
             platformTag = "linux-amd64"
             debugger = $installLinuxDebugger
-            entryPoint = "[`"./$($projBase)`"]"
+            entryPoint = "[`"./$($assemblyName)`"]"
         }
         "windows/amd64:10.0.17134.885" = @{
             runtimeId = "win-x64"
             image = "mcr.microsoft.com/windows/nanoserver:1803"
             platformTag = "nanoserver-amd64-1803"
             debugger = $null
-            entryPoint = "[`"$($projBase).exe`"]"
+            entryPoint = "[`"$($assemblyName).exe`"]"
         }
         "windows/amd64:10.0.17763.615" = @{
             runtimeId = "win-x64"
             image = "mcr.microsoft.com/windows/nanoserver:1809"
             platformTag = "nanoserver-amd64-1809"
             debugger = $null
-            entryPoint = "[`"$($projBase).exe`"]"
+            entryPoint = "[`"$($assemblyName).exe`"]"
         }
         "windows/arm" = @{
             runtimeId = "win-arm"
             image = "mcr.microsoft.com/windows/nanoserver:1809-arm32v7"
             platformTag = "nanoserver-arm32v7-1809"
             debugger = $null
-            entryPoint = "[`"$($projBase).exe`"]"
+            entryPoint = "[`"$($assemblyName).exe`"]"
         }
         "windows/amd64:10.0.18362.239" = @{
             runtimeId = "win-x64"
             image = "mcr.microsoft.com/windows/nanoserver:1903"
             platformTag = "nanoserver-amd64-1903"
             debugger = $null
-            entryPoint = "[`"$($projBase).exe`"]"
+            entryPoint = "[`"$($assemblyName).exe`"]"
         }
     }
 
@@ -324,10 +309,12 @@ ENV NOTVISIBLE "in users profile"
         $entryPoint = $platformInfo.entryPoint
 
         # Check for overridden base image name - e.g. aspnet core images
+        # this script only supports portable then and default dotnet entry 
+        # point
         if (![string]::IsNullOrEmpty($metadata.base)) {
             $baseImage = $metadata.base
             $runtimeId = $null
-            $entryPoint = '["dotnet", "$($projBase).dll"]'
+            $entryPoint = '["dotnet", "$($assemblyName).dll"]'
         }
 
         # Set where to obtain image content
@@ -379,15 +366,7 @@ if ($definitions.Count -eq 0) {
 
         $platformFolder = $_.DirectoryName.Replace($path, "")
         $platform = $platformFolder.Substring(1).Replace("\", "/")
-
-        # Backcompat folder structure
-        if ($platform -eq "linux/arm32v7") {
-            $platform = "linux/arm/v7"
-        }
         $platformTag = $platform.Replace("/", "-")
-        if ($platformTag -eq "linux-arm-v7") {
-            $platformTag = "linux-arm32v7"
-        }
 
         $definitions += @{
             dockerfile = $dockerfile
@@ -402,6 +381,7 @@ if ($definitions.Count -eq 0) {
     Write-Host "Nothing to build."
     return
 }
+
 Write-Host "Building $($definitions.Count) images in $($path) in $($buildRoot)"
 Write-Host " and pushing to $($registry)/$($namespace)$($imageName)..."
 
@@ -410,9 +390,16 @@ $jobs = @()
 $definitions | ForEach-Object {
 
     $dockerfile = $_.dockerfile
-    $platform = $_.platform
-    $platformTag = $_.platformTag
     $buildContext = $_.buildContext
+    $platform = $_.platform.ToLower()
+    $platformTag = $_.platformTag.ToLower()
+
+    if ($platform -eq "linux/arm32v7") {
+        $platform = "linux/arm/v7"
+    }
+    if ($platformTag -eq "linux-arm-v7") {
+        $platformTag = "linux-arm32v7"
+    }
 
     $os = ""
     $osVersion = ""
@@ -422,24 +409,43 @@ $definitions | ForEach-Object {
         $platform = $osVerArr[0]
         $osVersion = ("osversion: {0}" -f $osVerArr[1])
     }
+
     $osArchArr = $platform.Split('/')
     if ($osArchArr.Count -gt 1) {
         $os = ("os: {0}" -f $osArchArr[0])
         $architecture = ("architecture: {0}" -f $osArchArr[1])
         $variant = ""
         if ($osArchArr.Count -gt 2) {
-            $variant = ("variant: {0}" -f $osArchArr[2])
+            # Backcompat for when release version was used as windows variant
+            $windowsVariantToOsVersionsTable = @{
+                "1803" = "10.0.17134.885"
+                "1809" = "10.0.17763.615"
+                "1903" = "10.0.18362.239"
+            }
+            if ($windowsVariantToOsVersionsTable.ContainsKey($osArchArr[2])) {
+                $osVersion = $windowsVariantToOsVersionsTable.Item($osArchArr[2])
+                $osVersion = ("osversion: {0}" -f $osVersion)
+            }
+            else {
+                $variant = ("variant: {0}" -f $osArchArr[2])
+            }
         }
     }
 
     $image = "$($namespace)$($imageName):$($sourceTag)-$($platformTag)$($imageTag)"
     Write-Host "Start build job for $($image)"
 
-    # Create acr command line 
-    #BUGBUG :  ACR fails with arm
+    # BUGBUG
+    # BUGBUG : ACR fails with arm but it is likely 
+    # BUGBUG : that win-arm does not work now either.
+    # BUGBUG
     if ($platform -eq "windows/arm") {
         $platform = "windows/amd64"
     }
+    # BUGBUG
+    # BUGBUG
+
+    # Create acr command line 
     $argumentList = @("acr", "build", "--verbose",
         "--registry", $registry,
         "--resource-group", $resourceGroup,
@@ -538,4 +544,22 @@ finally {
     Remove-Item -Force -Path $manifestToolPath
     Remove-Item -Force -Path "$($manifestToolPath).asc"
 }
+return
 
+#
+# find the top most folder with file in it and return the path
+#
+Function GetTopMostFolder() {
+    param(
+        [string] $startDir,
+        [string] $fileName
+    ) 
+    $cur = $startDir
+    while (![string]::IsNullOrEmpty($cur)) {
+        if (Test-Path -Path (Join-Path $cur $fileName) -PathType Leaf) {
+            return $cur
+        }
+        $cur = Split-Path $cur
+    }
+    return $startDir
+}
