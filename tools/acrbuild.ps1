@@ -172,11 +172,15 @@ else {
     Write-Host "Pushing release build '$($sourceTag)' to public."
 }
 
-$imageTag = ""
+$tagPostfix = ""
+$tagPrefix = ""
 $configuration = "Release"
 if ($debug.IsPresent) {
     $configuration = "Debug"
-    $imageTag = "-debug"
+    $tagPostfix = "-debug"
+}
+if (![string]::IsNullOrEmpty($metadata.tag)) {
+    $tagPrefix = "$($metadata.tag)-"
 }
 
 # Create manifest file
@@ -187,13 +191,13 @@ if ($versionParts.Count -gt 0) {
     $tags += $versionTag
     for ($i = 1; $i -lt $versionParts.Count; $i++) {
         $versionTag = ("$($versionTag).{0}" -f $versionParts[$i])
-        $tags += "$($versionTag)$($imageTag)"
+        $tags += "$($tagPrefix)$($versionTag)$($tagPostfix)"
     }
     $tagList = ("'{0}'" -f ($tags -join "', '"))
 }
 
 $manifest = @" 
-image: $($registry).azurecr.io/$($namespace)$($imageName):latest$($imageTag)
+image: $($registry).azurecr.io/$($namespace)$($imageName):$($tagPrefix)latest$($tagPostfix)
 tags: [$($tagList)]
 manifests:
 "@
@@ -397,8 +401,8 @@ $definitions | ForEach-Object {
 
     $dockerfile = $_.dockerfile
     $buildContext = $_.buildContext
-    $platform = $_.platform.ToLower()
-    $platformTag = $_.platformTag.ToLower()
+    $platform = $_.platform
+    $platformTag = $_.platformTag
 
     if ($platform -eq "linux/arm32v7") {
         $platform = "linux/arm/v7"
@@ -438,7 +442,7 @@ $definitions | ForEach-Object {
         }
     }
 
-    $image = "$($namespace)$($imageName):$($sourceTag)-$($platformTag)$($imageTag)"
+    $image = "$($namespace)$($imageName):$($tagPrefix)$($sourceTag)-$($platformTag)$($tagPostfix)"
     Write-Host "Start build job for $($image)"
 
     # BUGBUG

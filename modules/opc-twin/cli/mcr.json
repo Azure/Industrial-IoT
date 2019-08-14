@@ -1,3 +1,5 @@
 {
-    "name": "iotedge/opc-twin/host"
+    "name": "iotedge/opc-twin",
+    "tag": "host",
+    "base": "mcr.microsoft.com/dotnet/core/runtime:2.2"
 }
