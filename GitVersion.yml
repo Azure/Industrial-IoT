@@ -10,3 +10,10 @@ branches:
   release:
     tag: prerelease
     regex: ^staging[/-]
+  feature:
+    mode: ContinuousDeployment
+    regex: ^feature[/-]
+  pull-request:
+    tag: pr
+  hotfix:
+    tag: qfe
