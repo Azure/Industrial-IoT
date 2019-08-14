@@ -30,8 +30,6 @@ jobs:
       installationPath: $(Agent.ToolsDirectory)/dotnet
   - task: gittools.gitversion.gitversion-task.GitVersion@5
     displayName: Versioning
-    inputs:
-      updateAssemblyInfo: true
   - task: DotNetCoreCLI@2
     displayName: Release Build
     inputs:
@@ -74,6 +72,8 @@ jobs:
       packageType: sdk
       version: 2.2.x
       installationPath: $(Agent.ToolsDirectory)/dotnet
+  - task: gittools.gitversion.gitversion-task.GitVersion@5
+    displayName: Versioning
   - task: DotNetCoreCLI@2
     displayName: Test
     inputs:
@@ -215,8 +215,6 @@ jobs:
       installationPath: $(Agent.ToolsDirectory)/dotnet
   - task: gittools.gitversion.gitversion-task.GitVersion@5
     displayName: Versioning
-    inputs:
-      updateAssemblyInfo: true
   - task: DotNetCoreCLI@2
     displayName: Build
     inputs:
@@ -267,8 +265,6 @@ jobs:
       installationPath: $(Agent.ToolsDirectory)/dotnet
   - task: gittools.gitversion.gitversion-task.GitVersion@5
     displayName: Versioning
-    inputs:
-      updateAssemblyInfo: true
   - task: DotNetCoreCLI@2
     displayName: Build
     inputs:
