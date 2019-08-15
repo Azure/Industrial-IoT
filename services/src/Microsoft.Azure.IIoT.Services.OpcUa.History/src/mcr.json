@@ -1,0 +1,4 @@
+{
+    "name": "iot/opc-history-service",
+    "exposes": [9043]
+}

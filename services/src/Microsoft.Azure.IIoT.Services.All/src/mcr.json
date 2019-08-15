@@ -1,0 +1,5 @@
+{
+    "name": "iot/services",
+    "base": "mcr.microsoft.com/dotnet/core/aspnet:2.2",
+    "exposes": [9040, 9041, 9042, 9043, 9044, 51111]
+}

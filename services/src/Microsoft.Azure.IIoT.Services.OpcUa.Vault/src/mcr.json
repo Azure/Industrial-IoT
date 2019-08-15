@@ -1,0 +1,4 @@
+{
+    "name": "iot/opc-vault-service",
+    "exposes": [9044]
+}
