@@ -26,7 +26,8 @@ jobs:
     displayName: 'Install .NET Core SDK'
     inputs:
       packageType: sdk
-      version: 2.2.x
+      version: 3.0.x
+      includePreviewVersions: true
       installationPath: $(Agent.ToolsDirectory)/dotnet
   - task: DotNetCoreCLI@2
     displayName: Release Build
@@ -69,6 +70,7 @@ jobs:
     inputs:
       packageType: sdk
       version: 2.2.x
+      includePreviewVersions: false
       installationPath: $(Agent.ToolsDirectory)/dotnet
   - task: DotNetCoreCLI@2
     displayName: Test
@@ -93,6 +95,7 @@ jobs:
     inputs:
       packageType: sdk
       version: 2.2.x
+      includePreviewVersions: false
       installationPath: $(Agent.ToolsDirectory)/dotnet
   - task: DotNetCoreCLI@2
     displayName: Restore
@@ -206,6 +209,7 @@ jobs:
     inputs:
       packageType: sdk
       version: 2.2.x
+      includePreviewVersions: false
       installationPath: $(Agent.ToolsDirectory)/dotnet
   - task: DotNetCoreCLI@2
     displayName: Build
@@ -253,7 +257,8 @@ jobs:
     displayName: 'Install .NET Core SDK'
     inputs:
       packageType: sdk
-      version: 2.2.x
+      version: 3.x
+      includePreviewVersions: false
       installationPath: $(Agent.ToolsDirectory)/dotnet
   - task: DotNetCoreCLI@2
     displayName: Build

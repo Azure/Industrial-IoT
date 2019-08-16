@@ -17,6 +17,9 @@
     <NeutralLanguage>en-US</NeutralLanguage>
     <LangVersion>7.3</LangVersion>
   </PropertyGroup>
+  <ItemGroup>
+    <None Remove="mcr.json" />
+  </ItemGroup>
   <Import Project="version.props" />
   <PropertyGroup>
     <IncludeSymbols>true</IncludeSymbols>
@@ -25,7 +28,6 @@
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
   </PropertyGroup>
   <ItemGroup Condition="$(PROJECT_BUILD) == ''">
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta2-18618-05" PrivateAssets="All"/>
-    <PackageReference Include="Microsoft.SourceLink.Vsts.Git" Version="1.0.0-beta2-18618-05" PrivateAssets="All"/>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta2-19367-01" PrivateAssets="All"/>
   </ItemGroup>
 </Project>

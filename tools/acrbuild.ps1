@@ -38,6 +38,24 @@ Param(
     [switch] $debug
 )
 
+#
+# find the top most folder with file in it and return the path
+#
+Function GetTopMostFolder() {
+    param(
+        [string] $startDir,
+        [string] $fileName
+    ) 
+    $cur = $startDir
+    while (![string]::IsNullOrEmpty($cur)) {
+        if (Test-Path -Path (Join-Path $cur $fileName) -PathType Leaf) {
+            return $cur
+        }
+        $cur = Split-Path $cur
+    }
+    return $startDir
+}
+
 # Check path argument and resolve to full existing path
 if ([string]::IsNullOrEmpty($path)) {
     throw "No docker folder specified."
@@ -116,7 +134,6 @@ if ([string]::IsNullOrEmpty($branchName)) {
     try {
         $argumentList = @("rev-parse", "--abbrev-ref", "HEAD")
         $branchName = (& "git" $argumentList 2>&1 | %{ "$_" });
-        # any build other than from master branch is a developer build.
     }
     catch {
         Write-Warning $_.Exception
@@ -124,7 +141,7 @@ if ([string]::IsNullOrEmpty($branchName)) {
     }
 }
 if ([string]::IsNullOrEmpty($branchName) -or ($branchName -eq "HEAD")) {
-    Write-Warning "Error - Branch '$($branchName)' invalid - fall back to default."
+    Write-Warning "Error - Branch '$($branchName)' invalid - using default."
     $branchName = "deletemesoon"
 }
 
@@ -544,23 +561,4 @@ finally {
     Remove-Item -Force -Path $manifestFile.FullName
     Remove-Item -Force -Path $manifestToolPath
     Remove-Item -Force -Path "$($manifestToolPath).asc"
-}
-return
-
-#
-# find the top most folder with file in it and return the path
-#
-Function GetTopMostFolder() {
-    param(
-        [string] $startDir,
-        [string] $fileName
-    ) 
-    $cur = $startDir
-    while (![string]::IsNullOrEmpty($cur)) {
-        if (Test-Path -Path (Join-Path $cur $fileName) -PathType Leaf) {
-            return $cur
-        }
-        $cur = Split-Path $cur
-    }
-    return $startDir
 }

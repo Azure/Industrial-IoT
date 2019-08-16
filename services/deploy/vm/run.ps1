@@ -92,21 +92,14 @@ Function GetEnvironmentVariables() {
         "PCS_SERVICEBUS_CONNSTRING=$SERVICEBUS_CONNSTRING"
     Write-Output `
         "PCS_KEYVAULT_URL=$KEYVAULT_URL"
-        
-    Write-Output `
-        "PCS_TWIN_REGISTRY_URL=$AZURE_WEBSITE/registry"
-    Write-Output `
-        "PCS_TWIN_SERVICE_URL=$AZURE_WEBSITE/twin"
-    Write-Output `
-        "REACT_APP_PCS_TWIN_REGISTRY_URL=$AZURE_WEBSITE/registry"
-    Write-Output `
-        "REACT_APP_PCS_TWIN_SERVICE_URL=$AZURE_WEBSITE/twin"
     Write-Output `
         "PCS_WORKSPACE_NAME=$WORKSPACE_NAME"
     Write-Output `
         "PCS_APPINSIGHTS_NAME=$APPINSIGHTS_NAME"
     Write-Output `
         "PCS_APPINSIGHTS_INSTRUMENTATIONKEY=$APPINSIGHTS_INSTRUMENTATIONKEY"
+    Write-Output `
+        "PCS_SERVICE_URL=$AZURE_WEBSITE"
 
     if (!$aadConfig) {
     Write-Output `
@@ -177,28 +170,18 @@ Function CreateRandomPassword() {
 }
 
 #******************************************************************************
-# find the top most folder with docker-compose.yml in it
+# find the top most folder with solution in it
 #******************************************************************************
 Function GetRootFolder() {
     param(
         $startDir
     ) 
     $cur = $startDir
-    while ($True) {
-        if ([string]::IsNullOrEmpty($cur)) {
-            break
-        }
-        $test = Join-Path $cur "docker-compose.yml"
-        if (Test-Path $test) {
-            $found = $cur
-        }
-        elseif (![string]::IsNullOrEmpty($found)) {
-            break
+    while (![string]::IsNullOrEmpty($cur)) {
+        if (Test-Path -Path (Join-Path $cur "Industrial-IoT.sln") -PathType Leaf) {
+            return $cur
         }
         $cur = Split-Path $cur
-    }
-    if (![string]::IsNullOrEmpty($found)) {
-        return $found
     }
     return $startDir
 }
@@ -222,17 +205,28 @@ $templateParameters = @{
     azureWebsiteName = $script:applicationName
 }
 
-try {
-    # Try set branch name as current branch - if git does not exist will fail and use master
-    $branchName = (& "git" @("rev-parse", "--abbrev-ref", "HEAD") 2>&1 | %{ "$_" });
+# Try get branch name
+$branchName = $env:BUILD_SOURCEBRANCH
+if (![string]::IsNullOrEmpty($branchName)) {
+    if ($branchName.StartsWith("refs/heads/")) {
+        $branchName = $branchName.Replace("refs/heads/", "")
+    }
+    else {
+        $branchName = $null
+    }
 }
-catch {
-    $branchName = $null
+if ([string]::IsNullOrEmpty($branchName)) {
+    try {
+        $argumentList = @("rev-parse", "--abbrev-ref", "HEAD")
+        $branchName = (& "git" $argumentList 2>&1 | %{ "$_" });
+    }
+    catch {
+        $branchName = $null
+    }
 }
 if ([string]::IsNullOrEmpty($branchName) -or ($branchName -eq "HEAD")) {
     $branchName = "master"
 }
-
 Write-Host "VM deployment will use configuration from '$branchName' branch."
 $templateParameters.Add("branchName", $branchName)
 
