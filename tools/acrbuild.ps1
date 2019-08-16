@@ -361,10 +361,10 @@ ENV PATH="${PATH}:/root/vsdbg/vsdbg"
         $dockerFileContent = @"
 FROM $($baseImage)
 $($exposes)
-$($debugger)
-$($extra)
 WORKDIR /app
 COPY . .
+$($debugger)
+$($extra)
 ENTRYPOINT $($entryPoint)
 "@ 
         $imageContent = (join-path $output $runtimeId)
