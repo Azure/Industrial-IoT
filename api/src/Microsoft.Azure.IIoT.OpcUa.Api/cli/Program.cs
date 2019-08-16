@@ -467,22 +467,34 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// Select node id
         /// </summary>
         private static async Task SelectNodeAsync(ITwinServiceApi service, CliOptions options) {
-            var nodeId = options.GetValueOrDefault<string>("-n", "--nodeid", null);
-            if (string.IsNullOrEmpty(nodeId)) {
-                var id = GetEndpointId(options, false);
-                if (!string.IsNullOrEmpty(id)) {
-                    var results = await service.NodeBrowseAsync(id, new BrowseRequestApiModel {
-                        TargetNodesOnly = true,
-                        NodeId = _nodeId
-                    });
-                    nodeId = ConsoleEx.Select(results.References.Select(r => r.Target.NodeId));
-                }
-                if (string.IsNullOrEmpty(nodeId)) {
-                    Console.WriteLine("Nothing selected.");
-                    return;
-                }
+            if (options.IsSet("-c", "--clear")) {
+                _nodeId = null;
             }
-            _nodeId = nodeId;
+            else if (options.IsSet("-s", "--show")) {
+                Console.WriteLine(_nodeId);
+            }
+            else {
+                var nodeId = options.GetValueOrDefault<string>("-n", "--nodeid", null);
+                if (string.IsNullOrEmpty(nodeId)) {
+                    var id = GetEndpointId(options, false);
+                    if (!string.IsNullOrEmpty(id)) {
+                        var results = await service.NodeBrowseAsync(id, new BrowseRequestApiModel {
+                            TargetNodesOnly = true,
+                            NodeId = _nodeId
+                        });
+                        var node = ConsoleEx.Select(results.References.Select(r => r.Target),
+                            n => n.BrowseName);
+                        if (node != null) {
+                            nodeId = node.NodeId;
+                        }
+                    }
+                    if (string.IsNullOrEmpty(nodeId)) {
+                        Console.WriteLine("Nothing selected.");
+                        return;
+                    }
+                }
+                _nodeId = nodeId;
+            }
         }
 
         /// <summary>
@@ -696,15 +708,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// Select group registration
         /// </summary>
         private static async Task SelectGroupAsync(IVaultServiceApi service, CliOptions options) {
-            var groupId = options.GetValueOrDefault<string>("-i", "--id", null);
-            if (string.IsNullOrEmpty(groupId)) {
-                var result = await service.ListAllGroupsAsync();
-                groupId = ConsoleEx.Select(result);
-                if (string.IsNullOrEmpty(groupId)) {
-                    Console.WriteLine("Nothing selected - group selection cleared.");
-                }
+            if (options.IsSet("-c", "--clear")) {
+                _groupId = null;
             }
-            _groupId = groupId;
+            else if (options.IsSet("-s", "--show")) {
+                Console.WriteLine(_groupId);
+            }
+            else {
+                var groupId = options.GetValueOrDefault<string>("-i", "--id", null);
+                if (string.IsNullOrEmpty(groupId)) {
+                    var result = await service.ListAllGroupsAsync();
+                    groupId = ConsoleEx.Select(result);
+                    if (string.IsNullOrEmpty(groupId)) {
+                        Console.WriteLine("Nothing selected - group selection cleared.");
+                    }
+                }
+                _groupId = groupId;
+            }
         }
 
         /// <summary>
@@ -824,15 +844,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// Select supervisor registration
         /// </summary>
         private static async Task SelectSupervisorAsync(IRegistryServiceApi service, CliOptions options) {
-            var supervisorId = options.GetValueOrDefault<string>("-i", "--id", null);
-            if (string.IsNullOrEmpty(supervisorId)) {
-                var result = await service.ListAllSupervisorsAsync();
-                supervisorId = ConsoleEx.Select(result.Select(r => r.Id));
-                if (string.IsNullOrEmpty(supervisorId)) {
-                    Console.WriteLine("Nothing selected - supervisor selection cleared.");
-                }
+            if (options.IsSet("-c", "--clear")) {
+                _supervisorId = null;
             }
-            _supervisorId = supervisorId;
+            else if (options.IsSet("-s", "--show")) {
+                Console.WriteLine(_supervisorId);
+            }
+            else {
+                var supervisorId = options.GetValueOrDefault<string>("-i", "--id", null);
+                if (string.IsNullOrEmpty(supervisorId)) {
+                    var result = await service.ListAllSupervisorsAsync();
+                    supervisorId = ConsoleEx.Select(result.Select(r => r.Id));
+                    if (string.IsNullOrEmpty(supervisorId)) {
+                        Console.WriteLine("Nothing selected - supervisor selection cleared.");
+                    }
+                }
+                _supervisorId = supervisorId;
+            }
         }
 
         /// <summary>
@@ -984,15 +1012,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// Select application registration
         /// </summary>
         private static async Task SelectApplicationAsync(IRegistryServiceApi service, CliOptions options) {
-            var applicationId = options.GetValueOrDefault<string>("-i", "--id", null);
-            if (string.IsNullOrEmpty(applicationId)) {
-                var result = await service.ListAllApplicationsAsync();
-                applicationId = ConsoleEx.Select(result.Select(r => r.ApplicationId));
-                if (string.IsNullOrEmpty(applicationId)) {
-                    Console.WriteLine("Nothing selected - application selection cleared.");
-                }
+            if (options.IsSet("-c", "--clear")) {
+                _applicationId = null;
             }
-            _applicationId = applicationId;
+            else if (options.IsSet("-s", "--show")) {
+                Console.WriteLine(_applicationId);
+            }
+            else {
+                var applicationId = options.GetValueOrDefault<string>("-i", "--id", null);
+                if (string.IsNullOrEmpty(applicationId)) {
+                    var result = await service.ListAllApplicationsAsync();
+                    applicationId = ConsoleEx.Select(result.Select(r => r.ApplicationId));
+                    if (string.IsNullOrEmpty(applicationId)) {
+                        Console.WriteLine("Nothing selected - application selection cleared.");
+                    }
+                }
+                _applicationId = applicationId;
+            }
         }
 
         /// <summary>
@@ -1221,15 +1257,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// Select endpoint registration
         /// </summary>
         private static async Task SelectEndpointsAsync(IRegistryServiceApi service, CliOptions options) {
-            var endpointId = options.GetValueOrDefault<string>("-i", "--id", null);
-            if (string.IsNullOrEmpty(endpointId)) {
-                var result = await service.ListAllEndpointsAsync();
-                endpointId = ConsoleEx.Select(result.Select(r => r.Registration.Id));
-                if (string.IsNullOrEmpty(endpointId)) {
-                    Console.WriteLine("Nothing selected - endpoint selection cleared.");
-                }
+            if (options.IsSet("-c", "--clear")) {
+                _endpointId = null;
             }
-            _endpointId = endpointId;
+            else if (options.IsSet("-s", "--show")) {
+                Console.WriteLine(_endpointId);
+            }
+            else {
+                var endpointId = options.GetValueOrDefault<string>("-i", "--id", null);
+                if (string.IsNullOrEmpty(endpointId)) {
+                    var result = await service.ListAllEndpointsAsync();
+                    endpointId = ConsoleEx.Select(result.Select(r => r.Registration.Id));
+                    if (string.IsNullOrEmpty(endpointId)) {
+                        Console.WriteLine("Nothing selected - endpoint selection cleared.");
+                    }
+                }
+                _endpointId = endpointId;
+            }
         }
 
         /// <summary>
@@ -1409,15 +1453,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// Select request registration
         /// </summary>
         private static async Task SelectRequestAsync(IVaultServiceApi service, CliOptions options) {
-            var requestId = options.GetValueOrDefault<string>("-i", "--id", null);
-            if (string.IsNullOrEmpty(requestId)) {
-                var result = await service.ListAllRequestsAsync();
-                requestId = ConsoleEx.Select(result.Select(r => r.RequestId));
-                if (string.IsNullOrEmpty(requestId)) {
-                    Console.WriteLine("Nothing selected - request selection cleared.");
-                }
+            if (options.IsSet("-c", "--clear")) {
+                _requestId = null;
             }
-            _requestId = requestId;
+            else if (options.IsSet("-s", "--show")) {
+                Console.WriteLine(_requestId);
+            }
+            else {
+                var requestId = options.GetValueOrDefault<string>("-i", "--id", null);
+                if (string.IsNullOrEmpty(requestId)) {
+                    var result = await service.ListAllRequestsAsync();
+                    requestId = ConsoleEx.Select(result.Select(r => r.RequestId));
+                    if (string.IsNullOrEmpty(requestId)) {
+                        Console.WriteLine("Nothing selected - request selection cleared.");
+                    }
+                }
+                _requestId = requestId;
+            }
         }
 
         /// <summary>
@@ -1667,6 +1719,8 @@ Commands and Options
      select      Select application as -i/--id argument in all calls.
         with ...
         -i, --id        Application id to select.
+        -c, --clear     Clear current selection
+        -s, --show      Show current selection
 
      sites       List application sites
         with ...
@@ -1776,6 +1830,8 @@ Commands and Options
      select      Select endpoint as -i/--id argument in all calls.
         with ...
         -i, --id        Endpoint id to select.
+        -c, --clear     Clear current selection
+        -s, --show      Show current selection
 
      list        List endpoints
         with ...
@@ -1841,6 +1897,8 @@ Commands and Options
         with ...
         -n, --nodeId    Node id to select.
         -i, --id        Endpoint id to use for selection if browsing.
+        -c, --clear     Clear current selection
+        -s, --show      Show current selection
 
      browse      Browse nodes on endpoint
         with ...
@@ -1922,6 +1980,8 @@ Commands and Options
      select      Select supervisor as -i/--id argument in all calls.
         with ...
         -i, --id        Supervisor id to select.
+        -c, --clear     Clear current selection
+        -s, --show      Show current selection
 
      list        List supervisors
         with ...
@@ -1991,6 +2051,8 @@ Commands and Options
      select      Select group as -i/--id argument in all calls.
         with ...
         -i, --id        Group id to select.
+        -c, --clear     Clear current selection
+        -s, --show      Show current selection
 
      list        List groups
         with ...
@@ -2053,6 +2115,8 @@ Commands and Options
      select      Select request as -i/--id argument in all calls.
         with ...
         -i, --id        Request id to select.
+        -c, --clear     Clear current selection
+        -s, --show      Show current selection
 
      list        List requests
         with ...
