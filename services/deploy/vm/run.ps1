@@ -92,21 +92,14 @@ Function GetEnvironmentVariables() {
         "PCS_SERVICEBUS_CONNSTRING=$SERVICEBUS_CONNSTRING"
     Write-Output `
         "PCS_KEYVAULT_URL=$KEYVAULT_URL"
-        
-    Write-Output `
-        "PCS_TWIN_REGISTRY_URL=$AZURE_WEBSITE/registry"
-    Write-Output `
-        "PCS_TWIN_SERVICE_URL=$AZURE_WEBSITE/twin"
-    Write-Output `
-        "REACT_APP_PCS_TWIN_REGISTRY_URL=$AZURE_WEBSITE/registry"
-    Write-Output `
-        "REACT_APP_PCS_TWIN_SERVICE_URL=$AZURE_WEBSITE/twin"
     Write-Output `
         "PCS_WORKSPACE_NAME=$WORKSPACE_NAME"
     Write-Output `
         "PCS_APPINSIGHTS_NAME=$APPINSIGHTS_NAME"
     Write-Output `
         "PCS_APPINSIGHTS_INSTRUMENTATIONKEY=$APPINSIGHTS_INSTRUMENTATIONKEY"
+    Write-Output `
+        "PCS_SERVICE_URL=$AZURE_WEBSITE"
 
     if (!$aadConfig) {
     Write-Output `

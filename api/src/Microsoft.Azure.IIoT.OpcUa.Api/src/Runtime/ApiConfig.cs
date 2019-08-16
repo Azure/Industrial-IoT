@@ -24,7 +24,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Runtime {
         /// <summary>OPC twin endpoint url</summary>
         public string OpcUaTwinServiceUrl => GetStringOrDefault(
             kOpcUaTwinServiceUrlKey, GetStringOrDefault(
-                "PCS_TWIN_SERVICE_URL", $"http://{_hostName}:9041"));
+                "PCS_TWIN_SERVICE_URL", GetDefaultUrl("9041", "twin")));
         /// <summary>OPC twin service audience</summary>
         public string OpcUaTwinServiceResourceId => GetStringOrDefault(
             kOpcUaTwinServiceIdKey, GetStringOrDefault(
@@ -39,7 +39,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Runtime {
         /// <summary>OPC vault endpoint url</summary>
         public string OpcUaVaultServiceUrl => GetStringOrDefault(
             kOpcUaVaultServiceUrlKey, GetStringOrDefault(
-                "PCS_VAULT_SERVICE_URL", $"http://{_hostName}:9044"));
+                "PCS_VAULT_SERVICE_URL", GetDefaultUrl("9044", "vault")));
         /// <summary>OPC vault audience</summary>
         public string OpcUaVaultServiceResourceId => GetStringOrDefault(
             kOpcUaVaultServiceIdKey, GetStringOrDefault(
@@ -54,7 +54,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Runtime {
         /// <summary>OPC registry endpoint url</summary>
         public string OpcUaRegistryServiceUrl => GetStringOrDefault(
             kOpcUaRegistryServiceUrlKey, GetStringOrDefault(
-                "PCS_TWIN_REGISTRY_URL", $"http://{_hostName}:9042"));
+                "PCS_TWIN_REGISTRY_URL", GetDefaultUrl("9042", "registry")));
         /// <summary>OPC registry audience</summary>
         public string OpcUaRegistryServiceResourceId => GetStringOrDefault(
             kOpcUaRegistryServiceIdKey, GetStringOrDefault(
@@ -64,6 +64,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Runtime {
         public ApiConfig(IConfigurationRoot configuration) :
             base(configuration) {
             _hostName = GetStringOrDefault("_HOST", System.Net.Dns.GetHostName());
+        }
+
+        /// <summary>
+        /// Make endpoint url from configruation
+        /// </summary>
+        /// <param name="port"></param>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        private string GetDefaultUrl(string port, string path) {
+            var cloudEndpoint = GetStringOrDefault("PCS_SERVICE_URL");
+            if (string.IsNullOrEmpty(cloudEndpoint)) {
+                return $"http://{_hostName}:{port}";
+            }
+            return $"{cloudEndpoint}/{path}";
         }
 
         private readonly string _hostName;

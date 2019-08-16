@@ -15,7 +15,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin;
     using Microsoft.Azure.IIoT.Auth.Clients.Default;
-    using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Http.Auth;
     using Microsoft.Azure.IIoT.Utils;
@@ -161,6 +160,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                                 case "list":
                                     await ListApplicationsAsync(registry, options);
                                     break;
+                                case "select":
+                                    await SelectApplicationAsync(registry, options);
+                                    break;
                                 case "query":
                                     await QueryApplicationsAsync(registry, options);
                                     break;
@@ -192,6 +194,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                                     break;
                                 case "list":
                                     await ListEndpointsAsync(registry, options);
+                                    break;
+                                case "select":
+                                    await SelectEndpointsAsync(registry, options);
                                     break;
                                 case "query":
                                     await QueryEndpointsAsync(registry, options);
@@ -233,6 +238,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                                     break;
                                 case "list":
                                     await ListGroupsAsync(vault, options);
+                                    break;
+                                case "select":
+                                    await SelectGroupAsync(vault, options);
                                     break;
                                 case "get":
                                     await GetGroupAsync(vault, options);
@@ -277,6 +285,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                                     break;
                                 case "list":
                                     await ListRequestsAsync(vault, options);
+                                    break;
+                                case "select":
+                                    await SelectRequestAsync(vault, options);
                                     break;
                                 case "get":
                                     await GetRequestAsync(vault, options);
@@ -342,6 +353,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                                 case "list":
                                     await ListSupervisorsAsync(registry, options);
                                     break;
+                                case "select":
+                                    await SelectSupervisorAsync(registry, options);
+                                    break;
                                 case "query":
                                     await QuerySupervisorsAsync(registry, options);
                                     break;
@@ -364,6 +378,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                             switch (command) {
                                 case "browse":
                                     await BrowseAsync(twin, options);
+                                    break;
+                                case "select":
+                                    await SelectNodeAsync(twin, options);
                                     break;
                                 case "publish":
                                     await PublishAsync(twin, options);
@@ -423,15 +440,60 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
             while (interactive);
         }
 
+
+        private static string _nodeId;
+
+        /// <summary>
+        /// Get endpoint id
+        /// </summary>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        private static string GetNodeId(CliOptions options, bool shouldThrow = true) {
+            var id = options.GetValueOrDefault<string>("-n", "--nodeid", null);
+            if (_nodeId != null) {
+                if (id == null) {
+                    return _nodeId;
+                }
+                _nodeId = null;
+                return id;
+            }
+            if (!shouldThrow) {
+                return null;
+            }
+            return options.GetValue<string>("-n", "--nodeid");
+        }
+
+        /// <summary>
+        /// Select node id
+        /// </summary>
+        private static async Task SelectNodeAsync(ITwinServiceApi service, CliOptions options) {
+            var nodeId = options.GetValueOrDefault<string>("-n", "--nodeid", null);
+            if (string.IsNullOrEmpty(nodeId)) {
+                var id = GetEndpointId(options, false);
+                if (string.IsNullOrEmpty(id)) {
+                    return;
+                }
+                var results = await service.NodeBrowseAsync(id, new BrowseRequestApiModel {
+                    TargetNodesOnly = true,
+                    NodeId = _nodeId
+                });
+                nodeId = ConsoleEx.Select(results.References.Select(r => r.Target.NodeId));
+                if (string.IsNullOrEmpty(nodeId)) {
+                    return;
+                }
+            }
+            _nodeId = nodeId;
+        }
+
         /// <summary>
         /// Call method
         /// </summary>
         private static async Task MethodCallAsync(ITwinServiceApi service,
             CliOptions options) {
             var result = await service.NodeMethodCallAsync(
-                options.GetValue<string>("-i", "--id"),
+                GetEndpointId(options),
                 new MethodCallRequestApiModel {
-                    MethodId = options.GetValue<string>("-n", "--nodeid"),
+                    MethodId = GetNodeId(options),
                     ObjectId = options.GetValue<string>("-o", "--objectid")
 
                     // ...
@@ -445,9 +507,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         private static async Task MethodMetadataAsync(ITwinServiceApi service,
             CliOptions options) {
             var result = await service.NodeMethodGetMetadataAsync(
-                options.GetValue<string>("-i", "--id"),
+                GetEndpointId(options),
                 new MethodMetadataRequestApiModel {
-                    MethodId = options.GetValue<string>("-n", "--nodeid")
+                    MethodId = GetNodeId(options)
                 });
             PrintResult(options, result);
         }
@@ -458,9 +520,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         private static async Task WriteAsync(ITwinServiceApi service,
             CliOptions options) {
             var result = await service.NodeValueWriteAsync(
-                options.GetValue<string>("-i", "--id"),
+                GetEndpointId(options),
                 new ValueWriteRequestApiModel {
-                    NodeId = options.GetValue<string>("-n", "--nodeid"),
+                    NodeId = GetNodeId(options),
                     DataType = options.GetValueOrDefault<string>("-t", "--datatype", null),
                     Value = options.GetValue<string>("-v", "--value")
                 });
@@ -473,9 +535,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         private static async Task ReadAsync(ITwinServiceApi service,
             CliOptions options) {
             var result = await service.NodeValueReadAsync(
-                options.GetValue<string>("-i", "--id"),
+                GetEndpointId(options),
                 new ValueReadRequestApiModel {
-                    NodeId = options.GetValue<string>("-n", "--nodeid")
+                    NodeId = GetNodeId(options)
                 });
             PrintResult(options, result);
         }
@@ -486,10 +548,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         private static async Task PublishAsync(ITwinServiceApi service,
             CliOptions options) {
             var result = await service.NodePublishStartAsync(
-                options.GetValue<string>("-i", "--id"),
+                GetEndpointId(options),
                 new PublishStartRequestApiModel {
                     Item = new PublishedItemApiModel {
-                        NodeId = options.GetValue<string>("-n", "--nodeid")
+                        NodeId = GetNodeId(options)
                     }
                 });
             PrintResult(options, result);
@@ -501,9 +563,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         private static async Task UnpublishAsync(ITwinServiceApi service,
             CliOptions options) {
             var result = await service.NodePublishStopAsync(
-                options.GetValue<string>("-i", "--id"),
+                GetEndpointId(options),
                 new PublishStopRequestApiModel {
-                    NodeId = options.GetValue<string>("-n", "--nodeid")
+                    NodeId = GetNodeId(options)
                 });
             PrintResult(options, result);
         }
@@ -513,8 +575,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// </summary>
         private static async Task BrowseAsync(ITwinServiceApi service,
             CliOptions options) {
-            var id = options.GetValue<string>("-i", "--id");
+            var id = GetEndpointId(options);
             var silent = options.IsSet("-s", "--silent");
+            var all = options.IsSet("-A", "--all");
             var recursive = options.IsSet("-r", "--recursive");
             var readDuringBrowse = options.IsProvidedOrNull("-v", "--readvalue");
             var request = new BrowseRequestApiModel {
@@ -534,7 +597,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                 request.NodeId = nodes.First();
                 nodes.Remove(request.NodeId);
                 try {
-                    var result = await service.NodeBrowseAsync(id, request);
+                    var result = await (all ?
+                        service.NodeBrowseAsync(id, request) :
+                        service.NodeBrowseFirstAsync(id, request));
                     visited.Add(request.NodeId);
                     if (!silent) {
                         PrintResult(options, result);
@@ -593,16 +658,48 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         private static async Task ListNodesAsync(ITwinServiceApi service,
             CliOptions options) {
             if (options.IsSet("-A", "--all")) {
-                var result = await service.NodePublishListAllAsync(
-                    options.GetValue<string>("-i", "--id"));
+                var result = await service.NodePublishListAllAsync(GetEndpointId(options));
                 PrintResult(options, result);
                 Console.WriteLine($"{result.Count()} item(s) found...");
             }
             else {
-                var result = await service.NodePublishListAsync(
-                    options.GetValueOrDefault<string>("-C", "--continuation", null),
-                    options.GetValue<string>("-i", "--id"));
+                var result = await service.NodePublishListAsync(GetEndpointId(options),
+                    options.GetValueOrDefault<string>("-C", "--continuation", null));
                 PrintResult(options, result);
+            }
+        }
+
+
+        private static string _groupId;
+
+        /// <summary>
+        /// Get group id
+        /// </summary>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        private static string GetGroupId(CliOptions options, bool shouldThrow = true) {
+            var id = options.GetValueOrDefault<string>("-i", "--id", null);
+            if (_groupId != null) {
+                if (id == null) {
+                    return _groupId;
+                }
+                _groupId = null;
+                return id;
+            }
+            if (!shouldThrow) {
+                return null;
+            }
+            return options.GetValue<string>("-i", "--id");
+        }
+
+        /// <summary>
+        /// Select group registration
+        /// </summary>
+        private static async Task SelectGroupAsync(IVaultServiceApi service, CliOptions options) {
+            _groupId = options.GetValueOrDefault<string>("-i", "--id", null);
+            if (string.IsNullOrEmpty(_groupId)) {
+                var result = await service.ListAllGroupsAsync();
+                _groupId = ConsoleEx.Select(result);
             }
         }
 
@@ -661,8 +758,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// </summary>
         private static async Task GetGroupAsync(IVaultServiceApi service,
             CliOptions options) {
-            var result = await service.GetGroupAsync(
-                options.GetValue<string>("-i", "--id"));
+            var result = await service.GetGroupAsync(GetGroupId(options));
             PrintResult(options, result);
         }
 
@@ -671,8 +767,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// </summary>
         private static async Task DeleteGroupAsync(IVaultServiceApi service,
             CliOptions options) {
-            await service.DeleteGroupAsync(
-                options.GetValue<string>("-i", "--id"));
+            await service.DeleteGroupAsync(GetGroupId(options));
         }
 
         /// <summary>
@@ -680,8 +775,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// </summary>
         private static async Task RenewIssuerCertAsync(IVaultServiceApi service,
             CliOptions options) {
-            var result = await service.RenewIssuerCertificateAsync(
-                options.GetValue<string>("-i", "--id"));
+            var result = await service.RenewIssuerCertificateAsync(GetGroupId(options));
             PrintResult(options, result);
         }
 
@@ -690,7 +784,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// </summary>
         private static async Task UpdateGroupAsync(IVaultServiceApi service,
             CliOptions options) {
-            await service.UpdateGroupAsync(options.GetValue<string>("-i", "--id"),
+            await service.UpdateGroupAsync(GetGroupId(options),
                 new TrustGroupUpdateRequestApiModel {
                     IssuedKeySize = options.GetValueOrDefault<ushort>("-s", "--keysize", null),
                     IssuedLifetime = options.GetValueOrDefault<TimeSpan>("-l", "--lifetime", null),
@@ -698,6 +792,39 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                         "-a", "--algorithm", null),
                     Name = options.GetValueOrDefault<string>("-n", "--name", null)
                 });
+        }
+
+        private static string _supervisorId;
+
+        /// <summary>
+        /// Get supervisor id
+        /// </summary>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        private static string GetSupervisorId(CliOptions options, bool shouldThrow = true) {
+            var id = options.GetValueOrDefault<string>("-i", "--id", null);
+            if (_supervisorId != null) {
+                if (id == null) {
+                    return _supervisorId;
+                }
+                _supervisorId = null;
+                return id;
+            }
+            if (!shouldThrow) {
+                return null;
+            }
+            return options.GetValue<string>("-i", "--id");
+        }
+
+        /// <summary>
+        /// Select supervisor registration
+        /// </summary>
+        private static async Task SelectSupervisorAsync(IRegistryServiceApi service, CliOptions options) {
+            _supervisorId = options.GetValueOrDefault<string>("-i", "--id", null);
+            if (string.IsNullOrEmpty(_supervisorId)) {
+                var result = await service.ListAllSupervisorsAsync();
+                _supervisorId = ConsoleEx.Select(result.Select(r => r.Id));
+            }
         }
 
         /// <summary>
@@ -749,8 +876,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// </summary>
         private static async Task GetSupervisorAsync(IRegistryServiceApi service,
             CliOptions options) {
-            var result = await service.GetSupervisorAsync(
-                options.GetValue<string>("-i", "--id"),
+            var result = await service.GetSupervisorAsync(GetSupervisorId(options),
                 options.IsProvidedOrNull("-S", "--server"));
             PrintResult(options, result);
         }
@@ -760,8 +886,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// </summary>
         private static async Task GetSupervisorStatusAsync(IRegistryServiceApi service,
             CliOptions options) {
-            var result = await service.GetSupervisorStatusAsync(
-                options.GetValue<string>("-i", "--id"));
+            var result = await service.GetSupervisorStatusAsync(GetSupervisorId(options));
             PrintResult(options, result);
         }
 
@@ -770,8 +895,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// </summary>
         private static async Task ResetSupervisorAsync(IRegistryServiceApi service,
             CliOptions options) {
-            await service.ResetSupervisorAsync(
-                options.GetValue<string>("-i", "--id"));
+            await service.ResetSupervisorAsync(GetSupervisorId(options));
         }
 
         /// <summary>
@@ -817,13 +941,46 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                 config.MaxPortProbes = portProbes;
             }
 
-            await service.UpdateSupervisorAsync(options.GetValue<string>("-i", "--id"),
+            await service.UpdateSupervisorAsync(GetSupervisorId(options),
                 new SupervisorUpdateApiModel {
                     SiteId = options.GetValueOrDefault<string>("-s", "--siteId", null),
                     LogLevel = options.GetValueOrDefault<SupervisorLogLevel>("-l", "--log-level", null),
                     Discovery = options.GetValueOrDefault<DiscoveryMode>("-d", "--discovery", null),
                     DiscoveryConfig = config,
                 });
+        }
+
+        private static string _applicationId;
+
+        /// <summary>
+        /// Get application id
+        /// </summary>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        private static string GetApplicationId(CliOptions options, bool shouldThrow = true) {
+            var id = options.GetValueOrDefault<string>("-i", "--id", null);
+            if (_applicationId != null) {
+                if (id == null) {
+                    return _applicationId;
+                }
+                _applicationId = null;
+                return id;
+            }
+            if (!shouldThrow) {
+                return null;
+            }
+            return options.GetValue<string>("-i", "--id");
+        }
+
+        /// <summary>
+        /// Select application registration
+        /// </summary>
+        private static async Task SelectApplicationAsync(IRegistryServiceApi service, CliOptions options) {
+            _applicationId = options.GetValueOrDefault<string>("-i", "--id", null);
+            if (string.IsNullOrEmpty(_applicationId)) {
+                var result = await service.ListAllApplicationsAsync();
+                _applicationId = ConsoleEx.Select(result.Select(r => r.ApplicationId));
+            }
         }
 
         /// <summary>
@@ -884,7 +1041,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// </summary>
         private static async Task UpdateApplicationAsync(IRegistryServiceApi service,
             CliOptions options) {
-            await service.UpdateApplicationAsync(options.GetValue<string>("-i", "--id"),
+            await service.UpdateApplicationAsync(GetApplicationId(options),
                 new ApplicationRegistrationUpdateApiModel {
                     ApplicationName = options.GetValueOrDefault<string>("-n", "--name", null),
                     GatewayServerUri = options.GetValueOrDefault<string>("-g", "--gwuri", null),
@@ -899,7 +1056,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// </summary>
         private static async Task DisableApplicationAsync(IRegistryServiceApi service,
             CliOptions options) {
-            await service.DisableApplicationAsync(options.GetValue<string>("-i", "--id"));
+            await service.DisableApplicationAsync(GetApplicationId(options));
         }
 
         /// <summary>
@@ -907,7 +1064,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// </summary>
         private static async Task EnableApplicationAsync(IRegistryServiceApi service,
             CliOptions options) {
-            await service.EnableApplicationAsync(options.GetValue<string>("-i", "--id"));
+            await service.EnableApplicationAsync(GetApplicationId(options));
         }
 
         /// <summary>
@@ -916,7 +1073,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         private static async Task UnregisterApplicationAsync(IRegistryServiceApi service,
             CliOptions options) {
 
-            var id = options.GetValueOrDefault<string>("-i", "--id", null);
+            var id = GetApplicationId(options, false);
             if (id != null) {
                 await service.UnregisterApplicationAsync(id);
                 return;
@@ -950,7 +1107,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         private static Task PurgeDisabledApplicationsAsync(IRegistryServiceApi service,
             CliOptions options) {
             return service.PurgeDisabledApplicationsAsync(
-                options.GetValue<TimeSpan>("-f", "--for"));
+                options.GetValueOrDefault("-f", "--for", TimeSpan.Zero));
         }
 
         /// <summary>
@@ -1021,9 +1178,42 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// </summary>
         private static async Task GetApplicationAsync(IRegistryServiceApi service,
             CliOptions options) {
-            var result = await service.GetApplicationAsync(
-                options.GetValue<string>("-i", "--id"));
+            var result = await service.GetApplicationAsync(GetApplicationId(options));
             PrintResult(options, result);
+        }
+
+
+        private static string _endpointId;
+
+        /// <summary>
+        /// Get endpoint id
+        /// </summary>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        private static string GetEndpointId(CliOptions options, bool shouldThrow = true) {
+            var id = options.GetValueOrDefault<string>("-i", "--id", null);
+            if (_endpointId != null) {
+                if (id == null) {
+                    return _endpointId;
+                }
+                _endpointId = null;
+                return id;
+            }
+            if (!shouldThrow) {
+                return null;
+            }
+            return options.GetValue<string>("-i", "--id");
+        }
+
+        /// <summary>
+        /// Select endpoint registration
+        /// </summary>
+        private static async Task SelectEndpointsAsync(IRegistryServiceApi service, CliOptions options) {
+            _endpointId = options.GetValueOrDefault<string>("-i", "--id", null);
+            if (string.IsNullOrEmpty(_endpointId)) {
+                var result = await service.ListAllEndpointsAsync();
+                _endpointId = ConsoleEx.Select(result.Select(r => r.Registration.Id));
+            }
         }
 
         /// <summary>
@@ -1081,7 +1271,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         private static async Task ActivateEndpointsAsync(IRegistryServiceApi service,
             CliOptions options) {
 
-            var id = options.GetValueOrDefault<string>("-i", "--id", null);
+            var id = GetEndpointId(options, false);
             if (id != null) {
                 await service.ActivateEndpointAsync(id);
                 return;
@@ -1135,7 +1325,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                 default:
                     throw new ArgumentException(nameof(credential));
             }
-            await service.UpdateEndpointAsync(options.GetValue<string>("-i", "--id"),
+            await service.UpdateEndpointAsync(GetEndpointId(options),
                 new EndpointRegistrationUpdateApiModel {
                     User = user
                 });
@@ -1147,7 +1337,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         private static async Task DeactivateEndpointsAsync(IRegistryServiceApi service,
             CliOptions options) {
 
-            var id = options.GetValueOrDefault<string>("-i", "--id", null);
+            var id = GetEndpointId(options, false);
             if (id != null) {
                 await service.DeactivateEndpointAsync(id);
                 return;
@@ -1173,10 +1363,41 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// </summary>
         private static async Task GetEndpointAsync(IRegistryServiceApi service,
             CliOptions options) {
-            var result = await service.GetEndpointAsync(
-                options.GetValue<string>("-i", "--id"),
+            var result = await service.GetEndpointAsync(GetEndpointId(options),
                 options.IsProvidedOrNull("-S", "--server"));
             PrintResult(options, result);
+        }
+
+
+        private static string _requestId;
+
+        /// <summary>
+        /// Get request id
+        /// </summary>
+        private static string GetRequestId(CliOptions options, bool shouldThrow = true) {
+            var id = options.GetValueOrDefault<string>("-i", "--id", null);
+            if (_requestId != null) {
+                if (id == null) {
+                    return _requestId;
+                }
+                _requestId = null;
+                return id;
+            }
+            if (!shouldThrow) {
+                return null;
+            }
+            return options.GetValue<string>("-i", "--id");
+        }
+
+        /// <summary>
+        /// Select request registration
+        /// </summary>
+        private static async Task SelectRequestAsync(IVaultServiceApi service, CliOptions options) {
+            _requestId = options.GetValueOrDefault<string>("-i", "--id", null);
+            if (string.IsNullOrEmpty(_requestId)) {
+                var result = await service.ListAllRequestsAsync();
+                _requestId = ConsoleEx.Select(result.Select(r => r.RequestId));
+            }
         }
 
         /// <summary>
@@ -1223,8 +1444,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// </summary>
         private static async Task GetRequestAsync(IVaultServiceApi service,
             CliOptions options) {
-            var result = await service.GetRequestAsync(
-                options.GetValue<string>("-i", "--id"));
+            var result = await service.GetRequestAsync(GetRequestId(options));
             PrintResult(options, result);
         }
 
@@ -1233,8 +1453,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// </summary>
         private static async Task DeleteRequestAsync(IVaultServiceApi service,
             CliOptions options) {
-            await service.DeleteRequestAsync(
-                options.GetValue<string>("-i", "--id"));
+            await service.DeleteRequestAsync(GetRequestId(options));
         }
 
         /// <summary>
@@ -1242,8 +1461,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// </summary>
         private static async Task AcceptRequestAsync(IVaultServiceApi service,
             CliOptions options) {
-            await service.AcceptRequestAsync(
-                options.GetValue<string>("-i", "--id"));
+            await service.AcceptRequestAsync(GetRequestId(options));
         }
 
         /// <summary>
@@ -1251,8 +1469,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// </summary>
         private static async Task RejectRequestAsync(IVaultServiceApi service,
             CliOptions options) {
-            await service.RejectRequestAsync(
-                options.GetValue<string>("-i", "--id"));
+            await service.RejectRequestAsync(GetRequestId(options));
         }
 
         /// <summary>
@@ -1260,8 +1477,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// </summary>
         private static async Task ApproveRequestAsync(IVaultServiceApi service,
             CliOptions options) {
-            await service.ApproveRequestAsync(
-                options.GetValue<string>("-i", "--id"));
+            await service.ApproveRequestAsync(GetRequestId(options));
         }
 
         /// <summary>
@@ -1270,8 +1486,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         private static async Task KeyPairRequestAsync(IVaultServiceApi service,
             CliOptions options) {
             if (options.IsProvidedOrNull("-f", "--finish") == true) {
-                var result = await service.FinishKeyPairRequestAsync(
-                    options.GetValue<string>("-i", "--id"));
+                var result = await service.FinishKeyPairRequestAsync(GetRequestId(options));
                 PrintResult(options, result);
             }
             else {
@@ -1293,8 +1508,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         private static async Task SigningRequestAsync(IVaultServiceApi service,
             CliOptions options) {
             if (options.IsProvidedOrNull("-f", "--finish") == true) {
-                var result = await service.FinishSigningRequestAsync(
-                    options.GetValue<string>("-i", "--id"));
+                var result = await service.FinishSigningRequestAsync(GetRequestId(options));
                 PrintResult(options, result);
             }
             else {
@@ -1446,6 +1660,10 @@ Commands and Options
         -A, --all       Return all application infos (unpaged)
         -F, --format    Json format for result
 
+     select      Select application as -i/--id argument in other calls.
+        with ...
+        -i, --id        Application id to select.
+
      add         Register server and endpoints through discovery url
         with ...
         -u, --url       Url of the discovery endpoint (mandatory)
@@ -1544,6 +1762,10 @@ Commands and Options
         -A, --all       Return all endpoints (unpaged)
         -F, --format    Json format for result
 
+     select      Select endpoint as -i/--id argument in other calls.
+        with ...
+        -i, --id        Endpoint id to select.
+
      query       Find endpoints
         -S, --server    Return only server state (default:false)
         -u, --uri       Endpoint uri to seach for
@@ -1613,6 +1835,10 @@ Commands and Options
                         Continuation from previous result.
         -F, --format    Json format for result
 
+     select      Select node as -i/--id argument in other calls.
+        with ...
+        -i, --id        Node id to select.
+
      read        Read node value on endpoint
         with ...
         -i, --id        Id of endpoint to read value from (mandatory)
@@ -1680,6 +1906,10 @@ Commands and Options
         -P, --page-size Size of page
         -A, --all       Return all supervisors (unpaged)
         -F, --format    Json format for result
+
+     select      Select supervisor as -i/--id argument in other calls.
+        with ...
+        -i, --id        Supervisor id to select.
 
      query       Find supervisors
         -S, --server    Return only server state (default:false)

@@ -60,9 +60,7 @@ goto :args-continue
 goto :setenv
 
 :cleanup
-set PCS_TWIN_SERVICE_URL=
-set PCS_TWIN_REGISTRY_URL=
-set PCS_VAULT_SERVICE_URL=
+set PCS_SERVICE_URL=
 set PCS_AUTH_REQUIRED=
 set PCS_WEBUI_AUTH_AAD_APPID=
 set PCS_AUTH_AUDIENCE=
@@ -72,16 +70,15 @@ goto :eof
 call :cleanup
 if exist .env goto :main
 if "%url%" == "" goto :usage
-if not "%url%" == "" set PCS_TWIN_SERVICE_URL=%url%/twins
-if not "%url%" == "" set PCS_TWIN_REGISTRY_URL=%url%/registry
-if not "%url%" == "" set PCS_VAULT_SERVICE_URL=%url%/vault
+set PCS_SERVICE_URL=%url%
+if not "%PCS_SERVICE_URL%" == "" echo Connecting to %PCS_SERVICE_URL% ...
 if not "%app%" == "" set PCS_AUTH_AUDIENCE=https://microsoft.onmicrosoft.com/%app%-services
 rem todo:  Should read from powershell
 set PCS_WEBUI_AUTH_AAD_APPID=%client%
 set PCS_AUTH_REQUIRED=true
 if not "%PCS_AUTH_AUDIENCE%" == "" if not "%PCS_WEBUI_AUTH_AAD_APPID%" == "" goto :main
 set PCS_AUTH_REQUIRED=false
-echo WARNING: Accessing endpoints without authentication.
+echo WARNING: Accessing endpoint without authentication.
 echo Specify an application name and client id to use authentication.
 goto :main
 
