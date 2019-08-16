@@ -38,6 +38,24 @@ Param(
     [switch] $debug
 )
 
+#
+# find the top most folder with file in it and return the path
+#
+Function GetTopMostFolder() {
+    param(
+        [string] $startDir,
+        [string] $fileName
+    ) 
+    $cur = $startDir
+    while (![string]::IsNullOrEmpty($cur)) {
+        if (Test-Path -Path (Join-Path $cur $fileName) -PathType Leaf) {
+            return $cur
+        }
+        $cur = Split-Path $cur
+    }
+    return $startDir
+}
+
 # Check path argument and resolve to full existing path
 if ([string]::IsNullOrEmpty($path)) {
     throw "No docker folder specified."
@@ -544,23 +562,4 @@ finally {
     Remove-Item -Force -Path $manifestFile.FullName
     Remove-Item -Force -Path $manifestToolPath
     Remove-Item -Force -Path "$($manifestToolPath).asc"
-}
-return
-
-#
-# find the top most folder with file in it and return the path
-#
-Function GetTopMostFolder() {
-    param(
-        [string] $startDir,
-        [string] $fileName
-    ) 
-    $cur = $startDir
-    while (![string]::IsNullOrEmpty($cur)) {
-        if (Test-Path -Path (Join-Path $cur $fileName) -PathType Leaf) {
-            return $cur
-        }
-        $cur = Split-Path $cur
-    }
-    return $startDir
 }
