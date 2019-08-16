@@ -823,8 +823,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// <summary>
         /// Get supervisor id
         /// </summary>
-        /// <param name="options"></param>
-        /// <returns></returns>
         private static string GetSupervisorId(CliOptions options, bool shouldThrow = true) {
             var id = options.GetValueOrDefault<string>("-i", "--id", null);
             if (_supervisorId != null) {
