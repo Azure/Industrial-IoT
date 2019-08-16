@@ -275,6 +275,7 @@ ENV PATH="${PATH}:/root/vsdbg/vsdbg"
             runtimeId = "linux-arm"
             image = "mcr.microsoft.com/dotnet/core/runtime-deps:2.2"
             platformTag = "linux-arm32v7"
+            extra = "RUN chmod +x $($assemblyName)"
             debugger = $installLinuxDebugger
             entryPoint = "[`"./$($assemblyName)`"]"
         }
@@ -282,6 +283,7 @@ ENV PATH="${PATH}:/root/vsdbg/vsdbg"
             runtimeId = "linux-x64"
             image = "mcr.microsoft.com/dotnet/core/runtime-deps:2.2"
             platformTag = "linux-amd64"
+            extra = "RUN chmod +x $($assemblyName)"
             debugger = $installLinuxDebugger
             entryPoint = "[`"./$($assemblyName)`"]"
         }
@@ -332,18 +334,22 @@ ENV PATH="${PATH}:/root/vsdbg/vsdbg"
         if (![string]::IsNullOrEmpty($metadata.base)) {
             $baseImage = $metadata.base
             $runtimeId = $null
-            $entryPoint = '["dotnet", "$($assemblyName).dll"]'
+            $entryPoint = "[`"dotnet`", `"$($assemblyName).dll`"]"
         }
 
         if ([string]::IsNullOrEmpty($runtimeId)) {
             $runtimeId = "portable"
         }
 
-        $installExtra = ""
+        $debugger = ""
         if ($debug.IsPresent) {
             if (![string]::IsNullOrEmpty($platformInfo.debugger)) {
-                $installExtra = $platformInfo.debugger
+                $debugger = $platformInfo.debugger
             }
+        }
+        $extra = ""
+        if (![string]::IsNullOrEmpty($platformInfo.extra)) {
+            $extra = $platformInfo.extra
         }
 
         $exposes = ""
@@ -355,7 +361,8 @@ ENV PATH="${PATH}:/root/vsdbg/vsdbg"
         $dockerFileContent = @"
 FROM $($baseImage)
 $($exposes)
-$($installExtra)
+$($debugger)
+$($extra)
 WORKDIR /app
 COPY . .
 ENTRYPOINT $($entryPoint)
