@@ -4,7 +4,7 @@ The following diagrams illustrate the OPC Twin architecture and how its componen
 
 ## Discovery and Activation
 
-1. The operator enables network scanning on the [OPC Twin module](modules/module.md) or sends a one-time discovery using a discovery URL. The discovered endpoints and server application information is sent via telemetry to the onboarding agent for processing.  The [OPC UA onboarding agent](services/onboarding.md) processes these discovery events sent. The discovery events result in application registration and updates in Azure IoT Hub.  
+1. The operator enables network scanning on the [OPC Twin module](modules/twin.md) or sends a one-time discovery using a discovery URL. The discovered endpoints and server application information is sent via telemetry to the onboarding agent for processing.  The [OPC UA onboarding agent](services/onboarding.md) processes these discovery events sent. The discovery events result in application registration and updates in Azure IoT Hub.  
 
    ![How OPC Twin works](media/twin1.png)
 
