@@ -63,7 +63,7 @@ jobs:
   strategy:
     matrix: $[dependencies.testprep.outputs['testmatrix.jobMatrix'] ]
   variables:
-    - skipComponentGovernanceDetection: true
+    skipComponentGovernanceDetection: true
   pool:
     name: $(poolName)
   steps:
@@ -415,7 +415,7 @@ jobs:
   strategy:
     matrix: $[ dependencies.imagesprep.outputs['acrmatrix.acrMatrix'] ]
   variables:
-    - skipComponentGovernanceDetection: true
+    skipComponentGovernanceDetection: true
   steps:
   - task: AzureCLI@1
     name: acrbuildr
