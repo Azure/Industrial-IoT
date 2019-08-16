@@ -6,6 +6,8 @@ jobs:
   displayName: Prepare Build Jobs
   pool:
     name: Hosted Windows 2019 with VS2019
+  variables:
+    skipComponentGovernanceDetection: true
   steps:
   - task: PowerShell@2
     name: buildmatrix
@@ -49,6 +51,8 @@ jobs:
   displayName: Prepare Test Jobs
   pool:
     name: Hosted Windows 2019 with VS2019
+  variables:
+    skipComponentGovernanceDetection: true
   steps:
   - task: PowerShell@2
     name: testmatrix
@@ -247,7 +251,7 @@ jobs:
       publishFeedCredentials: azureiiot-dev
 - job: releasepack
   displayName: Release packages
-  condition: and(succeeded(), ne(variables['RELEASE_BUILD'], ''))
+  condition: and(succeeded(), and(ne(variables['RELEASE_BUILD'], ''), eq(variables['SKIP_NUGET'], '')))
   dependsOn:
     - sdl
     - buildall
@@ -400,6 +404,8 @@ jobs:
     - devpack
     - releasepack
   condition: or(succeeded('devpack'), succeeded('releasepack'))
+  variables:
+    skipComponentGovernanceDetection: true
   steps:
   - task: PowerShell@2
     name: acrmatrix
@@ -416,6 +422,7 @@ jobs:
     matrix: $[ dependencies.imagesprep.outputs['acrmatrix.acrMatrix'] ]
   variables:
     skipComponentGovernanceDetection: true
+    PROJECT_BUILD: 1
   steps:
   - task: AzureCLI@1
     name: acrbuildr
