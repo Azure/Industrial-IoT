@@ -24,6 +24,9 @@ namespace System {
         public static T Select<T>(IEnumerable<T> items, Func<T, string> toString,
             string exit = "") {
             var arr = items.ToArray();
+            if (arr.Length == 0) {
+                return default;
+            }
             for (var i = 0; i < arr.Length; i++) {
                 Console.WriteLine($"[{i}] {toString(arr[i])}");
             }

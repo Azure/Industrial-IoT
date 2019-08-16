@@ -460,7 +460,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
             if (!shouldThrow) {
                 return null;
             }
-            return options.GetValue<string>("-n", "--nodeid");
+            throw new ArgumentException("Missing -n/--nodeId option.");
         }
 
         /// <summary>
@@ -470,15 +470,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
             var nodeId = options.GetValueOrDefault<string>("-n", "--nodeid", null);
             if (string.IsNullOrEmpty(nodeId)) {
                 var id = GetEndpointId(options, false);
-                if (string.IsNullOrEmpty(id)) {
-                    return;
+                if (!string.IsNullOrEmpty(id)) {
+                    var results = await service.NodeBrowseAsync(id, new BrowseRequestApiModel {
+                        TargetNodesOnly = true,
+                        NodeId = _nodeId
+                    });
+                    nodeId = ConsoleEx.Select(results.References.Select(r => r.Target.NodeId));
                 }
-                var results = await service.NodeBrowseAsync(id, new BrowseRequestApiModel {
-                    TargetNodesOnly = true,
-                    NodeId = _nodeId
-                });
-                nodeId = ConsoleEx.Select(results.References.Select(r => r.Target.NodeId));
                 if (string.IsNullOrEmpty(nodeId)) {
+                    Console.WriteLine("Nothing selected.");
                     return;
                 }
             }
@@ -689,18 +689,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
             if (!shouldThrow) {
                 return null;
             }
-            return options.GetValue<string>("-i", "--id");
+            throw new ArgumentException("Missing -i/--id option.");
         }
 
         /// <summary>
         /// Select group registration
         /// </summary>
         private static async Task SelectGroupAsync(IVaultServiceApi service, CliOptions options) {
-            _groupId = options.GetValueOrDefault<string>("-i", "--id", null);
-            if (string.IsNullOrEmpty(_groupId)) {
+            var groupId = options.GetValueOrDefault<string>("-i", "--id", null);
+            if (string.IsNullOrEmpty(groupId)) {
                 var result = await service.ListAllGroupsAsync();
-                _groupId = ConsoleEx.Select(result);
+                groupId = ConsoleEx.Select(result);
+                if (string.IsNullOrEmpty(groupId)) {
+                    Console.WriteLine("Nothing selected - group selection cleared.");
+                }
             }
+            _groupId = groupId;
         }
 
         /// <summary>
@@ -813,18 +817,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
             if (!shouldThrow) {
                 return null;
             }
-            return options.GetValue<string>("-i", "--id");
+            throw new ArgumentException("Missing -i/--id option.");
         }
 
         /// <summary>
         /// Select supervisor registration
         /// </summary>
         private static async Task SelectSupervisorAsync(IRegistryServiceApi service, CliOptions options) {
-            _supervisorId = options.GetValueOrDefault<string>("-i", "--id", null);
-            if (string.IsNullOrEmpty(_supervisorId)) {
+            var supervisorId = options.GetValueOrDefault<string>("-i", "--id", null);
+            if (string.IsNullOrEmpty(supervisorId)) {
                 var result = await service.ListAllSupervisorsAsync();
-                _supervisorId = ConsoleEx.Select(result.Select(r => r.Id));
+                supervisorId = ConsoleEx.Select(result.Select(r => r.Id));
+                if (string.IsNullOrEmpty(supervisorId)) {
+                    Console.WriteLine("Nothing selected - supervisor selection cleared.");
+                }
             }
+            _supervisorId = supervisorId;
         }
 
         /// <summary>
@@ -969,18 +977,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
             if (!shouldThrow) {
                 return null;
             }
-            return options.GetValue<string>("-i", "--id");
+            throw new ArgumentException("Missing -i/--id option.");
         }
 
         /// <summary>
         /// Select application registration
         /// </summary>
         private static async Task SelectApplicationAsync(IRegistryServiceApi service, CliOptions options) {
-            _applicationId = options.GetValueOrDefault<string>("-i", "--id", null);
-            if (string.IsNullOrEmpty(_applicationId)) {
+            var applicationId = options.GetValueOrDefault<string>("-i", "--id", null);
+            if (string.IsNullOrEmpty(applicationId)) {
                 var result = await service.ListAllApplicationsAsync();
-                _applicationId = ConsoleEx.Select(result.Select(r => r.ApplicationId));
+                applicationId = ConsoleEx.Select(result.Select(r => r.ApplicationId));
+                if (string.IsNullOrEmpty(applicationId)) {
+                    Console.WriteLine("Nothing selected - application selection cleared.");
+                }
             }
+            _applicationId = applicationId;
         }
 
         /// <summary>
@@ -1202,18 +1214,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
             if (!shouldThrow) {
                 return null;
             }
-            return options.GetValue<string>("-i", "--id");
+            throw new ArgumentException("Missing -i/--id option.");
         }
 
         /// <summary>
         /// Select endpoint registration
         /// </summary>
         private static async Task SelectEndpointsAsync(IRegistryServiceApi service, CliOptions options) {
-            _endpointId = options.GetValueOrDefault<string>("-i", "--id", null);
-            if (string.IsNullOrEmpty(_endpointId)) {
+            var endpointId = options.GetValueOrDefault<string>("-i", "--id", null);
+            if (string.IsNullOrEmpty(endpointId)) {
                 var result = await service.ListAllEndpointsAsync();
-                _endpointId = ConsoleEx.Select(result.Select(r => r.Registration.Id));
+                endpointId = ConsoleEx.Select(result.Select(r => r.Registration.Id));
+                if (string.IsNullOrEmpty(endpointId)) {
+                    Console.WriteLine("Nothing selected - endpoint selection cleared.");
+                }
             }
+            _endpointId = endpointId;
         }
 
         /// <summary>
@@ -1386,18 +1402,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
             if (!shouldThrow) {
                 return null;
             }
-            return options.GetValue<string>("-i", "--id");
+            throw new ArgumentException("Missing -i/--id option.");
         }
 
         /// <summary>
         /// Select request registration
         /// </summary>
         private static async Task SelectRequestAsync(IVaultServiceApi service, CliOptions options) {
-            _requestId = options.GetValueOrDefault<string>("-i", "--id", null);
-            if (string.IsNullOrEmpty(_requestId)) {
+            var requestId = options.GetValueOrDefault<string>("-i", "--id", null);
+            if (string.IsNullOrEmpty(requestId)) {
                 var result = await service.ListAllRequestsAsync();
-                _requestId = ConsoleEx.Select(result.Select(r => r.RequestId));
+                requestId = ConsoleEx.Select(result.Select(r => r.RequestId));
+                if (string.IsNullOrEmpty(requestId)) {
+                    Console.WriteLine("Nothing selected - request selection cleared.");
+                }
             }
+            _requestId = requestId;
         }
 
         /// <summary>
@@ -1527,7 +1547,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         private static async Task RemoveTrustRelationshipAsync(IVaultServiceApi service,
             CliOptions options) {
             await service.RemoveTrustRelationshipAsync(
-                options.GetValue<string>("-i", "--id"),
+                options.GetValue<string>("-e", "--entityId"),
                 options.GetValue<string>("-t", "--trustedId"));
         }
 
@@ -1538,13 +1558,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
             CliOptions options) {
             if (options.IsSet("-A", "--all")) {
                 var result = await service.ListAllTrustedCertificatesAsync(
-                    options.GetValue<string>("-i", "--id"));
+                    options.GetValue<string>("-e", "--entityId"));
                 PrintResult(options, result);
                 Console.WriteLine($"{result.Count()} item(s) found...");
             }
             else {
                 var result = await service.ListTrustedCertificatesAsync(
-                    options.GetValue<string>("-i", "--id"),
+                    options.GetValue<string>("-e", "--entityId"),
                     options.GetValueOrDefault<string>("-C", "--continuation", null),
                     options.GetValueOrDefault<int>("-P", "--page-size", null));
                 PrintResult(options, result);
@@ -1557,7 +1577,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         private static async Task AddTrustRelationshipAsync(IVaultServiceApi service,
             CliOptions options) {
             await service.AddTrustRelationshipAsync(
-                options.GetValue<string>("-i", "--id"),
+                options.GetValue<string>("-e", "--entityId"),
                 options.GetValue<string>("-t", "--trustedId"));
         }
 
@@ -1644,6 +1664,10 @@ Manage applications registry.
 
 Commands and Options
 
+     select      Select application as -i/--id argument in all calls.
+        with ...
+        -i, --id        Application id to select.
+
      sites       List application sites
         with ...
         -C, --continuation
@@ -1659,10 +1683,6 @@ Commands and Options
         -P, --page-size Size of page
         -A, --all       Return all application infos (unpaged)
         -F, --format    Json format for result
-
-     select      Select application as -i/--id argument in other calls.
-        with ...
-        -i, --id        Application id to select.
 
      add         Register server and endpoints through discovery url
         with ...
@@ -1753,6 +1773,10 @@ Manage endpoints in registry.
 
 Commands and Options
 
+     select      Select endpoint as -i/--id argument in all calls.
+        with ...
+        -i, --id        Endpoint id to select.
+
      list        List endpoints
         with ...
         -S, --server    Return only server state (default:false)
@@ -1761,10 +1785,6 @@ Commands and Options
         -P, --page-size Size of page
         -A, --all       Return all endpoints (unpaged)
         -F, --format    Json format for result
-
-     select      Select endpoint as -i/--id argument in other calls.
-        with ...
-        -i, --id        Endpoint id to select.
 
      query       Find endpoints
         -S, --server    Return only server state (default:false)
@@ -1817,6 +1837,11 @@ Access address space through configured server endpoint.
 
 Commands and Options
 
+     select      Select node id as -n/--nodeid argument in all calls.
+        with ...
+        -n, --nodeId    Node id to select.
+        -i, --id        Endpoint id to use for selection if browsing.
+
      browse      Browse nodes on endpoint
         with ...
         -i, --id        Id of endpoint to browse (mandatory)
@@ -1834,10 +1859,6 @@ Commands and Options
         -C, --continuation
                         Continuation from previous result.
         -F, --format    Json format for result
-
-     select      Select node as -i/--id argument in other calls.
-        with ...
-        -i, --id        Node id to select.
 
      read        Read node value on endpoint
         with ...
@@ -1898,6 +1919,10 @@ Manage and configure Twin modules (endpoint supervisors)
 
 Commands and Options
 
+     select      Select supervisor as -i/--id argument in all calls.
+        with ...
+        -i, --id        Supervisor id to select.
+
      list        List supervisors
         with ...
         -S, --server    Return only server state (default:false)
@@ -1906,10 +1931,6 @@ Commands and Options
         -P, --page-size Size of page
         -A, --all       Return all supervisors (unpaged)
         -F, --format    Json format for result
-
-     select      Select supervisor as -i/--id argument in other calls.
-        with ...
-        -i, --id        Supervisor id to select.
 
      query       Find supervisors
         -S, --server    Return only server state (default:false)
@@ -1966,6 +1987,10 @@ Commands and Options
 Manage entity trust groups
 
 Commands and Options
+
+     select      Select group as -i/--id argument in all calls.
+        with ...
+        -i, --id        Group id to select.
 
      list        List groups
         with ...
@@ -2025,13 +2050,9 @@ Submit and manage Certificate requests
 
 Commands and Options
 
-     sign        Submit certificate signing request
+     select      Select request as -i/--id argument in all calls.
         with ...
-        -g, --groupId   Group to submit request to (mandatory)
-        -e, --entityId  Entity id to create key for (mandatory)
-        or ...
-        -f, --finish    Retrieve finished signing result, then
-        -i, --id        Id of request to finish (mandatory)
+        -i, --id        Request id to select.
 
      list        List requests
         with ...
@@ -2047,6 +2068,14 @@ Commands and Options
         -P, --page-size Size of page
         -A, --all       Return all endpoints (unpaged)
         -F, --format    Json format for result
+
+     sign        Submit certificate signing request
+        with ...
+        -g, --groupId   Group to submit request to (mandatory)
+        -e, --entityId  Entity id to create key for (mandatory)
+        or ...
+        -f, --finish    Retrieve finished signing result, then
+        -i, --id        Id of request to finish (mandatory)
 
      get         Get request
         with ...
@@ -2098,12 +2127,12 @@ Commands and Options
 
      create      Add trust relationship
         with ...
-        -i, --id        Id of entity (mandatory)
-        -t, --trusted   Id of trusted entity (mandatory)
+        -e, --entityId  Id of entity (mandatory)
+        -t, --trustedId Id of trusted entity (mandatory)
 
      get         Get certificates the entity trusts.
         with ...
-        -i, --id        Id of entity (mandatory)
+        -e, --entityId  Id of entity (mandatory)
         -C, --continuation
                         Continuation from previous result.
         -P, --page-size Size of page
@@ -2112,8 +2141,8 @@ Commands and Options
 
      delete      Remove trust relationship
         with ...
-        -i, --id        Id of entity (mandatory)
-        -t, --trusted   Id of entity not to trust (mandatory)
+        -e, --entityId  Id of entity (mandatory)
+        -t, --trustedId Id of entity not to trust (mandatory)
 
      help, -h, -? --help
                  Prints out this help.
