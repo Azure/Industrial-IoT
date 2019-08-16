@@ -68,7 +68,7 @@ goto :eof
 
 :setenv
 call :cleanup
-if exist .env goto :main
+if "%url%" == "" if exist .env goto :main
 if "%url%" == "" goto :usage
 set PCS_SERVICE_URL=%url%
 if not "%PCS_SERVICE_URL%" == "" echo Connecting to %PCS_SERVICE_URL% ...
