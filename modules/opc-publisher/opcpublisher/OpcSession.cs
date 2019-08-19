@@ -707,6 +707,13 @@ namespace OpcPublisher
                                         InternalDisconnect();
                                         break;
                                     }
+                                case StatusCodes.BadSubscriptionIdInvalid:
+                                {
+                                    Logger.Information($"Subscription with Id {opcSubscription.OpcUaClientSubscription.Id} is no longer available on endpoint '{EndpointUrl}'. Cleaning up.");
+                                    // clean up the session/subscription
+                                    InternalDisconnect();
+                                    break;
+                                }
                                 case StatusCodes.BadNodeIdInvalid:
                                 case StatusCodes.BadNodeIdUnknown:
                                     {
