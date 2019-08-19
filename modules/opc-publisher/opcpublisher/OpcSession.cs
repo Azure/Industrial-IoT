@@ -1337,6 +1337,7 @@ namespace OpcPublisher
                         Logger.Information($"Outstanding requests: {session.OutstandingRequestCount}, Defunct requests: {session.DefunctRequestCount}");
                         Logger.Information($"Good publish requests: {session.GoodPublishRequestCount}, KeepAlive interval: {session.KeepAliveInterval}");
                         Logger.Information($"SessionId: {session.SessionId}");
+                        Logger.Information($"Session State: {State}");
 
                         if (State == SessionState.Connected)
                         {
