@@ -707,6 +707,13 @@ namespace OpcPublisher
                                         InternalDisconnect();
                                         break;
                                     }
+                                case StatusCodes.BadSubscriptionIdInvalid:
+                                {
+                                    Logger.Information($"Subscription with Id {opcSubscription.OpcUaClientSubscription.Id} is no longer available on endpoint '{EndpointUrl}'. Cleaning up.");
+                                    // clean up the session/subscription
+                                    InternalDisconnect();
+                                    break;
+                                }
                                 case StatusCodes.BadNodeIdInvalid:
                                 case StatusCodes.BadNodeIdUnknown:
                                     {
@@ -1330,6 +1337,7 @@ namespace OpcPublisher
                         Logger.Information($"Outstanding requests: {session.OutstandingRequestCount}, Defunct requests: {session.DefunctRequestCount}");
                         Logger.Information($"Good publish requests: {session.GoodPublishRequestCount}, KeepAlive interval: {session.KeepAliveInterval}");
                         Logger.Information($"SessionId: {session.SessionId}");
+                        Logger.Information($"Session State: {State}");
 
                         if (State == SessionState.Connected)
                         {
