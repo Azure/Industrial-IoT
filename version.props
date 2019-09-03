@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <VersionPrefix>2.5.0</VersionPrefix>
+    <VersionPrefix>2.6.0</VersionPrefix>
   </PropertyGroup>
   <PropertyGroup>
     <PrereleaseSuffix>prerelease$([System.DateTime]::Now.ToString("yyMMddmm"))</PrereleaseSuffix>

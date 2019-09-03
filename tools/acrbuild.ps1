@@ -38,6 +38,24 @@ Param(
     [switch] $debug
 )
 
+#
+# find the top most folder with file in it and return the path
+#
+Function GetTopMostFolder() {
+    param(
+        [string] $startDir,
+        [string] $fileName
+    ) 
+    $cur = $startDir
+    while (![string]::IsNullOrEmpty($cur)) {
+        if (Test-Path -Path (Join-Path $cur $fileName) -PathType Leaf) {
+            return $cur
+        }
+        $cur = Split-Path $cur
+    }
+    return $startDir
+}
+
 # Check path argument and resolve to full existing path
 if ([string]::IsNullOrEmpty($path)) {
     throw "No docker folder specified."
@@ -116,7 +134,6 @@ if ([string]::IsNullOrEmpty($branchName)) {
     try {
         $argumentList = @("rev-parse", "--abbrev-ref", "HEAD")
         $branchName = (& "git" $argumentList 2>&1 | %{ "$_" });
-        # any build other than from master branch is a developer build.
     }
     catch {
         Write-Warning $_.Exception
@@ -124,7 +141,7 @@ if ([string]::IsNullOrEmpty($branchName)) {
     }
 }
 if ([string]::IsNullOrEmpty($branchName) -or ($branchName -eq "HEAD")) {
-    Write-Warning "Error - Branch '$($branchName)' invalid - fall back to default."
+    Write-Warning "Error - Branch '$($branchName)' invalid - using default."
     $branchName = "deletemesoon"
 }
 
@@ -258,6 +275,7 @@ ENV PATH="${PATH}:/root/vsdbg/vsdbg"
             runtimeId = "linux-arm"
             image = "mcr.microsoft.com/dotnet/core/runtime-deps:2.2"
             platformTag = "linux-arm32v7"
+            runtimeOnly = "RUN chmod +x $($assemblyName)"
             debugger = $installLinuxDebugger
             entryPoint = "[`"./$($assemblyName)`"]"
         }
@@ -265,6 +283,7 @@ ENV PATH="${PATH}:/root/vsdbg/vsdbg"
             runtimeId = "linux-x64"
             image = "mcr.microsoft.com/dotnet/core/runtime-deps:2.2"
             platformTag = "linux-amd64"
+            runtimeOnly = "RUN chmod +x $($assemblyName)"
             debugger = $installLinuxDebugger
             entryPoint = "[`"./$($assemblyName)`"]"
         }
@@ -315,18 +334,26 @@ ENV PATH="${PATH}:/root/vsdbg/vsdbg"
         if (![string]::IsNullOrEmpty($metadata.base)) {
             $baseImage = $metadata.base
             $runtimeId = $null
-            $entryPoint = '["dotnet", "$($assemblyName).dll"]'
         }
 
         if ([string]::IsNullOrEmpty($runtimeId)) {
             $runtimeId = "portable"
         }
 
-        $installExtra = ""
+        $debugger = ""
         if ($debug.IsPresent) {
             if (![string]::IsNullOrEmpty($platformInfo.debugger)) {
-                $installExtra = $platformInfo.debugger
+                $debugger = $platformInfo.debugger
             }
+        }
+        $runtimeOnly = ""
+        if (![string]::IsNullOrEmpty($platformInfo.runtimeOnly)) {
+            $runtimeOnly = $platformInfo.runtimeOnly
+        }
+
+        if ($runtimeId -eq "portable") {
+            $runtimeOnly = ""
+            $entryPoint = "[`"dotnet`", `"$($assemblyName).dll`"]"
         }
 
         $exposes = ""
@@ -338,9 +365,13 @@ ENV PATH="${PATH}:/root/vsdbg/vsdbg"
         $dockerFileContent = @"
 FROM $($baseImage)
 $($exposes)
-$($installExtra)
+
 WORKDIR /app
 COPY . .
+$($runtimeOnly)
+
+$($debugger)
+
 ENTRYPOINT $($entryPoint)
 "@ 
         $imageContent = (join-path $output $runtimeId)
@@ -544,23 +575,4 @@ finally {
     Remove-Item -Force -Path $manifestFile.FullName
     Remove-Item -Force -Path $manifestToolPath
     Remove-Item -Force -Path "$($manifestToolPath).asc"
-}
-return
-
-#
-# find the top most folder with file in it and return the path
-#
-Function GetTopMostFolder() {
-    param(
-        [string] $startDir,
-        [string] $fileName
-    ) 
-    $cur = $startDir
-    while (![string]::IsNullOrEmpty($cur)) {
-        if (Test-Path -Path (Join-Path $cur $fileName) -PathType Leaf) {
-            return $cur
-        }
-        $cur = Split-Path $cur
-    }
-    return $startDir
 }

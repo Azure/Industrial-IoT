@@ -49,7 +49,7 @@ namespace Microsoft.Azure.IIoT.Services.Auth.Clients {
                     if (HasStateChanged) {
                         if (Count > 0) {
                             // Write our new token cache state to the cache
-                            store._cache.Set(cacheKey, protector.Protect(Serialize()));
+                            store._cache.Set(cacheKey, protector.Protect(SerializeMsalV3()));
                         }
                         else {
                             // The Token cache is empty so remove ourselves.
@@ -61,7 +61,14 @@ namespace Microsoft.Azure.IIoT.Services.Auth.Clients {
 
                 var cacheData = store._cache.Get(cacheKey);
                 if (cacheData != null) {
-                    Deserialize(protector.Unprotect(cacheData));
+                    var unprotected = protector.Unprotect(cacheData);
+                    try {
+                        DeserializeMsalV3(unprotected);
+                    }
+                    catch {
+                        // Fall back to previous format
+                        DeserializeMsalV2(unprotected);
+                    }
                 }
             }
         }
