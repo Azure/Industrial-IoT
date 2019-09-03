@@ -122,6 +122,6 @@ The command line options of aplicable for OPC Twin Module are as follows:
 ## Next steps
 
 * [Learn how to deploy OPC Twin Module](../howto-deploy-modules.md)
-* [Learn about the OPC Twin Microservice](twin.md)
-* [Learn about OPC Registry Onboarding](onboarding.md)
+* [Learn about the OPC Twin Microservice](../services/twin.md)
+* [Learn about OPC Registry Onboarding](../services/onboarding.md)
 
