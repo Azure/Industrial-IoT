@@ -46,7 +46,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
             GatewayServerUri = model.GatewayServerUri;
             Created = model.Created == null ? null :
                 new RegistryOperationApiModel(model.Created);
-            Updated = model.Created == null ? null :
+            Updated = model.Updated == null ? null :
                 new RegistryOperationApiModel(model.Updated);
         }
 
