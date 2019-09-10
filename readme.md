@@ -45,9 +45,11 @@ This repository includes the following Industrial IoT components:
 * Read more about Industrial IoT Components [here](docs/industrial-iot-components.md)
 * See the complete code structure [here](docs/code-structure.md)
 
-### Give Feedback
+### Give feedback and report bugs
 
-Please enter issues, bugs, or suggestions for any of the components and services as GitHub Issues [here](https://github.com/Azure/Industrial-IoT/issues).
+Please report any security related issues by following our [Security](security.md) process.
+
+Please enter all other bugs, documentation issues, or suggestions as GitHub Issues [here](https://github.com/Azure/Industrial-IoT/issues).   
 
 ### Contribute
 
