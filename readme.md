@@ -20,6 +20,12 @@ The [REST API](docs/api/readme.md) can be used with any programming language thr
 
 Azure Industrial IoT manages OPC UA Application Certificates and Trust Lists of factory floor machinery and control systems to keep OPC UA client to server communication secure. It restricts which client is allowed to talk to which server.  Storage of private keys and signing of certificates is backed by Azure Key Vault, which supports hardware based security (HSM).
 
+## Architecture
+
+The overall Azure Industrial IOT architecture looks like below. 
+<img src="./docs/media/architecture.png">
+
+Details on how things work together can be found at [architectural code flow](docs/architecture.md).
 ## Components
 
 [![Build Status](https://msazure.visualstudio.com/One/_apis/build/status/Custom/Azure_IOT/Industrial/Components/Azure.Industrial-IoT?branchName=master)](https://msazure.visualstudio.com/One/_build/latest?definitionId=86580&branchName=master)
@@ -37,7 +43,6 @@ This repository includes the following Industrial IoT components:
 ## Learn more
 
 * [Deploy Azure Industrial IoT](docs/readme.md)
-* [Deploy the Microservices](docs/howto-deploy-microservices.md)
 * Explore the samples
   * [Connected Factory](https://github.com/Azure/Azure-IoT-Connected-Factory) Solution Accelerator which you can try out [here](https://www.azureiotsolutions.com/Accelerators).
   * [OPC Vault Dashboard](https://github.com/Azure/azure-iiot-opc-vault-service/tree/master/app)
