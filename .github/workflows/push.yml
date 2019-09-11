@@ -1,4 +1,4 @@
-name: ASP.NET Core CI
+name: CI
 
 on: [push]
 
@@ -13,7 +13,7 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 2.2.400
+        dotnet-version: 2.2.402
     - name: Build
       run: dotnet build
     - name: Test
