@@ -28,6 +28,7 @@ This article explains how to deploy the Azure Industrial IoT Microservices in Az
    ```bash
    deploy
    ```
+   The supported parameters can be found at [below options](#deployment-script-options).
 
 2. Follow the prompts to assign a name to the resource group of the deployment and a name to the website. The script deploys the Microservices and their Azure platform dependencies into the resource group in your Azure subscription.  The script also registers an Application in your Azure Active Directory (AAD) tenant to support OAUTH based authentication.  Deployment will take several minutes.  An example of what you'd see once the solution is successfully deployed:
 
