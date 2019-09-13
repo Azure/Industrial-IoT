@@ -22,8 +22,9 @@ Azure Industrial IoT manages OPC UA Application Certificates and Trust Lists of 
 
 ## Architecture
 
-The overall Azure Industrial IOT architecture looks like below. 
-<img src="./docs/media/architecture.png">
+The overall Azure Industrial IOT architecture looks like below.
+
+  ![architecture](docs/media/architecture.PNG)
 
 Details on how things work together can be found at [architectural code flow](docs/architecture.md).
 ## Components
