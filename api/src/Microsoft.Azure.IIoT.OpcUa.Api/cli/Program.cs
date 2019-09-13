@@ -455,6 +455,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                     return _nodeId;
                 }
                 _nodeId = null;
+            }
+            if (id != null) {
                 return id;
             }
             if (!shouldThrow) {
@@ -696,6 +698,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                     return _groupId;
                 }
                 _groupId = null;
+            }
+            if (id != null) {
                 return id;
             }
             if (!shouldThrow) {
@@ -830,6 +834,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                     return _supervisorId;
                 }
                 _supervisorId = null;
+            }
+            if (id != null) {
                 return id;
             }
             if (!shouldThrow) {
@@ -937,49 +943,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// </summary>
         private static async Task UpdateSupervisorAsync(IRegistryServiceApi service,
             CliOptions options) {
-            var config = new DiscoveryConfigApiModel();
-
-            if (options.IsSet("-a", "--activate")) {
-                config.ActivationFilter = new EndpointActivationFilterApiModel {
-                    SecurityMode = SecurityMode.None
-                };
-            }
-
-            var addressRange = options.GetValueOrDefault<string>("-r", "--address-ranges", null);
-            if (addressRange != null) {
-                if (addressRange == "true") {
-                    config.AddressRangesToScan = "";
-                }
-                else {
-                    config.AddressRangesToScan = addressRange;
-                }
-            }
-
-            var portRange = options.GetValueOrDefault<string>("-p", "--port-ranges", null);
-            if (portRange != null) {
-                if (portRange == "true") {
-                    config.PortRangesToScan = "";
-                }
-                else {
-                    config.PortRangesToScan = portRange;
-                }
-            }
-
-            var netProbes = options.GetValueOrDefault<int>("-R", "--address-probes", null);
-            if (netProbes != null && netProbes != 0) {
-                config.MaxNetworkProbes = netProbes;
-            }
-
-            var portProbes = options.GetValueOrDefault<int>("-P", "--port-probes", null);
-            if (portProbes != null && portProbes != 0) {
-                config.MaxPortProbes = portProbes;
-            }
-
+            var config = BuildDiscoveryConfig(options);
             await service.UpdateSupervisorAsync(GetSupervisorId(options),
                 new SupervisorUpdateApiModel {
                     SiteId = options.GetValueOrDefault<string>("-s", "--siteId", null),
                     LogLevel = options.GetValueOrDefault<SupervisorLogLevel>("-l", "--log-level", null),
-                    Discovery = options.GetValueOrDefault<DiscoveryMode>("-d", "--discovery", null),
+                    Discovery = options.GetValueOrDefault<DiscoveryMode>("-d", "--discovery", 
+                        config == null ? (DiscoveryMode?)null : DiscoveryMode.Fast),
                     DiscoveryConfig = config,
                 });
         }
@@ -998,6 +968,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                     return _applicationId;
                 }
                 _applicationId = null;
+            }
+            if (id != null) {
                 return id;
             }
             if (!shouldThrow) {
@@ -1034,6 +1006,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// </summary>
         private static async Task RegisterApplicationAsync(IRegistryServiceApi service,
             CliOptions options) {
+            var discoveryUrl = options.GetValueOrDefault<string>("-d", "--discoveryUrl", null);
             var result = await service.RegisterAsync(
                 new ApplicationRegistrationRequestApiModel {
                     ApplicationUri = options.GetValue<string>("-u", "--url"),
@@ -1041,9 +1014,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                     GatewayServerUri = options.GetValueOrDefault<string>("-g", "--gwuri", null),
                     ApplicationType = options.GetValueOrDefault<ApplicationType>("-t", "--type", null),
                     ProductUri = options.GetValueOrDefault<string>("-p", "--product", null),
-                    DiscoveryUrls = new HashSet<string> {
-                        options.GetValue<string>("-d", "--discoveryUrl")
-                    }
+                    DiscoveryProfileUri = options.GetValueOrDefault<string>("-r", "--dpuri", null),
+                    DiscoveryUrls = string.IsNullOrEmpty(discoveryUrl) ? null : 
+                        new HashSet<string> { discoveryUrl }
                 });
             PrintResult(options, result);
         }
@@ -1069,16 +1042,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
         /// </summary>
         private static async Task DiscoverServerAsync(IRegistryServiceApi service,
             CliOptions options) {
-            var activate = options.IsSet("-a", "--activate");
             await service.DiscoverAsync(
                 new DiscoveryRequestApiModel {
                     Id = Guid.NewGuid().ToString(),
                     Discovery = options.GetValueOrDefault("-d", "--discovery", DiscoveryMode.Fast),
-                    Configuration = new DiscoveryConfigApiModel {
-                        ActivationFilter = !activate ? null : new EndpointActivationFilterApiModel {
-                            SecurityMode = SecurityMode.None
-                        }
-                    }
+                    Configuration = BuildDiscoveryConfig(options)
                 });
         }
 
@@ -1092,7 +1060,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                     ApplicationName = options.GetValueOrDefault<string>("-n", "--name", null),
                     GatewayServerUri = options.GetValueOrDefault<string>("-g", "--gwuri", null),
                     ProductUri = options.GetValueOrDefault<string>("-p", "--product", null),
-                    DiscoveryProfileUri = options.GetValueOrDefault<string>("-d", "--dpuri", null)
+                    DiscoveryProfileUri = options.GetValueOrDefault<string>("-r", "--dpuri", null)
                     // ...
                 });
         }
@@ -1131,7 +1099,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                 ApplicationName = options.GetValueOrDefault<string>("-n", "--name", null),
                 ProductUri = options.GetValueOrDefault<string>("-p", "--product", null),
                 GatewayServerUri = options.GetValueOrDefault<string>("-g", "--gwuri", null),
-                DiscoveryProfileUri = options.GetValueOrDefault<string>("-d", "--dpuri", null),
+                DiscoveryProfileUri = options.GetValueOrDefault<string>("-r", "--dpuri", null),
                 Locale = options.GetValueOrDefault<string>("-l", "--locale", null)
             };
 
@@ -1201,7 +1169,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                 ApplicationUri = options.GetValueOrDefault<string>("-u", "--uri", null),
                 ProductUri = options.GetValueOrDefault<string>("-p", "--product", null),
                 GatewayServerUri = options.GetValueOrDefault<string>("-g", "--gwuri", null),
-                DiscoveryProfileUri = options.GetValueOrDefault<string>("-d", "--dpuri", null),
+                DiscoveryProfileUri = options.GetValueOrDefault<string>("-r", "--dpuri", null),
                 ApplicationType = options.GetValueOrDefault<ApplicationType>("-t", "--type", null),
                 ApplicationName = options.GetValueOrDefault<string>("-n", "--name", null),
                 Locale = options.GetValueOrDefault<string>("-l", "--locale", null),
@@ -1243,6 +1211,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                     return _endpointId;
                 }
                 _endpointId = null;
+            }
+            if (id != null) {
                 return id;
             }
             if (!shouldThrow) {
@@ -1439,6 +1409,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                     return _requestId;
                 }
                 _requestId = null;
+            }
+            if (id != null) {
                 return id;
             }
             if (!shouldThrow) {
@@ -1676,6 +1648,56 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
             Console.WriteLine("==================");
         }
 
+        /// <summary>
+        /// Build discovery config model from options
+        /// </summary>
+        private static DiscoveryConfigApiModel BuildDiscoveryConfig(CliOptions options) {
+            var config = new DiscoveryConfigApiModel();
+            var empty = true;
+
+            if (options.IsSet("-a", "--activate")) {
+                config.ActivationFilter = new EndpointActivationFilterApiModel {
+                    SecurityMode = SecurityMode.None
+                };
+                empty = false;
+            }
+
+            var addressRange = options.GetValueOrDefault<string>("-r", "--address-ranges", null);
+            if (addressRange != null) {
+                if (addressRange == "true") {
+                    config.AddressRangesToScan = "";
+                }
+                else {
+                    config.AddressRangesToScan = addressRange;
+                }
+                empty = false;
+            }
+
+            var portRange = options.GetValueOrDefault<string>("-p", "--port-ranges", null);
+            if (portRange != null) {
+                if (portRange == "true") {
+                    config.PortRangesToScan = "";
+                }
+                else {
+                    config.PortRangesToScan = portRange;
+                }
+                empty = false;
+            }
+
+            var netProbes = options.GetValueOrDefault<int>("-R", "--address-probes", null);
+            if (netProbes != null && netProbes != 0) {
+                config.MaxNetworkProbes = netProbes;
+                empty = false;
+            }
+
+            var portProbes = options.GetValueOrDefault<int>("-P", "--port-probes", null);
+            if (portProbes != null && portProbes != 0) {
+                config.MaxPortProbes = portProbes;
+                empty = false;
+            }
+
+            return empty ? null : config;
+        }
 
         /// <summary>
         /// Print help
@@ -1690,14 +1712,18 @@ Commands and Options
 
      console     Run in interactive mode. Enter commands after the >
      exit        Exit interactive mode and thus the cli.
-     groups      Manage trust groups
+     status      Print service status
+
      apps        Manage applications
      endpoints   Manage endpoints
      supervisors Manage supervisors
-     trust       Manage trust between above entities
-     nodes       Call nodes services on endpoint
-     requests    Manage certificate requests
-     status      Print service status
+
+     nodes       Call twin module services on endpoint
+
+     groups      Manage trust groups (Experimental)
+     trust       Manage trust between above entities (Experimental)
+     requests    Manage certificate requests (Experimental)
+
      help, -h, -? --help
                  Prints out this help.
 "
@@ -1753,7 +1779,7 @@ Commands and Options
         -t, --type      Application type (default to Server)
         -p, --product   Product uri of the application
         -d, --discovery Url of the discovery endpoint
-        -d, --dpuri     Discovery profile uri
+        -r, --dpuri     Discovery profile uri
         -g, --gwuri     Gateway uri
         -F, --format    Json format for result
 
@@ -1762,9 +1788,8 @@ Commands and Options
         -P, --page-size Size of page
         -A, --all       Return all application infos (unpaged)
         -u, --uri       Application uri of the application.
-        -i, --dpuri     Discovery profile uri
+        -r, --dpuri     Discovery profile uri
         -g, --gwuri     Gateway uri
-        -u, --uri       Application uri of the application.
         -n  --name      Application name of the application
         -t, --type      Application type (default to all)
         -s, --state     Application state (default to all)
@@ -1789,7 +1814,7 @@ Commands and Options
         with ...
         -i, --id        Id of application to update (mandatory)
         -n, --name      Application name
-        -d, --dpuri     Discovery profile uri
+        -r, --dpuri     Discovery profile uri
         -g, --gwuri     Gateway uri
         -p, --product   Product uri of the application
 
@@ -1801,7 +1826,7 @@ Commands and Options
         -n  --name      Application name and/or
         -t, --type      Application type and/or
         -p, --product   Product uri and/or
-        -i, --dpuri     Discovery profile uri
+        -r, --dpuri     Discovery profile uri
         -g, --gwuri     Gateway uri
         -s, --state     Application state (default to all)
 
