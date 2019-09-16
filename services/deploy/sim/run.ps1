@@ -234,7 +234,7 @@ Function CreateEdgeDevice {
             "capabilities": {"iotEdge": true}
            }'
   try {
-    $webRequest = Invoke-WebRequest -Method PUT -Uri "https://$($keys["HostName"])/devices/$([System.Web.HttpUtility]::UrlEncode($DeviceId))?api-version=2018-06-30" -ContentType "application/json" -Header @{ Authorization = ( -ResourceUri $keys["HostName"] -Key $keys["SharedAccessKey"] -KeyName $keys["SharedAccessKeyName"]) } -Body $body
+    $webRequest = Invoke-WebRequest -Method PUT -Uri "https://$($keys["HostName"])/devices/$([System.Web.HttpUtility]::UrlEncode($DeviceId))?api-version=2018-06-30" -ContentType "application/json" -Header @{ Authorization = (CreateSASToken -ResourceUri $keys["HostName"] -Key $keys["SharedAccessKey"] -KeyName $keys["SharedAccessKeyName"]) } -Body $body
   } catch [System.Net.WebException] {
     if ($_.Exception.Response.StatusCode.value__ -eq 409) {
       Write-Host "Getting data from IoT hub"
@@ -386,7 +386,9 @@ $edgeDeviceConnectionString = "HostName=${iothubName}.azure-devices.net;DeviceId
 # Connect newly created simulation VM with newly created edge device in IotHub
 $fileContent = "sudo /etc/iotedge/configedge.sh ""${edgeDeviceConnectionString}"""
 $fileContent | Out-File -FilePath .\connect.sh
+Write-Host 
 Write-Host "Setting connection string in the simulation VM.."
+Write-Host 
 Invoke-AzureRmVMRunCommand -ResourceGroupName $resourceGroupName -VMName $simVmName -CommandId 'RunShellScript' -ScriptPath 'connect.sh'
 
 # find the top most folder with docker-compose.yml in it
