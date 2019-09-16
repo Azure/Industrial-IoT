@@ -515,6 +515,7 @@
         "appInsightsPricePlan": "[take(variables('appInsightsPriceArray'),parameters('appInsightsPriceCode'))]",
         "appInsightsBillingPlan": "[concat(parameters('appInsightsName'),'/', variables('appInsightsPricePlan')[0])]",
         "appInsightsVersion": "2014-04-01",
+        "simVmName": "sim-edge-vm",
         "nsgId": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', 'sim-nsg')]",
         "vnetId": "[resourceId(resourceGroup().name,'Microsoft.Network/virtualNetworks', 'sim-vnet')]",
         "subnetRef": "[concat(variables('vnetId'), '/subnets/', 'vm-subnet')]",
@@ -1218,7 +1219,7 @@
             }
         },
         {
-            "name": "sim-edge-vm",
+            "name": "[variables('simVmName')]",
             "type": "Microsoft.Compute/virtualMachines",
             "apiVersion": "2018-06-01",
             "location": "[variables('location')]",
@@ -1251,7 +1252,7 @@
                     ]
                 },
                 "osProfile": {
-                    "computerName": "sim-edge-vm",
+                    "computerName": "[variables('simVmName')]",
                     "adminUsername": "[parameters('simVirtualMachineUsername')]",
                     "adminPassword": "[parameters('simVirtualMachinePassword')]"
                 }
@@ -1384,6 +1385,10 @@
         "simVirtualMachineUsername": {
             "type": "string",
             "value": "[parameters('simVirtualMachineUsername')]"
+        },
+        "simVirtualMachineName": {
+            "type": "string",
+            "value": "[variables('simVmName')]"
         }
     }
 }

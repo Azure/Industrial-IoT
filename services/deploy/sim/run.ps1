@@ -187,6 +187,68 @@ Function GetRootFolder() {
 }
 
 #******************************************************************************
+# Create SAS token
+#******************************************************************************
+Function CreateSASToken {
+  param(
+    [Parameter(Mandatory = $True)]
+    [string]$ResourceUri,
+    [Parameter(Mandatory = $True)]
+    [string]$Key,
+    [string]$KeyName = "",
+    [int]$TokenTimeOut = 1800 # in seconds
+  )
+  [Reflection.Assembly]::LoadWithPartialName("System.Web") | Out-Null
+  $Expires = ([DateTimeOffset]::Now.ToUnixTimeSeconds()) + $TokenTimeOut
+  #Building Token
+  $SignatureString = [System.Web.HttpUtility]::UrlEncode($ResourceUri) + "`n" + [string]$Expires
+  $HMAC = New-Object System.Security.Cryptography.HMACSHA256
+  $HMAC.key = [Convert]::FromBase64String($Key)
+  $Signature = $HMAC.ComputeHash([Text.Encoding]::ASCII.GetBytes($SignatureString))
+  $Signature = [Convert]::ToBase64String($Signature)
+  $SASToken = "SharedAccessSignature sr=" + [System.Web.HttpUtility]::UrlEncode($ResourceUri) + "&sig=" + [System.Web.HttpUtility]::UrlEncode($Signature) + "&se=" + $Expires
+  if ($KeyName -ne "") {
+    $SASToken = $SASToken + "&skn=$KeyName"
+  }
+  return $SASToken
+}
+
+#******************************************************************************
+# Create Edge device
+#******************************************************************************
+Function CreateEdgeDevice {
+  param(
+    [Parameter(Mandatory = $True)]
+    [string]$IoTHubConnectionString,
+    [Parameter(Mandatory = $True)]
+    [string]$DeviceId
+  )
+  [Reflection.Assembly]::LoadWithPartialName("System.Web") | Out-Null
+  $strings = $IoTHubConnectionString.split(";")
+  $keys = @{}
+  for ($i = 0; $i -lt $strings.count; $i++) {
+    $keys[$strings[$i].split("=")[0]] = $strings[$i].split("=")[1]
+  }
+  $keys["SharedAccessKey"] = $keys["SharedAccessKey"] + "="
+  $body = '{"deviceId":"' + $DeviceId + '",
+            "capabilities": {"iotEdge": true}
+           }'
+  try {
+    $webRequest = Invoke-WebRequest -Method PUT -Uri "https://$($keys["HostName"])/devices/$([System.Web.HttpUtility]::UrlEncode($DeviceId))?api-version=2018-06-30" -ContentType "application/json" -Header @{ Authorization = ( -ResourceUri $keys["HostName"] -Key $keys["SharedAccessKey"] -KeyName $keys["SharedAccessKeyName"]) } -Body $body
+  } catch [System.Net.WebException] {
+    if ($_.Exception.Response.StatusCode.value__ -eq 409) {
+      Write-Host "Getting data from IoT hub"
+      $webRequest = Invoke-WebRequest -Method GET -Uri "https://$($keys["HostName"])/devices/$([System.Web.HttpUtility]::UrlEncode($DeviceId))?api-version=2018-06-30" -ContentType "application/json" -Header @{ Authorization = (CreateSASToken -ResourceUri $keys["HostName"] -Key $keys["SharedAccessKey"] -KeyName $keys["SharedAccessKeyName"]) }
+    }
+    else {
+      Write-Error "An exception was caught: $($_.Exception.Message)"
+    }
+  }
+  return $webRequest
+}
+
+
+#******************************************************************************
 # Script body
 #******************************************************************************
 $ErrorActionPreference = "Stop"
@@ -310,6 +372,22 @@ $deployment = New-AzureRmResourceGroupDeployment -ResourceGroupName $resourceGro
 
 $website = $deployment.Outputs["azureWebsite"].Value
 $iothub = $deployment.Outputs["iothub-connstring"].Value
+$iothubName = $deployment.Outputs["iothub-name"].Value
+$simVmName = $deployment.Outputs["simVirtualMachineName"].Value
+
+# Create edge enabled iot device
+$deviceId = "simEdgeDevice"
+$device = CreateEdgeDevice -IoTHubConnectionString $iothub -DeviceId $deviceId
+# Get shared key from the device
+$device = CreateEdgeDevice -IoTHubConnectionString $iothub -DeviceId $deviceId
+$device = $device | ConvertFrom-Json
+$key = $device.authentication.symmetricKey.primaryKey
+$edgeDeviceConnectionString = "HostName=${iothubName}.azure-devices.net;DeviceId=${deviceId};SharedAccessKey=${key}"
+# Connect newly created simulation VM with newly created edge device in IotHub
+$fileContent = "sudo /etc/iotedge/configedge.sh ""${edgeDeviceConnectionString}"""
+$fileContent | Out-File -FilePath .\connect.sh
+Write-Host "Setting connection string in the simulation VM.."
+Invoke-AzureRmVMRunCommand -ResourceGroupName $resourceGroupName -VMName $simVmName -CommandId 'RunShellScript' -ScriptPath 'connect.sh'
 
 # find the top most folder with docker-compose.yml in it
 $rootDir = GetRootFolder $ScriptDir
