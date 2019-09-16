@@ -22,7 +22,7 @@
     The folder to build the docker files from
 
  .PARAMETER registry
-    The name of the registry in ACR
+    The name of the registry
 
  .PARAMETER subscription
     The subscription to use - otherwise uses default
@@ -83,8 +83,18 @@ $metadata = Get-Content -Raw -Path (join-path $path "mcr.json") `
 
 # get and set build information from gitversion, git or version content
 $sourceTag = $env:GITVERSION_MajorMinorPatch
+if ([string]::IsNullOrEmpty($sourceTag)) {
+    try {
+        # Call getversion.ps1 directly here.
+        $version = & ./getversion.ps1
+        $sourceTag = $version
+    }
+    catch {
+        $sourceTag = $null
+    }
+}
 if (![string]::IsNullOrEmpty($sourceTag)) {
-    Write-Host "Using version $($sourceTag) from GitVersion"
+    Write-Host "Using version $($sourceTag) from getversion.ps1"
 }
 else {
     # Otherwise look at git tag
@@ -99,23 +109,9 @@ else {
             $sourceTag = $null
         }
     }
-}
-if ([string]::IsNullOrEmpty($sourceTag)) {
-    # Finally - try old version.props
-    try {
-        $buildRoot = GetTopMostFolder -startDir $path `
-            -fileName "version.props"
-        # set version number from first encountered version.props
-        [xml] $props=Get-Content -Path (Join-Path $buildRoot "version.props")
-        $sourceTag="$($props.Project.PropertyGroup.VersionPrefix)".Trim()
+    if ([string]::IsNullOrEmpty($sourceTag)) {
+        $sourceTag = "latest"
     }
-    catch {
-        Write-Warning $_.Exception
-        $sourceTag = $null
-    }
-}
-if ([string]::IsNullOrEmpty($sourceTag)) {
-    $sourceTag = "latest"
 }
 
 # Try get branch name
@@ -146,7 +142,7 @@ if ([string]::IsNullOrEmpty($branchName) -or ($branchName -eq "HEAD")) {
 }
 
 # Check and set registry
-$namespacePrefix = "internal/"
+$namespacePrefix = ""
 if ([string]::IsNullOrEmpty($registry)) {
     $registry = $env.BUILD_REGISTRY
     if ([string]::IsNullOrEmpty($registry)) {
