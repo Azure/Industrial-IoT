@@ -20,5 +20,10 @@ namespace Microsoft.Azure.IIoT.Storage {
         /// Partitioning
         /// </summary>
         public bool Partitioned { get; set; }
+
+        /// <summary>
+        /// Throughput units
+        /// </summary>
+        public int? ThroughputUnits { get; set; }
     }
 }

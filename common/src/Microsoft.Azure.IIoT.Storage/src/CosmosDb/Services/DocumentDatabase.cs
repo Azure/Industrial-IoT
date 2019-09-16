@@ -40,14 +40,16 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
         /// <param name="client"></param>
         /// <param name="databaseId"></param>
         /// <param name="serializer"></param>
+        /// <param name="databaseThroughput"></param>
         /// <param name="logger"></param>
         internal DocumentDatabase(DocumentClient client, string databaseId,
-            JsonSerializerSettings serializer, ILogger logger) {
+            JsonSerializerSettings serializer, int? databaseThroughput, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             Client = client ?? throw new ArgumentNullException(nameof(client));
             DatabaseId = databaseId ?? throw new ArgumentNullException(nameof(databaseId));
             _collections = new ConcurrentDictionary<string, DocumentCollection>();
             _serializer = serializer;
+            _databaseThroughput = databaseThroughput;
         }
 
         /// <inheritdoc/>
@@ -101,7 +103,7 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
                 id = "default";
             }
             if (!_collections.TryGetValue(id, out var collection)) {
-                var coll = await EnsureCollectionExists(id, options);
+                var coll = await EnsureCollectionExistsAsync(id, options);
                 collection = _collections.GetOrAdd(id, k =>
                     new DocumentCollection(this, coll, _serializer, _logger));
             }
@@ -114,11 +116,15 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
         /// <param name="id"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        private async Task<CosmosContainer> EnsureCollectionExists(string id,
+        private async Task<CosmosContainer> EnsureCollectionExistsAsync(string id,
             ContainerOptions options) {
+
             var database = await Client.CreateDatabaseIfNotExistsAsync(
                 new Database {
                     Id = DatabaseId
+                },
+                new RequestOptions {
+                    OfferThroughput = _databaseThroughput
                 }
             );
 
@@ -129,21 +135,19 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
                     Precision = -1
                 })
             };
-
             if (options?.Partitioned ?? false) {
                 container.PartitionKey.Paths.Add("/" + DocumentCollection.PartitionKeyProperty);
             }
-
-            var throughput = 10000;
             var collection = await Client.CreateDocumentCollectionIfNotExistsAsync(
                  UriFactory.CreateDatabaseUri(DatabaseId),
                  container,
                  new RequestOptions {
-                     OfferThroughput = throughput
+                     EnableScriptLogging = true,
+                     OfferThroughput = options.ThroughputUnits
                  }
             );
-            await CreateSprocIfNotExists(id, BulkUpdateSprocName);
-            await CreateSprocIfNotExists(id, BulkDeleteSprocName);
+            await CreateSprocIfNotExistsAsync(id, BulkUpdateSprocName);
+            await CreateSprocIfNotExistsAsync(id, BulkDeleteSprocName);
             return collection.Resource;
         }
 
@@ -152,11 +156,11 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
 
         /// <summary>
         /// Create stored procedures
-        /// </summary>
+        /// </summary>https://docs.microsoft.com/en-us/dotnet/api/microsoft.azure.documents.client.requestoptions.accesscondition?view=azure-dotnet
         /// <param name="collectionId"></param>
         /// <param name="sprocName"></param>
         /// <returns></returns>
-        private async Task CreateSprocIfNotExists(string collectionId, string sprocName) {
+        private async Task CreateSprocIfNotExistsAsync(string collectionId, string sprocName) {
             var assembly = GetType().Assembly;
 #if FALSE
             try {
@@ -195,5 +199,6 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
         private readonly ILogger _logger;
         private readonly ConcurrentDictionary<string, DocumentCollection> _collections;
         private readonly JsonSerializerSettings _serializer;
+        private readonly int? _databaseThroughput;
     }
 }
