@@ -35,7 +35,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Runtime {
     /// </summary>
     public class Config : ConfigBase, IAuthConfig, IIoTHubConfig, ICorsConfig,
         IClientConfig, ISwaggerConfig, IVaultConfig, ICosmosDbConfig,
-        IItemContainerConfig, IKeyVaultConfig, IServiceBusConfig, IRegistryConfig, IApplicationInsightsConfig {
+        IItemContainerConfig, IKeyVaultConfig, IServiceBusConfig, IRegistryConfig,
+        IApplicationInsightsConfig {
 
         /// <summary>
         /// Whether to use role based access
@@ -84,6 +85,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Runtime {
         public bool KeyVaultIsHsm => _keyVault.KeyVaultIsHsm;
         /// <inheritdoc/>
         public string DbConnectionString => _cosmos.DbConnectionString;
+        /// <inheritdoc/>
+        public int? ThroughputUnits => _cosmos.ThroughputUnits;
         /// <inheritdoc/>
         public string ContainerName => "iiot_opc";
         /// <inheritdoc/>

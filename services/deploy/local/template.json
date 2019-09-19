@@ -74,7 +74,7 @@
                 "ConsistentPrefix",
                 "Eventual"
             ],
-            "defaultValue": "Strong",
+            "defaultValue": "Session",
             "metadata": {
                 "description": "The documentDB default consistency level for this account."
             }
@@ -83,7 +83,7 @@
             "type": "int",
             "minValue": 10,
             "maxValue": 1000,
-            "defaultValue": 10,
+            "defaultValue": 100,
             "metadata": {
                 "description": "When documentDB consistencyLevel is set to BoundedStaleness, then this value is required, else it can be ignored."
             }
@@ -525,12 +525,17 @@
             "location": "[variables('location')]",
             "properties": {
                 "name": "[parameters('documentDBName')]",
-                "databaseAccountOfferType": "standard",
+                "enableAutomaticFailover": false,
+                "enableMultipleWriteLocations": false,
+                "isVirtualNetworkFilterEnabled": false,
+                "virtualNetworkRules": [],
+                "databaseAccountOfferType": "Standard",
                 "consistencyPolicy": {
                     "defaultConsistencyLevel": "[parameters('docDBConsistencyLevel')]",
                     "maxStalenessPrefix": "[parameters('docDBMaxStalenessPrefix')]",
                     "maxIntervalInSeconds": "[parameters('docDBMaxIntervalInSeconds')]"
-                }
+                },
+                "capabilities": []
             },
             "dependsOn": []
         },

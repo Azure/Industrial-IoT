@@ -50,19 +50,22 @@ Get-ChildItem $BuildRoot -Recurse `
     | Where-Object Name -like $FileName `
     | ForEach-Object {
 
+    $fullFolder = $_.DirectoryName.Replace("\", "/")
     $folder = $_.DirectoryName.Replace($BuildRoot, "").Replace("\", "/").TrimStart("/")
     $file = $_.FullName.Replace($BuildRoot, "").Replace("\", "/").TrimStart("/")
-    $postFix = $folder
-    if ([string]::IsNullOrEmpty($postFix)) {
-        $postFix = $file
+    if ([string]::IsNullOrEmpty($folder)) {
+        $postFix = ""
     }
-    $postFix = $postFix.Replace("/", "-")
-
+    else {
+        $postFix = $folder.Replace("/", "-")
+        $postFix = "$($postFix)-"
+    }
     $agents.keys | ForEach-Object {
-        $jobName = "$($JobPrefix)$($postFix)-$($_)"
+        $jobName = "$($JobPrefix)$($postFix)$($_)"
         $jobMatrix.Add($jobName, @{ 
             "poolName" = $agents.Item($_)
             "folder" = $folder 
+            "fullFolder" = $fullFolder 
             "file" = $file 
         })
     }

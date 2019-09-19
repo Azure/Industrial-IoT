@@ -14,5 +14,10 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb {
         /// Connection string to use (mandatory)
         /// </summary>
         string DbConnectionString { get; }
+
+        /// <summary>
+        /// Throughput units (optional)
+        /// </summary>
+        int? ThroughputUnits { get; }
     }
 }
