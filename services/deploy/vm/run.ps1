@@ -264,10 +264,6 @@ if ($aadConfig) {
 if (![string]::IsNullOrEmpty($script:containerRegistryPrefix)) {
     $templateParameters.Add("containerRegistryPrefix", $script:containerRegistryPrefix)
 }
-else {
-    # TODO: Remove once everything is released 
-    $templateParameters.Add("containerRegistryPrefix", "marcschier/azure-iiot-")
-}
 
 # Create ssl cert 
 $cert = New-SelfSignedCertificate -DnsName "opctwin.services.net" `
