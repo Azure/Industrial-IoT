@@ -1,5 +1,0 @@
-<Project>
-  <PropertyGroup>
-    <PackageTags>$(PackageTags);OPC;OPCUA;IoT Edge;Edge</PackageTags>
-  </PropertyGroup>
-</Project>

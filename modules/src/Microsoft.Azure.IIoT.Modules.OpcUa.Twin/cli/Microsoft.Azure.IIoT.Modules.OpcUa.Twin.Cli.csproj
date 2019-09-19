@@ -13,7 +13,7 @@
   <Choose>
     <When Condition="'$(PROJECT_BUILD)' == ''">
       <ItemGroup>
-        <ProjectReference Include="..\..\..\common\src\Microsoft.Azure.IIoT.Hub\src\Microsoft.Azure.IIoT.Hub.csproj" />
+        <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Hub\src\Microsoft.Azure.IIoT.Hub.csproj" />
       </ItemGroup>
     </When>
     <Otherwise>
