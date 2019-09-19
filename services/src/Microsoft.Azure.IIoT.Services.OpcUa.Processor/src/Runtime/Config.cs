@@ -35,6 +35,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Processor.Runtime {
         /// <inheritdoc/>
         public string DbConnectionString => _db.DbConnectionString;
         /// <inheritdoc/>
+        public int? ThroughputUnits => _db.ThroughputUnits;
+        /// <inheritdoc/>
         public string BlobStorageConnString => _storage.BlobStorageConnString;
         /// <inheritdoc/>
         public string ContainerName => null;

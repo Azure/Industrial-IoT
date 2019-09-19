@@ -47,7 +47,8 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
             await client.CreateDatabaseIfNotExistsAsync(new Database {
                 Id = databaseId
             });
-            return new DocumentDatabase(client, databaseId, settings, _logger);
+            return new DocumentDatabase(client, databaseId, settings,
+                _config.ThroughputUnits, _logger);
         }
 
         private readonly ICosmosDbConfig _config;

@@ -23,19 +23,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Vault.Runtime {
         public bool AutoApprove => GetBoolOrDefault(
             kOpcVault_AutoApprove);
 
-
         /// <summary>
         /// Cosmos db configuration
         /// </summary>
         private const string kOpcVault_DbConnectionStringKey = "OpcVault:CosmosDBConnectionString";
         private const string kOpcVault_ContainerNameKey = "OpcVault:CosmosDBCollection";
         private const string kOpcVault_DatabaseNameKey = "OpcVault:CosmosDBDatabase";
+        private const string kCosmosDbThroughputUnits = "CosmosDb:ThroughputUnits";
 
         /// <inheritdoc/>
         public string DbConnectionString => GetStringOrDefault(kOpcVault_DbConnectionStringKey,
             GetStringOrDefault("OPC_VAULT_COSMOSDB_CONNSTRING",
                 GetStringOrDefault("PCS_TELEMETRY_DOCUMENTDB_CONNSTRING",
                 GetStringOrDefault("_DB_CS", null))));
+        /// <inheritdoc/>
+        public int? ThroughputUnits => GetIntOrDefault(kCosmosDbThroughputUnits,
+            GetIntOrDefault("PCS_COSMOSDB_THROUGHPUT", 400));
         /// <inheritdoc/>
         public string DatabaseName => GetStringOrDefault(kOpcVault_DatabaseNameKey,
             GetStringOrDefault("OPC_VAULT_COSMOSDB_DBNAME", "OpcVault")).Trim();
