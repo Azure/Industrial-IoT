@@ -205,7 +205,7 @@ $tags = @()
 $versionParts = $sourceTag.Split('.')
 if ($versionParts.Count -gt 0) {
     $versionTag = $versionParts[0]
-    $tags += $versionTag
+    $tags += "$($tagPrefix)$($versionTag)$($tagPostfix)"
     for ($i = 1; $i -lt $versionParts.Count; $i++) {
         $versionTag = ("$($versionTag).{0}" -f $versionParts[$i])
         $tags += "$($tagPrefix)$($versionTag)$($tagPostfix)"
