@@ -33,9 +33,11 @@ Get-ChildItem $BuildRoot -Recurse `
     # Get root
     $dockerFolder = $_.DirectoryName.Replace($BuildRoot, "").Substring(1)
     $metadata = Get-Content -Raw -Path $_.FullName | ConvertFrom-Json
-
     try {
-        $jobName = $metadata.name
+        $jobName = "$($metadata.name)"
+        if (![string]::IsNullOrEmpty($metadata.tag)) {
+            $jobName = "$($jobName)/$($metadata.tag)"
+        }
         if (![string]::IsNullOrEmpty($jobName)) {
             $acrMatrix.Add($jobName, @{ "dockerFolder" = $dockerFolder })
         }
