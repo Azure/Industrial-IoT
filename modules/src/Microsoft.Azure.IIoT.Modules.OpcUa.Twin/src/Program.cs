@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
     public static class Program {
 
         /// <summary>
-        /// Main entry point to run the micro service process
+        /// Module entry point
         /// </summary>
         public static void Main(string[] args) {
 
@@ -29,19 +29,16 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
                 .AddEnvironmentVariables()
                 .AddCommandLine(args)
                 .Build();
-
 #if DEBUG
-            if (args.Any(a => a.ToLowerInvariant().Contains("wfd") || a.ToLowerInvariant().Contains("waitfordebugger"))) {
+            if (args.Any(a => a.ToLowerInvariant().Contains("wfd") ||
+                    a.ToLowerInvariant().Contains("waitfordebugger"))) {
                 Console.WriteLine("Waiting for debugger being attached...");
-
                 while (!Debugger.IsAttached) {
                     Thread.Sleep(1000);
                 }
-
                 Console.WriteLine("Debugger attached.");
             }
 #endif
-
             var process = new ModuleProcess(config);
             process.RunAsync().Wait();
         }

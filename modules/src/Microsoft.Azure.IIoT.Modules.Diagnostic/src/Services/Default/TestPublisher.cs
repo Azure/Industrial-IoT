@@ -66,7 +66,9 @@ namespace Microsoft.Azure.IIoT.Modules.Diagnostic.Services.Default {
         /// <inheritdoc/>
         public void Dispose() {
             Try.Op(() => StopAsync().Wait());
-            Try.Op(() => _cts.Dispose());
+
+            _lock.Dispose();
+            _cts.Dispose();
         }
 
         /// <summary>

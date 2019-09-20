@@ -19,9 +19,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Cli {
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Simple registry tool
+    /// OPC Twin module cli
     /// </summary>
     public class Program {
+
         private enum Op {
             None,
             Host,

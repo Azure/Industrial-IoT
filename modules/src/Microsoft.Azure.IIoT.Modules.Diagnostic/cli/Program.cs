@@ -22,7 +22,7 @@ namespace Microsoft.Azure.IIoT.Modules.Diagnostic.Cli {
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Simple registry tool
+    /// Edge Diagnostic CLI
     /// </summary>
     public class Program {
 

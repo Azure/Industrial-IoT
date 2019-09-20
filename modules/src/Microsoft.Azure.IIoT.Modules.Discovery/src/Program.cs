@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Modules.Diagnostic {
+namespace Microsoft.Azure.IIoT.Modules.Discovery {
     using Microsoft.Extensions.Configuration;
     using System;
     using System.IO;

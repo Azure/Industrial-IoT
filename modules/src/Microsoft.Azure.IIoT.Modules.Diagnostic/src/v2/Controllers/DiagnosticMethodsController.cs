@@ -13,18 +13,18 @@ namespace Microsoft.Azure.IIoT.Modules.Diagnostic.v2.Supervisor {
     using Newtonsoft.Json.Linq;
 
     /// <summary>
-    /// Test method controller
+    /// Diagnostic methods controller
     /// </summary>
     [Version(1)]
     [Version(2)]
     [ExceptionsFilter]
-    public class TestMethodsController : IMethodController {
+    public class DiagnosticMethodsController : IMethodController {
 
         /// <summary>
         /// Create controller with service
         /// </summary>
         /// <param name="logger"></param>
-        public TestMethodsController(ILogger logger) {
+        public DiagnosticMethodsController(ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 

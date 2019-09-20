@@ -15,11 +15,11 @@ namespace Microsoft.Azure.IIoT.Modules.Diagnostic.v2.Supervisor {
     using Newtonsoft.Json.Linq;
 
     /// <summary>
-    /// Test settings controller
+    /// Diagnostic settings controller
     /// </summary>
     [Version(1)]
     [Version(2)]
-    public class TestSettingsController : ISettingsController {
+    public class DiagnosticSettingsController : ISettingsController {
 
         /// <summary>
         /// Send frequency in seconds
@@ -61,18 +61,18 @@ namespace Microsoft.Azure.IIoT.Modules.Diagnostic.v2.Supervisor {
         /// <summary>
         /// Other test settings
         /// </summary>
-        /// <param name="endpointId"></param>
+        /// <param name="key"></param>
         /// <returns></returns>
-        public JToken this[string endpointId] {
+        public JToken this[string key] {
             set {
                 if (value == null || value.Type == JTokenType.Null) {
-                    _tempState.AddOrUpdate(endpointId, null);
+                    _tempState.AddOrUpdate(key, null);
                     return;
                 }
-                _tempState.AddOrUpdate(endpointId, value.ToString());
+                _tempState.AddOrUpdate(key, value.ToString());
             }
             get {
-                if (!_tempState.TryGetValue(endpointId, out var result)) {
+                if (!_tempState.TryGetValue(key, out var result)) {
                     result = null;
                 }
                 return result != null ? JToken.FromObject(result) : JValue.CreateNull();
@@ -84,7 +84,7 @@ namespace Microsoft.Azure.IIoT.Modules.Diagnostic.v2.Supervisor {
         /// </summary>
         /// <param name="publisher"></param>
         /// <param name="logger"></param>
-        public TestSettingsController(IPublisher publisher, ILogger logger) {
+        public DiagnosticSettingsController(IPublisher publisher, ILogger logger) {
             _publisher = publisher ?? throw new ArgumentNullException(nameof(publisher));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _tempState = new Dictionary<string, string>();

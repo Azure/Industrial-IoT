@@ -3,12 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Modules.Diagnostic {
-    using Microsoft.Azure.IIoT.Modules.Diagnostic.Runtime;
-    using Microsoft.Azure.IIoT.Modules.Diagnostic.Services;
-    using Microsoft.Azure.IIoT.Modules.Diagnostic.Services.Default;
+namespace Microsoft.Azure.IIoT.Modules.Discovery {
+    using Microsoft.Azure.IIoT.Modules.Discovery.Runtime;
     using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.Module.Framework.Services;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Discovery;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
+    using Microsoft.Azure.IIoT.Tasks.Default;
     using Microsoft.Extensions.Configuration;
     using Autofac;
     using AutofacSerilogIntegration;
@@ -31,7 +32,7 @@ namespace Microsoft.Azure.IIoT.Modules.Diagnostic {
         public string SiteId { get; set; }
 
         /// <summary>
-        /// Whethr the module is running
+        /// Whether the module is running
         /// </summary>
 
         public event EventHandler<bool> OnRunning;
@@ -76,13 +77,10 @@ namespace Microsoft.Azure.IIoT.Modules.Diagnostic {
                 using (var hostScope = ConfigureContainer(_config)) {
                     _reset = new TaskCompletionSource<bool>();
                     var module = hostScope.Resolve<IModuleHost>();
-                    var publisher = hostScope.Resolve<IPublisher>();
                     var logger = hostScope.Resolve<ILogger>();
                     try {
-                        // Find publisher in network before starting supervisor
-                        await publisher.StartAsync();
                         // Start module
-                        await module.StartAsync("diagnostic", SiteId, "Diagnostic", this);
+                        await module.StartAsync("discovery", SiteId, "Discovery", this);
                         OnRunning?.Invoke(this, true);
                         await Task.WhenAny(_reset.Task, _exit.Task);
                         if (_exit.Task.IsCompleted) {
@@ -118,21 +116,32 @@ namespace Microsoft.Azure.IIoT.Modules.Diagnostic {
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterInstance(this)
                 .AsImplementedInterfaces().SingleInstance();
-
             // register logger
             builder.RegisterLogger(LogEx.Console(LogEventLevel.Information));
 
             // Register module framework
             builder.RegisterModule<ModuleFramework>();
 
-            // Register test publisher
-            builder.RegisterType<TestPublisher>()
+            // Register opc ua services
+            builder.RegisterType<ClientServices>()
+                .AsImplementedInterfaces().SingleInstance();
+          //  builder.RegisterType<JsonVariantEncoder>()
+          //      .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<StackLogger>()
+                .AsImplementedInterfaces().SingleInstance().AutoActivate();
+
+            // Register discovery services
+            builder.RegisterType<DiscoveryServices>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
+            builder.RegisterType<TaskProcessor>()
+                .AsImplementedInterfaces().SingleInstance();
 
             // Register controllers
-            builder.RegisterType<v2.Supervisor.DiagnosticMethodsController>()
+            builder.RegisterType<v2.Supervisor.DiscoveryMethodsController>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<v2.Supervisor.DiagnosticSettingsController>()
+                .AsImplementedInterfaces().InstancePerLifetimeScope();
+            builder.RegisterType<v2.Supervisor.DiscoverySettingsController>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
 
             return builder.Build();
