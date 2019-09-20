@@ -22,7 +22,7 @@ namespace System {
         /// <returns></returns>
         public static string CreateUnique(int len, string prefix = "") {
             return (prefix + Guid.NewGuid().ToString("N"))
-.Substring(0, Math.Min(len, 32 + prefix.Length));
+                .Substring(0, Math.Min(len, 32 + prefix.Length));
         }
 
         /// <summary>
@@ -45,7 +45,7 @@ namespace System {
         public static bool AnyOf(this string str, IEnumerable<string> to,
             bool ignoreCase = false) {
             return to.Any(s => s.Equals(str, ignoreCase ?
-StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase));
+                StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase));
         }
 
         /// <summary>

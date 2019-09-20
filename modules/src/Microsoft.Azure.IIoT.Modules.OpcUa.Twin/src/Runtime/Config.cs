@@ -20,19 +20,19 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Runtime {
         /// <summary>
         /// Module configuration
         /// </summary>
-        private const string EDGEHUB_CONNSTRING_KEY = "EdgeHubConnectionString";
+        private const string kEdgeHubConnectionString = "EdgeHubConnectionString";
         /// <summary>Hub connection string</summary>
         public string EdgeHubConnectionString =>
-            GetStringOrDefault(EDGEHUB_CONNSTRING_KEY);
+            GetStringOrDefault(kEdgeHubConnectionString);
         /// <summary>Whether to bypass cert validation</summary>
         public bool BypassCertVerification =>
-            GetBoolOrDefault(nameof(BypassCertVerification), true);
+            GetBoolOrDefault(nameof(BypassCertVerification), false);
         /// <summary>Transports to use</summary>
         public TransportOption Transport => Enum.Parse<TransportOption>(
-            GetStringOrDefault(nameof(Transport), nameof(TransportOption.Amqp)), true);
+            GetStringOrDefault(nameof(Transport), nameof(TransportOption.Any)), true);
 
         /// <summary>
-        ///  ClientServicesConfig
+        /// ClientServicesConfig
         /// </summary>
         private const string kAppCertStoreType = "AppCertStoreType";
         private const string kPkiRootPath = "PkiRootPath";
@@ -46,35 +46,28 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Runtime {
         /// <inheritdoc/>
         public string AppCertStoreType =>
             GetStringOrDefault(kAppCertStoreType, RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "X509Store" : "Directory");
-
         /// <inheritdoc/>
         public string PkiRootPath =>
             GetStringOrDefault(kPkiRootPath, "pki");
-
         /// <inheritdoc/>
         public string OwnCertPath =>
             GetStringOrDefault(kOwnCertPath, PkiRootPath + "/own");
-
         /// <inheritdoc/>
         public string TrustedCertPath =>
             GetStringOrDefault(kTrustedCertPath, PkiRootPath + "/trusted");
-
         /// <inheritdoc/>
         public string IssuerCertPath =>
             GetStringOrDefault(kIssuerCertPath, PkiRootPath + "/issuer");
-
         /// <inheritdoc/>
         public string RejectedCertPath =>
             GetStringOrDefault(kRejectedCertPath, PkiRootPath + "/rejected");
-
         /// <inheritdoc/>
         public string OwnCertX509StorePathDefault =>
             GetStringOrDefault(kOwnCertX509StorePathDefault, "CurrentUser\\UA_MachineDefault");
-
         /// <inheritdoc/>
         public bool AutoAccept =>
             GetBoolOrDefault(kAutoAccept, false);
-        
+
         /// <summary>
         /// Configuration constructor
         /// </summary>

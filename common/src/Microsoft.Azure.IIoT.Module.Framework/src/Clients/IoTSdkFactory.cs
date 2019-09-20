@@ -106,33 +106,27 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             // Configure transport settings
             var transportSettings = new List<ITransportSettings>();
 
-            if ((_transport & TransportOption.Mqtt) != 0) {
-                if ((_transport & TransportOption.MqttOverTcp) != 0) {
-                    var setting = new MqttTransportSettings(
-                        TransportType.Mqtt_Tcp_Only);
-                    if (_bypassCertValidation) {
-                        setting.RemoteCertificateValidationCallback =
-                            (sender, certificate, chain, sslPolicyErrors) => true;
-                    }
-                    transportSettings.Add(setting);
+            if ((_transport & TransportOption.MqttOverTcp) != 0) {
+                var setting = new MqttTransportSettings(
+                    TransportType.Mqtt_Tcp_Only);
+                if (_bypassCertValidation) {
+                    setting.RemoteCertificateValidationCallback =
+                        (sender, certificate, chain, sslPolicyErrors) => true;
                 }
-                else {
-                    transportSettings.Add(new MqttTransportSettings(
-                        TransportType.Mqtt_WebSocket_Only));
-                }
+                transportSettings.Add(setting);
             }
-
-            if ((_transport & TransportOption.Amqp) != 0) {
-                if ((_transport & TransportOption.AmqpOverTcp) != 0) {
-                    transportSettings.Add(new AmqpTransportSettings(
-                        TransportType.Amqp_Tcp_Only));
-                }
-                else {
-                    transportSettings.Add(new AmqpTransportSettings(
-                        TransportType.Amqp_WebSocket_Only));
-                }
+            if ((_transport & TransportOption.MqttOverWebsocket) != 0) {
+                transportSettings.Add(new MqttTransportSettings(
+                    TransportType.Mqtt_WebSocket_Only));
             }
-
+            if ((_transport & TransportOption.AmqpOverTcp) != 0) {
+                transportSettings.Add(new AmqpTransportSettings(
+                    TransportType.Amqp_Tcp_Only));
+            }
+            if ((_transport & TransportOption.AmqpOverWebsocket) != 0) {
+                transportSettings.Add(new AmqpTransportSettings(
+                    TransportType.Amqp_WebSocket_Only));
+            }
             if (transportSettings.Count != 0) {
                 return await Try.Options(transportSettings
                     .Select<ITransportSettings, Func<Task<IClient>>>(t =>
@@ -202,10 +196,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 ILogger logger) {
 
                 if (cs == null) {
-                    logger.Information("Running in iotedge production context.");
+                    logger.Information("Running in iotedge context.");
                 }
                 else {
-                    logger.Information("Running in iotedge development context.");
+                    logger.Information("Running outside iotedge context.");
                 }
 
                 var client = await CreateAsync(cs, transportSetting);
@@ -213,14 +207,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
 
                 // Configure
                 client.OperationTimeoutInMilliseconds = (uint)timeout.TotalMilliseconds;
-                client.SetConnectionStatusChangesHandler((s, r) => {
-                    logger.Information("Module {deviceId}_{moduleId} connection status " +
-                        "changed to {s} due to {r}.", deviceId, moduleId, s, r);
-                    if (r == ConnectionStatusChangeReason.Client_Close && !adapter.IsClosed) {
-                        adapter.IsClosed = true;
-                        onConnectionLost?.Invoke();
-                    }
-                });
+                client.SetConnectionStatusChangesHandler((s, r) =>
+                    adapter.OnConnectionStatusChange(deviceId, moduleId, onConnectionLost,
+                        logger, s, r));
                 if (retry != null) {
                     client.SetRetryPolicy(retry);
                 }
@@ -316,6 +305,40 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             }
 
             /// <summary>
+            /// Handle status change event
+            /// </summary>
+            /// <param name="deviceId"></param>
+            /// <param name="moduleId"></param>
+            /// <param name="onConnectionLost"></param>
+            /// <param name="logger"></param>
+            /// <param name="status"></param>
+            /// <param name="reason"></param>
+            private void OnConnectionStatusChange(string deviceId, string moduleId,
+                Action onConnectionLost, ILogger logger, ConnectionStatus status,
+                ConnectionStatusChangeReason reason) {
+
+                if (status == ConnectionStatus.Connected) {
+                    logger.Information("{counter}: Module {deviceId}_{moduleId} reconnected " +
+                        "due to {reason}.", _reconnectCounter, deviceId, moduleId, reason);
+                    _reconnectCounter++;
+                    return;
+                }
+                logger.Information("{counter}: Module {deviceId}_{moduleId} disconnected " +
+                    "due to {reason} - now {status}...", _reconnectCounter, deviceId, moduleId,
+                        reason, status);
+                if (IsClosed) {
+                    // Already closed - nothing to do
+                    return;
+                }
+                if (status == ConnectionStatus.Disconnected ||
+                    status == ConnectionStatus.Disabled) {
+                    // Force
+                    IsClosed = true;
+                    onConnectionLost?.Invoke();
+                }
+            }
+
+            /// <summary>
             /// Helper to create module client
             /// </summary>
             /// <param name="cs"></param>
@@ -337,6 +360,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             }
 
             private readonly ModuleClient _client;
+            private int _reconnectCounter;
         }
 
         /// <summary>
@@ -379,16 +403,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
 
                 // Configure
                 client.OperationTimeoutInMilliseconds = (uint)timeout.TotalMilliseconds;
-                client.SetConnectionStatusChangesHandler((s, r) => {
-                    logger.Information(
-                        "Device {deviceId} connection status changed to {s} due to {r}.",
-                        deviceId, s, r);
-
-                    if (r == ConnectionStatusChangeReason.Client_Close && !adapter.IsClosed) {
-                        adapter.IsClosed = true;
-                        onConnectionLost?.Invoke();
-                    }
-                });
+                client.SetConnectionStatusChangesHandler((s, r) =>
+                    adapter.OnConnectionStatusChange(deviceId, onConnectionLost, logger, s, r));
                 if (retry != null) {
                     client.SetRetryPolicy(retry);
                 }
@@ -485,6 +501,39 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             }
 
             /// <summary>
+            /// Handle status change event
+            /// </summary>
+            /// <param name="deviceId"></param>
+            /// <param name="onConnectionLost"></param>
+            /// <param name="logger"></param>
+            /// <param name="status"></param>
+            /// <param name="reason"></param>
+            private void OnConnectionStatusChange(string deviceId,
+                Action onConnectionLost, ILogger logger, ConnectionStatus status,
+                ConnectionStatusChangeReason reason) {
+
+                if (status == ConnectionStatus.Connected) {
+                    logger.Information("{counter}: Device {deviceId} reconnected " +
+                        "due to {reason}.", _reconnectCounter, deviceId, reason);
+                    _reconnectCounter++;
+                    return;
+                }
+                logger.Information("{counter}: Device {deviceId} disconnected " +
+                    "due to {reason} - now {status}...", _reconnectCounter, deviceId,
+                        reason, status);
+                if (IsClosed) {
+                    // Already closed - nothing to do
+                    return;
+                }
+                if (status == ConnectionStatus.Disconnected ||
+                    status == ConnectionStatus.Disabled) {
+                    // Force
+                    IsClosed = true;
+                    onConnectionLost?.Invoke();
+                }
+            }
+
+            /// <summary>
             /// Helper to create device client
             /// </summary>
             /// <param name="cs"></param>
@@ -503,6 +552,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             }
 
             private readonly DeviceClient _client;
+            private int _reconnectCounter;
         }
 
         /// <summary>

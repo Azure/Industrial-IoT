@@ -7,13 +7,13 @@ namespace Microsoft.Azure.IIoT.Module.Framework {
     using System;
 
     /// <summary>
-    /// Transport host should use
+    /// Transport types the client adapter should use
     /// </summary>
     [Flags]
     public enum TransportOption {
 
         /// <summary>
-        /// Amqp over ssl/tcp
+        /// Amqp over tcp/ssl
         /// </summary>
         AmqpOverTcp = 0x1,
 
@@ -23,7 +23,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework {
         AmqpOverWebsocket = 0x2,
 
         /// <summary>
-        /// Mqtt over ssl/tcp
+        /// Mqtt over tcp/ssl
         /// </summary>
         MqttOverTcp = 0x4,
 
@@ -33,18 +33,28 @@ namespace Microsoft.Azure.IIoT.Module.Framework {
         MqttOverWebsocket = 0x8,
 
         /// <summary>
-        /// Amqp over ssl or websocket
+        /// Amqp over tcp/ssl or websocket
         /// </summary>
         Amqp = AmqpOverTcp | AmqpOverWebsocket,
 
         /// <summary>
-        /// Mqtt over ssl or websocket
+        /// Mqtt over tcp/ssl or websocket
         /// </summary>
         Mqtt = MqttOverTcp | MqttOverWebsocket,
 
         /// <summary>
+        /// Tcp only
+        /// </summary>
+        Tcp = AmqpOverTcp | MqttOverTcp,
+
+        /// <summary>
+        /// Websocket only
+        /// </summary>
+        Websocket = AmqpOverWebsocket | MqttOverWebsocket,
+
+        /// <summary>
         /// Use all possible transports
         /// </summary>
-        Any = AmqpOverWebsocket | MqttOverWebsocket
+        Any = Amqp | Mqtt,
     }
 }
