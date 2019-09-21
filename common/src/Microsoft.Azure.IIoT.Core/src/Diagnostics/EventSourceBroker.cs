@@ -5,116 +5,86 @@
 
 namespace Microsoft.Azure.IIoT.Diagnostics {
     using System;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Diagnostics.Tracing;
     using System.Linq;
+    using System.Threading;
 
     /// <summary>
-    /// Event listener bridge
+    /// Event listener that brokers event notifications to subscribers
     /// </summary>
     public sealed class EventSourceBroker : EventListener, IEventSourceBroker {
 
         /// <inheritdoc/>
-        public IEventSourceSubscription Subscribe(string eventSource,
-            IEventSourceSubscriber subscriber) {
+        public EventSourceBroker() {
+            // Check log level changes every 30 seconds
+            _timer = new Timer(_ => SyncEventLevels(), null,
+                TimeSpan.Zero, TimeSpan.FromSeconds(30));
+        }
+
+        /// <inheritdoc/>
+        public override void Dispose() {
+            _timer.Dispose();
+            base.Dispose();
+        }
+
+        /// <inheritdoc/>
+        public IDisposable Subscribe(string eventSource, IEventSourceSubscriber subscriber) {
             if (subscriber == null) {
                 throw new ArgumentNullException(nameof(subscriber));
             }
             if (string.IsNullOrEmpty(eventSource)) {
                 throw new ArgumentNullException(nameof(eventSource));
             }
-            var subscription = new EventSourceSubscription(eventSource, subscriber, this);
-            lock (_subscribers) {
-                if (!_subscribers.TryGetValue(eventSource, out var subscriptions)) {
-                    subscriptions = new List<EventSourceSubscription>();
-                }
-                subscriptions.Add(subscription);
-            }
-            return subscription;
+            var source = _subscribers.GetOrAdd(eventSource, 
+                name => new EventSourceWrapper(this));
+            return source.Add(subscriber);
         }
 
         /// <inheritdoc/>
         protected override void OnEventWritten(EventWrittenEventArgs eventData) {
-            lock (_subscribers) {
-                if (_subscribers.TryGetValue(eventData.EventSource.Name, out var subscriptions)) {
-                    subscriptions.ForEach(s => s.OnEvent(eventData));
-                }
+            if (_subscribers.TryGetValue(eventData.EventSource.Name, out var eventSource)) {
+                eventSource.OnEvent(eventData);
             }
         }
 
         /// <inheritdoc/>
         protected override void OnEventSourceCreated(EventSource eventSource) {
-            lock (_subscribers) {
-                if (_subscribers.TryGetValue(eventSource.Name, out var subscriptions)) {
-                    subscriptions.ForEach(s => s.EventSource = eventSource);
-                    EnableEvents(eventSource, subscriptions.Max(s => s.Level));
-                }
-            }
+            _subscribers.AddOrUpdate(eventSource.Name,
+                name => new EventSourceWrapper(this, eventSource),
+                (name, source) => source.Connect(eventSource));
             base.OnEventSourceCreated(eventSource);
         }
 
         /// <summary>
         /// Update log level
         /// </summary>
-        /// <param name="eventSource"></param>
-        private void OnLogLevelChanged(EventSource eventSource) {
-            lock (_subscribers) {
-                if (_subscribers.TryGetValue(eventSource.Name, out var subscriptions)) {
-                    EnableEvents(eventSource, subscriptions.Max(s => s.Level));
-                }
+        private void SyncEventLevels() {
+            foreach (var eventSource in _subscribers.Values.ToList()) {
+                eventSource.UpdateEventLevel();
             }
         }
 
         /// <summary>
-        /// Update log level
+        /// Event Source with subscriptions
         /// </summary>
-        /// <param name="eventSource"></param>
-        /// <param name="subscription"></param>
-        private void Unsubscribe(string eventSource, EventSourceSubscription subscription) {
-            lock (_subscribers) {
-                if (_subscribers.TryGetValue(eventSource, out var subscriptions)) {
-                    subscriptions.Remove(subscription);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Connects listener to event source
-        /// </summary>
-        class EventSourceSubscription : IEventSourceSubscription {
+        class EventSourceWrapper {
 
             /// <summary>
             /// Event source
             /// </summary>
             internal EventSource EventSource { get; set; }
 
-            /// <inheritdoc/>
-            public EventLevel Level {
-                get => _level;
-                set {
-                    _level = value;
-                    if (EventSource != null) {
-                        _listener.OnLogLevelChanged(EventSource);
-                    }
-                }
-            }
-
             /// <summary>
             /// Create listener
             /// </summary>
-            /// <param name="source"></param>
-            /// <param name="subscriber"></param>
             /// <param name="listener"></param>
-            internal EventSourceSubscription(string source,
-                IEventSourceSubscriber subscriber, EventSourceBroker listener) {
-                _sourceName = source;
-                _subscriber = subscriber;
+            /// <param name="eventSource"></param>
+            internal EventSourceWrapper(EventSourceBroker listener, 
+                EventSource eventSource = null) {
+                EventSource = eventSource;
                 _listener = listener;
-            }
-
-            /// <inheritdoc/>
-            public void Dispose() {
-                _listener.Unsubscribe(_sourceName, this);
             }
 
             /// <summary>
@@ -122,18 +92,105 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
             /// </summary>
             /// <param name="eventData"></param>
             internal void OnEvent(EventWrittenEventArgs eventData) {
-                if (eventData.Level <= _level) {
+                lock (_subscriptions) {
+                    _subscriptions.ForEach(s => s.OnEvent(eventData));
+                }
+            }
+
+            /// <summary>
+            /// Enable events
+            /// </summary>
+            internal void UpdateEventLevel() {
+                if (EventSource != null) {
+                    lock (_subscriptions) {
+                        var level = _subscriptions.Max(s => s.Level);
+                        if (level != _enabledLevel) {
+                            _enabledLevel = level;
+                            _listener.EnableEvents(EventSource, level);
+                        }
+                    }
+                }
+            }
+
+            /// <summary>
+            /// Connect event source
+            /// </summary>
+            /// <param name="eventSource"></param>
+            /// <returns></returns>
+            internal EventSourceWrapper Connect(EventSource eventSource) {
+                EventSource = eventSource;
+                UpdateEventLevel();
+                return this;
+            }
+
+            /// <summary>
+            /// Add subscriber
+            /// </summary>
+            /// <param name="subscriber"></param>
+            /// <returns></returns>
+            internal EventSourceSubscriber Add(IEventSourceSubscriber subscriber) {
+                var subscription = new EventSourceSubscriber(subscriber, this);
+                lock(_subscriptions) {
+                    _subscriptions.Add(subscription);
+                }
+                UpdateEventLevel();
+                return subscription;
+            }
+
+            /// <summary>
+            /// Remove subscriber
+            /// </summary>
+            /// <param name="eventSourceSubscriber"></param>
+            internal void Remove(EventSourceSubscriber eventSourceSubscriber) {
+                lock (_subscriptions) {
+                    _subscriptions.Remove(eventSourceSubscriber);
+                }
+                UpdateEventLevel();
+            }
+
+            private EventLevel _enabledLevel;
+            private readonly EventSourceBroker _listener;
+            private readonly List<EventSourceSubscriber> _subscriptions = 
+                new List<EventSourceSubscriber>();
+        }
+
+        /// <summary>
+        /// Wraps event source subscriber
+        /// </summary>
+        class EventSourceSubscriber : IDisposable, IEventSourceSubscriber {
+
+            /// <inheritdoc/>
+            public EventLevel Level => _subscriber.Level;
+
+            /// <summary>
+            /// Create listener
+            /// </summary>
+            /// <param name="subscriber"></param>
+            /// <param name="outer"></param>
+            internal EventSourceSubscriber(
+                IEventSourceSubscriber subscriber, EventSourceWrapper outer) {
+                _subscriber = subscriber;
+                _outer = outer;
+            }
+
+            /// <inheritdoc/>
+            public void Dispose() {
+                _outer.Remove(this);
+            }
+
+            /// <inheritdoc/>
+            public void OnEvent(EventWrittenEventArgs eventData) {
+                if (eventData.Level <= Level) {
                     _subscriber.OnEvent(eventData);
                 }
             }
 
-            private readonly EventSourceBroker _listener;
+            private readonly EventSourceWrapper _outer;
             private readonly IEventSourceSubscriber _subscriber;
-            private readonly string _sourceName;
-            private EventLevel _level;
         }
 
-        private readonly Dictionary<string, List<EventSourceSubscription>> _subscribers =
-            new Dictionary<string, List<EventSourceSubscription>>();
+        private readonly ConcurrentDictionary<string, EventSourceWrapper> _subscribers =
+            new ConcurrentDictionary<string, EventSourceWrapper>();
+        private readonly Timer _timer;
     }
 }

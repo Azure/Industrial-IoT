@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Diagnostics {
+    using System;
 
     /// <summary>
     /// Manages event source subscriptions
@@ -15,7 +16,7 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
         /// </summary>
         /// <param name="eventSource"></param>
         /// <param name="subscriber"></param>
-        IEventSourceSubscription Subscribe(string eventSource,
+        IDisposable Subscribe(string eventSource,
             IEventSourceSubscriber subscriber);
     }
 }

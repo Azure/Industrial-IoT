@@ -8,74 +8,31 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
     using Serilog.Events;
     using System;
     using System.Diagnostics.Tracing;
-    using System.Threading;
 
     /// <summary>
-    /// Event listener bridge
+    /// Event source logger
     /// </summary>
-    public sealed class EventListenerSerilogBridge :  IEventSourceSubscriber,
-        IDisposable {
+    public sealed class EventSourceLogging : IEventSourceSubscriber {
+
+        /// <summary>
+        /// Level
+        /// </summary>
+        public EventLevel Level => ToEventLevel(LogEx.Level.MinimumLevel);
 
         /// <summary>
         /// Create bridge
         /// </summary>
         /// <param name="logger"></param>
-        public EventListenerSerilogBridge(ILogger logger) {
+        public EventSourceLogging(ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _lastLevel = LogEx.Level.MinimumLevel;
-
-            // Check log level changes every 30 seconds
-            _timer = new Timer(_ => EnableEvents(), null,
-                TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(30));
         }
 
         /// <inheritdoc/>
-        public void Subscribe(Guid eventSource) {
-        }
-
-        /// <inheritdoc/>
-        public void Disable(Guid eventSource) {
-        }
-
-        /// <inheritdoc/>
-        protected override void OnEventWritten(EventWrittenEventArgs eventData) {
+        public void OnEvent(EventWrittenEventArgs eventData) {
             var level = ToLogEventLevel(eventData.Level);
-            //if (_logger.IsEnabled(level)) {
-            //    _logger.Write(level, "[{event}] {message} ({@data})",
-            //        eventData.EventName, eventData.Message, eventData);
-            //}
-        }
-
-        /// <inheritdoc/>
-        public override void Dispose() {
-            _timer.Dispose();
-            base.Dispose();
-        }
-
-        /// <inheritdoc/>
-        protected override void OnEventSourceCreated(EventSource eventSource) {
-            // Enable events for current log level
-            EnableEvents(eventSource);
-            base.OnEventSourceCreated(eventSource);
-        }
-
-        /// <summary>
-        /// Enable events for event source
-        /// </summary>
-        /// <param name="eventSource"></param>
-        private void EnableEvents(EventSource eventSource) {
-            EnableEvents(eventSource, ToEventLevel(LogEx.Level.MinimumLevel));
-        }
-
-        /// <summary>
-        /// Enable events
-        /// </summary>
-        private void EnableEvents() {
-            if (_lastLevel != LogEx.Level.MinimumLevel) {
-                foreach (var source in EventSource.GetSources()) {
-                    EnableEvents(source);
-                }
-                _lastLevel = LogEx.Level.MinimumLevel;
+            if (_logger.IsEnabled(level)) {
+                _logger.Write(level, "[{event}] {message} ({@data})",
+                    eventData.EventName, eventData.Message, eventData);
             }
         }
 
@@ -125,7 +82,5 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
         }
 
         private readonly ILogger _logger;
-        private readonly Timer _timer;
-        private volatile LogEventLevel _lastLevel;
     }
 }

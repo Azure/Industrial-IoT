@@ -12,6 +12,11 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
     public interface IEventSourceSubscriber {
 
         /// <summary>
+        /// Level
+        /// </summary>
+        EventLevel Level { get; }
+
+        /// <summary>
         /// New event
         /// </summary>
         /// <param name="eventData"></param>
