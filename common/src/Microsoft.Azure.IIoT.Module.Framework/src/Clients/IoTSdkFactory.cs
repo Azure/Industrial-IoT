@@ -37,12 +37,11 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         /// Create sdk factory
         /// </summary>
         /// <param name="config"></param>
-        /// <param name="hook"></param>
+        /// <param name="broker"></param>
         /// <param name="logger"></param>
-        public IoTSdkFactory(IModuleConfig config, IEventSourceBroker hook, ILogger logger) {
+        public IoTSdkFactory(IModuleConfig config, IEventSourceBroker broker, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _hook = hook ?? throw new ArgumentNullException(nameof(hook));
-            _hook.Subscribe(Guid.Empty); // TODO
+            _logHook = broker.Subscribe("iotsdk", new EventSourceLogging(logger)); 
 
             // The runtime injects this as an environment variable
             var deviceId = Environment.GetEnvironmentVariable("IOTEDGE_DEVICEID");
@@ -100,13 +99,12 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             else {
                 _transport = config.Transport;
             }
-
             _timeout = TimeSpan.FromMinutes(5);
         }
 
         /// <inheritdoc/>
         public void Dispose() {
-            _hook.Disable(Guid.Empty); // TODO
+            _logHook.Dispose();
         }
 
         /// <inheritdoc/>
@@ -588,7 +586,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         private readonly TransportOption _transport;
         private readonly IotHubConnectionStringBuilder _cs;
         private readonly ILogger _logger;
-        private readonly IEventSourceBroker _hook;
+        private readonly IDisposable _logHook;
         private readonly bool _bypassCertValidation;
     }
 }
