@@ -13,13 +13,14 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
     /// <summary>
     /// Event listener bridge
     /// </summary>
-    public sealed class EventListenerBridge : EventListener, IDisposable {
+    public sealed class EventListenerSerilogBridge : EventListener, IEventSourceBroker,
+        IDisposable {
 
         /// <summary>
         /// Create bridge
         /// </summary>
         /// <param name="logger"></param>
-        public EventListenerBridge(ILogger logger) {
+        public EventListenerSerilogBridge(ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _lastLevel = LogEx.Level.MinimumLevel;
 
@@ -29,12 +30,20 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
         }
 
         /// <inheritdoc/>
+        public void Subscribe(Guid eventSource) {
+        }
+
+        /// <inheritdoc/>
+        public void Disable(Guid eventSource) {
+        }
+
+        /// <inheritdoc/>
         protected override void OnEventWritten(EventWrittenEventArgs eventData) {
             var level = ToLogEventLevel(eventData.Level);
-            if (_logger.IsEnabled(level)) {
-                _logger.Write(level, "[{event}] {message} ({@data})",
-                    eventData.EventName, eventData.Message, eventData);
-            }
+            //if (_logger.IsEnabled(level)) {
+            //    _logger.Write(level, "[{event}] {message} ({@data})",
+            //        eventData.EventName, eventData.Message, eventData);
+            //}
         }
 
         /// <inheritdoc/>

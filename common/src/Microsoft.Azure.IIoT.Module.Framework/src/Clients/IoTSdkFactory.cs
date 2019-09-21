@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.Module.Framework.Client {
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Utils;
+    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.Devices.Client;
     using Microsoft.Azure.Devices.Client.Transport.Mqtt;
     using Microsoft.Azure.Devices.Shared;
@@ -21,7 +22,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
     /// <summary>
     /// Injectable factory that creates clients from device sdk
     /// </summary>
-    public sealed class IoTSdkFactory : IClientFactory {
+    public sealed class IoTSdkFactory : IClientFactory, IDisposable {
 
         /// <inheritdoc />
         public string DeviceId { get; }
@@ -36,9 +37,12 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         /// Create sdk factory
         /// </summary>
         /// <param name="config"></param>
+        /// <param name="hook"></param>
         /// <param name="logger"></param>
-        public IoTSdkFactory(IModuleConfig config, ILogger logger) {
+        public IoTSdkFactory(IModuleConfig config, IEventSourceBroker hook, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _hook = hook ?? throw new ArgumentNullException(nameof(hook));
+            _hook.Subscribe(Guid.Empty); // TODO
 
             // The runtime injects this as an environment variable
             var deviceId = Environment.GetEnvironmentVariable("IOTEDGE_DEVICEID");
@@ -98,6 +102,11 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             }
 
             _timeout = TimeSpan.FromMinutes(5);
+        }
+
+        /// <inheritdoc/>
+        public void Dispose() {
+            _hook.Disable(Guid.Empty); // TODO
         }
 
         /// <inheritdoc/>
@@ -579,6 +588,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         private readonly TransportOption _transport;
         private readonly IotHubConnectionStringBuilder _cs;
         private readonly ILogger _logger;
+        private readonly IEventSourceBroker _hook;
         private readonly bool _bypassCertValidation;
     }
 }

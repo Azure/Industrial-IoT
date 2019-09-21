@@ -26,6 +26,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework {
             // Register sdk and host
             builder.RegisterType<IoTSdkFactory>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
+            builder.RegisterType<EventListenerSerilogBridge>()
+                .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<ModuleHost>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
 
