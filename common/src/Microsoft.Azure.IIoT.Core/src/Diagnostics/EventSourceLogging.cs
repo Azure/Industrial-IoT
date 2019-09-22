@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
     using Serilog.Events;
     using System;
     using System.Diagnostics.Tracing;
+    using System.Text;
 
     /// <summary>
     /// Event source logger
@@ -30,10 +31,28 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
         /// <inheritdoc/>
         public void OnEvent(EventWrittenEventArgs eventData) {
             var level = ToLogEventLevel(eventData.Level);
-            if (_logger.IsEnabled(level)) {
-                _logger.Write(level, "[{event}] {message} ({@data})",
-                    eventData.EventName, eventData.Message, eventData);
+            var parameters = new object[eventData.Payload.Count + 4];
+            parameters[0] = eventData.Level;
+            parameters[1] = eventData.EventName;
+            for (var i = 0; i < eventData.Payload.Count; i++){
+                parameters[2 + i] = eventData.Payload[i];
             }
+            parameters[2 + eventData.Payload.Count + 0] = eventData.Message;
+            parameters[2 + eventData.Payload.Count + 1] = eventData;
+            var template = new StringBuilder();
+            template.Append("[{level}] {event}:");
+            foreach (var name in eventData.PayloadNames) {
+                template.Append("{");
+                template.Append(name);
+                template.Append("}, ");
+            }
+            if (eventData.Message != null) {
+                template.Append("message={message}");
+            }
+            else {
+                template.Append("<No message>");
+            }
+            _logger.Write(level, template.ToString(), parameters);
         }
 
         /// <summary>

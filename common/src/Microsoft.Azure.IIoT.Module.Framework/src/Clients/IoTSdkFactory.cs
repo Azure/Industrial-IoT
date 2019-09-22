@@ -41,7 +41,13 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         /// <param name="logger"></param>
         public IoTSdkFactory(IModuleConfig config, IEventSourceBroker broker, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _logHook = broker.Subscribe("iotsdk", new EventSourceLogging(logger)); 
+
+            if (broker != null) {
+                var hook = new EventSourceLogging(logger);
+
+                _logHook = broker.Subscribe("Microsoft-Azure-Devices-Device-Client", hook);
+                // ...
+            }
 
             // The runtime injects this as an environment variable
             var deviceId = Environment.GetEnvironmentVariable("IOTEDGE_DEVICEID");
@@ -104,7 +110,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
 
         /// <inheritdoc/>
         public void Dispose() {
-            _logHook.Dispose();
+            _logHook?.Dispose();
         }
 
         /// <inheritdoc/>

@@ -2,7 +2,7 @@
   "profiles": {
     "Microsoft.Azure.IIoT.Modules.Diagnostic.Cli": {
       "commandName": "Project",
-      "commandLineArgs": "--silent"
+      "commandLineArgs": "--verbose"
     }
   }
 }

@@ -103,7 +103,8 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
             internal void UpdateEventLevel() {
                 if (EventSource != null) {
                     lock (_subscriptions) {
-                        var level = _subscriptions.Max(s => s.Level);
+                        var level = _subscriptions.Any() ? 
+                            _subscriptions.Max(s => s.Level) : EventLevel.LogAlways;
                         if (level != _enabledLevel) {
                             _enabledLevel = level;
                             _listener.EnableEvents(EventSource, level);
@@ -148,7 +149,7 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
                 UpdateEventLevel();
             }
 
-            private EventLevel _enabledLevel;
+            private EventLevel _enabledLevel = EventLevel.LogAlways;
             private readonly EventSourceBroker _listener;
             private readonly List<EventSourceSubscriber> _subscriptions = 
                 new List<EventSourceSubscriber>();

@@ -120,7 +120,8 @@ namespace Microsoft.Azure.IIoT.Modules.Diagnostic {
                 .AsImplementedInterfaces().SingleInstance();
 
             // register logger
-            builder.RegisterLogger(LogEx.Console(LogEventLevel.Information));
+            builder.RegisterLogger(LogEx.Console(
+                configuration.GetValue("LogLevel", LogEventLevel.Information)));
 
             // Register module framework
             builder.RegisterModule<ModuleFramework>();

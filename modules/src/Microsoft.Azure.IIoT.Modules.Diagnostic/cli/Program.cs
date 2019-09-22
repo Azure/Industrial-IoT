@@ -214,13 +214,16 @@ Arguments:
         /// </summary>
         private static async Task HostAsync(IIoTHubConfig config, ILogger logger,
             string deviceId, string moduleId) {
-            Console.WriteLine("Create or retrieve connection string...");
+            logger.Information("Create or retrieve connection string...");
 
             var cs = await Retry.WithExponentialBackoff(logger,
-                () => AddOrGetAsync(config, deviceId, moduleId));
+                () => AddOrGetAsync(config, deviceId, moduleId, logger));
 
             logger.Information("Starting diagnostic module...");
-            Diagnostic.Program.Main(new string[] { $"EdgeHubConnectionString={cs}" });
+            Diagnostic.Program.Main(new string[] {
+                $"EdgeHubConnectionString={cs}",
+                $"LogLevel={LogEx.Level.MinimumLevel}"
+            });
             logger.Information("Diagnostic module exited.");
         }
 
@@ -228,8 +231,9 @@ Arguments:
         /// Add or get supervisor identity
         /// </summary>
         private static async Task<ConnectionString> AddOrGetAsync(IIoTHubConfig config,
-            string deviceId, string moduleId) {
-            var logger = LogEx.Console(LogEventLevel.Error);
+            string deviceId, string moduleId, ILogger logger) {
+            var level = LogEx.Level.MinimumLevel;
+            LogEx.Level.MinimumLevel = LogEventLevel.Error;
             var registry = CreateClient(config, logger);
             await registry.CreateAsync(new DeviceTwinModel {
                 Id = deviceId,
@@ -239,6 +243,7 @@ Arguments:
                 }
             }, true, CancellationToken.None);
             var cs = await registry.GetConnectionStringAsync(deviceId, moduleId);
+            LogEx.Level.MinimumLevel = level;
             return cs;
         }
 
