@@ -40,17 +40,14 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
             parameters[2 + eventData.Payload.Count + 0] = eventData.Message;
             parameters[2 + eventData.Payload.Count + 1] = eventData;
             var template = new StringBuilder();
-            template.Append("[{level}] {event}:");
+            template.Append("[{level}] {event}: ");
             foreach (var name in eventData.PayloadNames) {
                 template.Append("{");
                 template.Append(name);
-                template.Append("}, ");
+                template.Append("} ");
             }
             if (eventData.Message != null) {
-                template.Append("message={message}");
-            }
-            else {
-                template.Append("<No message>");
+                template.Append("{msg}");
             }
             _logger.Write(level, template.ToString(), parameters);
         }

@@ -76,11 +76,8 @@ namespace Microsoft.Azure.IIoT.Modules.Diagnostic {
                 using (var hostScope = ConfigureContainer(_config)) {
                     _reset = new TaskCompletionSource<bool>();
                     var module = hostScope.Resolve<IModuleHost>();
-                    var publisher = hostScope.Resolve<IPublisher>();
                     var logger = hostScope.Resolve<ILogger>();
                     try {
-                        // Find publisher in network before starting supervisor
-                        await publisher.StartAsync();
                         // Start module
                         await module.StartAsync("diagnostic", SiteId, "Diagnostic", this);
                         OnRunning?.Invoke(this, true);

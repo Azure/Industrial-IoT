@@ -5,12 +5,14 @@
 
 namespace Microsoft.Azure.IIoT.Modules.Diagnostic.v2.Supervisor {
     using Microsoft.Azure.IIoT.Modules.Diagnostic.v2.Filters;
+    using Microsoft.Azure.IIoT.Modules.Diagnostic.Services;
     using Microsoft.Azure.IIoT.Module.Framework;
     using Serilog;
     using System;
     using System.Threading.Tasks;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
+    using System.Reflection.Metadata.Ecma335;
 
     /// <summary>
     /// Diagnostic methods controller
@@ -23,9 +25,11 @@ namespace Microsoft.Azure.IIoT.Modules.Diagnostic.v2.Supervisor {
         /// <summary>
         /// Create controller with service
         /// </summary>
+        /// <param name="publisher"></param>
         /// <param name="logger"></param>
-        public DiagnosticMethodsController(ILogger logger) {
+        public DiagnosticMethodsController(IPublisher publisher, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _publisher = publisher ?? throw new ArgumentNullException(nameof(publisher));
         }
 
         /// <summary>
@@ -47,6 +51,24 @@ namespace Microsoft.Azure.IIoT.Modules.Diagnostic.v2.Supervisor {
             return Task.FromResult(token);
         }
 
+        /// <summary>
+        /// Start to publish
+        /// </summary>
+        /// <returns></returns>
+        public async Task StartPublishAsync(int delay) {
+            _publisher.Interval = TimeSpan.FromSeconds(delay);
+            await _publisher.StartAsync();
+        }
+
+        /// <summary>
+        /// Stop
+        /// </summary>
+        /// <returns></returns>
+        public async Task StopPublishAsync() {
+            await _publisher.StopAsync();
+        }
+
         private readonly ILogger _logger;
+        private readonly IPublisher _publisher;
     }
 }

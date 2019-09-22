@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Modules.Diagnostic.Cli {
+    using DotNetty.Codecs.Mqtt.Packets;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Hub;
@@ -32,6 +33,8 @@ namespace Microsoft.Azure.IIoT.Modules.Diagnostic.Cli {
         public static void Main(string[] args) {
             string deviceId = null, moduleId = null;
             var standalone = false;
+            var echo = false;
+            var publish = false;
             var logger = LogEx.Console(LogEventLevel.Information);
             Console.WriteLine("Edge Diagnostics command line interface.");
             var configuration = new ConfigurationBuilder()
@@ -68,6 +71,14 @@ namespace Microsoft.Azure.IIoT.Modules.Diagnostic.Cli {
                             break;
                         case "--silent":
                             logger = Logger.None;
+                            break;
+                        case "--echo":
+                        case "-e":
+                            echo = true;
+                            break;
+                        case "--publish":
+                        case "-p":
+                            publish = true;
                             break;
                         case "-d":
                         case "--deviceId":
@@ -115,6 +126,12 @@ namespace Microsoft.Azure.IIoT.Modules.Diagnostic.Cli {
 Usage:       Microsoft.Azure.IIoT.Modules.Diagnostic.Cli [Arguments]
 
 Arguments:
+    --publish
+     -P
+             Publish test messages.
+    --echo
+     -e
+             Send echo pings to diagnostic module.
     --standalone
      -s
              Run the diagnostic module standalone.
@@ -152,12 +169,24 @@ Arguments:
                             cts.Token);
                     }
 
-                    // Call echo method until cancelled
-                    pinger = Task.Run(() => PingAsync(config, logger, deviceId, moduleId, cts.Token),
-                        cts.Token);
+                    if (echo) {
+                        // Call echo method until cancelled
+                        pinger = Task.Run(() => PingAsync(config, logger, deviceId,
+                            moduleId, cts.Token), cts.Token);
+                    }
+
+                    if (publish) {
+                        StartPublishAsync(config, logger, deviceId, moduleId, 
+                            TimeSpan.Zero, cts.Token).Wait();
+                    }
 
                     // Wait until cancelled
                     Console.ReadKey();
+
+                    if (publish) {
+                        StopPublishAsync(config, logger, deviceId, moduleId, cts.Token).Wait();
+                    }
+
                     cts.Cancel();
                 }
                 catch (OperationCanceledException) { }
@@ -207,6 +236,46 @@ Arguments:
                 }
             }
             logger.Information("Echo thread completed");
+        }
+
+        /// <summary>
+        /// Start publishing
+        /// </summary>
+        private static async Task StartPublishAsync(IIoTHubConfig config, ILogger logger,
+            string deviceId, string moduleId, TimeSpan interval, CancellationToken ct) {
+            var client = new IoTHubTwinMethodClient(CreateClient(config, logger));
+            while (!ct.IsCancellationRequested) {
+                try {
+                    logger.Information("Start publishing...");
+                    var result = await client.CallMethodAsync(deviceId, moduleId,
+                        "StartPublish_V1", ((int)interval.TotalSeconds).ToString(), null, ct);
+                    logger.Information("... started");
+                    break;
+                }
+                catch (Exception ex) {
+                    logger.Verbose(ex, "Failed to start publishing");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Stop publishing
+        /// </summary>
+        private static async Task StopPublishAsync(IIoTHubConfig config, ILogger logger,
+            string deviceId, string moduleId, CancellationToken ct) {
+            var client = new IoTHubTwinMethodClient(CreateClient(config, logger));
+            while (!ct.IsCancellationRequested) {
+                try {
+                    logger.Information("Stop publishing...");
+                    var result = await client.CallMethodAsync(deviceId, moduleId,
+                        "StopPublish_V1", "", null, ct);
+                    logger.Information("... stopped");
+                    break;
+                }
+                catch (Exception ex) {
+                    logger.Verbose(ex, "Failed to stop publishing");
+                }
+            }
         }
 
         /// <summary>
