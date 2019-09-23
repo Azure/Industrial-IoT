@@ -258,6 +258,9 @@ namespace OpcPublisher
                         { "dc|deviceconnectionstring=", $"{(IotEdgeIndicator.RunsAsIotEdgeModule ? "not supported when running as IoTEdge module\n" : $"if publisher is not able to register itself with IoTHub, you can create a device with name <applicationname> manually and pass in the connectionstring of this device.\nDefault: none")}",
                             (string dc) => DeviceConnectionString = (IotEdgeIndicator.RunsAsIotEdgeModule ? null : dc)
                         },
+                        { "ec|edgehubconnectionstring=", $"{(IotEdgeIndicator.RunsAsIotEdgeModule ? "not supported when running as IoTEdge module\n" : $"if publisher is not able to register itself with IoTHub, you can create a device with name <applicationname> manually and pass in the connectionstring of this device.\nDefault: none")}",
+                            (string dc) => EdgeHubConnectionString = (IotEdgeIndicator.RunsAsIotEdgeModule ? null : dc)
+                        },
                         { "c|connectionstring=", $"the IoTHub owner connectionstring.\nDefault: none",
                             (string cs) => IotHubOwnerConnectionString = cs
                         },
@@ -725,7 +728,8 @@ namespace OpcPublisher
                 TelemetryConfiguration = PublisherTelemetryConfiguration.Instance;
 
                 // initialize hub communication
-                if (IotEdgeIndicator.RunsAsIotEdgeModule)
+                if (IotEdgeIndicator.RunsAsIotEdgeModule ||
+                    !string.IsNullOrEmpty(EdgeHubConnectionString))
                 {
                     // initialize and start EdgeHub communication
                     Hub = IotEdgeHubCommunication.Instance;

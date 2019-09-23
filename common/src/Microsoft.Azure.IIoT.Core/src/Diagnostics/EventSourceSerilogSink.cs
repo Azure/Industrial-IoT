@@ -30,17 +30,25 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
 
         /// <inheritdoc/>
         public virtual void OnEvent(EventWrittenEventArgs eventData) {
-            var level = ToLogEventLevel(eventData.Level);
+            WriteEvent(ToLogEventLevel(eventData.Level), eventData);
+        }
+
+        /// <summary>
+        /// Write event to logger
+        /// </summary>
+        /// <param name="level"></param>
+        /// <param name="eventData"></param>
+        protected void WriteEvent(LogEventLevel level, EventWrittenEventArgs eventData) {
             var parameters = new object[eventData.Payload.Count + 4];
-            parameters[0] = eventData.Level;
-            parameters[1] = eventData.EventName;
-            for (var i = 0; i < eventData.Payload.Count; i++){
+            parameters[0] = eventData.EventName;
+            parameters[1] = eventData.Level;
+            for (var i = 0; i < eventData.Payload.Count; i++) {
                 parameters[2 + i] = eventData.Payload[i];
             }
             parameters[2 + eventData.Payload.Count + 0] = eventData.Message;
             parameters[2 + eventData.Payload.Count + 1] = eventData;
             var template = new StringBuilder();
-            template.Append("[{level}] {event}: ");
+            template.Append("[{event}] {level}: ");
             foreach (var name in eventData.PayloadNames) {
                 template.Append("{");
                 template.Append(name);
@@ -57,18 +65,18 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
         /// </summary>
         /// <param name="level"></param>
         /// <returns></returns>
-        private static LogEventLevel ToLogEventLevel(EventLevel level) {
+        protected static LogEventLevel ToLogEventLevel(EventLevel level) {
             switch (level) {
                 case EventLevel.Critical:
                     return LogEventLevel.Fatal;
+                case EventLevel.Warning:
+                    return LogEventLevel.Warning;
                 case EventLevel.Error:
                     return LogEventLevel.Error;
                 case EventLevel.Informational:
-                    return LogEventLevel.Debug;
+                    return LogEventLevel.Information;
                 case EventLevel.Verbose:
                     return LogEventLevel.Verbose;
-                case EventLevel.Warning:
-                    return LogEventLevel.Warning;
                 default:
                     return LogEventLevel.Debug;
             }
@@ -79,19 +87,19 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
         /// </summary>
         /// <param name="level"></param>
         /// <returns></returns>
-        private static EventLevel ToEventLevel(LogEventLevel level) {
+        protected static EventLevel ToEventLevel(LogEventLevel level) {
             switch (level) {
                 case LogEventLevel.Fatal:
                     return EventLevel.Critical;
                 case LogEventLevel.Error:
                     return EventLevel.Error;
+                case LogEventLevel.Warning:
+                    return EventLevel.Warning;
                 case LogEventLevel.Debug:
                 case LogEventLevel.Information:
                     return EventLevel.Informational;
                 case LogEventLevel.Verbose:
                     return EventLevel.Verbose;
-                case LogEventLevel.Warning:
-                    return EventLevel.Warning;
                 default:
                     return EventLevel.LogAlways;
             }

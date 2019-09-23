@@ -212,7 +212,7 @@ Options:
             try {
                 switch (op) {
                     case Op.Host:
-                        HostAsync(config, deviceId, moduleId).Wait();
+                        HostAsync(config, deviceId, moduleId, args).Wait();
                         break;
                     case Op.Add:
                         AddAsync(config, deviceId, moduleId).Wait();
@@ -258,13 +258,15 @@ Options:
         /// Host the supervisor module giving it its connection string.
         /// </summary>
         private static async Task HostAsync(IIoTHubConfig config,
-            string deviceId, string moduleId) {
+            string deviceId, string moduleId, string[] args) {
             Console.WriteLine("Create or retrieve connection string...");
             var logger = LogEx.Console(LogEventLevel.Error);
             var cs = await Retry.WithExponentialBackoff(logger,
                 () => AddOrGetAsync(config, deviceId, moduleId));
             Console.WriteLine("Starting twin module...");
-            Twin.Program.Main(new string[] { $"EdgeHubConnectionString={cs}" });
+            var arguments = args.ToList();
+            arguments.Add($"EdgeHubConnectionString={cs}");
+            Twin.Program.Main(arguments.ToArray());
             Console.WriteLine("Twin module exited.");
         }
 

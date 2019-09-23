@@ -101,6 +101,14 @@ namespace OpcPublisher
         }
 
         /// <summary>
+        /// Create ModuleClient from the specified connection string using the specified transport type
+        /// </summary>
+        public static IHubClient CreateModuleClientFromConnectionString(string connectionString, TransportType transportType)
+        {
+            return new HubClient(ModuleClient.CreateFromConnectionString(connectionString, transportType));
+        }
+
+        /// <summary>
         /// Close the client instance
         /// </summary>
         public Task CloseAsync()
@@ -126,7 +134,7 @@ namespace OpcPublisher
         }
 
         /// <summary>
-        /// Registers a new delegate for the connection status changed callback. If a delegate is already associated, 
+        /// Registers a new delegate for the connection status changed callback. If a delegate is already associated,
         /// it will be replaced with the new delegate.
         /// </summary>
         public void SetConnectionStatusChangesHandler(ConnectionStatusChangesHandler statusChangesHandler)
@@ -165,7 +173,7 @@ namespace OpcPublisher
         }
 
         /// <summary>
-        /// Registers a new delegate that is called for a method that doesn't have a delegate registered for its name. 
+        /// Registers a new delegate that is called for a method that doesn't have a delegate registered for its name.
         /// If a default delegate is already registered it will replace with the new delegate.
         /// </summary>
         public Task SetMethodDefaultHandlerAsync(MethodCallback methodHandler)

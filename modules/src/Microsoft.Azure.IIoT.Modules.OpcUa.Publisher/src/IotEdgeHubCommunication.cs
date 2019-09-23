@@ -1,6 +1,5 @@
 ﻿namespace OpcPublisher
 {
-    using Microsoft.Azure.Devices.Client;
     using System;
     using static Program;
 
@@ -9,6 +8,11 @@
     /// </summary>
     public class IotEdgeHubCommunication : HubCommunicationBase
     {
+        /// <summary>
+        /// Edge hub connection string - if not running inside iotedge
+        /// </summary>
+        public static string EdgeHubConnectionString { get; set; } = null;
+
         /// <summary>
         /// Get the singleton.
         /// </summary>
@@ -34,7 +38,9 @@
         {
             // connect to IoT Edge hub
             Logger.Information($"Create module client using '{HubProtocol}' for communication.");
-            IHubClient hubClient = HubClient.CreateModuleClientFromEnvironment(HubProtocol);
+            IHubClient hubClient = string.IsNullOrEmpty(EdgeHubConnectionString) ?
+                HubClient.CreateModuleClientFromEnvironment(HubProtocol) :
+                HubClient.CreateModuleClientFromConnectionString(EdgeHubConnectionString, HubProtocol);
 
             if (!InitHubCommunicationAsync(hubClient).Result)
             {

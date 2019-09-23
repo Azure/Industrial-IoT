@@ -11,6 +11,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
     using Microsoft.Azure.Devices.Client.Transport.Mqtt;
     using Microsoft.Azure.Devices.Shared;
     using Serilog;
+    using Serilog.Events;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -44,10 +45,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             if (broker != null) {
-                var hook = new IoTSdkLogger(logger);
-
-                _logHook = broker.Subscribe(IoTSdkLogger.EventSource, hook);
-                // ...
+                _logHook = broker.Subscribe(IoTSdkLogger.EventSource, new IoTSdkLogger(logger));
             }
 
             // The runtime injects this as an environment variable
@@ -590,18 +588,30 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         }
 
         /// <summary>
-        /// Sdk logger hook
+        /// Sdk logger event source hook
         /// </summary>
         internal sealed class IoTSdkLogger : EventSourceSerilogSink {
 
             /// <inheritdoc/>
-            public IoTSdkLogger(ILogger logger) : base(logger) {}
+            public IoTSdkLogger(ILogger logger) :
+                base(logger.ForContext("SourceContext", EventSource.Replace('-', '.'))) {
+            }
 
             /// <inheritdoc/>
             public override void OnEvent(EventWrittenEventArgs eventData) {
-                base.OnEvent(eventData);
+                switch (eventData.EventName) {
+                    case "Enter":
+                    case "Exit":
+                    case "Associate":
+                        WriteEvent(LogEventLevel.Verbose, eventData);
+                        break;
+                    default:
+                        WriteEvent(LogEventLevel.Debug, eventData);
+                        break;
+                }
             }
 
+            // ddbee999-a79e-5050-ea3c-6d1a8a7bafdd
             public const string EventSource = "Microsoft-Azure-Devices-Device-Client";
         }
 

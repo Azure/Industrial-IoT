@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Modules.Discovery.Cli {
+namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Cli {
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Hub.Models;
@@ -28,7 +28,7 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery.Cli {
         /// </summary>
         public static void Main(string[] args) {
             string deviceId = null, moduleId = null;
-            Console.WriteLine("Discovery module command line interface.");
+            Console.WriteLine("Publisher module command line interface.");
             var configuration = new ConfigurationBuilder()
                 .AddFromDotEnvFile()
                 .AddEnvironmentVariables()
@@ -64,12 +64,13 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery.Cli {
                     throw new ArgumentException("Bad connection string.");
                 }
                 config = connectionString.ToIoTHubConfig();
+
                 if (deviceId == null) {
                     deviceId = Dns.GetHostName();
                     Console.WriteLine($"Using <deviceId> '{deviceId}'");
                 }
                 if (moduleId == null) {
-                    moduleId = "discovery";
+                    moduleId = "opcpublisher";
                     Console.WriteLine($"Using <moduleId> '{moduleId}'");
                 }
             }
@@ -77,7 +78,7 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery.Cli {
                 Console.WriteLine(e.Message);
                 Console.WriteLine(
                     @"
-Usage:       Microsoft.Azure.IIoT.Modules.Discovery.Cli [options]
+Usage:       Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Cli [options]
 
 Options:
      -C
@@ -109,11 +110,11 @@ Options:
             var logger = LogEx.Console(LogEventLevel.Error);
             var cs = await Retry.WithExponentialBackoff(logger,
                 () => AddOrGetAsync(config, deviceId, moduleId));
-            Console.WriteLine("Starting discovery module...");
+            Console.WriteLine("Starting publisher module...");
             var arguments = args.ToList();
-            arguments.Add($"EdgeHubConnectionString={cs}");
-            Discovery.Program.Main(arguments.ToArray());
-            Console.WriteLine("Discovery module exited.");
+            arguments.Add($"--ec={cs}");
+            OpcPublisher.Program.Main(arguments.ToArray());
+            Console.WriteLine("Publisher module exited.");
         }
 
         /// <summary>

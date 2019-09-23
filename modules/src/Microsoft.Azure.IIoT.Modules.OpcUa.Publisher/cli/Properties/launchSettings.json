@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "Microsoft.Azure.IIoT.Modules.OpcUa.Discovery.Cli": {
+    "Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Cli": {
       "commandName": "Project",
       "commandLineArgs": "--host"
     }

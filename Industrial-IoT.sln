@@ -192,6 +192,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Module
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Modules.Discovery.Cli", "modules\src\Microsoft.Azure.IIoT.Modules.Discovery\cli\Microsoft.Azure.IIoT.Modules.Discovery.Cli.csproj", "{9CDDE537-2D55-4A7E-947D-7FA3EC87B72A}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Cli", "modules\src\Microsoft.Azure.IIoT.Modules.OpcUa.Publisher\cli\Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Cli.csproj", "{277079D0-B557-4280-A698-37EDADA10066}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -631,6 +633,12 @@ Global
 		{9CDDE537-2D55-4A7E-947D-7FA3EC87B72A}.Develop|Any CPU.Build.0 = Debug|Any CPU
 		{9CDDE537-2D55-4A7E-947D-7FA3EC87B72A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9CDDE537-2D55-4A7E-947D-7FA3EC87B72A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{277079D0-B557-4280-A698-37EDADA10066}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{277079D0-B557-4280-A698-37EDADA10066}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{277079D0-B557-4280-A698-37EDADA10066}.Develop|Any CPU.ActiveCfg = Debug|Any CPU
+		{277079D0-B557-4280-A698-37EDADA10066}.Develop|Any CPU.Build.0 = Debug|Any CPU
+		{277079D0-B557-4280-A698-37EDADA10066}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{277079D0-B557-4280-A698-37EDADA10066}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -725,6 +733,7 @@ Global
 		{D3100DBF-D198-4E4E-BE66-1B29C6A99FD4} = {C8D79D8A-D92E-4AE3-BA54-0C927BEBCEBF}
 		{EB0E6E11-3C34-4BDE-8020-5324BCEB2C06} = {3A2DB744-69F3-488E-8CD5-45B921385B76}
 		{9CDDE537-2D55-4A7E-947D-7FA3EC87B72A} = {C8D79D8A-D92E-4AE3-BA54-0C927BEBCEBF}
+		{277079D0-B557-4280-A698-37EDADA10066} = {C8D79D8A-D92E-4AE3-BA54-0C927BEBCEBF}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F09EFCEA-59F6-4A16-9CB6-7E865A3F62D8}

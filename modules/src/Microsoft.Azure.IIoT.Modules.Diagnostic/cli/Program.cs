@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Modules.Diagnostic.Cli {
-    using DotNetty.Codecs.Mqtt.Packets;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Hub;
@@ -18,6 +17,7 @@ namespace Microsoft.Azure.IIoT.Modules.Diagnostic.Cli {
     using Serilog.Core;
     using Serilog.Events;
     using System;
+    using System.Linq;
     using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
@@ -165,8 +165,8 @@ Arguments:
                 try {
                     if (standalone) {
                         // Start diagnostic module process standalone
-                        runner = Task.Run(() => HostAsync(config, logger, deviceId, moduleId),
-                            cts.Token);
+                        runner = Task.Run(() => HostAsync(config, logger, deviceId,
+                            moduleId, args), cts.Token);
                     }
 
                     if (echo) {
@@ -176,7 +176,7 @@ Arguments:
                     }
 
                     if (publish) {
-                        StartPublishAsync(config, logger, deviceId, moduleId, 
+                        StartPublishAsync(config, logger, deviceId, moduleId,
                             TimeSpan.Zero, cts.Token).Wait();
                     }
 
@@ -282,17 +282,17 @@ Arguments:
         /// Host the diagnostic module giving it its connection string.
         /// </summary>
         private static async Task HostAsync(IIoTHubConfig config, ILogger logger,
-            string deviceId, string moduleId) {
+            string deviceId, string moduleId, string[] args) {
             logger.Information("Create or retrieve connection string...");
 
             var cs = await Retry.WithExponentialBackoff(logger,
                 () => AddOrGetAsync(config, deviceId, moduleId, logger));
 
             logger.Information("Starting diagnostic module...");
-            Diagnostic.Program.Main(new string[] {
-                $"EdgeHubConnectionString={cs}",
-                $"LogLevel={LogEx.Level.MinimumLevel}"
-            });
+            var arguments = args.ToList();
+            arguments.Add($"EdgeHubConnectionString={cs}");
+            arguments.Add($"LogLevel={LogEx.Level.MinimumLevel}");
+            Diagnostic.Program.Main(arguments.ToArray());
             logger.Information("Diagnostic module exited.");
         }
 
