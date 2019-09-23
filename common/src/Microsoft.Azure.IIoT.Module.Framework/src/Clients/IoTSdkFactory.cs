@@ -18,6 +18,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
     using System.Security.Cryptography.X509Certificates;
     using System.Threading.Tasks;
     using System.Threading;
+    using System.Diagnostics.Tracing;
 
     /// <summary>
     /// Injectable factory that creates clients from device sdk
@@ -43,9 +44,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             if (broker != null) {
-                var hook = new EventSourceLogging(logger);
+                var hook = new IoTSdkLogger(logger);
 
-                _logHook = broker.Subscribe("Microsoft-Azure-Devices-Device-Client", hook);
+                _logHook = broker.Subscribe(IoTSdkLogger.EventSource, hook);
                 // ...
             }
 
@@ -586,6 +587,22 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             }
             _logger.Information("Added Cert: {certPath}", certPath);
             store.Close();
+        }
+
+        /// <summary>
+        /// Sdk logger hook
+        /// </summary>
+        internal sealed class IoTSdkLogger : EventSourceSerilogSink {
+
+            /// <inheritdoc/>
+            public IoTSdkLogger(ILogger logger) : base(logger) {}
+
+            /// <inheritdoc/>
+            public override void OnEvent(EventWrittenEventArgs eventData) {
+                base.OnEvent(eventData);
+            }
+
+            public const string EventSource = "Microsoft-Azure-Devices-Device-Client";
         }
 
         private readonly TimeSpan _timeout;

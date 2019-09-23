@@ -13,7 +13,7 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
     /// <summary>
     /// Event source logger
     /// </summary>
-    public sealed class EventSourceLogging : IEventSourceSubscriber {
+    public class EventSourceSerilogSink : IEventSourceSubscriber {
 
         /// <summary>
         /// Level
@@ -24,12 +24,12 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
         /// Create bridge
         /// </summary>
         /// <param name="logger"></param>
-        public EventSourceLogging(ILogger logger) {
+        public EventSourceSerilogSink(ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <inheritdoc/>
-        public void OnEvent(EventWrittenEventArgs eventData) {
+        public virtual void OnEvent(EventWrittenEventArgs eventData) {
             var level = ToLogEventLevel(eventData.Level);
             var parameters = new object[eventData.Payload.Count + 4];
             parameters[0] = eventData.Level;
@@ -97,6 +97,7 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
             }
         }
 
-        private readonly ILogger _logger;
+        /// <summary> Logger </summary>
+        protected readonly ILogger _logger;
     }
 }
