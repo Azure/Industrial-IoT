@@ -8,7 +8,7 @@
     azure pipeline or "az login" must have been performed already.
 
  .PARAMETER registry
-    The name of the registry in ACR
+    The name of the registry
 
  .PARAMETER subscription
     The subscription to use - otherwise uses default
@@ -18,8 +18,8 @@
 if ([string]::IsNullOrEmpty($registry)) {
     $registry = $env.BUILD_REGISTRY
     if ([string]::IsNullOrEmpty($registry)) {
-        Write-Warning "No registry specified - using default name."
-        $registry = "industrialiot"
+        $registry = "industrialiotdev"
+        Write-Warning "No registry specified - using $($registry).azurecr.io."
     }
 }
 
@@ -36,7 +36,7 @@ $repositories = (& "az" $argumentList 2>&1 | %{ "$_" }) | ConvertFrom-Json
 $repositories | ForEach-Object {
     $repository = $_
     
-    if ($repository.StartsWith("internal/")) {
+    if (!$repository.StartsWith("public/")) {
         Write-Warning "Deleting $($repository)"
         $argumentList = @("acr", "repository", "delete", 
             "--yes",
