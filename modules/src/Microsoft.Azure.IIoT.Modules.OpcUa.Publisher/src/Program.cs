@@ -727,6 +727,9 @@ namespace OpcPublisher
                 // initialize the telemetry configuration
                 TelemetryConfiguration = PublisherTelemetryConfiguration.Instance;
 
+                // initialize the node configuration
+                NodeConfiguration = PublisherNodeConfiguration.Instance;
+
                 // initialize hub communication
                 if (IotEdgeIndicator.RunsAsIotEdgeModule ||
                     !string.IsNullOrEmpty(EdgeHubConnectionString))
@@ -739,9 +742,6 @@ namespace OpcPublisher
                     // initialize and start IoTHub communication
                     Hub = IotHubCommunication.Instance;
                 }
-
-                // initialize the node configuration
-                NodeConfiguration = PublisherNodeConfiguration.Instance;
 
                 // kick off OPC session creation and node monitoring
                 await SessionStartAsync().ConfigureAwait(false);
