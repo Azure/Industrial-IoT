@@ -174,6 +174,9 @@ Options:
                     var host = Task.Run(() => HostAsync(config, logger, deviceId,
                         moduleId, args, true), cts.Token);
 
+                    // Wait a bit
+                    await Task.Delay(TimeSpan.FromSeconds(5), cts.Token);
+
                     // Nodes to publish
                     var nodes = new string[] {
                         "i=2258",  // Server time
@@ -226,7 +229,9 @@ Options:
                         UseSecurity = true,
                         OpcNodes = new List<PublisherNodeModel> {
                             new PublisherNodeModel {
-                                Id = nodeId
+                                Id = nodeId,
+                                OpcPublishingInterval = 1000,
+                                OpcSamplingInterval = 1000
                             }
                         }
                     };
@@ -237,7 +242,9 @@ Options:
                     break;
                 }
                 catch (Exception ex) {
-                    logger.Debug(ex, "Failed to configure publishing.");
+                    logger.Verbose(ex, "Failed to configure publishing.");
+                    // Wait a bit
+                    await Task.Delay(TimeSpan.FromSeconds(2), ct);
                 }
             }
         }
