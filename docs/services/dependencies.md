@@ -1,5 +1,7 @@
 # Industrial IoT dependencies
 
+[Home](../readme.md)
+
 The Industrial IoT Microservices depend on several other services and technology. This includes
 
 ## OPC UA Reference Stack

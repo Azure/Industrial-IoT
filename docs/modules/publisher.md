@@ -1,4 +1,7 @@
 # OPC Publisher Edge Module
+
+[Home](../readme.md)
+
 The OPC Publisher runs inside IoT Edge.  It connects to OPC UA servers and publishes JSON encoded telemetry data from these servers in OPC UA "Pub/Sub" format (using a JSON payload) to Azure IoT Hub. All transport protocols supported by the Azure IoTHub client SDK can be used, i.e. HTTPS, AMQP and MQTT.
 
 This module, apart from including an OPC UA *client* for connecting to existing OPC UA servers on your network, also offers a IoTHub direct methods interface to manage what gets published.
@@ -632,7 +635,7 @@ To add OPC Publisher as module to your IoT Edge deployment, you go to the Azure 
 * When you have started IoT Edge on your edge device and the docker container `publisher` is started, you can check out the log output of OPC Publisher either by
   using `docker logs -f publisher` or by checking the logfile (in our example above `d:\iiotegde\publisher-publisher.log` content or by using the diagnostic tool [here](https://github.com/Azure-Samples/iot-edge-opc-publisher-diagnostics).
 
-## Running Publisher natively on Windows
+### Running Publisher natively on Windows
 
 Open the opcpublisher.sln project with Visual Studio 2017, build the solution and publish it. You can start the application in the 'Target directory' you have published to with:
 
@@ -640,15 +643,7 @@ Open the opcpublisher.sln project with Visual Studio 2017, build the solution an
 dotnet opcpublisher.dll <applicationname> [<iothubconnectionstring>] [options]
 ```
 
-## Using a self-built container
-
-Build your own container and then start the container:
-
-```
-docker run <your-container-name> <applicationname> [<iothubconnectionstring>] [options]
-```
-
-## Using a container from Microsoft Container Registry
+### Using a container from Microsoft Container Registry
 
 There is a prebuilt container available on docker hub. To start it, just do:
 
@@ -659,7 +654,7 @@ docker run mcr.microsoft.com/iotedge/opc-publisher <applicationname> [<iothubcon
 Check [docker Hub](https://hub.docker.com/_/microsoft-iotedge-opc-publisher) to see which operating systems and processor architectures are supported.
 The right container for your OS and CPU architecture (if supported) will be automatically selected and used.
 
-## Important when using a container
+## Important notes when using a container
 
 ### Enable inter-container name-resolution
 To enable name resolution from within the container to other containers, you need to create a user define docker bridge network and connect the container to this network using the `--network` option.
@@ -931,13 +926,11 @@ This configuration sends for each OPC node value change a message to IoTHub. You
 This configuration batches as much OPC node value udpates as possible. The maximum IoTHub message size is 256 kB, which is configured here. There is no send interval requested, which makes the time when data is ingested completely controlled by the data itself. This configuration has the least probability of loosing any OPC node values and can be used for publishing a high number of nodes.
 When using this configuration you need to ensure, that your scenario does not have conditions where high latency is introduced (because the message size of 256 kB is not reached).
 
-# Debugging the application
-
-## Native on Windows
+## Debugging the application
 
 Open the opcpublisher.sln project with Visual Studio 2019 and start debugging the app by hitting F5.
 
-# Controlling the application remotely
+## Controlling the application remotely
 
 As already mentioned above the configuration of nodes to be published can be configured via IoTHub direct methods.
 
@@ -953,6 +946,11 @@ In addition to this is implements a direct method to exit the application.
 
 In the following GitHub repos there are tools to [configure the nodes to publish](https://github.com/Azure-Samples/iot-edge-opc-publisher-nodeconfiguration) and [read the diagnostic information](https://github.com/Azure-Samples/iot-edge-opc-publisher-diagnostics). Both tools are also available as containers in Docker Hub.
 
-# Sample OPC UA server
+## Sample OPC UA server
 
 If you do not have a real OPC UA server, you can use this [sample OPC UA PLC](https://github.com/Azure-Samples/iot-edge-opc-plc) to simulate a PLC with OPC UA server. This sample is also available on Docker Hub.  The sample PLC server exposes tags, which generate random data as well as tags with anomalies.  It can be extended easily if you need to simulate any tag values.
+
+## Next steps
+
+- [Learn how to deploy OPC Publisher and Twin Modules](../howto-deploy-modules.md)
+- [Learn about the OPC Twin Microservice](../services/twin.md)
