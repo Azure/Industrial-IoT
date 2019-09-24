@@ -28,6 +28,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Cli {
     using System.ServiceModel;
     using DotNetty.Common;
     using System.Runtime.InteropServices;
+    using Serilog.Core;
 
     /// <summary>
     /// Publisher module host process
@@ -120,6 +121,11 @@ Options:
             }
 
             var logger = LogEx.Console(LogEventLevel.Error);
+            AppDomain.CurrentDomain.UnhandledException += (s, e) => {
+                logger.Fatal(e.ExceptionObject as Exception, "Exception");
+                Console.WriteLine(e);
+            };
+
             try {
                 if (publish) {
                     PublishAsync(config, logger, deviceId, moduleId, args).Wait();

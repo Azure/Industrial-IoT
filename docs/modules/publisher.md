@@ -11,29 +11,18 @@ For each distinct publishing interval to an OPC UA server it creates a separate 
 
 All OPC UA components use the OPC Foundation's OPC UA reference stack as nuget packages and therefore licensing of their nuget packages apply. Visit https://opcfoundation.org/license/redistributables/1.3/ for the licensing terms.
 
-# Building
+## Building
 
-The module requires .NET Core SDK 2.2.   The code can be found in the `modules/opc-publisher` folder in the repository.
+The module requires [.NET Core 3.0+](https://dotnet.microsoft.com/download/dotnet-core/3.0).   The code can be found in the `./modules/src/Microsoft.Azure.IIoT.Modules.OpcUa.Publisher` folder in the repository.
 
-## As native Windows application
-Open the opcpublisher.sln project with Visual Studio 2019 and build the solution by hitting F7.
-
-## As Docker container
-Depending if you use Docker Linux or Docker Windows containers, there are different configuration files (Dockerfile or Dockerfile.Windows) to use for building the container.
-From the root of the repository, in a console, type:
-
-    docker build -f <docker-configfile-to-use> -t <your-container-name> .
-
-The `-f` option for `docker build` is optional and the default is to use Dockerfile. 
-
-Note: if you want to have correct version information, please install [gitversion](https://gitversion.readthedocs.io/en/latest/) and run it with the following command line in the root of the repository: `gitversion  . /updateassemblyinfo /ensureassemblyinfo updateassemblyinfofilename opcpublisher/AssemblyInfo.cs`
+Open the `opcpublisher.sln` project with Visual Studio 2019 (16.3+) and build the solution by hitting F7.
 
 ## Configuration of the OPC UA nodes to publish
 
 ### Configuration via configuration file
 The easiest way to configure the OPC UA nodes to publish is via configuration file. The configuration file format is documented in `publishednodes.json` in this repository.
-Configuration file syntax has changed over time and OPC Publisher still can read old formats, but converts them into the latest format when persisting the configuration.
-An example for the format of the configuration file is:
+
+Configuration file syntax has changed over time and OPC Publisher still can read old formats, but converts them into the latest format when persisting the configuration.  An example for the format of the configuration file is:
 
         [
           {
@@ -60,6 +49,8 @@ To prevent sending the value of a node at startup, you can add the `SkipFirst` k
 
 Both configurations settings can be enabled for all nodes in your configuration file via command line options as well.
 
+### Configuration via device method calls
+
 
 OPC Publisher implements the following IoTHub direct method calls, which can be called when OPC Publisher runs standalone or in IoT Edge:
 
@@ -74,15 +65,13 @@ OPC Publisher implements the following IoTHub direct method calls, which can be 
 * ExitApplication
 * GetInfo
 
-The format of the JSON payload of the method request and responses are defined in the file `opcpublisher/HubMethodModels.cs`.
+The format of the JSON payload of the method request and responses are defined in the file `src/Microsoft.Azure.IIoT.Modules.OpcUa.Publisher/HubMethodModels.cs`.
 
 If you call a unknown method on the module, it responds with a string, saying the method is not implemented. This can be used to ping the module.
 
-# Configuring the telemetry published to IoTHub
+## Telemetry Formats
 
-When OPC Publisher gets notified about a value change in one of the configured published nodes, it generates a JSON formatted message, which is sent to IoTHub.
-The content of this JSON formatted message can be configured via a configuration file. If no configuration file is specified via the `--tc` option a default configuration is used,
-which is compatible with the [Connected factory Preconfigured Solution](https://github.com/Azure/azure-iot-connected-factory).
+When OPC Publisher gets notified about a value change in one of the configured published nodes, it generates a JSON formatted message, which is sent to IoTHub. The content of this JSON formatted message can be configured via a configuration file. If no configuration file is specified via the `--tc` option a default configuration is used, which is compatible with the [Connected factory Preconfigured Solution](https://github.com/Azure/azure-iot-connected-factory).
 
 If OPC Publisher is configured to batch messages, then they are sent as a valid JSON array.
 
@@ -284,9 +273,10 @@ The syntax of the configuration file is as follows:
             ]
         }
 
-# Starting the publisher
+## Starting the publisher
 
-## Command line options
+### Command line options
+
 The complete usage of the application can be shown using the `--help` command line option and is as follows:
 
         Current directory is: /appdata
@@ -598,13 +588,13 @@ The complete usage of the application can be shown using the `--help` command li
                                         the trusted issuer cert store will always
                                        reside in a directory.
 
-Typically you specify the IoTHub owner connectionstring only on the first start of the application. The connectionstring will be encrypted and stored in the platforms certificiate store.
-On subsequent calls it will be read from there and reused. If you specify the connectionstring on each start, the device which is created for the application in the IoTHub device registry will be removed and recreated each time.
+Typically you specify the IoTHub owner connection string only on the first start of the application. The connection string will be encrypted and stored in the platforms certificate store.
 
-## Using it as a module in Azure IoT Edge
+On subsequent calls it will be read from there and reused. If you specify the connection string on each start, the device which is created for the application in the IoTHub device registry will be removed and recreated each time.
 
-OPC Publisher is ready to be used as a module to run in [Azure IoT Edge](https://docs.microsoft.com/azure/iot-edge) Microsoft's Intelligent Edge framework.
-We recommend to take a look on the information available on the beforementioned link and use then the information provided here. When using OPC Publisher as IoT Edge module only Amqp_Tcp_Only and Mqtt_Tcp_Only are supported as transport protocols.
+###  Running as a module in Azure IoT Edge
+
+OPC Publisher is ready to be used as a module to run in [Azure IoT Edge](https://docs.microsoft.com/azure/iot-edge) Microsoft's Intelligent Edge framework.  We recommend to take a look on the information available on the beforementioned link and use then the information provided here. When using OPC Publisher as IoT Edge module only `Amqp_Tcp_Only` and `Mqtt_Tcp_Only` are supported as transport protocols.
 
 To add OPC Publisher as module to your IoT Edge deployment, you go to the Azure portal and navigate to your IoTHub and:
 

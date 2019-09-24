@@ -1,6 +1,8 @@
 # Azure Security Center and Azure Sentinel Integration
 
-### Pre-requites
+[Home](readme.md)
+
+### Prerequisites
 
 * Log Analytics workspace
   * Information is stored by default in your Log Analytics Workspace by ASC for IoT

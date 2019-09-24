@@ -1,4 +1,4 @@
-# OPC Gateway Microservice (Preview)
+# OPC Gateway Microservice (Experimental)
 
 > **The OPC Gateway Microservice is not intended for production use at this point in time !**
 

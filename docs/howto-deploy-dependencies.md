@@ -1,5 +1,7 @@
 # Deploying Dependencies for local Development
 
+[Home](readme.md)
+
 This article explains how to deploy only the Azure Platform Microservices need to do local development and debugging.   At the end you will have a resource group deployed that contains everything you need for local development and debugging.
 
 ## Prerequisites
@@ -17,7 +19,7 @@ This article explains how to deploy only the Azure Platform Microservices need t
 2. If you have not done so yet, clone this GitHub repository.  Open a command prompt or terminal and run:
 
    ```bash
-   git clone --recursive https://github.com/Azure/Industrial-IoT
+   git clone https://github.com/Azure/Industrial-IoT
    cd Industrial-IoT
    ```
 

@@ -1,5 +1,7 @@
 # Industrial IoT and its Components
 
+[Home](readme.md)
+
 ## Industrial IoT
 
 Industrial IoT or IIoT connects machines and devices in industries. This connectivity allows for data collection, exchange and analysis, potentially  improving productivity and efficiency. To read more about Microsoft Azure IoT, click [here](https://azure.microsoft.com/overview/iot/) and about Industry 4.0, [here](https://azure.microsoft.com/overview/iot/industry/discrete-manufacturing/)
