@@ -696,7 +696,7 @@ Here is a set of `Container Create Options`which allow you to achieve this (be a
         {
             "Hostname": "publisher",
             "Cmd": [
-                "--pf=./pn.json",
+                "--pf=/appdata/pn.json",
                 "--aa"
             ],
             "HostConfig": {
