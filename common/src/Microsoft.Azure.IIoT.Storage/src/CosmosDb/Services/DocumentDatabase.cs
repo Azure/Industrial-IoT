@@ -143,7 +143,7 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
                  container,
                  new RequestOptions {
                      EnableScriptLogging = true,
-                     OfferThroughput = options.ThroughputUnits
+                     OfferThroughput = options?.ThroughputUnits
                  }
             );
             await CreateSprocIfNotExistsAsync(id, BulkUpdateSprocName);
