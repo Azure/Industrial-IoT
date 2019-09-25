@@ -1,14 +1,13 @@
 <#
  .SYNOPSIS
-    Build docker container for a docker file in the tree.
-
- .PARAMETER image
-    The folder to build the docker files from which also contains
-    the mcr.json file.
+    Build docker container for a mcr.json definition in the tree.
 
  .PARAMETER path
     The folder to build the docker files from which also contains
-    the mcr.json file.
+    the mcr.json file.  
+
+ .PARAMETER image
+    The name of the image.
 
  .PARAMETER debug
     Build debug images

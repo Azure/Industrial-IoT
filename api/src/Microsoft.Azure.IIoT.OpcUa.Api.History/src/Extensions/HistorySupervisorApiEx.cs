@@ -25,7 +25,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History {
         public static Task<HistoryReadResponseApiModel<JToken>> HistoryReadRawAsync(
             this IHistoryModuleApi api, string endpointUrl, HistoryReadRequestApiModel<JToken> request,
             CancellationToken ct = default) {
-            return api.HistoryReadRawAsync(new EndpointApiModel { Url = endpointUrl }, request, ct);
+            return api.HistoryReadRawAsync(NewEndpoint(endpointUrl), request, ct);
         }
 
         /// <summary>
@@ -39,7 +39,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History {
         public static Task<HistoryReadNextResponseApiModel<JToken>> HistoryReadRawNextAsync(
             this IHistoryModuleApi api, string endpointUrl, HistoryReadNextRequestApiModel request,
             CancellationToken ct = default) {
-            return api.HistoryReadRawNextAsync(new EndpointApiModel { Url = endpointUrl }, request, ct);
+            return api.HistoryReadRawNextAsync(NewEndpoint(endpointUrl), request, ct);
         }
 
         /// <summary>
@@ -53,7 +53,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History {
         public static Task<HistoryUpdateResponseApiModel> HistoryUpdateRawAsync(
             this IHistoryModuleApi api, string endpointUrl, HistoryUpdateRequestApiModel<JToken> request,
             CancellationToken ct = default) {
-            return api.HistoryUpdateRawAsync(new EndpointApiModel { Url = endpointUrl }, request, ct);
+            return api.HistoryUpdateRawAsync(NewEndpoint(endpointUrl), request, ct);
+        }
+
+        /// <summary>
+        /// New endpoint
+        /// </summary>
+        /// <param name="endpointUrl"></param>
+        /// <returns></returns>
+        private static EndpointApiModel NewEndpoint(string endpointUrl) {
+            return new EndpointApiModel {
+                Url = endpointUrl,
+                SecurityMode = SecurityMode.None,
+                SecurityPolicy = "None"
+            };
         }
     }
 }

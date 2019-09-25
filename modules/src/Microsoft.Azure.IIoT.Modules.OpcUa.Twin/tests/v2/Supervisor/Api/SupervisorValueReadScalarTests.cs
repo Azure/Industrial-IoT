@@ -30,7 +30,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.Api {
                 new EndpointApiModel {
                     Url = $"opc.tcp://{Dns.GetHostName()}:{_server.Port}/UA/SampleServer",
                     Certificate = _server.Certificate?.RawData
-                }, (ep, n) => _server.Client.ReadValueAsync(new EndpointModel { Url = ep.Url }, n));
+                }, (ep, n) => _server.Client.ReadValueAsync(new EndpointModel {
+                    Url = ep.Url,
+                    Certificate = _server.Certificate?.RawData
+                }, n));
         }
 
         private readonly TestServerFixture _server;

@@ -26,7 +26,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin {
         public static Task<BrowseResponseApiModel> NodeBrowseAsync(
             this ITwinModuleApi api, string endpointUrl, BrowseRequestApiModel request,
             CancellationToken ct = default) {
-            return api.NodeBrowseAsync(new EndpointApiModel { Url = endpointUrl }, request, ct);
+            return api.NodeBrowseAsync(NewEndpoint(endpointUrl), request, ct);
         }
 
         /// <summary>
@@ -40,7 +40,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin {
         public static Task<BrowseResponseApiModel> NodeBrowseFirstAsync(
             this ITwinModuleApi api, string endpointUrl, BrowseRequestApiModel request,
             CancellationToken ct = default) {
-            return api.NodeBrowseFirstAsync(new EndpointApiModel { Url = endpointUrl }, request, ct);
+            return api.NodeBrowseFirstAsync(new EndpointApiModel {
+                Url = endpointUrl,
+                SecurityMode = SecurityMode.None
+            }, request, ct);
         }
 
         /// <summary>
@@ -54,7 +57,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin {
         public static Task<BrowseNextResponseApiModel> NodeBrowseNextAsync(
             this ITwinModuleApi api, string endpointUrl, BrowseNextRequestApiModel request,
             CancellationToken ct = default) {
-            return api.NodeBrowseNextAsync(new EndpointApiModel { Url = endpointUrl }, request, ct);
+            return api.NodeBrowseNextAsync(new EndpointApiModel {
+                Url = endpointUrl,
+                SecurityMode = SecurityMode.None
+            }, request, ct);
         }
 
         /// <summary>
@@ -68,7 +74,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin {
         public static Task<BrowsePathResponseApiModel> NodeBrowsePathAsync(
             this ITwinModuleApi api, string endpointUrl, BrowsePathRequestApiModel request,
             CancellationToken ct = default) {
-            return api.NodeBrowsePathAsync(new EndpointApiModel { Url = endpointUrl }, request, ct);
+            return api.NodeBrowsePathAsync(new EndpointApiModel {
+                Url = endpointUrl,
+                SecurityMode = SecurityMode.None
+            }, request, ct);
         }
 
         /// <summary>
@@ -82,7 +91,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin {
         public static Task<MethodCallResponseApiModel> NodeMethodCallAsync(
             this ITwinModuleApi api, string endpointUrl, MethodCallRequestApiModel request,
             CancellationToken ct = default) {
-            return api.NodeMethodCallAsync(new EndpointApiModel { Url = endpointUrl }, request, ct);
+            return api.NodeMethodCallAsync(NewEndpoint(endpointUrl), request, ct);
         }
 
         /// <summary>
@@ -96,7 +105,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin {
         public static Task<MethodMetadataResponseApiModel> NodeMethodGetMetadataAsync(
             this ITwinModuleApi api, string endpointUrl, MethodMetadataRequestApiModel request,
             CancellationToken ct = default) {
-            return api.NodeMethodGetMetadataAsync(new EndpointApiModel { Url = endpointUrl }, request, ct);
+            return api.NodeMethodGetMetadataAsync(NewEndpoint(endpointUrl), request, ct);
         }
 
         /// <summary>
@@ -110,7 +119,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin {
         public static Task<ValueReadResponseApiModel> NodeValueReadAsync(
             this ITwinModuleApi api, string endpointUrl, ValueReadRequestApiModel request,
             CancellationToken ct = default) {
-            return api.NodeValueReadAsync(new EndpointApiModel { Url = endpointUrl }, request, ct);
+            return api.NodeValueReadAsync(NewEndpoint(endpointUrl), request, ct);
         }
 
         /// <summary>
@@ -124,7 +133,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin {
         public static Task<ValueWriteResponseApiModel> NodeValueWriteAsync(
             this ITwinModuleApi api, string endpointUrl, ValueWriteRequestApiModel request,
             CancellationToken ct = default) {
-            return api.NodeValueWriteAsync(new EndpointApiModel { Url = endpointUrl }, request, ct);
+            return api.NodeValueWriteAsync(NewEndpoint(endpointUrl), request, ct);
         }
 
         /// <summary>
@@ -138,7 +147,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin {
         public static Task<ReadResponseApiModel> NodeReadAsync(
             this ITwinModuleApi api, string endpointUrl, ReadRequestApiModel request,
             CancellationToken ct = default) {
-            return api.NodeReadAsync(new EndpointApiModel { Url = endpointUrl }, request, ct);
+            return api.NodeReadAsync(NewEndpoint(endpointUrl), request, ct);
         }
 
         /// <summary>
@@ -152,7 +161,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin {
         public static Task<WriteResponseApiModel> NodeWriteAsync(
             this ITwinModuleApi api, string endpointUrl, WriteRequestApiModel request,
             CancellationToken ct = default) {
-            return api.NodeWriteAsync(new EndpointApiModel { Url = endpointUrl }, request, ct);
+            return api.NodeWriteAsync(NewEndpoint(endpointUrl), request, ct);
         }
 
         /// <summary>
@@ -196,6 +205,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin {
                 }
                 return result;
             }
+        }
+
+        /// <summary>
+        /// New endpoint
+        /// </summary>
+        /// <param name="endpointUrl"></param>
+        /// <returns></returns>
+        private static EndpointApiModel NewEndpoint(string endpointUrl) {
+            return new EndpointApiModel {
+                Url = endpointUrl,
+                SecurityMode = SecurityMode.None,
+                SecurityPolicy = "None"
+            };
         }
     }
 }
