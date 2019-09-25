@@ -18,7 +18,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin {
         INodeServices<string>, IPublishServices<string> {
 
         /// <summary>
-        /// Create service
+        /// Create adapter
         /// </summary>
         /// <param name="client"></param>
         public TwinAdapter(ITwinServiceApi client) {

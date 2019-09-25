@@ -22,6 +22,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Default;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Runtime;
     using Microsoft.Azure.IIoT.OpcUa.Twin;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Twin;
+    using Microsoft.Azure.IIoT.OpcUa.Api.History;
     using Microsoft.Azure.IIoT.Utils;
     using Autofac;
     using AutofacSerilogIntegration;
@@ -32,11 +34,15 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
     using System.Threading.Tasks;
     using Xunit;
     using Serilog;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients;
+    using Microsoft.Azure.IIoT.OpcUa.Api.History.Clients;
+    using Microsoft.Azure.IIoT.OpcUa.Api.History.Models;
 
     /// <summary>
     /// Harness for opc twin module
     /// </summary>
-    public class TwinModuleFixture : IInjector, IDisposable {
+    public class TwinModuleFixture : IInjector,
+        IHistoryModuleConfig, ITwinModuleConfig, IDisposable {
 
         /// <summary>
         /// Device id
@@ -122,7 +128,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
         }
 
         /// <summary>
-        /// Twin Module test harness
+        /// Twin Module supervisor test harness
         /// </summary>
         /// <param name="test"></param>
         /// <returns></returns>
@@ -140,6 +146,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
             AssertStopped();
         }
 
+        /// <summary>
+        /// Twin module twin test harness
+        /// </summary>
+        /// <param name="ep"></param>
+        /// <param name="test"></param>
+        /// <returns></returns>
         public async Task RunTestAsync(EndpointModel ep,
             Func<EndpointRegistrationModel, IContainer, Task> test) {
             var endpoint = new EndpointRegistrationModel {
@@ -264,23 +276,41 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
         /// <returns></returns>
         private IContainer CreateHubContainer() {
             var builder = new ContainerBuilder();
+            builder.RegisterInstance(this).AsImplementedInterfaces();
             builder.RegisterLogger(LogEx.ConsoleOut());
             builder.RegisterModule<IoTHubMockService>();
             builder.RegisterType<TestIoTHubConfig>()
                 .AsImplementedInterfaces();
 
-            // Add clients
+            // Twin and history clients
             builder.RegisterModule<TwinModuleClients>();
+
+            builder.RegisterType<HistoryRawSupervisorAdapter>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<TwinSupervisorAdapter>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<TwinModuleClient>()
+                .AsImplementedInterfaces();
+            builder.RegisterType<HistoryModuleClient>()
+                .AsImplementedInterfaces();
+
+            // Adapts to expanded hda
+            builder.RegisterType<HistoricAccessAdapter<string>>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<HistoricAccessAdapter<EndpointRegistrationModel>>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<HistoricAccessAdapter<EndpointApiModel>>()
+                .AsImplementedInterfaces().SingleInstance();
+
+            // Supervisor clients
             builder.RegisterType<ActivationClient>()
                 .AsImplementedInterfaces();
             builder.RegisterType<DiagnosticsClient>()
                 .AsImplementedInterfaces();
             builder.RegisterType<DiscoveryClient>()
                 .AsImplementedInterfaces();
-            builder.RegisterType<HistoricAccessAdapter<string>>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<HistoricAccessAdapter<EndpointRegistrationModel>>()
-                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<JsonVariantEncoder>()
+                .AsImplementedInterfaces();
             builder.RegisterType<JsonVariantEncoder>()
                 .AsImplementedInterfaces();
 

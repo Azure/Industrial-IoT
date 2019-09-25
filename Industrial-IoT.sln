@@ -194,6 +194,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Module
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Cli", "modules\src\Microsoft.Azure.IIoT.Modules.OpcUa.Publisher\cli\Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Cli.csproj", "{277079D0-B557-4280-A698-37EDADA10066}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{4CF22591-6F77-486F-BBFE-6173536D0625}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -734,6 +736,7 @@ Global
 		{EB0E6E11-3C34-4BDE-8020-5324BCEB2C06} = {3A2DB744-69F3-488E-8CD5-45B921385B76}
 		{9CDDE537-2D55-4A7E-947D-7FA3EC87B72A} = {C8D79D8A-D92E-4AE3-BA54-0C927BEBCEBF}
 		{277079D0-B557-4280-A698-37EDADA10066} = {C8D79D8A-D92E-4AE3-BA54-0C927BEBCEBF}
+		{4CF22591-6F77-486F-BBFE-6173536D0625} = {30938473-53C1-4981-BFAB-B6309147FF24}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F09EFCEA-59F6-4A16-9CB6-7E865A3F62D8}

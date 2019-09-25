@@ -1,2 +1,3 @@
 @echo off
-powershell ./acrmatrix.ps1 -Build
+shift
+powershell ./acrmatrix.ps1 -Build %*

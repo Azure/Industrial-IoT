@@ -60,6 +60,18 @@ namespace Serilog {
         }
 
         /// <summary>
+        /// Create standard console logger
+        /// </summary>
+        /// <param name="config"></param>
+        /// <returns></returns>
+        public static ILogger Console(IConfiguration config = null) {
+            if (config != null) {
+                Level.MinimumLevel = config.GetValue("LogLevel", LogEventLevel.Information);
+            }
+            return new LoggerConfiguration().Console(config).CreateLogger();
+        }
+
+        /// <summary>
         /// Create rolling file logger
         /// </summary>
         /// <param name="configuration"></param>
@@ -101,6 +113,19 @@ namespace Serilog {
         public static ILogger RollingFile(string path, LogEventLevel level) {
             Level.MinimumLevel = level;
             return new LoggerConfiguration().RollingFile(path).CreateLogger();
+        }
+
+        /// <summary>
+        /// Create rolling file logger
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="config"></param>
+        /// <returns></returns>
+        public static ILogger RollingFile(string path, IConfiguration config = null) {
+            if (config != null) {
+                Level.MinimumLevel = config.GetValue("LogLevel", LogEventLevel.Information);
+            }
+            return new LoggerConfiguration().RollingFile(path, config).CreateLogger();
         }
 
         /// <summary>
@@ -224,6 +249,18 @@ namespace Serilog {
         public static ILogger Trace(LogEventLevel level) {
             Level.MinimumLevel = level;
             return new LoggerConfiguration().Trace().CreateLogger();
+        }
+
+        /// <summary>
+        /// Create trace logger
+        /// </summary>
+        /// <param name="config"></param>
+        /// <returns></returns>
+        public static ILogger Trace(IConfiguration config = null) {
+            if (config != null) {
+                Level.MinimumLevel = config.GetValue("LogLevel", LogEventLevel.Information);
+            }
+            return new LoggerConfiguration().Trace(config).CreateLogger();
         }
 
         private const string kDefaultTemplate =

@@ -44,8 +44,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Runtime {
         private const string kOwnCertX509StorePathDefault = "OwnCertX509StorePathDefault";
 
         /// <inheritdoc/>
-        public string AppCertStoreType =>
-            GetStringOrDefault(kAppCertStoreType, RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "X509Store" : "Directory");
+        public string AppCertStoreType => GetStringOrDefault(kAppCertStoreType,
+            RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "X509Store" : "Directory");
         /// <inheritdoc/>
         public string PkiRootPath =>
             GetStringOrDefault(kPkiRootPath, "pki");

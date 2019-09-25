@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin {
     using Microsoft.Azure.IIoT.Utils;
     using System;
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -23,11 +24,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin {
         /// <param name="endpoint"></param>
         /// <param name="service"></param>
         /// <param name="request"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         public static async Task<BrowseResponseApiModel> NodeBrowseAsync(
-            this ITwinServiceApi service, string endpoint, BrowseRequestApiModel request) {
+            this ITwinServiceApi service, string endpoint, BrowseRequestApiModel request,
+            CancellationToken ct = default) {
             if (request.MaxReferencesToReturn != null) {
-                return await service.NodeBrowseFirstAsync(endpoint, request);
+                return await service.NodeBrowseFirstAsync(endpoint, request, ct);
             }
             while (true) {
                 var result = await service.NodeBrowseFirstAsync(endpoint, request);
@@ -39,7 +42,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin {
                                 Header = request.Header,
                                 ReadVariableValues = request.ReadVariableValues,
                                 TargetNodesOnly = request.TargetNodesOnly
-                            });
+                            }, ct);
                         result.References.AddRange(next.References);
                         result.ContinuationToken = next.ContinuationToken;
                     }

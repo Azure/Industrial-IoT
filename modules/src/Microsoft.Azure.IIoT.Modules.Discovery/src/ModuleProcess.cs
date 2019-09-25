@@ -118,17 +118,13 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery {
                 .AsImplementedInterfaces().SingleInstance();
 
             // register logger
-            builder.RegisterLogger(LogEx.Console(
-                configuration.GetValue("LogLevel", LogEventLevel.Information)));
-
+            builder.RegisterLogger(LogEx.Console(configuration));
             // Register module framework
             builder.RegisterModule<ModuleFramework>();
 
             // Register opc ua services
             builder.RegisterType<ClientServices>()
                 .AsImplementedInterfaces().SingleInstance();
-          //  builder.RegisterType<JsonVariantEncoder>()
-          //      .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<StackLogger>()
                 .AsImplementedInterfaces().SingleInstance().AutoActivate();
 

@@ -948,7 +948,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                 new SupervisorUpdateApiModel {
                     SiteId = options.GetValueOrDefault<string>("-s", "--siteId", null),
                     LogLevel = options.GetValueOrDefault<SupervisorLogLevel>("-l", "--log-level", null),
-                    Discovery = options.GetValueOrDefault<DiscoveryMode>("-d", "--discovery", 
+                    Discovery = options.GetValueOrDefault<DiscoveryMode>("-d", "--discovery",
                         config == null ? (DiscoveryMode?)null : DiscoveryMode.Fast),
                     DiscoveryConfig = config,
                 });
@@ -1015,7 +1015,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                     ApplicationType = options.GetValueOrDefault<ApplicationType>("-t", "--type", null),
                     ProductUri = options.GetValueOrDefault<string>("-p", "--product", null),
                     DiscoveryProfileUri = options.GetValueOrDefault<string>("-r", "--dpuri", null),
-                    DiscoveryUrls = string.IsNullOrEmpty(discoveryUrl) ? null : 
+                    DiscoveryUrls = string.IsNullOrEmpty(discoveryUrl) ? null :
                         new HashSet<string> { discoveryUrl }
                 });
             PrintResult(options, result);
@@ -1032,7 +1032,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
                     RegistrationId = Guid.NewGuid().ToString(),
                     DiscoveryUrl = options.GetValue<string>("-u", "--url"),
                     ActivationFilter = !activate ? null : new EndpointActivationFilterApiModel {
-                        SecurityMode = SecurityMode.None
+                        SecurityMode = Registry.Models.SecurityMode.None
                     }
                 });
         }
@@ -1271,7 +1271,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
             CliOptions options) {
             var query = new EndpointRegistrationQueryApiModel {
                 Url = options.GetValueOrDefault<string>("-u", "--uri", null),
-                SecurityMode = options.GetValueOrDefault<SecurityMode>("-m", "--mode", null),
+                SecurityMode = options.GetValueOrDefault<Registry.Models.SecurityMode>("-m", "--mode", null),
                 SecurityPolicy = options.GetValueOrDefault<string>("-l", "--policy", null),
                 Connected = options.IsProvidedOrNull("-c", "--connected"),
                 Activated = options.IsProvidedOrNull("-a", "--activated"),
@@ -1307,7 +1307,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
 
             // Activate all sign and encrypt endpoints
             var result = await service.QueryAllEndpointsAsync(new EndpointRegistrationQueryApiModel {
-                SecurityMode = options.GetValueOrDefault<SecurityMode>("-m", "mode", null),
+                SecurityMode = options.GetValueOrDefault<Registry.Models.SecurityMode>("-m", "mode", null),
                 Activated = false
             });
             foreach (var item in result) {
@@ -1373,7 +1373,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
 
             // Activate all sign and encrypt endpoints
             var result = await service.QueryAllEndpointsAsync(new EndpointRegistrationQueryApiModel {
-                SecurityMode = options.GetValueOrDefault<SecurityMode>("-m", "mode", null),
+                SecurityMode = options.GetValueOrDefault<Registry.Models.SecurityMode>("-m", "mode", null),
                 Activated = true
             });
             foreach (var item in result) {
@@ -1657,7 +1657,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Cli {
 
             if (options.IsSet("-a", "--activate")) {
                 config.ActivationFilter = new EndpointActivationFilterApiModel {
-                    SecurityMode = SecurityMode.None
+                    SecurityMode = Registry.Models.SecurityMode.None
                 };
                 empty = false;
             }

@@ -1,20 +1,17 @@
 <#
  .SYNOPSIS
-    Builds all containers from the mcr.json file in the path.
+    Builds multiarch containers from the mcr.json file in the path.
 
  .DESCRIPTION
     The script requires az to be installed and already logged on to a 
     subscription.  This means it should be run in a azcliv2 task in the
     azure pipeline or "az login" must have been performed already.
 
-    The script traverses the build root to find all folders with an
-    mcr.json file.  
+    If a csproj file exists in the same folder as the csproj file
+    it it publishes it and builds container images with the output 
+    as content of the images.  
     
-    In each folder with mcr.json it checks whether there is a csproj file
-    in there.  If it finds it it publishes it and builds container images
-    with the output as content of the images.  
-    
-    If there is no project file we find all the dockerfiles and build each 
+    If there is no project file it finds all the dockerfiles and builds each 
     one. It traverses back up to the closest .dockerignore file. This folder 
     becomes the context of the build.
 

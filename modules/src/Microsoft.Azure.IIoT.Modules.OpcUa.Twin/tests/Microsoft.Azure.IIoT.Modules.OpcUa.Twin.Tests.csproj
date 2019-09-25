@@ -19,6 +19,7 @@
   <Choose>
     <When Condition="'$(PROJECT_BUILD)' == ''">
       <ItemGroup>
+        <ProjectReference Include="..\..\..\..\api\src\Microsoft.Azure.IIoT.OpcUa.Api\src\Microsoft.Azure.IIoT.OpcUa.Api.csproj" />
         <ProjectReference Include="..\..\..\..\components\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.History\src\Microsoft.Azure.IIoT.OpcUa.History.csproj" />
         <ProjectReference Include="..\..\..\..\components\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.Testing\src\Microsoft.Azure.IIoT.OpcUa.Testing.csproj" />
         <ProjectReference Include="..\..\..\..\components\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.Twin\src\Microsoft.Azure.IIoT.OpcUa.Twin.csproj" />
@@ -28,6 +29,7 @@
     </When>
     <Otherwise>
       <ItemGroup>
+        <PackageReference Include="Microsoft.Azure.IIoT.OpcUa.Api" Version="$(ReleaseVersion)" />
         <PackageReference Include="Microsoft.Azure.IIoT.OpcUa.History" Version="$(ReleaseVersion)" />
         <PackageReference Include="Microsoft.Azure.IIoT.OpcUa.Twin" Version="$(ReleaseVersion)" />
         <PackageReference Include="Microsoft.Azure.IIoT.OpcUa.Registry" Version="$(ReleaseVersion)" />
