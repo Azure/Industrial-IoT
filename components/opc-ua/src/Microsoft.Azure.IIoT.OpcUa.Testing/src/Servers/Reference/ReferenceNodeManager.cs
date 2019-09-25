@@ -113,30 +113,30 @@ namespace Reference {
             return false;
         }
 
-        private static Range GetAnalogRange(BuiltInType builtInType) {
+        private static Opc.Ua.Range GetAnalogRange(BuiltInType builtInType) {
             switch (builtInType) {
                 case BuiltInType.UInt16:
-                    return new Range(ushort.MaxValue, ushort.MinValue);
+                    return new Opc.Ua.Range(ushort.MaxValue, ushort.MinValue);
                 case BuiltInType.UInt32:
-                    return new Range(uint.MaxValue, uint.MinValue);
+                    return new Opc.Ua.Range(uint.MaxValue, uint.MinValue);
                 case BuiltInType.UInt64:
-                    return new Range(ulong.MaxValue, ulong.MinValue);
+                    return new Opc.Ua.Range(ulong.MaxValue, ulong.MinValue);
                 case BuiltInType.SByte:
-                    return new Range(sbyte.MaxValue, sbyte.MinValue);
+                    return new Opc.Ua.Range(sbyte.MaxValue, sbyte.MinValue);
                 case BuiltInType.Int16:
-                    return new Range(short.MaxValue, short.MinValue);
+                    return new Opc.Ua.Range(short.MaxValue, short.MinValue);
                 case BuiltInType.Int32:
-                    return new Range(int.MaxValue, int.MinValue);
+                    return new Opc.Ua.Range(int.MaxValue, int.MinValue);
                 case BuiltInType.Int64:
-                    return new Range(long.MaxValue, long.MinValue);
+                    return new Opc.Ua.Range(long.MaxValue, long.MinValue);
                 case BuiltInType.Float:
-                    return new Range(float.MaxValue, float.MinValue);
+                    return new Opc.Ua.Range(float.MaxValue, float.MinValue);
                 case BuiltInType.Double:
-                    return new Range(double.MaxValue, double.MinValue);
+                    return new Opc.Ua.Range(double.MaxValue, double.MinValue);
                 case BuiltInType.Byte:
-                    return new Range(byte.MaxValue, byte.MinValue);
+                    return new Opc.Ua.Range(byte.MaxValue, byte.MinValue);
                 default:
-                    return new Range(sbyte.MaxValue, sbyte.MinValue);
+                    return new Opc.Ua.Range(sbyte.MaxValue, sbyte.MinValue);
             }
         }
 
@@ -1584,16 +1584,16 @@ namespace Reference {
             return CreateAnalogItemVariable(parent, path, name, dataType, valueRank, initialValues, null);
         }
 
-        private AnalogItemState CreateAnalogItemVariable(NodeState parent, string path, string name, BuiltInType dataType, int valueRank, object initialValues, Range customRange) {
+        private AnalogItemState CreateAnalogItemVariable(NodeState parent, string path, string name, BuiltInType dataType, int valueRank, object initialValues, Opc.Ua.Range customRange) {
             return CreateAnalogItemVariable(parent, path, name, (uint)dataType, valueRank, initialValues, customRange);
         }
 
-        private AnalogItemState CreateAnalogItemVariable(NodeState parent, string path, string name, NodeId dataType, int valueRank, object initialValues, Range customRange) {
+        private AnalogItemState CreateAnalogItemVariable(NodeState parent, string path, string name, NodeId dataType, int valueRank, object initialValues, Opc.Ua.Range customRange) {
             var variable = new AnalogItemState(parent) {
                 BrowseName = new QualifiedName(path, NamespaceIndex)
             };
             variable.EngineeringUnits = new PropertyState<EUInformation>(variable);
-            variable.InstrumentRange = new PropertyState<Range>(variable);
+            variable.InstrumentRange = new PropertyState<Opc.Ua.Range>(variable);
 
             variable.Create(
                 SystemContext,
@@ -1634,7 +1634,7 @@ namespace Reference {
                 variable.EURange.Value = customRange;
             }
             else {
-                variable.EURange.Value = new Range(100, 0);
+                variable.EURange.Value = new Opc.Ua.Range(100, 0);
             }
 
             if (initialValues == null) {
@@ -1966,7 +1966,7 @@ namespace Reference {
             var extensionObject = value as ExtensionObject;
             var typeInfo = TypeInfo.Construct(value);
 
-            if (!(node is PropertyState<Range> variable) ||
+            if (!(node is PropertyState<Opc.Ua.Range> variable) ||
                 extensionObject == null ||
                 typeInfo == null ||
                 typeInfo == Opc.Ua.TypeInfo.Unknown) {
@@ -1974,7 +1974,7 @@ namespace Reference {
             }
 
             var parent = variable.Parent as AnalogItemState;
-            if (!(extensionObject.Body is Range newRange) ||
+            if (!(extensionObject.Body is Opc.Ua.Range newRange) ||
                 parent == null) {
                 return StatusCodes.BadTypeMismatch;
             }

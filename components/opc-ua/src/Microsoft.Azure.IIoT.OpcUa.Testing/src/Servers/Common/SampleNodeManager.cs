@@ -2024,7 +2024,7 @@ namespace Opc.Ua.Sample {
             uint attributeId,
             ExtensionObject requestedFilter,
             out DataChangeFilter filter,
-            out Range range) {
+            out Opc.Ua.Range range) {
             filter = null;
             range = null;
 
@@ -2068,7 +2068,7 @@ namespace Opc.Ua.Sample {
                     return StatusCodes.BadMonitoredItemFilterUnsupported;
                 }
 
-                range = euRange.Value as Range;
+                range = euRange.Value as Opc.Ua.Range;
 
                 if (range == null) {
                     return StatusCodes.BadMonitoredItemFilterUnsupported;
@@ -2129,7 +2129,7 @@ namespace Opc.Ua.Sample {
 
             // validate the data change filter.
             DataChangeFilter filter = null;
-            Range range = null;
+            Opc.Ua.Range range = null;
 
             if (!ExtensionObject.IsNull(parameters.Filter)) {
                 error = ValidateDataChangeFilter(
@@ -2358,7 +2358,7 @@ namespace Opc.Ua.Sample {
 
             // validate the data change filter.
             DataChangeFilter filter = null;
-            Range range = null;
+            Opc.Ua.Range range = null;
 
             if (!ExtensionObject.IsNull(parameters.Filter)) {
                 error = ValidateDataChangeFilter(
