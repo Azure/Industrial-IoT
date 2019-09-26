@@ -40,7 +40,7 @@ if ([string]::IsNullOrEmpty($path)) {
     throw "No docker folder specified."
 }
 if (!(Test-Path -Path $path -PathType Container)) {
-    $path = & ./getroot.ps1 -fileName $path
+    $path = Join-Path (& ./getroot.ps1 -fileName $path) $path
 }
 $path = Resolve-Path -LiteralPath $path
 

@@ -29,9 +29,9 @@ Get-ChildItem $BuildRoot -Recurse `
 
     # Get root
     $dockerFolder = $_.DirectoryName.Replace($BuildRoot, "").Substring(1)
-    $scriptPath = (Join-Path $PSScriptRoot "docker-build.ps1")
     $metadata = Get-Content -Raw -Path (join-path $_.DirectoryName "mcr.json") `
         | ConvertFrom-Json
+    $scriptPath = (Join-Path $PSScriptRoot "docker-build.ps1")
     if ($Debug.IsPresent) {
         & $scriptPath -image $metadata.name -path $dockerFolder -debug
     }
