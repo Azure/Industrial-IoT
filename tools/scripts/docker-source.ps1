@@ -185,7 +185,7 @@ ENTRYPOINT $($entryPoint)
         $imageContent = (join-path $output $runtimeId)
         $dockerFile = (join-path $imageContent "Dockerfile.$($platformTag)")
         Write-Host Writing $($dockerFile)
-        $dockerFileContent | Out-Verbose
+        $dockerFileContent | Out-Host -Verbose
         $dockerFileContent | Out-File -Encoding ascii -FilePath $dockerFile
         $definitions += @{
             platform = $_
