@@ -7,28 +7,25 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Cli {
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Clients.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Sample;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
-    using Microsoft.Azure.IIoT.Http.Default;
-    using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.Azure.IIoT.Hub.Client;
-    using Microsoft.Azure.IIoT.Hub.Models;
-    using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
+    using Microsoft.Azure.IIoT.Diagnostics;
+    using Microsoft.Azure.IIoT.Http.Default;
+    using Microsoft.Azure.IIoT.Hub;
+    using Microsoft.Azure.IIoT.Hub.Client;
+    using Microsoft.Azure.IIoT.Hub.Models;
+    using Newtonsoft.Json;
     using Serilog;
     using Serilog.Events;
     using System;
-    using System.Threading;
-    using System.Threading.Tasks;
+    using System.Collections.Generic;
+    using System.Diagnostics.Tracing;
+    using System.IO;
     using System.Linq;
     using System.Net;
-    using System.Diagnostics.Tracing;
-    using System.Collections.Generic;
-    using Newtonsoft.Json;
-    using System.IO;
-    using System.ServiceModel;
-    using DotNetty.Common;
     using System.Runtime.InteropServices;
-    using Serilog.Core;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Publisher module host process
@@ -163,6 +160,7 @@ Options:
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
                     arguments.Add("--at=X509Store");
                 }
+                Try.Op(() => File.Delete("publishednodes.json"));
                 OpcPublisher.Program.Main(arguments.ToArray());
                 Console.WriteLine("Publisher module exited.");
             }
@@ -186,7 +184,7 @@ Options:
                     // Nodes to publish
                     var nodes = new string[] {
                         "i=2258",  // Server time
-
+                        "ns=12;s=0:Boiler #1?Drum/Level/Measurement"
                         // ...
                     };
 
@@ -232,7 +230,7 @@ Options:
                     logger.Information("Start publishing {nodeId}...", nodeId);
                     var content = new PublishNodesRequestModel {
                         EndpointUrl = endpointUrl,
-                        UseSecurity = true,
+                        UseSecurity = false,
                         OpcNodes = new List<PublisherNodeModel> {
                             new PublisherNodeModel {
                                 Id = nodeId,
@@ -296,9 +294,8 @@ Options:
             public ServerWrapper(ILogger logger) {
                 _cts = new CancellationTokenSource();
                 _server = RunSampleServerAsync(_cts.Token, logger);
-               // EndpointUrl = "opc.tcp://" + Opc.Ua.Utils.GetHostName() +
-               //     ":51210/UA/SampleServer";
-                EndpointUrl = "opc.tcp://localhost:51210/UA/SampleServer";
+                EndpointUrl = "opc.tcp://" + Opc.Ua.Utils.GetHostName() +
+                    ":51210/UA/SampleServer";
             }
 
             /// <inheritdoc/>

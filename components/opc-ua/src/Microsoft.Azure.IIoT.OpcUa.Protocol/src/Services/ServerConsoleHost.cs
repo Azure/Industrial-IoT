@@ -12,6 +12,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using System.Threading;
     using System.Threading.Tasks;
     using System.Security.Cryptography.X509Certificates;
+    using System.Runtime.InteropServices;
 
     /// <summary>
     /// Console host for servers
@@ -103,22 +104,31 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             var config = _factory.CreateServer(ports, out _server);
 
             config = ApplicationInstance.FixupAppConfig(config);
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+                config.SecurityConfiguration.ApplicationCertificate.StoreType =
+                    CertificateStoreType.X509Store;
+                config.SecurityConfiguration.ApplicationCertificate.StorePath =
+                    "CurrentUser\\UA_MachineDefault";
+            }
             await config.Validate(ApplicationType.Server);
+
+            config.CertificateValidator = new CertificateValidator();
             config.CertificateValidator.CertificateValidation += (v, e) => {
-                if (e.Error.StatusCode ==
-                    StatusCodes.BadCertificateUntrusted) {
+                if (e.Error.StatusCode == StatusCodes.BadCertificateUntrusted) {
                     e.Accept = AutoAccept;
                     _logger.Information((e.Accept ? "Accepted" : "Rejected") +
                         " Certificate {subject}", e.Certificate.Subject);
                 }
             };
-
             await config.CertificateValidator.Update(config.SecurityConfiguration);
+
             // Use existing certificate, if it is there.
             var cert = await config.SecurityConfiguration.ApplicationCertificate
                 .Find(true);
             if (cert == null) {
                 // Create cert
+#pragma warning disable IDE0067 // Dispose objects before losing scope
                 cert = CertificateFactory.CreateCertificate(
                     config.SecurityConfiguration.ApplicationCertificate.StoreType,
                     config.SecurityConfiguration.ApplicationCertificate.StorePath,
@@ -129,6 +139,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     CertificateFactory.defaultLifeTime,
                     CertificateFactory.defaultHashSize,
                     false, null, null);
+#pragma warning restore IDE0067 // Dispose objects before losing scope
             }
 
             if (cert != null) {

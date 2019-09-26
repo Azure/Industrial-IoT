@@ -23,33 +23,26 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
         private const string kOwnCertX509StorePathDefault = "OwnCertX509StorePathDefault";
 
         /// <inheritdoc/>
-        public string AppCertStoreType =>
-             GetStringOrDefault(kAppCertStoreType, RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "X509Store" : "Directory");
-
+        public string AppCertStoreType => GetStringOrDefault(kAppCertStoreType,
+            RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "X509Store" : "Directory");
         /// <inheritdoc/>
         public string PkiRootPath =>
             GetStringOrDefault(kPkiRootPath, "pki");
-
         /// <inheritdoc/>
         public string OwnCertPath =>
             GetStringOrDefault(kOwnCertPath, PkiRootPath + "/own");
-
         /// <inheritdoc/>
         public string TrustedCertPath =>
             GetStringOrDefault(kTrustedCertPath, PkiRootPath + "/trusted");
-
         /// <inheritdoc/>
         public string IssuerCertPath =>
             GetStringOrDefault(kIssuerCertPath, PkiRootPath + "/issuer");
-
         /// <inheritdoc/>
         public string RejectedCertPath =>
             GetStringOrDefault(kRejectedCertPath, PkiRootPath + "/rejected");
-
         /// <inheritdoc/>
         public string OwnCertX509StorePathDefault =>
             GetStringOrDefault(kOwnCertX509StorePathDefault, "CurrentUser\\UA_MachineDefault");
-
         /// <inheritdoc/>
         public bool AutoAccept =>
             GetBoolOrDefault(kAutoAccept, false);
