@@ -19,16 +19,7 @@ if ([string]::IsNullOrEmpty($path)) {
     throw "No docker folder specified."
 }
 if (!(Test-Path -Path $path -PathType Container)) {
-    $cur = Join-Path `
-        (Split-Path $script:MyInvocation.MyCommand.Path) $path
-    if (!(Test-Path -Path $cur -PathType Container)) {
-    $cur = Join-Path (Split-Path `
-        (Split-Path $script:MyInvocation.MyCommand.Path)) $path
-        if (!(Test-Path -Path $cur -PathType Container)) {
-            throw "$($path) does not exist."
-        }
-    }
-    $path = $cur
+    $path = & ./getroot.ps1 -fileName $path
 }
 $path = Resolve-Path -LiteralPath $path
 

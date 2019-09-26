@@ -14,7 +14,7 @@ jobs:
     displayName: Prepare Solutions
     inputs:
       targetType: filePath
-      filePath: ./tools/jobmatrix.ps1
+      filePath: ./tools/scripts/jobmatrix.ps1
       arguments: -FileName *.sln
 - job: buildall
   displayName: Building
@@ -35,7 +35,7 @@ jobs:
     displayName: Versioning
     inputs:
       targetType: filePath
-      filePath: tools/getversion.ps1
+      filePath: ./tools/scripts/getversion.ps1
   - task: DotNetCoreCLI@2
     displayName: Release Build
     inputs:
@@ -60,7 +60,7 @@ jobs:
     displayName: Prepare Tests
     inputs:
       targetType: filePath
-      filePath: ./tools/jobmatrix.ps1
+      filePath: ./tools/scripts/jobmatrix.ps1
       # arguments: -FileName Directory.Build.props
       arguments: -FileName azure-pipelines.yml
 - job: testall

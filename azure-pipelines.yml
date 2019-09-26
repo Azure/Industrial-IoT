@@ -2,19 +2,19 @@ stages:
 - stage: build
   displayName: 'Build and Test Code'
   jobs:
-  - template: tools/ci.yml
-  - template: tools/sdl.yml
+  - template: tools/templates/ci.yml
+  - template: tools/templates/sdl.yml
 - stage: pack
   displayName: 'Package and Sign Nuget'
   dependsOn: build
   jobs:
-  - template: tools/nuget.yml
+  - template: tools/templates/nuget.yml
     parameters:
       sign: ${{ startsWith(variables['Build.SourceBranch'], 'refs/heads/') }}
 - stage: images
   displayName: 'Create and Push Images'
   dependsOn: pack
   jobs:
-  - template: tools/acrbuild.yml
+  - template: tools/templates/acrbuild.yml
     parameters:
       useNugets: ${{ startsWith(variables['Build.SourceBranch'], 'refs/heads/') }}

@@ -30,8 +30,9 @@ $configuration = "Release"
 if ($debug.IsPresent) {
     $configuration = "Debug"
 }
-$scriptPath = (Join-Path $PSScriptRoot "docker-source.ps1")
-$definitions = & $scriptPath -path $path -configuration $configuration
+
+$definitions = & (Join-Path $PSScriptRoot "docker-source.ps1") `
+    -path $path -configuration $configuration
 
 # Get currently active platform 
 $dockerversion = &docker @("version") 2>&1 | %{ "$_" } `

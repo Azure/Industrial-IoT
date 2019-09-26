@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.Modules.Diagnostic {
     using Microsoft.Azure.IIoT.Modules.Diagnostic.Runtime;
-    using Microsoft.Azure.IIoT.Modules.Diagnostic.Services;
     using Microsoft.Azure.IIoT.Modules.Diagnostic.Services.Default;
     using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.Module.Framework.Services;
@@ -18,7 +17,6 @@ namespace Microsoft.Azure.IIoT.Modules.Diagnostic {
     using System.Diagnostics;
     using System.Threading;
     using Serilog;
-    using Serilog.Events;
 
     /// <summary>
     /// Module Process

@@ -12,7 +12,6 @@ namespace Microsoft.Azure.IIoT.Modules.Diagnostic.v2.Supervisor {
     using System.Threading.Tasks;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
-    using System.Reflection.Metadata.Ecma335;
 
     /// <summary>
     /// Diagnostic methods controller

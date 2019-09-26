@@ -35,45 +35,17 @@ Param(
     [switch] $debug
 )
 
-#
-# find the top most folder with file in it and return the path
-#
-Function GetTopMostFolder() {
-    param(
-        [string] $startDir,
-        [string] $fileName
-    ) 
-    $cur = $startDir
-    while (![string]::IsNullOrEmpty($cur)) {
-        if (Test-Path -Path (Join-Path $cur $fileName) -PathType Leaf) {
-            return $cur
-        }
-        $cur = Split-Path $cur
-    }
-    return $startDir
-}
-
 # Check path argument and resolve to full existing path
 if ([string]::IsNullOrEmpty($path)) {
     throw "No docker folder specified."
 }
 if (!(Test-Path -Path $path -PathType Container)) {
-    $cur = Join-Path `
-        (Split-Path $script:MyInvocation.MyCommand.Path) $path
-    if (!(Test-Path -Path $cur -PathType Container)) {
-    $cur = Join-Path (Split-Path `
-        (Split-Path $script:MyInvocation.MyCommand.Path)) $path
-        if (!(Test-Path -Path $cur -PathType Container)) {
-            throw "$($path) does not exist."
-        }
-    }
-    $path = $cur
+    $path = & ./getroot.ps1 -fileName $path
 }
 $path = Resolve-Path -LiteralPath $path
 
 # Get build root - this is the top most folder with .dockerignore
-$buildRoot = GetTopMostFolder -startDir $path `
-    -fileName ".dockerignore"
+$buildRoot = & ./getroot.ps1 -startDir $path -fileName ".dockerignore"
 # Get meta data
 $metadata = Get-Content -Raw -Path (join-path $path "mcr.json") `
     | ConvertFrom-Json

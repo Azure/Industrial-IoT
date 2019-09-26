@@ -7,10 +7,10 @@
     file builds each one
 
  .PARAMETER BuildRoot
-    The root folder to start traversing the repository from.
+    The root folder to start traversing the repository from (Optional).
 
- .PARAMETER Build
-    If not set the task generates jobs in azure pipeline.
+ .PARAMETER Debug
+    Whether to build debug images.
 #>
 
 Param(
@@ -19,7 +19,7 @@ Param(
 )
 
 if ([string]::IsNullOrEmpty($BuildRoot)) {
-    $BuildRoot = Split-Path (Split-Path $script:MyInvocation.MyCommand.Path)
+    $BuildRoot = & ./getroot.ps1 -fileName "*.sln"
 }
 
 # Traverse from build root and find all mcr.json metadata files and build

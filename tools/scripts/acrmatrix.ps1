@@ -20,7 +20,7 @@ Param(
 )
 
 if ([string]::IsNullOrEmpty($BuildRoot)) {
-    $BuildRoot = Split-Path (Split-Path $script:MyInvocation.MyCommand.Path)
+    $BuildRoot = & ./getroot.ps1 -fileName "*.sln"
 }
 
 $acrMatrix = @{}

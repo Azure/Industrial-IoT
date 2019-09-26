@@ -26,13 +26,12 @@ Param(
 )
 
 if ([string]::IsNullOrEmpty($BuildRoot)) {
-    $BuildRoot = Split-Path (Split-Path $script:MyInvocation.MyCommand.Path)
+    $BuildRoot = & ./getroot.ps1 -fileName "*.sln"
 }
 
 if ([string]::IsNullOrEmpty($FileName)) {
     $FileName = "Directory.Build.props"
 }
-
 if (![string]::IsNullOrEmpty($JobPrefix)) {
     $JobPrefix = "$($JobPrefix)-"
 }

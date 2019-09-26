@@ -19,7 +19,6 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery {
     using System.Diagnostics;
     using System.Threading;
     using Serilog;
-    using Serilog.Events;
 
     /// <summary>
     /// Module Process

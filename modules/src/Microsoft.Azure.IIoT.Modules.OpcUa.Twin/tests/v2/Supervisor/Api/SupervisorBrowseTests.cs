@@ -75,11 +75,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.Api {
         }
 
         [Fact]
-        public async Task NodeBrowseStaticArrayVariablesRawModeTest() {
-            await GetTests().NodeBrowseStaticArrayVariablesRawModeTest();
-        }
-
-        [Fact]
         public async Task NodeBrowsePathStaticScalarMethod3Test1() {
             await GetTests().NodeBrowsePathStaticScalarMethod3Test1();
         }

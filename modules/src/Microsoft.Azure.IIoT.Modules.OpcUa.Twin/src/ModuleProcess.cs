@@ -28,7 +28,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
     using System.Diagnostics;
     using System.Threading;
     using Serilog;
-    using Serilog.Events;
 
     /// <summary>
     /// Module Process
