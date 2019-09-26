@@ -341,10 +341,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Clients {
                     var response = await session.ReadAsync(
                         (request.Header?.Diagnostics).ToStackModel(),
                         0, TimestampsToReturn.Both, new ReadValueIdCollection {
-                    new ReadValueId {
-                        NodeId = readNode,
-                        AttributeId = Attributes.Value
-                    }
+                        new ReadValueId {
+                            NodeId = readNode,
+                            AttributeId = Attributes.Value
+                        }
                     });
                     OperationResultEx.Validate("Publish_" + readNode, diagnostics,
                         response.Results.Select(r => r.StatusCode),
@@ -366,7 +366,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Clients {
         private string ToPublisherNodeId(string nodeId) {
             try {
                 // Publisher node id should be in expanded format with nsu=
-                var expanded = nodeId.ToExpandedNodeId(ServiceMessageContext.GlobalContext);
+                var expanded = nodeId.ToExpandedNodeId(new ServiceMessageContext());
+                if (string.IsNullOrEmpty(expanded.NamespaceUri) && expanded.NamespaceIndex != 0) {
+                    _logger.Warning("Passing node id {nodeId} to publisher without namespace uri. " +
+                        "Consider using the 'nsu=<uri>;' nodeid format instead of 'ns=<index>;'.",
+                        nodeId);
+                }
                 return expanded.ToString();
             }
             catch {
@@ -383,7 +388,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Clients {
             try {
                 // Publisher node id should be in expanded format with nsu=
                 var expanded = ExpandedNodeId.Parse(nodeId);
-                return expanded.AsString(ServiceMessageContext.GlobalContext);
+                if (string.IsNullOrEmpty(expanded.NamespaceUri) && expanded.NamespaceIndex != 0) {
+                    //
+                    // However, if the node id string had a namespace index, but no uri,
+                    // we return legacy node id string so we do not strip of index.
+                    //
+                    return nodeId;
+                }
+                return expanded.AsString(new ServiceMessageContext());
             }
             catch {
                 return nodeId;
