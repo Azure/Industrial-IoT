@@ -60,7 +60,7 @@ if ($projFile -ne $null) {
         $argumentList += $projFile.FullName
 
         Write-Host "Publish $($projFile.FullName) with $($runtimeId) runtime..."
-        & dotnet $argumentList 2>&1 | %{ "$_" }
+        & dotnet $argumentList 2>&1 | %{ Write-Host "$_" }
         if ($LastExitCode -ne 0) {
             throw "Error: 'dotnet $($argumentList)' failed with $($LastExitCode)."
         }

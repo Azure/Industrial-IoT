@@ -128,7 +128,7 @@ if ([string]::IsNullOrEmpty($Registry)) {
 if (![string]::IsNullOrEmpty($Subscription)) {
     Write-Debug "Setting subscription to $($Subscription)"
     $argumentList = @("account", "set", "--subscription", $Subscription)
-    & "az" $argumentList 2`>`&1 | %{ "$_" }
+    & "az" $argumentList 2>&1 | %{ Write-Host "$_" }
 }
 
 # get registry information
@@ -192,6 +192,8 @@ if ($definitions.Count -eq 0) {
 
 Write-Host "Building $($definitions.Count) images in $($Path) in $($buildRoot)"
 Write-Host " and pushing to $($Registry)/$($namespace)$($imageName)..."
+
+$definitions | Out-Host
 
 # Create build jobs from build definitions
 $jobs = @()
