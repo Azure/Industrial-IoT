@@ -39,18 +39,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Vault.Handler {
         }
 
         /// <inheritdoc/>
-        public Task OnApplicationApprovedAsync(RegistryOperationContextModel context,
-            ApplicationInfoModel application) {
-            return Task.CompletedTask;
-        }
-
-        /// <inheritdoc/>
-        public Task OnApplicationRejectedAsync(RegistryOperationContextModel context,
-            ApplicationInfoModel application) {
-            return Task.CompletedTask;
-        }
-
-        /// <inheritdoc/>
         public Task OnApplicationEnabledAsync(RegistryOperationContextModel context,
             ApplicationInfoModel application) {
             return Task.CompletedTask;
@@ -65,7 +53,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Vault.Handler {
         /// <inheritdoc/>
         public Task OnApplicationDeletedAsync(RegistryOperationContextModel context,
             ApplicationInfoModel application) {
-            return RemoveAllRequestsForEntity(application.ApplicationId, context);
+            return RemoveAllRequestsForEntityAsync(application.ApplicationId, context);
         }
 
         /// <inheritdoc/>
@@ -107,7 +95,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Vault.Handler {
         /// <inheritdoc/>
         public Task OnEndpointDeletedAsync(RegistryOperationContextModel context,
             EndpointInfoModel endpoint) {
-            return RemoveAllRequestsForEntity(endpoint.Registration.Id, context);
+            return RemoveAllRequestsForEntityAsync(endpoint.Registration.Id, context);
         }
 
         /// <summary>
@@ -116,7 +104,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Vault.Handler {
         /// <param name="entityId"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        private async Task RemoveAllRequestsForEntity(string entityId,
+        private async Task RemoveAllRequestsForEntityAsync(string entityId,
             RegistryOperationContextModel context) {
             string nextPageLink = null;
             var result = await _requests.QueryRequestsAsync(

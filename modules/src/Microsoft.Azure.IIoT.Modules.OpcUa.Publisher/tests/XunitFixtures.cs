@@ -184,7 +184,11 @@ namespace OpcPublisher
         {
             try
             {
-                Plc = new PlcOpcUaServer();
+                // Disable in CI
+                if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("BUILD_SOURCEBRANCH")))
+                {
+                    Plc = new PlcOpcUaServer();
+                }
             }
             catch
             {

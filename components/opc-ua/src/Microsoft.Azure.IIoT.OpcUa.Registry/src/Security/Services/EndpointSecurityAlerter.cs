@@ -101,18 +101,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Security.Services {
         }
 
         /// <inheritdoc/>
-        public Task OnApplicationApprovedAsync(RegistryOperationContextModel context,
-            ApplicationInfoModel application) {
-            return Task.CompletedTask;
-        }
-
-        /// <inheritdoc/>
-        public Task OnApplicationRejectedAsync(RegistryOperationContextModel context,
-            ApplicationInfoModel application) {
-            return Task.CompletedTask;
-        }
-
-        /// <inheritdoc/>
         public Task OnApplicationEnabledAsync(RegistryOperationContextModel context,
             ApplicationInfoModel application) {
             return Task.CompletedTask;

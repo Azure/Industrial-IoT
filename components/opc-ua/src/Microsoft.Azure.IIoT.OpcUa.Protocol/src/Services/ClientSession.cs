@@ -415,7 +415,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     _sessionId);
             }
             finally {
-                if (operation != null) {
+                if (operation != null && operation != keepAlive.Item2) {
                     _queue.Enqueue(priority, operation);
                 }
                 _lastActivity = DateTime.MinValue;
@@ -424,6 +424,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 _session?.Close();
                 _session = null;
                 _logger.Debug("{session}: Session closed.", _sessionId);
+                keepAlive.Item2?.Dispose();
             }
             _logger.Verbose("{session}: Processor stopped.", _sessionId);
         }

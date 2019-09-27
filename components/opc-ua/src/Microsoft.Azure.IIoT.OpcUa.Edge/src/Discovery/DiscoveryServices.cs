@@ -509,7 +509,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
 #if !NO_SCHEDULER_DUMP
         private int _counter;
 #endif
+#pragma warning disable IDE0069 // Disposable fields should be disposed
         private CancellationTokenSource _discovery;
+#pragma warning restore IDE0069 // Disposable fields should be disposed
         private Task _completed;
         private TimeSpan? _setupDelay;
 

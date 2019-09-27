@@ -26,7 +26,7 @@ namespace Microsoft.Azure.IIoT.Crypto.Default {
     public class CertificateIssuerTests {
 
         [Fact]
-        public async Task ImportCertificateWithoutKeyTest() {
+        public async Task ImportCertificateWithoutKeyTestAsync() {
 
             using (var mock = AutoMock.GetLoose()) {
                 // Setup
@@ -49,7 +49,9 @@ namespace Microsoft.Azure.IIoT.Crypto.Default {
                 IKeyStore keys = mock.Create<KeyDatabase>();
 
                 var now = DateTime.UtcNow;
+#pragma warning disable IDE0067 // Dispose objects before losing scope
                 var rkey = SignatureType.RS256.CreateCsr("CN=me", true, out var request);
+#pragma warning restore IDE0067 // Dispose objects before losing scope
                 var cert = request.CreateSelfSigned(now, now + TimeSpan.FromDays(5));
 
                 // Run
@@ -87,7 +89,7 @@ namespace Microsoft.Azure.IIoT.Crypto.Default {
         }
 
         [Fact]
-        public async Task ImportCertificateWithKeyTest() {
+        public async Task ImportCertificateWithKeyTestAsync() {
 
             using (var mock = AutoMock.GetLoose()) {
                 // Setup
@@ -159,7 +161,7 @@ namespace Microsoft.Azure.IIoT.Crypto.Default {
         [InlineData(SignatureType.PS384, 2048)]
         [InlineData(SignatureType.PS512, 2048)]
         [InlineData(SignatureType.PS512, 4096)]
-        public async Task CreateRSARootTest(SignatureType signature, uint keySize) {
+        public async Task CreateRSARootTestAsync(SignatureType signature, uint keySize) {
 
             using (var mock = AutoMock.GetLoose()) {
                 // Setup
@@ -228,7 +230,7 @@ namespace Microsoft.Azure.IIoT.Crypto.Default {
         [InlineData(SignatureType.ES512, CurveType.P256, 2048)]
         [InlineData(SignatureType.ES512, CurveType.P256, 4096)]
         // TODO: [InlineData(SignatureType.ES256, CurveType.Brainpool_P160r1)]
-        public async Task CreateECCRootTest(SignatureType signature, CurveType curve, uint keySize) {
+        public async Task CreateECCRootTestAsync(SignatureType signature, CurveType curve, uint keySize) {
 
             using (var mock = AutoMock.GetLoose()) {
                 // Setup
@@ -292,7 +294,7 @@ namespace Microsoft.Azure.IIoT.Crypto.Default {
         //[InlineData(SignatureType.ES384, CurveType.P521, 2048)]
         //[InlineData(SignatureType.ES512, CurveType.P256, 2048)]
         [InlineData(SignatureType.ES512, CurveType.P256, 4096)]
-        public async Task CreateECCRoot100Test(SignatureType signature, CurveType curve, uint keySize) {
+        public async Task CreateECCRoot100TestAsync(SignatureType signature, CurveType curve, uint keySize) {
 
             using (var mock = AutoMock.GetLoose()) {
                 // Setup
@@ -332,7 +334,7 @@ namespace Microsoft.Azure.IIoT.Crypto.Default {
         }
 
         [Fact]
-        public async Task CreateRootTwiceTest() {
+        public async Task CreateRootTwiceTestAsync() {
 
             using (var mock = AutoMock.GetLoose()) {
                 // Setup
@@ -399,7 +401,7 @@ namespace Microsoft.Azure.IIoT.Crypto.Default {
         [InlineData(SignatureType.PS384, 2048)]
         [InlineData(SignatureType.PS512, 2048)]
         [InlineData(SignatureType.PS512, 4096)]
-        public async Task CreateRSARootAndRSAIssuerTest(SignatureType signature, uint keySize) {
+        public async Task CreateRSARootAndRSAIssuerTestAsync(SignatureType signature, uint keySize) {
 
             using (var mock = AutoMock.GetLoose()) {
                 // Setup
@@ -477,7 +479,7 @@ namespace Microsoft.Azure.IIoT.Crypto.Default {
         [InlineData(SignatureType.PS384, 2048)]
         [InlineData(SignatureType.PS512, 2048)]
         [InlineData(SignatureType.PS512, 4096)]
-        public async Task CreateRSARootAndECCIssuerTest(SignatureType signature, uint keySize) {
+        public async Task CreateRSARootAndECCIssuerTestAsync(SignatureType signature, uint keySize) {
 
             using (var mock = AutoMock.GetLoose()) {
                 // Setup
@@ -557,7 +559,7 @@ namespace Microsoft.Azure.IIoT.Crypto.Default {
         [InlineData(SignatureType.ES512, CurveType.P256, 2048)]
         [InlineData(SignatureType.ES512, CurveType.P256, 4096)]
         // TODO: [InlineData(SignatureType.ES256, CurveType.Brainpool_P160r1)]
-        public async Task CreateECCRootAndRSAIssuerTest(SignatureType signature, CurveType curve, uint keySize) {
+        public async Task CreateECCRootAndRSAIssuerTestAsync(SignatureType signature, CurveType curve, uint keySize) {
 
             using (var mock = AutoMock.GetLoose()) {
                 // Setup
@@ -634,7 +636,7 @@ namespace Microsoft.Azure.IIoT.Crypto.Default {
         [InlineData(SignatureType.ES512, CurveType.P256, 2048)]
         [InlineData(SignatureType.ES512, CurveType.P256, 4096)]
         // TODO: [InlineData(SignatureType.ES256, CurveType.Brainpool_P160r1)]
-        public async Task CreateECCRootAndECCIssuerTest(SignatureType signature, CurveType curve, uint keySize) {
+        public async Task CreateECCRootAndECCIssuerTestAsync(SignatureType signature, CurveType curve, uint keySize) {
 
             using (var mock = AutoMock.GetLoose()) {
                 // Setup
@@ -704,7 +706,7 @@ namespace Microsoft.Azure.IIoT.Crypto.Default {
         }
 
         [Fact]
-        public async Task CreateRSARootAndRSAIssuerAndRSAIssuerTest() {
+        public async Task CreateRSARootAndRSAIssuerAndRSAIssuerTestAsync() {
 
             using (var mock = AutoMock.GetLoose()) {
                 // Setup
@@ -816,7 +818,7 @@ namespace Microsoft.Azure.IIoT.Crypto.Default {
         [InlineData(SignatureType.PS384, 2048)]
         [InlineData(SignatureType.PS512, 2048)]
         [InlineData(SignatureType.PS512, 4096)]
-        public async Task CreateRSACertificateAndPrivateKeyTest(SignatureType signature, uint keySize) {
+        public async Task CreateRSACertificateAndPrivateKeyTestAsync(SignatureType signature, uint keySize) {
 
             using (var mock = AutoMock.GetLoose()) {
                 // Setup
@@ -895,7 +897,7 @@ namespace Microsoft.Azure.IIoT.Crypto.Default {
         [InlineData(SignatureType.ES512, CurveType.P256, 2048)]
         [InlineData(SignatureType.ES512, CurveType.P256, 4096)]
         // TODO: [InlineData(SignatureType.ES256, CurveType.Brainpool_P160r1)]
-        public async Task CreateECCCertificateAndPrivateKeyTest(SignatureType signature,
+        public async Task CreateECCCertificateAndPrivateKeyTestAsync(SignatureType signature,
             CurveType curveType, uint keySize) {
 
             using (var mock = AutoMock.GetLoose()) {
@@ -968,7 +970,7 @@ namespace Microsoft.Azure.IIoT.Crypto.Default {
         }
 
         [Fact]
-        public async Task CreateRSASignedCertificateTest() {
+        public async Task CreateRSASignedCertificateTestAsync() {
 
             using (var mock = AutoMock.GetLoose()) {
                 // Setup

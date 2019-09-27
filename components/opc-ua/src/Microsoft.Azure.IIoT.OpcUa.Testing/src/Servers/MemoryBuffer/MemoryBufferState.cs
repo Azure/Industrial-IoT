@@ -199,7 +199,9 @@ namespace MemoryBuffer {
         /// </summary>
         public ServiceResult ReadTagValue(
 #pragma warning disable RECS0154 // Parameter is never used
+#pragma warning disable IDE0060 // Remove unused parameter
             ISystemContext context,
+#pragma warning restore IDE0060 // Remove unused parameter
 #pragma warning restore RECS0154 // Parameter is never used
             NodeState node,
             NumericRange indexRange,
@@ -245,7 +247,9 @@ namespace MemoryBuffer {
         /// </summary>
         public ServiceResult WriteTagValue(
 #pragma warning disable RECS0154 // Parameter is never used
+#pragma warning disable IDE0060 // Remove unused parameter
             ISystemContext context,
+#pragma warning restore IDE0060 // Remove unused parameter
 #pragma warning restore RECS0154 // Parameter is never used
             NodeState node,
             NumericRange indexRange,

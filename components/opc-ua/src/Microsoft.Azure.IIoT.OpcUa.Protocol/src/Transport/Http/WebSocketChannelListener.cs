@@ -120,17 +120,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
                     channel.SetRequestReceivedCallback(OnRequestReceived);
 
                     // Wrap socket in channel to read and write.
+#pragma warning disable IDE0068 // Use recommended dispose pattern
                     var socket = new WebSocketMessageSocket(channel, webSocket,
                         _bufferManager, _quotas.MaxBufferSize, _logger);
+#pragma warning restore IDE0068 // Use recommended dispose pattern
                     var channelId = (uint)Interlocked.Increment(ref _lastChannelId);
                     channel.Attach(channelId, socket);
-
-                    _channels.TryAdd(channelId, channel);
+                    if (!_channels.TryAdd(channelId, channel)) {
+                        throw new InvalidProgramException("Failed to add channel");
+                    }
+                    channel = null;
                     _logger.Debug("Started channel {channelId} on {socket.Handle}...",
                         channelId, socket.Handle);
                 }
                 catch (Exception ex) {
                     _logger.Error(ex, "Unexpected error accepting a new connection.");
+                }
+                finally {
+                    channel?.Dispose();
                 }
             }
         }

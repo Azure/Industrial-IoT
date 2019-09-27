@@ -200,6 +200,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 _clients.Clear();
             }
             Try.Op(() => _cts.Dispose());
+            _lock.Dispose();
         }
 
         /// <inheritdoc/>
@@ -700,11 +701,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         private readonly ApplicationConfiguration _opcApplicationConfig;
         private readonly Dictionary<EndpointIdentifier, IClientSession> _clients =
             new Dictionary<EndpointIdentifier, IClientSession>();
-        private readonly SemaphoreSlim _lock = new SemaphoreSlim(1);
         private readonly ConcurrentDictionary<EndpointIdentifier, Func<EndpointConnectivityState, Task>> _callbacks =
             new ConcurrentDictionary<EndpointIdentifier, Func<EndpointConnectivityState, Task>>();
+        private readonly SemaphoreSlim _lock = new SemaphoreSlim(1);
+#pragma warning disable IDE0069 // Disposable fields should be disposed
         private readonly CancellationTokenSource _cts =
             new CancellationTokenSource();
         private readonly Timer _timer;
+#pragma warning restore IDE0069 // Disposable fields should be disposed
     }
 }

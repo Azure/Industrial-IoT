@@ -1699,6 +1699,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                 .Find(true);
             if (cert == null) {
                 // Create cert
+#pragma warning disable IDE0067 // Dispose objects before losing scope
                 cert = CertificateFactory.CreateCertificate(
                     config.SecurityConfiguration.ApplicationCertificate.StoreType,
                     config.SecurityConfiguration.ApplicationCertificate.StorePath,
@@ -1709,6 +1710,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                     CertificateFactory.defaultLifeTime,
                     CertificateFactory.defaultHashSize,
                     false, null, null);
+#pragma warning restore IDE0067 // Dispose objects before losing scope
             }
 
             if (cert != null) {
