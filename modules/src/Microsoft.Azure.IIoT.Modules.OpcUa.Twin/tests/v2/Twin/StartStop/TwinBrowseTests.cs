@@ -37,171 +37,191 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Twin.StartStop {
         private static readonly bool _runAll = Environment.GetEnvironmentVariable("TEST_ALL") != null;
 
         [SkippableFact]
-        public async Task NodeBrowseInRootTest1() {
+        public async Task NodeBrowseInRootTest1Async() {
             // Skip.IfNot(_runAll);
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
-                    await GetTests(endpoint, services).NodeBrowseInRootTest1();
+                    await GetTests(endpoint, services).NodeBrowseInRootTest1Async();
                 });
             }
         }
 
         [SkippableFact]
-        public async Task NodeBrowseFirstInRootTest1() {
+        public async Task NodeBrowseFirstInRootTest1Async() {
             Skip.IfNot(_runAll);
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
-                    await GetTests(endpoint, services).NodeBrowseFirstInRootTest1();
+                    await GetTests(endpoint, services).NodeBrowseFirstInRootTest1Async();
                 });
             }
         }
 
         [SkippableFact]
-        public async Task NodeBrowseFirstInRootTest2() {
+        public async Task NodeBrowseFirstInRootTest2Async() {
             Skip.IfNot(_runAll);
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
-                    await GetTests(endpoint, services).NodeBrowseFirstInRootTest2();
+                    await GetTests(endpoint, services).NodeBrowseFirstInRootTest2Async();
                 });
             }
         }
 
         [SkippableFact]
-        public async Task NodeBrowseBoilersObjectsTest1() {
+        public async Task NodeBrowseBoilersObjectsTest1Async() {
             Skip.IfNot(_runAll);
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
-                    await GetTests(endpoint, services).NodeBrowseBoilersObjectsTest1();
+                    await GetTests(endpoint, services).NodeBrowseBoilersObjectsTest1Async();
                 });
             }
         }
 
         [SkippableFact]
-        public async Task NodeBrowseBoilersObjectsTest2() {
+        public async Task NodeBrowseBoilersObjectsTest2Async() {
             Skip.IfNot(_runAll);
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
-                    await GetTests(endpoint, services).NodeBrowseBoilersObjectsTest2();
+                    await GetTests(endpoint, services).NodeBrowseBoilersObjectsTest2Async();
                 });
             }
         }
 
         [SkippableFact]
-        public async Task NodeBrowseStaticScalarVariablesTest() {
-            Skip.IfNot(_runAll);
-            using (var harness = new TwinModuleFixture()) {
-                await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
-                    await GetTests(endpoint, services).NodeBrowseStaticScalarVariablesTest();
-                });
-            }
-        }
-
-        [SkippableFact]
-        public async Task NodeBrowseStaticArrayVariablesTest() {
-            Skip.IfNot(_runAll);
-            using (var harness = new TwinModuleFixture()) {
-                await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
-                    await GetTests(endpoint, services).NodeBrowseStaticArrayVariablesTest();
-                });
-            }
-        }
-
-        [SkippableFact]
-        public async Task NodeBrowseStaticArrayVariablesWithValuesTest() {
-            Skip.IfNot(_runAll);
-            using (var harness = new TwinModuleFixture()) {
-                await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
-                    await GetTests(endpoint, services).NodeBrowseStaticArrayVariablesWithValuesTest();
-                });
-            }
-        }
-
-        [SkippableFact]
-        public async Task NodeBrowseStaticArrayVariablesRawModeTest() {
-            Skip.IfNot(_runAll);
-            using (var harness = new TwinModuleFixture()) {
-                await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
-                    await GetTests(endpoint, services).NodeBrowseStaticArrayVariablesRawModeTest();
-                });
-            }
-        }
-
-        [SkippableFact]
-        public async Task NodeBrowsePathStaticScalarMethod3Test1() {
-            Skip.IfNot(_runAll);
-            using (var harness = new TwinModuleFixture()) {
-                await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
-                    await GetTests(endpoint, services).NodeBrowsePathStaticScalarMethod3Test1();
-                });
-            }
-        }
-
-        [SkippableFact]
-        public async Task NodeBrowsePathStaticScalarMethod3Test2() {
-            Skip.IfNot(_runAll);
-            using (var harness = new TwinModuleFixture()) {
-                await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
-                    await GetTests(endpoint, services).NodeBrowsePathStaticScalarMethod3Test2();
-                });
-            }
-        }
-
-        [SkippableFact]
-        public async Task NodeBrowsePathStaticScalarMethod3Test3() {
-            Skip.IfNot(_runAll);
-            using (var harness = new TwinModuleFixture()) {
-                await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
-                    await GetTests(endpoint, services).NodeBrowsePathStaticScalarMethod3Test3();
-                });
-            }
-        }
-
-        [SkippableFact]
-        public async Task NodeBrowsePathStaticScalarMethodsTest() {
+        public async Task NodeBrowseDataAccessObjectsTest1Async() {
             // Skip.IfNot(_runAll);
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
-                    await GetTests(endpoint, services).NodeBrowsePathStaticScalarMethodsTest();
+                    await GetTests(endpoint, services).NodeBrowseDataAccessObjectsTest1Async();
                 });
             }
         }
 
         [SkippableFact]
-        public async Task NodeBrowseDiagnosticsNoneTest() {
-            Skip.IfNot(_runAll);
-            using (var harness = new TwinModuleFixture()) {
-                await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
-                    await GetTests(endpoint, services).NodeBrowseDiagnosticsNoneTest();
-                });
-            }
-        }
-
-        [SkippableFact]
-        public async Task NodeBrowseDiagnosticsStatusTest() {
+        public async Task NodeBrowseDataAccessObjectsTest2Async() {
             // Skip.IfNot(_runAll);
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
-                    await GetTests(endpoint, services).NodeBrowseDiagnosticsStatusTest();
+                    await GetTests(endpoint, services).NodeBrowseDataAccessObjectsTest2Async();
                 });
             }
         }
 
         [SkippableFact]
-        public async Task NodeBrowseDiagnosticsOperationsTest() {
+        public async Task NodeBrowseStaticScalarVariablesTestAsync() {
             Skip.IfNot(_runAll);
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
-                    await GetTests(endpoint, services).NodeBrowseDiagnosticsOperationsTest();
+                    await GetTests(endpoint, services).NodeBrowseStaticScalarVariablesTestAsync();
                 });
             }
         }
 
         [SkippableFact]
-        public async Task NodeBrowseDiagnosticsVerboseTest() {
+        public async Task NodeBrowseStaticArrayVariablesTestAsync() {
             Skip.IfNot(_runAll);
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
-                    await GetTests(endpoint, services).NodeBrowseDiagnosticsVerboseTest();
+                    await GetTests(endpoint, services).NodeBrowseStaticArrayVariablesTestAsync();
+                });
+            }
+        }
+
+        [SkippableFact]
+        public async Task NodeBrowseStaticArrayVariablesWithValuesTestAsync() {
+            Skip.IfNot(_runAll);
+            using (var harness = new TwinModuleFixture()) {
+                await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
+                    await GetTests(endpoint, services).NodeBrowseStaticArrayVariablesWithValuesTestAsync();
+                });
+            }
+        }
+
+        [SkippableFact]
+        public async Task NodeBrowseStaticArrayVariablesRawModeTestAsync() {
+            Skip.IfNot(_runAll);
+            using (var harness = new TwinModuleFixture()) {
+                await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
+                    await GetTests(endpoint, services).NodeBrowseStaticArrayVariablesRawModeTestAsync();
+                });
+            }
+        }
+
+        [SkippableFact]
+        public async Task NodeBrowsePathStaticScalarMethod3Test1Async() {
+            Skip.IfNot(_runAll);
+            using (var harness = new TwinModuleFixture()) {
+                await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
+                    await GetTests(endpoint, services).NodeBrowsePathStaticScalarMethod3Test1Async();
+                });
+            }
+        }
+
+        [SkippableFact]
+        public async Task NodeBrowsePathStaticScalarMethod3Test2Async() {
+            Skip.IfNot(_runAll);
+            using (var harness = new TwinModuleFixture()) {
+                await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
+                    await GetTests(endpoint, services).NodeBrowsePathStaticScalarMethod3Test2Async();
+                });
+            }
+        }
+
+        [SkippableFact]
+        public async Task NodeBrowsePathStaticScalarMethod3Test3Async() {
+            Skip.IfNot(_runAll);
+            using (var harness = new TwinModuleFixture()) {
+                await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
+                    await GetTests(endpoint, services).NodeBrowsePathStaticScalarMethod3Test3Async();
+                });
+            }
+        }
+
+        [SkippableFact]
+        public async Task NodeBrowsePathStaticScalarMethodsTestAsync() {
+            // Skip.IfNot(_runAll);
+            using (var harness = new TwinModuleFixture()) {
+                await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
+                    await GetTests(endpoint, services).NodeBrowsePathStaticScalarMethodsTestAsync();
+                });
+            }
+        }
+
+        [SkippableFact]
+        public async Task NodeBrowseDiagnosticsNoneTestAsync() {
+            Skip.IfNot(_runAll);
+            using (var harness = new TwinModuleFixture()) {
+                await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
+                    await GetTests(endpoint, services).NodeBrowseDiagnosticsNoneTestAsync();
+                });
+            }
+        }
+
+        [SkippableFact]
+        public async Task NodeBrowseDiagnosticsStatusTestAsync() {
+            // Skip.IfNot(_runAll);
+            using (var harness = new TwinModuleFixture()) {
+                await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
+                    await GetTests(endpoint, services).NodeBrowseDiagnosticsStatusTestAsync();
+                });
+            }
+        }
+
+        [SkippableFact]
+        public async Task NodeBrowseDiagnosticsOperationsTestAsync() {
+            Skip.IfNot(_runAll);
+            using (var harness = new TwinModuleFixture()) {
+                await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
+                    await GetTests(endpoint, services).NodeBrowseDiagnosticsOperationsTestAsync();
+                });
+            }
+        }
+
+        [SkippableFact]
+        public async Task NodeBrowseDiagnosticsVerboseTestAsync() {
+            Skip.IfNot(_runAll);
+            using (var harness = new TwinModuleFixture()) {
+                await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
+                    await GetTests(endpoint, services).NodeBrowseDiagnosticsVerboseTestAsync();
                 });
             }
         }

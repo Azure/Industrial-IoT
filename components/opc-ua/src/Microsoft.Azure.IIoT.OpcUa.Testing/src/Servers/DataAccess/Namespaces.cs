@@ -36,6 +36,6 @@ namespace DataAccess {
         /// <summary>
         /// The namespace for the nodes provided by the server.
         /// </summary>
-        public const string DataAccess = "http://opcfoundation.org/DataAccess";
+        public const string DataAccess = "DataAccess";
     }
 }

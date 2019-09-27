@@ -12,7 +12,7 @@
     <opc:Namespace Name="OpcUa" Prefix="Opc.Ua" XmlNamespace="http://opcfoundation.org/UA/2008/02/Types.xsd">http://opcfoundation.org/UA/</opc:Namespace>
     <opc:Namespace Name="TestData" Prefix="TestData">http://test.org/UA/Data/</opc:Namespace>
   </opc:Namespaces>
-  
+
   <opc:Method SymbolicName="GenerateValuesMethodType" ModellingRule="Mandatory">
 		<opc:InputArguments>
 			<opc:Argument Name="Iterations" DataType="ua:UInt32">
@@ -20,14 +20,14 @@
 			</opc:Argument>
 		</opc:InputArguments>
 	</opc:Method>
-  
+
 	<opc:ObjectType SymbolicName="GenerateValuesEventType" BaseType="ua:BaseEventType">
 		<opc:Children>
 			<opc:Property SymbolicName="Iterations" DataType="ua:UInt32" ModellingRule="Mandatory" />
 			<opc:Property SymbolicName="NewValueCount" DataType="ua:UInt32" ModellingRule="Mandatory" />
 		</opc:Children>
 	</opc:ObjectType>
-  
+
   <!--
   <opc:ObjectType SymbolicName="Foo_Bar_Type" BaseType="ua:BaseObjectType">
     <opc:Children>
@@ -77,7 +77,7 @@
     </opc:References>
   </opc:Object>
   -->
-  
+
 	<opc:ObjectType SymbolicName="TestDataObjectType" BaseType="ua:BaseObjectType">
 		<opc:Children>
 			<opc:Property SymbolicName="SimulationActive" DataType="ua:Boolean" ModellingRule="Mandatory">
@@ -195,7 +195,7 @@
       <opc:Argument Name="StructureOut" DataType="ua:Structure" />
     </opc:OutputArguments>
   </opc:Method>
-  
+
   <opc:ObjectType SymbolicName="ScalarValueObjectType" BaseType="TestDataObjectType">
     <opc:Children>
       <opc:Variable SymbolicName="BooleanValue" DataType="ua:Boolean" ModellingRule="Mandatory" />
@@ -245,7 +245,7 @@
       <opc:Variable SymbolicName="UIntegerValue" TypeDefinition="ua:AnalogItemType" DataType="ua:UInteger" ModellingRule="Mandatory" />
     </opc:Children>
   </opc:ObjectType>
-  
+
   <opc:DataType SymbolicName="ArrayValueDataType" BaseType="ua:Structure">
     <opc:Fields>
       <opc:Field Name="BooleanValue" DataType="ua:Boolean" ValueRank="Array" />
@@ -277,7 +277,7 @@
       <opc:Field Name="UInteger" DataType="ua:UInteger" ValueRank="Array" />
     </opc:Fields>
   </opc:DataType>
-  
+
   <opc:Method SymbolicName="ArrayValue1MethodType" ModellingRule="Mandatory">
     <opc:InputArguments>
       <opc:Argument Name="BooleanIn" DataType="ua:Boolean" ValueRank="Array" />
@@ -333,7 +333,7 @@
       <opc:Argument Name="StatusCodeOut" DataType="ua:StatusCode" ValueRank="Array" />
     </opc:OutputArguments>
   </opc:Method>
-  
+
   <opc:Method SymbolicName="ArrayValue3MethodType" ModellingRule="Mandatory">
     <opc:InputArguments>
       <opc:Argument Name="VariantIn" DataType="ua:BaseDataType" ValueRank="Array" />
@@ -375,7 +375,7 @@
       <opc:Variable SymbolicName="StructureValue" DataType="ua:Structure" ValueRank="Array" ModellingRule="Mandatory" />
       <opc:Variable SymbolicName="NumberValue" DataType="ua:Number" ValueRank="Array" ModellingRule="Mandatory" />
       <opc:Variable SymbolicName="IntegerValue" DataType="ua:Integer" ValueRank="Array" ModellingRule="Mandatory" />
-      <opc:Variable SymbolicName="UIntegerValue" DataType="ua:UInteger" ValueRank="Array" ModellingRule="Mandatory" />  
+      <opc:Variable SymbolicName="UIntegerValue" DataType="ua:UInteger" ValueRank="Array" ModellingRule="Mandatory" />
     </opc:Children>
 	</opc:ObjectType>
 
@@ -473,7 +473,7 @@
       <opc:Variable SymbolicName="VariantValue" DataType="VariantDataType" ModellingRule="Mandatory" />
     </opc:Children>
   </opc:ObjectType>
-  
+
   <opc:Method SymbolicName="UserScalarValue1MethodType" ModellingRule="Mandatory">
     <opc:InputArguments>
       <opc:Argument Name="BooleanIn" DataType="BooleanDataType" />
@@ -531,7 +531,7 @@
       <opc:Argument Name="VariantOut" DataType="VariantDataType" />
     </opc:OutputArguments>
   </opc:Method>
-  
+
   <opc:DataType SymbolicName="UserArrayValueDataType" BaseType="ua:Structure">
     <opc:Fields>
       <opc:Field Name="BooleanDataType" DataType="BooleanDataType" ValueRank="Array" />
@@ -643,7 +643,7 @@
       <opc:Argument Name="VariantOut" DataType="VariantDataType" ValueRank="Array" />
     </opc:OutputArguments>
   </opc:Method>
-  
+
   <opc:ObjectType SymbolicName="MethodTestType" BaseType="ua:FolderType">
     <opc:Children>
       <opc:Method SymbolicName="ScalarMethod1" TypeDefinition="ScalarValue1MethodType" ModellingRule="Mandatory" />
@@ -793,5 +793,5 @@
       -->
 		</opc:References>
 	</opc:Object>
-  
+
 </opc:ModelDesign>

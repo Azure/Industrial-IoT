@@ -20,6 +20,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures {
                 yield return new TestData.TestDataServer();
                 yield return new MemoryBuffer.MemoryBufferServer();
                 yield return new Boiler.BoilerServer();
+                yield return new DataAccess.DataAccessServer();
             }
         }
 

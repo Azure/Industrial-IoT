@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Sample {
-    using Serilog;
     using Microsoft.Azure.IIoT.Utils;
+    using Serilog;
     using Opc.Ua;
     using Opc.Ua.Server;
     using System;

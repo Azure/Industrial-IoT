@@ -33,5 +33,4 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
         /// </summary>
         HistoryWrite = 0x8,
     }
-
 }
