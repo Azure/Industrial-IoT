@@ -1,9 +1,10 @@
 <#
  .SYNOPSIS
-    Sets environment variables containing version numbers
+    Sets CI version build variables and/or returns version information.
 
  .DESCRIPTION
-    The script is a wrapper around any versioning tool in the build.
+    The script is a wrapper around any versioning tool we use and abstracts it from
+    the rest of the build system.
 #>
 
 try {
@@ -11,11 +12,15 @@ try {
         -fileName "version.props"
     # set version number from first encountered version.props
     [xml] $props=Get-Content -Path (Join-Path $buildRoot "version.props")
-    $sourceTag="$($props.Project.PropertyGroup.VersionPrefix)".Trim()
+    $VersionPrefix="$($props.Project.PropertyGroup.VersionPrefix)".Trim()
+    $VersionFull = $VersionPrefix
+
+    return [pscustomobject] @{ 
+        Full = $VersionFull
+        Prefix = $VersionPrefix
+    }
 }
 catch {
     Write-Warning $_.Exception
-    $sourceTag = $null
+    return $null
 }
-
-return $sourceTag

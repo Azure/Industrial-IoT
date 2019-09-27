@@ -20,7 +20,7 @@ jobs:
     displayName: Versioning
     inputs:
       targetType: filePath
-      filePath: ./tools/scripts/get-version.ps1
+      filePath: ./tools/scripts/set-version.ps1
   - task: DotNetCoreCLI@2
     displayName: Restore
     inputs:

@@ -55,8 +55,8 @@ $metadata = Get-Content -Raw -Path (join-path $Path "mcr.json") `
 $sourceTag = $env:GITVERSION_MajorMinorPatch
 if ([string]::IsNullOrEmpty($sourceTag)) {
     try {
-        # Call get-version.ps1 directly here.
-        $sourceTag = & (Join-Path $PSScriptRoot "get-version.ps1")
+        $version = & (Join-Path $PSScriptRoot "get-version.ps1")
+        $sourceTag = $version.Prefix
     }
     catch {
         $sourceTag = $null
