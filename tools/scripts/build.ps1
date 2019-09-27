@@ -19,7 +19,7 @@ Param(
 )
 
 if ([string]::IsNullOrEmpty($BuildRoot)) {
-    $BuildRoot = & ./getroot.ps1 -fileName "*.sln"
+    $BuildRoot = & (Join-Path $PSScriptRoot "get-root.ps1") -fileName "*.sln"
 }
 
 # Traverse from build root and find all mcr.json metadata files and build

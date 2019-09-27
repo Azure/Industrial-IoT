@@ -37,6 +37,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Cli {
         /// </summary>
         public static void Main(string[] args) {
             var publish = false;
+            var listNodes = false;
             string deviceId = null, moduleId = null;
             Console.WriteLine("Publisher module command line interface.");
             var configuration = new ConfigurationBuilder()
@@ -68,6 +69,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Cli {
                         case "-p":
                         case "--publish":
                             publish = true;
+                            break;
+                        case "-l":
+                        case "--list":
+                            listNodes = true;
                             break;
                         default:
                             unknownArgs.Add(args[i]);
@@ -108,6 +113,10 @@ Options:
     --publish
              Connects to and publishes a set of nodes in the built-in sample
              server.
+     -l
+    --listNodes
+             Continously lists published nodes - if combined with publish only
+             lists the published nodes on the endpoint.
 
     --help
      -?
@@ -125,7 +134,7 @@ Options:
 
             try {
                 if (publish) {
-                    PublishAsync(config, logger, deviceId, moduleId, args).Wait();
+                    PublishAsync(config, logger, deviceId, moduleId, listNodes, args).Wait();
                 }
                 else {
                     HostAsync(config, logger, deviceId, moduleId, args).Wait();
@@ -170,11 +179,11 @@ Options:
         /// setup publishing from sample server
         /// </summary>
         private static async Task PublishAsync(IIoTHubConfig config, ILogger logger,
-            string deviceId, string moduleId, string[] args) {
+            string deviceId, string moduleId, bool listNodes, string[] args) {
             try {
                 using (var cts = new CancellationTokenSource())
                 using (var server = new ServerWrapper(logger)) { // Start test server
-                    // Start publisher host
+                    // Start publisher module
                     var host = Task.Run(() => HostAsync(config, logger, deviceId,
                         moduleId, args, true), cts.Token);
 
@@ -193,6 +202,12 @@ Options:
                             server.EndpointUrl, node, true, cts.Token);
                     }
 
+                    var lister = Task.CompletedTask;
+                    if (listNodes) {
+                        lister = Task.Run(() => ListNodesAsync(config, logger,
+                            deviceId, moduleId, server.EndpointUrl, cts.Token), cts.Token);
+                    }
+
                     Console.WriteLine("Press key to cancel...");
                     Console.ReadKey();
 
@@ -203,12 +218,41 @@ Options:
 
                     logger.Information("Server exiting - tear down publisher...");
                     cts.Cancel();
+
+                    await lister;
                     await host;
                 }
             }
             catch (OperationCanceledException) { }
             finally {
                 Try.Op(() => File.Delete("publishednodes.json"));
+            }
+        }
+
+        /// <summary>
+        /// List nodes on endpoint
+        /// </summary>
+        private static async Task ListNodesAsync(IIoTHubConfig config, ILogger logger,
+            string deviceId, string moduleId, string endpointUrl, CancellationToken ct) {
+            if (string.IsNullOrEmpty(endpointUrl)) {
+                throw new ArgumentNullException(nameof(endpointUrl));
+            }
+            var client = new IoTHubTwinMethodClient(CreateClient(config, logger));
+            while (!ct.IsCancellationRequested) {
+                await Task.Delay(TimeSpan.FromSeconds(5), ct);
+                try {
+                    var content = new GetNodesRequestModel {
+                        EndpointUrl = endpointUrl
+                    };
+                    var result = await client.CallMethodAsync(deviceId, moduleId,
+                        "GetConfiguredNodesOnEndpoint", JsonConvertEx.SerializeObject(content),
+                        null, ct);
+                    var response = JsonConvertEx.DeserializeObject<GetNodesResponseModel>(result);
+                    logger.Information("Published nodes: {@response}", response);
+                }
+                catch (Exception ex) {
+                    logger.Verbose(ex, "Failed to list published nodes.");
+                }
             }
         }
 

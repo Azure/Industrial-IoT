@@ -2,38 +2,38 @@
  .SYNOPSIS
     Builds csproj file and returns buildable dockerfile build definitions
 
- .PARAMETER path
-    The folder to build the docker files from
+ .PARAMETER Path
+    The folder containing the mcr.json file.
 
- .PARAMETER debug
-    Build debug and include debugger into images (where applicable)
+ .PARAMETER Configuration
+    Whether to build Release or Debug - default to Release.  
+    Debug also includes debugger into images (where applicable).
 #>
 
 Param(
-    [string] $path = $null,
-    [string] $configuration = "Release"
+    [string] $Path = $null,
+    [string] $Configuration = "Release"
 )
 
-# Check path argument and resolve to full existing path
-if ([string]::IsNullOrEmpty($path)) {
+# Get meta data
+if ([string]::IsNullOrEmpty($Path)) {
     throw "No docker folder specified."
 }
-if (!(Test-Path -Path $path -PathType Container)) {
-    $path = Join-Path (& ./getroot.ps1 -fileName $path) $path
+if (!(Test-Path -Path $Path -PathType Container)) {
+    $Path = Join-Path (& (Join-Path $PSScriptRoot "get-root.ps1") `
+        -fileName $Path) $Path
 }
-$path = Resolve-Path -LiteralPath $path
-
-# Get meta data
-$metadata = Get-Content -Raw -Path (join-path $path "mcr.json") `
+$Path = Resolve-Path -LiteralPath $Path
+$metadata = Get-Content -Raw -Path (Join-Path $Path "mcr.json") `
     | ConvertFrom-Json
 
 $definitions = @()
 
 # Create build job definitions from dotnet project in current folder
-$projFile = Get-ChildItem $path -Filter *.csproj | Select-Object -First 1
+$projFile = Get-ChildItem $Path -Filter *.csproj | Select-Object -First 1
 if ($projFile -ne $null) {
 
-    $output = (join-path $path (join-path "bin" (join-path "publish" $configuration)))
+    $output = (Join-Path $Path (Join-Path "bin" (Join-Path "publish" $Configuration)))
     $runtimes = @("linux-arm", "linux-x64", "win-x64", "win-arm", "win-arm64", "")
     if (![string]::IsNullOrEmpty($metadata.base)) {
         # Shortcut - only build portable
@@ -43,7 +43,7 @@ if ($projFile -ne $null) {
         $runtimeId = $_
 
         # Create dotnet command line 
-        $argumentList = @("publish", "-c", $configuration)
+        $argumentList = @("publish", "-c", $Configuration)
         if (![string]::IsNullOrEmpty($runtimeId)) {
             $argumentList += "-r"
             $argumentList += $runtimeId
@@ -52,7 +52,7 @@ if ($projFile -ne $null) {
             $runtimeId = "portable"
         }
         $argumentList += "-o"
-        $argumentList += (join-path $output $runtimeId)
+        $argumentList += (Join-Path $output $runtimeId)
         $argumentList += $projFile.FullName
 
         Write-Host "Publish $($projFile.FullName) with $($runtimeId) runtime..."
@@ -149,7 +149,7 @@ ENV PATH="${PATH}:/root/vsdbg/vsdbg"
         }
 
         $debugger = ""
-        if ($configuration -eq "Debug") {
+        if ($Configuration -eq "Debug") {
             if (![string]::IsNullOrEmpty($platformInfo.debugger)) {
                 $debugger = $platformInfo.debugger
             }
@@ -182,8 +182,8 @@ $($debugger)
 
 ENTRYPOINT $($entryPoint)
 "@ 
-        $imageContent = (join-path $output $runtimeId)
-        $dockerFile = (join-path $imageContent "Dockerfile.$($platformTag)")
+        $imageContent = (Join-Path $output $runtimeId)
+        $dockerFile = (Join-Path $imageContent "Dockerfile.$($platformTag)")
         Write-Host Writing $($dockerFile)
         $dockerFileContent | Out-Host -Verbose
         $dockerFileContent | Out-File -Encoding ascii -FilePath $dockerFile
@@ -198,13 +198,13 @@ ENTRYPOINT $($entryPoint)
 
 if ($definitions.Count -eq 0) {
     # Non-.net - Create job definitions from dockerfile structure in current folder
-    Get-ChildItem $path -Recurse `
+    Get-ChildItem $Path -Recurse `
         | Where-Object Name -eq "Dockerfile" `
         | ForEach-Object {
 
         $dockerfile = $_.FullName
 
-        $platformFolder = $_.DirectoryName.Replace($path, "")
+        $platformFolder = $_.DirectoryName.Replace($Path, "")
         $platform = $platformFolder.Substring(1).Replace("\", "/")
         $platformTag = $platform.Replace("/", "-")
 

@@ -2,37 +2,37 @@
  .SYNOPSIS
     Build docker container for a mcr.json definition in the tree.
 
- .PARAMETER path
+ .PARAMETER Path
     The folder to build the docker files from which also contains
     the mcr.json file.  
 
- .PARAMETER image
+ .PARAMETER ImageName
     The name of the image.
 
- .PARAMETER debug
-    Build debug images
+ .PARAMETER Debug
+    Build debug and include debugger into images (where applicable)
 #>
 
 Param(
-    [string] $path = ".",
-    [string] $image,
-    [switch] $debug
+    [string] $Path = ".",
+    [string] $ImageName,
+    [switch] $Debug
 )
 
-if ([string]::IsNullOrEmpty($image)) {
+if ([string]::IsNullOrEmpty($ImageName)) {
     throw "Must specifiy an image name"
 }
 
-Write-Host "Building $($image)"
+Write-Host "Building $($ImageName)"
 
 # Source definitions
 $configuration = "Release"
-if ($debug.IsPresent) {
+if ($Debug.IsPresent) {
     $configuration = "Debug"
 }
 
 $definitions = & (Join-Path $PSScriptRoot "docker-source.ps1") `
-    -path $path -configuration $configuration
+    -Path $Path -Configuration $configuration
 
 # Get currently active platform 
 $dockerversion = &docker @("version") 2>&1 | %{ "$_" } `
@@ -65,7 +65,7 @@ $buildContext = $def.buildContext
 # Create docker build command line 
 $argumentList = @("build", 
     "-f", $dockerfile,
-    "-t", "$($image):latest"
+    "-t", "$($ImageName):latest"
 )
 $argumentList += $buildContext
 & docker $argumentList 2>&1 | %{ "$_" }

@@ -7,7 +7,7 @@
 #>
 
 try {
-    $buildRoot = & ./getroot.ps1 -startDir $path `
+    $buildRoot = & (Join-Path $PSScriptRoot "get-root.ps1") -startDir $path `
         -fileName "version.props"
     # set version number from first encountered version.props
     [xml] $props=Get-Content -Path (Join-Path $buildRoot "version.props")

@@ -15,55 +15,55 @@
     one. It traverses back up to the closest .dockerignore file. This folder 
     becomes the context of the build.
 
- .PARAMETER path
+ .PARAMETER Path
     The folder to build the docker files from
 
- .PARAMETER registry
+ .PARAMETER Registry
     The name of the registry
 
- .PARAMETER subscription
+ .PARAMETER Subscription
     The subscription to use - otherwise uses default
 
- .PARAMETER debug
+ .PARAMETER Debug
     Build debug and include debugger into images (where applicable)
 #>
 
 Param(
-    [string] $path = $null,
-    [string] $registry = $null,
-    [string] $subscription = $null,
-    [switch] $debug
+    [string] $Path = $null,
+    [string] $Registry = $null,
+    [string] $Subscription = $null,
+    [switch] $Debug
 )
 
 # Check path argument and resolve to full existing path
-if ([string]::IsNullOrEmpty($path)) {
+if ([string]::IsNullOrEmpty($Path)) {
     throw "No docker folder specified."
 }
-if (!(Test-Path -Path $path -PathType Container)) {
-    $path = Join-Path (& ./getroot.ps1 -fileName $path) $path
+$getroot = (Join-Path $PSScriptRoot "get-root.ps1")
+if (!(Test-Path -Path $Path -PathType Container)) {
+    $Path = Join-Path (& $getroot -fileName $Path) $Path
 }
-$path = Resolve-Path -LiteralPath $path
+$Path = Resolve-Path -LiteralPath $Path
 
 # Get build root - this is the top most folder with .dockerignore
-$buildRoot = & ./getroot.ps1 -startDir $path -fileName ".dockerignore"
+$buildRoot = & $getroot -startDir $Path -fileName ".dockerignore"
 # Get meta data
-$metadata = Get-Content -Raw -Path (join-path $path "mcr.json") `
+$metadata = Get-Content -Raw -Path (join-path $Path "mcr.json") `
     | ConvertFrom-Json
 
 # get and set build information from gitversion, git or version content
 $sourceTag = $env:GITVERSION_MajorMinorPatch
 if ([string]::IsNullOrEmpty($sourceTag)) {
     try {
-        # Call getversion.ps1 directly here.
-        $version = & ./getversion.ps1
-        $sourceTag = $version
+        # Call get-version.ps1 directly here.
+        $sourceTag = & (Join-Path $PSScriptRoot "get-version.ps1")
     }
     catch {
         $sourceTag = $null
     }
 }
 if (![string]::IsNullOrEmpty($sourceTag)) {
-    Write-Host "Using version $($sourceTag) from getversion.ps1"
+    Write-Host "Using version $($sourceTag) from get-version.ps1"
 }
 else {
     # Otherwise look at git tag
@@ -112,32 +112,32 @@ if ([string]::IsNullOrEmpty($branchName) -or ($branchName -eq "HEAD")) {
 
 # Check and set registry
 $namespacePrefix = ""
-if ([string]::IsNullOrEmpty($registry)) {
-    $registry = $env.BUILD_REGISTRY
-    if ([string]::IsNullOrEmpty($registry)) {
-        $registry = "industrialiot"
+if ([string]::IsNullOrEmpty($Registry)) {
+    $Registry = $env.BUILD_REGISTRY
+    if ([string]::IsNullOrEmpty($Registry)) {
+        $Registry = "industrialiot"
         if ($isDeveloperBuild -eq $true) {
-            $registry = "industrialiotdev"
+            $Registry = "industrialiotdev"
             $namespacePrefix = ""
         }
-        Write-Warning "No registry specified - using $($registry).azurecr.io."
+        Write-Warning "No registry specified - using $($Registry).azurecr.io."
     }
 }
 
 # set default subscription
-if (![string]::IsNullOrEmpty($subscription)) {
-    Write-Debug "Setting subscription to $($subscription)"
-    $argumentList = @("account", "set", "--subscription", $subscription)
+if (![string]::IsNullOrEmpty($Subscription)) {
+    Write-Debug "Setting subscription to $($Subscription)"
+    $argumentList = @("account", "set", "--subscription", $Subscription)
     & "az" $argumentList 2`>`&1 | %{ "$_" }
 }
 
 # get registry information
-$argumentList = @("acr", "show", "--name", $registry)
-$registryInfo = (& "az" $argumentList 2>&1 | %{ "$_" }) | ConvertFrom-Json
-$resourceGroup = $registryInfo.resourceGroup
+$argumentList = @("acr", "show", "--name", $Registry)
+$RegistryInfo = (& "az" $argumentList 2>&1 | %{ "$_" }) | ConvertFrom-Json
+$resourceGroup = $RegistryInfo.resourceGroup
 Write-Debug "Using resource group $($resourceGroup)"
 # get credentials
-$argumentList = @("acr", "credential", "show", "--name", $registry)
+$argumentList = @("acr", "credential", "show", "--name", $Registry)
 $credentials = (& "az" $argumentList 2>&1 | %{ "$_" }) | ConvertFrom-Json
 $user = $credentials.username
 $password = $credentials.passwords[0].value
@@ -157,7 +157,7 @@ else {
 $tagPostfix = ""
 $tagPrefix = ""
 $configuration = "Release"
-if ($debug.IsPresent) {
+if ($Debug.IsPresent) {
     $configuration = "Debug"
     $tagPostfix = "-debug"
 }
@@ -179,21 +179,21 @@ if ($versionParts.Count -gt 0) {
 }
 
 $manifest = @" 
-image: $($registry).azurecr.io/$($namespace)$($imageName):$($tagPrefix)latest$($tagPostfix)
+image: $($Registry).azurecr.io/$($namespace)$($imageName):$($tagPrefix)latest$($tagPostfix)
 tags: [$($tagList)]
 manifests:
 "@
 
 # Source definitions
 $scriptPath = (Join-Path $PSScriptRoot "docker-source.ps1")
-$definitions = & $scriptPath -path $path -configuration $configuration
+$definitions = & $scriptPath -Path $Path -Configuration $configuration
 if ($definitions.Count -eq 0) {
     Write-Host "Nothing to build."
     return
 }
 
-Write-Host "Building $($definitions.Count) images in $($path) in $($buildRoot)"
-Write-Host " and pushing to $($registry)/$($namespace)$($imageName)..."
+Write-Host "Building $($definitions.Count) images in $($Path) in $($buildRoot)"
+Write-Host " and pushing to $($Registry)/$($namespace)$($imageName)..."
 
 # Create build jobs from build definitions
 $jobs = @()
@@ -257,7 +257,7 @@ $definitions | ForEach-Object {
 
     # Create acr command line 
     $argumentList = @("acr", "build", "--verbose",
-        "--registry", $registry,
+        "--registry", $Registry,
         "--resource-group", $resourceGroup,
         "--platform", $platform,
         "--file", $dockerfile,
@@ -279,7 +279,7 @@ $definitions | ForEach-Object {
 @"
 
   - 
-    image: $($registry).azurecr.io/$($image)
+    image: $($Registry).azurecr.io/$($image)
     platform: 
       $($os)
       $($architecture)

@@ -16,7 +16,7 @@ jobs:
     displayName: Prepare Builds
     inputs:
       targetType: filePath
-      filePath: ./tools/scripts/acrmatrix.ps1
+      filePath: ./tools/scripts/acr-matrix.ps1
 - job: imagesall
   displayName: Build Images for
   pool:
@@ -32,19 +32,19 @@ jobs:
     displayName: Versioning
     inputs:
       targetType: filePath
-      filePath: ./tools/scripts/getversion.ps1
+      filePath: ./tools/scripts/get-version.ps1
   - task: AzureCLI@1
     name: acrbuildr
     displayName: Build Release Images
     inputs:
       azureSubscription: azureiiot
       scriptLocation: inlineScript
-      inlineScript: powershell ./tools/scripts/acrbuild.ps1 $(dockerFolder)
+      inlineScript: powershell ./tools/scripts/acr-build.ps1 $(dockerFolder)
   - task: AzureCLI@1
     name: acrbuildd
     displayName: Build Debug Images
     inputs:
       azureSubscription: azureiiot
       scriptLocation: inlineScript
-      inlineScript: powershell ./tools/scripts/acrbuild.ps1 $(dockerFolder) -debug
+      inlineScript: powershell ./tools/scripts/acr-build.ps1 $(dockerFolder) -debug
       

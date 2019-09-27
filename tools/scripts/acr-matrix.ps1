@@ -20,7 +20,7 @@ Param(
 )
 
 if ([string]::IsNullOrEmpty($BuildRoot)) {
-    $BuildRoot = & ./getroot.ps1 -fileName "*.sln"
+    $BuildRoot = & (Join-Path $PSScriptRoot "get-root.ps1") -fileName "*.sln"
 }
 
 $acrMatrix = @{}
@@ -49,7 +49,7 @@ Get-ChildItem $BuildRoot -Recurse `
 
 if ($Build.IsPresent) {
     $acrMatrix.Values | ForEach-Object {
-        $scriptPath = (Join-Path $PSScriptRoot "acrbuild.ps1")
+        $scriptPath = (Join-Path $PSScriptRoot "acr-build.ps1")
         if ($Debug.IsPresent) {
             & $scriptPath -path $_.dockerFolder -debug
         }
