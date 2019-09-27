@@ -27,7 +27,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             _readExpected = readExpected;
         }
 
-        public async Task NodeReadAllStaticArrayVariableNodeClassTest1() {
+        public async Task NodeReadAllStaticArrayVariableNodeClassTest1Async() {
 
             var browser = _services();
             var expected = Opc.Ua.NodeClass.Variable;
@@ -45,7 +45,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 new ReadRequestModel {
                     Header = new RequestHeaderModel {
                         Diagnostics = new DiagnosticsModel {
-                            AuditId = nameof(NodeReadAllStaticArrayVariableNodeClassTest1),
+                            AuditId = nameof(NodeReadAllStaticArrayVariableNodeClassTest1Async),
                             TimeStamp = System.DateTime.Now
                         }
                     },
@@ -61,7 +61,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeReadAllStaticArrayVariableAccessLevelTest1() {
+        public async Task NodeReadAllStaticArrayVariableAccessLevelTest1Async() {
 
             var browser = _services();
             var expected = Opc.Ua.AccessLevels.CurrentRead | Opc.Ua.AccessLevels.CurrentWrite;
@@ -78,7 +78,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 new ReadRequestModel {
                     Header = new RequestHeaderModel {
                         Diagnostics = new DiagnosticsModel {
-                            AuditId = nameof(NodeReadAllStaticArrayVariableAccessLevelTest1),
+                            AuditId = nameof(NodeReadAllStaticArrayVariableAccessLevelTest1Async),
                             TimeStamp = System.DateTime.Now
                         }
                     },
@@ -94,7 +94,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeReadAllStaticArrayVariableWriteMaskTest1() {
+        public async Task NodeReadAllStaticArrayVariableWriteMaskTest1Async() {
 
             var browser = _services();
 
@@ -111,7 +111,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 new ReadRequestModel {
                     Header = new RequestHeaderModel {
                         Diagnostics = new DiagnosticsModel {
-                            AuditId = nameof(NodeReadAllStaticArrayVariableWriteMaskTest1),
+                            AuditId = nameof(NodeReadAllStaticArrayVariableWriteMaskTest1Async),
                             TimeStamp = System.DateTime.Now
                         }
                     },
@@ -127,7 +127,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeReadAllStaticArrayVariableWriteMaskTest2() {
+        public async Task NodeReadAllStaticArrayVariableWriteMaskTest2Async() {
 
             var browser = _services();
 
@@ -144,7 +144,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 new ReadRequestModel {
                     Header = new RequestHeaderModel {
                         Diagnostics = new DiagnosticsModel {
-                            AuditId = nameof(NodeReadAllStaticArrayVariableWriteMaskTest2),
+                            AuditId = nameof(NodeReadAllStaticArrayVariableWriteMaskTest2Async),
                             TimeStamp = System.DateTime.Now
                         }
                     },
@@ -160,7 +160,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeReadStaticArrayBooleanValueVariableTest() {
+        public async Task NodeReadStaticArrayBooleanValueVariableTestAsync() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10300";
@@ -189,7 +189,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeReadStaticArraySByteValueVariableTest() {
+        public async Task NodeReadStaticArraySByteValueVariableTestAsync() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10301";
@@ -218,7 +218,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeReadStaticArrayByteValueVariableTest() {
+        public async Task NodeReadStaticArrayByteValueVariableTestAsync() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10302";
@@ -253,7 +253,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
 
 
 
-        public async Task NodeReadStaticArrayInt16ValueVariableTest() {
+        public async Task NodeReadStaticArrayInt16ValueVariableTestAsync() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10303";
@@ -282,7 +282,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeReadStaticArrayUInt16ValueVariableTest() {
+        public async Task NodeReadStaticArrayUInt16ValueVariableTestAsync() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10304";
@@ -311,7 +311,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeReadStaticArrayInt32ValueVariableTest() {
+        public async Task NodeReadStaticArrayInt32ValueVariableTestAsync() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10305";
@@ -340,7 +340,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeReadStaticArrayUInt32ValueVariableTest() {
+        public async Task NodeReadStaticArrayUInt32ValueVariableTestAsync() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10306";
@@ -369,7 +369,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeReadStaticArrayInt64ValueVariableTest() {
+        public async Task NodeReadStaticArrayInt64ValueVariableTestAsync() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10307";
@@ -398,7 +398,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeReadStaticArrayUInt64ValueVariableTest() {
+        public async Task NodeReadStaticArrayUInt64ValueVariableTestAsync() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10308";
@@ -427,7 +427,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeReadStaticArrayFloatValueVariableTest() {
+        public async Task NodeReadStaticArrayFloatValueVariableTestAsync() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10309";
@@ -456,7 +456,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeReadStaticArrayDoubleValueVariableTest() {
+        public async Task NodeReadStaticArrayDoubleValueVariableTestAsync() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10310";
@@ -485,7 +485,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeReadStaticArrayStringValueVariableTest() {
+        public async Task NodeReadStaticArrayStringValueVariableTestAsync() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10311";
@@ -514,7 +514,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeReadStaticArrayDateTimeValueVariableTest() {
+        public async Task NodeReadStaticArrayDateTimeValueVariableTestAsync() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10312";
@@ -543,7 +543,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeReadStaticArrayGuidValueVariableTest() {
+        public async Task NodeReadStaticArrayGuidValueVariableTestAsync() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10313";
@@ -573,7 +573,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeReadStaticArrayByteStringValueVariableTest() {
+        public async Task NodeReadStaticArrayByteStringValueVariableTestAsync() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10314";
@@ -605,7 +605,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeReadStaticArrayXmlElementValueVariableTest() {
+        public async Task NodeReadStaticArrayXmlElementValueVariableTestAsync() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10315";
@@ -634,7 +634,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeReadStaticArrayNodeIdValueVariableTest() {
+        public async Task NodeReadStaticArrayNodeIdValueVariableTestAsync() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10316";
@@ -663,7 +663,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeReadStaticArrayExpandedNodeIdValueVariableTest() {
+        public async Task NodeReadStaticArrayExpandedNodeIdValueVariableTestAsync() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10317";
@@ -692,7 +692,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeReadStaticArrayQualifiedNameValueVariableTest() {
+        public async Task NodeReadStaticArrayQualifiedNameValueVariableTestAsync() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10318";
@@ -721,7 +721,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeReadStaticArrayLocalizedTextValueVariableTest() {
+        public async Task NodeReadStaticArrayLocalizedTextValueVariableTestAsync() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10319";
@@ -750,7 +750,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeReadStaticArrayStatusCodeValueVariableTest() {
+        public async Task NodeReadStaticArrayStatusCodeValueVariableTestAsync() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10320";
@@ -780,7 +780,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeReadStaticArrayVariantValueVariableTest() {
+        public async Task NodeReadStaticArrayVariantValueVariableTestAsync() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10321";
@@ -806,7 +806,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeReadStaticArrayEnumerationValueVariableTest() {
+        public async Task NodeReadStaticArrayEnumerationValueVariableTestAsync() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10322";
@@ -835,7 +835,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeReadStaticArrayStructureValueVariableTest() {
+        public async Task NodeReadStaticArrayStructureValueVariableTestAsync() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10323";
@@ -865,7 +865,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeReadStaticArrayNumberValueVariableTest() {
+        public async Task NodeReadStaticArrayNumberValueVariableTestAsync() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10324";
@@ -897,7 +897,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeReadStaticArrayIntegerValueVariableTest() {
+        public async Task NodeReadStaticArrayIntegerValueVariableTestAsync() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10325";
@@ -929,7 +929,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeReadStaticArrayUIntegerValueVariableTest() {
+        public async Task NodeReadStaticArrayUIntegerValueVariableTestAsync() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10326";

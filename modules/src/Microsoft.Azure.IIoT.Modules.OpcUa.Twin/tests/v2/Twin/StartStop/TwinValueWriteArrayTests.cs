@@ -38,311 +38,311 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Twin.StartStop {
         private static readonly bool _runAll = Environment.GetEnvironmentVariable("TEST_ALL") != null;
 
         [SkippableFact]
-        public async Task NodeWriteStaticArrayBooleanValueVariableTest() {
+        public async Task NodeWriteStaticArrayBooleanValueVariableTestAsync() {
             Skip.IfNot(_runAll);
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
-                    await GetTests(endpoint, services).NodeWriteStaticArrayBooleanValueVariableTest();
+                    await GetTests(endpoint, services).NodeWriteStaticArrayBooleanValueVariableTestAsync();
                 });
             }
         }
 
         [SkippableFact]
-        public async Task NodeWriteStaticArraySByteValueVariableTest() {
+        public async Task NodeWriteStaticArraySByteValueVariableTestAsync() {
             Skip.IfNot(_runAll);
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
-                    await GetTests(endpoint, services).NodeWriteStaticArraySByteValueVariableTest();
+                    await GetTests(endpoint, services).NodeWriteStaticArraySByteValueVariableTestAsync();
                 });
             }
         }
 
         [SkippableFact]
-        public async Task NodeWriteStaticArrayByteValueVariableTest() {
+        public async Task NodeWriteStaticArrayByteValueVariableTestAsync() {
             Skip.IfNot(_runAll);
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
-                    await GetTests(endpoint, services).NodeWriteStaticArrayByteValueVariableTest();
+                    await GetTests(endpoint, services).NodeWriteStaticArrayByteValueVariableTestAsync();
                 });
             }
         }
 
         [SkippableFact]
-        public async Task NodeWriteStaticArrayInt16ValueVariableTest() {
+        public async Task NodeWriteStaticArrayInt16ValueVariableTestAsync() {
             Skip.IfNot(_runAll);
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
-                    await GetTests(endpoint, services).NodeWriteStaticArrayInt16ValueVariableTest();
+                    await GetTests(endpoint, services).NodeWriteStaticArrayInt16ValueVariableTestAsync();
                 });
             }
         }
 
         [SkippableFact]
-        public async Task NodeWriteStaticArrayUInt16ValueVariableTest() {
+        public async Task NodeWriteStaticArrayUInt16ValueVariableTestAsync() {
             Skip.IfNot(_runAll);
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
-                    await GetTests(endpoint, services).NodeWriteStaticArrayUInt16ValueVariableTest();
+                    await GetTests(endpoint, services).NodeWriteStaticArrayUInt16ValueVariableTestAsync();
                 });
             }
         }
 
         [SkippableFact]
-        public async Task NodeWriteStaticArrayInt32ValueVariableTest() {
+        public async Task NodeWriteStaticArrayInt32ValueVariableTestAsync() {
             Skip.IfNot(_runAll);
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
-                    await GetTests(endpoint, services).NodeWriteStaticArrayInt32ValueVariableTest();
+                    await GetTests(endpoint, services).NodeWriteStaticArrayInt32ValueVariableTestAsync();
                 });
             }
         }
 
         [SkippableFact]
-        public async Task NodeWriteStaticArrayUInt32ValueVariableTest() {
+        public async Task NodeWriteStaticArrayUInt32ValueVariableTestAsync() {
             Skip.IfNot(_runAll);
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
-                    await GetTests(endpoint, services).NodeWriteStaticArrayUInt32ValueVariableTest();
+                    await GetTests(endpoint, services).NodeWriteStaticArrayUInt32ValueVariableTestAsync();
                 });
             }
         }
 
         [SkippableFact]
-        public async Task NodeWriteStaticArrayInt64ValueVariableTest() {
+        public async Task NodeWriteStaticArrayInt64ValueVariableTestAsync() {
             Skip.IfNot(_runAll);
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
-                    await GetTests(endpoint, services).NodeWriteStaticArrayInt64ValueVariableTest();
+                    await GetTests(endpoint, services).NodeWriteStaticArrayInt64ValueVariableTestAsync();
                 });
             }
         }
 
         [SkippableFact]
-        public async Task NodeWriteStaticArrayUInt64ValueVariableTest() {
+        public async Task NodeWriteStaticArrayUInt64ValueVariableTestAsync() {
             Skip.IfNot(_runAll);
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
-                    await GetTests(endpoint, services).NodeWriteStaticArrayUInt64ValueVariableTest();
+                    await GetTests(endpoint, services).NodeWriteStaticArrayUInt64ValueVariableTestAsync();
                 });
             }
         }
 
         [SkippableFact]
-        public async Task NodeWriteStaticArrayFloatValueVariableTest() {
+        public async Task NodeWriteStaticArrayFloatValueVariableTestAsync() {
             Skip.IfNot(_runAll);
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
-                    await GetTests(endpoint, services).NodeWriteStaticArrayFloatValueVariableTest();
+                    await GetTests(endpoint, services).NodeWriteStaticArrayFloatValueVariableTestAsync();
                 });
             }
         }
 
         [SkippableFact]
-        public async Task NodeWriteStaticArrayDoubleValueVariableTest() {
+        public async Task NodeWriteStaticArrayDoubleValueVariableTestAsync() {
             Skip.IfNot(_runAll);
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
-                    await GetTests(endpoint, services).NodeWriteStaticArrayDoubleValueVariableTest();
+                    await GetTests(endpoint, services).NodeWriteStaticArrayDoubleValueVariableTestAsync();
                 });
             }
         }
 
         [SkippableFact]
-        public async Task NodeWriteStaticArrayStringValueVariableTest1() {
+        public async Task NodeWriteStaticArrayStringValueVariableTest1Async() {
             Skip.IfNot(_runAll);
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
-                    await GetTests(endpoint, services).NodeWriteStaticArrayStringValueVariableTest1();
+                    await GetTests(endpoint, services).NodeWriteStaticArrayStringValueVariableTest1Async();
                 });
             }
         }
 
         [SkippableFact]
-        public async Task NodeWriteStaticArrayStringValueVariableTest2() {
+        public async Task NodeWriteStaticArrayStringValueVariableTest2Async() {
             Skip.IfNot(_runAll);
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
-                    await GetTests(endpoint, services).NodeWriteStaticArrayStringValueVariableTest2();
+                    await GetTests(endpoint, services).NodeWriteStaticArrayStringValueVariableTest2Async();
                 });
             }
         }
 
         [SkippableFact]
-        public async Task NodeWriteStaticArrayDateTimeValueVariableTest() {
+        public async Task NodeWriteStaticArrayDateTimeValueVariableTestAsync() {
             Skip.IfNot(_runAll);
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
-                    await GetTests(endpoint, services).NodeWriteStaticArrayDateTimeValueVariableTest();
+                    await GetTests(endpoint, services).NodeWriteStaticArrayDateTimeValueVariableTestAsync();
                 });
             }
         }
 
         [SkippableFact]
-        public async Task NodeWriteStaticArrayGuidValueVariableTest() {
+        public async Task NodeWriteStaticArrayGuidValueVariableTestAsync() {
             Skip.IfNot(_runAll);
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
-                    await GetTests(endpoint, services).NodeWriteStaticArrayGuidValueVariableTest();
+                    await GetTests(endpoint, services).NodeWriteStaticArrayGuidValueVariableTestAsync();
                 });
             }
         }
 
         [SkippableFact]
-        public async Task NodeWriteStaticArrayByteStringValueVariableTest() {
+        public async Task NodeWriteStaticArrayByteStringValueVariableTestAsync() {
             Skip.IfNot(_runAll);
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
-                    await GetTests(endpoint, services).NodeWriteStaticArrayByteStringValueVariableTest();
+                    await GetTests(endpoint, services).NodeWriteStaticArrayByteStringValueVariableTestAsync();
                 });
             }
         }
 
         [SkippableFact]
-        public async Task NodeWriteStaticArrayXmlElementValueVariableTest() {
+        public async Task NodeWriteStaticArrayXmlElementValueVariableTestAsync() {
             Skip.IfNot(_runAll);
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
-                    await GetTests(endpoint, services).NodeWriteStaticArrayXmlElementValueVariableTest();
+                    await GetTests(endpoint, services).NodeWriteStaticArrayXmlElementValueVariableTestAsync();
                 });
             }
         }
 
         [SkippableFact]
-        public async Task NodeWriteStaticArrayNodeIdValueVariableTest() {
+        public async Task NodeWriteStaticArrayNodeIdValueVariableTestAsync() {
             Skip.IfNot(_runAll);
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
-                    await GetTests(endpoint, services).NodeWriteStaticArrayNodeIdValueVariableTest();
+                    await GetTests(endpoint, services).NodeWriteStaticArrayNodeIdValueVariableTestAsync();
                 });
             }
         }
 
         [SkippableFact]
-        public async Task NodeWriteStaticArrayExpandedNodeIdValueVariableTest() {
+        public async Task NodeWriteStaticArrayExpandedNodeIdValueVariableTestAsync() {
             Skip.IfNot(_runAll);
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
-                    await GetTests(endpoint, services).NodeWriteStaticArrayExpandedNodeIdValueVariableTest();
+                    await GetTests(endpoint, services).NodeWriteStaticArrayExpandedNodeIdValueVariableTestAsync();
                 });
             }
         }
 
         [SkippableFact]
-        public async Task NodeWriteStaticArrayQualifiedNameValueVariableTest() {
+        public async Task NodeWriteStaticArrayQualifiedNameValueVariableTestAsync() {
             Skip.IfNot(_runAll);
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
-                    await GetTests(endpoint, services).NodeWriteStaticArrayQualifiedNameValueVariableTest();
+                    await GetTests(endpoint, services).NodeWriteStaticArrayQualifiedNameValueVariableTestAsync();
                 });
             }
         }
 
         [SkippableFact]
-        public async Task NodeWriteStaticArrayLocalizedTextValueVariableTest() {
+        public async Task NodeWriteStaticArrayLocalizedTextValueVariableTestAsync() {
             Skip.IfNot(_runAll);
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
-                    await GetTests(endpoint, services).NodeWriteStaticArrayLocalizedTextValueVariableTest();
+                    await GetTests(endpoint, services).NodeWriteStaticArrayLocalizedTextValueVariableTestAsync();
                 });
             }
         }
 
         [SkippableFact]
-        public async Task NodeWriteStaticArrayStatusCodeValueVariableTest() {
+        public async Task NodeWriteStaticArrayStatusCodeValueVariableTestAsync() {
             Skip.IfNot(_runAll);
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
-                    await GetTests(endpoint, services).NodeWriteStaticArrayStatusCodeValueVariableTest();
+                    await GetTests(endpoint, services).NodeWriteStaticArrayStatusCodeValueVariableTestAsync();
                 });
             }
         }
 
         [SkippableFact]
-        public async Task NodeWriteStaticArrayVariantValueVariableTest1() {
+        public async Task NodeWriteStaticArrayVariantValueVariableTest1Async() {
             Skip.IfNot(_runAll);
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
-                    await GetTests(endpoint, services).NodeWriteStaticArrayVariantValueVariableTest1();
+                    await GetTests(endpoint, services).NodeWriteStaticArrayVariantValueVariableTest1Async();
                 });
             }
         }
 
         [SkippableFact]
-        public async Task NodeWriteStaticArrayEnumerationValueVariableTest() {
+        public async Task NodeWriteStaticArrayEnumerationValueVariableTestAsync() {
             Skip.IfNot(_runAll);
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
-                    await GetTests(endpoint, services).NodeWriteStaticArrayEnumerationValueVariableTest();
+                    await GetTests(endpoint, services).NodeWriteStaticArrayEnumerationValueVariableTestAsync();
                 });
             }
         }
 
         [SkippableFact]
-        public async Task NodeWriteStaticArrayStructureValueVariableTest() {
+        public async Task NodeWriteStaticArrayStructureValueVariableTestAsync() {
             Skip.IfNot(_runAll);
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
-                    await GetTests(endpoint, services).NodeWriteStaticArrayStructureValueVariableTest();
+                    await GetTests(endpoint, services).NodeWriteStaticArrayStructureValueVariableTestAsync();
                 });
             }
         }
 
         [SkippableFact]
-        public async Task NodeWriteStaticArrayNumberValueVariableTest1() {
+        public async Task NodeWriteStaticArrayNumberValueVariableTest1Async() {
             Skip.IfNot(_runAll);
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
-                    await GetTests(endpoint, services).NodeWriteStaticArrayNumberValueVariableTest1();
+                    await GetTests(endpoint, services).NodeWriteStaticArrayNumberValueVariableTest1Async();
                 });
             }
         }
 
         [SkippableFact]
-        public async Task NodeWriteStaticArrayNumberValueVariableTest2() {
+        public async Task NodeWriteStaticArrayNumberValueVariableTest2Async() {
             Skip.IfNot(_runAll);
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
-                    await GetTests(endpoint, services).NodeWriteStaticArrayNumberValueVariableTest2();
+                    await GetTests(endpoint, services).NodeWriteStaticArrayNumberValueVariableTest2Async();
                 });
             }
         }
 
         [SkippableFact]
-        public async Task NodeWriteStaticArrayIntegerValueVariableTest1() {
+        public async Task NodeWriteStaticArrayIntegerValueVariableTest1Async() {
             // Skip.IfNot(_runAll);
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
-                    await GetTests(endpoint, services).NodeWriteStaticArrayIntegerValueVariableTest1();
+                    await GetTests(endpoint, services).NodeWriteStaticArrayIntegerValueVariableTest1Async();
                 });
             }
         }
 
         [SkippableFact]
-        public async Task NodeWriteStaticArrayIntegerValueVariableTest2() {
+        public async Task NodeWriteStaticArrayIntegerValueVariableTest2Async() {
             Skip.IfNot(_runAll);
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
-                    await GetTests(endpoint, services).NodeWriteStaticArrayIntegerValueVariableTest2();
+                    await GetTests(endpoint, services).NodeWriteStaticArrayIntegerValueVariableTest2Async();
                 });
             }
         }
 
         [SkippableFact]
-        public async Task NodeWriteStaticArrayUIntegerValueVariableTest1() {
+        public async Task NodeWriteStaticArrayUIntegerValueVariableTest1Async() {
             Skip.IfNot(_runAll);
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
-                    await GetTests(endpoint, services).NodeWriteStaticArrayUIntegerValueVariableTest1();
+                    await GetTests(endpoint, services).NodeWriteStaticArrayUIntegerValueVariableTest1Async();
                 });
             }
         }
 
         [SkippableFact]
-        public async Task NodeWriteStaticArrayUIntegerValueVariableTest2() {
+        public async Task NodeWriteStaticArrayUIntegerValueVariableTest2Async() {
             // Skip.IfNot(_runAll);
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
-                    await GetTests(endpoint, services).NodeWriteStaticArrayUIntegerValueVariableTest2();
+                    await GetTests(endpoint, services).NodeWriteStaticArrayUIntegerValueVariableTest2Async();
                 });
             }
         }

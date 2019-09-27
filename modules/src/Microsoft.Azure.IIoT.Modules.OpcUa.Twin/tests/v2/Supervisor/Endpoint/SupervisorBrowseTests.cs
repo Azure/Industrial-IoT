@@ -75,6 +75,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.Endpoint {
         }
 
         [Fact]
+        public async Task NodeBrowseDataAccessFC1001TestAsync() {
+            await GetTests().NodeBrowseDataAccessFC1001TestAsync();
+        }
+
+        [Fact]
         public async Task NodeBrowseStaticScalarVariablesTestAsync() {
             await GetTests().NodeBrowseStaticScalarVariablesTestAsync();
         }

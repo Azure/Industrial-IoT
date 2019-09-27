@@ -68,6 +68,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
         }
 
         [Fact]
+        public async Task NodeBrowseDataAccessFC1001TestAsync() {
+            await GetTests().NodeBrowseDataAccessFC1001TestAsync();
+        }
+
+        [Fact]
         public async Task NodeBrowseStaticScalarVariablesTestAsync() {
             await GetTests().NodeBrowseStaticScalarVariablesTestAsync();
         }

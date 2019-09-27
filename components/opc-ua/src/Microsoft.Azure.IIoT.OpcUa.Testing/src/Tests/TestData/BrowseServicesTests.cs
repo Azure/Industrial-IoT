@@ -351,6 +351,77 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 });
         }
 
+
+        public async Task NodeBrowseDataAccessFC1001TestAsync() {
+
+            var browser = _services();
+
+            // Act
+            var results = await browser.NodeBrowseAsync(_endpoint,
+                new BrowseRequestModel {
+                    NodeId = "nsu=DataAccess;s=1:FC1001",
+                    TargetNodesOnly = false
+                });
+
+            // Assert
+            var test = JsonConvertEx.SerializeObjectPretty(results);
+
+            Assert.Equal("nsu=DataAccess;s=1:FC1001", results.Node.NodeId);
+            Assert.Equal("FC1001", results.Node.DisplayName);
+            Assert.Equal(true, results.Node.Children);
+            Assert.Null(results.Node.EventNotifier);
+            Assert.Null(results.Node.Description);
+            Assert.Null(results.Node.AccessRestrictions);
+            Assert.Null(results.ContinuationToken);
+            Assert.Collection(results.References,
+                reference => {
+                    Assert.Equal("i=47", reference.ReferenceTypeId);
+                    Assert.Equal("DataAccess#SetPoint", reference.Target.BrowseName);
+                    Assert.Equal(BrowseDirection.Forward, reference.Direction);
+
+                    Assert.Equal("SetPoint", reference.Target.DisplayName);
+                    Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
+                    Assert.Equal("nsu=DataAccess;s=1:FC1001?SetPoint", reference.Target.NodeId);
+                    Assert.True(reference.Target.Children);
+                },
+                reference => {
+                    Assert.Equal("i=47", reference.ReferenceTypeId);
+                    Assert.Equal("DataAccess#Measurement", reference.Target.BrowseName);
+                    Assert.Equal(BrowseDirection.Forward, reference.Direction);
+
+                    Assert.Equal("Measurement", reference.Target.DisplayName);
+                    Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
+                    Assert.Equal("nsu=DataAccess;s=1:FC1001?Measurement", reference.Target.NodeId);
+                    Assert.Equal("i=2365", reference.Target.TypeDefinitionId);
+                    Assert.Equal("Float", reference.Target.DataType);
+                    Assert.True(reference.Target.Children);
+                },
+                reference => {
+                    Assert.Equal("i=47", reference.ReferenceTypeId);
+                    Assert.Equal("DataAccess#Output", reference.Target.BrowseName);
+                    Assert.Equal(BrowseDirection.Forward, reference.Direction);
+
+                    Assert.Equal("Output", reference.Target.DisplayName);
+                    Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
+                    Assert.Equal("nsu=DataAccess;s=1:FC1001?Output", reference.Target.NodeId);
+                    Assert.Equal("i=2365", reference.Target.TypeDefinitionId);
+                    Assert.Equal("Float", reference.Target.DataType);
+                    Assert.True(reference.Target.Children);
+                },
+                reference => {
+                    Assert.Equal("i=47", reference.ReferenceTypeId);
+                    Assert.Equal("DataAccess#Status", reference.Target.BrowseName);
+                    Assert.Equal(BrowseDirection.Forward, reference.Direction);
+
+                    Assert.Equal("Status", reference.Target.DisplayName);
+                    Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
+                    Assert.Equal("nsu=DataAccess;s=1:FC1001?Status", reference.Target.NodeId);
+                    Assert.Equal("i=2376", reference.Target.TypeDefinitionId);
+                    Assert.Equal("Int32", reference.Target.DataType);
+                    Assert.True(reference.Target.Children);
+                });
+        }
+
         public async Task NodeBrowseBoilersObjectsTest2Async() {
 
             var browser = _services();
