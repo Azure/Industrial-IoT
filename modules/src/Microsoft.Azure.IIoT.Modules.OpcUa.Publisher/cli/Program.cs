@@ -230,7 +230,7 @@ Options:
                     logger.Information("Start publishing {nodeId}...", nodeId);
                     var content = new PublishNodesRequestModel {
                         EndpointUrl = endpointUrl,
-                        UseSecurity = false,
+                        UseSecurity = true,
                         OpcNodes = new List<PublisherNodeModel> {
                             new PublisherNodeModel {
                                 Id = nodeId,

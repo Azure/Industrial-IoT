@@ -70,7 +70,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 await _lock.WaitAsync();
                 try {
                     if (_server == null) {
-                        await StartServerInternal(ports);
+                        await StartServerInternalAsync(ports);
                         return;
                     }
                 }
@@ -97,7 +97,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// </summary>
         /// <param name="ports"></param>
         /// <returns></returns>
-        private async Task StartServerInternal(IEnumerable<int> ports) {
+        private async Task StartServerInternalAsync(IEnumerable<int> ports) {
             _logger.Information("Starting server...");
             ApplicationInstance.MessageDlg = new DummyDialog();
 
