@@ -38,6 +38,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
         }
 
         [Fact]
+        public async Task NodeBrowseInRootTest2Async() {
+            await GetTests().NodeBrowseInRootTest2Async();
+        }
+
+        [Fact]
         public async Task NodeBrowseFirstInRootTest1Async() {
             await GetTests().NodeBrowseFirstInRootTest1Async();
         }
@@ -68,8 +73,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
         }
 
         [Fact]
-        public async Task NodeBrowseDataAccessFC1001TestAsync() {
-            await GetTests().NodeBrowseDataAccessFC1001TestAsync();
+        public async Task NodeBrowseDataAccessObjectsTest3Async() {
+            await GetTests().NodeBrowseDataAccessObjectsTest3Async();
+        }
+
+        [Fact]
+        public async Task NodeBrowseDataAccessObjectsTest4Async() {
+            await GetTests().NodeBrowseDataAccessObjectsTest4Async();
+        }
+
+        [Fact]
+        public async Task NodeBrowseDataAccessFC1001Test1Async() {
+            await GetTests().NodeBrowseDataAccessFC1001Test1Async();
+        }
+
+        [Fact]
+        public async Task NodeBrowseDataAccessFC1001Test2Async() {
+            await GetTests().NodeBrowseDataAccessFC1001Test2Async();
         }
 
         [Fact]

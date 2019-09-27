@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.v2.Controllers {
+namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.v2.Api {
     using Microsoft.Azure.IIoT.Services.OpcUa.Twin.v2.Models;
     using Newtonsoft.Json;
     using System.Threading.Tasks;
@@ -12,7 +12,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.v2.Controllers {
     public class StatusControllerTest : IClassFixture<WebAppFixture> {
 
         [Fact]
-        public async Task TestStatus() {
+        public async Task TestStatusAsync() {
 
             // Arrange
             var client = _factory.CreateClient();

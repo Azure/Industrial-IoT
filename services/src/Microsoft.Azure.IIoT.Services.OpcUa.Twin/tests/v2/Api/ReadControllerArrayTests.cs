@@ -3,10 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.v2.Controllers {
-    using Microsoft.Azure.IIoT.Services.OpcUa.Twin.v2.Controllers.Test;
+namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.v2.Api {
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Tests;
@@ -31,7 +31,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.v2.Controllers {
             var log = _factory.Resolve<ILogger>();
             return new ReadArrayValueTests<string>(() => // Create an adapter over the api
                 new TwinAdapter(
-                    new ControllerTestClient(
+                    new TwinServiceClient(
                        new HttpClient(_factory, log), new TestConfig(client.BaseAddress))),
                             "fakeid", (ep, n) => _server.Client.ReadValueAsync(Endpoint, n));
         }
@@ -43,6 +43,26 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.v2.Controllers {
 
         private readonly WebAppFixture _factory;
         private readonly TestServerFixture _server;
+
+        [Fact]
+        public async Task NodeReadAllStaticArrayVariableNodeClassTest1Async() {
+            await GetTests().NodeReadAllStaticArrayVariableNodeClassTest1Async();
+        }
+
+        [Fact]
+        public async Task NodeReadAllStaticArrayVariableAccessLevelTest1Async() {
+            await GetTests().NodeReadAllStaticArrayVariableAccessLevelTest1Async();
+        }
+
+        [Fact]
+        public async Task NodeReadAllStaticArrayVariableWriteMaskTest1Async() {
+            await GetTests().NodeReadAllStaticArrayVariableWriteMaskTest1Async();
+        }
+
+        [Fact]
+        public async Task NodeReadAllStaticArrayVariableWriteMaskTest2Async() {
+            await GetTests().NodeReadAllStaticArrayVariableWriteMaskTest2Async();
+        }
 
         [Fact]
         public async Task NodeReadStaticArrayBooleanValueVariableTestAsync() {

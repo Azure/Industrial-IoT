@@ -50,6 +50,16 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.StartStop {
         }
 
         [SkippableFact]
+        public async Task NodeBrowseInRootTest2Async() {
+            // Skip.IfNot(_runAll);
+            using (var harness = new TwinModuleFixture()) {
+                await harness.RunTestAsync(async (device, module, services) => {
+                    await GetTests(device, module, services).NodeBrowseInRootTest2Async();
+                });
+            }
+        }
+
+        [SkippableFact]
         public async Task NodeBrowseFirstInRootTest1Async() {
             Skip.IfNot(_runAll);
             using (var harness = new TwinModuleFixture()) {
@@ -110,11 +120,41 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.StartStop {
         }
 
         [SkippableFact]
-        public async Task NodeBrowseDataAccessFC1001TestAsync() {
+        public async Task NodeBrowseDataAccessObjectsTest3Async() {
             Skip.IfNot(_runAll);
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(async (device, module, services) => {
-                    await GetTests(device, module, services).NodeBrowseDataAccessFC1001TestAsync();
+                    await GetTests(device, module, services).NodeBrowseDataAccessObjectsTest3Async();
+                });
+            }
+        }
+
+        [SkippableFact]
+        public async Task NodeBrowseDataAccessObjectsTest4Async() {
+            Skip.IfNot(_runAll);
+            using (var harness = new TwinModuleFixture()) {
+                await harness.RunTestAsync(async (device, module, services) => {
+                    await GetTests(device, module, services).NodeBrowseDataAccessObjectsTest4Async();
+                });
+            }
+        }
+
+        [SkippableFact]
+        public async Task NodeBrowseDataAccessFC1001Test1Async() {
+            Skip.IfNot(_runAll);
+            using (var harness = new TwinModuleFixture()) {
+                await harness.RunTestAsync(async (device, module, services) => {
+                    await GetTests(device, module, services).NodeBrowseDataAccessFC1001Test1Async();
+                });
+            }
+        }
+
+        [SkippableFact]
+        public async Task NodeBrowseDataAccessFC1001Test2Async() {
+            Skip.IfNot(_runAll);
+            using (var harness = new TwinModuleFixture()) {
+                await harness.RunTestAsync(async (device, module, services) => {
+                    await GetTests(device, module, services).NodeBrowseDataAccessFC1001Test1Async();
                 });
             }
         }

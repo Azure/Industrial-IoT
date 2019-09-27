@@ -3,10 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.v2.Controllers {
-    using Microsoft.Azure.IIoT.Services.OpcUa.Twin.v2.Controllers.Test;
+namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.v2.Api {
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Tests;
@@ -31,7 +31,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.v2.Controllers {
             var log = _factory.Resolve<ILogger>();
             return new ReadScalarValueTests<string>(() => // Create an adapter over the api
                 new TwinAdapter(
-                    new ControllerTestClient(
+                    new TwinServiceClient(
                        new HttpClient(_factory, log), new TestConfig(client.BaseAddress))),
                        "fakeid", (ep, n) => _server.Client.ReadValueAsync(Endpoint, n));
         }
@@ -45,8 +45,43 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.v2.Controllers {
         private readonly TestServerFixture _server;
 
         [Fact]
+        public async Task NodeReadAllStaticScalarVariableNodeClassTest1Async() {
+            await GetTests().NodeReadAllStaticScalarVariableNodeClassTest1Async();
+        }
+
+        [Fact]
+        public async Task NodeReadAllStaticScalarVariableAccessLevelTest1Async() {
+            await GetTests().NodeReadAllStaticScalarVariableAccessLevelTest1Async();
+        }
+
+        [Fact]
+        public async Task NodeReadAllStaticScalarVariableWriteMaskTest1Async() {
+            await GetTests().NodeReadAllStaticScalarVariableWriteMaskTest1Async();
+        }
+
+        [Fact]
+        public async Task NodeReadAllStaticScalarVariableWriteMaskTest2Async() {
+            await GetTests().NodeReadAllStaticScalarVariableWriteMaskTest2Async();
+        }
+
+        [Fact]
         public async Task NodeReadStaticScalarBooleanValueVariableTestAsync() {
             await GetTests().NodeReadStaticScalarBooleanValueVariableTestAsync();
+        }
+
+        [Fact]
+        public async Task NodeReadStaticScalarBooleanValueVariableWithBrowsePathTest1Async() {
+            await GetTests().NodeReadStaticScalarBooleanValueVariableWithBrowsePathTest1Async();
+        }
+
+        [Fact]
+        public async Task NodeReadStaticScalarBooleanValueVariableWithBrowsePathTest2Async() {
+            await GetTests().NodeReadStaticScalarBooleanValueVariableWithBrowsePathTest2Async();
+        }
+
+        [Fact]
+        public async Task NodeReadStaticScalarBooleanValueVariableWithBrowsePathTest3Async() {
+            await GetTests().NodeReadStaticScalarBooleanValueVariableWithBrowsePathTest3Async();
         }
 
         [Fact]
@@ -183,6 +218,11 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.v2.Controllers {
         [Fact]
         public async Task NodeReadDataAccessMeasurementFloatValueTestAsync() {
             await GetTests().NodeReadDataAccessMeasurementFloatValueTestAsync();
+        }
+
+        [Fact]
+        public async Task NodeReadDiagnosticsNoneTestAsync() {
+            await GetTests().NodeReadDiagnosticsNoneTestAsync();
         }
 
         [Fact]
