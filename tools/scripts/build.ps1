@@ -23,19 +23,13 @@ if ([string]::IsNullOrEmpty($BuildRoot)) {
 }
 
 # Traverse from build root and find all mcr.json metadata files and build
-Get-ChildItem $BuildRoot -Recurse `
-    | Where-Object Name -eq "mcr.json" `
+Get-ChildItem $BuildRoot -Recurse -Include "mcr.json" `
     | ForEach-Object {
 
     # Get root
     $dockerFolder = $_.DirectoryName.Replace($BuildRoot, "").Substring(1)
     $metadata = Get-Content -Raw -Path (join-path $_.DirectoryName "mcr.json") `
         | ConvertFrom-Json
-    $scriptPath = (Join-Path $PSScriptRoot "docker-build.ps1")
-    if ($Debug.IsPresent) {
-        & $scriptPath -image $metadata.name -path $dockerFolder -debug
-    }
-    else {
-        & $scriptPath -image $metadata.name -path $dockerFolder
-    }
+    & (Join-Path $PSScriptRoot "docker-build.ps1") `
+        -ImageName $metadata.name -Path $dockerFolder -Debug:$Debug
 }

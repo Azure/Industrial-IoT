@@ -26,8 +26,7 @@ if ([string]::IsNullOrEmpty($BuildRoot)) {
 $acrMatrix = @{}
 
 # Traverse from build root and find all mcr.json metadata files to acr matrix
-Get-ChildItem $BuildRoot -Recurse `
-    | Where-Object Name -eq "mcr.json" `
+Get-ChildItem $BuildRoot -Recurse -Include "mcr.json" `
     | ForEach-Object {
 
     # Get root
@@ -49,13 +48,8 @@ Get-ChildItem $BuildRoot -Recurse `
 
 if ($Build.IsPresent) {
     $acrMatrix.Values | ForEach-Object {
-        $scriptPath = (Join-Path $PSScriptRoot "acr-build.ps1")
-        if ($Debug.IsPresent) {
-            & $scriptPath -path $_.dockerFolder -debug
-        }
-        else {
-            & $scriptPath -path $_.dockerFolder
-        }
+        & (Join-Path $PSScriptRoot "acr-build.ps1") `
+            -Path $_.dockerFolder -Debug:$Debug
     }
 }
 else {

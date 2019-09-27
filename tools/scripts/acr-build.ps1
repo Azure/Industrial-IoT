@@ -156,9 +156,7 @@ else {
 
 $tagPostfix = ""
 $tagPrefix = ""
-$configuration = "Release"
 if ($Debug.IsPresent) {
-    $configuration = "Debug"
     $tagPostfix = "-debug"
 }
 if (![string]::IsNullOrEmpty($metadata.tag)) {
@@ -185,8 +183,8 @@ manifests:
 "@
 
 # Source definitions
-$scriptPath = (Join-Path $PSScriptRoot "docker-source.ps1")
-$definitions = & $scriptPath -Path $Path -Configuration $configuration
+$definitions = & (Join-Path $PSScriptRoot "docker-source.ps1") `
+    -Path $Path -Debug:$Debug
 if ($definitions.Count -eq 0) {
     Write-Host "Nothing to build."
     return

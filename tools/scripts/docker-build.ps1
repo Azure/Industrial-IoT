@@ -26,13 +26,12 @@ if ([string]::IsNullOrEmpty($ImageName)) {
 Write-Host "Building $($ImageName)"
 
 # Source definitions
-$configuration = "Release"
-if ($Debug.IsPresent) {
-    $configuration = "Debug"
-}
-
 $definitions = & (Join-Path $PSScriptRoot "docker-source.ps1") `
-    -Path $Path -Configuration $configuration
+    -Path $Path -Debug:$Debug
+if ($definitions.Count -eq 0) {
+    Write-Host "Nothing to build."
+    return
+}
 
 # Get currently active platform 
 $dockerversion = &docker @("version") 2>&1 | %{ "$_" } `

@@ -12,7 +12,7 @@
 
 Param(
     [string] $Path = $null,
-    [string] $Configuration = "Release"
+    [switch] $Debug
 )
 
 # Get meta data
@@ -24,6 +24,10 @@ if (!(Test-Path -Path $Path -PathType Container)) {
         -fileName $Path) $Path
 }
 $Path = Resolve-Path -LiteralPath $Path
+$configuration = "Release"
+if ($Debug.IsPresent) {
+    $configuration = "Debug"
+}
 $metadata = Get-Content -Raw -Path (Join-Path $Path "mcr.json") `
     | ConvertFrom-Json
 
@@ -33,7 +37,7 @@ $definitions = @()
 $projFile = Get-ChildItem $Path -Filter *.csproj | Select-Object -First 1
 if ($projFile -ne $null) {
 
-    $output = (Join-Path $Path (Join-Path "bin" (Join-Path "publish" $Configuration)))
+    $output = (Join-Path $Path (Join-Path "bin" (Join-Path "publish" $configuration)))
     $runtimes = @("linux-arm", "linux-x64", "win-x64", "win-arm", "win-arm64", "")
     if (![string]::IsNullOrEmpty($metadata.base)) {
         # Shortcut - only build portable
@@ -43,7 +47,7 @@ if ($projFile -ne $null) {
         $runtimeId = $_
 
         # Create dotnet command line 
-        $argumentList = @("publish", "-c", $Configuration)
+        $argumentList = @("publish", "-c", $configuration)
         if (![string]::IsNullOrEmpty($runtimeId)) {
             $argumentList += "-r"
             $argumentList += $runtimeId
@@ -149,7 +153,7 @@ ENV PATH="${PATH}:/root/vsdbg/vsdbg"
         }
 
         $debugger = ""
-        if ($Configuration -eq "Debug") {
+        if ($Debug.IsPresent) {
             if (![string]::IsNullOrEmpty($platformInfo.debugger)) {
                 $debugger = $platformInfo.debugger
             }
@@ -185,7 +189,7 @@ ENTRYPOINT $($entryPoint)
         $imageContent = (Join-Path $output $runtimeId)
         $dockerFile = (Join-Path $imageContent "Dockerfile.$($platformTag)")
         Write-Host Writing $($dockerFile)
-        $dockerFileContent | Out-Host -Verbose
+        # $dockerFileContent | Out-Host
         $dockerFileContent | Out-File -Encoding ascii -FilePath $dockerFile
         $definitions += @{
             platform = $_
