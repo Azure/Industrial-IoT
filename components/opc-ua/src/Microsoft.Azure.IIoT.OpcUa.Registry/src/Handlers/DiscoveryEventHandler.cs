@@ -18,17 +18,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
     /// <summary>
     /// Server discovery result handling
     /// </summary>
-    public sealed class DiscoveryResultHandler : IDeviceEventHandler {
+    public sealed class DiscoveryEventHandler : IDeviceEventHandler {
 
         /// <inheritdoc/>
-        public string ContentType => ContentTypes.DiscoveryResults;
+        public string ContentType => ContentTypes.DiscoveryEvents;
 
         /// <summary>
         /// Create handler
         /// </summary>
         /// <param name="registry"></param>
         /// <param name="logger"></param>
-        public DiscoveryResultHandler(IDiscoveryProcessor registry, ILogger logger) {
+        public DiscoveryEventHandler(IDiscoveryProcessor registry, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _registry = registry ?? throw new ArgumentNullException(nameof(registry));
         }

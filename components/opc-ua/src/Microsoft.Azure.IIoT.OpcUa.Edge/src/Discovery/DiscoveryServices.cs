@@ -487,7 +487,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                 .Select(discovery => Encoding.UTF8.GetBytes(
                     JsonConvertEx.SerializeObject(discovery)));
             await Task.Run(() => _events.SendAsync(
-                messages, ContentTypes.DiscoveryResults), ct);
+                messages, ContentTypes.DiscoveryEvents), ct);
             _logger.Information("{count} results uploaded.", discovered.Count);
         }
 
@@ -496,6 +496,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
         /// </summary>
         /// <param name="request"></param>
         private void OnDiscoveryStarted(DiscoveryRequest request) {
+            // TODO: Send telemetry
             _logger.Debug("{request}: Discovery operation started.",
                 request.Request.Id);
         }
@@ -505,6 +506,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
         /// </summary>
         /// <param name="request"></param>
         private void OnDiscoveryCancelled(DiscoveryRequest request) {
+            // TODO: Send telemetry
             _logger.Debug("{request}: Discovery operation cancelled.",
                 request.Request.Id);
         }
@@ -515,6 +517,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
         /// <param name="request"></param>
         /// <param name="ex"></param>
         private void OnDiscoveryError(DiscoveryRequest request, Exception ex) {
+            // TODO: Send telemetry
             _logger.Error(ex, "{request}: Error during discovery run...",
                 request.Request.Id);
         }
@@ -524,6 +527,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
         /// </summary>
         /// <param name="request"></param>
         private void OnDiscoveryComplete(DiscoveryRequest request) {
+            // TODO: Send telemetry
             _logger.Debug("{request}: Discovery operation completed.",
                 request.Request.Id);
         }

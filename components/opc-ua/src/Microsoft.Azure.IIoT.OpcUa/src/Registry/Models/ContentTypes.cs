@@ -17,16 +17,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             "application/x-discovery-request-v2-json";
 
         /// <summary>
-        /// Message contains discovery results
-        /// </summary>
-        public const string DiscoveryResults =
-            "application/x-discovery-event-v2-json";
-
-        /// <summary>
         /// Message contains discovery events
         /// </summary>
         public const string DiscoveryEvents =
-            "application/x-discovery-messages-v2-json";
+            "application/x-discovery-event-v2-json";
+
+        /// <summary>
+        /// Message contains discovery progress messages
+        /// </summary>
+        public const string DiscoveryProgress =
+            "application/x-discovery-progress-v2-json";
 
         /// <summary>
         /// Content is a nodeset
