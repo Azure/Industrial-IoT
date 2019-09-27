@@ -37,7 +37,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.History.StartSto
         }
 
         private readonly HistoryServerFixture _server;
-        private static readonly bool _runAll = Environment.GetEnvironmentVariable("TEST_ALL") != null;
+        private readonly bool _runAll = Environment.GetEnvironmentVariable("TEST_ALL") != null;
 
 
         [SkippableFact]

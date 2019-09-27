@@ -35,7 +35,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Twin.StartStop {
         }
 
         private readonly TestServerFixture _server;
-        private static readonly bool _runAll = Environment.GetEnvironmentVariable("TEST_ALL") != null;
+        private readonly bool _runAll = Environment.GetEnvironmentVariable("TEST_ALL") != null;
 
         [SkippableFact]
         public async Task NodeWriteStaticArrayBooleanValueVariableTestAsync() {

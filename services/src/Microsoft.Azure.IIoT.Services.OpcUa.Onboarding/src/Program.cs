@@ -143,7 +143,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Onboarding {
             // Handle discovery events from opc twin module
             builder.RegisterType<IoTHubDeviceEventHandler>()
                 .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<DiscoveryEventHandler>()
+            builder.RegisterType<DiscoveryResultHandler>()
                 .AsImplementedInterfaces().SingleInstance();
 
             // Register event bus to publish events

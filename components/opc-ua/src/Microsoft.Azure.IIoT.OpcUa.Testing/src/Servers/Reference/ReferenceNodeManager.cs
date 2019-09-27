@@ -1538,15 +1538,9 @@ namespace Reference {
             NodeState node,
 #pragma warning disable RECS0154 // Parameter is never used
             NumericRange indexRange,
-#pragma warning restore RECS0154 // Parameter is never used
-#pragma warning disable RECS0154 // Parameter is never used
             QualifiedName dataEncoding,
-#pragma warning restore RECS0154 // Parameter is never used
             ref object value,
-#pragma warning disable RECS0154 // Parameter is never used
             ref StatusCode statusCode,
-#pragma warning restore RECS0154 // Parameter is never used
-#pragma warning disable RECS0154 // Parameter is never used
             ref DateTime timestamp)
 #pragma warning restore RECS0154 // Parameter is never used
         {

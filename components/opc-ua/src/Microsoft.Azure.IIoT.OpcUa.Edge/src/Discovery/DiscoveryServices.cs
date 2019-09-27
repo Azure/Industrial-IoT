@@ -156,6 +156,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
         private async Task RunOnceAsync(DiscoveryRequest request,
             CancellationToken ct) {
             _logger.Debug("Processing discovery request...");
+            OnDiscoveryStarted(request);
             object diagnostics = null;
 
             //
@@ -164,20 +165,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
             List<ApplicationRegistrationModel> discovered;
             try {
                 discovered = await DiscoverServersAsync(request, ct);
+                ct.ThrowIfCancellationRequested();
+                //
+                // Upload results
+                //
+                await SendDiscoveryResultsAsync(request, discovered, DateTime.UtcNow,
+                    diagnostics, ct);
+                OnDiscoveryComplete(request);
+            }
+            catch (OperationCanceledException) {
+                OnDiscoveryCancelled(request);
             }
             catch (Exception ex) {
-                diagnostics = ex;
-                discovered = new List<ApplicationRegistrationModel>();
+                OnDiscoveryError(request, ex);
             }
-
-            //
-            // Upload results
-            //
-            if (!ct.IsCancellationRequested) {
-                await UploadResultsAsync(request, discovered, DateTime.UtcNow,
-                    diagnostics, ct);
-            }
-            _logger.Debug("Discovery request ended");
         }
 
         /// <summary>
@@ -205,6 +206,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
 
             // Run scans until cancelled
             while (!ct.IsCancellationRequested) {
+                OnDiscoveryStarted(request);
                 try {
                     //
                     // Discover
@@ -225,16 +227,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                     ct.ThrowIfCancellationRequested();
 
                     //
-                    // Upload results
+                    // Send results
                     //
-                    await UploadResultsAsync(request, discovered, timestamp,
+                    await SendDiscoveryResultsAsync(request, discovered, timestamp,
                         null, ct);
+                    OnDiscoveryComplete(request);
                 }
                 catch (OperationCanceledException) {
+                    OnDiscoveryCancelled(request);
                     break;
                 }
                 catch (Exception ex) {
-                    _logger.Error(ex, "Error during discovery run - continue...");
+                    OnDiscoveryError(request, ex);
                 }
 
                 //
@@ -270,7 +274,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
 
             var discoveryUrls = await GetDiscoveryUrlsAsync(request.DiscoveryUrls);
             if (request.Mode == DiscoveryMode.Off) {
-                return await DiscoverServersAsync(discoveryUrls,
+                return await DiscoverServersAsync(request, discoveryUrls,
                     request.Configuration.Locales, ct);
             }
 
@@ -285,25 +289,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
             _counter = 0;
 #endif
             var addresses = new List<IPAddress>();
-            using (var netscanner = new NetworkScanner(_logger, reply => {
-                _logger.Verbose("{address} found.", reply.Address);
+            using (var netscanner = new NetworkScanner(_logger,
+                (scanner, reply) => {
+                OnNetScanResult(request, scanner, reply.Address);
                 addresses.Add(reply.Address);
             }, local, local ? null : request.AddressRanges, request.NetworkClass,
                 request.Configuration.MaxNetworkProbes,
                 request.Configuration.NetworkProbeTimeout, ct)) {
 
                 // Log progress
-                using (var progress = new Timer(_ => ProgressTimer(() =>
-                    $"Scanned {netscanner.ScanCount} addresses " +
-                    $"(Active probes: {netscanner.ActiveProbes})..."),
+                OnNetScanStarted(request, netscanner);
+                using (var progress = new Timer(_ => ProgressTimer(
+                    () => OnNetScanProgress(request, netscanner, addresses)),
                     null, _progressInterval, _progressInterval)) {
                     await netscanner.Completion;
                 }
+                OnNetScanComplete(request, netscanner, addresses, watch.Elapsed);
             }
             ct.ThrowIfCancellationRequested();
-
-            _logger.Information("Found {count} addresses took {elapsed}...",
-                addresses.Count, watch.Elapsed);
             if (addresses.Count == 0) {
                 return new List<ApplicationRegistrationModel>();
             }
@@ -317,21 +320,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                 addresses.SelectMany(address => {
                     var ranges = request.PortRanges ?? PortRange.OpcUa;
                     return ranges.SelectMany(x => x.GetEndpoints(address));
-                }), ports.Add, probe, request.Configuration.MaxPortProbes,
+                }), (scanner, ep) => {
+                    OnPortScanResult(request, scanner, ep);
+                    ports.Add(ep);
+                }, probe, request.Configuration.MaxPortProbes,
                 request.Configuration.MinPortProbesPercent,
                 request.Configuration.PortProbeTimeout, ct)) {
 
-                // Log progress
-                using (var progress = new Timer(_ => ProgressTimer(() =>
-                    $"Scanned {portscan.ScanCount} ports " +
-                    $"(Active probes: {portscan.ActiveProbes})..."),
+                OnPortScanStart(request, portscan);
+                using (var progress = new Timer(_ => ProgressTimer(
+                    () => OnPortScanProgress(request, portscan, ports)),
                     null, _progressInterval, _progressInterval)) {
                     await portscan.Completion;
                 }
+                OnPortScanComplete(request, portscan, ports, watch.Elapsed);
             }
             ct.ThrowIfCancellationRequested();
-            _logger.Information("Found {count} ports on servers took {elapsed}...",
-                ports.Count, watch.Elapsed);
             if (ports.Count == 0) {
                 return new List<ApplicationRegistrationModel>();
             }
@@ -350,8 +354,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
             //
             // Create application model list from discovered endpoints...
             //
-            var discovered = await DiscoverServersAsync(discoveryUrls,
+            var discovered = await DiscoverServersAsync(request, discoveryUrls,
                 request.Configuration.Locales, ct);
+
             _logger.Information("Discovery took {elapsed} and found {count} servers.",
                 watch.Elapsed, discovered.Count);
             return discovered;
@@ -360,37 +365,46 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
         /// <summary>
         /// Discover servers using opcua discovery and filter by optional locale
         /// </summary>
+        /// <param name="request"></param>
         /// <param name="discoveryUrls"></param>
         /// <param name="locales"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         private async Task<List<ApplicationRegistrationModel>> DiscoverServersAsync(
-            Dictionary<IPEndPoint, Uri> discoveryUrls, List<string> locales, CancellationToken ct) {
+            DiscoveryRequest request, Dictionary<IPEndPoint, Uri> discoveryUrls,
+            List<string> locales, CancellationToken ct) {
             var discovered = new List<ApplicationRegistrationModel>();
             var supervisorId = SupervisorModelEx.CreateSupervisorId(_events.DeviceId,
                 _events.ModuleId);
+
+            OnServerDiscoveryStarted(request, discoveryUrls);
+
             foreach (var item in discoveryUrls) {
                 ct.ThrowIfCancellationRequested();
                 var url = item.Value;
+
+                OnFindEndpointsStarted(request, url, item.Key.Address);
 
                 // Find endpoints at the real accessible ip address
                 var eps = await _client.FindEndpointsAsync(new UriBuilder(url) {
                     Host = item.Key.Address.ToString()
                 }.Uri, locales, ct).ConfigureAwait(false);
 
-                if (!eps.Any()) {
-                    _logger.Information("No endpoints found on {host}:{port} ({address}).",
-                        eps.Count(), url.Host, url.Port, item.Key.Address);
+                var endpoints = eps.ToList();
+
+                OnFindEndpointsComplete(request, url, item.Key.Address, endpoints);
+                if (endpoints.Count == 0) {
                     continue;
                 }
-                _logger.Information("Found {count} endpoints on {host}:{port} ({address}).",
-                    eps.Count(), url.Host, url.Port, item.Key.Address);
+
                 // Merge results...
                 foreach (var ep in eps) {
                     discovered.AddOrUpdate(ep.ToServiceModel(item.Key.ToString(),
                         _events.SiteId, supervisorId));
                 }
             }
+
+            OnServerDiscoveryComplete(request, discovered);
             ct.ThrowIfCancellationRequested();
             return discovered;
         }
@@ -443,7 +457,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
         /// <param name="diagnostics"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        private async Task UploadResultsAsync(DiscoveryRequest request,
+        private async Task SendDiscoveryResultsAsync(DiscoveryRequest request,
             List<ApplicationRegistrationModel> discovered, DateTime timestamp,
             object diagnostics, CancellationToken ct) {
             _logger.Information("Uploading {count} results...", discovered.Count);
@@ -473,15 +487,223 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                 .Select(discovery => Encoding.UTF8.GetBytes(
                     JsonConvertEx.SerializeObject(discovery)));
             await Task.Run(() => _events.SendAsync(
-                messages, ContentTypes.DiscoveryEvent), ct);
+                messages, ContentTypes.DiscoveryResults), ct);
             _logger.Information("{count} results uploaded.", discovered.Count);
+        }
+
+        /// <summary>
+        /// Discovery started
+        /// </summary>
+        /// <param name="request"></param>
+        private void OnDiscoveryStarted(DiscoveryRequest request) {
+            _logger.Debug("{request}: Discovery operation started.",
+                request.Request.Id);
+        }
+
+        /// <summary>
+        /// Discovery cancelled
+        /// </summary>
+        /// <param name="request"></param>
+        private void OnDiscoveryCancelled(DiscoveryRequest request) {
+            _logger.Debug("{request}: Discovery operation cancelled.",
+                request.Request.Id);
+        }
+
+        /// <summary>
+        /// Discovery error
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="ex"></param>
+        private void OnDiscoveryError(DiscoveryRequest request, Exception ex) {
+            _logger.Error(ex, "{request}: Error during discovery run...",
+                request.Request.Id);
+        }
+
+        /// <summary>
+        /// Discovery completed
+        /// </summary>
+        /// <param name="request"></param>
+        private void OnDiscoveryComplete(DiscoveryRequest request) {
+            _logger.Debug("{request}: Discovery operation completed.",
+                request.Request.Id);
+        }
+
+        /// <summary>
+        /// Network scanning started
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="netscanner"></param>
+        private void OnNetScanStarted(DiscoveryRequest request,
+            NetworkScanner netscanner) {
+            // TODO: Send telemetry
+            _logger.Information(
+                "{request}: Starting network scan ({active} probes active)...",
+                request.Request.Id, netscanner.ActiveProbes);
+        }
+
+        /// <summary>
+        /// Network scan result
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="netscanner"></param>
+        /// <param name="address"></param>
+        private void OnNetScanResult(DiscoveryRequest request,
+            NetworkScanner netscanner, IPAddress address) {
+            // TODO: Send telemetry
+            _logger.Verbose("{request}: Found address {address} ({scanned} scanned)...",
+                request.Request.Id, address, netscanner.ScanCount);
+        }
+
+        /// <summary>
+        /// Network scan progress
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="netscanner"></param>
+        /// <param name="addresses"></param>
+        private void OnNetScanProgress(DiscoveryRequest request,
+            NetworkScanner netscanner, List<IPAddress> addresses) {
+            // TODO: Send telemetry
+            _logger.Information("{request}: {scanned} addresses scanned - {found} " +
+                "found ({active} probes active)...", request.Request.Id,
+                netscanner.ScanCount, addresses.Count, netscanner.ActiveProbes);
+        }
+
+        /// <summary>
+        /// Network scan complete
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="netscanner"></param>
+        /// <param name="addresses"></param>
+        /// <param name="elapsed"></param>
+        private void OnNetScanComplete(DiscoveryRequest request,
+            NetworkScanner netscanner, List<IPAddress> addresses,
+            TimeSpan elapsed) {
+            // TODO: Send telemetry
+            _logger.Information("{request}: Found {count} addresses took {elapsed} " +
+                "({scanned} scanned)...", request.Request.Id,
+                addresses.Count, elapsed, netscanner.ScanCount);
+        }
+
+        /// <summary>
+        /// Port scan complete
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="portscan"></param>
+        private void OnPortScanStart(DiscoveryRequest request, PortScanner portscan) {
+            // TODO: Send telemetry
+            _logger.Debug("{request}: Starting port scanning ({active} probes active)...",
+                request.Request.Id, portscan.ActiveProbes);
+        }
+
+        /// <summary>
+        /// Port scan progress
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="portscan"></param>
+        /// <param name="ports"></param>
+        private void OnPortScanProgress(DiscoveryRequest request,
+            PortScanner portscan, List<IPEndPoint> ports) {
+            // TODO: Send telemetry
+            _logger.Information("{request}: {scanned} ports scanned - {found} found" +
+                " ({active} probes active)...", request.Request.Id,
+                portscan.ScanCount, ports.Count, portscan.ActiveProbes);
+        }
+
+        /// <summary>
+        /// Port scan result
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="portscan"></param>
+        /// <param name="ep"></param>
+        private void OnPortScanResult(DiscoveryRequest request,
+            PortScanner portscan, IPEndPoint ep) {
+            // TODO: Send telemetry
+            _logger.Debug("{request}: Found server {endpoint} ({scanned} scanned)...",
+                request.Request.Id, ep, portscan.ScanCount);
+        }
+
+        /// <summary>
+        /// Port scan complete
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="portscan"></param>
+        /// <param name="ports"></param>
+        /// <param name="elapsed"></param>
+        private void OnPortScanComplete(DiscoveryRequest request,
+            PortScanner portscan, List<IPEndPoint> ports,
+            TimeSpan elapsed) {
+            // TODO: Send telemetry
+            _logger.Information("{request}: Found {count} ports on servers " +
+                "took {elapsed} ({scanned} scanned)...",
+                request.Request.Id, ports.Count, elapsed, portscan.ScanCount);
+        }
+
+        /// <summary>
+        /// Discovery started
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="discoveryUrls"></param>
+        private void OnServerDiscoveryStarted(DiscoveryRequest request,
+            Dictionary<IPEndPoint, Uri> discoveryUrls) {
+            // TODO: Send telemetry
+            _logger.Information(
+                "{request}: Searching {count} discovery urls for endpoints...",
+                request.Request.Id, discoveryUrls.Count);
+        }
+
+        /// <summary>
+        /// Find endpoints started
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="url"></param>
+        /// <param name="address"></param>
+        private void OnFindEndpointsStarted(DiscoveryRequest request,
+            Uri url, IPAddress address) {
+            // TODO: Send telemetry
+            _logger.Information(
+                "{request}: Trying to find endpoints on {host}:{port} ({address})...",
+                request.Request.Id, url.Host, url.Port, address);
+        }
+
+        /// <summary>
+        /// Find endpoints completed
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="url"></param>
+        /// <param name="address"></param>
+        /// <param name="eps"></param>
+        private void OnFindEndpointsComplete(DiscoveryRequest request,
+            Uri url, IPAddress address,
+            List<DiscoveredEndpointModel> eps) {
+            // TODO: Send telemetry
+            if (eps.Count == 0) {
+                // TODO: Send telemetry
+                _logger.Information(
+                    "{request}: No endpoints found on {host}:{port} ({address}).",
+                    request.Request.Id, url.Host, url.Port, address);
+            }
+            _logger.Information(
+                "{request}: Found {count} endpoints on {host}:{port} ({address}).",
+                request.Request.Id, eps.Count(), url.Host, url.Port, address);
+        }
+
+        /// <summary>
+        /// Endpoint Discovery complete
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="discovered"></param>
+        private void OnServerDiscoveryComplete(DiscoveryRequest request,
+            List<ApplicationRegistrationModel> discovered) {
+            // TODO: Send telemetry
+            _logger.Information("{request}: Found total of {count} servers ...",
+                request.Request.Id, discovered.Count);
         }
 
         /// <summary>
         /// Called in intervals to check and log progress.
         /// </summary>
-        /// <param name="message"></param>
-        private void ProgressTimer(Func<string> message) {
+        /// <param name="log"></param>
+        private void ProgressTimer(Action log) {
             if ((_counter % 3) == 0) {
                 _logger.Information("GC Mem: {gcmem} kb, Working set / Private Mem: " +
                     "{privmem} kb / {privmemsize} kb, Handles: {handles}",
@@ -503,7 +725,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                 }
             }
 #endif
-            _logger.Information(message());
+            log();
         }
 
 #if !NO_SCHEDULER_DUMP

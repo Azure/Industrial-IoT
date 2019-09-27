@@ -34,7 +34,7 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
         /// <param name="logger"></param>
         /// <param name="replies"></param>
         /// <param name="ct"></param>
-        public NetworkScanner(ILogger logger, Action<PingReply> replies,
+        public NetworkScanner(ILogger logger, Action<NetworkScanner, PingReply> replies,
             CancellationToken ct) :
             this(logger, replies, false, null, NetworkClass.Wired, null, null, ct) {
         }
@@ -46,7 +46,7 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
         /// <param name="replies"></param>
         /// <param name="netclass"></param>
         /// <param name="ct"></param>
-        public NetworkScanner(ILogger logger, Action<PingReply> replies,
+        public NetworkScanner(ILogger logger, Action<NetworkScanner, PingReply> replies,
             NetworkClass netclass, CancellationToken ct) :
             this(logger, replies, false, null, netclass, null, null, ct) {
         }
@@ -59,7 +59,7 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
         /// <param name="local"></param>
         /// <param name="netclass"></param>
         /// <param name="ct"></param>
-        public NetworkScanner(ILogger logger, Action<PingReply> replies,
+        public NetworkScanner(ILogger logger, Action<NetworkScanner, PingReply> replies,
             bool local, NetworkClass netclass, CancellationToken ct) :
             this(logger, replies, local, null, netclass, null, null, ct) {
         }
@@ -71,7 +71,7 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
         /// <param name="replies"></param>
         /// <param name="addresses"></param>
         /// <param name="ct"></param>
-        public NetworkScanner(ILogger logger, Action<PingReply> replies,
+        public NetworkScanner(ILogger logger, Action<NetworkScanner, PingReply> replies,
             IEnumerable<AddressRange> addresses, CancellationToken ct) :
             this(logger, replies, false,
                 addresses ?? throw new ArgumentNullException(nameof(addresses)),
@@ -89,7 +89,7 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
         /// <param name="maxProbeCount"></param>
         /// <param name="timeout"></param>
         /// <param name="ct"></param>
-        public NetworkScanner(ILogger logger, Action<PingReply> replies,
+        public NetworkScanner(ILogger logger, Action<NetworkScanner, PingReply> replies,
             bool local, IEnumerable<AddressRange> addresses, NetworkClass netclass,
             int? maxProbeCount, TimeSpan? timeout, CancellationToken ct) {
             _logger = logger;
@@ -181,7 +181,7 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
                 ping.PingCompleted += (sender, e) => {
                     var reply = e.Reply;
                     if (reply != null && reply.Status == IPStatus.Success) {
-                        _replies(reply);
+                        _replies(this, reply);
                     }
                     // When completed, grab next
                     Interlocked.Increment(ref _scanCount);
@@ -194,7 +194,7 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
 
         private const int kDefaultMaxProbeCount = 100;
         private const int kDefaultBatchSize = 1000;
-        private readonly TimeSpan kDefaultProbeTimeout =
+        private static readonly TimeSpan kDefaultProbeTimeout =
             TimeSpan.FromSeconds(3);
 
         private readonly TimeSpan _timeout;
@@ -202,7 +202,7 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
         private readonly List<AddressRange> _addresses;
         private readonly ILogger _logger;
         private readonly List<Ping> _pings;
-        private readonly Action<PingReply> _replies;
+        private readonly Action<NetworkScanner, PingReply> _replies;
         private readonly TaskCompletionSource<bool> _completion;
         private readonly CancellationToken _ct;
         private int _scanCount;

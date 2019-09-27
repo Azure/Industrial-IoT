@@ -40,8 +40,8 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
         public async Task ScanAsync(Action<PingReply> replies, bool local,
             IEnumerable<AddressRange> addresses, NetworkClass netclass,
             int? maxProbeCount, TimeSpan? timeout, CancellationToken ct) {
-            using (var scanner = new NetworkScanner(_logger, replies, local, addresses,
-                netclass, maxProbeCount, timeout, ct)) {
+            using (var scanner = new NetworkScanner(_logger, (s, p) => replies(p),
+                local, addresses, netclass, maxProbeCount, timeout, ct)) {
                 await scanner.Completion;
             }
         }
@@ -60,7 +60,7 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
         public async Task ScanAsync(IEnumerable<IPEndPoint> source,
             Action<IPEndPoint> target, IPortProbe portProbe, int? maxProbeCount,
             int? minProbePercent, TimeSpan? timeout, CancellationToken ct) {
-            using (var scanner = new PortScanner(_logger, source, target, portProbe,
+            using (var scanner = new PortScanner(_logger, source, (s, p) => target(p), portProbe,
                 maxProbeCount, minProbePercent, timeout, ct)) {
                 await scanner.Completion;
             }
