@@ -57,7 +57,7 @@ jobs:
     displayName: 'BinSkim '
     inputs:
       InputType: Basic
-      AnalyzeTarget: '*.IIoT.*.dll;*.exe'
+      AnalyzeTarget: '*.IIoT.*.dll;*.IIoT.*.exe'
     continueOnError: true
   - task: AutoApplicability@1
     displayName: 'Auto Applicability'
