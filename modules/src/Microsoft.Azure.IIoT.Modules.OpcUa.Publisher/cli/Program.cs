@@ -37,6 +37,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Cli {
         /// </summary>
         public static void Main(string[] args) {
             var publish = false;
+            var checkTrust = false;
             var listNodes = false;
             string deviceId = null, moduleId = null;
             Console.WriteLine("Publisher module command line interface.");
@@ -73,6 +74,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Cli {
                         case "-l":
                         case "--list":
                             listNodes = true;
+                            break;
+                        case "-t":
+                        case "--only-trusted":
+                            checkTrust = true;
                             break;
                         default:
                             unknownArgs.Add(args[i]);
@@ -137,7 +142,7 @@ Options:
                     PublishAsync(config, logger, deviceId, moduleId, listNodes, args).Wait();
                 }
                 else {
-                    HostAsync(config, logger, deviceId, moduleId, args).Wait();
+                    HostAsync(config, logger, deviceId, moduleId, args, !checkTrust).Wait();
                 }
             }
             catch (Exception e) {

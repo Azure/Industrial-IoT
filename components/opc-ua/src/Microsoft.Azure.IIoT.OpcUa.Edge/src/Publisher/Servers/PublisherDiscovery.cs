@@ -4,16 +4,16 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Servers {
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Clients;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Clients.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Transport.Probe;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol;
+    using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.Net;
     using Microsoft.Azure.IIoT.Net.Models;
     using Microsoft.Azure.IIoT.Net.Scanner;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Discovery;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Clients;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Clients.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Protocol;
-    using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using Newtonsoft.Json;
     using Opc.Ua;
     using Serilog;
