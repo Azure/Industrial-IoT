@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
+namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport.Probe {
     using Serilog;
     using Microsoft.Azure.IIoT.Net;
     using Opc.Ua;
@@ -194,8 +194,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                                     var maxMessageSize = (int)decoder.ReadUInt32(null);
                                     var maxChunkCount = (int)decoder.ReadUInt32(null);
 
-                                    _logger.Information("Probe {index} : {remoteEp} " +
-                                        "found opc server (protocol:{protocolVersion}) ...",
+                                    _logger.Information("Probe {index} : found OPC UA " +
+                                        "server at {remoteEp} (protocol:{protocolVersion}) ...",
                                         index, _socket.RemoteEndPoint, protocolVersion);
 
                                     if (sendBufferSize < TcpMessageLimits.MinBufferSize ||

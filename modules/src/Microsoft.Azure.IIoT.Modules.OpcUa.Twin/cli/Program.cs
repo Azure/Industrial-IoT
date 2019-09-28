@@ -13,6 +13,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Cli {
     using Serilog;
     using Serilog.Events;
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Net;
     using System.Threading;
@@ -128,7 +129,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Cli {
 
                 }
                 if (op == Op.None) {
-                    throw new ArgumentException("Missing operation.");
+                    op = Op.Host;
                 }
                 if (string.IsNullOrEmpty(cs)) {
                     throw new ArgumentException("Missing connection string.");
@@ -264,8 +265,9 @@ Options:
             var cs = await Retry.WithExponentialBackoff(logger,
                 () => AddOrGetAsync(config, deviceId, moduleId));
             Console.WriteLine("Starting twin module...");
-            var arguments = args.ToList();
-            arguments.Add($"EdgeHubConnectionString={cs}");
+            var arguments = new List<string> {
+                $"EdgeHubConnectionString={cs}"
+            };
             Twin.Program.Main(arguments.ToArray());
             Console.WriteLine("Twin module exited.");
         }

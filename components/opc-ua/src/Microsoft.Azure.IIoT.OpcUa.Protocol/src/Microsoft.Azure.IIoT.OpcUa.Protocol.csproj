@@ -45,4 +45,16 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa\src\Microsoft.Azure.IIoT.OpcUa.csproj" />
   </ItemGroup>
+  <Choose>
+    <When Condition="'$(PROJECT_BUILD)' == ''">
+      <ItemGroup>
+        <ProjectReference Include="..\..\..\..\..\common\src\Microsoft.Azure.IIoT.Net\src\Microsoft.Azure.IIoT.Net.csproj" />
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <PackageReference Include="Microsoft.Azure.IIoT.Net" Version="$(ReleaseVersion)" />
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
 </Project>

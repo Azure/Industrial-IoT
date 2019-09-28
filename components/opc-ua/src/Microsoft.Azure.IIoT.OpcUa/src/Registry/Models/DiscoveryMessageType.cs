@@ -7,7 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     /// <summary>
     /// Discovery progress event
     /// </summary>
-    public enum DiscoveryProgressEvent {
+    public enum DiscoveryMessageType {
 
         /// <summary>
         /// Discovery run started

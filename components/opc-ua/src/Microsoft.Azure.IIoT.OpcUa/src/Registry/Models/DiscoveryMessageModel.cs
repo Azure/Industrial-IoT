@@ -10,7 +10,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     /// <summary>
     /// Discovery progress
     /// </summary>
-    public class DiscoveryProgressModel {
+    public class DiscoveryMessageModel {
 
         /// <summary>
         /// Timestamp of the discovery sweep.
@@ -20,7 +20,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <summary>
         /// Index in the batch with same timestamp.
         /// </summary>
-        public DiscoveryProgressEvent Event { get; set; }
+        public DiscoveryMessageType Event { get; set; }
 
         /// <summary>
         /// Message template

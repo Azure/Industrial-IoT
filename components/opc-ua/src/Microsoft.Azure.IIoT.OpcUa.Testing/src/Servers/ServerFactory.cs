@@ -303,7 +303,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Sample {
             /// <inheritdoc/>
             protected override void Dispose(bool disposing) {
                 base.Dispose(disposing);
-                _cts.Dispose();
+                _cts?.Dispose();
             }
 
 #if USER_AUTHENTICATION

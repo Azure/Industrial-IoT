@@ -26,7 +26,7 @@ namespace OpcPublisher
 
         public static string ApplicationName { get; set; } = "publisher";
         public static string ApplicationUri => $"urn:{Hostname}:{ApplicationName}:microsoft:";
-        public static string ProductUri => $"https://github.com/azure-samples/iot-edge-opc-publisher";
+        public static string ProductUri => $"https://github.com/Azure/Industrial-IoT";
         public static ushort ServerPort { get; set; } = 62222;
         public static string ServerPath { get; set; } = "/UA/Publisher";
 
