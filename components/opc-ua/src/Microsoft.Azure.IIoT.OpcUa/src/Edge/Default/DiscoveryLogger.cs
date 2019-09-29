@@ -11,6 +11,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
     using System.Linq;
     using System.Net;
     using Serilog;
+    using System.Diagnostics;
 
     /// <summary>
     /// Discovery logger
@@ -23,6 +24,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
         /// <param name="logger"></param>
         public DiscoveryLogger(ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _watch = Stopwatch.StartNew();
         }
 
         /// <inheritdoc/>
@@ -35,23 +37,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
         public virtual void OnDiscoveryCancelled(DiscoveryRequestModel request) {
             _logger.Information("{request}: Discovery operation cancelled.",
                 request.Id);
+            _watch.Stop();
         }
 
         /// <inheritdoc/>
-        public virtual void OnDiscoveryError(DiscoveryRequestModel request, Exception ex) {
+        public virtual void OnDiscoveryError(DiscoveryRequestModel request,
+            Exception ex) {
             _logger.Error(ex, "{request}: Error during discovery run...",
                 request.Id);
+            _watch.Stop();
         }
 
         /// <inheritdoc/>
-        public virtual void OnDiscoveryComplete(DiscoveryRequestModel request) {
+        public virtual void OnDiscoveryFinished(DiscoveryRequestModel request) {
             _logger.Information("{request}: Discovery operation completed.",
                 request.Id);
+            _watch.Stop();
         }
 
         /// <inheritdoc/>
         public virtual void OnNetScanStarted(DiscoveryRequestModel request,
             IScanner netscanner) {
+            _watch.Restart();
             _logger.Information(
                 "{request}: Starting network scan ({active} probes active)...",
                 request.Id, netscanner.ActiveProbes);
@@ -66,32 +73,33 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
 
         /// <inheritdoc/>
         public virtual void OnNetScanProgress(DiscoveryRequestModel request,
-            IScanner netscanner, IEnumerable<IPAddress> addresses) {
+            IScanner netscanner, int found) {
             _logger.Information("{request}: {scanned} addresses scanned - {found} " +
                 "found ({active} probes active)...", request.Id,
-                netscanner.ScanCount, addresses.Count(), netscanner.ActiveProbes);
+                netscanner.ScanCount, found, netscanner.ActiveProbes);
         }
 
         /// <inheritdoc/>
-        public virtual void OnNetScanComplete(DiscoveryRequestModel request,
-            IScanner netscanner, IEnumerable<IPAddress> addresses, TimeSpan elapsed) {
+        public virtual void OnNetScanFinished(DiscoveryRequestModel request,
+            IScanner netscanner, int found) {
             _logger.Information("{request}: Found {count} addresses took {elapsed} " +
                 "({scanned} scanned)...", request.Id,
-                addresses.Count(), elapsed, netscanner.ScanCount);
+                found, _watch.Elapsed, netscanner.ScanCount);
         }
 
         /// <inheritdoc/>
         public virtual void OnPortScanStart(DiscoveryRequestModel request, IScanner portscan) {
+            _watch.Restart();
             _logger.Information("{request}: Starting port scanning ({active} probes active)...",
                 request.Id, portscan.ActiveProbes);
         }
 
         /// <inheritdoc/>
         public virtual void OnPortScanProgress(DiscoveryRequestModel request,
-            IScanner portscan, IEnumerable<IPEndPoint> ports) {
+            IScanner portscan, int found) {
             _logger.Information("{request}: {scanned} ports scanned - {found} found" +
                 " ({active} probes active)...", request.Id,
-                portscan.ScanCount, ports.Count(), portscan.ActiveProbes);
+                portscan.ScanCount, found, portscan.ActiveProbes);
         }
 
         /// <inheritdoc/>
@@ -102,16 +110,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
         }
 
         /// <inheritdoc/>
-        public virtual void OnPortScanComplete(DiscoveryRequestModel request,
-            IScanner portscan, IEnumerable<IPEndPoint> ports, TimeSpan elapsed) {
+        public virtual void OnPortScanFinished(DiscoveryRequestModel request,
+            IScanner portscan, int found) {
             _logger.Information("{request}: Found {count} ports on servers " +
                 "took {elapsed} ({scanned} scanned)...",
-                request.Id, ports.Count(), elapsed, portscan.ScanCount);
+                request.Id, found, _watch.Elapsed, portscan.ScanCount);
         }
 
         /// <inheritdoc/>
         public virtual void OnServerDiscoveryStarted(DiscoveryRequestModel request,
             IDictionary<IPEndPoint, Uri> discoveryUrls) {
+            _watch.Restart();
             _logger.Information(
                 "{request}: Searching {count} discovery urls for endpoints...",
                 request.Id, discoveryUrls.Count);
@@ -126,11 +135,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
         }
 
         /// <inheritdoc/>
-        public virtual void OnFindEndpointsComplete(DiscoveryRequestModel request,
-            Uri url, IPAddress address, IEnumerable<string> endpoints) {
-            var found = endpoints.Count();
+        public virtual void OnFindEndpointsFinished(DiscoveryRequestModel request,
+            Uri url, IPAddress address, int found) {
             if (found == 0) {
-                // TODO: Send telemetry
                 _logger.Information(
                     "{request}: No endpoints found on {host}:{port} ({address}).",
                     request.Id, url.Host, url.Port, address);
@@ -141,12 +148,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
         }
 
         /// <inheritdoc/>
-        public virtual void OnServerDiscoveryComplete(DiscoveryRequestModel request,
-            IEnumerable<ApplicationRegistrationModel> discovered) {
+        public virtual void OnServerDiscoveryFinished(DiscoveryRequestModel request,
+            int found) {
             _logger.Information("{request}: Found total of {count} servers ...",
-                request.Id, discovered.Count());
+                request.Id, found);
         }
 
         private readonly ILogger _logger;
+        private readonly Stopwatch _watch;
     }
 }

@@ -25,8 +25,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <summary>
         /// Message contains discovery progress messages
         /// </summary>
-        public const string DiscoveryProgress =
-            "application/x-discovery-progress-v2-json";
+        public const string DiscoveryMessage =
+            "application/x-discovery-message-v2-json";
 
         /// <summary>
         /// Content is a nodeset

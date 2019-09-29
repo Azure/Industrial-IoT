@@ -5,12 +5,27 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     using System;
-    using System.Collections.Generic;
+    using Newtonsoft.Json.Linq;
 
     /// <summary>
     /// Discovery progress
     /// </summary>
     public class DiscoveryMessageModel {
+
+        /// <summary>
+        /// Message source
+        /// </summary>
+        public string SupervisorId { get; set; }
+
+        /// <summary>
+        /// Original request
+        /// </summary>
+        public DiscoveryRequestModel Request { get; set; }
+
+        /// <summary>
+        /// Additional request information as per event
+        /// </summary>
+        public JToken RequestDetails { get; set; }
 
         /// <summary>
         /// Timestamp of the discovery sweep.
@@ -23,13 +38,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public DiscoveryMessageType Event { get; set; }
 
         /// <summary>
-        /// Message template
+        /// Number of workers running
         /// </summary>
-        public string Message { get; set; }
+        public int? Workers { get; set; }
 
         /// <summary>
-        /// Parameters of the event message
+        /// Progress
         /// </summary>
-        public List<object> Parameters { get; set; }
+        public int? Progress { get; set; }
+
+        /// <summary>
+        /// Number of items discovered
+        /// </summary>
+        public int? Discovered { get; set; }
+
+        /// <summary>
+        /// Discovery result
+        /// </summary>
+        public JToken Result { get; set; }
     }
 }

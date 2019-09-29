@@ -29,7 +29,6 @@ namespace Microsoft.Azure.IIoT.Module.Default {
         public ChunkMethodClient(IJsonMethodClient client, ILogger logger) {
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-
             //
             // assume base64 encoding is 33% reduction compared to raw bytes
             // plus the additional overhead of the model payload.

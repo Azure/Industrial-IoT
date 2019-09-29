@@ -130,8 +130,10 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery {
             // Register discovery services
             builder.RegisterType<DiscoveryServices>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
+            builder.RegisterType<DiscoveryMessagePublisher>()
+                .AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<TaskProcessor>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // Register controllers
             builder.RegisterType<v2.Supervisor.DiscoveryMethodsController>()

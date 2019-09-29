@@ -173,7 +173,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                 //
                 await SendDiscoveryResultsAsync(request, discovered, DateTime.UtcNow,
                     diagnostics, ct);
-                _listener.OnDiscoveryComplete(request.Request);
+                _listener.OnDiscoveryFinished(request.Request);
             }
             catch (OperationCanceledException) {
                 _listener.OnDiscoveryCancelled(request.Request);
@@ -233,7 +233,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                     //
                     await SendDiscoveryResultsAsync(request, discovered, timestamp,
                         null, ct);
-                    _listener.OnDiscoveryComplete(request.Request);
+                    _listener.OnDiscoveryFinished(request.Request);
                 }
                 catch (OperationCanceledException) {
                     _listener.OnDiscoveryCancelled(request.Request);
@@ -302,11 +302,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                 // Log progress
                 _listener.OnNetScanStarted(request.Request, netscanner);
                 using (var progress = new Timer(_ => ProgressTimer(
-                    () => _listener.OnNetScanProgress(request.Request, netscanner, addresses)),
+                    () => _listener.OnNetScanProgress(request.Request, netscanner,
+                        addresses.Count)),
                     null, _progressInterval, _progressInterval)) {
                     await netscanner.Completion;
                 }
-                _listener.OnNetScanComplete(request.Request, netscanner, addresses, watch.Elapsed);
+                _listener.OnNetScanFinished(request.Request, netscanner, addresses.Count);
             }
             ct.ThrowIfCancellationRequested();
             if (addresses.Count == 0) {
@@ -331,11 +332,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
 
                 _listener.OnPortScanStart(request.Request, portscan);
                 using (var progress = new Timer(_ => ProgressTimer(
-                    () => _listener.OnPortScanProgress(request.Request, portscan, ports)),
+                    () => _listener.OnPortScanProgress(request.Request,
+                        portscan, ports.Count)),
                     null, _progressInterval, _progressInterval)) {
                     await portscan.Completion;
                 }
-                _listener.OnPortScanComplete(request.Request, portscan, ports, watch.Elapsed);
+                _listener.OnPortScanFinished(request.Request, portscan, ports.Count);
             }
             ct.ThrowIfCancellationRequested();
             if (ports.Count == 0) {
@@ -392,11 +394,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                     Host = item.Key.Address.ToString()
                 }.Uri, locales, ct).ConfigureAwait(false);
 
-                var endpoints = eps.ToList();
-
-                _listener.OnFindEndpointsComplete(request.Request, url, item.Key.Address,
-                    endpoints.Select(ep => ep.Description.EndpointUrl));
-                if (endpoints.Count == 0) {
+                var endpoints = eps.Count();
+                _listener.OnFindEndpointsFinished(request.Request, url, item.Key.Address,
+                    endpoints);
+                if (endpoints == 0) {
                     continue;
                 }
 
@@ -407,7 +408,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                 }
             }
 
-            _listener.OnServerDiscoveryComplete(request.Request, discovered);
+            _listener.OnServerDiscoveryFinished(request.Request, discovered.Count);
             ct.ThrowIfCancellationRequested();
             return discovered;
         }
