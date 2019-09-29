@@ -106,7 +106,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                 Event = DiscoveryMessageType.NetworkScanResult,
                 Workers = scanner.ActiveProbes,
                 Progress = scanner.ScanCount,
-                Result = JToken.FromObject(address),
+                Result = JToken.FromObject(address.ToString()),
                 Request = request
             });
             base.OnNetScanResult(request, scanner, address);
@@ -164,7 +164,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                 Event = DiscoveryMessageType.PortScanResult,
                 Workers = scanner.ActiveProbes,
                 Progress = scanner.ScanCount,
-                Result = JToken.FromObject(result),
+                Result = JToken.FromObject(result.ToString()),
                 Request = request
             });
             base.OnPortScanResult(request, scanner, result);
@@ -207,7 +207,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                 TimeStamp = DateTime.UtcNow,
                 SupervisorId = _supervisorId,
                 Event = DiscoveryMessageType.ServerDiscoveryStarted,
-                Result = JToken.FromObject(discoveryUrls.Take(100)),
                 Discovered = discoveryUrls.Count,
                 Request = request
             });
