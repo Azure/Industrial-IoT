@@ -22,7 +22,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             _endpoint = endpoint;
         }
 
-        public async Task HistoryReadInt64ValuesTest1() {
+        public async Task HistoryReadInt64ValuesTest1Async() {
 
             var services = _services();
             var samples = "s=1:Microsoft.Azure.IIoT.OpcUa.Testing.Servers.HistoricalAccess.Data.Sample.Int64.txt";
@@ -98,7 +98,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 });
         }
 
-        public async Task HistoryReadInt64ValuesTest2() {
+        public async Task HistoryReadInt64ValuesTest2Async() {
 
             var services = _services();
             var samples = "s=1:Microsoft.Azure.IIoT.OpcUa.Testing.Servers.HistoricalAccess.Data.Sample.Int64.txt";
@@ -157,7 +157,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 });
         }
 
-        public async Task HistoryReadInt64ValuesTest3() {
+        public async Task HistoryReadInt64ValuesTest3Async() {
 
             var services = _services();
             var samples = "s=1:Microsoft.Azure.IIoT.OpcUa.Testing.Servers.HistoricalAccess.Data.Sample.Int64.txt";
@@ -224,7 +224,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 });
         }
 
-        public async Task HistoryReadInt64ValuesTest4() {
+        public async Task HistoryReadInt64ValuesTest4Async() {
 
             var services = _services();
             var samples = "s=1:Microsoft.Azure.IIoT.OpcUa.Testing.Servers.HistoricalAccess.Data.Sample.Int64.txt";

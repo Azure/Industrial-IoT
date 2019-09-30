@@ -61,8 +61,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             _lastActivity = DateTime.UtcNow;
             _persistent = persistent;
             _sessionName = sessionName ?? Guid.NewGuid().ToString();
-            _opTimeout = maxOpTimeout ?? TimeSpan.FromMilliseconds(
-                _config.TransportQuotas.OperationTimeout * 4);
+            // Align the default device method timeout
+            _opTimeout = maxOpTimeout ?? TimeSpan.FromMinutes(5);
 
             _urlQueue = new ConcurrentQueue<string>(_endpoint.GetAllUrls());
             _queue = new PriorityQueue<int, SessionOperation>();

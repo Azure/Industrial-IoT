@@ -54,7 +54,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
             // Create discovery config and client certificate
             _opcApplicationConfig = CreateApplicationConfiguration(
-                TimeSpan.FromMinutes(2), TimeSpan.FromMinutes(2));
+                TimeSpan.FromSeconds(15), TimeSpan.FromSeconds(30));
             InitApplicationSecurityAsync().Wait();
 
             _timer = new Timer(_ => OnTimer(), null, kEvictionCheck, Timeout.InfiniteTimeSpan);

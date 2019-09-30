@@ -42,6 +42,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Runtime {
         private const string kRejectedCertPath = "RejectedCertPath";
         private const string kAutoAccept = "AutoAccept";
         private const string kOwnCertX509StorePathDefault = "OwnCertX509StorePathDefault";
+        private const string kSessionTimeout = "SessionTimeout";
+        private const string kOperationTimeout = "OperationTimeout";
 
         /// <inheritdoc/>
         public string AppCertStoreType => GetStringOrDefault(kAppCertStoreType,
@@ -67,6 +69,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Runtime {
         /// <inheritdoc/>
         public bool AutoAccept =>
             GetBoolOrDefault(kAutoAccept, false);
+        /// <inheritdoc/>
+        public TimeSpan? SessionTimeout =>
+            GetDurationOrNull(kSessionTimeout);
+        /// <inheritdoc/>
+        public TimeSpan? OperationTimeout =>
+            GetDurationOrNull(kOperationTimeout);
 
         /// <summary>
         /// Configuration constructor

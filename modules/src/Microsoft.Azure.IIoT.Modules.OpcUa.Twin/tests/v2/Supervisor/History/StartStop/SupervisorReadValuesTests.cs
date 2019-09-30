@@ -41,41 +41,41 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.History.StartSto
 
 
         [SkippableFact]
-        public async Task HistoryReadInt64ValuesTest1() {
+        public async Task HistoryReadInt64ValuesTest1Async() {
             // Skip.IfNot(_runAll);
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(async (device, module, services) => {
-                    await GetTests(device, module, services).HistoryReadInt64ValuesTest1();
+                    await GetTests(device, module, services).HistoryReadInt64ValuesTest1Async();
                 });
             }
         }
 
         [SkippableFact]
-        public async Task HistoryReadInt64ValuesTest2() {
+        public async Task HistoryReadInt64ValuesTest2Async() {
             // Skip.IfNot(_runAll);
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(async (device, module, services) => {
-                    await GetTests(device, module, services).HistoryReadInt64ValuesTest2();
+                    await GetTests(device, module, services).HistoryReadInt64ValuesTest2Async();
                 });
             }
         }
 
         [SkippableFact]
-        public async Task HistoryReadInt64ValuesTest3() {
+        public async Task HistoryReadInt64ValuesTest3Async() {
             Skip.IfNot(_runAll);
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(async (device, module, services) => {
-                    await GetTests(device, module, services).HistoryReadInt64ValuesTest3();
+                    await GetTests(device, module, services).HistoryReadInt64ValuesTest3Async();
                 });
             }
         }
 
         [SkippableFact]
-        public async Task HistoryReadInt64ValuesTest4() {
+        public async Task HistoryReadInt64ValuesTest4Async() {
             Skip.IfNot(_runAll);
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(async (device, module, services) => {
-                    await GetTests(device, module, services).HistoryReadInt64ValuesTest4();
+                    await GetTests(device, module, services).HistoryReadInt64ValuesTest4Async();
                 });
             }
         }

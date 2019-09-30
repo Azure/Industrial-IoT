@@ -36,23 +36,23 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.History.Api {
 
 
         [Fact]
-        public async Task HistoryReadInt64ValuesTest1() {
-            await GetTests().HistoryReadInt64ValuesTest1();
+        public async Task HistoryReadInt64ValuesTest1Async() {
+            await GetTests().HistoryReadInt64ValuesTest1Async();
         }
 
         [Fact]
-        public async Task HistoryReadInt64ValuesTest2() {
-            await GetTests().HistoryReadInt64ValuesTest2();
+        public async Task HistoryReadInt64ValuesTest2Async() {
+            await GetTests().HistoryReadInt64ValuesTest2Async();
         }
 
         [Fact]
-        public async Task HistoryReadInt64ValuesTest3() {
-            await GetTests().HistoryReadInt64ValuesTest3();
+        public async Task HistoryReadInt64ValuesTest3Async() {
+            await GetTests().HistoryReadInt64ValuesTest3Async();
         }
 
         [Fact]
-        public async Task HistoryReadInt64ValuesTest4() {
-            await GetTests().HistoryReadInt64ValuesTest4();
+        public async Task HistoryReadInt64ValuesTest4Async() {
+            await GetTests().HistoryReadInt64ValuesTest4Async();
         }
     }
 }

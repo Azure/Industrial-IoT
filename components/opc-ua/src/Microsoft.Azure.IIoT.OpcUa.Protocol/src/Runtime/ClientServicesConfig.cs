@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
+    using System;
     using System.Runtime.InteropServices;
 
     /// <summary>
@@ -21,6 +22,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
         private const string kRejectedCertPath = "RejectedCertPath";
         private const string kAutoAccept = "AutoAccept";
         private const string kOwnCertX509StorePathDefault = "OwnCertX509StorePathDefault";
+        private const string kSessionTimeout = "SessionTimeout";
+        private const string kOperationTimeout = "OperationTimeout";
 
         /// <inheritdoc/>
         public string AppCertStoreType => GetStringOrDefault(kAppCertStoreType,
@@ -46,6 +49,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
         /// <inheritdoc/>
         public bool AutoAccept =>
             GetBoolOrDefault(kAutoAccept, false);
+        /// <inheritdoc/>
+        public TimeSpan? SessionTimeout =>
+            GetDurationOrNull(kSessionTimeout);
+        /// <inheritdoc/>
+        public TimeSpan? OperationTimeout =>
+            GetDurationOrNull(kOperationTimeout);
 
         /// <summary>
         /// Configuration constructor
