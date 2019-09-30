@@ -94,6 +94,16 @@ namespace OpcPublisher
         public static string LogLevel { get; set; } = "info";
 
         /// <summary>
+        /// The maximum size for a single log-file in kilobytes
+        /// </summary>
+        public static uint LogFileSizeLimitKb { get; set; } = 1024;
+
+        /// <summary>
+        /// The maximum number of logfiles to be retained
+        /// </summary>
+        public static int? RetainedLogFileCountLimit = 2;
+
+        /// <summary>
         /// Synchronous main method of the app.
         /// </summary>
         public static void Main(string[] args)
@@ -217,6 +227,45 @@ namespace OpcPublisher
                             }
                         },
 
+                        { "ls|logfilesize=", $"the max size of a log file [KB] before it will be rolled over.\nif 0, the maximum value {UInt32.MaxValue/1024} [KB] will be used\nDefault: {LogFileSizeLimitKb} [KB]",
+                            (uint u) =>
+                            {
+                                if (u == 0)
+                                {
+                                    LogFileSizeLimitKb = UInt32.MaxValue / 1024;
+                                }
+                                else if (u <= UInt32.MaxValue / 1024)
+                                {
+                                    LogFileSizeLimitKb = u;
+                                }
+                                else
+                                {
+                                    throw new OptionException(
+                                        $"The logfilesize must be in the range between 0 and {UInt32.MaxValue/1024}.",
+                                        "logfilesize");
+                                }
+                            }
+                        },
+
+                        { "rl|retainedlogs=", $"the maximum number of log files that will be retained number of log files to be retained, including the current file.\nif 0 there will be unlimited retention.\nDefault: {RetainedLogFileCountLimit}",
+                            (int i) =>
+                            {
+                                if (i == 0)
+                                {
+                                    RetainedLogFileCountLimit = null;
+                                }
+                                else if (i > 0)
+                                {
+                                    RetainedLogFileCountLimit = i;
+                                }
+                                else
+                                {
+                                    throw new OptionException(
+                                        $"The retainedlogs must be greater than 0.",
+                                        "retainedlogs");
+                                }
+                            }
+                        },
 
                         // IoTHub specific options
                         { "ih|iothubprotocol=", $"the protocol to use for communication with IoTHub (allowed values: {$"{string.Join(", ", Enum.GetNames(HubProtocol.GetType()))}"}) or IoT EdgeHub (allowed values: Mqtt_Tcp_Only, Amqp_Tcp_Only).\nDefault for IoTHub: {IotHubProtocolDefault}\nDefault for IoT EdgeHub: {IotEdgeHubProtocolDefault}",
@@ -992,9 +1041,8 @@ namespace OpcPublisher
             if (!string.IsNullOrEmpty(LogFileName))
             {
                 // configure rolling file sink
-                const int MAX_LOGFILE_SIZE = 1024 * 1024;
-                const int MAX_RETAINED_LOGFILES = 2;
-                loggerConfiguration.WriteTo.File(LogFileName, fileSizeLimitBytes: MAX_LOGFILE_SIZE, flushToDiskInterval: _logFileFlushTimeSpanSec, rollOnFileSizeLimit: true, retainedFileCountLimit: MAX_RETAINED_LOGFILES);
+                // configure rolling file sink
+                loggerConfiguration.WriteTo.File(LogFileName, fileSizeLimitBytes: LogFileSizeLimitKb, flushToDiskInterval: _logFileFlushTimeSpanSec, rollOnFileSizeLimit: true, retainedFileCountLimit: RetainedLogFileCountLimit);
             }
 
             // initialize publisher diagnostics
