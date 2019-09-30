@@ -33,7 +33,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
             var result = await _twin.CallMethodAsync(deviceId, moduleId,
                 new MethodParameterModel {
                     Name = method,
-                    ResponseTimeout = timeout,
+                    ResponseTimeout = timeout ?? TimeSpan.FromSeconds(kDefaultMethodTimeout),
                     JsonPayload = payload
                 }, ct);
             if (result.Status != 200) {
@@ -44,5 +44,6 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
         }
 
         private readonly IIoTHubTwinServices _twin;
+        private const int kDefaultMethodTimeout = 300; // 5 minutes - default is 30 seconds
     }
 }
