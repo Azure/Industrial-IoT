@@ -35,7 +35,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
 
         /// <summary>
         /// Overload that runs in the foreground, does not continue on exception
-        /// times out after 30 seconds.
+        /// times out default.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="client"></param>
@@ -45,8 +45,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <returns></returns>
         public static Task<T> ExecuteServiceAsync<T>(this IEndpointServices client,
             EndpointModel endpoint, CredentialModel elevation, Func<Session, Task<T>> service) {
-            return client.ExecuteServiceAsync(endpoint, elevation, TimeSpan.FromSeconds(30),
-                service);
+            return client.ExecuteServiceAsync(endpoint, elevation, 0, service,
+                null, CancellationToken.None, _ => true);
         }
 
         /// <summary>

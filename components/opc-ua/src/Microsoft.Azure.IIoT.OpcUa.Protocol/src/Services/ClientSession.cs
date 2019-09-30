@@ -45,9 +45,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="keepAlive">Keep alive interval</param>
         public ClientSession(ApplicationConfiguration config, EndpointModel endpoint,
             ILogger logger, Func<EndpointModel, EndpointConnectivityState, Task> statusCb,
-            bool persistent, TimeSpan? maxOpTimeout = null,
-            string sessionName = null, TimeSpan? timeout = null,
-            TimeSpan? keepAlive = null) {
+            bool persistent, TimeSpan? maxOpTimeout = null, string sessionName = null,
+            TimeSpan? timeout = null, TimeSpan? keepAlive = null) {
             _logger = logger ?? Log.Logger;
             _endpoint = endpoint;
             _config = config;
@@ -796,6 +795,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 _operation = operation;
                 _handler = handler;
                 Identity = elevation.ToStackModel();
+                _timeout = timeout;
                 _cts = new CancellationTokenSource(timeout);
                 ct?.Register(_cts.Cancel);
                 _cts.Token.Register(OnCancellation);
@@ -848,7 +848,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 else {
                     // Timeout
                     _tcs.TrySetException(
-                        new TimeoutException("Operation timeout"));
+                        new TimeoutException($"Operation timeout after {_timeout}"));
                 }
             }
 
@@ -858,6 +858,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
             private readonly CancellationTokenSource _cts;
             private readonly CancellationToken _ct;
+            private readonly TimeSpan _timeout;
         }
 
         private const int kMaxReconnectAttempts = 4;

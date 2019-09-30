@@ -190,15 +190,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         /// <inheritdoc/>
         public void Dispose() {
-            if (!_cts.IsCancellationRequested) {
-                Try.Op(() => _cts.Cancel());
-                Try.Op(() => _timer.Dispose());
-
-                foreach (var client in _clients.Values) {
-                    Try.Op(client.Dispose);
-                }
-                _clients.Clear();
+            Try.Op(() => _cts.Cancel());
+            Try.Op(() => _timer.Dispose());
+            foreach (var client in _clients.Values) {
+                Try.Op(client.Dispose);
             }
+            _clients.Clear();
             Try.Op(() => _cts.Dispose());
             _lock.Dispose();
         }
@@ -377,6 +374,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// </summary>
         /// <returns></returns>
         private void OnTimer() {
+            if (_cts.IsCancellationRequested) {
+                return;
+            }
             try {
                 // manage sessions
                 foreach (var client in _clients.ToList()) {
@@ -387,6 +387,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             }
             catch (Exception ex) {
                 _logger.Error(ex, "Error managing session clients...");
+            }
+            if (_cts.IsCancellationRequested) {
+                return;
             }
             try {
                 // Re-arm
