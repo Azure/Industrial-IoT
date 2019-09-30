@@ -1042,7 +1042,7 @@ namespace OpcPublisher
             {
                 // configure rolling file sink
                 // configure rolling file sink
-                loggerConfiguration.WriteTo.File(LogFileName, fileSizeLimitBytes: LogFileSizeLimitKb, flushToDiskInterval: _logFileFlushTimeSpanSec, rollOnFileSizeLimit: true, retainedFileCountLimit: RetainedLogFileCountLimit);
+                loggerConfiguration.WriteTo.File(LogFileName, fileSizeLimitBytes: LogFileSizeLimitKb*1024, flushToDiskInterval: _logFileFlushTimeSpanSec, rollOnFileSizeLimit: true, retainedFileCountLimit: RetainedLogFileCountLimit);
             }
 
             // initialize publisher diagnostics
