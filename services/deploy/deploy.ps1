@@ -761,7 +761,9 @@ Function GetOrCreateResourceGroup() {
     # Registering default resource providers
     Register-AzureRmResourceProvider -ProviderNamespace "microsoft.devices" | Out-Null
     Register-AzureRmResourceProvider -ProviderNamespace "microsoft.documentdb" | Out-Null
+    Register-AzureRmResourceProvider -ProviderNamespace "microsoft.signalrservice" | Out-Null
     Register-AzureRmResourceProvider -ProviderNamespace "microsoft.servicebus" | Out-Null
+    Register-AzureRmResourceProvider -ProviderNamespace "microsoft.eventhub" | Out-Null
     Register-AzureRmResourceProvider -ProviderNamespace "microsoft.storage" | Out-Null
     Register-AzureRmResourceProvider -ProviderNamespace "microsoft.keyvault" | Out-Null
     Register-AzureRmResourceProvider -ProviderNamespace "microsoft.authorization" | Out-Null

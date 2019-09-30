@@ -221,7 +221,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                 TimeStamp = DateTime.UtcNow,
                 SupervisorId = _supervisorId,
                 Event = DiscoveryMessageType.EndpointsDiscoveryStarted,
-                RequestDetails = JToken.FromObject(new { url, address }),
+                RequestDetails = JToken.FromObject(new { url, address = address.ToString() }),
                 Discovered = 1,
                 Request = request.Clone()
             });
@@ -235,7 +235,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                 TimeStamp = DateTime.UtcNow,
                 SupervisorId = _supervisorId,
                 Event = DiscoveryMessageType.EndpointsDiscoveryFinished,
-                RequestDetails = JToken.FromObject(new { url, address }),
+                RequestDetails = JToken.FromObject(new { url, address = address.ToString() }),
                 Discovered = found,
                 Request = request
             });

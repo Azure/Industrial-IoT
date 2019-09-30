@@ -29,31 +29,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
     using Serilog;
 
     /// <summary>
-    /// Provides discovery services for the supervisor
+    /// Provides discovery services
     /// </summary>
-    public class DiscoveryServices : IScannerServices, IDiscoveryServices, IDisposable {
-
-        /// <inheritdoc/>
-        public DiscoveryMode Mode {
-            get => Request.Mode;
-            set => Request = new DiscoveryRequest(value, Request.Configuration);
-        }
-
-        /// <inheritdoc/>
-        public DiscoveryConfigModel Configuration {
-            get => Request.Configuration;
-            set => Request = new DiscoveryRequest(Request.Mode, value);
-        }
-
-        /// <summary>
-        /// Current discovery options
-        /// </summary>
-        internal DiscoveryRequest Request { get; set; } = new DiscoveryRequest();
-
-        /// <summary>
-        /// Default idle time is 6 hours
-        /// </summary>
-        internal static TimeSpan DefaultIdleTime { get; set; } = TimeSpan.FromHours(6);
+    public class DiscoveryServices : IDiscoveryServices, IDisposable {
 
         /// <summary>
         /// Create services
@@ -69,28 +47,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _events = events ?? throw new ArgumentNullException(nameof(events));
             _processor = processor ?? throw new ArgumentNullException(nameof(processor));
-            _discovered = new SortedDictionary<DateTime, List<ApplicationRegistrationModel>>();
-            _setupDelay = TimeSpan.FromSeconds(10);
             _listener = listener ?? new DiscoveryLogger(_logger);
-            _lock = new SemaphoreSlim(1);
-        }
-
-        /// <inheritdoc/>
-        public async Task ScanAsync() {
-            await _lock.WaitAsync();
-            try {
-                await StopAsync();
-
-                if (Mode != DiscoveryMode.Off) {
-                    _discovery = new CancellationTokenSource();
-                    _completed = _processor.Scheduler.Run(() =>
-                        RunContinuouslyAsync(Request.Clone(), _setupDelay, _discovery.Token));
-                    _setupDelay = null;
-                }
-            }
-            finally {
-                _lock.Release();
-            }
         }
 
         /// <inheritdoc/>
@@ -99,7 +56,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
                 return Task.FromException(new ArgumentNullException(nameof(request)));
             }
             var scheduled = _processor.TrySchedule(() =>
-                RunOnceAsync(new DiscoveryRequest(request), ct));
+                ProcessDiscoveryRequestAsync(new DiscoveryRequest(request), ct));
             if (scheduled) {
                 return Task.CompletedTask;
             }
@@ -110,52 +67,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
 
         /// <inheritdoc/>
         public void Dispose() {
-            _lock.Wait();
-            try {
-                StopAsync().Wait();
-            }
-            finally {
-                _discovery?.Dispose();
-                _discovery = null;
-                _lock.Release();
-                _lock.Dispose();
-            }
+            // No op
         }
 
         /// <summary>
-        /// Stop discovery
-        /// </summary>
-        /// <returns></returns>
-        private async Task StopAsync() {
-            Debug.Assert(_lock.CurrentCount == 0);
-
-            // Try cancel discovery
-            Try.Op(() => _discovery?.Cancel());
-            // Wait for completion
-            try {
-                var completed = _completed;
-                _completed = null;
-                if (completed != null) {
-                    await completed;
-                }
-            }
-            catch (OperationCanceledException) { }
-            catch (Exception ex) {
-                _logger.Error(ex, "Unexpected exception stopping current discover thread.");
-            }
-            finally {
-                Try.Op(() => _discovery?.Dispose());
-                _discovery = null;
-                _discovered.Clear();
-            }
-        }
-
-        /// <summary>
-        /// Scan and discover one time
+        /// Process the provided discovery request
         /// </summary>
         /// <param name="request"></param>
         /// <param name="ct"></param>
-        private async Task RunOnceAsync(DiscoveryRequest request,
+        private async Task ProcessDiscoveryRequestAsync(DiscoveryRequest request,
             CancellationToken ct) {
             _logger.Debug("Processing discovery request...");
             _listener.OnDiscoveryStarted(request.Request);
@@ -181,88 +101,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
             catch (Exception ex) {
                 _listener.OnDiscoveryError(request.Request, ex);
             }
-        }
-
-        /// <summary>
-        /// Scan and discover in continuous loop
-        /// </summary>
-        /// <param name="request"></param>
-        /// <param name="delay"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        private async Task RunContinuouslyAsync(DiscoveryRequest request,
-            TimeSpan? delay, CancellationToken ct) {
-
-            if (delay != null) {
-                try {
-                    _logger.Debug("Delaying for {delay}...", delay);
-                    await Task.Delay((TimeSpan)delay, ct);
-                }
-                catch (OperationCanceledException) {
-                    _logger.Debug("Cancelled discovery start.");
-                    return;
-                }
-            }
-
-            _logger.Information("Starting discovery...");
-
-            // Run scans until cancelled
-            while (!ct.IsCancellationRequested) {
-                _listener.OnDiscoveryStarted(request.Request);
-                try {
-                    //
-                    // Discover
-                    //
-                    var discovered = await DiscoverServersAsync(request, ct);
-                    var timestamp = DateTime.UtcNow;
-
-                    //
-                    // Update cache
-                    //
-                    lock (_discovered) {
-                        _discovered.Add(timestamp, discovered);
-                        if (_discovered.Count > 10) {
-                            _discovered.Remove(_discovered.First().Key);
-                        }
-                    }
-
-                    ct.ThrowIfCancellationRequested();
-
-                    //
-                    // Send results
-                    //
-                    await SendDiscoveryResultsAsync(request, discovered, timestamp,
-                        null, ct);
-                    _listener.OnDiscoveryFinished(request.Request);
-                }
-                catch (OperationCanceledException) {
-                    _listener.OnDiscoveryCancelled(request.Request);
-                    break;
-                }
-                catch (Exception ex) {
-                    _listener.OnDiscoveryError(request.Request, ex);
-                }
-
-                //
-                // Delay next processing
-                //
-                try {
-                    if (!ct.IsCancellationRequested) {
-                        GC.Collect();
-                        var idle = request.Configuration.IdleTimeBetweenScans ??
-                            DefaultIdleTime;
-                        if (idle.Ticks != 0) {
-                            _logger.Debug("Idle for {idle}...", idle);
-                            await Task.Delay(idle, ct);
-                        }
-                    }
-                }
-                catch (OperationCanceledException) {
-                    break;
-                }
-            }
-
-            _logger.Information("Cancelled discovery.");
         }
 
         /// <summary>
@@ -527,16 +365,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
 #if !NO_SCHEDULER_DUMP
         private int _counter;
 #endif
-#pragma warning disable IDE0069 // Disposable fields should be disposed
-        private CancellationTokenSource _discovery;
-#pragma warning restore IDE0069 // Disposable fields should be disposed
-        private Task _completed;
-        private TimeSpan? _setupDelay;
-
-        private readonly SortedDictionary<DateTime, List<ApplicationRegistrationModel>> _discovered;
-        private readonly SemaphoreSlim _lock;
         private readonly ILogger _logger;
-        private readonly TimeSpan _progressInterval = TimeSpan.FromSeconds(10);
+        private readonly TimeSpan _progressInterval = TimeSpan.FromSeconds(5);
         private readonly IEventEmitter _events;
         private readonly IDiscoveryListener _listener;
         private readonly ITaskProcessor _processor;

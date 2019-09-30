@@ -83,6 +83,18 @@
   "serviceBusEndpointSuffix": {
     "value": "{Added through command line interface}"
   },
+  "signalRName": {
+    "value": "{Added through command line interface}"
+  },
+  "signalRSkuName": {
+    "value": "{Added through command line interface}"
+  },
+  "signalRSkuTier": {
+    "value": "{Added through command line interface}"
+  },
+  "signalRSkuCapacity": {
+    "value": "{Added through command line interface}"
+  },
   "iotHubName": {
     "value": "{Added through command line interface}"
   },

@@ -122,7 +122,7 @@
                 "ConsistentPrefix",
                 "Eventual"
             ],
-            "defaultValue": "Strong",
+            "defaultValue": "Session",
             "metadata": {
                 "description": "The documentDB default consistency level for this account."
             }
@@ -131,7 +131,7 @@
             "type": "int",
             "minValue": 10,
             "maxValue": 1000,
-            "defaultValue": 10,
+            "defaultValue": 100,
             "metadata": {
                 "description": "When documentDB consistencyLevel is set to BoundedStaleness, then this value is required, else it can be ignored."
             }
@@ -223,6 +223,43 @@
             ],
             "metadata": {
                 "description": "Suffix added to Service Bus endpoint"
+            }
+        },
+        "signalRName": {
+            "type": "string",
+            "defaultValue": "[concat('hub', take(uniqueString(subscription().subscriptionId, resourceGroup().id, parameters('solutionName')), 5))]",
+            "metadata": {
+                "description": "The name of the signalR endpoint"
+            }
+        },
+        "signalRSkuName": {
+            "type": "string",
+            "defaultValue": "Free_F1",
+            "allowedValues": [
+                "Free_F1", "Standard_S1"
+            ],
+            "metadata": {
+                "description": "The Azure SignalR Service SKU Name"
+            }
+        },
+        "signalRSkuTier": {
+            "type": "string",
+            "defaultValue": "Free",
+            "allowedValues": [
+                "Free", "Standard", "Premium"
+            ],
+            "metadata": {
+                "description": "The Azure SignalR Service SKU Tier"
+            }
+        },
+        "signalRSkuCapacity": {
+            "type": "int",
+            "defaultValue": 1,
+            "allowedValues": [
+                1, 2, 5, 10, 20, 50, 100
+            ],
+            "metadata": {
+                "description": "The Azure SignalR SKU Capacity"
             }
         },
         "iotHubName": {
@@ -474,6 +511,7 @@
         "eventHubNamespaceResourceId": "[resourceId('Microsoft.EventHub/namespaces', parameters('eventHubNamespaceName'))]",
         "eventHubResourceId": "[resourceId('Microsoft.EventHub/namespaces/eventhubs', parameters('eventHubNamespaceName'), parameters('eventHubName'))]",
         "eventHubRouteKeyResourceId": "[resourceId('Microsoft.EventHub/namespaces/eventhubs/AuthorizationRules', parameters('eventHubNamespaceName'), parameters('eventHubName'), parameters('eventHubAuthorizationName'))]",
+        "signalRApiVersion": "2018-10-01",
         "iotHubApiVersion": "2018-04-01",
         "iotHubResourceId": "[resourceId('Microsoft.Devices/Iothubs', parameters('iotHubName'))]",
         "iotHubKeyName": "iothubowner",
@@ -711,12 +749,17 @@
             "location": "[variables('location')]",
             "properties": {
                 "name": "[parameters('documentDBName')]",
-                "databaseAccountOfferType": "standard",
+                "enableAutomaticFailover": false,
+                "enableMultipleWriteLocations": false,
+                "isVirtualNetworkFilterEnabled": false,
+                "virtualNetworkRules": [],
+                "databaseAccountOfferType": "Standard",
                 "consistencyPolicy": {
                     "defaultConsistencyLevel": "[parameters('docDBConsistencyLevel')]",
                     "maxStalenessPrefix": "[parameters('docDBMaxStalenessPrefix')]",
                     "maxIntervalInSeconds": "[parameters('docDBMaxIntervalInSeconds')]"
-                }
+                },
+                "capabilities": []
             },
             "dependsOn": []
         },
@@ -779,6 +822,27 @@
                 "[variables('eventHubNamespaceResourceId')]",
                 "[variables('eventHubResourceId')]"
             ]
+        },
+        {
+            "type": "Microsoft.SignalRService/SignalR",
+            "name": "[parameters('signalRName')]",
+            "apiVersion": "[variables('signalRApiVersion')]",
+            "location": "[variables('location')]",
+            "properties": {
+                "hostNamePrefix": "[parameters('signalRName')]",
+                "features": [
+                    {
+                        "flag": "ServiceMode",
+                        "value": "Default"
+                    }
+                ]
+            },
+            "sku": {
+                "name": "[parameters('signalRSkuName')]",
+                "tier": "[parameters('signalRSkuTier')]",
+                "capacity": "[parameters('signalRSkuCapacity')]"
+            },
+            "dependsOn": []
         },
         {
             "type": "Microsoft.OperationalInsights/workspaces",
@@ -1086,7 +1150,7 @@
                     ]
                 },
                 "protectedSettings": {
-                    "commandToExecute": "[concat('sh setup.sh ', ' --unsafe false --admin ', concat('\"', parameters('adminUsername'), '\"'), ' --registry-prefix ', concat('\"', parameters('containerRegistryPrefix'), '\"'), ' --hostname ', concat('\"', variables('vmFQDN'), '\"'), ' --ssl-certificate-key ', concat('\"', parameters('adminPassword'), '\"'), ' --ssl-certificate ', concat('\"', parameters('remoteEndpointCertificate'), '\"'), ' --auth-type aad ', ' --auth-audience ', concat('\"', parameters('authAudience'), '\"'), ' --aad-appid ', concat('\"', parameters('aadClientId'), '\"'), ' --aad-tenant ', concat('\"', parameters('aadTenantId'), '\"'), ' --workspace-name ', concat('\"', parameters('workspaceName'), '\"'), ' --appinsights-name ', concat('\"', parameters('appInsightsName'), '\"'), ' --appinsights-ikey ', concat('\"', reference(resourceId('Microsoft.Insights/components', parameters('appInsightsName')), variables('appInsightsVersion')).InstrumentationKey, '\"'), ' --aad-instance ', concat('\"', parameters('aadInstance'), '\"'), ' --iothub-connstring ', concat('\"', 'HostName=', reference(variables('iotHubResourceId')).hostName, ';SharedAccessKeyName=', variables('iotHubKeyName'), ';SharedAccessKey=', listkeys(variables('iotHubKeyResource'), variables('iotHubApiVersion')).primaryKey, '\"'), ' --docdb-connstring ', concat('\"', 'AccountEndpoint=', reference(variables('documentDBResourceId')).documentEndpoint, ';AccountKey=', listkeys(variables('documentDBResourceId'), variables('documentDBApiVersion')).primaryMasterKey, ';', '\"'), ' --iothub-name ', concat('\"', reference(variables('iotHubResourceId')).eventHubEndpoints.events.path, '\"'), ' --iothub-endpoint ', concat('\"', reference(variables('iotHubResourceId')).eventHubEndpoints.events.endpoint, '\"'), ' --azureblob-account ', concat('\"', parameters('storageName'), '\"'), ' --azureblob-key ', concat('\"', listKeys(variables('storageResourceId'), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, '\"'), ' --azureblob-endpoint-suffix ',  concat('\"', parameters('storageEndpointSuffix'), '\"'), ' --release-version ', concat('\"', variables('servicesBranch'), '\"'), ' --iothub-consumer-group ', concat('\"', variables('onboardingConsumerGroupName'), '\"'), ' --sb-connstring ', concat('\"', listkeys(variables('serviceBusKeyResourceId'), variables('serviceBusApiVersion')).primaryConnectionString, '\"'), ' --eventhub-connstring ', concat('\"Endpoint=sb://', parameters('eventHubNamespaceName'), '.', parameters('serviceBusEndpointSuffix'), '/;SharedAccessKeyName=', variables('eventHubKeyName'), ';SharedAccessKey=', listkeys(variables('eventHubKeyResourceId'), variables('eventHubApiVersion')).primaryKey, '\"'), ' --eventhub-name ', parameters('eventHubName'))]"
+                    "commandToExecute": "[concat('sh setup.sh ', ' --unsafe false --admin ', concat('\"', parameters('adminUsername'), '\"'), ' --registry-prefix ', concat('\"', parameters('containerRegistryPrefix'), '\"'), ' --hostname ', concat('\"', variables('vmFQDN'), '\"'), ' --ssl-certificate-key ', concat('\"', parameters('adminPassword'), '\"'), ' --ssl-certificate ', concat('\"', parameters('remoteEndpointCertificate'), '\"'), ' --auth-type aad ', ' --auth-audience ', concat('\"', parameters('authAudience'), '\"'), ' --aad-appid ', concat('\"', parameters('aadClientId'), '\"'), ' --aad-tenant ', concat('\"', parameters('aadTenantId'), '\"'), ' --workspace-name ', concat('\"', parameters('workspaceName'), '\"'), ' --appinsights-name ', concat('\"', parameters('appInsightsName'), '\"'), ' --appinsights-ikey ', concat('\"', reference(resourceId('Microsoft.Insights/components', parameters('appInsightsName')), variables('appInsightsVersion')).InstrumentationKey, '\"'), ' --aad-instance ', concat('\"', parameters('aadInstance'), '\"'), ' --iothub-connstring ', concat('\"', 'HostName=', reference(variables('iotHubResourceId')).hostName, ';SharedAccessKeyName=', variables('iotHubKeyName'), ';SharedAccessKey=', listkeys(variables('iotHubKeyResource'), variables('iotHubApiVersion')).primaryKey, '\"'), ' --docdb-connstring ', concat('\"', 'AccountEndpoint=', reference(variables('documentDBResourceId')).documentEndpoint, ';AccountKey=', listkeys(variables('documentDBResourceId'), variables('documentDBApiVersion')).primaryMasterKey, ';', '\"'), ' --iothub-name ', concat('\"', reference(variables('iotHubResourceId')).eventHubEndpoints.events.path, '\"'), ' --iothub-endpoint ', concat('\"', reference(variables('iotHubResourceId')).eventHubEndpoints.events.endpoint, '\"'), ' --azureblob-account ', concat('\"', parameters('storageName'), '\"'), ' --azureblob-key ', concat('\"', listKeys(variables('storageResourceId'), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, '\"'), ' --azureblob-endpoint-suffix ',  concat('\"', parameters('storageEndpointSuffix'), '\"'), ' --release-version ', concat('\"', variables('servicesBranch'), '\"'), ' --iothub-consumer-group ', concat('\"', variables('onboardingConsumerGroupName'), '\"'), ' --sb-connstring ', concat('\"', listkeys(variables('serviceBusKeyResourceId'), variables('serviceBusApiVersion')).primaryConnectionString, '\"'), ' --signalr-connstring ', concat('\"', listkeys(parameters('signalRName'), variables('signalRApiVersion')).primaryConnectionString, '\"'), ' --eventhub-connstring ', concat('\"Endpoint=sb://', parameters('eventHubNamespaceName'), '.', parameters('serviceBusEndpointSuffix'), '/;SharedAccessKeyName=', variables('eventHubKeyName'), ';SharedAccessKey=', listkeys(variables('eventHubKeyResourceId'), variables('eventHubApiVersion')).primaryKey, '\"'), ' --eventhub-name ', parameters('eventHubName'))]"
                 }
             }
         },
@@ -1337,6 +1401,10 @@
         "sb-connstring": {
             "type": "string",
             "value": "[listkeys(variables('serviceBusKeyResourceId'), variables('serviceBusApiVersion')).primaryConnectionString]"
+        },
+        "signalr-connstring": {
+            "type": "string",
+            "value": "[listkeys(parameters('signalRName'), variables('signalRApiVersion')).primaryConnectionString]"
         },
         "iothub-name": {
             "type": "string",

@@ -153,6 +153,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
             // Register discovery services
             builder.RegisterType<DiscoveryServices>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
+            builder.RegisterType<ScannerServices>()
+                .AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<DiscoveryMessagePublisher>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<TaskProcessor>()

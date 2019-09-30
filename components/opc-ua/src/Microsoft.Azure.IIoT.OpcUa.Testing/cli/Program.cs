@@ -555,21 +555,22 @@ Operations (Mutually exclusive):
             using (var logger = StackLogger.Create(LogEx.Console()))
             using (var client = new ClientServices(logger.Logger, new TestClientServicesConfig()))
             using (var discovery = new DiscoveryServices(client, new ConsoleEmitter(),
-                new TaskProcessor(logger.Logger), logger.Logger)) {
+                new TaskProcessor(logger.Logger), logger.Logger))
+            using (var scanner = new ScannerServices(discovery, logger.Logger)) {
 
-                var rand = new Random();
+                    var rand = new Random();
                 while (true) {
-                    discovery.Configuration = new DiscoveryConfigModel {
+                    scanner.Configuration = new DiscoveryConfigModel {
                         IdleTimeBetweenScans = TimeSpan.FromMilliseconds(1),
                         AddressRangesToScan = addressRanges
                     };
-                    discovery.Mode = DiscoveryMode.Scan;
-                    await discovery.ScanAsync();
+                    scanner.Mode = DiscoveryMode.Scan;
+                    await scanner.ScanAsync();
                     await Task.Delay(!stress ? TimeSpan.FromMinutes(10) :
                         TimeSpan.FromMilliseconds(rand.Next(0, 120000)));
                     logger.Logger.Information("Stopping discovery!");
-                    discovery.Mode = DiscoveryMode.Off;
-                    await discovery.ScanAsync();
+                    scanner.Mode = DiscoveryMode.Off;
+                    await scanner.ScanAsync();
                     if (!stress) {
                         break;
                     }
@@ -582,24 +583,26 @@ Operations (Mutually exclusive):
         /// </summary>
         private static async Task TestOpcUaIopAsync() {
             using (var logger = StackLogger.Create(LogEx.RollingFile("iop_log.txt")))
-            using (var client = new ClientServices(logger.Logger, new TestClientServicesConfig(), TimeSpan.FromSeconds(10)))
+            using (var client = new ClientServices(logger.Logger, new TestClientServicesConfig(),
+                TimeSpan.FromSeconds(10)))
             using (var discovery = new DiscoveryServices(client,
                 new ModelWriter(client, logger.Logger),
-                new TaskProcessor(logger.Logger), logger.Logger)) {
+                new TaskProcessor(logger.Logger), logger.Logger))
+            using (var scanner = new ScannerServices(discovery, logger.Logger)) {
 
                 var rand = new Random();
                 while (true) {
-                    discovery.Configuration = new DiscoveryConfigModel {
+                    scanner.Configuration = new DiscoveryConfigModel {
                         IdleTimeBetweenScans = TimeSpan.FromMilliseconds(1),
                         MaxNetworkProbes = 1000,
                         MaxPortProbes = 5000
                     };
-                    discovery.Mode = DiscoveryMode.Scan;
-                    await discovery.ScanAsync();
+                    scanner.Mode = DiscoveryMode.Scan;
+                    await scanner.ScanAsync();
                     Console.WriteLine("Press key to stop...");
                     Console.ReadKey();
-                    discovery.Mode = DiscoveryMode.Off;
-                    await discovery.ScanAsync();
+                    scanner.Mode = DiscoveryMode.Off;
+                    await scanner.ScanAsync();
                 }
             }
         }
