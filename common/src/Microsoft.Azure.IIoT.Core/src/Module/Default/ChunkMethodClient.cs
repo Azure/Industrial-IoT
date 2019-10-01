@@ -15,6 +15,7 @@ namespace Microsoft.Azure.IIoT.Module.Default {
     using System.Threading.Tasks;
     using System.IO;
     using System.Threading;
+    using System.Text;
 
     /// <summary>
     /// Chunked method provide reliable any size send/receive
@@ -100,10 +101,30 @@ namespace Microsoft.Azure.IIoT.Module.Default {
                 }
                 payload = received.ToArray().Unzip();
                 if (status != 200) {
-                    _logger.Verbose("Received error {status} with: {payload}", status, payload);
-                    throw new MethodCallStatusException(payload, status);
+                    var result = AsString(payload);
+                    _logger.Debug("Chunked call on {method} on {device} ({module}) with {payload} " +
+                         "returned with error {status}: {result}",
+                         method, deviceId, moduleId, payload, status, result);
+                    throw new MethodCallStatusException(result, status);
                 }
                 return payload;
+            }
+        }
+
+        /// <summary>
+        /// Convert to string
+        /// </summary>
+        /// <param name="buffer"></param>
+        /// <returns></returns>
+        private static string AsString(byte[] buffer) {
+            try {
+                if (buffer == null) {
+                    return string.Empty;
+                }
+                return Encoding.UTF8.GetString(buffer);
+            }
+            catch {
+                return Convert.ToBase64String(buffer);
             }
         }
 

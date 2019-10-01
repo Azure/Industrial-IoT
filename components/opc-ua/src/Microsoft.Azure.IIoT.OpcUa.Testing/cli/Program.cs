@@ -1177,8 +1177,7 @@ Operations (Mutually exclusive):
                         JsonPayload = payload
                     }, ct);
                 if (result.Status != 200) {
-                    throw new MethodCallStatusException(
-                        Encoding.UTF8.GetBytes(result.JsonPayload), result.Status);
+                    throw new MethodCallStatusException(result.JsonPayload, result.Status);
                 }
                 return result.JsonPayload;
             }

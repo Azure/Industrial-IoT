@@ -746,10 +746,10 @@ Function GrantPermission() {
             "x-ms-correlation-id"    = [guid]::NewGuid()
         } 
         $url = "https://main.iam.ad.ext.azure.com/api/RegisteredApplications/" + $azureAppId + "/Consent?onBehalfOfAll=true"
-        Invoke-RestMethod -Uri $url -Method Post -Headers $header
+        Invoke-RestMethod -Uri $url -Method POST -Headers $header
     }
     catch {
-        Write-Host "An error occurred: $($_.Exception.Message)"
+        Write-Host "An error occurred granting permissions: $($_.Exception.Message)"
     }
 }
 

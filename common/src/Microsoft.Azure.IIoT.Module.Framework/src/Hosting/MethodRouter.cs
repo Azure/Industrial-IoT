@@ -65,8 +65,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 return new MethodResponse(result, 200);
             }
             catch (MethodCallStatusException mex) {
-                var len = mex.Payload?.Length ?? 0;
-                return new MethodResponse(len > kMaxMessageSize ? null : mex.Payload,
+                var payload = Encoding.UTF8.GetBytes(mex.ResponsePayload);
+                return new MethodResponse(payload.Length > kMaxMessageSize ? null : payload,
                     mex.Result);
             }
             catch (Exception) {
@@ -300,7 +300,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             }
 
             /// <inheritdoc/>
-            public void Dispose() { }
+            public void Dispose() {
+            }
 
             /// <summary>
             /// Helper to convert a typed response to buffer or throw appropriate
@@ -314,12 +315,12 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     if (tr.IsFaulted || tr.IsCanceled) {
                         var ex = tr.Exception?.Flatten().InnerExceptions.FirstOrDefault();
                         if (ex == null) {
-                            ex = new TaskCanceledException();
+                            ex = new TaskCanceledException(tr);
                         }
-                        _logger.Verbose($"Method call error", ex);
+                        _logger.Verbose(ex, "Method call error");
                         ex = _ef.Filter(ex, out var status);
                         throw new MethodCallStatusException(ex != null ?
-                            Encoding.UTF8.GetBytes(JsonConvertEx.SerializeObject(ex)) : null, status);
+                           JsonConvertEx.SerializeObject(ex) : null, status);
                     }
                     return Encoding.UTF8.GetBytes(
                         JsonConvertEx.SerializeObject(tr.Result));
@@ -337,12 +338,12 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     if (tr.IsFaulted || tr.IsCanceled) {
                         var ex = tr.Exception?.Flatten().InnerExceptions.FirstOrDefault();
                         if (ex == null) {
-                            ex = new TaskCanceledException();
+                            ex = new TaskCanceledException(tr);
                         }
-                        _logger.Verbose($"Method call error", ex);
+                        _logger.Verbose(ex, "Method call error");
                         ex = _ef.Filter(ex, out var status);
                         throw new MethodCallStatusException(ex != null ?
-                            Encoding.UTF8.GetBytes(JsonConvertEx.SerializeObject(ex)) : null, status);
+                            JsonConvertEx.SerializeObject(ex) : null, status);
                     }
                     return new byte[0];
                 });

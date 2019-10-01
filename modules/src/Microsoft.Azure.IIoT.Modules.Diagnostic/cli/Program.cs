@@ -204,7 +204,7 @@ Arguments:
         /// </summary>
         private static async Task PingAsync(IIoTHubConfig config, ILogger logger, string deviceId,
             string moduleId, CancellationToken ct) {
-            var client = new IoTHubTwinMethodClient(CreateClient(config, logger));
+            var client = new IoTHubTwinMethodClient(CreateClient(config, logger), logger);
             logger.Information("Starting echo thread");
             var found = false;
             for (var index = 0; !ct.IsCancellationRequested; index++) {
@@ -243,7 +243,7 @@ Arguments:
         /// </summary>
         private static async Task StartPublishAsync(IIoTHubConfig config, ILogger logger,
             string deviceId, string moduleId, TimeSpan interval, CancellationToken ct) {
-            var client = new IoTHubTwinMethodClient(CreateClient(config, logger));
+            var client = new IoTHubTwinMethodClient(CreateClient(config, logger), logger);
             while (!ct.IsCancellationRequested) {
                 try {
                     logger.Information("Start publishing...");
@@ -263,7 +263,7 @@ Arguments:
         /// </summary>
         private static async Task StopPublishAsync(IIoTHubConfig config, ILogger logger,
             string deviceId, string moduleId, CancellationToken ct) {
-            var client = new IoTHubTwinMethodClient(CreateClient(config, logger));
+            var client = new IoTHubTwinMethodClient(CreateClient(config, logger), logger);
             while (!ct.IsCancellationRequested) {
                 try {
                     logger.Information("Stop publishing...");

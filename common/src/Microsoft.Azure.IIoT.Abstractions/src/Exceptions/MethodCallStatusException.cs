@@ -3,6 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
+using System;
+using System.Text;
+
 namespace Microsoft.Azure.IIoT.Exceptions {
 
     /// <summary>
@@ -19,25 +22,25 @@ namespace Microsoft.Azure.IIoT.Exceptions {
         /// <summary>
         /// Payload
         /// </summary>
-        public byte[] Payload { get; }
+        public string ResponsePayload { get; }
 
         /// <summary>
         /// Create exception
         /// </summary>
         /// <param name="result"></param>
         public MethodCallStatusException(int result) :
-            this(new byte[0], result) {
+            this("{}", result) {
         }
 
         /// <summary>
         /// Create exception
         /// </summary>
-        /// <param name="payload"></param>
+        /// <param name="responsePayload"></param>
         /// <param name="result"></param>
-        public MethodCallStatusException(byte[] payload, int result) :
-            base($"Response {result}") {
+        public MethodCallStatusException(string responsePayload, int result) :
+            base($"Response {result}: {responsePayload}") {
             Result = result;
-            Payload = payload;
+            ResponsePayload = responsePayload;
         }
     }
 }

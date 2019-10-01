@@ -265,7 +265,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             }
             if (response.Status != 200) {
                 throw new MethodCallStatusException(
-                    Encoding.UTF8.GetBytes(response.ResultAsJson), response.Status);
+                    response.ResultAsJson, response.Status);
             }
             return response.ResultAsJson;
         }

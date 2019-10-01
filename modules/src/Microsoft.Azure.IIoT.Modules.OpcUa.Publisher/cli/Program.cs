@@ -242,7 +242,7 @@ Options:
             if (string.IsNullOrEmpty(endpointUrl)) {
                 throw new ArgumentNullException(nameof(endpointUrl));
             }
-            var client = new IoTHubTwinMethodClient(CreateClient(config, logger));
+            var client = new IoTHubTwinMethodClient(CreateClient(config, logger), logger);
             while (!ct.IsCancellationRequested) {
                 await Task.Delay(TimeSpan.FromSeconds(5), ct);
                 try {
@@ -273,7 +273,7 @@ Options:
             if (string.IsNullOrEmpty(nodeId)) {
                 throw new ArgumentNullException(nameof(nodeId));
             }
-            var client = new IoTHubTwinMethodClient(CreateClient(config, logger));
+            var client = new IoTHubTwinMethodClient(CreateClient(config, logger), logger);
             while (!ct.IsCancellationRequested) {
                 try {
                     logger.Information("Start publishing {nodeId}...", nodeId);
