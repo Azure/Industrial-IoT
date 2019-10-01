@@ -1,5 +1,7 @@
 # Discover and register servers and browse their address space from the command line
 
+[Home](../readme.md)
+
 This article will walk you through the steps to discover and register OPC UA servers using the Command line interface.  
 
 ## Prerequisites
@@ -41,32 +43,39 @@ To make the demo deterministic we also start a demo OPC UA server.
 2. Build and start the CLI in console mode by running
 
    ```bash
-   docker build -t cli .
-   docker run -it --env-file .env cli console
+   cd ./api/src/Microsoft.Azure.IIoT.OpcUa.Api/cli
+   dotnet run console
    ```
 
-   > If you are trying to access running Microservices on your local development machine and your OS is Linux you must explicitly specify your host's host name using `-e _HOST=$(hostname)` argument.
+   > On Windows you can also run `cli.cmd` in the repository root.
 
 3. You will now see a prompt and be able to enter commands, e.g. type
 
    ```bash
    > help
-
-   aziiotcli - Allows to script Industrial IoT Microservices api.
+   
+   aziiotcli - Allows to script Industrial IoT Services api.
    usage:      aziiotcli command [options]
-
+   
    Commands and Options
-
+   
         console     Run in interactive mode. Enter commands after the >
         exit        Exit interactive mode and thus the cli.
+        status      Print service status
+   
         apps        Manage applications
         endpoints   Manage endpoints
         supervisors Manage supervisors
-        nodes       Call nodes services on endpoint
-        status      Print service status
+   
+        nodes       Call twin module services on endpoint
+   
+        groups      Manage trust groups (Experimental)
+        trust       Manage trust between above entities (Experimental)
+        requests    Manage certificate requests (Experimental)
+   
         help, -h, -? --help
                     Prints out this help.
-
+   
    >
    ```
 

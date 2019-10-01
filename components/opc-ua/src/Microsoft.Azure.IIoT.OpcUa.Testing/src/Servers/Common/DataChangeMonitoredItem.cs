@@ -85,7 +85,7 @@ namespace Opc.Ua.Sample {
             uint queueSize,
             bool discardOldest,
             DataChangeFilter filter,
-            Range range,
+            Opc.Ua.Range range,
             bool alwaysReportUpdates) {
             _source = source;
             Id = id;
@@ -195,7 +195,7 @@ namespace Opc.Ua.Sample {
             uint queueSize,
             bool discardOldest,
             DataChangeFilter filter,
-            Range range) {
+            Opc.Ua.Range range) {
             lock (_lock) {
                 _diagnosticsMasks = diagnosticsMasks;
                 _timestampsToReturn = timestampsToReturn;

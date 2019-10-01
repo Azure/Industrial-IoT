@@ -1,5 +1,7 @@
 # Deploy OPC Twin and OPC Publisher Edge Modules
 
+[Home](readme.md)
+
 This article explains how to deploy the Industrial IoT Edge modules to [Azure IoT Edge](https://azure.microsoft.com/services/iot-edge/).
 
 There are several options to deploy modules to your [Azure IoT Edge](https://azure.microsoft.com/en-us/services/iot-edge/) Gateway, among them

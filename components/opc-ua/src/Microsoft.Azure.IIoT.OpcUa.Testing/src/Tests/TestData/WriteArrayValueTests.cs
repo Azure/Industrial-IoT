@@ -30,7 +30,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             _readExpected = readExpected;
         }
 
-        public async Task NodeWriteStaticArrayBooleanValueVariableTest() {
+        public async Task NodeWriteStaticArrayBooleanValueVariableTestAsync() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10300";
@@ -49,11 +49,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 });
 
             // Assert
-            await AssertResult(node, expected, result);
+            await AssertResultAsync(node, expected, result);
         }
 
 
-        public async Task NodeWriteStaticArraySByteValueVariableTest() {
+        public async Task NodeWriteStaticArraySByteValueVariableTestAsync() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10301";
@@ -73,11 +73,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 });
 
             // Assert
-            await AssertResult(node, expected, result);
+            await AssertResultAsync(node, expected, result);
         }
 
 
-        public async Task NodeWriteStaticArrayByteValueVariableTest() {
+        public async Task NodeWriteStaticArrayByteValueVariableTestAsync() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10302";
@@ -96,12 +96,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 });
 
             // Assert
-            await AssertResult(node, expected, result);
+            await AssertResultAsync(node, expected, result);
         }
 
 
 
-        public async Task NodeWriteStaticArrayInt16ValueVariableTest() {
+        public async Task NodeWriteStaticArrayInt16ValueVariableTestAsync() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10303";
@@ -117,11 +117,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 });
 
             // Assert
-            await AssertResult(node, expected, result);
+            await AssertResultAsync(node, expected, result);
         }
 
 
-        public async Task NodeWriteStaticArrayUInt16ValueVariableTest() {
+        public async Task NodeWriteStaticArrayUInt16ValueVariableTestAsync() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10304";
@@ -137,11 +137,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 });
 
             // Assert
-            await AssertResult(node, expected, result);
+            await AssertResultAsync(node, expected, result);
         }
 
 
-        public async Task NodeWriteStaticArrayInt32ValueVariableTest() {
+        public async Task NodeWriteStaticArrayInt32ValueVariableTestAsync() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10305";
@@ -157,11 +157,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 });
 
             // Assert
-            await AssertResult(node, expected, result);
+            await AssertResultAsync(node, expected, result);
         }
 
 
-        public async Task NodeWriteStaticArrayUInt32ValueVariableTest() {
+        public async Task NodeWriteStaticArrayUInt32ValueVariableTestAsync() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10306";
@@ -177,11 +177,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 });
 
             // Assert
-            await AssertResult(node, expected, result);
+            await AssertResultAsync(node, expected, result);
         }
 
 
-        public async Task NodeWriteStaticArrayInt64ValueVariableTest() {
+        public async Task NodeWriteStaticArrayInt64ValueVariableTestAsync() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10307";
@@ -197,11 +197,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 });
 
             // Assert
-            await AssertResult(node, expected, result);
+            await AssertResultAsync(node, expected, result);
         }
 
 
-        public async Task NodeWriteStaticArrayUInt64ValueVariableTest() {
+        public async Task NodeWriteStaticArrayUInt64ValueVariableTestAsync() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10308";
@@ -217,11 +217,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 });
 
             // Assert
-            await AssertResult(node, expected, result);
+            await AssertResultAsync(node, expected, result);
         }
 
 
-        public async Task NodeWriteStaticArrayFloatValueVariableTest() {
+        public async Task NodeWriteStaticArrayFloatValueVariableTestAsync() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10309";
@@ -245,11 +245,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 });
 
             // Assert
-            await AssertResult(node, expected, result);
+            await AssertResultAsync(node, expected, result);
         }
 
 
-        public async Task NodeWriteStaticArrayDoubleValueVariableTest() {
+        public async Task NodeWriteStaticArrayDoubleValueVariableTestAsync() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10310";
@@ -276,11 +276,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 });
 
             // Assert
-            await AssertResult(node, expected, result);
+            await AssertResultAsync(node, expected, result);
         }
 
 
-        public async Task NodeWriteStaticArrayStringValueVariableTest1() {
+        public async Task NodeWriteStaticArrayStringValueVariableTest1Async() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10311";
@@ -303,11 +303,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 });
 
             // Assert
-            await AssertResult(node, expected, result);
+            await AssertResultAsync(node, expected, result);
         }
 
 
-        public async Task NodeWriteStaticArrayStringValueVariableTest2() {
+        public async Task NodeWriteStaticArrayStringValueVariableTest2Async() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10311";
@@ -323,11 +323,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 });
 
             // Assert
-            await AssertResult(node, expected, result);
+            await AssertResultAsync(node, expected, result);
         }
 
 
-        public async Task NodeWriteStaticArrayDateTimeValueVariableTest() {
+        public async Task NodeWriteStaticArrayDateTimeValueVariableTestAsync() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10312";
@@ -343,11 +343,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 });
 
             // Assert
-            await AssertResult(node, expected, result);
+            await AssertResultAsync(node, expected, result);
         }
 
 
-        public async Task NodeWriteStaticArrayGuidValueVariableTest() {
+        public async Task NodeWriteStaticArrayGuidValueVariableTestAsync() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10313";
@@ -363,11 +363,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 });
 
             // Assert
-            await AssertResult(node, expected, result);
+            await AssertResultAsync(node, expected, result);
         }
 
 
-        public async Task NodeWriteStaticArrayByteStringValueVariableTest() {
+        public async Task NodeWriteStaticArrayByteStringValueVariableTestAsync() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10314";
@@ -495,11 +495,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 });
 
             // Assert
-            await AssertResult(node, expected, result);
+            await AssertResultAsync(node, expected, result);
         }
 
 
-        public async Task NodeWriteStaticArrayXmlElementValueVariableTest() {
+        public async Task NodeWriteStaticArrayXmlElementValueVariableTestAsync() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10315";
@@ -515,11 +515,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 });
 
             // Assert
-            await AssertResult(node, expected, result);
+            await AssertResultAsync(node, expected, result);
         }
 
 
-        public async Task NodeWriteStaticArrayNodeIdValueVariableTest() {
+        public async Task NodeWriteStaticArrayNodeIdValueVariableTestAsync() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10316";
@@ -569,11 +569,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 });
 
             // Assert
-            await AssertResult(node, expected, result);
+            await AssertResultAsync(node, expected, result);
         }
 
 
-        public async Task NodeWriteStaticArrayExpandedNodeIdValueVariableTest() {
+        public async Task NodeWriteStaticArrayExpandedNodeIdValueVariableTestAsync() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10317";
@@ -594,11 +594,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 });
 
             // Assert
-            await AssertResult(node, expected, result);
+            await AssertResultAsync(node, expected, result);
         }
 
 
-        public async Task NodeWriteStaticArrayQualifiedNameValueVariableTest() {
+        public async Task NodeWriteStaticArrayQualifiedNameValueVariableTestAsync() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10318";
@@ -627,11 +627,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 });
 
             // Assert
-            await AssertResult(node, expected, result);
+            await AssertResultAsync(node, expected, result);
         }
 
 
-        public async Task NodeWriteStaticArrayLocalizedTextValueVariableTest() {
+        public async Task NodeWriteStaticArrayLocalizedTextValueVariableTestAsync() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10319";
@@ -671,11 +671,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             });
 
             // Assert
-            await AssertResult(node, expected, result);
+            await AssertResultAsync(node, expected, result);
         }
 
 
-        public async Task NodeWriteStaticArrayStatusCodeValueVariableTest() {
+        public async Task NodeWriteStaticArrayStatusCodeValueVariableTestAsync() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10320";
@@ -691,11 +691,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 });
 
             // Assert
-            await AssertResult(node, expected, result);
+            await AssertResultAsync(node, expected, result);
         }
 
 
-        public async Task NodeWriteStaticArrayVariantValueVariableTest1() {
+        public async Task NodeWriteStaticArrayVariantValueVariableTest1Async() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10321";
@@ -720,11 +720,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 });
 
             // Assert
-            await AssertResult(node, new JArray(values), result);
+            await AssertResultAsync(node, new JArray(values), result);
         }
 
 
-        public async Task NodeWriteStaticArrayEnumerationValueVariableTest() {
+        public async Task NodeWriteStaticArrayEnumerationValueVariableTestAsync() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10322";
@@ -756,11 +756,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 });
 
             // Assert
-            await AssertResult(node, expected, result);
+            await AssertResultAsync(node, expected, result);
         }
 
 
-        public async Task NodeWriteStaticArrayStructureValueVariableTest() {
+        public async Task NodeWriteStaticArrayStructureValueVariableTestAsync() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10323";
@@ -1075,11 +1075,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 });
 
             // Assert
-            await AssertResult(node, expected, result);
+            await AssertResultAsync(node, expected, result);
         }
 
 
-        public async Task NodeWriteStaticArrayNumberValueVariableTest1() {
+        public async Task NodeWriteStaticArrayNumberValueVariableTest1Async() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10324";
@@ -1101,11 +1101,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 });
 
             // Assert
-            await AssertResult(node, JArray.FromObject(values), result);
+            await AssertResultAsync(node, JArray.FromObject(values), result);
         }
 
 
-        public async Task NodeWriteStaticArrayNumberValueVariableTest2() {
+        public async Task NodeWriteStaticArrayNumberValueVariableTest2Async() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10324";
@@ -1123,11 +1123,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 });
 
             // Assert
-            await AssertResult(node, expected, result);
+            await AssertResultAsync(node, expected, result);
         }
 
 
-        public async Task NodeWriteStaticArrayIntegerValueVariableTest1() {
+        public async Task NodeWriteStaticArrayIntegerValueVariableTest1Async() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10325";
@@ -1149,11 +1149,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 });
 
             // Assert
-            await AssertResult(node, new JArray(values), result);
+            await AssertResultAsync(node, new JArray(values), result);
         }
 
 
-        public async Task NodeWriteStaticArrayIntegerValueVariableTest2() {
+        public async Task NodeWriteStaticArrayIntegerValueVariableTest2Async() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10325";
@@ -1171,11 +1171,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 });
 
             // Assert
-            await AssertResult(node, expected, result);
+            await AssertResultAsync(node, expected, result);
         }
 
 
-        public async Task NodeWriteStaticArrayUIntegerValueVariableTest1() {
+        public async Task NodeWriteStaticArrayUIntegerValueVariableTest1Async() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10326";
@@ -1197,11 +1197,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 });
 
             // Assert
-            await AssertResult(node, new JArray(values), result);
+            await AssertResultAsync(node, new JArray(values), result);
         }
 
 
-        public async Task NodeWriteStaticArrayUIntegerValueVariableTest2() {
+        public async Task NodeWriteStaticArrayUIntegerValueVariableTest2Async() {
 
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10326";
@@ -1219,10 +1219,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 });
 
             // Assert
-            await AssertResult(node, expected, result);
+            await AssertResultAsync(node, expected, result);
         }
 
-        private async Task AssertResult(string node, JToken expected,
+        private async Task AssertResultAsync(string node, JToken expected,
             ValueWriteResultModel result) {
             var value = await _readExpected(_endpoint, node);
             Assert.NotNull(value);

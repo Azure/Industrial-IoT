@@ -746,10 +746,10 @@ Function GrantPermission() {
             "x-ms-correlation-id"    = [guid]::NewGuid()
         } 
         $url = "https://main.iam.ad.ext.azure.com/api/RegisteredApplications/" + $azureAppId + "/Consent?onBehalfOfAll=true"
-        Invoke-RestMethod -Uri $url -Method Post -Headers $header
+        Invoke-RestMethod -Uri $url -Method POST -Headers $header
     }
     catch {
-        Write-Host "An error occurred: $($_.Exception.Message)"
+        Write-Host "An error occurred granting permissions: $($_.Exception.Message)"
     }
 }
 
@@ -761,7 +761,9 @@ Function GetOrCreateResourceGroup() {
     # Registering default resource providers
     Register-AzureRmResourceProvider -ProviderNamespace "microsoft.devices" | Out-Null
     Register-AzureRmResourceProvider -ProviderNamespace "microsoft.documentdb" | Out-Null
+    Register-AzureRmResourceProvider -ProviderNamespace "microsoft.signalrservice" | Out-Null
     Register-AzureRmResourceProvider -ProviderNamespace "microsoft.servicebus" | Out-Null
+    Register-AzureRmResourceProvider -ProviderNamespace "microsoft.eventhub" | Out-Null
     Register-AzureRmResourceProvider -ProviderNamespace "microsoft.storage" | Out-Null
     Register-AzureRmResourceProvider -ProviderNamespace "microsoft.keyvault" | Out-Null
     Register-AzureRmResourceProvider -ProviderNamespace "microsoft.authorization" | Out-Null

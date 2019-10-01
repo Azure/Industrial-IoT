@@ -586,7 +586,9 @@ namespace Opc.Ua.Nodeset {
             if (value == Variant.Null) {
                 return null;
             }
+#pragma warning disable IDE0067 // Dispose objects before losing scope
             var encoder = new XmlEncoder(ToMessageContext(context));
+#pragma warning restore IDE0067 // Dispose objects before losing scope
             encoder.WriteVariantContents(value.Value, value.TypeInfo);
             var document = new XmlDocument {
                 InnerXml = encoder.Close()

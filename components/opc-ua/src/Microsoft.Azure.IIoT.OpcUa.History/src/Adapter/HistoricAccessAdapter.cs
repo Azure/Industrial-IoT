@@ -7,7 +7,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.History.Clients {
     using Microsoft.Azure.IIoT.OpcUa.History;
     using Microsoft.Azure.IIoT.OpcUa.History.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
-    using Serilog;
     using System;
     using System.Threading.Tasks;
 

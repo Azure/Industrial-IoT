@@ -70,41 +70,41 @@ namespace HistoricalEvents {
             };
         }
 
-        private static readonly string[] s_WellNames = {
+        private static readonly string[] kWellNames = {
             "Area51/Jupiter",
             "Area51/Titan",
             "Area99/Saturn",
             "Area99/Mars"
         };
-        private static readonly string[] s_WellUIDs = {
+        private static readonly string[] kWellUIDs = {
             "Well_24412",
             "Well_48306",
             "Well_86234",
             "Well_91423"
         };
-        private static readonly string[] s_TestReasons = {
+        private static readonly string[] kTestReasons = {
             "initial",
             "periodic",
             "revision",
             "unknown",
             "other"
         };
-        private static readonly string[] s_Testers = {
+        private static readonly string[] kTesters = {
             "Anne",
             "Bob",
             "Charley",
             "Dawn"
         };
-        private static readonly string[] s_UnitLengths = {
+        private static readonly string[] kUnitLengths = {
             "m",
             "yd"
         };
-        private static readonly string[] s_UnitTimes = {
+        private static readonly string[] kUnitTimes = {
             "s",
             "min",
             "h"
         };
-        private static readonly string[] s_InjectionFluids = {
+        private static readonly string[] kInjectionFluids = {
             "oil",
             "gas",
             "non HC gas",
@@ -135,11 +135,11 @@ namespace HistoricalEvents {
         public string[] GetAreas() {
             var area = new List<string>();
 
-            for (var ii = 0; ii < s_WellNames.Length; ii++) {
-                var index = s_WellNames[ii].LastIndexOf('/');
+            for (var ii = 0; ii < kWellNames.Length; ii++) {
+                var index = kWellNames[ii].LastIndexOf('/');
 
                 if (index >= 0) {
-                    var areaName = s_WellNames[ii].Substring(0, index);
+                    var areaName = kWellNames[ii].Substring(0, index);
 
                     if (!area.Contains(areaName)) {
                         area.Add(areaName);
@@ -153,18 +153,18 @@ namespace HistoricalEvents {
         public WellInfo[] GetWells(string areaName) {
             var wells = new List<WellInfo>();
 
-            for (var ii = 0; ii < s_WellUIDs.Length; ii++) {
+            for (var ii = 0; ii < kWellUIDs.Length; ii++) {
                 var well = new WellInfo {
-                    Id = s_WellUIDs[ii],
-                    Name = s_WellUIDs[ii]
+                    Id = kWellUIDs[ii],
+                    Name = kWellUIDs[ii]
                 };
 
-                if (s_WellNames.Length > ii) {
-                    var index = s_WellNames[ii].LastIndexOf('/');
+                if (kWellNames.Length > ii) {
+                    var index = kWellNames[ii].LastIndexOf('/');
 
                     if (index >= 0) {
-                        if (s_WellNames[ii].Substring(0, index) == areaName) {
-                            well.Name = s_WellNames[ii].Substring(index + 1);
+                        if (kWellNames[ii].Substring(0, index) == areaName) {
+                            well.Name = kWellNames[ii].Substring(index + 1);
                             wells.Add(well);
                         }
                     }
@@ -175,8 +175,8 @@ namespace HistoricalEvents {
         }
 
         public class WellInfo {
-            public string Id;
-            public string Name;
+            public string Id { get; set; }
+            public string Name { get; set; }
         }
 
         public DataRow GenerateFluidLevelTestReport() {
@@ -185,15 +185,15 @@ namespace HistoricalEvents {
             row[0] = Guid.NewGuid().ToString();
             row[1] = DateTime.UtcNow;
 
-            var index = GetRandom(0, s_WellUIDs.Length - 1);
-            row[2] = s_WellNames[index];
-            row[3] = s_WellUIDs[index];
+            var index = GetRandom(0, kWellUIDs.Length - 1);
+            row[2] = kWellNames[index];
+            row[3] = kWellUIDs[index];
 
             row[4] = DateTime.UtcNow.AddHours(-GetRandom(0, 10));
-            row[5] = GetRandom(s_TestReasons);
+            row[5] = GetRandom(kTestReasons);
             row[6] = GetRandom(0, 1000);
-            row[7] = GetRandom(s_UnitLengths);
-            row[8] = GetRandom(s_Testers);
+            row[7] = GetRandom(kUnitLengths);
+            row[8] = GetRandom(kTesters);
 
             _dataset.Tables[0].Rows.Add(row);
             _dataset.AcceptChanges();
@@ -376,15 +376,15 @@ namespace HistoricalEvents {
             row[0] = Guid.NewGuid().ToString();
             row[1] = DateTime.UtcNow;
 
-            var index = GetRandom(0, s_WellUIDs.Length - 1);
-            row[2] = s_WellNames[index];
-            row[3] = s_WellUIDs[index];
+            var index = GetRandom(0, kWellUIDs.Length - 1);
+            row[2] = kWellNames[index];
+            row[3] = kWellUIDs[index];
 
             row[4] = DateTime.UtcNow.AddHours(-GetRandom(0, 10));
-            row[5] = GetRandom(s_TestReasons);
+            row[5] = GetRandom(kTestReasons);
             row[6] = GetRandom(0, 1000);
-            row[7] = GetRandom(s_UnitTimes);
-            row[8] = GetRandom(s_InjectionFluids);
+            row[7] = GetRandom(kUnitTimes);
+            row[8] = GetRandom(kInjectionFluids);
 
             _dataset.Tables[1].Rows.Add(row);
             _dataset.AcceptChanges();

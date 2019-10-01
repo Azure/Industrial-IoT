@@ -25,7 +25,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             _endpoint = endpoint;
         }
 
-        public async Task NodeBrowseInRootTest1() {
+        public async Task NodeBrowseInRootTest1Async() {
 
             var browser = _services();
 
@@ -47,6 +47,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("Objects", reference.Target.BrowseName);
                     Assert.Equal("Objects", reference.Target.DisplayName);
                     Assert.Equal("i=85", reference.Target.NodeId);
+                    Assert.Null(reference.Target.Value);
                     Assert.True(reference.Target.Children);
                 },
                 reference => {
@@ -55,6 +56,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("Types", reference.Target.BrowseName);
                     Assert.Equal("Types", reference.Target.DisplayName);
                     Assert.Equal("i=86", reference.Target.NodeId);
+                    Assert.Null(reference.Target.Value);
                     Assert.True(reference.Target.Children);
                 },
                 reference => {
@@ -63,12 +65,61 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("Views", reference.Target.BrowseName);
                     Assert.Equal("Views", reference.Target.DisplayName);
                     Assert.Equal("i=87", reference.Target.NodeId);
+                    Assert.Null(reference.Target.Value);
+                    Assert.False(reference.Target.Children);
+                });
+        }
+
+        public async Task NodeBrowseInRootTest2Async() {
+
+            var browser = _services();
+
+            // Act
+            var results = await browser.NodeBrowseAsync(_endpoint,
+                new BrowseRequestModel {
+                    TargetNodesOnly = true,
+                    ReadVariableValues = true
+                });
+
+            // Assert
+            Assert.Equal("i=84", results.Node.NodeId);
+            Assert.Equal("Root", results.Node.DisplayName);
+            Assert.Equal(true, results.Node.Children);
+            Assert.NotNull(results.Node.Description);
+            Assert.Null(results.Node.AccessRestrictions);
+            Assert.Null(results.ContinuationToken);
+            Assert.Collection(results.References,
+                reference => {
+                    Assert.Null(reference.ReferenceTypeId);
+                    Assert.Null(reference.Direction);
+                    Assert.Equal("Objects", reference.Target.BrowseName);
+                    Assert.Equal("Objects", reference.Target.DisplayName);
+                    Assert.Equal("i=85", reference.Target.NodeId);
+                    Assert.Null(reference.Target.Value);
+                    Assert.True(reference.Target.Children);
+                },
+                reference => {
+                    Assert.Null(reference.ReferenceTypeId);
+                    Assert.Null(reference.Direction);
+                    Assert.Equal("Types", reference.Target.BrowseName);
+                    Assert.Equal("Types", reference.Target.DisplayName);
+                    Assert.Equal("i=86", reference.Target.NodeId);
+                    Assert.Null(reference.Target.Value);
+                    Assert.True(reference.Target.Children);
+                },
+                reference => {
+                    Assert.Null(reference.ReferenceTypeId);
+                    Assert.Null(reference.Direction);
+                    Assert.Equal("Views", reference.Target.BrowseName);
+                    Assert.Equal("Views", reference.Target.DisplayName);
+                    Assert.Equal("i=87", reference.Target.NodeId);
+                    Assert.Null(reference.Target.Value);
                     Assert.False(reference.Target.Children);
                 });
         }
 
 
-        public async Task NodeBrowseFirstInRootTest1() {
+        public async Task NodeBrowseFirstInRootTest1Async() {
 
             var browser = _services();
 
@@ -100,7 +151,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeBrowseFirstInRootTest2() {
+        public async Task NodeBrowseFirstInRootTest2Async() {
 
             var browser = _services();
 
@@ -140,7 +191,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeBrowseBoilersObjectsTest1() {
+        public async Task NodeBrowseBoilersObjectsTest1Async() {
 
             var browser = _services();
 
@@ -183,7 +234,503 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeBrowseBoilersObjectsTest2() {
+        public async Task NodeBrowseDataAccessObjectsTest1Async() {
+
+            var browser = _services();
+
+            // Act
+            var results = await browser.NodeBrowseAsync(_endpoint,
+                new BrowseRequestModel {
+                    NodeId = "nsu=DataAccess;s=0:TestData/Static",
+                    TargetNodesOnly = false
+                });
+
+            // Assert
+            var test = JsonConvertEx.SerializeObjectPretty(results);
+
+            Assert.Equal("nsu=DataAccess;s=0:TestData/Static", results.Node.NodeId);
+            Assert.Equal("Static", results.Node.DisplayName);
+            Assert.Equal(true, results.Node.Children);
+            Assert.Null(results.Node.EventNotifier);
+            Assert.Null(results.Node.Description);
+            Assert.Null(results.Node.AccessRestrictions);
+            Assert.Null(results.ContinuationToken);
+            Assert.Collection(results.References,
+                reference => {
+                    Assert.Equal("i=35", reference.ReferenceTypeId);
+                    Assert.Equal("DataAccess#FC1001", reference.Target.BrowseName);
+                    Assert.Equal(BrowseDirection.Forward, reference.Direction);
+
+                    Assert.Equal("FC1001", reference.Target.DisplayName);
+                    Assert.Equal(NodeClass.Object, reference.Target.NodeClass);
+                    Assert.Equal("nsu=DataAccess;s=1:FC1001", reference.Target.NodeId);
+                    Assert.True(reference.Target.Children);
+                },
+                reference => {
+                    Assert.Equal("i=35", reference.ReferenceTypeId);
+                    Assert.Equal("DataAccess#LC1001", reference.Target.BrowseName);
+                    Assert.Equal(BrowseDirection.Forward, reference.Direction);
+
+                    Assert.Equal("LC1001", reference.Target.DisplayName);
+                    Assert.Equal(NodeClass.Object, reference.Target.NodeClass);
+                    Assert.Equal("nsu=DataAccess;s=1:LC1001", reference.Target.NodeId);
+                    Assert.True(reference.Target.Children);
+                },
+                reference => {
+                    Assert.Equal("i=35", reference.ReferenceTypeId);
+                    Assert.Equal("DataAccess#CC1001", reference.Target.BrowseName);
+                    Assert.Equal(BrowseDirection.Forward, reference.Direction);
+
+                    Assert.Equal("CC1001", reference.Target.DisplayName);
+                    Assert.Equal(NodeClass.Object, reference.Target.NodeClass);
+                    Assert.Equal("nsu=DataAccess;s=1:CC1001", reference.Target.NodeId);
+                    Assert.True(reference.Target.Children);
+                },
+                reference => {
+                    Assert.Equal("i=35", reference.ReferenceTypeId);
+                    Assert.Equal("DataAccess#FC2001", reference.Target.BrowseName);
+                    Assert.Equal(BrowseDirection.Forward, reference.Direction);
+
+                    Assert.Equal("FC2001", reference.Target.DisplayName);
+                    Assert.Equal(NodeClass.Object, reference.Target.NodeClass);
+                    Assert.Equal("nsu=DataAccess;s=1:FC2001", reference.Target.NodeId);
+                    Assert.True(reference.Target.Children);
+                },
+                reference => {
+                    Assert.Equal("i=35", reference.ReferenceTypeId);
+                    Assert.Equal("DataAccess#LC2001", reference.Target.BrowseName);
+                    Assert.Equal(BrowseDirection.Forward, reference.Direction);
+
+                    Assert.Equal("LC2001", reference.Target.DisplayName);
+                    Assert.Equal(NodeClass.Object, reference.Target.NodeClass);
+                    Assert.Equal("nsu=DataAccess;s=1:LC2001", reference.Target.NodeId);
+                    Assert.True(reference.Target.Children);
+                },
+                reference => {
+                    Assert.Equal("i=35", reference.ReferenceTypeId);
+                    Assert.Equal("DataAccess#CC2001", reference.Target.BrowseName);
+                    Assert.Equal(BrowseDirection.Forward, reference.Direction);
+
+                    Assert.Equal("CC2001", reference.Target.DisplayName);
+                    Assert.Equal(NodeClass.Object, reference.Target.NodeClass);
+                    Assert.Equal("nsu=DataAccess;s=1:CC2001", reference.Target.NodeId);
+                    Assert.True(reference.Target.Children);
+                });
+        }
+
+        public async Task NodeBrowseDataAccessObjectsTest2Async() {
+
+            var browser = _services();
+
+            // Act
+            var results = await browser.NodeBrowseAsync(_endpoint,
+                new BrowseRequestModel {
+                    NodeId = "DataAccess#s=0:TestData/Static",
+                    TargetNodesOnly = false
+                });
+
+            // Assert
+            var test = JsonConvertEx.SerializeObjectPretty(results);
+
+            Assert.Equal("nsu=DataAccess;s=0:TestData/Static", results.Node.NodeId);
+            Assert.Equal("Static", results.Node.DisplayName);
+            Assert.Equal(true, results.Node.Children);
+            Assert.Null(results.Node.EventNotifier);
+            Assert.Null(results.Node.Description);
+            Assert.Null(results.Node.AccessRestrictions);
+            Assert.Null(results.ContinuationToken);
+            Assert.Collection(results.References,
+                reference => {
+                    Assert.Equal("i=35", reference.ReferenceTypeId);
+                    Assert.Equal("DataAccess#FC1001", reference.Target.BrowseName);
+                    Assert.Equal(BrowseDirection.Forward, reference.Direction);
+
+                    Assert.Equal("FC1001", reference.Target.DisplayName);
+                    Assert.Equal(NodeClass.Object, reference.Target.NodeClass);
+                    Assert.Equal("nsu=DataAccess;s=1:FC1001", reference.Target.NodeId);
+                    Assert.True(reference.Target.Children);
+                },
+                reference => {
+                    Assert.Equal("i=35", reference.ReferenceTypeId);
+                    Assert.Equal("DataAccess#LC1001", reference.Target.BrowseName);
+                    Assert.Equal(BrowseDirection.Forward, reference.Direction);
+
+                    Assert.Equal("LC1001", reference.Target.DisplayName);
+                    Assert.Equal(NodeClass.Object, reference.Target.NodeClass);
+                    Assert.Equal("nsu=DataAccess;s=1:LC1001", reference.Target.NodeId);
+                    Assert.True(reference.Target.Children);
+                },
+                reference => {
+                    Assert.Equal("i=35", reference.ReferenceTypeId);
+                    Assert.Equal("DataAccess#CC1001", reference.Target.BrowseName);
+                    Assert.Equal(BrowseDirection.Forward, reference.Direction);
+
+                    Assert.Equal("CC1001", reference.Target.DisplayName);
+                    Assert.Equal(NodeClass.Object, reference.Target.NodeClass);
+                    Assert.Equal("nsu=DataAccess;s=1:CC1001", reference.Target.NodeId);
+                    Assert.True(reference.Target.Children);
+                },
+                reference => {
+                    Assert.Equal("i=35", reference.ReferenceTypeId);
+                    Assert.Equal("DataAccess#FC2001", reference.Target.BrowseName);
+                    Assert.Equal(BrowseDirection.Forward, reference.Direction);
+
+                    Assert.Equal("FC2001", reference.Target.DisplayName);
+                    Assert.Equal(NodeClass.Object, reference.Target.NodeClass);
+                    Assert.Equal("nsu=DataAccess;s=1:FC2001", reference.Target.NodeId);
+                    Assert.True(reference.Target.Children);
+                },
+                reference => {
+                    Assert.Equal("i=35", reference.ReferenceTypeId);
+                    Assert.Equal("DataAccess#LC2001", reference.Target.BrowseName);
+                    Assert.Equal(BrowseDirection.Forward, reference.Direction);
+
+                    Assert.Equal("LC2001", reference.Target.DisplayName);
+                    Assert.Equal(NodeClass.Object, reference.Target.NodeClass);
+                    Assert.Equal("nsu=DataAccess;s=1:LC2001", reference.Target.NodeId);
+                    Assert.True(reference.Target.Children);
+                },
+                reference => {
+                    Assert.Equal("i=35", reference.ReferenceTypeId);
+                    Assert.Equal("DataAccess#CC2001", reference.Target.BrowseName);
+                    Assert.Equal(BrowseDirection.Forward, reference.Direction);
+
+                    Assert.Equal("CC2001", reference.Target.DisplayName);
+                    Assert.Equal(NodeClass.Object, reference.Target.NodeClass);
+                    Assert.Equal("nsu=DataAccess;s=1:CC2001", reference.Target.NodeId);
+                    Assert.True(reference.Target.Children);
+                });
+        }
+
+        public async Task NodeBrowseDataAccessObjectsTest3Async() {
+
+            var browser = _services();
+
+            // Act
+            var results = await browser.NodeBrowseAsync(_endpoint,
+                new BrowseRequestModel {
+                    NodeId = "nsu=DataAccess;s=0:TestData/Static",
+                    TargetNodesOnly = true,
+                    ReadVariableValues = true
+                });
+
+            // Assert
+            var test = JsonConvertEx.SerializeObjectPretty(results);
+
+            Assert.Equal("nsu=DataAccess;s=0:TestData/Static", results.Node.NodeId);
+            Assert.Equal("Static", results.Node.DisplayName);
+            Assert.Equal(true, results.Node.Children);
+            Assert.Null(results.Node.EventNotifier);
+            Assert.Null(results.Node.Description);
+            Assert.Null(results.Node.AccessRestrictions);
+            Assert.Null(results.ContinuationToken);
+            Assert.Collection(results.References,
+                reference => {
+                    Assert.Null(reference.ReferenceTypeId);
+                    Assert.Equal("DataAccess#FC1001", reference.Target.BrowseName);
+                    Assert.Null(reference.Direction);
+
+                    Assert.Equal("FC1001", reference.Target.DisplayName);
+                    Assert.Equal(NodeClass.Object, reference.Target.NodeClass);
+                    Assert.Equal("nsu=DataAccess;s=1:FC1001", reference.Target.NodeId);
+                    Assert.Null(reference.Target.Value);
+                    Assert.True(reference.Target.Children);
+                },
+                reference => {
+                    Assert.Null(reference.ReferenceTypeId);
+                    Assert.Equal("DataAccess#LC1001", reference.Target.BrowseName);
+                    Assert.Null(reference.Direction);
+
+                    Assert.Equal("LC1001", reference.Target.DisplayName);
+                    Assert.Equal(NodeClass.Object, reference.Target.NodeClass);
+                    Assert.Equal("nsu=DataAccess;s=1:LC1001", reference.Target.NodeId);
+                    Assert.Null(reference.Target.Value);
+                    Assert.True(reference.Target.Children);
+                },
+                reference => {
+                    Assert.Null(reference.ReferenceTypeId);
+                    Assert.Equal("DataAccess#CC1001", reference.Target.BrowseName);
+                    Assert.Null(reference.Direction);
+
+                    Assert.Equal("CC1001", reference.Target.DisplayName);
+                    Assert.Equal(NodeClass.Object, reference.Target.NodeClass);
+                    Assert.Equal("nsu=DataAccess;s=1:CC1001", reference.Target.NodeId);
+                    Assert.Null(reference.Target.Value);
+                    Assert.True(reference.Target.Children);
+                },
+                reference => {
+                    Assert.Null(reference.ReferenceTypeId);
+                    Assert.Equal("DataAccess#FC2001", reference.Target.BrowseName);
+                    Assert.Null(reference.Direction);
+
+                    Assert.Equal("FC2001", reference.Target.DisplayName);
+                    Assert.Equal(NodeClass.Object, reference.Target.NodeClass);
+                    Assert.Equal("nsu=DataAccess;s=1:FC2001", reference.Target.NodeId);
+                    Assert.Null(reference.Target.Value);
+                    Assert.True(reference.Target.Children);
+                },
+                reference => {
+                    Assert.Null(reference.ReferenceTypeId);
+                    Assert.Equal("DataAccess#LC2001", reference.Target.BrowseName);
+                    Assert.Null(reference.Direction);
+
+                    Assert.Equal("LC2001", reference.Target.DisplayName);
+                    Assert.Equal(NodeClass.Object, reference.Target.NodeClass);
+                    Assert.Equal("nsu=DataAccess;s=1:LC2001", reference.Target.NodeId);
+                    Assert.Null(reference.Target.Value);
+                    Assert.True(reference.Target.Children);
+                },
+                reference => {
+                    Assert.Null(reference.ReferenceTypeId);
+                    Assert.Equal("DataAccess#CC2001", reference.Target.BrowseName);
+                    Assert.Null(reference.Direction);
+
+                    Assert.Equal("CC2001", reference.Target.DisplayName);
+                    Assert.Equal(NodeClass.Object, reference.Target.NodeClass);
+                    Assert.Equal("nsu=DataAccess;s=1:CC2001", reference.Target.NodeId);
+                    Assert.Null(reference.Target.Value);
+                    Assert.True(reference.Target.Children);
+                });
+        }
+
+        public async Task NodeBrowseDataAccessObjectsTest4Async() {
+
+            var browser = _services();
+
+            // Act
+            var results = await browser.NodeBrowseAsync(_endpoint,
+                new BrowseRequestModel {
+                    NodeId = "DataAccess#s=0:TestData/Static",
+                    TargetNodesOnly = true,
+                    ReadVariableValues = true
+                });
+
+            // Assert
+            var test = JsonConvertEx.SerializeObjectPretty(results);
+
+            Assert.Equal("nsu=DataAccess;s=0:TestData/Static", results.Node.NodeId);
+            Assert.Equal("Static", results.Node.DisplayName);
+            Assert.Equal(true, results.Node.Children);
+            Assert.Null(results.Node.EventNotifier);
+            Assert.Null(results.Node.Description);
+            Assert.Null(results.Node.AccessRestrictions);
+            Assert.Null(results.ContinuationToken);
+            Assert.Collection(results.References,
+                reference => {
+                    Assert.Null(reference.ReferenceTypeId);
+                    Assert.Equal("DataAccess#FC1001", reference.Target.BrowseName);
+                    Assert.Null(reference.Direction);
+
+                    Assert.Equal("FC1001", reference.Target.DisplayName);
+                    Assert.Equal(NodeClass.Object, reference.Target.NodeClass);
+                    Assert.Equal("nsu=DataAccess;s=1:FC1001", reference.Target.NodeId);
+                    Assert.Null(reference.Target.Value);
+                    Assert.True(reference.Target.Children);
+                },
+                reference => {
+                    Assert.Null(reference.ReferenceTypeId);
+                    Assert.Equal("DataAccess#LC1001", reference.Target.BrowseName);
+                    Assert.Null(reference.Direction);
+
+                    Assert.Equal("LC1001", reference.Target.DisplayName);
+                    Assert.Equal(NodeClass.Object, reference.Target.NodeClass);
+                    Assert.Equal("nsu=DataAccess;s=1:LC1001", reference.Target.NodeId);
+                    Assert.Null(reference.Target.Value);
+                    Assert.True(reference.Target.Children);
+                },
+                reference => {
+                    Assert.Null(reference.ReferenceTypeId);
+                    Assert.Equal("DataAccess#CC1001", reference.Target.BrowseName);
+                    Assert.Null(reference.Direction);
+
+                    Assert.Equal("CC1001", reference.Target.DisplayName);
+                    Assert.Equal(NodeClass.Object, reference.Target.NodeClass);
+                    Assert.Equal("nsu=DataAccess;s=1:CC1001", reference.Target.NodeId);
+                    Assert.Null(reference.Target.Value);
+                    Assert.True(reference.Target.Children);
+                },
+                reference => {
+                    Assert.Null(reference.ReferenceTypeId);
+                    Assert.Equal("DataAccess#FC2001", reference.Target.BrowseName);
+                    Assert.Null(reference.Direction);
+
+                    Assert.Equal("FC2001", reference.Target.DisplayName);
+                    Assert.Equal(NodeClass.Object, reference.Target.NodeClass);
+                    Assert.Equal("nsu=DataAccess;s=1:FC2001", reference.Target.NodeId);
+                    Assert.Null(reference.Target.Value);
+                    Assert.True(reference.Target.Children);
+                },
+                reference => {
+                    Assert.Null(reference.ReferenceTypeId);
+                    Assert.Equal("DataAccess#LC2001", reference.Target.BrowseName);
+                    Assert.Null(reference.Direction);
+
+                    Assert.Equal("LC2001", reference.Target.DisplayName);
+                    Assert.Equal(NodeClass.Object, reference.Target.NodeClass);
+                    Assert.Equal("nsu=DataAccess;s=1:LC2001", reference.Target.NodeId);
+                    Assert.Null(reference.Target.Value);
+                    Assert.True(reference.Target.Children);
+                },
+                reference => {
+                    Assert.Null(reference.ReferenceTypeId);
+                    Assert.Equal("DataAccess#CC2001", reference.Target.BrowseName);
+                    Assert.Null(reference.Direction);
+
+                    Assert.Equal("CC2001", reference.Target.DisplayName);
+                    Assert.Equal(NodeClass.Object, reference.Target.NodeClass);
+                    Assert.Equal("nsu=DataAccess;s=1:CC2001", reference.Target.NodeId);
+                    Assert.Null(reference.Target.Value);
+                    Assert.True(reference.Target.Children);
+                });
+        }
+
+
+        public async Task NodeBrowseDataAccessFC1001Test1Async() {
+
+            var browser = _services();
+
+            // Act
+            var results = await browser.NodeBrowseAsync(_endpoint,
+                new BrowseRequestModel {
+                    NodeId = "nsu=DataAccess;s=1:FC1001",
+                    TargetNodesOnly = false
+                });
+
+            // Assert
+            var test = JsonConvertEx.SerializeObjectPretty(results);
+
+            Assert.Equal("nsu=DataAccess;s=1:FC1001", results.Node.NodeId);
+            Assert.Equal("FC1001", results.Node.DisplayName);
+            Assert.Equal(true, results.Node.Children);
+            Assert.Null(results.Node.EventNotifier);
+            Assert.Null(results.Node.Description);
+            Assert.Null(results.Node.AccessRestrictions);
+            Assert.Null(results.ContinuationToken);
+            Assert.Collection(results.References,
+                reference => {
+                    Assert.Equal("i=47", reference.ReferenceTypeId);
+                    Assert.Equal("DataAccess#SetPoint", reference.Target.BrowseName);
+                    Assert.Equal(BrowseDirection.Forward, reference.Direction);
+
+                    Assert.Equal("SetPoint", reference.Target.DisplayName);
+                    Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
+                    Assert.Equal("nsu=DataAccess;s=1:FC1001?SetPoint", reference.Target.NodeId);
+                    Assert.True(reference.Target.Children);
+                },
+                reference => {
+                    Assert.Equal("i=47", reference.ReferenceTypeId);
+                    Assert.Equal("DataAccess#Measurement", reference.Target.BrowseName);
+                    Assert.Equal(BrowseDirection.Forward, reference.Direction);
+
+                    Assert.Equal("Measurement", reference.Target.DisplayName);
+                    Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
+                    Assert.Equal("nsu=DataAccess;s=1:FC1001?Measurement", reference.Target.NodeId);
+                    Assert.Equal("i=2365", reference.Target.TypeDefinitionId);
+                    Assert.Equal("Float", reference.Target.DataType);
+                    Assert.True(reference.Target.Children);
+                },
+                reference => {
+                    Assert.Equal("i=47", reference.ReferenceTypeId);
+                    Assert.Equal("DataAccess#Output", reference.Target.BrowseName);
+                    Assert.Equal(BrowseDirection.Forward, reference.Direction);
+
+                    Assert.Equal("Output", reference.Target.DisplayName);
+                    Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
+                    Assert.Equal("nsu=DataAccess;s=1:FC1001?Output", reference.Target.NodeId);
+                    Assert.Equal("i=2365", reference.Target.TypeDefinitionId);
+                    Assert.Equal("Float", reference.Target.DataType);
+                    Assert.True(reference.Target.Children);
+                },
+                reference => {
+                    Assert.Equal("i=47", reference.ReferenceTypeId);
+                    Assert.Equal("DataAccess#Status", reference.Target.BrowseName);
+                    Assert.Equal(BrowseDirection.Forward, reference.Direction);
+
+                    Assert.Equal("Status", reference.Target.DisplayName);
+                    Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
+                    Assert.Equal("nsu=DataAccess;s=1:FC1001?Status", reference.Target.NodeId);
+                    Assert.Equal("i=2376", reference.Target.TypeDefinitionId);
+                    Assert.Equal("Int32", reference.Target.DataType);
+                    Assert.True(reference.Target.Children);
+                });
+        }
+
+        public async Task NodeBrowseDataAccessFC1001Test2Async() {
+
+            var browser = _services();
+
+            // Act
+            var results = await browser.NodeBrowseAsync(_endpoint,
+                new BrowseRequestModel {
+                    NodeId = "nsu=DataAccess;s=1:FC1001",
+                    TargetNodesOnly = true,
+                    ReadVariableValues = true
+                });
+
+            // Assert
+            var test = JsonConvertEx.SerializeObjectPretty(results);
+
+            Assert.Equal("nsu=DataAccess;s=1:FC1001", results.Node.NodeId);
+            Assert.Equal("FC1001", results.Node.DisplayName);
+            Assert.Equal(true, results.Node.Children);
+            Assert.Null(results.Node.EventNotifier);
+            Assert.Null(results.Node.Description);
+            Assert.Null(results.Node.AccessRestrictions);
+            Assert.Null(results.ContinuationToken);
+            Assert.Collection(results.References,
+                reference => {
+                    Assert.Null(reference.ReferenceTypeId);
+                    Assert.Equal("DataAccess#SetPoint", reference.Target.BrowseName);
+                    Assert.Null(reference.Direction);
+
+                    Assert.Equal("SetPoint", reference.Target.DisplayName);
+                    Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
+                    Assert.Equal("nsu=DataAccess;s=1:FC1001?SetPoint", reference.Target.NodeId);
+                    Assert.NotNull(reference.Target.Value);
+                    Assert.True(reference.Target.Children);
+                },
+                reference => {
+                    Assert.Null(reference.ReferenceTypeId);
+                    Assert.Equal("DataAccess#Measurement", reference.Target.BrowseName);
+                    Assert.Null(reference.Direction);
+
+                    Assert.Equal("Measurement", reference.Target.DisplayName);
+                    Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
+                    Assert.Equal("nsu=DataAccess;s=1:FC1001?Measurement", reference.Target.NodeId);
+                    Assert.Equal("i=2365", reference.Target.TypeDefinitionId);
+                    Assert.Equal("Float", reference.Target.DataType);
+                    Assert.NotNull(reference.Target.Value);
+                    Assert.True(reference.Target.Children);
+                },
+                reference => {
+                    Assert.Null(reference.ReferenceTypeId);
+                    Assert.Equal("DataAccess#Output", reference.Target.BrowseName);
+                    Assert.Null(reference.Direction);
+
+                    Assert.Equal("Output", reference.Target.DisplayName);
+                    Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
+                    Assert.Equal("nsu=DataAccess;s=1:FC1001?Output", reference.Target.NodeId);
+                    Assert.Equal("i=2365", reference.Target.TypeDefinitionId);
+                    Assert.Equal("Float", reference.Target.DataType);
+                    Assert.NotNull(reference.Target.Value);
+                    Assert.True(reference.Target.Children);
+                },
+                reference => {
+                    Assert.Null(reference.ReferenceTypeId);
+                    Assert.Equal("DataAccess#Status", reference.Target.BrowseName);
+                    Assert.Null(reference.Direction);
+
+                    Assert.Equal("Status", reference.Target.DisplayName);
+                    Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
+                    Assert.Equal("nsu=DataAccess;s=1:FC1001?Status", reference.Target.NodeId);
+                    Assert.Equal("i=2376", reference.Target.TypeDefinitionId);
+                    Assert.Equal("Int32", reference.Target.DataType);
+                    Assert.NotNull(reference.Target.Value);
+                    Assert.True(reference.Target.Children);
+                });
+        }
+
+        public async Task NodeBrowseBoilersObjectsTest2Async() {
 
             var browser = _services();
 
@@ -244,7 +791,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeBrowseStaticScalarVariablesTest() {
+        public async Task NodeBrowseStaticScalarVariablesTestAsync() {
 
             var browser = _services();
 
@@ -645,7 +1192,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeBrowseStaticArrayVariablesTest() {
+        public async Task NodeBrowseStaticArrayVariablesTestAsync() {
 
             var browser = _services();
 
@@ -1076,7 +1623,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeBrowseStaticArrayVariablesWithValuesTest() {
+        public async Task NodeBrowseStaticArrayVariablesWithValuesTestAsync() {
 
             var browser = _services();
 
@@ -1365,7 +1912,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
 
 
 
-        public async Task NodeBrowseStaticArrayVariablesRawModeTest() {
+        public async Task NodeBrowseStaticArrayVariablesRawModeTestAsync() {
 
             var browser = _services();
 
@@ -1428,7 +1975,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeBrowsePathStaticScalarMethod3Test1() {
+        public async Task NodeBrowsePathStaticScalarMethod3Test1Async() {
             var nodeId = "http://test.org/UA/Data/#i=10157"; // Data
             var pathElements = new[] {
                 "http://test.org/UA/Data/#Static",
@@ -1462,7 +2009,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeBrowsePathStaticScalarMethod3Test2() {
+        public async Task NodeBrowsePathStaticScalarMethod3Test2Async() {
             var nodeId = "http://test.org/UA/Data/#i=10157"; // Data
             var pathElements = new[] {
                 ".http://test.org/UA/Data/#Static",
@@ -1496,7 +2043,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeBrowsePathStaticScalarMethod3Test3() {
+        public async Task NodeBrowsePathStaticScalarMethod3Test3Async() {
             var nodeId = "http://test.org/UA/Data/#i=10157"; // Data
             var pathElements = new[] {
                 "<HasComponent>http://test.org/UA/Data/#Static",
@@ -1530,7 +2077,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeBrowsePathStaticScalarMethodsTest() {
+        public async Task NodeBrowsePathStaticScalarMethodsTestAsync() {
             var nodeId = "http://test.org/UA/Data/#i=10157"; // Data
             var pathElements3 = new[] {
                 ".http://test.org/UA/Data/#Static",
@@ -1575,7 +2122,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeBrowseDiagnosticsNoneTest() {
+        public async Task NodeBrowseDiagnosticsNoneTestAsync() {
 
             var browser = _services();
 
@@ -1599,7 +2146,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeBrowseDiagnosticsStatusTest() {
+        public async Task NodeBrowseDiagnosticsStatusTestAsync() {
 
             var browser = _services();
 
@@ -1608,7 +2155,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 new BrowseRequestModel {
                     Header = new RequestHeaderModel {
                         Diagnostics = new DiagnosticsModel {
-                            AuditId = nameof(NodeBrowseDiagnosticsStatusTest),
+                            AuditId = nameof(NodeBrowseDiagnosticsStatusTestAsync),
                             TimeStamp = System.DateTime.Now,
                             Level = DiagnosticsLevel.Status
                         }
@@ -1627,7 +2174,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeBrowseDiagnosticsOperationsTest() {
+        public async Task NodeBrowseDiagnosticsOperationsTestAsync() {
 
             var browser = _services();
 
@@ -1657,7 +2204,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeBrowseDiagnosticsVerboseTest() {
+        public async Task NodeBrowseDiagnosticsVerboseTestAsync() {
 
             var browser = _services();
 

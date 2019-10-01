@@ -514,12 +514,12 @@ namespace HistoricalEvents {
         /// Stores a read history request.
         /// </summary>
         private class HistoryReadRequest {
-            public byte[] ContinuationPoint;
-            public LinkedList<BaseEventState> Events;
-            public bool TimeFlowsBackward;
-            public uint NumValuesPerNode;
-            public EventFilter Filter;
-            public FilterContext FilterContext;
+            public byte[] ContinuationPoint { get; set; }
+            public LinkedList<BaseEventState> Events { get; set; }
+            public bool TimeFlowsBackward { get; set; }
+            public uint NumValuesPerNode { get; set; }
+            public EventFilter Filter { get; set; }
+            public FilterContext FilterContext { get; set; }
         }
 
         /// <summary>

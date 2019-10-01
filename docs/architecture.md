@@ -1,5 +1,7 @@
 # OPC Twin Architecture
 
+[Home](readme.md)
+
 The following diagrams illustrate the OPC Twin architecture and how its components interact.
 
 ## Discovery and Activation

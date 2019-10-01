@@ -1,6 +1,6 @@
 # Azure Industrial IoT
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Build Status](https://msazure.visualstudio.com/One/_apis/build/status/Custom/Azure_IOT/Industrial/Components/Azure.Industrial-IoT?branchName=master)](https://msazure.visualstudio.com/One/_build/latest?definitionId=86580&branchName=master)
 
 ## Features
 
@@ -20,36 +20,28 @@ The [REST API](docs/api/readme.md) can be used with any programming language thr
 
 Azure Industrial IoT manages OPC UA Application Certificates and Trust Lists of factory floor machinery and control systems to keep OPC UA client to server communication secure. It restricts which client is allowed to talk to which server.  Storage of private keys and signing of certificates is backed by Azure Key Vault, which supports hardware based security (HSM).
 
-## Architecture
+## Architecture and Components
 
-The overall Azure Industrial IOT architecture looks like below.
+This repository includes the Industrial IoT Microservices as well as Azure IoT Edge modules, including:
 
-  ![architecture](docs/media/architecture.PNG)
+- [OPC Twin module](docs/modules/twin.md)
 
-Details on how things work together can be found at [architectural code flow](docs/architecture.md).
-## Components
+* [OPC Publisher module](docs/modules/publisher.md)
 
-[![Build Status](https://msazure.visualstudio.com/One/_apis/build/status/Custom/Azure_IOT/Industrial/Components/Azure.Industrial-IoT?branchName=master)](https://msazure.visualstudio.com/One/_build/latest?definitionId=86580&branchName=master)
+These are all part of the Azure Industrial IoT platform architecture.
 
-This repository includes the following Industrial IoT components:
+![architecture](docs/media/architecture.PNG)
 
-* Cloud Management and Data Plane, including
-   * [OPC Twin](docs/services/twin.md) Microservices provide discovery, registration, and remote control of industrial devices through REST APIs.  
-   * [OPC Vault](docs/services/vault.md) enables secure communication among OPC UA enabled devices and the cloud. 
-   * A REST based [API](docs/api/readme.md) to access service functionality.
-* Edge components
-  * [OPC Twin module](docs/modules/twin.md)
-  * [OPC Publisher module](docs/modules/publisher.md)
+Details on how things work together can be found in the [architectural flow](docs/architecture.md) document.
 
-## Learn more
+### Learn more
 
 * [Deploy Azure Industrial IoT](docs/readme.md)
+* [Read the docs](https://azure.github.io/Industrial-IoT/)
 * Explore the samples
   * [Connected Factory](https://github.com/Azure/Azure-IoT-Connected-Factory) Solution Accelerator which you can try out [here](https://www.azureiotsolutions.com/Accelerators).
   * [OPC Vault Dashboard](https://github.com/Azure/azure-iiot-opc-vault-service/tree/master/app)
   * [OPC Twin Browser](https://github.com/Azure/azure-iiot-opc-twin-webui)
-* Read more about Industrial IoT Components [here](docs/industrial-iot-components.md)
-* See the complete code structure [here](docs/code-structure.md)
 
 ### Give feedback and report bugs
 
@@ -61,7 +53,7 @@ Please enter all other bugs, documentation issues, or suggestions as GitHub Issu
 
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct).  For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
 
-If you want/plan to contribute, we ask you to sign a [CLA](https://cla.microsoft.com/) (Contribution License Agreement) and follow the project 's [code submission guidelines](docs/contributing.md). A friendly bot will remind you about it when you submit a pull-request.
+If you want/plan to contribute, we ask you to sign a [CLA](https://cla.microsoft.com/) (Contribution License Agreement) and follow the project 's [code submission guidelines](contributing.md). A friendly bot will remind you about it when you submit a pull-request.
 
 ## License
 

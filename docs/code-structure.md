@@ -1,5 +1,7 @@
 # Code Structure
 
+[Home](readme.md)
+
 The Industrial-IoT repository includes all Azure Industrial IoT platform components:
 
 * **Api** 

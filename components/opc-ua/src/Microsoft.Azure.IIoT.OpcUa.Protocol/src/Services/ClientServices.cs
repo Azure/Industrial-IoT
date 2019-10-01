@@ -54,7 +54,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
             // Create discovery config and client certificate
             _opcApplicationConfig = CreateApplicationConfiguration(
-                TimeSpan.FromMinutes(2), TimeSpan.FromMinutes(2));
+                TimeSpan.FromSeconds(15), TimeSpan.FromSeconds(30));
             InitApplicationSecurityAsync().Wait();
 
             _timer = new Timer(_ => OnTimer(), null, kEvictionCheck, Timeout.InfiniteTimeSpan);
@@ -190,16 +190,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         /// <inheritdoc/>
         public void Dispose() {
-            if (!_cts.IsCancellationRequested) {
-                Try.Op(() => _cts.Cancel());
-                Try.Op(() => _timer.Dispose());
-
-                foreach (var client in _clients.Values) {
-                    Try.Op(client.Dispose);
-                }
-                _clients.Clear();
+            Try.Op(() => _cts.Cancel());
+            Try.Op(() => _timer.Dispose());
+            foreach (var client in _clients.Values) {
+                Try.Op(client.Dispose);
             }
+            _clients.Clear();
             Try.Op(() => _cts.Dispose());
+            _lock.Dispose();
         }
 
         /// <inheritdoc/>
@@ -376,6 +374,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// </summary>
         /// <returns></returns>
         private void OnTimer() {
+            if (_cts.IsCancellationRequested) {
+                return;
+            }
             try {
                 // manage sessions
                 foreach (var client in _clients.ToList()) {
@@ -386,6 +387,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             }
             catch (Exception ex) {
                 _logger.Error(ex, "Error managing session clients...");
+            }
+            if (_cts.IsCancellationRequested) {
+                return;
             }
             try {
                 // Re-arm
@@ -700,11 +704,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         private readonly ApplicationConfiguration _opcApplicationConfig;
         private readonly Dictionary<EndpointIdentifier, IClientSession> _clients =
             new Dictionary<EndpointIdentifier, IClientSession>();
-        private readonly SemaphoreSlim _lock = new SemaphoreSlim(1);
         private readonly ConcurrentDictionary<EndpointIdentifier, Func<EndpointConnectivityState, Task>> _callbacks =
             new ConcurrentDictionary<EndpointIdentifier, Func<EndpointConnectivityState, Task>>();
+        private readonly SemaphoreSlim _lock = new SemaphoreSlim(1);
+#pragma warning disable IDE0069 // Disposable fields should be disposed
         private readonly CancellationTokenSource _cts =
             new CancellationTokenSource();
         private readonly Timer _timer;
+#pragma warning restore IDE0069 // Disposable fields should be disposed
     }
 }

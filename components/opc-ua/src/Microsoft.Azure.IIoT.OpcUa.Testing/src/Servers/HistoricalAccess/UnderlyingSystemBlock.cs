@@ -455,9 +455,10 @@ namespace HistoricalAccess {
             return true;
         }
 
-        private readonly object _lock = new object();
         private readonly List<UnderlyingSystemTag> _tags;
+#pragma warning disable IDE1006 // Naming Styles
         private TagsChangedEventHandler OnTagsChanged;
+#pragma warning restore IDE1006 // Naming Styles
     }
 
     /// <summary>

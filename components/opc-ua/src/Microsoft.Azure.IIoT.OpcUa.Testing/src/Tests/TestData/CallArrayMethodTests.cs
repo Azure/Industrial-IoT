@@ -28,7 +28,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             _endpoint = endpoint;
         }
 
-        public async Task NodeMethodMetadataStaticArrayMethod1Test() {
+        public async Task NodeMethodMetadataStaticArrayMethod1TestAsync() {
 
             var service = _services();
             var methodId = "http://test.org/UA/Data/#i=10765";
@@ -267,7 +267,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeMethodMetadataStaticArrayMethod2Test() {
+        public async Task NodeMethodMetadataStaticArrayMethod2TestAsync() {
 
             var service = _services();
             var methodId = "http://test.org/UA/Data/#i=10768";
@@ -486,7 +486,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeMethodMetadataStaticArrayMethod3Test() {
+        public async Task NodeMethodMetadataStaticArrayMethod3TestAsync() {
 
             var service = _services();
             var methodId = "http://test.org/UA/Data/#i=10771";
@@ -565,7 +565,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeMethodCallStaticArrayMethod1Test1() {
+        public async Task NodeMethodCallStaticArrayMethod1Test1Async() {
 
             var service = _services();
             var methodId = "http://test.org/UA/Data/#i=10765";
@@ -650,7 +650,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeMethodCallStaticArrayMethod1Test2() {
+        public async Task NodeMethodCallStaticArrayMethod1Test2Async() {
 
             var service = _services();
             var methodId = "http://test.org/UA/Data/#i=10765";
@@ -729,7 +729,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeMethodCallStaticArrayMethod1Test3() {
+        public async Task NodeMethodCallStaticArrayMethod1Test3Async() {
 
             var service = _services();
             var methodId = "http://test.org/UA/Data/#i=10765";
@@ -754,7 +754,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeMethodCallStaticArrayMethod1Test4() {
+        public async Task NodeMethodCallStaticArrayMethod1Test4Async() {
 
             var service = _services();
             var methodId = "http://test.org/UA/Data/#i=10765";
@@ -847,7 +847,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeMethodCallStaticArrayMethod1Test5() {
+        public async Task NodeMethodCallStaticArrayMethod1Test5Async() {
 
             var service = _services();
             var methodId = "http://test.org/UA/Data/#i=10765";
@@ -952,7 +952,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeMethodCallStaticArrayMethod2Test1() {
+        public async Task NodeMethodCallStaticArrayMethod2Test1Async() {
 
             var service = _services();
             var methodId = "http://test.org/UA/Data/#i=10768";
@@ -1127,7 +1127,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeMethodCallStaticArrayMethod2Test2() {
+        public async Task NodeMethodCallStaticArrayMethod2Test2Async() {
 
             var service = _services();
             var methodId = "http://test.org/UA/Data/#i=10768";
@@ -1151,7 +1151,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeMethodCallStaticArrayMethod2Test3() {
+        public async Task NodeMethodCallStaticArrayMethod2Test3Async() {
 
             var service = _services();
             var methodId = "http://test.org/UA/Data/#i=10768";
@@ -1195,7 +1195,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeMethodCallStaticArrayMethod2Test4() {
+        public async Task NodeMethodCallStaticArrayMethod2Test4Async() {
 
             var service = _services();
             var methodId = "http://test.org/UA/Data/#i=10768";
@@ -1266,7 +1266,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeMethodCallStaticArrayMethod3Test1() {
+        public async Task NodeMethodCallStaticArrayMethod3Test1Async() {
 
             var service = _services();
             var methodId = "http://test.org/UA/Data/#i=10771";
@@ -1306,7 +1306,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeMethodCallStaticArrayMethod3Test2() {
+        public async Task NodeMethodCallStaticArrayMethod3Test2Async() {
 
             var service = _services();
             var methodId = "http://test.org/UA/Data/#i=10771";
@@ -1374,7 +1374,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeMethodCallStaticArrayMethod3Test3() {
+        public async Task NodeMethodCallStaticArrayMethod3Test3Async() {
 
             var service = _services();
             var methodId = "http://test.org/UA/Data/#i=10771";

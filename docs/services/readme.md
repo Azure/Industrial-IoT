@@ -1,21 +1,26 @@
 # Azure Industrial IoT Microservices
 
+[Home](../readme.md)
+
 Azure Industrial IoT Microservices use Azure IoT Edge and IoT Hub to connect the cloud and factory networks.
 
 These microservices use the OPC UA components included in this repository to provide discovery, registration, and remote control of industrial devices through REST APIs.  Applications using the REST API do not require an OPC UA SDK, and can be implemented in any programming language and framework that can call an HTTP endpoint.
 
-The following services are part of the platform:
+The following Microservices are part of the platform:
 
 * [OPC Registry Microservice](registry.md)
 * [OPC Vault Microservice](vault.md)
 * [OPC History Access Microservice](history.md)
 * [OPC Twin Microservice](twin.md)
-* [OPC Gateway](gateway.md)
+* [OPC Gateway Service](gateway.md)
 
 The following Agents are part of the platform:
 
 * [OPC Onboarding Agent](onboarding.md)
-* [TODO]
+* [Security Alerting Service](security.md)
+* [Job Service](jobs.md)
+* [Blob Notification Service](blob.md)
+* [OPC Model Processor Agent](graph.md)
 
 ## Next steps
 

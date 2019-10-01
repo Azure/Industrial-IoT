@@ -144,7 +144,7 @@ namespace Boiler {
         /// <summary>
         /// Moves the value towards the target.
         /// </summary>
-        private double Adjust(double value, double target, double step, Range range) {
+        private double Adjust(double value, double target, double step, Opc.Ua.Range range) {
             // convert percentage step to an absolute step if range is specified.
             if (range != null) {
                 step = step * range.Magnitude;
@@ -191,7 +191,7 @@ namespace Boiler {
         /// <summary>
         /// Returns the value as a percentage of the range.
         /// </summary>
-        private double GetValue(double value, Range range) {
+        private double GetValue(double value, Opc.Ua.Range range) {
             if (range != null) {
                 return value * range.Magnitude;
             }

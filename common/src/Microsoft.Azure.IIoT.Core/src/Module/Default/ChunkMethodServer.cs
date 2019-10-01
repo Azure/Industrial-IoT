@@ -13,6 +13,7 @@ namespace Microsoft.Azure.IIoT.Module.Default {
     using System.Threading;
     using System.Threading.Tasks;
     using System.Net;
+    using System.Text;
 
     /// <summary>
     /// Chunked method provide reliable any size send/receive
@@ -144,7 +145,7 @@ namespace Microsoft.Azure.IIoT.Module.Default {
                         _payload = result.Zip();
                     }
                     catch (MethodCallStatusException mex) {
-                        _payload = mex.Payload.Zip();
+                        _payload = Encoding.UTF8.GetBytes(mex.ResponsePayload).Zip();
                         status = mex.Result;
                     }
                     catch (Exception ex) {

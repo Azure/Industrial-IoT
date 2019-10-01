@@ -124,7 +124,8 @@ namespace Opc.Ua.Extensions {
                 }
             }
             if (nsUri != null && !Uri.IsWellFormedUriString(nsUri, UriKind.Absolute)) {
-                return nodeId.ToString();  // Fall back to nsu= format
+                // Fall back to nsu= format - but strip indexes
+                return new ExpandedNodeId(nodeId.Identifier, 0, nsUri, 0).ToString();
             }
             return FormatNodeIdUri(nsUri, srvUri, nodeId.IdType, nodeId.Identifier);
         }

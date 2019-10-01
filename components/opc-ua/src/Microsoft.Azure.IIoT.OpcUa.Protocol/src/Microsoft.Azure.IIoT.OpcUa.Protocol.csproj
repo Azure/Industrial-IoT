@@ -14,13 +14,13 @@
     <None Remove="Stack\Types\BuiltIn\UA Core Services.xml" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="2.2.4" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Ini" Version="2.2.0" />
-    <PackageReference Include="System.Private.ServiceModel" Version="4.5.3" />
-    <PackageReference Include="System.Security.Principal.Windows" Version="4.5.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="3.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Ini" Version="3.0.0" />
+    <PackageReference Include="System.Private.ServiceModel" Version="4.6.0" />
+    <PackageReference Include="System.Security.Principal.Windows" Version="4.6.0" />
     <PackageReference Include="System.Net.Security" Version="4.3.2" />
     <PackageReference Include="System.Net.WebSockets.Client" Version="4.3.2" />
-    <PackageReference Include="System.ServiceModel.Primitives" Version="4.5.3" />
+    <PackageReference Include="System.ServiceModel.Primitives" Version="4.6.0" />
   </ItemGroup>
   <Choose>
     <When Condition="'$(Configuration)'=='Release'">
@@ -45,4 +45,16 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa\src\Microsoft.Azure.IIoT.OpcUa.csproj" />
   </ItemGroup>
+  <Choose>
+    <When Condition="'$(PROJECT_BUILD)' == ''">
+      <ItemGroup>
+        <ProjectReference Include="..\..\..\..\..\common\src\Microsoft.Azure.IIoT.Net\src\Microsoft.Azure.IIoT.Net.csproj" />
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <PackageReference Include="Microsoft.Azure.IIoT.Net" Version="$(ReleaseVersion)" />
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
 </Project>

@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.v2.Controllers {
+namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.v2 {
     using Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures;
     using Xunit;
 

@@ -70,10 +70,10 @@ namespace TestData {
 
             if (variable.FindChild(context, Opc.Ua.BrowseNames.EURange) is BaseVariableState euRange) {
                 if (context.TypeTable.IsTypeOf(variable.DataType, Opc.Ua.DataTypeIds.UInteger)) {
-                    euRange.Value = new Range(250, 50);
+                    euRange.Value = new Opc.Ua.Range(250, 50);
                 }
                 else {
-                    euRange.Value = new Range(100, -100);
+                    euRange.Value = new Opc.Ua.Range(100, -100);
                 }
             }
 
@@ -95,7 +95,7 @@ namespace TestData {
                 }
 
 
-                if (!(euRange.Value is Range range)) {
+                if (!(euRange.Value is Opc.Ua.Range range)) {
                     return ServiceResult.Good;
                 }
 

@@ -341,11 +341,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
                     }
                     var edgeName = Environment.GetEnvironmentVariable("IOTEDGE_GATEWAYHOSTNAME");
                     if (string.IsNullOrEmpty(edgeName)) {
-                        cs = $"HostName={hostName};DeviceId={endpointId};SharedAccessKey={secret}";                        
+                        cs = $"HostName={hostName};DeviceId={endpointId};SharedAccessKey={secret}";
                     }
                     else {
                         cs = $"HostName={hostName};DeviceId={endpointId};GatewayHostName={edgeName};SharedAccessKey={secret}";
-                    }                    
+                    }
                 }
                 else {
                     // Use existing connection string as a master plan
@@ -363,7 +363,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor {
                          string.IsNullOrEmpty(edgeName)) {
                         cs = $"HostName={hostName};DeviceId={endpointId};SharedAccessKey={secret}";
                     }
-                    else {                        
+                    else {
                         cs = $"HostName={hostName};DeviceId={endpointId};GatewayHostName={edgeName};SharedAccessKey={secret}";
                     }
                 }

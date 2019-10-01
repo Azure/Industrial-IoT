@@ -16,12 +16,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Processor implementation
+    /// Server discovery result handling
     /// </summary>
     public sealed class DiscoveryEventHandler : IDeviceEventHandler {
 
         /// <inheritdoc/>
-        public string ContentType => ContentTypes.DiscoveryEvent;
+        public string ContentType => ContentTypes.DiscoveryEvents;
 
         /// <summary>
         /// Create handler
@@ -42,7 +42,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
                 discovery = JsonConvertEx.DeserializeObject<DiscoveryEventModel>(json);
             }
             catch (Exception ex) {
-                _logger.Error(ex, "Failed to convert discovery {json}", json);
+                _logger.Error(ex, "Failed to convert discovery result {json}", json);
                 return;
             }
             try {

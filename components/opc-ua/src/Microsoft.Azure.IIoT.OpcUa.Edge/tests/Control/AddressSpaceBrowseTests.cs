@@ -33,88 +33,123 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
         private readonly TestServerFixture _server;
 
         [Fact]
-        public async Task NodeBrowseInRootTest1() {
-            await GetTests().NodeBrowseInRootTest1();
+        public async Task NodeBrowseInRootTest1Async() {
+            await GetTests().NodeBrowseInRootTest1Async();
         }
 
         [Fact]
-        public async Task NodeBrowseFirstInRootTest1() {
-            await GetTests().NodeBrowseFirstInRootTest1();
+        public async Task NodeBrowseInRootTest2Async() {
+            await GetTests().NodeBrowseInRootTest2Async();
         }
 
         [Fact]
-        public async Task NodeBrowseFirstInRootTest2() {
-            await GetTests().NodeBrowseFirstInRootTest2();
+        public async Task NodeBrowseFirstInRootTest1Async() {
+            await GetTests().NodeBrowseFirstInRootTest1Async();
         }
 
         [Fact]
-        public async Task NodeBrowseBoilersObjectsTest1() {
-            await GetTests().NodeBrowseBoilersObjectsTest1();
+        public async Task NodeBrowseFirstInRootTest2Async() {
+            await GetTests().NodeBrowseFirstInRootTest2Async();
         }
 
         [Fact]
-        public async Task NodeBrowseBoilersObjectsTest2() {
-            await GetTests().NodeBrowseBoilersObjectsTest2();
+        public async Task NodeBrowseBoilersObjectsTest1Async() {
+            await GetTests().NodeBrowseBoilersObjectsTest1Async();
         }
 
         [Fact]
-        public async Task NodeBrowseStaticScalarVariablesTest() {
-            await GetTests().NodeBrowseStaticScalarVariablesTest();
+        public async Task NodeBrowseBoilersObjectsTest2Async() {
+            await GetTests().NodeBrowseBoilersObjectsTest2Async();
         }
 
         [Fact]
-        public async Task NodeBrowseStaticArrayVariablesTest() {
-            await GetTests().NodeBrowseStaticArrayVariablesTest();
+        public async Task NodeBrowseDataAccessObjectsTest1Async() {
+            await GetTests().NodeBrowseDataAccessObjectsTest1Async();
         }
 
         [Fact]
-        public async Task NodeBrowseStaticArrayVariablesWithValuesTest() {
-            await GetTests().NodeBrowseStaticArrayVariablesWithValuesTest();
+        public async Task NodeBrowseDataAccessObjectsTest2Async() {
+            await GetTests().NodeBrowseDataAccessObjectsTest2Async();
         }
 
         [Fact]
-        public async Task NodeBrowseStaticArrayVariablesRawModeTest() {
-            await GetTests().NodeBrowseStaticArrayVariablesRawModeTest();
+        public async Task NodeBrowseDataAccessObjectsTest3Async() {
+            await GetTests().NodeBrowseDataAccessObjectsTest3Async();
         }
 
         [Fact]
-        public async Task NodeBrowsePathStaticScalarMethod3Test1() {
-            await GetTests().NodeBrowsePathStaticScalarMethod3Test1();
+        public async Task NodeBrowseDataAccessObjectsTest4Async() {
+            await GetTests().NodeBrowseDataAccessObjectsTest4Async();
         }
 
         [Fact]
-        public async Task NodeBrowsePathStaticScalarMethod3Test2() {
-            await GetTests().NodeBrowsePathStaticScalarMethod3Test2();
+        public async Task NodeBrowseDataAccessFC1001Test1Async() {
+            await GetTests().NodeBrowseDataAccessFC1001Test1Async();
         }
 
         [Fact]
-        public async Task NodeBrowsePathStaticScalarMethod3Test3() {
-            await GetTests().NodeBrowsePathStaticScalarMethod3Test3();
+        public async Task NodeBrowseDataAccessFC1001Test2Async() {
+            await GetTests().NodeBrowseDataAccessFC1001Test2Async();
         }
 
         [Fact]
-        public async Task NodeBrowsePathStaticScalarMethodsTest() {
-            await GetTests().NodeBrowsePathStaticScalarMethodsTest();
+        public async Task NodeBrowseStaticScalarVariablesTestAsync() {
+            await GetTests().NodeBrowseStaticScalarVariablesTestAsync();
         }
 
         [Fact]
-        public async Task NodeBrowseDiagnosticsNoneTest() {
-            await GetTests().NodeBrowseDiagnosticsNoneTest();
+        public async Task NodeBrowseStaticArrayVariablesTestAsync() {
+            await GetTests().NodeBrowseStaticArrayVariablesTestAsync();
         }
 
         [Fact]
-        public async Task NodeBrowseDiagnosticsStatusTest() {
-            await GetTests().NodeBrowseDiagnosticsStatusTest();
+        public async Task NodeBrowseStaticArrayVariablesWithValuesTestAsync() {
+            await GetTests().NodeBrowseStaticArrayVariablesWithValuesTestAsync();
         }
 
         [Fact]
-        public async Task NodeBrowseDiagnosticsOperationsTest() {
-            await GetTests().NodeBrowseDiagnosticsOperationsTest();
+        public async Task NodeBrowseStaticArrayVariablesRawModeTestAsync() {
+            await GetTests().NodeBrowseStaticArrayVariablesRawModeTestAsync();
         }
 
         [Fact]
-        public async Task NodeBrowseDiagnosticsVerboseTest() {
-            await GetTests().NodeBrowseDiagnosticsVerboseTest();
+        public async Task NodeBrowsePathStaticScalarMethod3Test1Async() {
+            await GetTests().NodeBrowsePathStaticScalarMethod3Test1Async();
+        }
+
+        [Fact]
+        public async Task NodeBrowsePathStaticScalarMethod3Test2Async() {
+            await GetTests().NodeBrowsePathStaticScalarMethod3Test2Async();
+        }
+
+        [Fact]
+        public async Task NodeBrowsePathStaticScalarMethod3Test3Async() {
+            await GetTests().NodeBrowsePathStaticScalarMethod3Test3Async();
+        }
+
+        [Fact]
+        public async Task NodeBrowsePathStaticScalarMethodsTestAsync() {
+            await GetTests().NodeBrowsePathStaticScalarMethodsTestAsync();
+        }
+
+        [Fact]
+        public async Task NodeBrowseDiagnosticsNoneTestAsync() {
+            await GetTests().NodeBrowseDiagnosticsNoneTestAsync();
+        }
+
+        [Fact]
+        public async Task NodeBrowseDiagnosticsStatusTestAsync() {
+            await GetTests().NodeBrowseDiagnosticsStatusTestAsync();
+        }
+
+        [Fact]
+        public async Task NodeBrowseDiagnosticsOperationsTestAsync() {
+            await GetTests().NodeBrowseDiagnosticsOperationsTestAsync();
+        }
+
+        [Fact]
+        public async Task NodeBrowseDiagnosticsVerboseTestAsync() {
+            await GetTests().NodeBrowseDiagnosticsVerboseTestAsync();
         }
     }
 }

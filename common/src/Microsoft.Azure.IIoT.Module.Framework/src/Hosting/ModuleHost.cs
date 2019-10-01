@@ -265,7 +265,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             }
             if (response.Status != 200) {
                 throw new MethodCallStatusException(
-                    Encoding.UTF8.GetBytes(response.ResultAsJson), response.Status);
+                    response.ResultAsJson, response.Status);
             }
             return response.ResultAsJson;
         }
@@ -325,7 +325,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             if (!string.IsNullOrEmpty(_twin.ModuleId)) {
                 ModuleId = _twin.ModuleId;
             }
-            _logger.Information("Initialize twin for {deviceId} - {moduleId}",
+            _logger.Information("Initialize device twin for {deviceId} - {moduleId}",
                 DeviceId, ModuleId ?? "standalone");
             if (_twin.Properties.Reported.Count > 0 || _twin.Properties.Desired.Count > 0) {
 

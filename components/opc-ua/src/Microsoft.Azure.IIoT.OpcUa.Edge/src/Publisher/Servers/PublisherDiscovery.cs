@@ -4,16 +4,16 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Servers {
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Clients;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Clients.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Transport.Probe;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol;
+    using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.Net;
     using Microsoft.Azure.IIoT.Net.Models;
     using Microsoft.Azure.IIoT.Net.Scanner;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Discovery;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Clients;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Clients.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Protocol;
-    using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using Newtonsoft.Json;
     using Opc.Ua;
     using Serilog;
@@ -125,7 +125,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Servers {
                 _logger.Information("Try finding publishers in module network...");
                 var addresses = new List<IPAddress>();
                 using (var netscanner = new NetworkScanner(_logger,
-                    reply => addresses.Add(reply.Address), false,
+                    (_, reply) => addresses.Add(reply.Address), false,
                     NetworkInformationEx.GetAllNetInterfaces(NetworkClass.Wired)
                         .Select(t => new AddressRange(t, false, 24)),
                     NetworkClass.Wired, 1000, // TODO: make configurable - intent is fast.
@@ -136,7 +136,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Servers {
                 var probe = new ServerProbe(_logger);
                 using (var portscan = new PortScanner(_logger,
                     addresses.Select(a => new IPEndPoint(a, kPublisherPort)),
-                    found => {
+                    (_, found) => {
                         cts.Cancel(); // Cancel on first found publisher.
                     publishers.Add(found);
                     }, probe, null, null, null, cts.Token)) {

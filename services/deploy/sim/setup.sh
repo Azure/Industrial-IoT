@@ -44,6 +44,7 @@ while [ "$#" -gt 0 ]; do
         --aad-appsecret)                PCS_APPLICATION_SECRET="$2" ;;
         --release-version)              PCS_RELEASE_VERSION="$2" ;;
         --sb-connstring)                PCS_SERVICEBUS_CONNSTRING="$2" ;;
+        --signalr-connstring)           PCS_SIGNALR_CONNSTRING="$2" ;;
         --eventhub-connstring)          PCS_EVENTHUB_CONNSTRING="$2" ;;
         --eventhub-name)                PCS_EVENTHUB_NAME="$2" ;;
         --workspace-name)               PCS_WORKSPACE_NAME="$2" ;;
@@ -182,6 +183,7 @@ echo "PCS_ASA_DATA_AZUREBLOB_ENDPOINT_SUFFIX=${PCS_IOTHUBREACT_AZUREBLOB_ENDPOIN
 echo "PCS_EVENTHUB_CONNSTRING=${PCS_EVENTHUB_CONNSTRING}" >> ${ENVVARS}
 echo "PCS_EVENTHUB_NAME=${PCS_EVENTHUB_NAME}" >> ${ENVVARS}
 echo "PCS_SERVICEBUS_CONNSTRING=${PCS_SERVICEBUS_CONNSTRING}" >> ${ENVVARS}
+echo "PCS_SIGNALR_CONNSTRING=${PCS_SIGNALR_CONNSTRING}" >> ${ENVVARS}
 echo "PCS_APPLICATION_SECRET=${PCS_APPLICATION_SECRET}" >> ${ENVVARS}
 echo "PCS_LOG_LEVEL=${PCS_LOG_LEVEL}" >> ${ENVVARS}
 echo "PCS_RELEASE_VERSION=${PCS_RELEASE_VERSION}" >> ${ENVVARS}

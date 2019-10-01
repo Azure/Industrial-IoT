@@ -37,7 +37,7 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
         /// <param name="target"></param>
         /// <param name="ct"></param>
         public PortScanner(ILogger logger, IEnumerable<IPEndPoint> source,
-            Action<IPEndPoint> target, CancellationToken ct) :
+            Action<PortScanner, IPEndPoint> target, CancellationToken ct) :
             this(logger, source, target, null, ct) {
         }
 
@@ -50,7 +50,7 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
         /// <param name="portProbe"></param>
         /// <param name="ct"></param>
         public PortScanner(ILogger logger, IEnumerable<IPEndPoint> source,
-            Action<IPEndPoint> target, IPortProbe portProbe, CancellationToken ct) :
+            Action<PortScanner, IPEndPoint> target, IPortProbe portProbe, CancellationToken ct) :
             this(logger, source, target, portProbe, null, null, null, ct) {
         }
 
@@ -66,7 +66,7 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
         /// <param name="timeout"></param>
         /// <param name="ct"></param>
         public PortScanner(ILogger logger, IEnumerable<IPEndPoint> source,
-            Action<IPEndPoint> target, IPortProbe portProbe, int? maxProbeCount,
+            Action<PortScanner, IPEndPoint> target, IPortProbe portProbe, int? maxProbeCount,
             int? minProbePercent, TimeSpan? timeout, CancellationToken ct) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _source = source?.GetEnumerator() ??
@@ -208,7 +208,7 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
             /// </summary>
             /// <param name="ep"></param>
             protected override void OnSuccess(IPEndPoint ep) {
-                _scanner._target(ep);
+                _scanner._target(_scanner, ep);
             }
 
             /// <summary>
@@ -266,7 +266,7 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
         private readonly IEnumerator<IPEndPoint> _source;
         private readonly TaskCompletionSource<bool> _completion;
         private readonly List<ConnectProbe> _probePool;
-        private readonly Action<IPEndPoint> _target;
+        private readonly Action<PortScanner, IPEndPoint> _target;
         private readonly int _maxProbeCount;
         private readonly int _minProbeCount;
         private readonly TimeSpan _timeout;

@@ -1,5 +1,7 @@
 # OPC Twin Edge Module
 
+[Home](../readme.md)
+
 The OPC Twin module runs inside IoT Edge.  
 
 All OPC UA components use the OPC Foundation's OPC UA reference stack as nuget packages and therefore licensing of their nuget packages apply. Visit https://opcfoundation.org/license/redistributables/1.3/ for the licensing terms.
@@ -88,7 +90,7 @@ The command line options of aplicable for OPC Twin Module are as follows:
             OwnCertPath=VALUE 
                 path to store the Twin's own certificate, both public and private keys
                 default: `<PkiRootPath>/own`
-
+    
             TrustedCertPath=VALUE 
                 path to store the Twin's trusted peer certificate list. Path contains the
                 public keys of the OPC UA server applicatins allowed by the OPC Twin to establish a secure connection

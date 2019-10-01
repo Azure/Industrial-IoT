@@ -6,8 +6,8 @@
 namespace Microsoft.Azure.IIoT.Hub.Client {
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub.Models;
+    using Serilog;
     using System;
-    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -23,26 +23,34 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
         /// Create client
         /// </summary>
         /// <param name="twin"></param>
-        public IoTHubTwinMethodClient(IIoTHubTwinServices twin) {
+        /// <param name="logger"></param>
+        public IoTHubTwinMethodClient(IIoTHubTwinServices twin, ILogger logger) {
             _twin = twin ?? throw new ArgumentNullException(nameof(twin));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <inheritdoc/>
         public async Task<string> CallMethodAsync(string deviceId, string moduleId,
             string method, string payload, TimeSpan? timeout, CancellationToken ct) {
+            _logger.Verbose("Call {method} on {device} ({module}) with {payload}... ",
+            method, deviceId, moduleId, payload);
             var result = await _twin.CallMethodAsync(deviceId, moduleId,
                 new MethodParameterModel {
                     Name = method,
-                    ResponseTimeout = timeout,
+                    ResponseTimeout = timeout ?? TimeSpan.FromSeconds(kDefaultMethodTimeout),
                     JsonPayload = payload
                 }, ct);
             if (result.Status != 200) {
-                throw new MethodCallStatusException(
-                    Encoding.UTF8.GetBytes(result.JsonPayload), result.Status);
+                _logger.Debug("Call {method} on {device} ({module}) with {payload} " +
+                    "returned with error {status}: {result}",
+                    method, deviceId, moduleId, payload, result.Status, result.JsonPayload);
+                throw new MethodCallStatusException(result.JsonPayload, result.Status);
             }
             return result.JsonPayload;
         }
 
         private readonly IIoTHubTwinServices _twin;
+        private readonly ILogger _logger;
+        private const int kDefaultMethodTimeout = 300; // 5 minutes - default is 30 seconds
     }
 }

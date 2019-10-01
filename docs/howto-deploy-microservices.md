@@ -1,5 +1,7 @@
 # Deploying Azure Industrial IoT Microservices and dependencies
 
+[Home](readme.md)
+
 This article explains how to deploy the Azure Industrial IoT Microservices in Azure.
 
 ## Prerequisites
@@ -17,7 +19,7 @@ This article explains how to deploy the Azure Industrial IoT Microservices in Az
 2. If you have not done so yet, clone this GitHub repository.  Open a command prompt or terminal and run:
 
    ```bash
-   git clone --recursive https://github.com/Azure/Industrial-IoT
+   git clone https://github.com/Azure/Industrial-IoT
    cd Industrial-IoT
    ```
 

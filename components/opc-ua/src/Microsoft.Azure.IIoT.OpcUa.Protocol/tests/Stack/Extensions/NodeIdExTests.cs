@@ -249,6 +249,25 @@ namespace Opc.Ua.Extensions {
         }
 
         [Fact]
+        public void EncodeDecodeNodeIdWithStringAndInvalidUri() {
+
+            var context = new ServiceMessageContext();
+            var expected = new NodeId("   space    tests /(%)§;#;;#;()§$\"))\"\")(§",
+                context.NamespaceUris.GetIndexOrAppend("contoso"));
+
+            var s1 = expected.AsString(context);
+            var s2 = expected.AsString(context, true);
+
+            var result1 = s1.ToNodeId(context);
+            var result2 = s2.ToNodeId(context);
+
+            Assert.Equal(s1, s2);
+            Assert.Contains("nsu=", s2);
+            Assert.DoesNotContain("ns=", s2);
+            AssertEqual(expected, result1, result2);
+        }
+
+        [Fact]
         public void EncodeDecodeNodeIdWithStringAndDefaultUri() {
 
             var context = new ServiceMessageContext();

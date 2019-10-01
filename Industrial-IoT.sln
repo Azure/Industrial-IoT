@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.29201.188
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.Api.Cli", "api\src\Microsoft.Azure.IIoT.OpcUa.Api\cli\Microsoft.Azure.IIoT.OpcUa.Api.Cli.csproj", "{D14C979A-E41B-459B-97CE-E3DA62E02369}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Cli", "modules\opc-twin\cli\Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Cli.csproj", "{42B6F4CC-01B0-496B-A8FB-69908691DBEF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Cli", "modules\src\Microsoft.Azure.IIoT.Modules.OpcUa.Twin\cli\Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Cli.csproj", "{42B6F4CC-01B0-496B-A8FB-69908691DBEF}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Services.OpcUa.Onboarding", "services\src\Microsoft.Azure.IIoT.Services.OpcUa.Onboarding\src\Microsoft.Azure.IIoT.Services.OpcUa.Onboarding.csproj", "{A7ECF6A4-AFE0-4A52-8DC9-63DFB7A07889}"
 EndProject
@@ -39,13 +39,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.Api.Twin", "api\src\Microsoft.Azure.IIoT.OpcUa.Api.Twin\src\Microsoft.Azure.IIoT.OpcUa.Api.Twin.csproj", "{8C90549C-BB32-4A32-A50C-62C7118B5AE7}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Modules.OpcUa.Twin", "modules\opc-twin\src\Microsoft.Azure.IIoT.Modules.OpcUa.Twin.csproj", "{5709535C-A93D-4D03-8748-5F202C2A05EF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Modules.OpcUa.Twin", "modules\src\Microsoft.Azure.IIoT.Modules.OpcUa.Twin\src\Microsoft.Azure.IIoT.Modules.OpcUa.Twin.csproj", "{5709535C-A93D-4D03-8748-5F202C2A05EF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Modules.OpcUa.Publisher", "modules\opc-publisher\opcpublisher\Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.csproj", "{63BF7A67-E422-4EB5-B2B1-77E23F46F63B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Modules.OpcUa.Publisher", "modules\src\Microsoft.Azure.IIoT.Modules.OpcUa.Publisher\src\Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.csproj", "{63BF7A67-E422-4EB5-B2B1-77E23F46F63B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests", "modules\opc-publisher\opcpublisher.tests\Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests.csproj", "{BD9D39DA-81EC-4377-B9FB-036ADA544E7E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests", "modules\src\Microsoft.Azure.IIoT.Modules.OpcUa.Publisher\tests\Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests.csproj", "{BD9D39DA-81EC-4377-B9FB-036ADA544E7E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests", "modules\opc-twin\tests\Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests.csproj", "{B829F5E5-E906-4EFC-86D5-CB74C34194B2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests", "modules\src\Microsoft.Azure.IIoT.Modules.OpcUa.Twin\tests\Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests.csproj", "{B829F5E5-E906-4EFC-86D5-CB74C34194B2}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa", "components\opc-ua\src\Microsoft.Azure.IIoT.OpcUa\src\Microsoft.Azure.IIoT.OpcUa.csproj", "{8F49F047-9BA6-44EF-84BF-2C2C140818E3}"
 EndProject
@@ -183,6 +183,18 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "platform", "platform", "{7DF1C0AF-62E7-48FA-AD20-8B43AECF3792}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "servers", "servers", "{94277625-55AF-4668-AB23-8CEDC158FB7A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Modules.Diagnostic", "modules\src\Microsoft.Azure.IIoT.Modules.Diagnostic\src\Microsoft.Azure.IIoT.Modules.Diagnostic.csproj", "{0A29E771-D374-45AA-9BA2-25302677310C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Modules.Diagnostic.Cli", "modules\src\Microsoft.Azure.IIoT.Modules.Diagnostic\cli\Microsoft.Azure.IIoT.Modules.Diagnostic.Cli.csproj", "{D3100DBF-D198-4E4E-BE66-1B29C6A99FD4}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Modules.Discovery", "modules\src\Microsoft.Azure.IIoT.Modules.Discovery\src\Microsoft.Azure.IIoT.Modules.Discovery.csproj", "{EB0E6E11-3C34-4BDE-8020-5324BCEB2C06}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Modules.Discovery.Cli", "modules\src\Microsoft.Azure.IIoT.Modules.Discovery\cli\Microsoft.Azure.IIoT.Modules.Discovery.Cli.csproj", "{9CDDE537-2D55-4A7E-947D-7FA3EC87B72A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Cli", "modules\src\Microsoft.Azure.IIoT.Modules.OpcUa.Publisher\cli\Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Cli.csproj", "{277079D0-B557-4280-A698-37EDADA10066}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{4CF22591-6F77-486F-BBFE-6173536D0625}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -599,6 +611,36 @@ Global
 		{BA5EDBB9-331F-486B-8724-2E23DC3EEADA}.Develop|Any CPU.Build.0 = Debug|Any CPU
 		{BA5EDBB9-331F-486B-8724-2E23DC3EEADA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BA5EDBB9-331F-486B-8724-2E23DC3EEADA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0A29E771-D374-45AA-9BA2-25302677310C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0A29E771-D374-45AA-9BA2-25302677310C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0A29E771-D374-45AA-9BA2-25302677310C}.Develop|Any CPU.ActiveCfg = Debug|Any CPU
+		{0A29E771-D374-45AA-9BA2-25302677310C}.Develop|Any CPU.Build.0 = Debug|Any CPU
+		{0A29E771-D374-45AA-9BA2-25302677310C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0A29E771-D374-45AA-9BA2-25302677310C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D3100DBF-D198-4E4E-BE66-1B29C6A99FD4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D3100DBF-D198-4E4E-BE66-1B29C6A99FD4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D3100DBF-D198-4E4E-BE66-1B29C6A99FD4}.Develop|Any CPU.ActiveCfg = Debug|Any CPU
+		{D3100DBF-D198-4E4E-BE66-1B29C6A99FD4}.Develop|Any CPU.Build.0 = Debug|Any CPU
+		{D3100DBF-D198-4E4E-BE66-1B29C6A99FD4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D3100DBF-D198-4E4E-BE66-1B29C6A99FD4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EB0E6E11-3C34-4BDE-8020-5324BCEB2C06}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EB0E6E11-3C34-4BDE-8020-5324BCEB2C06}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EB0E6E11-3C34-4BDE-8020-5324BCEB2C06}.Develop|Any CPU.ActiveCfg = Debug|Any CPU
+		{EB0E6E11-3C34-4BDE-8020-5324BCEB2C06}.Develop|Any CPU.Build.0 = Debug|Any CPU
+		{EB0E6E11-3C34-4BDE-8020-5324BCEB2C06}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EB0E6E11-3C34-4BDE-8020-5324BCEB2C06}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9CDDE537-2D55-4A7E-947D-7FA3EC87B72A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9CDDE537-2D55-4A7E-947D-7FA3EC87B72A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9CDDE537-2D55-4A7E-947D-7FA3EC87B72A}.Develop|Any CPU.ActiveCfg = Debug|Any CPU
+		{9CDDE537-2D55-4A7E-947D-7FA3EC87B72A}.Develop|Any CPU.Build.0 = Debug|Any CPU
+		{9CDDE537-2D55-4A7E-947D-7FA3EC87B72A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9CDDE537-2D55-4A7E-947D-7FA3EC87B72A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{277079D0-B557-4280-A698-37EDADA10066}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{277079D0-B557-4280-A698-37EDADA10066}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{277079D0-B557-4280-A698-37EDADA10066}.Develop|Any CPU.ActiveCfg = Debug|Any CPU
+		{277079D0-B557-4280-A698-37EDADA10066}.Develop|Any CPU.Build.0 = Debug|Any CPU
+		{277079D0-B557-4280-A698-37EDADA10066}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{277079D0-B557-4280-A698-37EDADA10066}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -689,6 +731,12 @@ Global
 		{3E7A79D5-045F-49D0-BD29-46D4F2D62E52} = {94277625-55AF-4668-AB23-8CEDC158FB7A}
 		{BA5EDBB9-331F-486B-8724-2E23DC3EEADA} = {BBEE26AC-8733-469B-B816-0A54EA99FC59}
 		{94277625-55AF-4668-AB23-8CEDC158FB7A} = {BEFF4B71-0C07-4C2A-A550-579A1E1F834D}
+		{0A29E771-D374-45AA-9BA2-25302677310C} = {3A2DB744-69F3-488E-8CD5-45B921385B76}
+		{D3100DBF-D198-4E4E-BE66-1B29C6A99FD4} = {C8D79D8A-D92E-4AE3-BA54-0C927BEBCEBF}
+		{EB0E6E11-3C34-4BDE-8020-5324BCEB2C06} = {3A2DB744-69F3-488E-8CD5-45B921385B76}
+		{9CDDE537-2D55-4A7E-947D-7FA3EC87B72A} = {C8D79D8A-D92E-4AE3-BA54-0C927BEBCEBF}
+		{277079D0-B557-4280-A698-37EDADA10066} = {C8D79D8A-D92E-4AE3-BA54-0C927BEBCEBF}
+		{4CF22591-6F77-486F-BBFE-6173536D0625} = {30938473-53C1-4981-BFAB-B6309147FF24}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F09EFCEA-59F6-4A16-9CB6-7E865A3F62D8}

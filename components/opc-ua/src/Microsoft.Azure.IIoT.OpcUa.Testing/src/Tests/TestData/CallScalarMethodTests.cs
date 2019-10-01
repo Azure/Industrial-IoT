@@ -30,7 +30,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             _endpoint = endpoint;
         }
 
-        public async Task NodeMethodMetadataStaticScalarMethod1Test() {
+        public async Task NodeMethodMetadataStaticScalarMethod1TestAsync() {
 
             var service = _services();
             var methodId = "http://test.org/UA/Data/#i=10756";
@@ -269,7 +269,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeMethodMetadataStaticScalarMethod2Test() {
+        public async Task NodeMethodMetadataStaticScalarMethod2TestAsync() {
 
             var service = _services();
             var methodId = "http://test.org/UA/Data/#i=10759";
@@ -488,7 +488,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeMethodMetadataStaticScalarMethod3Test() {
+        public async Task NodeMethodMetadataStaticScalarMethod3TestAsync() {
 
             var service = _services();
             var methodId = "http://test.org/UA/Data/#i=10762";
@@ -567,7 +567,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeMethodMetadataStaticScalarMethod3WithBrowsePathTest1() {
+        public async Task NodeMethodMetadataStaticScalarMethod3WithBrowsePathTest1Async() {
 
             var service = _services();
             var objectId = "http://test.org/UA/Data/#i=10755";
@@ -649,7 +649,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeMethodMetadataStaticScalarMethod3WithBrowsePathTest2() {
+        public async Task NodeMethodMetadataStaticScalarMethod3WithBrowsePathTest2Async() {
 
             var service = _services();
             var path = new[] {
@@ -733,7 +733,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeMethodCallStaticScalarMethod1Test1() {
+        public async Task NodeMethodCallStaticScalarMethod1Test1Async() {
 
             var service = _services();
             var methodId = "http://test.org/UA/Data/#i=10756";
@@ -832,7 +832,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeMethodCallStaticScalarMethod1Test2() {
+        public async Task NodeMethodCallStaticScalarMethod1Test2Async() {
 
             var service = _services();
             var methodId = "http://test.org/UA/Data/#i=10756";
@@ -899,7 +899,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeMethodCallStaticScalarMethod1Test3() {
+        public async Task NodeMethodCallStaticScalarMethod1Test3Async() {
 
             var service = _services();
             var methodId = "http://test.org/UA/Data/#i=10756";
@@ -949,7 +949,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 });
         }
 
-        public async Task NodeMethodCallStaticScalarMethod1Test4() {
+        public async Task NodeMethodCallStaticScalarMethod1Test4Async() {
 
             var service = _services();
             var methodId = "http://test.org/UA/Data/#i=10756";
@@ -1001,7 +1001,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeMethodCallStaticScalarMethod1Test5() {
+        public async Task NodeMethodCallStaticScalarMethod1Test5Async() {
 
             var service = _services();
             var methodId = "http://test.org/UA/Data/#i=10756";
@@ -1079,7 +1079,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeMethodCallStaticScalarMethod2Test1() {
+        public async Task NodeMethodCallStaticScalarMethod2Test1Async() {
 
             var service = _services();
             var methodId = "http://test.org/UA/Data/#i=10759";
@@ -1191,7 +1191,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeMethodCallStaticScalarMethod2Test2() {
+        public async Task NodeMethodCallStaticScalarMethod2Test2Async() {
 
             var service = _services();
             var methodId = "http://test.org/UA/Data/#i=10759";
@@ -1254,7 +1254,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeMethodCallStaticScalarMethod3Test1() {
+        public async Task NodeMethodCallStaticScalarMethod3Test1Async() {
 
             var service = _services();
             var methodId = "http://test.org/UA/Data/#i=10762";
@@ -1306,7 +1306,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeMethodCallStaticScalarMethod3Test2() {
+        public async Task NodeMethodCallStaticScalarMethod3Test2Async() {
 
             var service = _services();
             var methodId = "http://test.org/UA/Data/#i=10762";
@@ -1354,7 +1354,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeMethodCallStaticScalarMethod3WithBrowsePathNoIdsTest() {
+        public async Task NodeMethodCallStaticScalarMethod3WithBrowsePathNoIdsTestAsync() {
 
             var service = _services();
             var objectPath = new[] {
@@ -1414,7 +1414,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeMethodCallStaticScalarMethod3WithObjectIdAndBrowsePathTest() {
+        public async Task NodeMethodCallStaticScalarMethod3WithObjectIdAndBrowsePathTestAsync() {
 
             var service = _services();
             var objectId = "http://test.org/UA/Data/#i=10755";
@@ -1468,7 +1468,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeMethodCallStaticScalarMethod3WithObjectIdAndMethodIdAndBrowsePathTest() {
+        public async Task NodeMethodCallStaticScalarMethod3WithObjectIdAndMethodIdAndBrowsePathTestAsync() {
 
             var service = _services();
             var objectId = "http://test.org/UA/Data/#i=10755";
@@ -1527,7 +1527,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeMethodCallStaticScalarMethod3WithObjectPathAndMethodIdAndBrowsePathTest() {
+        public async Task NodeMethodCallStaticScalarMethod3WithObjectPathAndMethodIdAndBrowsePathTestAsync() {
 
             var service = _services();
             var objectPath = new[] {
@@ -1591,7 +1591,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeMethodCallStaticScalarMethod3WithObjectIdAndPathAndMethodIdAndPathTest() {
+        public async Task NodeMethodCallStaticScalarMethod3WithObjectIdAndPathAndMethodIdAndPathTestAsync() {
 
             var service = _services();
             var objectId = "http://test.org/UA/Data/#i=10157"; // Data
@@ -1655,7 +1655,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeMethodCallBoiler2ResetTest() {
+        public async Task NodeMethodCallBoiler2ResetTestAsync() {
 
             var service = _services();
             var methodId = "ns=5;i=37";
@@ -1674,7 +1674,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
 
-        public async Task NodeMethodCallBoiler1ResetTest() {
+        public async Task NodeMethodCallBoiler1ResetTestAsync() {
 
             var service = _services();
             var methodId = "http://opcfoundation.org/UA/Boiler/#i=15022";

@@ -83,7 +83,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                         response.DiagnosticInfos, false);
                     SessionClientEx.Validate(response.Results, response.DiagnosticInfos);
 
-                    result.ContinuationToken = await AddReferencesToBrowseResult(session,
+                    result.ContinuationToken = await AddReferencesToBrowseResultAsync(session,
                         (request.Header?.Diagnostics).ToStackModel(), request.TargetNodesOnly ?? false,
                         request.ReadVariableValues ?? false, rawMode, result.References, diagnostics,
                         response.Results[0].ContinuationPoint, response.Results[0].References);
@@ -120,7 +120,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                     diagnostics, response.Results.Select(r => r.StatusCode),
                     response.DiagnosticInfos, false);
 
-                result.ContinuationToken = await AddReferencesToBrowseResult(session,
+                result.ContinuationToken = await AddReferencesToBrowseResultAsync(session,
                     (request.Header?.Diagnostics).ToStackModel(), request.TargetNodesOnly ?? false,
                     request.ReadVariableValues ?? false, request.NodeIdsOnly ?? false,
                     result.References, diagnostics, response.Results[0].ContinuationPoint,
@@ -161,7 +161,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                     diagnostics, response.Results.Select(r => r.StatusCode),
                     response.DiagnosticInfos, requests, false);
                 for (var index = 0; index < response.Results.Count; index++) {
-                    await AddTargetsToBrowseResult(session,
+                    await AddTargetsToBrowseResultAsync(session,
                         (request.Header?.Diagnostics).ToStackModel(),
                         request.ReadVariableValues ?? false, request.NodeIdsOnly ?? false,
                         result.Targets, diagnostics, response.Results[index].Targets,
@@ -810,7 +810,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
                 IsAbstract = node.IsAbstract,
                 Value = node.Value == null ? null : _codec.Encode(node.Value.Value, out var type,
                     session.MessageContext),
-                EventNotifier = node.EventNotifier == null ?
+                EventNotifier = node.EventNotifier == null || node.EventNotifier == 0x0 ?
                     (NodeEventNotifier?)null : (NodeEventNotifier)node.EventNotifier,
                 DataTypeDefinition = node.DataTypeDefinition == null ? null :
                     _codec.Encode(new Variant(node.DataTypeDefinition)),
@@ -839,7 +839,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
         /// <param name="continuationPoint"></param>
         /// <param name="references"></param>
         /// <returns></returns>
-        private async Task<string> AddReferencesToBrowseResult(Session session,
+        private async Task<string> AddReferencesToBrowseResultAsync(Session session,
             RequestHeader header, bool targetNodesOnly, bool readValues,
             bool rawMode, List<NodeReferenceModel> result, List<OperationResultModel> diagnostics,
             byte[] continuationPoint, List<ReferenceDescription> references) {
@@ -916,7 +916,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
         /// <param name="targets"></param>
         /// <param name="path"></param>
         /// <returns></returns>
-        private async Task AddTargetsToBrowseResult(Session session, RequestHeader header,
+        private async Task AddTargetsToBrowseResultAsync(Session session, RequestHeader header,
             bool readValues, bool rawMode, List<NodePathTargetModel> result,
             List<OperationResultModel> diagnostics, BrowsePathTargetCollection targets,
             string[] path) {

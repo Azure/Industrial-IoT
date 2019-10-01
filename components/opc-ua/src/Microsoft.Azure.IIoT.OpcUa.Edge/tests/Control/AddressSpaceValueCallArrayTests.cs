@@ -33,78 +33,78 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control {
         private readonly TestServerFixture _server;
 
         [Fact]
-        public async Task NodeMethodMetadataStaticArrayMethod1Test() {
-            await GetTests().NodeMethodMetadataStaticArrayMethod1Test();
+        public async Task NodeMethodMetadataStaticArrayMethod1TestAsync() {
+            await GetTests().NodeMethodMetadataStaticArrayMethod1TestAsync();
         }
 
         [Fact]
-        public async Task NodeMethodMetadataStaticArrayMethod2Test() {
-            await GetTests().NodeMethodMetadataStaticArrayMethod2Test();
+        public async Task NodeMethodMetadataStaticArrayMethod2TestAsync() {
+            await GetTests().NodeMethodMetadataStaticArrayMethod2TestAsync();
         }
 
         [Fact]
-        public async Task NodeMethodMetadataStaticArrayMethod3Test() {
-            await GetTests().NodeMethodMetadataStaticArrayMethod3Test();
+        public async Task NodeMethodMetadataStaticArrayMethod3TestAsync() {
+            await GetTests().NodeMethodMetadataStaticArrayMethod3TestAsync();
         }
 
         [Fact]
-        public async Task NodeMethodCallStaticArrayMethod1Test1() {
-            await GetTests().NodeMethodCallStaticArrayMethod1Test1();
+        public async Task NodeMethodCallStaticArrayMethod1Test1Async() {
+            await GetTests().NodeMethodCallStaticArrayMethod1Test1Async();
         }
 
         [Fact]
-        public async Task NodeMethodCallStaticArrayMethod1Test2() {
-            await GetTests().NodeMethodCallStaticArrayMethod1Test2();
+        public async Task NodeMethodCallStaticArrayMethod1Test2Async() {
+            await GetTests().NodeMethodCallStaticArrayMethod1Test2Async();
         }
 
         [Fact]
-        public async Task NodeMethodCallStaticArrayMethod1Test3() {
-            await GetTests().NodeMethodCallStaticArrayMethod1Test3();
+        public async Task NodeMethodCallStaticArrayMethod1Test3Async() {
+            await GetTests().NodeMethodCallStaticArrayMethod1Test3Async();
         }
 
         [Fact]
-        public async Task NodeMethodCallStaticArrayMethod1Test4() {
-            await GetTests().NodeMethodCallStaticArrayMethod1Test4();
+        public async Task NodeMethodCallStaticArrayMethod1Test4Async() {
+            await GetTests().NodeMethodCallStaticArrayMethod1Test4Async();
         }
 
         [Fact]
-        public async Task NodeMethodCallStaticArrayMethod1Test5() {
-            await GetTests().NodeMethodCallStaticArrayMethod1Test5();
+        public async Task NodeMethodCallStaticArrayMethod1Test5Async() {
+            await GetTests().NodeMethodCallStaticArrayMethod1Test5Async();
         }
 
         [Fact]
-        public async Task NodeMethodCallStaticArrayMethod2Test1() {
-            await GetTests().NodeMethodCallStaticArrayMethod2Test1();
+        public async Task NodeMethodCallStaticArrayMethod2Test1Async() {
+            await GetTests().NodeMethodCallStaticArrayMethod2Test1Async();
         }
 
         [Fact]
-        public async Task NodeMethodCallStaticArrayMethod2Test2() {
-            await GetTests().NodeMethodCallStaticArrayMethod2Test2();
+        public async Task NodeMethodCallStaticArrayMethod2Test2Async() {
+            await GetTests().NodeMethodCallStaticArrayMethod2Test2Async();
         }
 
         [Fact]
-        public async Task NodeMethodCallStaticArrayMethod2Test3() {
-            await GetTests().NodeMethodCallStaticArrayMethod2Test3();
+        public async Task NodeMethodCallStaticArrayMethod2Test3Async() {
+            await GetTests().NodeMethodCallStaticArrayMethod2Test3Async();
         }
 
         [Fact]
-        public async Task NodeMethodCallStaticArrayMethod2Test4() {
-            await GetTests().NodeMethodCallStaticArrayMethod2Test4();
+        public async Task NodeMethodCallStaticArrayMethod2Test4Async() {
+            await GetTests().NodeMethodCallStaticArrayMethod2Test4Async();
         }
 
         [Fact]
-        public async Task NodeMethodCallStaticArrayMethod3Test1() {
-            await GetTests().NodeMethodCallStaticArrayMethod3Test1();
+        public async Task NodeMethodCallStaticArrayMethod3Test1Async() {
+            await GetTests().NodeMethodCallStaticArrayMethod3Test1Async();
         }
 
         [Fact]
-        public async Task NodeMethodCallStaticArrayMethod3Test2() {
-            await GetTests().NodeMethodCallStaticArrayMethod3Test2();
+        public async Task NodeMethodCallStaticArrayMethod3Test2Async() {
+            await GetTests().NodeMethodCallStaticArrayMethod3Test2Async();
         }
 
         [Fact]
-        public async Task NodeMethodCallStaticArrayMethod3Test3() {
-            await GetTests().NodeMethodCallStaticArrayMethod3Test3();
+        public async Task NodeMethodCallStaticArrayMethod3Test3Async() {
+            await GetTests().NodeMethodCallStaticArrayMethod3Test3Async();
         }
 
     }

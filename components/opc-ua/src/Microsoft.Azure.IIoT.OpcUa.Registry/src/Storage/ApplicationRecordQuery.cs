@@ -51,18 +51,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         }
 
         /// <inheritdoc/>
-        public Task OnApplicationApprovedAsync(RegistryOperationContextModel context,
-            ApplicationInfoModel application) {
-            return UpdateAsync(application);
-        }
-
-        /// <inheritdoc/>
-        public Task OnApplicationRejectedAsync(RegistryOperationContextModel context,
-            ApplicationInfoModel application) {
-            return DeleteAsync(application);
-        }
-
-        /// <inheritdoc/>
         public Task OnApplicationEnabledAsync(RegistryOperationContextModel context,
             ApplicationInfoModel application) {
             return AddAsync(application);

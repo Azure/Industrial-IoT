@@ -157,8 +157,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
                         channel.SetRequestReceivedCallback(OnRequestReceived);
 
                         var channelId = (uint)Interlocked.Increment(ref _lastChannelId);
+#pragma warning disable IDE0068 // Use recommended dispose pattern
                         var socket = new TcpMessageSocket(channel, e.AcceptSocket,
                             _bufferManager, _quotas.MaxBufferSize);
+#pragma warning restore IDE0068 // Use recommended dispose pattern
                         channel.Attach(channelId, socket);
 
                         _channels.TryAdd(channelId, channel);

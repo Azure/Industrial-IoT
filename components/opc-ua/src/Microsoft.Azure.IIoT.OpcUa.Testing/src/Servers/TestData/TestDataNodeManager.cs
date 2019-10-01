@@ -401,7 +401,9 @@ namespace TestData {
                 }
 
                 // create a reader.
+#pragma warning disable IDE0068 // Use recommended dispose pattern
                 reader = new HistoryDataReader(nodeToRead.NodeId, datasource);
+#pragma warning restore IDE0068 // Use recommended dispose pattern
 
                 // start reading.
                 reader.BeginReadRaw(

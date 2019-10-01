@@ -6,17 +6,17 @@
 namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
     using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.Module.Models;
-    using Serilog;
     using Microsoft.Azure.IIoT.Http;
     using Microsoft.Azure.IIoT.Utils;
     using Newtonsoft.Json;
+    using Serilog;
     using System;
     using System.Collections.Generic;
+    using System.Threading;
     using System.Linq;
     using System.Threading.Tasks;
     using System.Security.Cryptography.X509Certificates;
     using Newtonsoft.Json.Linq;
-    using System.Threading;
 
     /// <summary>
     /// Edgelet client providing discovery and in the future other services

@@ -39,8 +39,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <param name="key"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
-        protected string GetStringOrDefault(string key,
-            string defaultValue = "") {
+        protected string GetStringOrDefault(string key, string defaultValue = "") {
             var value = Configuration.GetValue(key, defaultValue);
             if (string.IsNullOrEmpty(value)) {
                 return defaultValue;
@@ -54,9 +53,21 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <param name="key"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
-        protected bool GetBoolOrDefault(string key,
-            bool defaultValue = false) {
-            var value = GetStringOrDefault(key, defaultValue.ToString()).ToLowerInvariant();
+        protected bool GetBoolOrDefault(string key, bool defaultValue = false) {
+            var result = GetBoolOrNull(key);
+            if (result.HasValue) {
+                return result.Value;
+            }
+            return defaultValue;
+        }
+
+        /// <summary>
+        /// Read boolean
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        protected bool? GetBoolOrNull(string key) {
+            var value = GetStringOrDefault(key, "").ToLowerInvariant();
             var knownTrue = new HashSet<string> { "true", "yes", "y", "1" };
             var knownFalse = new HashSet<string> { "false", "no", "n", "0" };
             if (knownTrue.Contains(value)) {
@@ -65,7 +76,7 @@ namespace Microsoft.Azure.IIoT.Utils {
             if (knownFalse.Contains(value)) {
                 return false;
             }
-            return defaultValue;
+            return null;
         }
 
         /// <summary>
@@ -87,20 +98,51 @@ namespace Microsoft.Azure.IIoT.Utils {
         }
 
         /// <summary>
+        /// Get time span
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        protected TimeSpan? GetDurationOrNull(string key) {
+            if (!TimeSpan.TryParse(GetStringOrDefault(key), out var result)) {
+                // Try read as integer
+                var value = GetIntOrNull(key);
+                if (value.HasValue) {
+                    return TimeSpan.FromMilliseconds(value.Value);
+                }
+                return null;
+            }
+            return result;
+        }
+
+        /// <summary>
         /// Read int
         /// </summary>
         /// <param name="key"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
-        protected int GetIntOrDefault(string key,
-            int defaultValue = 0) {
-            try {
-                return Convert.ToInt32(GetStringOrDefault(key,
-                    defaultValue.ToString()));
+        protected int GetIntOrDefault(string key, int defaultValue = 0) {
+            var value = GetIntOrNull(key);
+            if (value.HasValue) {
+                return value.Value;
             }
-            catch (Exception e) {
-                throw new InvalidConfigurationException(
-                    $"Unable to load configuration value for '{key}'", e);
+            return defaultValue;
+        }
+
+        /// <summary>
+        /// Read int
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        protected int? GetIntOrNull(string key) {
+            try {
+                var value = GetStringOrDefault(key, null);
+                if (string.IsNullOrEmpty(value)) {
+                    return null;
+                }
+                return Convert.ToInt32(value);
+            }
+            catch {
+                return null;
             }
         }
     }

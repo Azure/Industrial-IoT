@@ -27,24 +27,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Runtime {
 
         /// <inheritdoc/>
         public string PkiRootPath { get; }
-
         /// <inheritdoc/>
         public string OwnCertPath => Path.Combine(PkiRootPath, "own");
-
         /// <inheritdoc/>
         public string TrustedCertPath => Path.Combine(PkiRootPath, "trusted");
-
         /// <inheritdoc/>
         public string IssuerCertPath => Path.Combine(PkiRootPath, "issuer");
-
         /// <inheritdoc/>
         public string RejectedCertPath => Path.Combine(PkiRootPath, "rejected");
-
         /// <inheritdoc/>
         public string OwnCertX509StorePathDefault => "CurrentUser\\UA_MachineDefault";
-
         /// <inheritdoc/>
         public bool AutoAccept { get; }
+        /// <inheritdoc/>
+        public TimeSpan? SessionTimeout => null;
+        /// <inheritdoc/>
+        public TimeSpan? OperationTimeout => null;
 
         /// <inheritdoc/>
         public TestClientServicesConfig(bool autoAccept = false) {

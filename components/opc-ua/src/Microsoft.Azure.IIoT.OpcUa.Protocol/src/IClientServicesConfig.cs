@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
+    using System;
 
     /// <summary>
     /// Client Services configuration
@@ -51,5 +52,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// X509Store store type is used
         /// </summary>
         string OwnCertX509StorePathDefault { get; }
+
+        /// <summary>
+        /// Default session timeout for client
+        /// </summary>
+        TimeSpan? SessionTimeout { get; }
+
+        /// <summary>
+        /// Default operation timeout
+        /// </summary>
+        TimeSpan? OperationTimeout { get; }
     }
 }

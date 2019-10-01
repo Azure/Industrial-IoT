@@ -6,10 +6,12 @@
 namespace Microsoft.Azure.IIoT.Module.Framework.Client {
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Utils;
+    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.Devices.Client;
     using Microsoft.Azure.Devices.Client.Transport.Mqtt;
     using Microsoft.Azure.Devices.Shared;
     using Serilog;
+    using Serilog.Events;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -17,11 +19,12 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
     using System.Security.Cryptography.X509Certificates;
     using System.Threading.Tasks;
     using System.Threading;
+    using System.Diagnostics.Tracing;
 
     /// <summary>
     /// Injectable factory that creates clients from device sdk
     /// </summary>
-    public sealed class IoTSdkFactory : IClientFactory {
+    public sealed class IoTSdkFactory : IClientFactory, IDisposable {
 
         /// <inheritdoc />
         public string DeviceId { get; }
@@ -36,9 +39,14 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         /// Create sdk factory
         /// </summary>
         /// <param name="config"></param>
+        /// <param name="broker"></param>
         /// <param name="logger"></param>
-        public IoTSdkFactory(IModuleConfig config, ILogger logger) {
+        public IoTSdkFactory(IModuleConfig config, IEventSourceBroker broker, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+
+            if (broker != null) {
+                _logHook = broker.Subscribe(IoTSdkLogger.EventSource, new IoTSdkLogger(logger));
+            }
 
             // The runtime injects this as an environment variable
             var deviceId = Environment.GetEnvironmentVariable("IOTEDGE_DEVICEID");
@@ -96,8 +104,12 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             else {
                 _transport = config.Transport;
             }
-
             _timeout = TimeSpan.FromMinutes(5);
+        }
+
+        /// <inheritdoc/>
+        public void Dispose() {
+            _logHook?.Dispose();
         }
 
         /// <inheritdoc/>
@@ -106,33 +118,27 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             // Configure transport settings
             var transportSettings = new List<ITransportSettings>();
 
-            if ((_transport & TransportOption.Mqtt) != 0) {
-                if ((_transport & TransportOption.MqttOverTcp) != 0) {
-                    var setting = new MqttTransportSettings(
-                        TransportType.Mqtt_Tcp_Only);
-                    if (_bypassCertValidation) {
-                        setting.RemoteCertificateValidationCallback =
-                            (sender, certificate, chain, sslPolicyErrors) => true;
-                    }
-                    transportSettings.Add(setting);
+            if ((_transport & TransportOption.MqttOverTcp) != 0) {
+                var setting = new MqttTransportSettings(
+                    TransportType.Mqtt_Tcp_Only);
+                if (_bypassCertValidation) {
+                    setting.RemoteCertificateValidationCallback =
+                        (sender, certificate, chain, sslPolicyErrors) => true;
                 }
-                else {
-                    transportSettings.Add(new MqttTransportSettings(
-                        TransportType.Mqtt_WebSocket_Only));
-                }
+                transportSettings.Add(setting);
             }
-
-            if ((_transport & TransportOption.Amqp) != 0) {
-                if ((_transport & TransportOption.AmqpOverTcp) != 0) {
-                    transportSettings.Add(new AmqpTransportSettings(
-                        TransportType.Amqp_Tcp_Only));
-                }
-                else {
-                    transportSettings.Add(new AmqpTransportSettings(
-                        TransportType.Amqp_WebSocket_Only));
-                }
+            if ((_transport & TransportOption.MqttOverWebsocket) != 0) {
+                transportSettings.Add(new MqttTransportSettings(
+                    TransportType.Mqtt_WebSocket_Only));
             }
-
+            if ((_transport & TransportOption.AmqpOverTcp) != 0) {
+                transportSettings.Add(new AmqpTransportSettings(
+                    TransportType.Amqp_Tcp_Only));
+            }
+            if ((_transport & TransportOption.AmqpOverWebsocket) != 0) {
+                transportSettings.Add(new AmqpTransportSettings(
+                    TransportType.Amqp_WebSocket_Only));
+            }
             if (transportSettings.Count != 0) {
                 return await Try.Options(transportSettings
                     .Select<ITransportSettings, Func<Task<IClient>>>(t =>
@@ -202,10 +208,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 ILogger logger) {
 
                 if (cs == null) {
-                    logger.Information("Running in iotedge production context.");
+                    logger.Information("Running in iotedge context.");
                 }
                 else {
-                    logger.Information("Running in iotedge development context.");
+                    logger.Information("Running outside iotedge context.");
                 }
 
                 var client = await CreateAsync(cs, transportSetting);
@@ -213,14 +219,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
 
                 // Configure
                 client.OperationTimeoutInMilliseconds = (uint)timeout.TotalMilliseconds;
-                client.SetConnectionStatusChangesHandler((s, r) => {
-                    logger.Information("Module {deviceId}_{moduleId} connection status " +
-                        "changed to {s} due to {r}.", deviceId, moduleId, s, r);
-                    if (r == ConnectionStatusChangeReason.Client_Close && !adapter.IsClosed) {
-                        adapter.IsClosed = true;
-                        onConnectionLost?.Invoke();
-                    }
-                });
+                client.SetConnectionStatusChangesHandler((s, r) =>
+                    adapter.OnConnectionStatusChange(deviceId, moduleId, onConnectionLost,
+                        logger, s, r));
                 if (retry != null) {
                     client.SetRetryPolicy(retry);
                 }
@@ -316,6 +317,40 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             }
 
             /// <summary>
+            /// Handle status change event
+            /// </summary>
+            /// <param name="deviceId"></param>
+            /// <param name="moduleId"></param>
+            /// <param name="onConnectionLost"></param>
+            /// <param name="logger"></param>
+            /// <param name="status"></param>
+            /// <param name="reason"></param>
+            private void OnConnectionStatusChange(string deviceId, string moduleId,
+                Action onConnectionLost, ILogger logger, ConnectionStatus status,
+                ConnectionStatusChangeReason reason) {
+
+                if (status == ConnectionStatus.Connected) {
+                    logger.Information("{counter}: Module {deviceId}_{moduleId} reconnected " +
+                        "due to {reason}.", _reconnectCounter, deviceId, moduleId, reason);
+                    _reconnectCounter++;
+                    return;
+                }
+                logger.Information("{counter}: Module {deviceId}_{moduleId} disconnected " +
+                    "due to {reason} - now {status}...", _reconnectCounter, deviceId, moduleId,
+                        reason, status);
+                if (IsClosed) {
+                    // Already closed - nothing to do
+                    return;
+                }
+                if (status == ConnectionStatus.Disconnected ||
+                    status == ConnectionStatus.Disabled) {
+                    // Force
+                    IsClosed = true;
+                    onConnectionLost?.Invoke();
+                }
+            }
+
+            /// <summary>
             /// Helper to create module client
             /// </summary>
             /// <param name="cs"></param>
@@ -337,6 +372,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             }
 
             private readonly ModuleClient _client;
+            private int _reconnectCounter;
         }
 
         /// <summary>
@@ -379,16 +415,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
 
                 // Configure
                 client.OperationTimeoutInMilliseconds = (uint)timeout.TotalMilliseconds;
-                client.SetConnectionStatusChangesHandler((s, r) => {
-                    logger.Information(
-                        "Device {deviceId} connection status changed to {s} due to {r}.",
-                        deviceId, s, r);
-
-                    if (r == ConnectionStatusChangeReason.Client_Close && !adapter.IsClosed) {
-                        adapter.IsClosed = true;
-                        onConnectionLost?.Invoke();
-                    }
-                });
+                client.SetConnectionStatusChangesHandler((s, r) =>
+                    adapter.OnConnectionStatusChange(deviceId, onConnectionLost, logger, s, r));
                 if (retry != null) {
                     client.SetRetryPolicy(retry);
                 }
@@ -485,6 +513,39 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             }
 
             /// <summary>
+            /// Handle status change event
+            /// </summary>
+            /// <param name="deviceId"></param>
+            /// <param name="onConnectionLost"></param>
+            /// <param name="logger"></param>
+            /// <param name="status"></param>
+            /// <param name="reason"></param>
+            private void OnConnectionStatusChange(string deviceId,
+                Action onConnectionLost, ILogger logger, ConnectionStatus status,
+                ConnectionStatusChangeReason reason) {
+
+                if (status == ConnectionStatus.Connected) {
+                    logger.Information("{counter}: Device {deviceId} reconnected " +
+                        "due to {reason}.", _reconnectCounter, deviceId, reason);
+                    _reconnectCounter++;
+                    return;
+                }
+                logger.Information("{counter}: Device {deviceId} disconnected " +
+                    "due to {reason} - now {status}...", _reconnectCounter, deviceId,
+                        reason, status);
+                if (IsClosed) {
+                    // Already closed - nothing to do
+                    return;
+                }
+                if (status == ConnectionStatus.Disconnected ||
+                    status == ConnectionStatus.Disabled) {
+                    // Force
+                    IsClosed = true;
+                    onConnectionLost?.Invoke();
+                }
+            }
+
+            /// <summary>
             /// Helper to create device client
             /// </summary>
             /// <param name="cs"></param>
@@ -503,6 +564,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             }
 
             private readonly DeviceClient _client;
+            private int _reconnectCounter;
         }
 
         /// <summary>
@@ -525,10 +587,39 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             store.Close();
         }
 
+        /// <summary>
+        /// Sdk logger event source hook
+        /// </summary>
+        internal sealed class IoTSdkLogger : EventSourceSerilogSink {
+
+            /// <inheritdoc/>
+            public IoTSdkLogger(ILogger logger) :
+                base(logger.ForContext("SourceContext", EventSource.Replace('-', '.'))) {
+            }
+
+            /// <inheritdoc/>
+            public override void OnEvent(EventWrittenEventArgs eventData) {
+                switch (eventData.EventName) {
+                    case "Enter":
+                    case "Exit":
+                    case "Associate":
+                        WriteEvent(LogEventLevel.Verbose, eventData);
+                        break;
+                    default:
+                        WriteEvent(LogEventLevel.Debug, eventData);
+                        break;
+                }
+            }
+
+            // ddbee999-a79e-5050-ea3c-6d1a8a7bafdd
+            public const string EventSource = "Microsoft-Azure-Devices-Device-Client";
+        }
+
         private readonly TimeSpan _timeout;
         private readonly TransportOption _transport;
         private readonly IotHubConnectionStringBuilder _cs;
         private readonly ILogger _logger;
+        private readonly IDisposable _logHook;
         private readonly bool _bypassCertValidation;
     }
 }
