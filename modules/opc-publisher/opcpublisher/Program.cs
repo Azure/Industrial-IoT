@@ -1015,7 +1015,8 @@ namespace OpcPublisher
                     break;
                 case "debug":
                     loggerConfiguration.MinimumLevel.Debug();
-                    OpcStackTraceMask = OpcTraceToLoggerDebug = Utils.TraceMasks.StackTrace | Utils.TraceMasks.Operation |
+                    OpcStackTraceMask = OpcTraceToLoggerDebug =
+                        Utils.TraceMasks.StackTrace | Utils.TraceMasks.Operation |
                         Utils.TraceMasks.StartStop | Utils.TraceMasks.ExternalSystem | Utils.TraceMasks.Security;
                     break;
                 case "verbose":
@@ -1042,7 +1043,9 @@ namespace OpcPublisher
             {
                 // configure rolling file sink
                 // configure rolling file sink
-                loggerConfiguration.WriteTo.File(LogFileName, fileSizeLimitBytes: LogFileSizeLimitKb*1024, flushToDiskInterval: _logFileFlushTimeSpanSec, rollOnFileSizeLimit: true, retainedFileCountLimit: RetainedLogFileCountLimit);
+                loggerConfiguration.WriteTo.File(LogFileName, fileSizeLimitBytes: LogFileSizeLimitKb * 1024,
+                    flushToDiskInterval: _logFileFlushTimeSpanSec, rollOnFileSizeLimit: true,
+                    retainedFileCountLimit: RetainedLogFileCountLimit);
             }
 
             // initialize publisher diagnostics
@@ -1052,7 +1055,9 @@ namespace OpcPublisher
             Logger.Information($"Current directory is: {System.IO.Directory.GetCurrentDirectory()}");
             Logger.Information($"Log file is: {LogFileName}");
             Logger.Information($"Log level is: {LogLevel}");
-            return;
+            Logger.Information($"File size limit for log files is {LogFileSizeLimitKb} [KB]");
+            Logger.Information(
+                $"{(RetainedLogFileCountLimit.HasValue ? RetainedLogFileCountLimit.Value.ToString() : "All")} log file(s) will be retained");
         }
 
         /// <summary>
