@@ -369,7 +369,14 @@ The complete usage of the application can be shown using the `--help` command li
               --ll, --loglevel=VALUE the loglevel to use (allowed: fatal, error, warn,
                                        info, debug, verbose).
                                        Default: info
-               --ih, --iothubprotocol=VALUE
+              --ls, --logfilesize=VALUE the max size of a log file [KB] before it will be 
+                                        rolled over.
+                                        0 no limit will be applied 
+                                        Default: 1024
+              --rl, --retainedlogs=VALUE the maximum number of log files to be retained
+                                         0 will enforce all files to be retained
+                                         Default: 2
+              --ih, --iothubprotocol=VALUE
                                       the protocol to use for communication with IoTHub (
                                         allowed values: Amqp, Http1, Amqp_WebSocket_Only,
                                          Amqp_Tcp_Only, Mqtt, Mqtt_WebSocket_Only, Mqtt_

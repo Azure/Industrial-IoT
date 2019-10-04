@@ -96,7 +96,7 @@ namespace OpcPublisher
         /// <summary>
         /// The maximum size for a single log-file in kilobytes
         /// </summary>
-        public static uint LogFileSizeLimitKb { get; set; } = 1024;
+        public static long? LogFileSizeLimit { get; set; } = 1024 * 1024;
 
         /// <summary>
         /// The maximum number of logfiles to be retained
@@ -227,27 +227,27 @@ namespace OpcPublisher
                             }
                         },
 
-                        { "ls|logfilesize=", $"the max size of a log file [KB] before it will be rolled over.\nif 0, the maximum value {UInt32.MaxValue/1024} [KB] will be used\nDefault: {LogFileSizeLimitKb} [KB]",
-                            (uint u) =>
+                    { "ls|logfilesize=", $"the max size of a log file [KB] before it will be rolled over.\nif 0, no limit will be applied.\nDefault: {LogFileSizeLimit/1024} [KB]",
+                            (long l) =>
                             {
-                                if (u == 0)
+                                if (l == 0)
                                 {
-                                    LogFileSizeLimitKb = UInt32.MaxValue / 1024;
+                                    LogFileSizeLimit = null;
                                 }
-                                else if (u <= UInt32.MaxValue / 1024)
+                                else if (l> 0 && l <= long.MaxValue / 1024)
                                 {
-                                    LogFileSizeLimitKb = u;
+                                    LogFileSizeLimit = l * 1024;
                                 }
                                 else
                                 {
                                     throw new OptionException(
-                                        $"The logfilesize must be in the range between 0 and {UInt32.MaxValue/1024}.",
+                                        $"The logfilesize must be in the range between 0 and {long.MaxValue/1024}.",
                                         "logfilesize");
                                 }
                             }
                         },
 
-                        { "rl|retainedlogs=", $"the maximum number of log files that will be retained number of log files to be retained, including the current file.\nif 0 there will be unlimited retention.\nDefault: {RetainedLogFileCountLimit}",
+                        { "rl|retainedlogs=", $"the maximum number of log files to be retained, including the current file.\nif 0, all files will be retained.\nDefault: {RetainedLogFileCountLimit}",
                             (int i) =>
                             {
                                 if (i == 0)
@@ -1043,7 +1043,7 @@ namespace OpcPublisher
             {
                 // configure rolling file sink
                 // configure rolling file sink
-                loggerConfiguration.WriteTo.File(LogFileName, fileSizeLimitBytes: LogFileSizeLimitKb * 1024,
+                loggerConfiguration.WriteTo.File(LogFileName, fileSizeLimitBytes: LogFileSizeLimit,
                     flushToDiskInterval: _logFileFlushTimeSpanSec, rollOnFileSizeLimit: true,
                     retainedFileCountLimit: RetainedLogFileCountLimit);
             }
@@ -1055,7 +1055,7 @@ namespace OpcPublisher
             Logger.Information($"Current directory is: {System.IO.Directory.GetCurrentDirectory()}");
             Logger.Information($"Log file is: {LogFileName}");
             Logger.Information($"Log level is: {LogLevel}");
-            Logger.Information($"File size limit for log files is {LogFileSizeLimitKb} [KB]");
+            Logger.Information($"File size limit for log files is {(LogFileSizeLimit.HasValue ? LogFileSizeLimit.Value.ToString( ) : "infinite") } [KB]");
             Logger.Information(
                 $"{(RetainedLogFileCountLimit.HasValue ? RetainedLogFileCountLimit.Value.ToString() : "All")} log file(s) will be retained");
         }
