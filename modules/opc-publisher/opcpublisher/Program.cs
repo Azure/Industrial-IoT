@@ -1055,7 +1055,7 @@ namespace OpcPublisher
             Logger.Information($"Current directory is: {System.IO.Directory.GetCurrentDirectory()}");
             Logger.Information($"Log file is: {LogFileName}");
             Logger.Information($"Log level is: {LogLevel}");
-            Logger.Information($"File size limit for log files is {(LogFileSizeLimit.HasValue ? LogFileSizeLimit.Value.ToString( ) : "infinite") } [KB]");
+            Logger.Information($"File size limit for log files is {(LogFileSizeLimit.HasValue ? (LogFileSizeLimit.Value/1024).ToString( ) : "infinite") } [KB]");
             Logger.Information(
                 $"{(RetainedLogFileCountLimit.HasValue ? RetainedLogFileCountLimit.Value.ToString() : "All")} log file(s) will be retained");
         }
