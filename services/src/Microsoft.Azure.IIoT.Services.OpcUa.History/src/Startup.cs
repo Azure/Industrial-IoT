@@ -148,7 +148,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.History {
             }
 
             app.EnableCors();
-
+            app.UseCorrelation();
             app.UseSwagger(Config, new Info {
                 Title = ServiceInfo.Name,
                 Version = VersionInfo.PATH,

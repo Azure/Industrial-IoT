@@ -129,6 +129,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Gateway {
             }
 
             app.EnableCors();
+            app.UseCorrelation();
             app.UseMvc();
             app.UseOpcUaTransport();
 

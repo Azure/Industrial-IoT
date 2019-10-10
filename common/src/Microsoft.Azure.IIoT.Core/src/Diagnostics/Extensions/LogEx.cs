@@ -136,7 +136,7 @@ namespace Serilog {
         public static LoggerConfiguration ConsoleOut(this LoggerConfiguration configuration) {
             return configuration
                 .Enrich.FromLogContext()
-                .WriteTo.Console(outputTemplate: "{Message:lj}{NewLine}")
+                .WriteTo.Console(outputTemplate: "({XCorrelationId}): {Message:lj}{NewLine}")
                 .MinimumLevel.ControlledBy(Level);
         }
 
@@ -264,6 +264,6 @@ namespace Serilog {
         }
 
         private const string kDefaultTemplate =
-            "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} ({SourceContext:l}){NewLine}{Exception}";
+            "[{Timestamp:HH:mm:ss} {Level:u3} ({XCorrelationId})] {Message:lj} ({SourceContext:l}){NewLine}{Exception}";
     }
 }
