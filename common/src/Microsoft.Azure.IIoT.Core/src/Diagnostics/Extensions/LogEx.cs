@@ -136,7 +136,7 @@ namespace Serilog {
         public static LoggerConfiguration ConsoleOut(this LoggerConfiguration configuration) {
             return configuration
                 .Enrich.FromLogContext()
-                .WriteTo.Console(outputTemplate: "({XCorrelationId}): {Message:lj}{NewLine}")
+                .WriteTo.Console(outputTemplate: "{Message:lj}{NewLine}")
                 .MinimumLevel.ControlledBy(Level);
         }
 
