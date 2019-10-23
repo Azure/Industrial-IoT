@@ -24,9 +24,9 @@ Azure Industrial IoT manages OPC UA Application Certificates and Trust Lists of 
 
 The overall Azure Industrial IOT [architecture](architecture.md) looks like below.
 
-![architecture](C:/git/Industrial-IoT/docs/media/architecture.PNG)
+![architecture](media/architecture.PNG)
 
-Details on how things work together can be found at [architectural code flow](docs/architecture.md).
+Details on how things work together can be found at [architectural code flow](architecture.md).
 
 ## Deploying Azure Industrial IoT
 
@@ -40,7 +40,7 @@ Deploying Azure Industrial IoT includes deploying the Azure Industrial IoT Micro
 ## Learn more
 
 * [Explore the code structure](code-structure.md)
-* [Discover a server and browse its address space using REST and the CLI](services/howto-use-cli.cmd).
+* [Discover a server and browse its address space using REST and the CLI](services/howto-use-cli.md).
 * [Industrial IoT cloud Microservices](services/readme.md)
   * [What is OPC Twin?](services/twin.md)
   * [What is OPC Vault?](services/vault.md)
