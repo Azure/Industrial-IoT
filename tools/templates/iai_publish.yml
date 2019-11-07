@@ -1,5 +1,5 @@
 #
-# Publish IAI exectables
+# Publish IAI Executables
 #
 parameters:
   sign: 'False'
@@ -20,32 +20,18 @@ jobs:
   #     installationPath: $(Agent.ToolsDirectory)/dotnet
   - task: PowerShell@2
     displayName: Versioning
+    name: setVersionInfo
     inputs:
       targetType: filePath
       filePath: ./tools/scripts/set-version.ps1
-  - task: DotNetCoreCLI@2
-    displayName: Restore
-    inputs:
-      command: restore
-      projects: 'deploy/src/Microsoft.Azure.IIoT.Deployment/Microsoft.Azure.IIoT.Deployment.csproj'
-  - task: DotNetCoreCLI@2
-    displayName: Build
-    inputs:
-      command: build
-      projects: 'deploy/src/Microsoft.Azure.IIoT.Deployment/Microsoft.Azure.IIoT.Deployment.csproj'
-      arguments: '--configuration Release'
   - task: DotNetCoreCLI@2
     displayName: Publish
     inputs:
       command: publish
       publishWebProjects: false
       projects: 'deploy/src/Microsoft.Azure.IIoT.Deployment/Microsoft.Azure.IIoT.Deployment.csproj'
-      arguments: '--runtime win-x64 --configuration Release -p:PublishSingleFile=true --self-contained --output $(Build.ArtifactStagingDirectory)'
-      # outputDir: '$(Build.ArtifactStagingDirectory)'
-  - task: CopyFiles@2
-    inputs:
-      contents: '**/publish/**'
-      targetFolder: $(Build.ArtifactStagingDirectory)
+      arguments: '--runtime win-x64 --configuration Release -p:PublishSingleFile=true --self-contained --output $(Build.ArtifactStagingDirectory)/win-x64'
+      zipAfterPublish: false
   - task: AntiMalware@3
     displayName: 'Run Virus scan'
     inputs:
@@ -63,9 +49,9 @@ jobs:
       displayName: 'IAI executable Signing'
       inputs:
         ConnectedServiceName: 'Code Signing Certificate'
-        # FolderPath: '$(agent.builddirectory)'
+        # FolderPath: '$(Agent.BuildDirectory)'
         FolderPath: '$(Build.ArtifactStagingDirectory)'
-        Pattern: '**/publish/Microsoft.Azure.IIoT.Deployment.exe'
+        Pattern: '**/Microsoft.Azure.IIoT.Deployment.exe'
         UseMinimatch: true
         signConfigType: inlineSignParams
         inlineOperation: |
@@ -113,4 +99,4 @@ jobs:
     displayName: 'Publish IAI Artifacts'
     inputs:
       path: $(Build.ArtifactStagingDirectory)/
-      artifact: 'iai_release_$(Version_Full)'
+      artifact: iai_release_$(setVersionInfo.Version_Full)
