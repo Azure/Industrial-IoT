@@ -26,6 +26,8 @@
 /TestResults/**
 /**/TestResults/**
 /**/packages/**
+/iai/IAI_AADGraph
 .env
-
+*.crt
+*.key
 

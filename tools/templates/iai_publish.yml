@@ -1,11 +1,11 @@
 #
-# Pack nugets for consumption
+# Publish IAI exectables
 #
 parameters:
   sign: 'False'
 jobs:
-- job: nuget
-  displayName: Pack Nugets
+- job: iai_publish
+  displayName: Generate IAI Executables
   pool:
     name: Hosted Windows 2019 with VS2019
   steps:
@@ -27,13 +27,20 @@ jobs:
     displayName: Restore
     inputs:
       command: restore
-      projects: 'Industrial-IoT.sln'
+      projects: 'deploy/src/Microsoft.Azure.IIoT.Deployment/Microsoft.Azure.IIoT.Deployment.csproj'
   - task: DotNetCoreCLI@2
     displayName: Build
     inputs:
       command: build
-      projects: 'Industrial-IoT.sln'
+      projects: 'deploy/src/Microsoft.Azure.IIoT.Deployment/Microsoft.Azure.IIoT.Deployment.csproj'
       arguments: '--configuration Release'
+  - task: DotNetCoreCLI@2
+    displayName: Publish
+    inputs:
+      command: publish
+      publishWebProjects: false
+      projects: 'deploy/src/Microsoft.Azure.IIoT.Deployment/Microsoft.Azure.IIoT.Deployment.csproj'
+      arguments: '--runtime win-x64 --configuration Release -p:PublishSingleFile=true --self-contained'
   - task: AntiMalware@3
     displayName: 'Run Virus scan'
     inputs:
@@ -47,11 +54,11 @@ jobs:
       TreatStaleSignatureAs: 'Error'
   - ${{ if eq(parameters.sign, 'True') }}:
     - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
-      displayName: 'Code Signing'
+      displayName: 'IAI executable Signing'
       inputs:
         ConnectedServiceName: 'Code Signing Certificate'
         FolderPath: '$(agent.builddirectory)'
-        Pattern: '/**/Microsoft.Azure.IIoT.*.dll'
+        Pattern: '/**/publish/Microsoft.Azure.IIoT.Deployment.exe'
         UseMinimatch: true
         signConfigType: inlineSignParams
         inlineOperation: |
@@ -93,61 +100,10 @@ jobs:
         MaxConcurrency: 1
         MaxRetryAttempts: 50
         VerboseLogin: true
-  - task: DotNetCoreCLI@2
-    displayName: Pack
-    inputs:
-      command: pack
-      packagesToPack: 'Industrial-IoT.sln'
-      configuration: Release
-      configurationToPack: Release
-      nobuild: true
-  - ${{ if eq(parameters.sign, 'True') }}:
-    - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
-      displayName: 'Nuget Signing'
-      inputs:
-        ConnectedServiceName: 'Code Signing Certificate'
-        FolderPath: '$(Build.ArtifactStagingDirectory)'
-        Pattern: 'Microsoft.Azure.IIoT.*.nupkg'
-        UseMinimatch: true
-        signConfigType: inlineSignParams
-        inlineOperation: |
-          [{
-              "keyCode": "CP-401405",
-              "operationSetCode": "NuGetSign",
-              "parameters": [],
-              "toolName": "sign",
-              "toolVersion": "1.0"
-          },
-          {
-              "keyCode": "CP-401405",
-              "operationSetCode": "NuGetVerify",
-              "parameters": [],
-              "toolName": "sign",
-              "toolVersion": "1.0"
-          }]
-        MaxConcurrency: 1
-        MaxRetryAttempts: 50
-        VerboseLogin: true
   - task: ComponentGovernanceComponentDetection@0
     displayName: 'Component Detection'
   - task: PublishPipelineArtifact@1
-    displayName: 'Publish Artifact'
+    displayName: 'Publish IAI Artifacts'
     inputs:
-      path: $(Build.ArtifactStagingDirectory)
-      artifact: 'release_$(NBGV_SemVer1)'
-  - task: NuGetCommand@2
-    displayName: Push
-    inputs:
-      command: push
-      packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.snupkg'
-      nuGetFeedType: external
-      publishFeedCredentials: azureiiot-dev
-  - task: PublishSymbols@2
-    displayName: 'Publish symbols path'
-    inputs:
-      IndexSources: false
-      SymbolServerType: TeamServices
-      SymbolsMaximumWaitTime: 10
-      SymbolsProduct: azureiiot
-      SymbolsVersion: '$(NBGV_SemVer1)'
-    continueOnError: true
+      path: $(Build.ArtifactStagingDirectory)/
+      artifact: 'iai_release_$(Version_Full)'
