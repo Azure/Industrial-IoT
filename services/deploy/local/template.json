@@ -186,7 +186,7 @@
         },
         "signalRSkuName": {
             "type": "string",
-            "defaultValue": "Free_F1",
+            "defaultValue": "Standard_S1",
             "allowedValues": [
                 "Free_F1", "Standard_S1"
             ],
@@ -196,7 +196,7 @@
         },
         "signalRSkuTier": {
             "type": "string",
-            "defaultValue": "Free",
+            "defaultValue": "Standard",
             "allowedValues": [
                 "Free", "Standard", "Premium"
             ],
