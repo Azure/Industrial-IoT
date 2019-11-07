@@ -41,7 +41,7 @@ jobs:
       publishWebProjects: false
       projects: 'deploy/src/Microsoft.Azure.IIoT.Deployment/Microsoft.Azure.IIoT.Deployment.csproj'
       arguments: '--runtime win-x64 --configuration Release -p:PublishSingleFile=true --self-contained'
-      # outputDir: '$(Build.ArtifactStagingDirectory)'
+      outputDir: '$(Build.ArtifactStagingDirectory)'
   - task: CopyFiles@2
     inputs:
       contents: '**/publish/**'
