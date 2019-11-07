@@ -41,12 +41,18 @@ jobs:
       publishWebProjects: false
       projects: 'deploy/src/Microsoft.Azure.IIoT.Deployment/Microsoft.Azure.IIoT.Deployment.csproj'
       arguments: '--runtime win-x64 --configuration Release -p:PublishSingleFile=true --self-contained'
+      # outputDir: '$(Build.ArtifactStagingDirectory)'
+  - task: CopyFiles@2
+    inputs:
+      contents: '**/publish/**'
+      targetFolder: $(Build.ArtifactStagingDirectory)
   - task: AntiMalware@3
     displayName: 'Run Virus scan'
     inputs:
       InputType: 'Basic'
       ScanType: 'CustomScan'
-      FileDirPath: '$(Build.StagingDirectory)'
+      # FileDirPath: '$(Build.StagingDirectory)'
+      FileDirPath: '$(Build.ArtifactStagingDirectory)'
       EnableServices: true
       SupportLogOnError: false
       TreatSignatureUpdateFailureAs: 'Warning'
@@ -57,8 +63,9 @@ jobs:
       displayName: 'IAI executable Signing'
       inputs:
         ConnectedServiceName: 'Code Signing Certificate'
-        FolderPath: '$(agent.builddirectory)'
-        Pattern: '/**/publish/Microsoft.Azure.IIoT.Deployment.exe'
+        # FolderPath: '$(agent.builddirectory)'
+        FolderPath: '$(Build.ArtifactStagingDirectory)'
+        Pattern: '**/publish/Microsoft.Azure.IIoT.Deployment.exe'
         UseMinimatch: true
         signConfigType: inlineSignParams
         inlineOperation: |
