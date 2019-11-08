@@ -1,16 +1,18 @@
 #
-# Publish IAI Executables
+# Publish Microsoft.Azure.IIoT.Deployment Executables on Windows
 #
 parameters:
   sign: 'False'
+  runtime: win-x64
+  poolName: 'Hosted Windows 2019 with VS2019'
+
 jobs:
-- job: iai_publish
-  displayName: Generate IAI Executables
+- job: iiot_deployment_win
+  displayName: Generate Windows Executables
   pool:
-    name: Hosted Windows 2019 with VS2019
+    name: ${{ parameters.poolName }}
   steps:
-  # # This step will rely on existing setup of .Net Core for now.
-  # # Once we move all projects to .Net Core 3, we will uncomment this.
+  # .Net Core 3.0 installation causes problems for executable signing task.
   # - task: UseDotNet@2
   #   displayName: 'Install .NET Core SDK'
   #   inputs:
@@ -30,14 +32,13 @@ jobs:
       command: publish
       publishWebProjects: false
       projects: 'deploy/src/Microsoft.Azure.IIoT.Deployment/Microsoft.Azure.IIoT.Deployment.csproj'
-      arguments: '--runtime win-x64 --configuration Release -p:PublishSingleFile=true --self-contained --output $(Build.ArtifactStagingDirectory)/win-x64'
+      arguments: '--runtime ${{ parameters.runtime }} --configuration Release -p:PublishSingleFile=true --self-contained --output $(Build.ArtifactStagingDirectory)/${{ parameters.runtime }}'
       zipAfterPublish: false
   - task: AntiMalware@3
     displayName: 'Run Virus scan'
     inputs:
       InputType: 'Basic'
       ScanType: 'CustomScan'
-      # FileDirPath: '$(Build.StagingDirectory)'
       FileDirPath: '$(Build.ArtifactStagingDirectory)'
       EnableServices: true
       SupportLogOnError: false
@@ -46,12 +47,11 @@ jobs:
       TreatStaleSignatureAs: 'Error'
   - ${{ if eq(parameters.sign, 'True') }}:
     - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
-      displayName: 'IAI executable Signing'
+      displayName: 'Executable Signing'
       inputs:
         ConnectedServiceName: 'Code Signing Certificate'
-        # FolderPath: '$(Agent.BuildDirectory)'
         FolderPath: '$(Build.ArtifactStagingDirectory)'
-        Pattern: '**/Microsoft.Azure.IIoT.Deployment.exe'
+        Pattern: '**/Microsoft.Azure.IIoT.Deployment/Microsoft.Azure.IIoT.Deployment.exe'
         UseMinimatch: true
         signConfigType: inlineSignParams
         inlineOperation: |
@@ -93,10 +93,15 @@ jobs:
         MaxConcurrency: 1
         MaxRetryAttempts: 50
         VerboseLogin: true
+  - task: CmdLine@2
+    displayName: 'Generate MD5 Checksum'
+    inputs:
+      script:  md5sum Microsoft.Azure.IIoT.Deployment.exe Microsoft.Azure.IIoT.Deployment.pdb > Microsoft.Azure.IIoT.Deployment.md5
+      workingDirectory: $(Build.ArtifactStagingDirectory)/${{ parameters.runtime }}/Microsoft.Azure.IIoT.Deployment
   - task: ComponentGovernanceComponentDetection@0
     displayName: 'Component Detection'
   - task: PublishPipelineArtifact@1
-    displayName: 'Publish IAI Artifacts'
+    displayName: 'Publish Artifacts'
     inputs:
       path: $(Build.ArtifactStagingDirectory)/
-      artifact: iai_release_$(setVersionInfo.Version_Full)
+      artifact: iiot_deployment_release_$(setVersionInfo.Version_Full)_${{ parameters.runtime }}

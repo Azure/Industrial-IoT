@@ -1,36 +1,33 @@
 stages:
-- stage: iai_publish
-  displayName: 'Sign and Publish IAI'
-  # dependsOn:
-  # - build
+- stage: build
+  displayName: 'Build and Test Code'
   jobs:
-  - template: tools/templates/iai_publish.yml
+  - template: tools/templates/ci.yml
+  - template: tools/templates/sdl.yml
+- stage: pack
+  displayName: 'Package and Sign Nuget'
+  dependsOn:
+  - build
+  jobs:
+  - template: tools/templates/nuget.yml
     parameters:
-      # sign: ${{ startsWith(variables['Build.SourceBranch'], 'refs/heads/') }}
-      sign: 'True'
-# Temporary change to force execution of iai_publish
-# - stage: build
-#   displayName: 'Build and Test Code'
-#   # Delete dependsOn after fixing iai_publish job
-#   dependsOn:
-#   - iai_publish
-#   jobs:
-#   - template: tools/templates/ci.yml
-#   - template: tools/templates/sdl.yml
-# - stage: pack
-#   displayName: 'Package and Sign Nuget'
-#   dependsOn: build
-#   jobs:
-#   - template: tools/templates/nuget.yml
-#     parameters:
-#       sign: ${{ startsWith(variables['Build.SourceBranch'], 'refs/heads/') }}
-# - stage: images
-#   displayName: 'Create and Push Images'
-#   dependsOn: pack
-#   # dependsOn:
-#   # - pack
-#   # - iai_publish
-#   jobs:
-#   - template: tools/templates/acrbuild.yml
-#     parameters:
-#       useNugets: ${{ startsWith(variables['Build.SourceBranch'], 'refs/heads/') }}
+      sign: ${{ startsWith(variables['Build.SourceBranch'], 'refs/heads/') }}
+- stage: iiot_deployment
+  displayName: 'Publish Microsoft.Azure.IIoT.Deployment'
+  dependsOn:
+  - build
+  jobs:
+  - template: tools/templates/iiot_deployment_win.yml
+    parameters:
+      sign: ${{ startsWith(variables['Build.SourceBranch'], 'refs/heads/') }}
+  - template: tools/templates/iiot_deployment_linux.yml
+  - template: tools/templates/iiot_deployment_mac.yml
+- stage: images
+  displayName: 'Create and Push Images'
+  dependsOn:
+  - pack
+  - iiot_deployment
+  jobs:
+  - template: tools/templates/acrbuild.yml
+    parameters:
+      useNugets: ${{ startsWith(variables['Build.SourceBranch'], 'refs/heads/') }}

@@ -1,7 +1,2 @@
 jobs:
-  # Temporary change to force execution of iai_publish
-  # - template: tools/templates/ci.yml
-  - template: tools/templates/iai_publish.yml
-    parameters:
-      # sign: ${{ startsWith(variables['Build.SourceBranch'], 'refs/heads/') }}
-      sign: 'True'
+  - template: tools/templates/ci.yml
