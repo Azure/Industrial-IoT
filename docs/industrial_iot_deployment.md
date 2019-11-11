@@ -244,7 +244,8 @@ Setup connection between App Service and AKS cluster:
     [Create an HTTPS ingress controller and use your own TLS certificates on Azure Kubernetes Service (AKS)](https://docs.microsoft.com/azure/aks/ingress-own-tls)
 
     1. Instead of using `ingress-basic` namespace use `industrial-iot`. So you don't have to create a new namespace.
-    2. Instead of manually **generating a TLS certificate** (step 2) and **creating a Kubernetes Secret for the certificate** (steps 3) use an existing `web-app` secret in `industrial-iot` namespace as [default ssl certificate](https://kubernetes.github.io/ingress-nginx/user-guide/tls/#default-ssl-certificate). `web-app` secret will already be created by `Microsoft.Azure.IIoT.Deployment` application. So the `helm install` command in **Create an ingress controller** step (step 1) should look like this:
+    2. Instead of manually **generating a TLS certificate** (step 2) and **creating a Kubernetes Secret for the certificate** (step 3) use an existing `web-app` secret in `industrial-iot` namespace as [default ssl certificate](https://kubernetes.github.io/ingress-nginx/user-guide/tls/#default-ssl-certificate).
+    `web-app` secret will already be created by `Microsoft.Azure.IIoT.Deployment` application. So the `helm install` command in **Create an ingress controller** (step 1) should look like this:
 
         ```bash
         # Use Helm to deploy an NGINX ingress controller
@@ -257,9 +258,12 @@ Setup connection between App Service and AKS cluster:
         ```
 
     3. Skip **Run demo applications** (step 4).
-    4. For step 5, **Create an ingress route**, use [22_industrial_iot_ingress.yaml](../deploy/src/Microsoft.Azure.IIoT.Deployment/Resources/aks/22_industrial_iot_ingress.yaml) file. Stop after this step.
+    4. For step 5, **Create an ingress route**, use [22_industrial_iot_ingress.yaml](../deploy/src/Microsoft.Azure.IIoT.Deployment/Resources/aks/22_industrial_iot_ingress.yaml) file, but change value of `spec.tls.hosts` to point to URL of App Service created by the deployment.
+    Stop after this step.
 
-    After completing above steps you should be able to see a Load Balancer and a Public IP Address being created in the Resource Group managed by AKS cluster. When creating an AKS cluster, Azure will create a new Resource Group which will contain managed Azure resources that are required to run a Kubernetes cluster, such as VMs, Network Interfaces ans so on. Name of the Resource Groups managed by your AKS cluster should look something like this:
+    After completing above steps you should be able to see a Load Balancer and a Public IP Address being created in the Resource Group managed by AKS cluster.
+    When creating an AKS cluster, Azure will create a new Resource Group which will contain managed Azure resources that are required to run a Kubernetes cluster, such as VMs, Network Interfaces ans so on.
+    Name of the Resource Groups managed by your AKS cluster should look something like this:
 
     * MC_\<resource_group_name\>\_\<aks-cluster-name\>\_\<region\>
 
