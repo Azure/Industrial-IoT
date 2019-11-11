@@ -244,7 +244,18 @@ Setup connection between App Service and AKS cluster:
     [Create an HTTPS ingress controller and use your own TLS certificates on Azure Kubernetes Service (AKS)](https://docs.microsoft.com/azure/aks/ingress-own-tls)
 
     1. Instead of using `ingress-basic` namespace use `industrial-iot`. So you don't have to create a new namespace.
-    2. Instead of manually **generating a TLS certificate** (step 2) and **creating a Kubernetes Secret for the certificate** (steps 3) use an existing `web-app` secret in `industrial-iot` namespace as [default ssl certificate](https://kubernetes.github.io/ingress-nginx/user-guide/tls/#default-ssl-certificate). `web-app` secret will already be created by `Microsoft.Azure.IIoT.Deployment` application.
+    2. Instead of manually **generating a TLS certificate** (step 2) and **creating a Kubernetes Secret for the certificate** (steps 3) use an existing `web-app` secret in `industrial-iot` namespace as [default ssl certificate](https://kubernetes.github.io/ingress-nginx/user-guide/tls/#default-ssl-certificate). `web-app` secret will already be created by `Microsoft.Azure.IIoT.Deployment` application. So the `helm install` command in **Create an ingress controller** step (step 1) should look like this:
+
+        ```bash
+        # Use Helm to deploy an NGINX ingress controller
+        helm install stable/nginx-ingress \
+            --namespace industrial-iot \
+            --set controller.replicaCount=2 \
+            --set controller.nodeSelector."beta\.kubernetes\.io/os"=linux \
+            --set defaultBackend.nodeSelector."beta\.kubernetes\.io/os"=linux \
+            --set controller.extraArgs.default-ssl-certificate=industrial-iot/web-app
+        ```
+
     3. Skip **Run demo applications** (step 4).
     4. For step 5, **Create an ingress route**, use [22_industrial_iot_ingress.yaml](../deploy/src/Microsoft.Azure.IIoT.Deployment/Resources/aks/22_industrial_iot_ingress.yaml) file. Stop after this step.
 
