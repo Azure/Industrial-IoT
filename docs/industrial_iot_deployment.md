@@ -277,6 +277,7 @@ Setup connection between App Service and AKS cluster:
     * Within the Resource Group find instance of **App Service** and select it. You can also find the name of App Service in logs of the deployment.
     * Under **Settings** group select **Configuration**.
     * Find **REMOTE_ENDPOINT** setting and edit its value to point to IP address of Public IP Address service that was created in the previous step. Do not forget to have `https://` prefix before the address. Save your change.
+    * Go to **Overview** of you App Service, find **Restart** button on top and restart the service instance.
 
 Now you should be able to access APIs of back-end microservices through URL of App Service. The URL is available in overview of App Service. You can try to access  OPC Registry Service by appending `/registry/` to the URL. It should look something like this:
 
