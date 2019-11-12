@@ -1,6 +1,6 @@
 # Microsoft.Azure.IIoT.Deployment
 
-## Table Of Content
+## Table Of Contents
 
 * [Running Microsoft.Azure.IIoT.Deployment](#running-microsoft.azure.iiot.deployment)
 * [Deployed Resources](#deployed-resources)
@@ -8,15 +8,15 @@
 * [Known Issues](#known-issues)
 * [Resources](#resources)
 
-`Microsoft.Azure.IIoT.Deployment` is a command line application for deploying Industrial IoT solution. It takes care of deploying Azure infrastructure resources and back-end microservices of Industrial IoT solution.
+`Microsoft.Azure.IIoT.Deployment` is a command line application for deploying Industrial IoT solution. It takes care of deploying Azure infrastructure resources and microservices of Industrial IoT solution.
 
-This replaces [services/deploy/deploy.ps1](../services/deploy/deploy.ps1) script, which similarly deployed Azure infrastructure resources and back-end microservices. Main difference from infrastructure perspective is that `Microsoft.Azure.IIoT.Deployment` deploys back-end microservices to an AKS cluster, while `deploy.ps1` uses a VM for that.
+This replaces [services/deploy/deploy.ps1](../services/deploy/deploy.ps1) script, which similarly deployed Azure infrastructure resources and microservices. Main difference from infrastructure perspective is that `Microsoft.Azure.IIoT.Deployment` deploys microservices to an AKS cluster, while `deploy.ps1` uses a VM for that.
 
 ## Running Microsoft.Azure.IIoT.Deployment
 
-`Microsoft.Azure.IIoT.Deployment` requires permissions to create azure resources on users behalf and as such it requires admin consent within the Azure tenant. This entails a few additional manual steps before the application can run properly. Those steps are required after first run which will fail if the admin of Azure Active Directory has not already consented to use of the Enterprise App within the directory. **5**th step bellow describes the error that you might get if you are lacking admin consent and [Granting Admin Consent](#granting-admin-consent) walks you through steps to mitigate that problem. Please note, that you will still need to run the application once before granting the concent and that first run will fail.
+`Microsoft.Azure.IIoT.Deployment` requires permissions to create azure resources on users behalf and as such it requires admin consent within the Azure tenant. This entails a few additional manual steps before the application can run properly. Those steps are required after first run which will fail if the admin of Azure Active Directory has not already consented to use of the Enterprise App within the directory. **5**th step below describes the error that you might get if you are lacking admin consent and [Granting Admin Consent](#granting-admin-consent) walks you through steps to mitigate that problem. Please note, that you will still need to run the application once before granting the consent and that first run will fail.
 
-We are working on simplifying this flow, but as of right now those are the steps to run `Microsoft.Azure.IIoT.Deployment`:
+We are working on simplifying this flow, but as of right now these are the steps to run `Microsoft.Azure.IIoT.Deployment`:
 
 1. Run `Microsoft.Azure.IIoT.Deployment` application from command line:
 
@@ -57,7 +57,7 @@ We are working on simplifying this flow, but as of right now those are the steps
     XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
     ```
 
-4. Now the application will ask you to login to Azure. During the first run, login flow will also ask you consent to providing permissions to `AzureIndustrialIoTDeployment` application. If you are not an admin in your Azure account, you would be asked to request consent from an admin.
+4. Now the application will ask you to login to Azure. During the first run, login flow will also ask your consent to provide permissions to `AzureIndustrialIoTDeployment` application. If you are not an admin in your Azure account, you would be asked to request consent from an admin.
 
     * On Windows, an interactive flow will launch a web browser and ask you to login to Azure.
 
@@ -98,7 +98,7 @@ We are working on simplifying this flow, but as of right now those are the steps
     SubscriptionId: XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX, DisplayName: Visual Studio Enterprise
     ```
 
-8. Select Resource Group. You would be presented with options of either using an existing Resource Group or creating a new onw. If you choose to use an existing one, you will be presented with a list of all Resource Group within the Subscription to choose from. Otherwise, you would be asked to select a Region for the new Resource Group and provide a name for it. Output for the latter case is bellow:
+8. Select Resource Group. You would be presented with options of either using an existing Resource Group or creating a new one. If you choose to use an existing one, you will be presented with a list of all Resource Group within the Subscription to choose from. Otherwise, you would be asked to select a Region for the new Resource Group and provide a name for it. Output for the latter case is below:
 
     ``` bash
     Do you want to create a new ResourceGroup or use an existing one ? Please select N[new] or E[existing]
@@ -121,7 +121,7 @@ We are working on simplifying this flow, but as of right now those are the steps
     [13:36:21 INF] Created Resource Group: kkTestApp51
     ```
 
-9. Now the application will perform application registration, Azure resource deployment and deployment of back-end microservices to AKS cluster. This will take around 15 to 20 minutes depending on Azure Region. Along the way, it will log what Azure resources are created. Sample log looks like this:
+9. Now the application will perform application registration, Azure resource deployment and deployment of microservices to AKS cluster. This will take around 15 to 20 minutes depending on Azure Region. Along the way, it will log what Azure resources are created. Sample log looks like this:
 
     ``` bash
     [13:36:21 INF] Registering resource providers ...
@@ -193,11 +193,11 @@ To grant admin consent you have to be **admin** in the Azure account. Here are t
 
 ### AKS
 
-All of back-end microservices of Industrial IoT solution are deployed to an AKS Kubernetes cluster. The deployment creates `industrial-iot` namespace where all microservices are running. To provide connection details for all Azure resources created by `Microsoft.Azure.IIoT.Deployment`, we created `industrial-iot-env` secret, which is then consumed by deployments.
+All of microservices of Industrial IoT solution are deployed to an AKS Kubernetes cluster. The deployment creates `industrial-iot` namespace where all microservices are running. To provide connection details for all Azure resources created by `Microsoft.Azure.IIoT.Deployment`, we created `industrial-iot-env` secret, which is then consumed by deployments.
 
 To see YAML files of all Kubernetes resources that are created by the application check [deploy/src/Microsoft.Azure.IIoT.Deployment/Resources/aks/](../deploy/src/Microsoft.Azure.IIoT.Deployment/Resources/aks/) directory.
 
-To see state of all back-end microservices you can check Kubernetes Dashboard. Follow this tutorial on how to access it:
+To see state of microservices you can check Kubernetes Dashboard. Follow this tutorial on how to access it:
 
 * [Access the Kubernetes web dashboard in Azure Kubernetes Service (AKS)](https://docs.microsoft.com/azure/aks/kubernetes-dashboard)
 
@@ -205,7 +205,7 @@ To see state of all back-end microservices you can check Kubernetes Dashboard. F
 
 ### Connectivity To AKS
 
-Currently we are missing the connection from App Services to deployed back-end microservices which are running in AKS cluster. This is required if you want to access APIs exposed by microservices for debugging or explorative purposes. The connectivity will be added in the next iteration of the application. Currently it is possible to manually setup connection.
+Currently we are missing the connection from App Services to deployed microservices which are running in AKS cluster. This is required if you want to access APIs exposed by microservices for debugging or exploratory purposes. The connectivity will be added in the next iteration of the application. Currently it is possible to manually setup connection.
 
 You will need to have [Azure CLI](https://docs.microsoft.com/cli/azure/?view=azure-cli-latest) installed for next steps.
 
@@ -239,7 +239,7 @@ Setup connection between App Service and AKS cluster:
 
     * [Install applications with Helm in Azure Kubernetes Service (AKS)](https://docs.microsoft.com/azure/aks/kubernetes-helm)
 
-5. Create NGINX Ingress controller. Please follow the steps in the tutorial bellow but with changes listed under it:
+5. Create NGINX Ingress controller. Please follow the steps in the tutorial below but with changes listed under it:
 
     [Create an HTTPS ingress controller and use your own TLS certificates on Azure Kubernetes Service (AKS)](https://docs.microsoft.com/azure/aks/ingress-own-tls)
 
@@ -279,7 +279,7 @@ Setup connection between App Service and AKS cluster:
     * Find **REMOTE_ENDPOINT** setting and edit its value to point to IP address of Public IP Address service that was created in the previous step. Do not forget to have `https://` prefix before the address. Save your change.
     * Go to **Overview** of you App Service, find **Restart** button on top and restart the service instance.
 
-Now you should be able to access APIs of back-end microservices through URL of App Service. The URL is available in overview of App Service. You can try to access  OPC Registry Service by appending `/registry/` to the URL. It should look something like this:
+Now you should be able to access APIs of microservices through URL of App Service. The URL is available in overview of App Service. You can try to access OPC Registry Service by appending `/registry/` to the URL. It should look something like this:
 
 * https://kktestapp51.azurewebsites.net/registry/
 
@@ -297,7 +297,7 @@ Currently `Microsoft.Azure.IIoT.Deployment` application deploys predefined Azure
 
 ### CosmosDB Scale
 
-`Microsoft.Azure.IIoT.Deployment` deploys version `2.5.1` of Industrial IoT platform which includes deployment of CosmosDB databases and containers within it. The solution creates 2 CosmosDB databases with 3 containers which are used by back-end microservices:
+`Microsoft.Azure.IIoT.Deployment` deploys version `2.5.1` of Industrial IoT platform which includes deployment of CosmosDB databases and containers within it. The solution creates 2 CosmosDB databases with 3 containers which are used by microservices:
 
 * `iiot_opc` database, which contains the following containers:
   * `iiot_opc-indices`
