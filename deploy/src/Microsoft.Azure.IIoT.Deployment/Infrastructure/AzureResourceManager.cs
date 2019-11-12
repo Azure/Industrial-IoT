@@ -25,7 +25,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             Region.EuropeNorth,
             Region.EuropeWest,
             Region.CanadaCentral,
-            Region.IndiaCentral,
+            //Region.IndiaCentral, // App Service Plan scaling is not available in the region.
             Region.AsiaSouthEast
         };
 
