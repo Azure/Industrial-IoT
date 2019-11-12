@@ -17,21 +17,21 @@ spec:
       paths:
       - path: /registry/(.*)
         backend:
-          serviceName: registryservice
+          serviceName: registry-service
           servicePort: 9042
       - path: /twin/(.*)
         backend:
-          serviceName: twinservice
+          serviceName: twin-service
           servicePort: 9041
       - path: /history/(.*)
         backend:
-          serviceName: historyservice
+          serviceName: history-service
           servicePort: 9043
       - path: /ua/(.*)
         backend:
-          serviceName: gatewayservice
+          serviceName: gateway-service
           servicePort: 9040
       - path: /vault/(.*)
         backend:
-          serviceName: vaultservice
+          serviceName: vault-service
           servicePort: 9044
