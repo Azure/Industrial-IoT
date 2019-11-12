@@ -15,6 +15,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry {
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Handlers;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Handlers;
+    using Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Processor.EventHub;
@@ -22,6 +23,11 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry {
     using Microsoft.Azure.IIoT.Hub.Services;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Utils;
+    using Microsoft.Azure.IIoT.Http.Auth;
+    using Microsoft.Azure.IIoT.Auth.Clients.Default;
+    using Microsoft.Azure.IIoT.Utils;
+    using Microsoft.Azure.IIoT.Cdm.Services;
+    using Microsoft.Azure.IIoT.Cdm.Storage;
     using Microsoft.Extensions.Configuration;
     using Autofac;
     using Serilog;
@@ -127,7 +133,9 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry {
             builder.RegisterType<DiscoveryEventHandler>()
                 .AsImplementedInterfaces().SingleInstance();
             // ... requires the corresponding services
+
             builder.RegisterModule<HttpClientModule>();
+
             builder.RegisterType<OnboardingAdapter>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<OnboardingServiceClient>()
@@ -151,6 +159,17 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry {
             // ... forward samples to the tsi eventhub
             builder.RegisterType<MonitoredItemSampleForwarder>()
                 .AsImplementedInterfaces().SingleInstance();
+
+            // Handle the CDM handler
+            builder.RegisterType<AdlsCsvStorage>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<SubscriberCdmSampleHandler>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<SubscriberSampleCdmProcessor>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<CdmMessageProcessor>()
+                .AsImplementedInterfaces().SingleInstance();
+
             builder.RegisterType<EventHubNamespaceClient>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<EventHubClientConfig>()

@@ -97,26 +97,45 @@ namespace Opc.Ua.PubSub {
         }
 
         /// <inheritdoc/>
+        public override bool Equals(Object value) {
+            return IsEqual(value as IEncodeable);
+        }
+
+        /// <inheritdoc/>
+        public override int GetHashCode() {
+            return base.GetHashCode();
+        }
+
+        /// <inheritdoc/>
         public bool IsEqual(IEncodeable encodeable) {
-            return Utils.IsEqual(this, encodeable);
-        }
 
-        /// <summary>
-        /// Decode from binary
-        /// </summary>
-        /// <param name="decoder"></param>
-        private void DecodeBinary(IDecoder decoder) {
-            // TODO
-            throw new NotImplementedException();
-        }
+            if (ReferenceEquals(this, encodeable)) {
+                return true;
+            }
+           
+            if (!(encodeable is NetworkMessage wrapper)) {
+                return false;
+            }
 
-        /// <summary>
-        /// Decode from json
-        /// </summary>
-        /// <param name="decoder"></param>
-        private void DecodeJson(IDecoder decoder) {
-            // TODO
-            throw new NotImplementedException();
+            if (!Utils.IsEqual(wrapper.MessageContentMask, MessageContentMask)||
+                !Utils.IsEqual(wrapper.DataSetClassId, DataSetClassId) ||
+                !Utils.IsEqual(wrapper.MessageId, MessageId) ||
+                !Utils.IsEqual(wrapper.MessageType, MessageType) ||
+                !Utils.IsEqual(wrapper.PublisherId, PublisherId)) {
+                return false;
+            }
+
+            if (wrapper.Messages.Count != Messages.Count) {
+                return false;
+            }
+
+            for (var i=0; i < Messages.Count; i++) {
+                if (!Utils.IsEqual(wrapper.Messages[i], Messages[i])) {
+                    return false;
+                }
+            }
+                
+            return true;
         }
 
         /// <summary>
@@ -150,6 +169,44 @@ namespace Opc.Ua.PubSub {
                         encoder.WriteEncodeableArray(nameof(Messages), Messages.ToArray(), typeof(DataSetMessage[]));
                     }
                 }
+            }
+        }
+
+        /// <inheritdoc/>
+        private void DecodeBinary(IDecoder decoder) {
+            throw new NotImplementedException("Binary decoding is not implemented");
+        }
+
+        /// <inheritdoc/>
+        private void DecodeJson(IDecoder decoder) {
+            MessageId = decoder.ReadString("MessageId");
+            MessageContentMask = 0;
+            if (MessageId != null) {
+                MessageContentMask |= (uint)JsonNetworkMessageContentMask.NetworkMessageHeader;
+            }
+            
+            MessageType = decoder.ReadString("MessageType");
+            if (MessageType != "ua-data"){
+                // todo throw incorrect message format
+            }
+
+            PublisherId = decoder.ReadString("PublisherId");
+            if (PublisherId != null) {
+                MessageContentMask |= (uint)JsonNetworkMessageContentMask.PublisherId;
+            }
+            
+            DataSetClassId = decoder.ReadString("DataSetClassId");            
+            if(DataSetClassId != null){
+                MessageContentMask |= (uint)JsonNetworkMessageContentMask.DataSetClassId;
+            }
+
+            Array messagesArray = decoder.ReadEncodeableArray("Messages", typeof(DataSetMessage));
+            Messages = new List<DataSetMessage>();
+            foreach (var value in messagesArray) {
+                Messages.Add(value as DataSetMessage);
+            }
+            if (Messages.Count == 1) {
+                MessageContentMask |= (uint)JsonNetworkMessageContentMask.SingleDataSetMessage;
             }
         }
     }
