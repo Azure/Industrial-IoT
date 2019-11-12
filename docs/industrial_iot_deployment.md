@@ -258,7 +258,7 @@ Setup connection between App Service and AKS cluster:
         ```
 
     3. Skip **Run demo applications** (step 4).
-    4. For step 5, **Create an ingress route**, use [22_industrial_iot_ingress.yaml](../deploy/src/Microsoft.Azure.IIoT.Deployment/Resources/aks/22_industrial_iot_ingress.yaml) file, but change value of `spec.tls.hosts` to point to URL of App Service created by the deployment.
+    4. For step 5, **Create an ingress route**, use [22_industrial_iot_ingress.yaml](../deploy/src/Microsoft.Azure.IIoT.Deployment/Resources/aks/22_industrial_iot_ingress.yaml) file.
     Stop after this step.
 
     After completing above steps you should be able to see a Load Balancer and a Public IP Address being created in the Resource Group managed by AKS cluster.
