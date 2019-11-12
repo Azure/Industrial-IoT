@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.App.Services {
     using Microsoft.Azure.IIoT.App.Data;
+    using Microsoft.Azure.IIoT.App.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
     using System;
@@ -17,11 +18,11 @@ namespace Microsoft.Azure.IIoT.App.Services {
             _registryService = registryService;
         }
 
-        public async Task<PagedResult<EndpointInfoApiModel>> GetEndpointListAsync(
+        public async Task<PagedResult<EndpointInfo>> GetEndpointListAsync(
             string supervisorId) {
 
             // TODO Use query
-            var pageResult = new PagedResult<EndpointInfoApiModel>();
+            var pageResult = new PagedResult<EndpointInfo>();
 
             try {
                 var endpoints = await _registryService.ListAllEndpointsAsync();
@@ -31,8 +32,12 @@ namespace Microsoft.Azure.IIoT.App.Services {
                     foreach (var application in allApplications) {
                         if (application.SupervisorId == supervisorId) {
                             foreach (var endpoint in endpoints) {
+                                var EndpointInfo = new EndpointInfo {
+                                    endpointModel = endpoint,
+                                    endpointState = endpoint.ActivationState == EndpointActivationState.Deactivated ? false : true
+                                };
                                 if (endpoint.ApplicationId == application.ApplicationId) {
-                                    pageResult.Results.Add(endpoint);
+                                    pageResult.Results.Add(EndpointInfo);
                                 }
                             }
                         }
@@ -54,6 +59,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
 
         public async Task<PagedResult<SupervisorInfo>> GetSupervisorListAsync() {
             var pageResult = new PagedResult<SupervisorInfo>();
+
 
             try {
                 var supervisors = await _registryService.ListAllSupervisorsAsync();

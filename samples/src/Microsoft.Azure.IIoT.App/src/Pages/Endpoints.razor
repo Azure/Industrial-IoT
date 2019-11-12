@@ -7,6 +7,7 @@
 @using Microsoft.Azure.IIoT.App.Data
 @using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
 @using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
+@using Microsoft.Azure.IIoT.App.Models
 
 @inject NavigationManager NavigationManager
 @inject IRegistryServiceApi RegistryService
@@ -25,34 +26,37 @@
             <th>SecurityLevel</th>
             <th>EndpointActivation</th>
             <th>
-                <a href="/supervisor/">
+                <a href="/supervisors/">
                     <span class="oi oi-arrow-left"></span>
                 </a>
             </th>
         </tr>
     </thead>
     <tbody>
-        @foreach (var endpoint in pagedendpointList.Results) {
+        @foreach (var endpoint in pagedendpointList.Results)
+        {
             <tr>
-                @if (endpoint.ActivationState == EndpointActivationState.ActivatedAndConnected) {
+                @if (endpoint.endpointModel.ActivationState == EndpointActivationState.ActivatedAndConnected)
+                {
                     <td>
-                        <a href='browser/@SupervisorId/@endpoint.Registration.Id'>
-                            @endpoint.Registration.Endpoint.Url
+                        <a href='browser/@SupervisorId/@endpoint.endpointModel.Registration.Id'>
+                            @endpoint.endpointModel.Registration.Endpoint.Url
                         </a>
                     </td>
                 }
-                else {
-                    <td>@endpoint.Registration.Endpoint.Url</td>
+                else
+                {
+                    <td>@endpoint.endpointModel.Registration.Endpoint.Url</td>
                 }
-                <td>@endpoint.Registration.Endpoint.SecurityMode</td>
-                <td>@endpoint.Registration.Endpoint.SecurityPolicy</td>
-                <td>@endpoint.Registration.SecurityLevel</td>
+                <td>@endpoint.endpointModel.Registration.Endpoint.SecurityMode</td>
+                <td>@endpoint.endpointModel.Registration.Endpoint.SecurityPolicy</td>
+                <td>@endpoint.endpointModel.Registration.SecurityLevel</td>
 
                 <td>
-                    <input type="checkbox" @bind="@endpoint.ActivationState"
-                           @onclick="@(() => SetActivation(endpoint.Registration.Id,
-                                       endpoint.ActivationState))" />
-                    @endpoint.ActivationState.ToString()
+                    <input type="checkbox" @bind="@endpoint.endpointState" 
+                        @onclick="@(() => SetActivation(endpoint.endpointModel.Registration.Id,
+                        endpoint.endpointModel.ActivationState))" />
+                        @endpoint.endpointModel.ActivationState.ToString()
                 </td>
                 <td></td>
             </tr>
@@ -102,8 +106,8 @@
         }
     }
 
-    private PagedResult<EndpointInfoApiModel> endpointList =
-        new PagedResult<EndpointInfoApiModel>();
-    private PagedResult<EndpointInfoApiModel> pagedendpointList =
-        new PagedResult<EndpointInfoApiModel>();
+    public PagedResult<EndpointInfo> endpointList =
+        new PagedResult<EndpointInfo>();
+    public PagedResult<EndpointInfo> pagedendpointList =
+        new PagedResult<EndpointInfo>();
 }
