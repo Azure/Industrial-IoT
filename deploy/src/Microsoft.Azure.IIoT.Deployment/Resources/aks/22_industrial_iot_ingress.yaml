@@ -9,8 +9,6 @@ metadata:
 spec:
   tls:
   - hosts:
-    - kktestapp10.azurewebsites.net
-    # secretName: web-app
     secretName: web-app
   rules:
   - http:
