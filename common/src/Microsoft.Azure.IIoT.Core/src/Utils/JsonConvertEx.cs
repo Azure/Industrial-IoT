@@ -62,7 +62,7 @@ namespace Newtonsoft.Json {
                 Converters = new List<JsonConverter>(),
                 TypeNameHandling = TypeNameHandling.None,
                 ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-                MaxDepth = 10
+                MaxDepth = 20
             };
         }
 

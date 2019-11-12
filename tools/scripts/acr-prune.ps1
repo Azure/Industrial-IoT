@@ -33,6 +33,9 @@ if (![string]::IsNullOrEmpty($Subscription)) {
     Write-Debug "Setting subscription to $($Subscription)"
     $argumentList = @("account", "set", "--subscription", $Subscription)
     & "az" $argumentList 2`>`&1 | %{ "$_" }
+    if ($LastExitCode -ne 0) {
+        throw "az $($argumentList) failed with $($LastExitCode)."
+    }
 }
 
 # get list of repositories

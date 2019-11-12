@@ -1,0 +1,32 @@
+{
+  "siteName": {
+    "value": "GEN-UNIQUE"
+  },
+  "serviceAppId": {
+    "value": "GEN-AZUREAD-APPID"
+  },
+  "servicePrincipalId": {
+    "value": "GEN-AZUREAD-OBJECTID"
+  },
+  "clientAppId": {
+    "value": "GEN-AZUREAD-APPID"
+  },
+  "adminUsername": {
+    "value": "GEN-UNIQUE"
+  },
+  "adminPassword": {
+    "value": "GEN-PASSWORD"
+  },
+  "appGatewayCertificatePfxBase64": {
+    "value": "GEN-SELFSIGNED-CERT-PFXDATA"
+  },
+  "appGatewayCertificatePfxPassword": {
+    "value": "GEN-SELFSIGNED-CERT-PASSWORD"
+  },
+  "simAdminUsername": {
+    "value": "GEN-UNIQUE"
+  },
+  "simAdminPassword": {
+    "value": "GEN-PASSWORD"
+  }
+}

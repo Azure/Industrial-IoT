@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using System;
 
@@ -29,6 +30,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
 
         /// <inheritdoc/>
         public override bool Equals(object obj) {
+            if (obj is string s) {
+                return s == ToString();
+            }
             if (!(obj is EndpointIdentifier key)) {
                 return false;
             }
@@ -43,6 +47,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
             return _hash;
         }
 
+        /// <inheritdoc/>
+        public override string ToString() {
+            return (Endpoint?.Url ?? "" + _hash).ToSha1Hash();
+        }
+
         private readonly int _hash;
     }
+
 }

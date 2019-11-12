@@ -1,9 +1,9 @@
 <#
  .SYNOPSIS
-    Creates the container build matrix from the mcr.json files in the tree.
+    Creates the container build matrix from the container.json files in the tree.
 
  .DESCRIPTION
-    The script traverses the build root to find all folders with an mcr.json
+    The script traverses the build root to find all folders with an container.json
     file and populates the matrix to create the individual build jobs.
 
  .PARAMETER BuildRoot
@@ -25,8 +25,8 @@ if ([string]::IsNullOrEmpty($BuildRoot)) {
 
 $acrMatrix = @{}
 
-# Traverse from build root and find all mcr.json metadata files to acr matrix
-Get-ChildItem $BuildRoot -Recurse -Include "mcr.json" `
+# Traverse from build root and find all container.json metadata files to acr matrix
+Get-ChildItem $BuildRoot -Recurse -Include "container.json" `
     | ForEach-Object {
 
     # Get root

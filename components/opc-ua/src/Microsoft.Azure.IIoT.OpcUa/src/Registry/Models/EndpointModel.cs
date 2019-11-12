@@ -23,11 +23,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public HashSet<string> AlternativeUrls { get; set; }
 
         /// <summary>
-        /// Default user credential to use for all access.
-        /// </summary>
-        public CredentialModel User { get; set; }
-
-        /// <summary>
         /// Endpoint security policy to use - null = Best.
         /// </summary>
         public string SecurityPolicy { get; set; }

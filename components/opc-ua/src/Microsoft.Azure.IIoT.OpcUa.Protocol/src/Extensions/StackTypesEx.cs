@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using UaApplicationType = Opc.Ua.ApplicationType;
@@ -13,6 +14,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     using UaNodeClass = Opc.Ua.NodeClass;
     using UaPermissionType = Opc.Ua.PermissionType;
     using UaDiagnosticsLevel = Opc.Ua.DiagnosticsMasks;
+    using UaMonitoredItemSampleContentMask = Opc.Ua.MonitoredItemSampleContentMask;
+    using JsonDataSetMessageContentMask = Opc.Ua.JsonDataSetMessageContentMask;
+    using JsonNetworkMessageContentMask = Opc.Ua.JsonNetworkMessageContentMask;
+    using UadpDataSetMessageContentMask = Opc.Ua.UadpDataSetMessageContentMask;
+    using UadpNetworkMessageContentMask = Opc.Ua.UadpNetworkMessageContentMask;
+    using UaDataSetFieldContentMask = Opc.Ua.DataSetFieldContentMask;
     using System.Collections.Generic;
 
     /// <summary>
@@ -310,6 +317,300 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 default:
                     return UaDiagnosticsLevel.None;
             }
+        }
+
+        /// <summary>
+        /// Get message content mask
+        /// </summary>
+        /// <returns></returns>
+        public static uint ToStackType(this MonitoredItemMessageContentMask? mask,
+            MonitoredItemMessageEncoding? encoding) {
+            switch (encoding) {
+                case MonitoredItemMessageEncoding.Json:
+                    return (uint)mask.ToJsonStackType();
+                // Binary?
+            }
+            return (uint)mask.ToJsonStackType();
+        }
+
+        /// <summary>
+        /// Get message content mask
+        /// </summary>
+        /// <returns></returns>
+        public static UaMonitoredItemSampleContentMask ToJsonStackType(this MonitoredItemMessageContentMask? mask) {
+            if (mask == null) {
+                mask =
+                    MonitoredItemMessageContentMask.DisplayName |
+                    MonitoredItemMessageContentMask.StatusCode |
+                    MonitoredItemMessageContentMask.Status |
+                    MonitoredItemMessageContentMask.ExtraFields |
+                    MonitoredItemMessageContentMask.SubscriptionId |
+                    MonitoredItemMessageContentMask.NodeId |
+                    MonitoredItemMessageContentMask.Timestamp |
+                    MonitoredItemMessageContentMask.ServerTimestamp |
+                    MonitoredItemMessageContentMask.SourceTimestamp;
+            }
+            UaMonitoredItemSampleContentMask result = 0;
+            if (0 != (mask & MonitoredItemMessageContentMask.SourceTimestamp)) {
+                result |= UaMonitoredItemSampleContentMask.SourceTimestamp;
+            }
+            if (0 != (mask & MonitoredItemMessageContentMask.SourcePicoSeconds)) {
+                result |= UaMonitoredItemSampleContentMask.SourcePicoSeconds;
+            }
+            if (0 != (mask & MonitoredItemMessageContentMask.ServerTimestamp)) {
+                result |= UaMonitoredItemSampleContentMask.ServerTimestamp;
+            }
+            if (0 != (mask & MonitoredItemMessageContentMask.ServerPicoSeconds)) {
+                result |= UaMonitoredItemSampleContentMask.ServerPicoSeconds;
+            }
+            if (0 != (mask & MonitoredItemMessageContentMask.Timestamp)) {
+                result |= UaMonitoredItemSampleContentMask.Timestamp;
+            }
+            if (0 != (mask & MonitoredItemMessageContentMask.PicoSeconds)) {
+                result |= UaMonitoredItemSampleContentMask.PicoSeconds;
+            }
+            if (0 != (mask & MonitoredItemMessageContentMask.StatusCode)) {
+                result |= UaMonitoredItemSampleContentMask.StatusCode;
+            }
+            if (0 != (mask & MonitoredItemMessageContentMask.Status)) {
+                result |= UaMonitoredItemSampleContentMask.Status;
+            }
+            if (0 != (mask & MonitoredItemMessageContentMask.NodeId)) {
+                result |= UaMonitoredItemSampleContentMask.NodeId;
+            }
+            if (0 != (mask & MonitoredItemMessageContentMask.EndpointUrl)) {
+                result |= UaMonitoredItemSampleContentMask.EndpointUrl;
+            }
+            if (0 != (mask & MonitoredItemMessageContentMask.ApplicationUri)) {
+                result |= UaMonitoredItemSampleContentMask.ApplicationUri;
+            }
+            if (0 != (mask & MonitoredItemMessageContentMask.DisplayName)) {
+                result |= UaMonitoredItemSampleContentMask.DisplayName;
+            }
+            if (0 != (mask & MonitoredItemMessageContentMask.ExtraFields)) {
+                result |= UaMonitoredItemSampleContentMask.ExtraFields;
+            }
+            if (0 != (mask & MonitoredItemMessageContentMask.SubscriptionId)) {
+                result |= UaMonitoredItemSampleContentMask.SubscriptionId;
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Get network message content mask
+        /// </summary>
+        /// <param name="mask"></param>
+        /// <param name="encoding"></param>
+        /// <returns></returns>
+        public static uint ToStackType(this NetworkMessageContentMask? mask, NetworkMessageEncoding? encoding) {
+            switch (encoding) {
+                case NetworkMessageEncoding.Uadp:
+                    return (uint)mask.ToUadpStackType();
+                case NetworkMessageEncoding.Json:
+                    return (uint)mask.ToJsonStackType();
+            }
+            return (uint)mask.ToJsonStackType();
+        }
+
+        /// <summary>
+        /// Get network message content mask
+        /// </summary>
+        /// <param name="mask"></param>
+        /// <param name="encoding"></param>
+        /// <returns></returns>
+        public static uint ToStackType(this DataSetContentMask? mask, NetworkMessageEncoding? encoding) {
+            switch (encoding) {
+                case NetworkMessageEncoding.Uadp:
+                    return (uint)mask.ToUadpStackType();
+                case NetworkMessageEncoding.Json:
+                    return (uint)mask.ToJsonStackType();
+            }
+            return (uint)mask.ToJsonStackType();
+        }
+
+        /// <summary>
+        /// Get network message content mask
+        /// </summary>
+        /// <param name="mask"></param>
+        /// <returns></returns>
+        public static JsonNetworkMessageContentMask ToJsonStackType(this NetworkMessageContentMask? mask) {
+            if (mask == null) {
+                mask =
+                    NetworkMessageContentMask.NetworkMessageHeader |
+                    NetworkMessageContentMask.DataSetMessageHeader |
+                    NetworkMessageContentMask.PublisherId |
+                    NetworkMessageContentMask.DataSetClassId;
+            }
+            JsonNetworkMessageContentMask result = 0;
+            if (0 != (mask & NetworkMessageContentMask.PublisherId)) {
+                result |= JsonNetworkMessageContentMask.PublisherId;
+            }
+            if (0 != (mask & NetworkMessageContentMask.DataSetClassId)) {
+                result |= JsonNetworkMessageContentMask.DataSetClassId;
+            }
+            if (0 != (mask & NetworkMessageContentMask.NetworkMessageHeader)) {
+                result |= JsonNetworkMessageContentMask.NetworkMessageHeader;
+            }
+            if (0 != (mask & NetworkMessageContentMask.DataSetMessageHeader)) {
+                result |= JsonNetworkMessageContentMask.DataSetMessageHeader;
+            }
+            if (0 != (mask & NetworkMessageContentMask.SingleDataSetMessage)) {
+                result |= JsonNetworkMessageContentMask.SingleDataSetMessage;
+            }
+            if (0 != (mask & NetworkMessageContentMask.ReplyTo)) {
+                result |= JsonNetworkMessageContentMask.ReplyTo;
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Get dataset message content mask
+        /// </summary>
+        /// <param name="mask"></param>
+        /// <returns></returns>
+        public static JsonDataSetMessageContentMask ToJsonStackType(this DataSetContentMask? mask) {
+            if (mask == null) {
+                mask =
+                    DataSetContentMask.DataSetWriterId |
+                    DataSetContentMask.MetaDataVersion |
+                    DataSetContentMask.SequenceNumber;
+            }
+            var result = JsonDataSetMessageContentMask.None;
+            if (0 != (mask & DataSetContentMask.Timestamp)) {
+                result |= JsonDataSetMessageContentMask.Timestamp;
+            }
+            if (0 != (mask & DataSetContentMask.Status)) {
+                result |= JsonDataSetMessageContentMask.Status;
+            }
+            if (0 != (mask & DataSetContentMask.MetaDataVersion)) {
+                result |= JsonDataSetMessageContentMask.MetaDataVersion;
+            }
+            if (0 != (mask & DataSetContentMask.SequenceNumber)) {
+                result |= JsonDataSetMessageContentMask.SequenceNumber;
+            }
+            if (0 != (mask & DataSetContentMask.DataSetWriterId)) {
+                result |= JsonDataSetMessageContentMask.DataSetWriterId;
+            }
+            return result;
+        }
+        /// <summary>
+        /// Get network message content mask
+        /// </summary>
+        /// <param name="mask"></param>
+        /// <returns></returns>
+        public static UadpNetworkMessageContentMask ToUadpStackType(this NetworkMessageContentMask? mask) {
+            if (mask == null) {
+                mask =
+                    NetworkMessageContentMask.NetworkMessageHeader |
+                    NetworkMessageContentMask.DataSetMessageHeader |
+                    NetworkMessageContentMask.PublisherId |
+                    NetworkMessageContentMask.DataSetClassId;
+            }
+            UadpNetworkMessageContentMask result = 0;
+            if (0 != (mask & NetworkMessageContentMask.PublisherId)) {
+                result |= UadpNetworkMessageContentMask.PublisherId;
+            }
+            if (0 != (mask & NetworkMessageContentMask.GroupHeader)) {
+                result |= UadpNetworkMessageContentMask.GroupHeader;
+            }
+            if (0 != (mask & NetworkMessageContentMask.WriterGroupId)) {
+                result |= UadpNetworkMessageContentMask.WriterGroupId;
+            }
+            if (0 != (mask & NetworkMessageContentMask.GroupVersion)) {
+                result |= UadpNetworkMessageContentMask.GroupVersion;
+            }
+            if (0 != (mask & NetworkMessageContentMask.NetworkMessageNumber)) {
+                result |= UadpNetworkMessageContentMask.NetworkMessageNumber;
+            }
+            if (0 != (mask & NetworkMessageContentMask.SequenceNumber)) {
+                result |= UadpNetworkMessageContentMask.SequenceNumber;
+            }
+            if (0 != (mask & NetworkMessageContentMask.PayloadHeader)) {
+                result |= UadpNetworkMessageContentMask.PayloadHeader;
+            }
+            if (0 != (mask & NetworkMessageContentMask.Timestamp)) {
+                result |= UadpNetworkMessageContentMask.Timestamp;
+            }
+            if (0 != (mask & NetworkMessageContentMask.Picoseconds)) {
+                result |= UadpNetworkMessageContentMask.PicoSeconds;
+            }
+            if (0 != (mask & NetworkMessageContentMask.DataSetClassId)) {
+                result |= UadpNetworkMessageContentMask.DataSetClassId;
+            }
+            if (0 != (mask & NetworkMessageContentMask.PromotedFields)) {
+                result |= UadpNetworkMessageContentMask.PromotedFields;
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Get dataset message content mask
+        /// </summary>
+        /// <param name="mask"></param>
+        /// <returns></returns>
+        public static UadpDataSetMessageContentMask ToUadpStackType(this DataSetContentMask? mask) {
+            if (mask == null) {
+                mask =
+                    DataSetContentMask.DataSetWriterId |
+                    DataSetContentMask.MetaDataVersion |
+                    DataSetContentMask.SequenceNumber;
+            }
+            var result = UadpDataSetMessageContentMask.None;
+            if (0 != (mask & DataSetContentMask.Timestamp)) {
+                result |= UadpDataSetMessageContentMask.Timestamp;
+            }
+            if (0 != (mask & DataSetContentMask.PicoSeconds)) {
+                result |= UadpDataSetMessageContentMask.PicoSeconds;
+            }
+            if (0 != (mask & DataSetContentMask.Status)) {
+                result |= UadpDataSetMessageContentMask.Status;
+            }
+            if (0 != (mask & DataSetContentMask.SequenceNumber)) {
+                result |= UadpDataSetMessageContentMask.SequenceNumber;
+            }
+            if (0 != (mask & DataSetContentMask.MinorVersion)) {
+                result |= UadpDataSetMessageContentMask.MinorVersion;
+            }
+            if (0 != (mask & DataSetContentMask.MajorVersion)) {
+                result |= UadpDataSetMessageContentMask.MajorVersion;
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Get dataset message content mask
+        /// </summary>
+        /// <param name="mask"></param>
+        /// <returns></returns>
+        public static UaDataSetFieldContentMask ToStackType(this DataSetFieldContentMask? mask) {
+            if (mask == null) {
+                mask =
+                    DataSetFieldContentMask.StatusCode |
+                    DataSetFieldContentMask.SourceTimestamp |
+                    DataSetFieldContentMask.SourcePicoSeconds |
+                    DataSetFieldContentMask.ServerPicoSeconds |
+                    DataSetFieldContentMask.ServerTimestamp;
+            }
+            UaDataSetFieldContentMask result = 0;
+            if (0 != (mask & DataSetFieldContentMask.StatusCode)) {
+                result |= UaDataSetFieldContentMask.StatusCode;
+            }
+            if (0 != (mask & DataSetFieldContentMask.SourceTimestamp)) {
+                result |= UaDataSetFieldContentMask.SourceTimestamp;
+            }
+            if (0 != (mask & DataSetFieldContentMask.ServerTimestamp)) {
+                result |= UaDataSetFieldContentMask.ServerTimestamp;
+            }
+            if (0 != (mask & DataSetFieldContentMask.SourcePicoSeconds)) {
+                result |= UaDataSetFieldContentMask.SourcePicoSeconds;
+            }
+            if (0 != (mask & DataSetFieldContentMask.ServerPicoSeconds)) {
+                result |= UaDataSetFieldContentMask.ServerPicoSeconds;
+            }
+            if (0 != (mask & DataSetFieldContentMask.RawData)) {
+                result |= UaDataSetFieldContentMask.RawData;
+            }
+            return result;
         }
     }
 }

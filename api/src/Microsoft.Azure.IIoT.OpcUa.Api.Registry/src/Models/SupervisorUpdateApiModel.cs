@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
     using Newtonsoft.Json;
-    using System.Collections.Generic;
 
     /// <summary>
     /// Supervisor update request
@@ -34,24 +33,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         public DiscoveryConfigApiModel DiscoveryConfig { get; set; }
 
         /// <summary>
-        /// Callbacks to add or remove (see below)
-        /// </summary>
-        [JsonProperty(PropertyName = "discoveryCallbacks",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public List<CallbackApiModel> DiscoveryCallbacks { get; set; }
-
-        /// <summary>
-        /// Whether to add or remove callbacks
-        /// </summary>
-        [JsonProperty(PropertyName = "removeDiscoveryCallbacks",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public bool? RemoveDiscoveryCallbacks { get; set; }
-
-        /// <summary>
         /// Current log level
         /// </summary>
         [JsonProperty(PropertyName = "logLevel",
             NullValueHandling = NullValueHandling.Ignore)]
-        public SupervisorLogLevel? LogLevel { get; set; }
+        public TraceLogLevel? LogLevel { get; set; }
     }
 }

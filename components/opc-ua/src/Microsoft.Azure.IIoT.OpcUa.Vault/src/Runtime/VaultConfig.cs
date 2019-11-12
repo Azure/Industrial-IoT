@@ -50,7 +50,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Vault.Runtime {
         /// Configuration constructor
         /// </summary>
         /// <param name="configuration"></param>
-        public VaultConfig(IConfigurationRoot configuration) :
+        public VaultConfig(IConfiguration configuration) :
             base(configuration) {
         }
     }

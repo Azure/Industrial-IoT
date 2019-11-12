@@ -8,9 +8,9 @@ namespace Microsoft.Azure.IIoT.Modules.Diagnostic {
     using Microsoft.Azure.IIoT.Modules.Diagnostic.Services.Default;
     using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.Module.Framework.Services;
+    using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Microsoft.Extensions.Configuration;
     using Autofac;
-    using AutofacSerilogIntegration;
     using System;
     using System.Runtime.Loader;
     using System.Threading.Tasks;
@@ -38,7 +38,7 @@ namespace Microsoft.Azure.IIoT.Modules.Diagnostic {
         /// Create process
         /// </summary>
         /// <param name="config"></param>
-        public ModuleProcess(IConfigurationRoot config) {
+        public ModuleProcess(IConfiguration config) {
             _config = config;
             _exitCode = 0;
             _exit = new TaskCompletionSource<bool>();
@@ -103,7 +103,7 @@ namespace Microsoft.Azure.IIoT.Modules.Diagnostic {
         /// </summary>
         /// <param name="configuration"></param>
         /// <returns></returns>
-        private IContainer ConfigureContainer(IConfigurationRoot configuration) {
+        private IContainer ConfigureContainer(IConfiguration configuration) {
 
             var config = new Config(configuration);
             var builder = new ContainerBuilder();
@@ -115,12 +115,12 @@ namespace Microsoft.Azure.IIoT.Modules.Diagnostic {
                 .AsImplementedInterfaces().SingleInstance();
 
             // register logger
-            builder.RegisterLogger(LogEx.Console(configuration));
+            builder.AddConsoleLogger();
             // Register module framework
             builder.RegisterModule<ModuleFramework>();
 
             // Register test publisher
-            builder.RegisterType<TestPublisher>()
+            builder.RegisterType<TestTelemetry>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
 
             // Register controllers
@@ -132,7 +132,7 @@ namespace Microsoft.Azure.IIoT.Modules.Diagnostic {
             return builder.Build();
         }
 
-        private readonly IConfigurationRoot _config;
+        private readonly IConfiguration _config;
         private readonly TaskCompletionSource<bool> _exit;
         private TaskCompletionSource<bool> _reset;
         private int _exitCode;

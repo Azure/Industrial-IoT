@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures {
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Sample;
+    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Utils;
     using Opc.Ua.Server;
     using System;
@@ -56,7 +57,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures {
             if (nodes == null) {
                 throw new ArgumentNullException(nameof(nodes));
             }
-            Logger = LogEx.ConsoleOut(LogEventLevel.Debug);
+            Logger = ConsoleOutLogger.Create(LogEventLevel.Debug);
             _config = new TestClientServicesConfig();
             _client = new Lazy<ClientServices>(() => {
                 return new ClientServices(Logger, _config);

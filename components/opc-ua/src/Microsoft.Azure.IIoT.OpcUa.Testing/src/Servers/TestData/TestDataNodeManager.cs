@@ -143,7 +143,7 @@ namespace TestData {
 
                 foreach (var node in PredefinedNodes.Values) {
 
-                    if (node is ConditionState condition && !object.ReferenceEquals(condition.Parent, conditionsFolder)) {
+                    if (node is ConditionState condition && !ReferenceEquals(condition.Parent, conditionsFolder)) {
                         condition.AddNotifier(SystemContext, null, true, conditionsFolder);
                         conditionsFolder.AddNotifier(SystemContext, null, false, condition);
                     }

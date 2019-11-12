@@ -7,7 +7,6 @@ namespace Opc.Ua.Extensions {
     using Opc.Ua;
     using System;
     using System.Text;
-    using System.Text.RegularExpressions;
 
     /// <summary>
     /// Qualified name extensions

@@ -5,13 +5,13 @@
 
 namespace Microsoft.Azure.IIoT.Auth.Runtime {
     using Microsoft.Azure.IIoT.Auth.Clients;
-    using Microsoft.Azure.IIoT.Utils;
+    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Extensions.Configuration;
 
     /// <summary>
     /// Auth client configuration
     /// </summary>
-    public class ClientConfig : ConfigBase, IClientConfig {
+    public class ClientConfig : DiagnosticsConfig, IClientConfig {
 
         /// <summary>
         /// Client configuration
@@ -43,7 +43,7 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
         /// Configuration constructor
         /// </summary>
         /// <param name="configuration"></param>
-        public ClientConfig(IConfigurationRoot configuration) :
+        public ClientConfig(IConfiguration configuration) :
             base(configuration) {
         }
     }

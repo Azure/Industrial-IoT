@@ -12,7 +12,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Vault.Services {
     using Serilog;
     using System;
     using System.Linq;
-    using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using System.Threading.Tasks;
 

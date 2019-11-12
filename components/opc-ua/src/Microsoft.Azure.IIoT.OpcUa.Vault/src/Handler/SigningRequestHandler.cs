@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Vault.Handler {
     using Microsoft.Azure.IIoT.OpcUa.Vault.Models;
     using Microsoft.Azure.IIoT.Crypto;
-    using Microsoft.Azure.IIoT.Crypto.Models;
     using Microsoft.Azure.IIoT.Utils;
     using System;
     using System.Security.Cryptography.X509Certificates;

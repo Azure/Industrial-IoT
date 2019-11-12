@@ -129,8 +129,8 @@ namespace Microsoft.Azure.IIoT.Crypto.Models {
         /// </summary>
         /// <param name="data"></param>
         private void Parse(byte[] data) {
-            if (base.Oid.Value != Oids.AuthorityKeyIdentifier &&
-                base.Oid.Value != Oids.AuthorityKeyIdentifier2) {
+            if (Oid.Value != Oids.AuthorityKeyIdentifier &&
+                Oid.Value != Oids.AuthorityKeyIdentifier2) {
                 throw new FormatException("Extension has unknown oid.");
             }
             var authorityKey =

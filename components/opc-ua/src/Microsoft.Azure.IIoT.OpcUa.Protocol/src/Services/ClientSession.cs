@@ -143,7 +143,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             var everSuccessful = _persistent;
 
             // Save identity and certificate to update session if there are changes.
-            var identity = _endpoint.User.ToStackModel();
+            var identity = _curOperation?.Identity ?? new UserIdentity(new AnonymousIdentityToken());
 
             try {
                 while (!_cts.Token.IsCancellationRequested) {
@@ -298,6 +298,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             }
                         }
                         (priority, _curOperation) = next;
+                        System.Diagnostics.Debug.Assert(_curOperation != null);
                     }
                     if (_curOperation.IsCompleted()) {
                         _curOperation = null; // Already completed because timeout or cancellation, get next

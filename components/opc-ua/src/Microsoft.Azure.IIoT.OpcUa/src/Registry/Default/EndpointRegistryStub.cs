@@ -60,11 +60,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Default {
             bool onlyServerState, int? pageSize, CancellationToken ct) {
             return Task.FromResult(new EndpointInfoListModel());
         }
-
-        /// <inheritdoc/>
-        public Task UpdateEndpointAsync(string endpointId,
-            EndpointRegistrationUpdateModel request, CancellationToken ct) {
-            return Task.FromException<EndpointInfoModel>(new ResourceNotFoundException());
-        }
     }
 }

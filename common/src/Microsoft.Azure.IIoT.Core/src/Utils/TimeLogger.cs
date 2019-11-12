@@ -19,7 +19,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// </summary>
         /// <param name="watchName"> Watch name eg. method name.</param>
         /// <param name="metrics"> Metrics Logger.</param>
-        public TimeLogger(string watchName, IMetricLogger metrics) {
+        public TimeLogger(string watchName, IMetricsLogger metrics) {
             _stopWatch = Stopwatch.StartNew();
             _watchName = watchName;
             _metrics = metrics;
@@ -30,7 +30,6 @@ namespace Microsoft.Azure.IIoT.Utils {
             if (_stopWatch != null) {
                 _stopWatch.Stop();
             }
-
             return _stopWatch;
         }
 
@@ -44,7 +43,6 @@ namespace Microsoft.Azure.IIoT.Utils {
                     Log.Logger.Warning("Please provide name of the execution code you want to track.");
                 }
             }
-            
         }
 
         /// <inheritdoc/>
@@ -55,6 +53,6 @@ namespace Microsoft.Azure.IIoT.Utils {
 
         private readonly Stopwatch _stopWatch;
         private readonly string _watchName;
-        private readonly IMetricLogger _metrics;
+        private readonly IMetricsLogger _metrics;
     }
 }

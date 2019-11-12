@@ -25,7 +25,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.v2 {
     /// Test twin module
     /// </summary>
     public sealed class TestModule : IBrowseServices<string>, IHistoricAccessServices<string>,
-        INodeServices<string>, IPublishServices<string>, IUploadServices<string>, ITestModule {
+        INodeServices<string>, IUploadServices<string>, ITestModule {
 
         /// <summary>
         /// The endpoint
@@ -34,31 +34,11 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.v2 {
 
         public TestModule(IBrowseServices<EndpointModel> browser,
             IHistoricAccessServices<EndpointModel> history,
-            INodeServices<EndpointModel> nodes, IPublishServices<EndpointModel> publish,
-            IUploadServices<EndpointModel> upload) {
+            INodeServices<EndpointModel> nodes, IUploadServices<EndpointModel> upload) {
             _browser = browser ?? throw new ArgumentNullException(nameof(browser));
             _history = history ?? throw new ArgumentNullException(nameof(history));
             _nodes = nodes ?? throw new ArgumentNullException(nameof(nodes));
-            _publish = publish ?? throw new ArgumentNullException(nameof(publish));
             _upload = upload ?? throw new ArgumentNullException(nameof(upload));
-        }
-
-        /// <inheritdoc/>
-        public Task<PublishStartResultModel> NodePublishStartAsync(string endpointId,
-            PublishStartRequestModel request) {
-            return _publish.NodePublishStartAsync(Endpoint, request);
-        }
-
-        /// <inheritdoc/>
-        public Task<PublishStopResultModel> NodePublishStopAsync(string endpointId,
-            PublishStopRequestModel request) {
-            return _publish.NodePublishStopAsync(Endpoint, request);
-        }
-
-        /// <inheritdoc/>
-        public Task<PublishedItemListResultModel> NodePublishListAsync(
-            string endpointId, PublishedItemListRequestModel request) {
-            return _publish.NodePublishListAsync(Endpoint, request);
         }
 
         /// <inheritdoc/>
@@ -143,7 +123,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.v2 {
         private readonly IBrowseServices<EndpointModel> _browser;
         private readonly IHistoricAccessServices<EndpointModel> _history;
         private readonly INodeServices<EndpointModel> _nodes;
-        private readonly IPublishServices<EndpointModel> _publish;
         private readonly IUploadServices<EndpointModel> _upload;
     }
 }

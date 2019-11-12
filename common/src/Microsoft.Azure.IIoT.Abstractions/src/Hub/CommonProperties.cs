@@ -13,26 +13,26 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// <summary>
         /// Device id of sender
         /// </summary>
-        public const string kDeviceId = "$$DeviceId";
+        public const string DeviceId = "$$DeviceId";
 
         /// <summary>
         /// Module id of sender
         /// </summary>
-        public const string kModuleId = "$$ModuleId";
+        public const string ModuleId = "$$ModuleId";
 
         /// <summary>
-        /// Content type of message
+        /// Event schema of message
         /// </summary>
-        public const string kContentType = "$$ContentType";
+        public const string EventSchemaType = "$$ContentType";
 
         /// <summary>
         /// Content encoding of message
         /// </summary>
-        public const string kContentEncoding = "$$ContentEncoding";
+        public const string ContentEncoding = "$$ContentEncoding";
 
         /// <summary>
         /// Message creation time at sender
         /// </summary>
-        public const string kCreationTimeUtc = "$$CreationTimeUtc";
+        public const string CreationTimeUtc = "$$CreationTimeUtc";
     }
 }

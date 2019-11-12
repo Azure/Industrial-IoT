@@ -51,7 +51,7 @@ namespace Microsoft.Azure.IIoT.Module.Default {
                 payload = new byte[] { (byte)' ' };
             }
             if (contentType == null) {
-                contentType = ContentEncodings.MimeTypeJson;
+                contentType = ContentMimeType.Json;
             }
             // Send chunks
             var buffer = payload.Zip(); // Gzip payload

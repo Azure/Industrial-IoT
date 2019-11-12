@@ -1,6 +1,6 @@
 <#
  .SYNOPSIS
-    Builds multiarch containers from the mcr.json file in the path.
+    Builds multiarch containers from the container.json file in the path.
 
  .DESCRIPTION
     The script requires az to be installed and already logged on to a 
@@ -48,7 +48,7 @@ $Path = Resolve-Path -LiteralPath $Path
 # Get build root - this is the top most folder with .dockerignore
 $buildRoot = & $getroot -startDir $Path -fileName ".dockerignore"
 # Get meta data
-$metadata = Get-Content -Raw -Path (join-path $Path "mcr.json") `
+$metadata = Get-Content -Raw -Path (join-path $Path "container.json") `
     | ConvertFrom-Json
 
 # get and set build information from gitversion, git or version content
@@ -72,6 +72,9 @@ else {
         try {
             $argumentList = @("tag", "--points-at", $env:BUILD_SOURCEVERSION)
             $sourceTag = (& "git" $argumentList 2>&1 | %{ "$_" });
+            if ($LastExitCode -ne 0) {
+                throw "git $($argumentList) failed with $($LastExitCode)."
+            }
         }
         catch {
             Write-Error "Error reading tag from $($env:BUILD_SOURCEVERSION)"
@@ -99,6 +102,9 @@ if ([string]::IsNullOrEmpty($branchName)) {
     try {
         $argumentList = @("rev-parse", "--abbrev-ref", "HEAD")
         $branchName = (& "git" $argumentList 2>&1 | %{ "$_" });
+        if ($LastExitCode -ne 0) {
+            throw "git $($argumentList) failed with $($LastExitCode)."
+        }
     }
     catch {
         Write-Warning $_.Exception
@@ -129,16 +135,25 @@ if (![string]::IsNullOrEmpty($Subscription)) {
     Write-Debug "Setting subscription to $($Subscription)"
     $argumentList = @("account", "set", "--subscription", $Subscription)
     & "az" $argumentList 2>&1 | %{ Write-Host "$_" }
+    if ($LastExitCode -ne 0) {
+        throw "az $($argumentList) failed with $($LastExitCode)."
+    }
 }
 
 # get registry information
 $argumentList = @("acr", "show", "--name", $Registry)
 $RegistryInfo = (& "az" $argumentList 2>&1 | %{ "$_" }) | ConvertFrom-Json
+if ($LastExitCode -ne 0) {
+    throw "az $($argumentList) failed with $($LastExitCode)."
+}
 $resourceGroup = $RegistryInfo.resourceGroup
 Write-Debug "Using resource group $($resourceGroup)"
 # get credentials
 $argumentList = @("acr", "credential", "show", "--name", $Registry)
 $credentials = (& "az" $argumentList 2>&1 | %{ "$_" }) | ConvertFrom-Json
+if ($LastExitCode -ne 0) {
+    throw "az $($argumentList) failed with $($LastExitCode)."
+}
 $user = $credentials.username
 $password = $credentials.passwords[0].value
 Write-Debug "Using User name $($user) and passsword ****"

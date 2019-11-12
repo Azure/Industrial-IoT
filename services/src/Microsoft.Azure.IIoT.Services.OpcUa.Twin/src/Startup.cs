@@ -22,13 +22,11 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
     using Microsoft.AspNetCore.Hosting;
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
-    using AutofacSerilogIntegration;
     using Newtonsoft.Json;
     using Swashbuckle.AspNetCore.Swagger;
     using System;
     using Serilog;
     using ILogger = Serilog.ILogger;
-    using Microsoft.Azure.IIoT.Diagnostics;
 
     /// <summary>
     /// Webservice startup
@@ -176,27 +174,15 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
             builder.RegisterInstance(Config)
                 .AsImplementedInterfaces().SingleInstance();
 
-            // Register logger
-            builder.RegisterLogger(LogEx.ApplicationInsights(Config, Config.Configuration));
-            // Register metrics logger
-            builder.RegisterType<MetricLogger>()
-                .AsImplementedInterfaces().SingleInstance();
+            // Add diagnostics based on configuration
+            builder.AddDiagnostics(Config);
+
             // CORS setup
             builder.RegisterType<CorsSetup>()
                 .AsImplementedInterfaces().SingleInstance();
 
             // Register http client module
             builder.RegisterModule<HttpClientModule>();
-
-            // ... with bearer auth
-            if (Config.AuthRequired) {
-                builder.RegisterType<BehalfOfTokenProvider>()
-                    .AsImplementedInterfaces().SingleInstance();
-                builder.RegisterType<DistributedTokenCache>()
-                    .AsImplementedInterfaces().SingleInstance();
-                builder.RegisterType<HttpBearerAuthentication>()
-                    .AsImplementedInterfaces().SingleInstance();
-            }
 
             // Iot hub services
             builder.RegisterType<IoTHubServiceHttpClient>()

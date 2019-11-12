@@ -351,7 +351,7 @@ namespace TestData {
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
         protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris) {
-            return Opc.Ua.NodeId.Create(TestData.ObjectTypes.TestDataObjectType, TestData.Namespaces.TestData, namespaceUris);
+            return NodeId.Create(ObjectTypes.TestDataObjectType, Namespaces.TestData, namespaceUris);
         }
 
 #if !OPCUA_EXCLUDE_InitializationStrings
@@ -439,7 +439,7 @@ namespace TestData {
             get => m_simulationActive;
 
             set {
-                if (!Object.ReferenceEquals(m_simulationActive, value)) {
+                if (!object.ReferenceEquals(m_simulationActive, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -454,7 +454,7 @@ namespace TestData {
             get => m_generateValuesMethod;
 
             set {
-                if (!Object.ReferenceEquals(m_generateValuesMethod, value)) {
+                if (!object.ReferenceEquals(m_generateValuesMethod, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -469,7 +469,7 @@ namespace TestData {
             get => m_cycleComplete;
 
             set {
-                if (!Object.ReferenceEquals(m_cycleComplete, value)) {
+                if (!object.ReferenceEquals(m_cycleComplete, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -517,7 +517,7 @@ namespace TestData {
             BaseInstanceState instance = null;
 
             switch (browseName.Name) {
-                case TestData.BrowseNames.SimulationActive: {
+                case BrowseNames.SimulationActive: {
                         if (createOrReplace) {
                             if (SimulationActive == null) {
                                 if (replacement == null) {
@@ -533,7 +533,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.GenerateValues: {
+                case BrowseNames.GenerateValues: {
                         if (createOrReplace) {
                             if (GenerateValues == null) {
                                 if (replacement == null) {
@@ -549,7 +549,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.CycleComplete: {
+                case BrowseNames.CycleComplete: {
                         if (createOrReplace) {
                             if (CycleComplete == null) {
                                 if (replacement == null) {
@@ -1125,7 +1125,7 @@ namespace TestData {
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
         protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris) {
-            return Opc.Ua.NodeId.Create(TestData.ObjectTypes.ScalarValueObjectType, TestData.Namespaces.TestData, namespaceUris);
+            return NodeId.Create(ObjectTypes.ScalarValueObjectType, Namespaces.TestData, namespaceUris);
         }
 
 #if !OPCUA_EXCLUDE_InitializationStrings
@@ -1238,7 +1238,7 @@ namespace TestData {
             get => m_booleanValue;
 
             set {
-                if (!Object.ReferenceEquals(m_booleanValue, value)) {
+                if (!object.ReferenceEquals(m_booleanValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1253,7 +1253,7 @@ namespace TestData {
             get => m_sByteValue;
 
             set {
-                if (!Object.ReferenceEquals(m_sByteValue, value)) {
+                if (!object.ReferenceEquals(m_sByteValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1268,7 +1268,7 @@ namespace TestData {
             get => m_byteValue;
 
             set {
-                if (!Object.ReferenceEquals(m_byteValue, value)) {
+                if (!object.ReferenceEquals(m_byteValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1283,7 +1283,7 @@ namespace TestData {
             get => m_int16Value;
 
             set {
-                if (!Object.ReferenceEquals(m_int16Value, value)) {
+                if (!object.ReferenceEquals(m_int16Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1298,7 +1298,7 @@ namespace TestData {
             get => m_uInt16Value;
 
             set {
-                if (!Object.ReferenceEquals(m_uInt16Value, value)) {
+                if (!object.ReferenceEquals(m_uInt16Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1313,7 +1313,7 @@ namespace TestData {
             get => m_int32Value;
 
             set {
-                if (!Object.ReferenceEquals(m_int32Value, value)) {
+                if (!object.ReferenceEquals(m_int32Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1328,7 +1328,7 @@ namespace TestData {
             get => m_uInt32Value;
 
             set {
-                if (!Object.ReferenceEquals(m_uInt32Value, value)) {
+                if (!object.ReferenceEquals(m_uInt32Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1343,7 +1343,7 @@ namespace TestData {
             get => m_int64Value;
 
             set {
-                if (!Object.ReferenceEquals(m_int64Value, value)) {
+                if (!object.ReferenceEquals(m_int64Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1358,7 +1358,7 @@ namespace TestData {
             get => m_uInt64Value;
 
             set {
-                if (!Object.ReferenceEquals(m_uInt64Value, value)) {
+                if (!object.ReferenceEquals(m_uInt64Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1373,7 +1373,7 @@ namespace TestData {
             get => m_floatValue;
 
             set {
-                if (!Object.ReferenceEquals(m_floatValue, value)) {
+                if (!object.ReferenceEquals(m_floatValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1388,7 +1388,7 @@ namespace TestData {
             get => m_doubleValue;
 
             set {
-                if (!Object.ReferenceEquals(m_doubleValue, value)) {
+                if (!object.ReferenceEquals(m_doubleValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1403,7 +1403,7 @@ namespace TestData {
             get => m_stringValue;
 
             set {
-                if (!Object.ReferenceEquals(m_stringValue, value)) {
+                if (!object.ReferenceEquals(m_stringValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1418,7 +1418,7 @@ namespace TestData {
             get => m_dateTimeValue;
 
             set {
-                if (!Object.ReferenceEquals(m_dateTimeValue, value)) {
+                if (!object.ReferenceEquals(m_dateTimeValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1433,7 +1433,7 @@ namespace TestData {
             get => m_guidValue;
 
             set {
-                if (!Object.ReferenceEquals(m_guidValue, value)) {
+                if (!object.ReferenceEquals(m_guidValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1448,7 +1448,7 @@ namespace TestData {
             get => m_byteStringValue;
 
             set {
-                if (!Object.ReferenceEquals(m_byteStringValue, value)) {
+                if (!object.ReferenceEquals(m_byteStringValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1463,7 +1463,7 @@ namespace TestData {
             get => m_xmlElementValue;
 
             set {
-                if (!Object.ReferenceEquals(m_xmlElementValue, value)) {
+                if (!object.ReferenceEquals(m_xmlElementValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1478,7 +1478,7 @@ namespace TestData {
             get => m_nodeIdValue;
 
             set {
-                if (!Object.ReferenceEquals(m_nodeIdValue, value)) {
+                if (!object.ReferenceEquals(m_nodeIdValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1493,7 +1493,7 @@ namespace TestData {
             get => m_expandedNodeIdValue;
 
             set {
-                if (!Object.ReferenceEquals(m_expandedNodeIdValue, value)) {
+                if (!object.ReferenceEquals(m_expandedNodeIdValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1508,7 +1508,7 @@ namespace TestData {
             get => m_qualifiedNameValue;
 
             set {
-                if (!Object.ReferenceEquals(m_qualifiedNameValue, value)) {
+                if (!object.ReferenceEquals(m_qualifiedNameValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1523,7 +1523,7 @@ namespace TestData {
             get => m_localizedTextValue;
 
             set {
-                if (!Object.ReferenceEquals(m_localizedTextValue, value)) {
+                if (!object.ReferenceEquals(m_localizedTextValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1538,7 +1538,7 @@ namespace TestData {
             get => m_statusCodeValue;
 
             set {
-                if (!Object.ReferenceEquals(m_statusCodeValue, value)) {
+                if (!object.ReferenceEquals(m_statusCodeValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1553,7 +1553,7 @@ namespace TestData {
             get => m_variantValue;
 
             set {
-                if (!Object.ReferenceEquals(m_variantValue, value)) {
+                if (!object.ReferenceEquals(m_variantValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1568,7 +1568,7 @@ namespace TestData {
             get => m_enumerationValue;
 
             set {
-                if (!Object.ReferenceEquals(m_enumerationValue, value)) {
+                if (!object.ReferenceEquals(m_enumerationValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1583,7 +1583,7 @@ namespace TestData {
             get => m_structureValue;
 
             set {
-                if (!Object.ReferenceEquals(m_structureValue, value)) {
+                if (!object.ReferenceEquals(m_structureValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1598,7 +1598,7 @@ namespace TestData {
             get => m_numberValue;
 
             set {
-                if (!Object.ReferenceEquals(m_numberValue, value)) {
+                if (!object.ReferenceEquals(m_numberValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1613,7 +1613,7 @@ namespace TestData {
             get => m_integerValue;
 
             set {
-                if (!Object.ReferenceEquals(m_integerValue, value)) {
+                if (!object.ReferenceEquals(m_integerValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1628,7 +1628,7 @@ namespace TestData {
             get => m_uIntegerValue;
 
             set {
-                if (!Object.ReferenceEquals(m_uIntegerValue, value)) {
+                if (!object.ReferenceEquals(m_uIntegerValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1772,7 +1772,7 @@ namespace TestData {
             BaseInstanceState instance = null;
 
             switch (browseName.Name) {
-                case TestData.BrowseNames.BooleanValue: {
+                case BrowseNames.BooleanValue: {
                         if (createOrReplace) {
                             if (BooleanValue == null) {
                                 if (replacement == null) {
@@ -1788,7 +1788,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.SByteValue: {
+                case BrowseNames.SByteValue: {
                         if (createOrReplace) {
                             if (SByteValue == null) {
                                 if (replacement == null) {
@@ -1804,7 +1804,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.ByteValue: {
+                case BrowseNames.ByteValue: {
                         if (createOrReplace) {
                             if (ByteValue == null) {
                                 if (replacement == null) {
@@ -1820,7 +1820,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.Int16Value: {
+                case BrowseNames.Int16Value: {
                         if (createOrReplace) {
                             if (Int16Value == null) {
                                 if (replacement == null) {
@@ -1836,7 +1836,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.UInt16Value: {
+                case BrowseNames.UInt16Value: {
                         if (createOrReplace) {
                             if (UInt16Value == null) {
                                 if (replacement == null) {
@@ -1852,7 +1852,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.Int32Value: {
+                case BrowseNames.Int32Value: {
                         if (createOrReplace) {
                             if (Int32Value == null) {
                                 if (replacement == null) {
@@ -1868,7 +1868,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.UInt32Value: {
+                case BrowseNames.UInt32Value: {
                         if (createOrReplace) {
                             if (UInt32Value == null) {
                                 if (replacement == null) {
@@ -1884,7 +1884,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.Int64Value: {
+                case BrowseNames.Int64Value: {
                         if (createOrReplace) {
                             if (Int64Value == null) {
                                 if (replacement == null) {
@@ -1900,7 +1900,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.UInt64Value: {
+                case BrowseNames.UInt64Value: {
                         if (createOrReplace) {
                             if (UInt64Value == null) {
                                 if (replacement == null) {
@@ -1916,7 +1916,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.FloatValue: {
+                case BrowseNames.FloatValue: {
                         if (createOrReplace) {
                             if (FloatValue == null) {
                                 if (replacement == null) {
@@ -1932,7 +1932,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.DoubleValue: {
+                case BrowseNames.DoubleValue: {
                         if (createOrReplace) {
                             if (DoubleValue == null) {
                                 if (replacement == null) {
@@ -1948,7 +1948,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.StringValue: {
+                case BrowseNames.StringValue: {
                         if (createOrReplace) {
                             if (StringValue == null) {
                                 if (replacement == null) {
@@ -1964,7 +1964,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.DateTimeValue: {
+                case BrowseNames.DateTimeValue: {
                         if (createOrReplace) {
                             if (DateTimeValue == null) {
                                 if (replacement == null) {
@@ -1980,7 +1980,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.GuidValue: {
+                case BrowseNames.GuidValue: {
                         if (createOrReplace) {
                             if (GuidValue == null) {
                                 if (replacement == null) {
@@ -1996,7 +1996,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.ByteStringValue: {
+                case BrowseNames.ByteStringValue: {
                         if (createOrReplace) {
                             if (ByteStringValue == null) {
                                 if (replacement == null) {
@@ -2012,7 +2012,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.XmlElementValue: {
+                case BrowseNames.XmlElementValue: {
                         if (createOrReplace) {
                             if (XmlElementValue == null) {
                                 if (replacement == null) {
@@ -2028,7 +2028,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.NodeIdValue: {
+                case BrowseNames.NodeIdValue: {
                         if (createOrReplace) {
                             if (NodeIdValue == null) {
                                 if (replacement == null) {
@@ -2044,7 +2044,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.ExpandedNodeIdValue: {
+                case BrowseNames.ExpandedNodeIdValue: {
                         if (createOrReplace) {
                             if (ExpandedNodeIdValue == null) {
                                 if (replacement == null) {
@@ -2060,7 +2060,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.QualifiedNameValue: {
+                case BrowseNames.QualifiedNameValue: {
                         if (createOrReplace) {
                             if (QualifiedNameValue == null) {
                                 if (replacement == null) {
@@ -2076,7 +2076,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.LocalizedTextValue: {
+                case BrowseNames.LocalizedTextValue: {
                         if (createOrReplace) {
                             if (LocalizedTextValue == null) {
                                 if (replacement == null) {
@@ -2092,7 +2092,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.StatusCodeValue: {
+                case BrowseNames.StatusCodeValue: {
                         if (createOrReplace) {
                             if (StatusCodeValue == null) {
                                 if (replacement == null) {
@@ -2108,7 +2108,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.VariantValue: {
+                case BrowseNames.VariantValue: {
                         if (createOrReplace) {
                             if (VariantValue == null) {
                                 if (replacement == null) {
@@ -2124,7 +2124,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.EnumerationValue: {
+                case BrowseNames.EnumerationValue: {
                         if (createOrReplace) {
                             if (EnumerationValue == null) {
                                 if (replacement == null) {
@@ -2140,7 +2140,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.StructureValue: {
+                case BrowseNames.StructureValue: {
                         if (createOrReplace) {
                             if (StructureValue == null) {
                                 if (replacement == null) {
@@ -2156,7 +2156,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.NumberValue: {
+                case BrowseNames.NumberValue: {
                         if (createOrReplace) {
                             if (NumberValue == null) {
                                 if (replacement == null) {
@@ -2172,7 +2172,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.IntegerValue: {
+                case BrowseNames.IntegerValue: {
                         if (createOrReplace) {
                             if (IntegerValue == null) {
                                 if (replacement == null) {
@@ -2188,7 +2188,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.UIntegerValue: {
+                case BrowseNames.UIntegerValue: {
                         if (createOrReplace) {
                             if (UIntegerValue == null) {
                                 if (replacement == null) {
@@ -2265,7 +2265,7 @@ namespace TestData {
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
         protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris) {
-            return Opc.Ua.NodeId.Create(TestData.ObjectTypes.AnalogScalarValueObjectType, TestData.Namespaces.TestData, namespaceUris);
+            return NodeId.Create(ObjectTypes.AnalogScalarValueObjectType, Namespaces.TestData, namespaceUris);
         }
 
 #if !OPCUA_EXCLUDE_InitializationStrings
@@ -2376,7 +2376,7 @@ namespace TestData {
             get => m_sByteValue;
 
             set {
-                if (!Object.ReferenceEquals(m_sByteValue, value)) {
+                if (!object.ReferenceEquals(m_sByteValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -2391,7 +2391,7 @@ namespace TestData {
             get => m_byteValue;
 
             set {
-                if (!Object.ReferenceEquals(m_byteValue, value)) {
+                if (!object.ReferenceEquals(m_byteValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -2406,7 +2406,7 @@ namespace TestData {
             get => m_int16Value;
 
             set {
-                if (!Object.ReferenceEquals(m_int16Value, value)) {
+                if (!object.ReferenceEquals(m_int16Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -2421,7 +2421,7 @@ namespace TestData {
             get => m_uInt16Value;
 
             set {
-                if (!Object.ReferenceEquals(m_uInt16Value, value)) {
+                if (!object.ReferenceEquals(m_uInt16Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -2436,7 +2436,7 @@ namespace TestData {
             get => m_int32Value;
 
             set {
-                if (!Object.ReferenceEquals(m_int32Value, value)) {
+                if (!object.ReferenceEquals(m_int32Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -2451,7 +2451,7 @@ namespace TestData {
             get => m_uInt32Value;
 
             set {
-                if (!Object.ReferenceEquals(m_uInt32Value, value)) {
+                if (!object.ReferenceEquals(m_uInt32Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -2466,7 +2466,7 @@ namespace TestData {
             get => m_int64Value;
 
             set {
-                if (!Object.ReferenceEquals(m_int64Value, value)) {
+                if (!object.ReferenceEquals(m_int64Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -2481,7 +2481,7 @@ namespace TestData {
             get => m_uInt64Value;
 
             set {
-                if (!Object.ReferenceEquals(m_uInt64Value, value)) {
+                if (!object.ReferenceEquals(m_uInt64Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -2496,7 +2496,7 @@ namespace TestData {
             get => m_floatValue;
 
             set {
-                if (!Object.ReferenceEquals(m_floatValue, value)) {
+                if (!object.ReferenceEquals(m_floatValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -2511,7 +2511,7 @@ namespace TestData {
             get => m_doubleValue;
 
             set {
-                if (!Object.ReferenceEquals(m_doubleValue, value)) {
+                if (!object.ReferenceEquals(m_doubleValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -2526,7 +2526,7 @@ namespace TestData {
             get => m_numberValue;
 
             set {
-                if (!Object.ReferenceEquals(m_numberValue, value)) {
+                if (!object.ReferenceEquals(m_numberValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -2541,7 +2541,7 @@ namespace TestData {
             get => m_integerValue;
 
             set {
-                if (!Object.ReferenceEquals(m_integerValue, value)) {
+                if (!object.ReferenceEquals(m_integerValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -2556,7 +2556,7 @@ namespace TestData {
             get => m_uIntegerValue;
 
             set {
-                if (!Object.ReferenceEquals(m_uIntegerValue, value)) {
+                if (!object.ReferenceEquals(m_uIntegerValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -2644,7 +2644,7 @@ namespace TestData {
             BaseInstanceState instance = null;
 
             switch (browseName.Name) {
-                case TestData.BrowseNames.SByteValue: {
+                case BrowseNames.SByteValue: {
                         if (createOrReplace) {
                             if (SByteValue == null) {
                                 if (replacement == null) {
@@ -2660,7 +2660,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.ByteValue: {
+                case BrowseNames.ByteValue: {
                         if (createOrReplace) {
                             if (ByteValue == null) {
                                 if (replacement == null) {
@@ -2676,7 +2676,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.Int16Value: {
+                case BrowseNames.Int16Value: {
                         if (createOrReplace) {
                             if (Int16Value == null) {
                                 if (replacement == null) {
@@ -2692,7 +2692,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.UInt16Value: {
+                case BrowseNames.UInt16Value: {
                         if (createOrReplace) {
                             if (UInt16Value == null) {
                                 if (replacement == null) {
@@ -2708,7 +2708,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.Int32Value: {
+                case BrowseNames.Int32Value: {
                         if (createOrReplace) {
                             if (Int32Value == null) {
                                 if (replacement == null) {
@@ -2724,7 +2724,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.UInt32Value: {
+                case BrowseNames.UInt32Value: {
                         if (createOrReplace) {
                             if (UInt32Value == null) {
                                 if (replacement == null) {
@@ -2740,7 +2740,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.Int64Value: {
+                case BrowseNames.Int64Value: {
                         if (createOrReplace) {
                             if (Int64Value == null) {
                                 if (replacement == null) {
@@ -2756,7 +2756,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.UInt64Value: {
+                case BrowseNames.UInt64Value: {
                         if (createOrReplace) {
                             if (UInt64Value == null) {
                                 if (replacement == null) {
@@ -2772,7 +2772,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.FloatValue: {
+                case BrowseNames.FloatValue: {
                         if (createOrReplace) {
                             if (FloatValue == null) {
                                 if (replacement == null) {
@@ -2788,7 +2788,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.DoubleValue: {
+                case BrowseNames.DoubleValue: {
                         if (createOrReplace) {
                             if (DoubleValue == null) {
                                 if (replacement == null) {
@@ -2804,7 +2804,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.NumberValue: {
+                case BrowseNames.NumberValue: {
                         if (createOrReplace) {
                             if (NumberValue == null) {
                                 if (replacement == null) {
@@ -2820,7 +2820,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.IntegerValue: {
+                case BrowseNames.IntegerValue: {
                         if (createOrReplace) {
                             if (IntegerValue == null) {
                                 if (replacement == null) {
@@ -2836,7 +2836,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.UIntegerValue: {
+                case BrowseNames.UIntegerValue: {
                         if (createOrReplace) {
                             if (UIntegerValue == null) {
                                 if (replacement == null) {
@@ -3422,7 +3422,7 @@ namespace TestData {
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
         protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris) {
-            return Opc.Ua.NodeId.Create(TestData.ObjectTypes.ArrayValueObjectType, TestData.Namespaces.TestData, namespaceUris);
+            return NodeId.Create(ObjectTypes.ArrayValueObjectType, Namespaces.TestData, namespaceUris);
         }
 
 #if !OPCUA_EXCLUDE_InitializationStrings
@@ -3535,7 +3535,7 @@ namespace TestData {
             get => m_booleanValue;
 
             set {
-                if (!Object.ReferenceEquals(m_booleanValue, value)) {
+                if (!object.ReferenceEquals(m_booleanValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3550,7 +3550,7 @@ namespace TestData {
             get => m_sByteValue;
 
             set {
-                if (!Object.ReferenceEquals(m_sByteValue, value)) {
+                if (!object.ReferenceEquals(m_sByteValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3565,7 +3565,7 @@ namespace TestData {
             get => m_byteValue;
 
             set {
-                if (!Object.ReferenceEquals(m_byteValue, value)) {
+                if (!object.ReferenceEquals(m_byteValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3580,7 +3580,7 @@ namespace TestData {
             get => m_int16Value;
 
             set {
-                if (!Object.ReferenceEquals(m_int16Value, value)) {
+                if (!object.ReferenceEquals(m_int16Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3595,7 +3595,7 @@ namespace TestData {
             get => m_uInt16Value;
 
             set {
-                if (!Object.ReferenceEquals(m_uInt16Value, value)) {
+                if (!object.ReferenceEquals(m_uInt16Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3610,7 +3610,7 @@ namespace TestData {
             get => m_int32Value;
 
             set {
-                if (!Object.ReferenceEquals(m_int32Value, value)) {
+                if (!object.ReferenceEquals(m_int32Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3625,7 +3625,7 @@ namespace TestData {
             get => m_uInt32Value;
 
             set {
-                if (!Object.ReferenceEquals(m_uInt32Value, value)) {
+                if (!object.ReferenceEquals(m_uInt32Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3640,7 +3640,7 @@ namespace TestData {
             get => m_int64Value;
 
             set {
-                if (!Object.ReferenceEquals(m_int64Value, value)) {
+                if (!object.ReferenceEquals(m_int64Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3655,7 +3655,7 @@ namespace TestData {
             get => m_uInt64Value;
 
             set {
-                if (!Object.ReferenceEquals(m_uInt64Value, value)) {
+                if (!object.ReferenceEquals(m_uInt64Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3670,7 +3670,7 @@ namespace TestData {
             get => m_floatValue;
 
             set {
-                if (!Object.ReferenceEquals(m_floatValue, value)) {
+                if (!object.ReferenceEquals(m_floatValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3685,7 +3685,7 @@ namespace TestData {
             get => m_doubleValue;
 
             set {
-                if (!Object.ReferenceEquals(m_doubleValue, value)) {
+                if (!object.ReferenceEquals(m_doubleValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3700,7 +3700,7 @@ namespace TestData {
             get => m_stringValue;
 
             set {
-                if (!Object.ReferenceEquals(m_stringValue, value)) {
+                if (!object.ReferenceEquals(m_stringValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3715,7 +3715,7 @@ namespace TestData {
             get => m_dateTimeValue;
 
             set {
-                if (!Object.ReferenceEquals(m_dateTimeValue, value)) {
+                if (!object.ReferenceEquals(m_dateTimeValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3730,7 +3730,7 @@ namespace TestData {
             get => m_guidValue;
 
             set {
-                if (!Object.ReferenceEquals(m_guidValue, value)) {
+                if (!object.ReferenceEquals(m_guidValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3745,7 +3745,7 @@ namespace TestData {
             get => m_byteStringValue;
 
             set {
-                if (!Object.ReferenceEquals(m_byteStringValue, value)) {
+                if (!object.ReferenceEquals(m_byteStringValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3760,7 +3760,7 @@ namespace TestData {
             get => m_xmlElementValue;
 
             set {
-                if (!Object.ReferenceEquals(m_xmlElementValue, value)) {
+                if (!object.ReferenceEquals(m_xmlElementValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3775,7 +3775,7 @@ namespace TestData {
             get => m_nodeIdValue;
 
             set {
-                if (!Object.ReferenceEquals(m_nodeIdValue, value)) {
+                if (!object.ReferenceEquals(m_nodeIdValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3790,7 +3790,7 @@ namespace TestData {
             get => m_expandedNodeIdValue;
 
             set {
-                if (!Object.ReferenceEquals(m_expandedNodeIdValue, value)) {
+                if (!object.ReferenceEquals(m_expandedNodeIdValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3805,7 +3805,7 @@ namespace TestData {
             get => m_qualifiedNameValue;
 
             set {
-                if (!Object.ReferenceEquals(m_qualifiedNameValue, value)) {
+                if (!object.ReferenceEquals(m_qualifiedNameValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3820,7 +3820,7 @@ namespace TestData {
             get => m_localizedTextValue;
 
             set {
-                if (!Object.ReferenceEquals(m_localizedTextValue, value)) {
+                if (!object.ReferenceEquals(m_localizedTextValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3835,7 +3835,7 @@ namespace TestData {
             get => m_statusCodeValue;
 
             set {
-                if (!Object.ReferenceEquals(m_statusCodeValue, value)) {
+                if (!object.ReferenceEquals(m_statusCodeValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3850,7 +3850,7 @@ namespace TestData {
             get => m_variantValue;
 
             set {
-                if (!Object.ReferenceEquals(m_variantValue, value)) {
+                if (!object.ReferenceEquals(m_variantValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3865,7 +3865,7 @@ namespace TestData {
             get => m_enumerationValue;
 
             set {
-                if (!Object.ReferenceEquals(m_enumerationValue, value)) {
+                if (!object.ReferenceEquals(m_enumerationValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3880,7 +3880,7 @@ namespace TestData {
             get => m_structureValue;
 
             set {
-                if (!Object.ReferenceEquals(m_structureValue, value)) {
+                if (!object.ReferenceEquals(m_structureValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3895,7 +3895,7 @@ namespace TestData {
             get => m_numberValue;
 
             set {
-                if (!Object.ReferenceEquals(m_numberValue, value)) {
+                if (!object.ReferenceEquals(m_numberValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3910,7 +3910,7 @@ namespace TestData {
             get => m_integerValue;
 
             set {
-                if (!Object.ReferenceEquals(m_integerValue, value)) {
+                if (!object.ReferenceEquals(m_integerValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3925,7 +3925,7 @@ namespace TestData {
             get => m_uIntegerValue;
 
             set {
-                if (!Object.ReferenceEquals(m_uIntegerValue, value)) {
+                if (!object.ReferenceEquals(m_uIntegerValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -4069,7 +4069,7 @@ namespace TestData {
             BaseInstanceState instance = null;
 
             switch (browseName.Name) {
-                case TestData.BrowseNames.BooleanValue: {
+                case BrowseNames.BooleanValue: {
                         if (createOrReplace) {
                             if (BooleanValue == null) {
                                 if (replacement == null) {
@@ -4085,7 +4085,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.SByteValue: {
+                case BrowseNames.SByteValue: {
                         if (createOrReplace) {
                             if (SByteValue == null) {
                                 if (replacement == null) {
@@ -4101,7 +4101,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.ByteValue: {
+                case BrowseNames.ByteValue: {
                         if (createOrReplace) {
                             if (ByteValue == null) {
                                 if (replacement == null) {
@@ -4117,7 +4117,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.Int16Value: {
+                case BrowseNames.Int16Value: {
                         if (createOrReplace) {
                             if (Int16Value == null) {
                                 if (replacement == null) {
@@ -4133,7 +4133,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.UInt16Value: {
+                case BrowseNames.UInt16Value: {
                         if (createOrReplace) {
                             if (UInt16Value == null) {
                                 if (replacement == null) {
@@ -4149,7 +4149,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.Int32Value: {
+                case BrowseNames.Int32Value: {
                         if (createOrReplace) {
                             if (Int32Value == null) {
                                 if (replacement == null) {
@@ -4165,7 +4165,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.UInt32Value: {
+                case BrowseNames.UInt32Value: {
                         if (createOrReplace) {
                             if (UInt32Value == null) {
                                 if (replacement == null) {
@@ -4181,7 +4181,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.Int64Value: {
+                case BrowseNames.Int64Value: {
                         if (createOrReplace) {
                             if (Int64Value == null) {
                                 if (replacement == null) {
@@ -4197,7 +4197,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.UInt64Value: {
+                case BrowseNames.UInt64Value: {
                         if (createOrReplace) {
                             if (UInt64Value == null) {
                                 if (replacement == null) {
@@ -4213,7 +4213,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.FloatValue: {
+                case BrowseNames.FloatValue: {
                         if (createOrReplace) {
                             if (FloatValue == null) {
                                 if (replacement == null) {
@@ -4229,7 +4229,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.DoubleValue: {
+                case BrowseNames.DoubleValue: {
                         if (createOrReplace) {
                             if (DoubleValue == null) {
                                 if (replacement == null) {
@@ -4245,7 +4245,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.StringValue: {
+                case BrowseNames.StringValue: {
                         if (createOrReplace) {
                             if (StringValue == null) {
                                 if (replacement == null) {
@@ -4261,7 +4261,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.DateTimeValue: {
+                case BrowseNames.DateTimeValue: {
                         if (createOrReplace) {
                             if (DateTimeValue == null) {
                                 if (replacement == null) {
@@ -4277,7 +4277,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.GuidValue: {
+                case BrowseNames.GuidValue: {
                         if (createOrReplace) {
                             if (GuidValue == null) {
                                 if (replacement == null) {
@@ -4293,7 +4293,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.ByteStringValue: {
+                case BrowseNames.ByteStringValue: {
                         if (createOrReplace) {
                             if (ByteStringValue == null) {
                                 if (replacement == null) {
@@ -4309,7 +4309,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.XmlElementValue: {
+                case BrowseNames.XmlElementValue: {
                         if (createOrReplace) {
                             if (XmlElementValue == null) {
                                 if (replacement == null) {
@@ -4325,7 +4325,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.NodeIdValue: {
+                case BrowseNames.NodeIdValue: {
                         if (createOrReplace) {
                             if (NodeIdValue == null) {
                                 if (replacement == null) {
@@ -4341,7 +4341,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.ExpandedNodeIdValue: {
+                case BrowseNames.ExpandedNodeIdValue: {
                         if (createOrReplace) {
                             if (ExpandedNodeIdValue == null) {
                                 if (replacement == null) {
@@ -4357,7 +4357,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.QualifiedNameValue: {
+                case BrowseNames.QualifiedNameValue: {
                         if (createOrReplace) {
                             if (QualifiedNameValue == null) {
                                 if (replacement == null) {
@@ -4373,7 +4373,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.LocalizedTextValue: {
+                case BrowseNames.LocalizedTextValue: {
                         if (createOrReplace) {
                             if (LocalizedTextValue == null) {
                                 if (replacement == null) {
@@ -4389,7 +4389,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.StatusCodeValue: {
+                case BrowseNames.StatusCodeValue: {
                         if (createOrReplace) {
                             if (StatusCodeValue == null) {
                                 if (replacement == null) {
@@ -4405,7 +4405,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.VariantValue: {
+                case BrowseNames.VariantValue: {
                         if (createOrReplace) {
                             if (VariantValue == null) {
                                 if (replacement == null) {
@@ -4421,7 +4421,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.EnumerationValue: {
+                case BrowseNames.EnumerationValue: {
                         if (createOrReplace) {
                             if (EnumerationValue == null) {
                                 if (replacement == null) {
@@ -4437,7 +4437,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.StructureValue: {
+                case BrowseNames.StructureValue: {
                         if (createOrReplace) {
                             if (StructureValue == null) {
                                 if (replacement == null) {
@@ -4453,7 +4453,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.NumberValue: {
+                case BrowseNames.NumberValue: {
                         if (createOrReplace) {
                             if (NumberValue == null) {
                                 if (replacement == null) {
@@ -4469,7 +4469,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.IntegerValue: {
+                case BrowseNames.IntegerValue: {
                         if (createOrReplace) {
                             if (IntegerValue == null) {
                                 if (replacement == null) {
@@ -4485,7 +4485,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.UIntegerValue: {
+                case BrowseNames.UIntegerValue: {
                         if (createOrReplace) {
                             if (UIntegerValue == null) {
                                 if (replacement == null) {
@@ -4562,7 +4562,7 @@ namespace TestData {
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
         protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris) {
-            return Opc.Ua.NodeId.Create(TestData.ObjectTypes.AnalogArrayValueObjectType, TestData.Namespaces.TestData, namespaceUris);
+            return NodeId.Create(ObjectTypes.AnalogArrayValueObjectType, Namespaces.TestData, namespaceUris);
         }
 
 #if !OPCUA_EXCLUDE_InitializationStrings
@@ -4673,7 +4673,7 @@ namespace TestData {
             get => m_sByteValue;
 
             set {
-                if (!Object.ReferenceEquals(m_sByteValue, value)) {
+                if (!object.ReferenceEquals(m_sByteValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -4688,7 +4688,7 @@ namespace TestData {
             get => m_byteValue;
 
             set {
-                if (!Object.ReferenceEquals(m_byteValue, value)) {
+                if (!object.ReferenceEquals(m_byteValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -4703,7 +4703,7 @@ namespace TestData {
             get => m_int16Value;
 
             set {
-                if (!Object.ReferenceEquals(m_int16Value, value)) {
+                if (!object.ReferenceEquals(m_int16Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -4718,7 +4718,7 @@ namespace TestData {
             get => m_uInt16Value;
 
             set {
-                if (!Object.ReferenceEquals(m_uInt16Value, value)) {
+                if (!object.ReferenceEquals(m_uInt16Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -4733,7 +4733,7 @@ namespace TestData {
             get => m_int32Value;
 
             set {
-                if (!Object.ReferenceEquals(m_int32Value, value)) {
+                if (!object.ReferenceEquals(m_int32Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -4748,7 +4748,7 @@ namespace TestData {
             get => m_uInt32Value;
 
             set {
-                if (!Object.ReferenceEquals(m_uInt32Value, value)) {
+                if (!object.ReferenceEquals(m_uInt32Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -4763,7 +4763,7 @@ namespace TestData {
             get => m_int64Value;
 
             set {
-                if (!Object.ReferenceEquals(m_int64Value, value)) {
+                if (!object.ReferenceEquals(m_int64Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -4778,7 +4778,7 @@ namespace TestData {
             get => m_uInt64Value;
 
             set {
-                if (!Object.ReferenceEquals(m_uInt64Value, value)) {
+                if (!object.ReferenceEquals(m_uInt64Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -4793,7 +4793,7 @@ namespace TestData {
             get => m_floatValue;
 
             set {
-                if (!Object.ReferenceEquals(m_floatValue, value)) {
+                if (!object.ReferenceEquals(m_floatValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -4808,7 +4808,7 @@ namespace TestData {
             get => m_doubleValue;
 
             set {
-                if (!Object.ReferenceEquals(m_doubleValue, value)) {
+                if (!object.ReferenceEquals(m_doubleValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -4823,7 +4823,7 @@ namespace TestData {
             get => m_numberValue;
 
             set {
-                if (!Object.ReferenceEquals(m_numberValue, value)) {
+                if (!object.ReferenceEquals(m_numberValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -4838,7 +4838,7 @@ namespace TestData {
             get => m_integerValue;
 
             set {
-                if (!Object.ReferenceEquals(m_integerValue, value)) {
+                if (!object.ReferenceEquals(m_integerValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -4853,7 +4853,7 @@ namespace TestData {
             get => m_uIntegerValue;
 
             set {
-                if (!Object.ReferenceEquals(m_uIntegerValue, value)) {
+                if (!object.ReferenceEquals(m_uIntegerValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -4941,7 +4941,7 @@ namespace TestData {
             BaseInstanceState instance = null;
 
             switch (browseName.Name) {
-                case TestData.BrowseNames.SByteValue: {
+                case BrowseNames.SByteValue: {
                         if (createOrReplace) {
                             if (SByteValue == null) {
                                 if (replacement == null) {
@@ -4957,7 +4957,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.ByteValue: {
+                case BrowseNames.ByteValue: {
                         if (createOrReplace) {
                             if (ByteValue == null) {
                                 if (replacement == null) {
@@ -4973,7 +4973,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.Int16Value: {
+                case BrowseNames.Int16Value: {
                         if (createOrReplace) {
                             if (Int16Value == null) {
                                 if (replacement == null) {
@@ -4989,7 +4989,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.UInt16Value: {
+                case BrowseNames.UInt16Value: {
                         if (createOrReplace) {
                             if (UInt16Value == null) {
                                 if (replacement == null) {
@@ -5005,7 +5005,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.Int32Value: {
+                case BrowseNames.Int32Value: {
                         if (createOrReplace) {
                             if (Int32Value == null) {
                                 if (replacement == null) {
@@ -5021,7 +5021,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.UInt32Value: {
+                case BrowseNames.UInt32Value: {
                         if (createOrReplace) {
                             if (UInt32Value == null) {
                                 if (replacement == null) {
@@ -5037,7 +5037,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.Int64Value: {
+                case BrowseNames.Int64Value: {
                         if (createOrReplace) {
                             if (Int64Value == null) {
                                 if (replacement == null) {
@@ -5053,7 +5053,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.UInt64Value: {
+                case BrowseNames.UInt64Value: {
                         if (createOrReplace) {
                             if (UInt64Value == null) {
                                 if (replacement == null) {
@@ -5069,7 +5069,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.FloatValue: {
+                case BrowseNames.FloatValue: {
                         if (createOrReplace) {
                             if (FloatValue == null) {
                                 if (replacement == null) {
@@ -5085,7 +5085,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.DoubleValue: {
+                case BrowseNames.DoubleValue: {
                         if (createOrReplace) {
                             if (DoubleValue == null) {
                                 if (replacement == null) {
@@ -5101,7 +5101,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.NumberValue: {
+                case BrowseNames.NumberValue: {
                         if (createOrReplace) {
                             if (NumberValue == null) {
                                 if (replacement == null) {
@@ -5117,7 +5117,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.IntegerValue: {
+                case BrowseNames.IntegerValue: {
                         if (createOrReplace) {
                             if (IntegerValue == null) {
                                 if (replacement == null) {
@@ -5133,7 +5133,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.UIntegerValue: {
+                case BrowseNames.UIntegerValue: {
                         if (createOrReplace) {
                             if (UIntegerValue == null) {
                                 if (replacement == null) {
@@ -5196,7 +5196,7 @@ namespace TestData {
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
         protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris) {
-            return Opc.Ua.NodeId.Create(TestData.ObjectTypes.UserScalarValueObjectType, TestData.Namespaces.TestData, namespaceUris);
+            return NodeId.Create(ObjectTypes.UserScalarValueObjectType, Namespaces.TestData, namespaceUris);
         }
 
 #if !OPCUA_EXCLUDE_InitializationStrings
@@ -5305,7 +5305,7 @@ namespace TestData {
             get => m_booleanValue;
 
             set {
-                if (!Object.ReferenceEquals(m_booleanValue, value)) {
+                if (!object.ReferenceEquals(m_booleanValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5320,7 +5320,7 @@ namespace TestData {
             get => m_sByteValue;
 
             set {
-                if (!Object.ReferenceEquals(m_sByteValue, value)) {
+                if (!object.ReferenceEquals(m_sByteValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5335,7 +5335,7 @@ namespace TestData {
             get => m_byteValue;
 
             set {
-                if (!Object.ReferenceEquals(m_byteValue, value)) {
+                if (!object.ReferenceEquals(m_byteValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5350,7 +5350,7 @@ namespace TestData {
             get => m_int16Value;
 
             set {
-                if (!Object.ReferenceEquals(m_int16Value, value)) {
+                if (!object.ReferenceEquals(m_int16Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5365,7 +5365,7 @@ namespace TestData {
             get => m_uInt16Value;
 
             set {
-                if (!Object.ReferenceEquals(m_uInt16Value, value)) {
+                if (!object.ReferenceEquals(m_uInt16Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5380,7 +5380,7 @@ namespace TestData {
             get => m_int32Value;
 
             set {
-                if (!Object.ReferenceEquals(m_int32Value, value)) {
+                if (!object.ReferenceEquals(m_int32Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5395,7 +5395,7 @@ namespace TestData {
             get => m_uInt32Value;
 
             set {
-                if (!Object.ReferenceEquals(m_uInt32Value, value)) {
+                if (!object.ReferenceEquals(m_uInt32Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5410,7 +5410,7 @@ namespace TestData {
             get => m_int64Value;
 
             set {
-                if (!Object.ReferenceEquals(m_int64Value, value)) {
+                if (!object.ReferenceEquals(m_int64Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5425,7 +5425,7 @@ namespace TestData {
             get => m_uInt64Value;
 
             set {
-                if (!Object.ReferenceEquals(m_uInt64Value, value)) {
+                if (!object.ReferenceEquals(m_uInt64Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5440,7 +5440,7 @@ namespace TestData {
             get => m_floatValue;
 
             set {
-                if (!Object.ReferenceEquals(m_floatValue, value)) {
+                if (!object.ReferenceEquals(m_floatValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5455,7 +5455,7 @@ namespace TestData {
             get => m_doubleValue;
 
             set {
-                if (!Object.ReferenceEquals(m_doubleValue, value)) {
+                if (!object.ReferenceEquals(m_doubleValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5470,7 +5470,7 @@ namespace TestData {
             get => m_stringValue;
 
             set {
-                if (!Object.ReferenceEquals(m_stringValue, value)) {
+                if (!object.ReferenceEquals(m_stringValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5485,7 +5485,7 @@ namespace TestData {
             get => m_dateTimeValue;
 
             set {
-                if (!Object.ReferenceEquals(m_dateTimeValue, value)) {
+                if (!object.ReferenceEquals(m_dateTimeValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5500,7 +5500,7 @@ namespace TestData {
             get => m_guidValue;
 
             set {
-                if (!Object.ReferenceEquals(m_guidValue, value)) {
+                if (!object.ReferenceEquals(m_guidValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5515,7 +5515,7 @@ namespace TestData {
             get => m_byteStringValue;
 
             set {
-                if (!Object.ReferenceEquals(m_byteStringValue, value)) {
+                if (!object.ReferenceEquals(m_byteStringValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5530,7 +5530,7 @@ namespace TestData {
             get => m_xmlElementValue;
 
             set {
-                if (!Object.ReferenceEquals(m_xmlElementValue, value)) {
+                if (!object.ReferenceEquals(m_xmlElementValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5545,7 +5545,7 @@ namespace TestData {
             get => m_nodeIdValue;
 
             set {
-                if (!Object.ReferenceEquals(m_nodeIdValue, value)) {
+                if (!object.ReferenceEquals(m_nodeIdValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5560,7 +5560,7 @@ namespace TestData {
             get => m_expandedNodeIdValue;
 
             set {
-                if (!Object.ReferenceEquals(m_expandedNodeIdValue, value)) {
+                if (!object.ReferenceEquals(m_expandedNodeIdValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5575,7 +5575,7 @@ namespace TestData {
             get => m_qualifiedNameValue;
 
             set {
-                if (!Object.ReferenceEquals(m_qualifiedNameValue, value)) {
+                if (!object.ReferenceEquals(m_qualifiedNameValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5590,7 +5590,7 @@ namespace TestData {
             get => m_localizedTextValue;
 
             set {
-                if (!Object.ReferenceEquals(m_localizedTextValue, value)) {
+                if (!object.ReferenceEquals(m_localizedTextValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5605,7 +5605,7 @@ namespace TestData {
             get => m_statusCodeValue;
 
             set {
-                if (!Object.ReferenceEquals(m_statusCodeValue, value)) {
+                if (!object.ReferenceEquals(m_statusCodeValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5620,7 +5620,7 @@ namespace TestData {
             get => m_variantValue;
 
             set {
-                if (!Object.ReferenceEquals(m_variantValue, value)) {
+                if (!object.ReferenceEquals(m_variantValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5744,7 +5744,7 @@ namespace TestData {
             BaseInstanceState instance = null;
 
             switch (browseName.Name) {
-                case TestData.BrowseNames.BooleanValue: {
+                case BrowseNames.BooleanValue: {
                         if (createOrReplace) {
                             if (BooleanValue == null) {
                                 if (replacement == null) {
@@ -5760,7 +5760,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.SByteValue: {
+                case BrowseNames.SByteValue: {
                         if (createOrReplace) {
                             if (SByteValue == null) {
                                 if (replacement == null) {
@@ -5776,7 +5776,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.ByteValue: {
+                case BrowseNames.ByteValue: {
                         if (createOrReplace) {
                             if (ByteValue == null) {
                                 if (replacement == null) {
@@ -5792,7 +5792,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.Int16Value: {
+                case BrowseNames.Int16Value: {
                         if (createOrReplace) {
                             if (Int16Value == null) {
                                 if (replacement == null) {
@@ -5808,7 +5808,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.UInt16Value: {
+                case BrowseNames.UInt16Value: {
                         if (createOrReplace) {
                             if (UInt16Value == null) {
                                 if (replacement == null) {
@@ -5824,7 +5824,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.Int32Value: {
+                case BrowseNames.Int32Value: {
                         if (createOrReplace) {
                             if (Int32Value == null) {
                                 if (replacement == null) {
@@ -5840,7 +5840,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.UInt32Value: {
+                case BrowseNames.UInt32Value: {
                         if (createOrReplace) {
                             if (UInt32Value == null) {
                                 if (replacement == null) {
@@ -5856,7 +5856,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.Int64Value: {
+                case BrowseNames.Int64Value: {
                         if (createOrReplace) {
                             if (Int64Value == null) {
                                 if (replacement == null) {
@@ -5872,7 +5872,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.UInt64Value: {
+                case BrowseNames.UInt64Value: {
                         if (createOrReplace) {
                             if (UInt64Value == null) {
                                 if (replacement == null) {
@@ -5888,7 +5888,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.FloatValue: {
+                case BrowseNames.FloatValue: {
                         if (createOrReplace) {
                             if (FloatValue == null) {
                                 if (replacement == null) {
@@ -5904,7 +5904,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.DoubleValue: {
+                case BrowseNames.DoubleValue: {
                         if (createOrReplace) {
                             if (DoubleValue == null) {
                                 if (replacement == null) {
@@ -5920,7 +5920,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.StringValue: {
+                case BrowseNames.StringValue: {
                         if (createOrReplace) {
                             if (StringValue == null) {
                                 if (replacement == null) {
@@ -5936,7 +5936,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.DateTimeValue: {
+                case BrowseNames.DateTimeValue: {
                         if (createOrReplace) {
                             if (DateTimeValue == null) {
                                 if (replacement == null) {
@@ -5952,7 +5952,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.GuidValue: {
+                case BrowseNames.GuidValue: {
                         if (createOrReplace) {
                             if (GuidValue == null) {
                                 if (replacement == null) {
@@ -5968,7 +5968,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.ByteStringValue: {
+                case BrowseNames.ByteStringValue: {
                         if (createOrReplace) {
                             if (ByteStringValue == null) {
                                 if (replacement == null) {
@@ -5984,7 +5984,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.XmlElementValue: {
+                case BrowseNames.XmlElementValue: {
                         if (createOrReplace) {
                             if (XmlElementValue == null) {
                                 if (replacement == null) {
@@ -6000,7 +6000,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.NodeIdValue: {
+                case BrowseNames.NodeIdValue: {
                         if (createOrReplace) {
                             if (NodeIdValue == null) {
                                 if (replacement == null) {
@@ -6016,7 +6016,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.ExpandedNodeIdValue: {
+                case BrowseNames.ExpandedNodeIdValue: {
                         if (createOrReplace) {
                             if (ExpandedNodeIdValue == null) {
                                 if (replacement == null) {
@@ -6032,7 +6032,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.QualifiedNameValue: {
+                case BrowseNames.QualifiedNameValue: {
                         if (createOrReplace) {
                             if (QualifiedNameValue == null) {
                                 if (replacement == null) {
@@ -6048,7 +6048,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.LocalizedTextValue: {
+                case BrowseNames.LocalizedTextValue: {
                         if (createOrReplace) {
                             if (LocalizedTextValue == null) {
                                 if (replacement == null) {
@@ -6064,7 +6064,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.StatusCodeValue: {
+                case BrowseNames.StatusCodeValue: {
                         if (createOrReplace) {
                             if (StatusCodeValue == null) {
                                 if (replacement == null) {
@@ -6080,7 +6080,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.VariantValue: {
+                case BrowseNames.VariantValue: {
                         if (createOrReplace) {
                             if (VariantValue == null) {
                                 if (replacement == null) {
@@ -6551,7 +6551,7 @@ namespace TestData {
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
         protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris) {
-            return Opc.Ua.NodeId.Create(TestData.ObjectTypes.UserArrayValueObjectType, TestData.Namespaces.TestData, namespaceUris);
+            return NodeId.Create(ObjectTypes.UserArrayValueObjectType, Namespaces.TestData, namespaceUris);
         }
 
 #if !OPCUA_EXCLUDE_InitializationStrings
@@ -6660,7 +6660,7 @@ namespace TestData {
             get => m_booleanValue;
 
             set {
-                if (!Object.ReferenceEquals(m_booleanValue, value)) {
+                if (!object.ReferenceEquals(m_booleanValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6675,7 +6675,7 @@ namespace TestData {
             get => m_sByteValue;
 
             set {
-                if (!Object.ReferenceEquals(m_sByteValue, value)) {
+                if (!object.ReferenceEquals(m_sByteValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6690,7 +6690,7 @@ namespace TestData {
             get => m_byteValue;
 
             set {
-                if (!Object.ReferenceEquals(m_byteValue, value)) {
+                if (!object.ReferenceEquals(m_byteValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6705,7 +6705,7 @@ namespace TestData {
             get => m_int16Value;
 
             set {
-                if (!Object.ReferenceEquals(m_int16Value, value)) {
+                if (!object.ReferenceEquals(m_int16Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6720,7 +6720,7 @@ namespace TestData {
             get => m_uInt16Value;
 
             set {
-                if (!Object.ReferenceEquals(m_uInt16Value, value)) {
+                if (!object.ReferenceEquals(m_uInt16Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6735,7 +6735,7 @@ namespace TestData {
             get => m_int32Value;
 
             set {
-                if (!Object.ReferenceEquals(m_int32Value, value)) {
+                if (!object.ReferenceEquals(m_int32Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6750,7 +6750,7 @@ namespace TestData {
             get => m_uInt32Value;
 
             set {
-                if (!Object.ReferenceEquals(m_uInt32Value, value)) {
+                if (!object.ReferenceEquals(m_uInt32Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6765,7 +6765,7 @@ namespace TestData {
             get => m_int64Value;
 
             set {
-                if (!Object.ReferenceEquals(m_int64Value, value)) {
+                if (!object.ReferenceEquals(m_int64Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6780,7 +6780,7 @@ namespace TestData {
             get => m_uInt64Value;
 
             set {
-                if (!Object.ReferenceEquals(m_uInt64Value, value)) {
+                if (!object.ReferenceEquals(m_uInt64Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6795,7 +6795,7 @@ namespace TestData {
             get => m_floatValue;
 
             set {
-                if (!Object.ReferenceEquals(m_floatValue, value)) {
+                if (!object.ReferenceEquals(m_floatValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6810,7 +6810,7 @@ namespace TestData {
             get => m_doubleValue;
 
             set {
-                if (!Object.ReferenceEquals(m_doubleValue, value)) {
+                if (!object.ReferenceEquals(m_doubleValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6825,7 +6825,7 @@ namespace TestData {
             get => m_stringValue;
 
             set {
-                if (!Object.ReferenceEquals(m_stringValue, value)) {
+                if (!object.ReferenceEquals(m_stringValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6840,7 +6840,7 @@ namespace TestData {
             get => m_dateTimeValue;
 
             set {
-                if (!Object.ReferenceEquals(m_dateTimeValue, value)) {
+                if (!object.ReferenceEquals(m_dateTimeValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6855,7 +6855,7 @@ namespace TestData {
             get => m_guidValue;
 
             set {
-                if (!Object.ReferenceEquals(m_guidValue, value)) {
+                if (!object.ReferenceEquals(m_guidValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6870,7 +6870,7 @@ namespace TestData {
             get => m_byteStringValue;
 
             set {
-                if (!Object.ReferenceEquals(m_byteStringValue, value)) {
+                if (!object.ReferenceEquals(m_byteStringValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6885,7 +6885,7 @@ namespace TestData {
             get => m_xmlElementValue;
 
             set {
-                if (!Object.ReferenceEquals(m_xmlElementValue, value)) {
+                if (!object.ReferenceEquals(m_xmlElementValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6900,7 +6900,7 @@ namespace TestData {
             get => m_nodeIdValue;
 
             set {
-                if (!Object.ReferenceEquals(m_nodeIdValue, value)) {
+                if (!object.ReferenceEquals(m_nodeIdValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6915,7 +6915,7 @@ namespace TestData {
             get => m_expandedNodeIdValue;
 
             set {
-                if (!Object.ReferenceEquals(m_expandedNodeIdValue, value)) {
+                if (!object.ReferenceEquals(m_expandedNodeIdValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6930,7 +6930,7 @@ namespace TestData {
             get => m_qualifiedNameValue;
 
             set {
-                if (!Object.ReferenceEquals(m_qualifiedNameValue, value)) {
+                if (!object.ReferenceEquals(m_qualifiedNameValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6945,7 +6945,7 @@ namespace TestData {
             get => m_localizedTextValue;
 
             set {
-                if (!Object.ReferenceEquals(m_localizedTextValue, value)) {
+                if (!object.ReferenceEquals(m_localizedTextValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6960,7 +6960,7 @@ namespace TestData {
             get => m_statusCodeValue;
 
             set {
-                if (!Object.ReferenceEquals(m_statusCodeValue, value)) {
+                if (!object.ReferenceEquals(m_statusCodeValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6975,7 +6975,7 @@ namespace TestData {
             get => m_variantValue;
 
             set {
-                if (!Object.ReferenceEquals(m_variantValue, value)) {
+                if (!object.ReferenceEquals(m_variantValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -7099,7 +7099,7 @@ namespace TestData {
             BaseInstanceState instance = null;
 
             switch (browseName.Name) {
-                case TestData.BrowseNames.BooleanValue: {
+                case BrowseNames.BooleanValue: {
                         if (createOrReplace) {
                             if (BooleanValue == null) {
                                 if (replacement == null) {
@@ -7115,7 +7115,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.SByteValue: {
+                case BrowseNames.SByteValue: {
                         if (createOrReplace) {
                             if (SByteValue == null) {
                                 if (replacement == null) {
@@ -7131,7 +7131,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.ByteValue: {
+                case BrowseNames.ByteValue: {
                         if (createOrReplace) {
                             if (ByteValue == null) {
                                 if (replacement == null) {
@@ -7147,7 +7147,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.Int16Value: {
+                case BrowseNames.Int16Value: {
                         if (createOrReplace) {
                             if (Int16Value == null) {
                                 if (replacement == null) {
@@ -7163,7 +7163,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.UInt16Value: {
+                case BrowseNames.UInt16Value: {
                         if (createOrReplace) {
                             if (UInt16Value == null) {
                                 if (replacement == null) {
@@ -7179,7 +7179,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.Int32Value: {
+                case BrowseNames.Int32Value: {
                         if (createOrReplace) {
                             if (Int32Value == null) {
                                 if (replacement == null) {
@@ -7195,7 +7195,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.UInt32Value: {
+                case BrowseNames.UInt32Value: {
                         if (createOrReplace) {
                             if (UInt32Value == null) {
                                 if (replacement == null) {
@@ -7211,7 +7211,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.Int64Value: {
+                case BrowseNames.Int64Value: {
                         if (createOrReplace) {
                             if (Int64Value == null) {
                                 if (replacement == null) {
@@ -7227,7 +7227,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.UInt64Value: {
+                case BrowseNames.UInt64Value: {
                         if (createOrReplace) {
                             if (UInt64Value == null) {
                                 if (replacement == null) {
@@ -7243,7 +7243,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.FloatValue: {
+                case BrowseNames.FloatValue: {
                         if (createOrReplace) {
                             if (FloatValue == null) {
                                 if (replacement == null) {
@@ -7259,7 +7259,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.DoubleValue: {
+                case BrowseNames.DoubleValue: {
                         if (createOrReplace) {
                             if (DoubleValue == null) {
                                 if (replacement == null) {
@@ -7275,7 +7275,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.StringValue: {
+                case BrowseNames.StringValue: {
                         if (createOrReplace) {
                             if (StringValue == null) {
                                 if (replacement == null) {
@@ -7291,7 +7291,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.DateTimeValue: {
+                case BrowseNames.DateTimeValue: {
                         if (createOrReplace) {
                             if (DateTimeValue == null) {
                                 if (replacement == null) {
@@ -7307,7 +7307,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.GuidValue: {
+                case BrowseNames.GuidValue: {
                         if (createOrReplace) {
                             if (GuidValue == null) {
                                 if (replacement == null) {
@@ -7323,7 +7323,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.ByteStringValue: {
+                case BrowseNames.ByteStringValue: {
                         if (createOrReplace) {
                             if (ByteStringValue == null) {
                                 if (replacement == null) {
@@ -7339,7 +7339,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.XmlElementValue: {
+                case BrowseNames.XmlElementValue: {
                         if (createOrReplace) {
                             if (XmlElementValue == null) {
                                 if (replacement == null) {
@@ -7355,7 +7355,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.NodeIdValue: {
+                case BrowseNames.NodeIdValue: {
                         if (createOrReplace) {
                             if (NodeIdValue == null) {
                                 if (replacement == null) {
@@ -7371,7 +7371,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.ExpandedNodeIdValue: {
+                case BrowseNames.ExpandedNodeIdValue: {
                         if (createOrReplace) {
                             if (ExpandedNodeIdValue == null) {
                                 if (replacement == null) {
@@ -7387,7 +7387,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.QualifiedNameValue: {
+                case BrowseNames.QualifiedNameValue: {
                         if (createOrReplace) {
                             if (QualifiedNameValue == null) {
                                 if (replacement == null) {
@@ -7403,7 +7403,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.LocalizedTextValue: {
+                case BrowseNames.LocalizedTextValue: {
                         if (createOrReplace) {
                             if (LocalizedTextValue == null) {
                                 if (replacement == null) {
@@ -7419,7 +7419,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.StatusCodeValue: {
+                case BrowseNames.StatusCodeValue: {
                         if (createOrReplace) {
                             if (StatusCodeValue == null) {
                                 if (replacement == null) {
@@ -7435,7 +7435,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.VariantValue: {
+                case BrowseNames.VariantValue: {
                         if (createOrReplace) {
                             if (VariantValue == null) {
                                 if (replacement == null) {
@@ -7906,7 +7906,7 @@ namespace TestData {
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
         protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris) {
-            return Opc.Ua.NodeId.Create(TestData.ObjectTypes.MethodTestType, TestData.Namespaces.TestData, namespaceUris);
+            return NodeId.Create(ObjectTypes.MethodTestType, Namespaces.TestData, namespaceUris);
         }
 
 #if !OPCUA_EXCLUDE_InitializationStrings
@@ -8086,7 +8086,7 @@ namespace TestData {
             get => m_scalarMethod1Method;
 
             set {
-                if (!Object.ReferenceEquals(m_scalarMethod1Method, value)) {
+                if (!object.ReferenceEquals(m_scalarMethod1Method, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -8101,7 +8101,7 @@ namespace TestData {
             get => m_scalarMethod2Method;
 
             set {
-                if (!Object.ReferenceEquals(m_scalarMethod2Method, value)) {
+                if (!object.ReferenceEquals(m_scalarMethod2Method, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -8116,7 +8116,7 @@ namespace TestData {
             get => m_scalarMethod3Method;
 
             set {
-                if (!Object.ReferenceEquals(m_scalarMethod3Method, value)) {
+                if (!object.ReferenceEquals(m_scalarMethod3Method, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -8131,7 +8131,7 @@ namespace TestData {
             get => m_arrayMethod1Method;
 
             set {
-                if (!Object.ReferenceEquals(m_arrayMethod1Method, value)) {
+                if (!object.ReferenceEquals(m_arrayMethod1Method, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -8146,7 +8146,7 @@ namespace TestData {
             get => m_arrayMethod2Method;
 
             set {
-                if (!Object.ReferenceEquals(m_arrayMethod2Method, value)) {
+                if (!object.ReferenceEquals(m_arrayMethod2Method, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -8161,7 +8161,7 @@ namespace TestData {
             get => m_arrayMethod3Method;
 
             set {
-                if (!Object.ReferenceEquals(m_arrayMethod3Method, value)) {
+                if (!object.ReferenceEquals(m_arrayMethod3Method, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -8176,7 +8176,7 @@ namespace TestData {
             get => m_userScalarMethod1Method;
 
             set {
-                if (!Object.ReferenceEquals(m_userScalarMethod1Method, value)) {
+                if (!object.ReferenceEquals(m_userScalarMethod1Method, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -8191,7 +8191,7 @@ namespace TestData {
             get => m_userScalarMethod2Method;
 
             set {
-                if (!Object.ReferenceEquals(m_userScalarMethod2Method, value)) {
+                if (!object.ReferenceEquals(m_userScalarMethod2Method, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -8206,7 +8206,7 @@ namespace TestData {
             get => m_userArrayMethod1Method;
 
             set {
-                if (!Object.ReferenceEquals(m_userArrayMethod1Method, value)) {
+                if (!object.ReferenceEquals(m_userArrayMethod1Method, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -8221,7 +8221,7 @@ namespace TestData {
             get => m_userArrayMethod2Method;
 
             set {
-                if (!Object.ReferenceEquals(m_userArrayMethod2Method, value)) {
+                if (!object.ReferenceEquals(m_userArrayMethod2Method, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -8297,7 +8297,7 @@ namespace TestData {
             BaseInstanceState instance = null;
 
             switch (browseName.Name) {
-                case TestData.BrowseNames.ScalarMethod1: {
+                case BrowseNames.ScalarMethod1: {
                         if (createOrReplace) {
                             if (ScalarMethod1 == null) {
                                 if (replacement == null) {
@@ -8313,7 +8313,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.ScalarMethod2: {
+                case BrowseNames.ScalarMethod2: {
                         if (createOrReplace) {
                             if (ScalarMethod2 == null) {
                                 if (replacement == null) {
@@ -8329,7 +8329,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.ScalarMethod3: {
+                case BrowseNames.ScalarMethod3: {
                         if (createOrReplace) {
                             if (ScalarMethod3 == null) {
                                 if (replacement == null) {
@@ -8345,7 +8345,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.ArrayMethod1: {
+                case BrowseNames.ArrayMethod1: {
                         if (createOrReplace) {
                             if (ArrayMethod1 == null) {
                                 if (replacement == null) {
@@ -8361,7 +8361,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.ArrayMethod2: {
+                case BrowseNames.ArrayMethod2: {
                         if (createOrReplace) {
                             if (ArrayMethod2 == null) {
                                 if (replacement == null) {
@@ -8377,7 +8377,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.ArrayMethod3: {
+                case BrowseNames.ArrayMethod3: {
                         if (createOrReplace) {
                             if (ArrayMethod3 == null) {
                                 if (replacement == null) {
@@ -8393,7 +8393,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.UserScalarMethod1: {
+                case BrowseNames.UserScalarMethod1: {
                         if (createOrReplace) {
                             if (UserScalarMethod1 == null) {
                                 if (replacement == null) {
@@ -8409,7 +8409,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.UserScalarMethod2: {
+                case BrowseNames.UserScalarMethod2: {
                         if (createOrReplace) {
                             if (UserScalarMethod2 == null) {
                                 if (replacement == null) {
@@ -8425,7 +8425,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.UserArrayMethod1: {
+                case BrowseNames.UserArrayMethod1: {
                         if (createOrReplace) {
                             if (UserArrayMethod1 == null) {
                                 if (replacement == null) {
@@ -8441,7 +8441,7 @@ namespace TestData {
                         break;
                     }
 
-                case TestData.BrowseNames.UserArrayMethod2: {
+                case BrowseNames.UserArrayMethod2: {
                         if (createOrReplace) {
                             if (UserArrayMethod2 == null) {
                                 if (replacement == null) {
@@ -8501,7 +8501,7 @@ namespace TestData {
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
         protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris) {
-            return Opc.Ua.NodeId.Create(TestData.ObjectTypes.TestSystemConditionType, TestData.Namespaces.TestData, namespaceUris);
+            return NodeId.Create(ObjectTypes.TestSystemConditionType, Namespaces.TestData, namespaceUris);
         }
 
 #if !OPCUA_EXCLUDE_InitializationStrings
@@ -8577,7 +8577,7 @@ namespace TestData {
             get => m_monitoredNodeCount;
 
             set {
-                if (!Object.ReferenceEquals(m_monitoredNodeCount, value)) {
+                if (!object.ReferenceEquals(m_monitoredNodeCount, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -8617,7 +8617,7 @@ namespace TestData {
             BaseInstanceState instance = null;
 
             switch (browseName.Name) {
-                case TestData.BrowseNames.MonitoredNodeCount: {
+                case BrowseNames.MonitoredNodeCount: {
                         if (createOrReplace) {
                             if (MonitoredNodeCount == null) {
                                 if (replacement == null) {

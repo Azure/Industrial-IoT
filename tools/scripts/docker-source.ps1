@@ -3,7 +3,7 @@
     Builds csproj file and returns buildable dockerfile build definitions
 
  .PARAMETER Path
-    The folder containing the mcr.json file.
+    The folder containing the container.json file.
 
  .PARAMETER Configuration
     Whether to build Release or Debug - default to Release.  
@@ -28,7 +28,7 @@ $configuration = "Release"
 if ($Debug.IsPresent) {
     $configuration = "Debug"
 }
-$metadata = Get-Content -Raw -Path (Join-Path $Path "mcr.json") `
+$metadata = Get-Content -Raw -Path (Join-Path $Path "container.json") `
     | ConvertFrom-Json
 
 $definitions = @()

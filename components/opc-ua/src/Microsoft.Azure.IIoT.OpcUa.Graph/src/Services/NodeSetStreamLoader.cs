@@ -52,7 +52,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Services {
             _source = null; // TODO
 
             var context = _context.ToSystemContext();
-            if (contentType == ContentEncodings.MimeTypeUaNodesetXml) {
+            if (contentType == ContentMimeType.UaNodesetXml) {
                 // If nodeset, read as nodeset xml
                 var nodeset = NodeSet2.Load(stream);
                 foreach (var node in nodeset.GetNodeStates(context)) {

@@ -7,7 +7,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin {
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models;
     using Microsoft.Azure.IIoT.Utils;
     using System;
-    using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -57,39 +56,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin {
                 }
                 return result;
             }
-        }
-
-        /// <summary>
-        /// Get list of published nodes
-        /// </summary>
-        /// <param name="service"></param>
-        /// <param name="endpointId"></param>
-        /// <returns></returns>
-        public static async Task<IEnumerable<PublishedItemApiModel>> NodePublishListAllAsync(
-            this ITwinServiceApi service, string endpointId) {
-            var nodes = new List<PublishedItemApiModel>();
-            var result = await service.NodePublishListAsync(endpointId);
-            nodes.AddRange(result.Items);
-            while (result.ContinuationToken != null) {
-                result = await service.NodePublishListAsync(endpointId,
-                    result.ContinuationToken);
-                nodes.AddRange(result.Items);
-            }
-            return nodes;
-        }
-
-        /// <summary>
-        /// Get list of published nodes
-        /// </summary>
-        /// <param name="service"></param>
-        /// <param name="endpointId"></param>
-        /// <param name="continuation"></param>
-        /// <returns></returns>
-        public static Task<PublishedItemListResponseApiModel> NodePublishListAsync(
-            this ITwinServiceApi service, string endpointId, string continuation = null) {
-            return service.NodePublishListAsync(endpointId, new PublishedItemListRequestApiModel {
-                ContinuationToken = continuation
-            });
         }
     }
 }

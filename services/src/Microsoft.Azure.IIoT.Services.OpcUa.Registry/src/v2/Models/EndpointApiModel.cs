@@ -31,8 +31,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
             }
             Url = model.Url;
             AlternativeUrls = model.AlternativeUrls;
-            User = model.User == null ? null :
-                new CredentialApiModel(model.User);
             Certificate = model.Certificate;
             SecurityMode = model.SecurityMode;
             SecurityPolicy = model.SecurityPolicy;
@@ -45,7 +43,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
             return new EndpointModel {
                 Url = Url,
                 AlternativeUrls = AlternativeUrls,
-                User = User?.ToServiceModel(),
                 SecurityMode = SecurityMode,
                 SecurityPolicy = SecurityPolicy,
                 Certificate = Certificate,
@@ -66,14 +63,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
         [JsonProperty(PropertyName = "alternativeUrls",
             NullValueHandling = NullValueHandling.Ignore)]
         public HashSet<string> AlternativeUrls { get; set; }
-
-        /// <summary>
-        /// User Authentication
-        /// </summary>
-        [JsonProperty(PropertyName = "user",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
-        public CredentialApiModel User { get; set; }
 
         /// <summary>
         /// Security Mode to use for communication

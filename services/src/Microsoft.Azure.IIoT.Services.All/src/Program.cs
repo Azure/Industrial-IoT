@@ -17,15 +17,22 @@ namespace Microsoft.Azure.IIoT.Services.All {
         /// <param name="args"></param>
         public static void Main(string[] args) {
             Task.WaitAll(new[] {
-                Task.Run(() => Hub.Router.Program.Main(args)),
-                Task.Run(() => OpcUa.Alerting.Program.Main(args)),
-                Task.Run(() => OpcUa.Jobs.Program.Main(args)),
-                Task.Run(() => OpcUa.Gateway.Program.Main(args)),
-                Task.Run(() => OpcUa.History.Program.Main(args)),
-                Task.Run(() => OpcUa.Onboarding.Program.Main(args)),
-                Task.Run(() => OpcUa.Processor.Program.Main(args)),
+                Task.Run(() => Common.Configuration.Program.Main(args)),
+                Task.Run(() => Common.Identity.Program.Main(args)),
+                Task.Run(() => Common.Jobs.Program.Main(args)),
+                Task.Run(() => Common.Jobs.Edge.Program.Main(args)),
+                Task.Run(() => Common.Hub.Fileupload.Program.Main(args)),
+                Task.Run(() => Processor.Telemetry.Program.Main(args)),
+                Task.Run(() => OpcUa.Registry.Discovery.Program.Main(args)),
+                Task.Run(() => OpcUa.Registry.Onboarding.Program.Main(args)),
+                Task.Run(() => OpcUa.Registry.Events.Program.Main(args)),
+                Task.Run(() => OpcUa.Registry.Security.Program.Main(args)),
                 Task.Run(() => OpcUa.Registry.Program.Main(args)),
                 Task.Run(() => OpcUa.Twin.Program.Main(args)),
+                Task.Run(() => OpcUa.Twin.Import.Program.Main(args)),
+                Task.Run(() => OpcUa.Twin.Gateway.Program.Main(args)),
+                Task.Run(() => OpcUa.Twin.History.Program.Main(args)),
+                Task.Run(() => OpcUa.Publisher.Program.Main(args)),
                 Task.Run(() => OpcUa.Vault.Program.Main(args)),
             });
         }

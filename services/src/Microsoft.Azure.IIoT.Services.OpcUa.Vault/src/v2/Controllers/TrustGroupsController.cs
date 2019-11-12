@@ -22,9 +22,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Controllers {
     /// </summary>
     [ExceptionsFilter]
     [Route(VersionInfo.PATH + "/groups")]
-    [Produces(ContentEncodings.MimeTypeJson)]
+    [Produces(ContentMimeType.Json)]
     [Authorize(Policy = Policies.CanRead)]
-    public sealed class TrustGroupsController : Controller {
+    [ApiController]
+    public sealed class TrustGroupsController : ControllerBase {
 
         /// <summary>
         /// Create the controller.

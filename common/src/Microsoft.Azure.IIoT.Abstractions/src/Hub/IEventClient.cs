@@ -17,16 +17,22 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// </summary>
         /// <param name="data"></param>
         /// <param name="contentType"></param>
+        /// <param name="eventSchema"></param>
+        /// <param name="contentEncoding"></param>
         /// <returns></returns>
-        Task SendAsync(byte[] data, string contentType);
+        Task SendEventAsync(byte[] data, string contentType,
+            string eventSchema, string contentEncoding);
 
         /// <summary>
         /// Send batch of events
         /// </summary>
         /// <param name="batch"></param>
         /// <param name="contentType"></param>
+        /// <param name="eventSchema"></param>
+        /// <param name="contentEncoding"></param>
         /// <returns></returns>
-        Task SendAsync(IEnumerable<byte[]> batch,
-            string contentType);
+        Task SendEventAsync(IEnumerable<byte[]> batch,
+            string contentType, string eventSchema,
+            string contentEncoding);
     }
 }

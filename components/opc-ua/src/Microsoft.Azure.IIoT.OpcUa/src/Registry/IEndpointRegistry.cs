@@ -67,19 +67,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
             CancellationToken ct = default);
 
         /// <summary>
-        /// Update existing server endpoint registration.
-        /// Id and url field in request must not be null and
-        /// endpoint registration must exist.
-        /// </summary>
-        /// <param name="endpointId"></param>
-        /// <param name="request"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        Task UpdateEndpointAsync(string endpointId,
-            EndpointRegistrationUpdateModel request,
-            CancellationToken ct = default);
-
-        /// <summary>
         /// Set the endpoint state to deactivated
         /// </summary>
         /// <param name="endpointId"></param>

@@ -23,9 +23,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.v2.Controllers {
     /// </summary>
     [Route(VersionInfo.PATH + "/browse")]
     [ExceptionsFilter]
-    [Produces(ContentEncodings.MimeTypeJson)]
+    [Produces(ContentMimeType.Json)]
     [Authorize(Policy = Policies.CanBrowse)]
-    public class BrowseController : Controller {
+    [ApiController]
+    public class BrowseController : ControllerBase {
 
         /// <summary>
         /// Create controller with service

@@ -91,7 +91,7 @@ namespace Microsoft.Azure.IIoT.Infrastructure.Auth {
         private readonly ITokenProvider _provider;
         private readonly Dictionary<string, Tuple<DateTime, AzureCredentials>> _credentials =
             new Dictionary<string, Tuple<DateTime, AzureCredentials>>();
-        private readonly SemaphoreSlim _lock = new SemaphoreSlim(1);
+        private readonly SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
         private readonly TimeSpan _expiry;
     }
 }

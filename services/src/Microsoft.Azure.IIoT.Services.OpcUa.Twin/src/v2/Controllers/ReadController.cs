@@ -19,9 +19,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.v2.Controllers {
     /// </summary>
     [Route(VersionInfo.PATH + "/read")]
     [ExceptionsFilter]
-    [Produces(ContentEncodings.MimeTypeJson)]
+    [Produces(ContentMimeType.Json)]
     [Authorize(Policy = Policies.CanBrowse)]
-    public class ReadController : Controller {
+    [ApiController]
+    public class ReadController : ControllerBase {
 
         /// <summary>
         /// Create controller with service

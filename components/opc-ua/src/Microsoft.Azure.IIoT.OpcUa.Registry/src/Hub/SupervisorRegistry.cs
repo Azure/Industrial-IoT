@@ -85,7 +85,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                     }
 
                     if (request.LogLevel != null) {
-                        patched.LogLevel = request.LogLevel == SupervisorLogLevel.Information ?
+                        patched.LogLevel = request.LogLevel == TraceLogLevel.Information ?
                             null : request.LogLevel;
                     }
 
@@ -159,7 +159,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         public async Task<SupervisorListModel> ListSupervisorsAsync(
             string continuation, bool onlyServerState, int? pageSize, CancellationToken ct) {
             var query = "SELECT * FROM devices.modules WHERE " +
-                $"properties.reported.{TwinProperty.kType} = 'supervisor' " +
+                $"properties.reported.{TwinProperty.Type} = 'supervisor' " +
                 $"AND NOT IS_DEFINED(tags.{nameof(BaseRegistration.NotSeenSince)})";
             var devices = await _iothub.QueryDeviceTwinsAsync(query, continuation, pageSize, ct);
             return new SupervisorListModel {
@@ -176,7 +176,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             SupervisorQueryModel model, bool onlyServerState, int? pageSize, CancellationToken ct) {
 
             var query = "SELECT * FROM devices.modules WHERE " +
-                $"properties.reported.{TwinProperty.kType} = 'supervisor'";
+                $"properties.reported.{TwinProperty.Type} = 'supervisor'";
 
             if (model?.Discovery != null) {
                 // If discovery mode provided, include it in search
@@ -185,8 +185,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             }
             if (model?.SiteId != null) {
                 // If site id provided, include it in search
-                query += $"AND (properties.reported.{TwinProperty.kSiteId} = " +
-                    $"'{model.SiteId}' OR properties.desired.{TwinProperty.kSiteId} = " +
+                query += $"AND (properties.reported.{TwinProperty.SiteId} = " +
+                    $"'{model.SiteId}' OR properties.desired.{TwinProperty.SiteId} = " +
                     $"'{model.SiteId}')";
             }
             if (model?.Connected != null) {
@@ -197,7 +197,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 }
                 else {
                     query += $"AND (connectionState = 'Disconnected' " +
-                        $"OR properties.reported.{TwinProperty.kConnected} != true) ";
+                        $"OR properties.reported.{TwinProperty.Connected} != true) ";
                 }
             }
 

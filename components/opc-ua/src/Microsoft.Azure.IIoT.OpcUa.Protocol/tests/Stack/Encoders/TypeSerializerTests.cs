@@ -14,14 +14,14 @@ namespace Opc.Ua.Encoders {
     public class TypeSerializerTests {
 
         [Theory]
-        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
-        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJsonReference)]
-        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJsonReference, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJson, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaBinary, ContentEncodings.MimeTypeUaBinary)]
-        [InlineData(ContentEncodings.MimeTypeUaXml, ContentEncodings.MimeTypeUaXml)]
+        [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJsonReference)]
+        [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJsonReference)]
+        [InlineData(ContentMimeType.UaNonReversibleJsonReference, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaNonReversibleJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaBinary, ContentMimeType.UaBinary)]
+        [InlineData(ContentMimeType.UaXml, ContentMimeType.UaXml)]
         public void ReadWriteIntArray(string encoderType, string decoderType) {
             var expected = new int[] { 1 };
             CreateSerializers(out var encoder, out var decoder);
@@ -33,14 +33,14 @@ namespace Opc.Ua.Encoders {
         }
 
         [Theory]
-        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
-        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJsonReference)]
-        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJsonReference, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJson, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaBinary, ContentEncodings.MimeTypeUaBinary)]
-        [InlineData(ContentEncodings.MimeTypeUaXml, ContentEncodings.MimeTypeUaXml)]
+        [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJsonReference)]
+        [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJsonReference)]
+        [InlineData(ContentMimeType.UaNonReversibleJsonReference, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaNonReversibleJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaBinary, ContentMimeType.UaBinary)]
+        [InlineData(ContentMimeType.UaXml, ContentMimeType.UaXml)]
         public void ReadWriteEmptyIntArray(string encoderType, string decoderType) {
             var expected = new int[0];
             CreateSerializers(out var encoder, out var decoder);
@@ -52,14 +52,14 @@ namespace Opc.Ua.Encoders {
         }
 
         [Theory]
-        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
-        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJsonReference)]
-        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJsonReference, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJson, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaBinary, ContentEncodings.MimeTypeUaBinary)]
-        [InlineData(ContentEncodings.MimeTypeUaXml, ContentEncodings.MimeTypeUaXml)]
+        [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJsonReference)]
+        [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJsonReference)]
+        [InlineData(ContentMimeType.UaNonReversibleJsonReference, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaNonReversibleJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaBinary, ContentMimeType.UaBinary)]
+        [InlineData(ContentMimeType.UaXml, ContentMimeType.UaXml)]
         public void ReadWriteDateTime(string encoderType, string decoderType) {
             var expected = DateTime.UtcNow;
             CreateSerializers(out var encoder, out var decoder);
@@ -75,10 +75,10 @@ namespace Opc.Ua.Encoders {
         // [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
         // [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJsonReference)]
         // [InlineData(ContentEncodings.MimeTypeUaNonReversibleJsonReference, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJson, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaBinary, ContentEncodings.MimeTypeUaBinary)]
-        [InlineData(ContentEncodings.MimeTypeUaXml, ContentEncodings.MimeTypeUaXml)]
+        [InlineData(ContentMimeType.UaNonReversibleJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaBinary, ContentMimeType.UaBinary)]
+        [InlineData(ContentMimeType.UaXml, ContentMimeType.UaXml)]
         public void ReadWriteDateTimeArray(string encoderType, string decoderType) {
             var expected = new[] {
                 DateTime.UtcNow, DateTime.UtcNow, DateTime.UtcNow, DateTime.UtcNow, DateTime.UtcNow,
@@ -99,10 +99,10 @@ namespace Opc.Ua.Encoders {
         // [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
         // [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJsonReference)]
         // [InlineData(ContentEncodings.MimeTypeUaNonReversibleJsonReference, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJson, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaBinary, ContentEncodings.MimeTypeUaBinary)]
-        [InlineData(ContentEncodings.MimeTypeUaXml, ContentEncodings.MimeTypeUaXml)]
+        [InlineData(ContentMimeType.UaNonReversibleJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaBinary, ContentMimeType.UaBinary)]
+        [InlineData(ContentMimeType.UaXml, ContentMimeType.UaXml)]
         public void ReadWriteQualifiedName(string encoderType, string decoderType) {
             var expected = new QualifiedName("hello");
             CreateSerializers(out var encoder, out var decoder);
@@ -118,10 +118,10 @@ namespace Opc.Ua.Encoders {
         // [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
         // [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJsonReference)]
         // [InlineData(ContentEncodings.MimeTypeUaNonReversibleJsonReference, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJson, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaBinary, ContentEncodings.MimeTypeUaBinary)]
-        [InlineData(ContentEncodings.MimeTypeUaXml, ContentEncodings.MimeTypeUaXml)]
+        [InlineData(ContentMimeType.UaNonReversibleJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaBinary, ContentMimeType.UaBinary)]
+        [InlineData(ContentMimeType.UaXml, ContentMimeType.UaXml)]
         public void ReadWriteQualifiedNameArray(string encoderType, string decoderType) {
             var expected = new[] {
                 new QualifiedName("bla", 0),
@@ -138,14 +138,14 @@ namespace Opc.Ua.Encoders {
         }
 
         [Theory]
-        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
-        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJsonReference)]
-        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJsonReference, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJson, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaBinary, ContentEncodings.MimeTypeUaBinary)]
-        [InlineData(ContentEncodings.MimeTypeUaXml, ContentEncodings.MimeTypeUaXml)]
+        [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJsonReference)]
+        [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJsonReference)]
+        [InlineData(ContentMimeType.UaNonReversibleJsonReference, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaNonReversibleJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaBinary, ContentMimeType.UaBinary)]
+        [InlineData(ContentMimeType.UaXml, ContentMimeType.UaXml)]
         public void ReadWriteDataValue(string encoderType, string decoderType) {
             var expected = new DataValue(new Variant("hello"), StatusCodes.BadAggregateConfigurationRejected);
             CreateSerializers(out var encoder, out var decoder);
@@ -157,14 +157,14 @@ namespace Opc.Ua.Encoders {
         }
 
         [Theory]
-        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
-        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJsonReference)]
-        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJsonReference, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJson, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaBinary, ContentEncodings.MimeTypeUaBinary)]
-        [InlineData(ContentEncodings.MimeTypeUaXml, ContentEncodings.MimeTypeUaXml)]
+        [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJsonReference)]
+        [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJsonReference)]
+        [InlineData(ContentMimeType.UaNonReversibleJsonReference, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaNonReversibleJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaBinary, ContentMimeType.UaBinary)]
+        [InlineData(ContentMimeType.UaXml, ContentMimeType.UaXml)]
         public void ReadWriteLocalizedText1(string encoderType, string decoderType) {
             var expected = new LocalizedText("hello");
             CreateSerializers(out var encoder, out var decoder);
@@ -176,13 +176,13 @@ namespace Opc.Ua.Encoders {
         }
 
         [Theory]
-        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
-        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJsonReference)]
-        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJson, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaBinary, ContentEncodings.MimeTypeUaBinary)]
-        [InlineData(ContentEncodings.MimeTypeUaXml, ContentEncodings.MimeTypeUaXml)]
+        [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJsonReference)]
+        [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJsonReference)]
+        [InlineData(ContentMimeType.UaNonReversibleJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaBinary, ContentMimeType.UaBinary)]
+        [InlineData(ContentMimeType.UaXml, ContentMimeType.UaXml)]
         public void ReadWriteLocalizedText2(string encoderType, string decoderType) {
             var expected = new LocalizedText(CultureInfo.CurrentCulture.Name, "hello");
             CreateSerializers(out var encoder, out var decoder);
@@ -194,14 +194,14 @@ namespace Opc.Ua.Encoders {
         }
 
         [Theory]
-        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
-        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJsonReference)]
-        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJsonReference, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJson, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaBinary, ContentEncodings.MimeTypeUaBinary)]
-        [InlineData(ContentEncodings.MimeTypeUaXml, ContentEncodings.MimeTypeUaXml)]
+        [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJsonReference)]
+        [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJsonReference)]
+        [InlineData(ContentMimeType.UaNonReversibleJsonReference, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaNonReversibleJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaBinary, ContentMimeType.UaBinary)]
+        [InlineData(ContentMimeType.UaXml, ContentMimeType.UaXml)]
         public void ReadWriteLocalizedTextArray1(string encoderType, string decoderType) {
             var expected = new[] {
                 new LocalizedText("hello"),
@@ -218,13 +218,13 @@ namespace Opc.Ua.Encoders {
         }
 
         [Theory]
-        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
-        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJsonReference)]
-        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJson, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaBinary, ContentEncodings.MimeTypeUaBinary)]
-        [InlineData(ContentEncodings.MimeTypeUaXml, ContentEncodings.MimeTypeUaXml)]
+        [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJsonReference)]
+        [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJsonReference)]
+        [InlineData(ContentMimeType.UaNonReversibleJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaBinary, ContentMimeType.UaBinary)]
+        [InlineData(ContentMimeType.UaXml, ContentMimeType.UaXml)]
         public void ReadWriteLocalizedTextArray2(string encoderType, string decoderType) {
             var expected = new[] {
                 new LocalizedText(CultureInfo.CurrentCulture.Name, "hello"),
@@ -241,14 +241,14 @@ namespace Opc.Ua.Encoders {
         }
 
         [Theory]
-        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
-        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJsonReference)]
-        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJsonReference, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJson, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaBinary, ContentEncodings.MimeTypeUaBinary)]
-        [InlineData(ContentEncodings.MimeTypeUaXml, ContentEncodings.MimeTypeUaXml)]
+        [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJsonReference)]
+        [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJsonReference)]
+        [InlineData(ContentMimeType.UaNonReversibleJsonReference, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaNonReversibleJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaBinary, ContentMimeType.UaBinary)]
+        [InlineData(ContentMimeType.UaXml, ContentMimeType.UaXml)]
         public void ReadWriteStatusCode(string encoderType, string decoderType) {
             var expected = new StatusCode(StatusCodes.BadAggregateInvalidInputs);
             CreateSerializers(out var encoder, out var decoder);
@@ -260,14 +260,14 @@ namespace Opc.Ua.Encoders {
         }
 
         [Theory]
-        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
-        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJsonReference)]
-        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJsonReference, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJson, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaBinary, ContentEncodings.MimeTypeUaBinary)]
-        [InlineData(ContentEncodings.MimeTypeUaXml, ContentEncodings.MimeTypeUaXml)]
+        [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJsonReference)]
+        [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJsonReference)]
+        [InlineData(ContentMimeType.UaNonReversibleJsonReference, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaNonReversibleJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaBinary, ContentMimeType.UaBinary)]
+        [InlineData(ContentMimeType.UaXml, ContentMimeType.UaXml)]
         public void ReadWriteArgument(string encoderType, string decoderType) {
             var expected = new Argument("something1",
                     new NodeId(2354), -1, "somedesciroeioi") {
@@ -284,13 +284,13 @@ namespace Opc.Ua.Encoders {
 
         [Theory]
         // [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
-        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJsonReference)]
-        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJsonReference, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJson, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaBinary, ContentEncodings.MimeTypeUaBinary)]
-        [InlineData(ContentEncodings.MimeTypeUaXml, ContentEncodings.MimeTypeUaXml)]
+        [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJsonReference)]
+        [InlineData(ContentMimeType.UaNonReversibleJsonReference, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaNonReversibleJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaBinary, ContentMimeType.UaBinary)]
+        [InlineData(ContentMimeType.UaXml, ContentMimeType.UaXml)]
         public void ReadWriteArgumentArray(string encoderType, string decoderType) {
             var expected = new[] {
                 new Argument("something1",
@@ -314,14 +314,14 @@ namespace Opc.Ua.Encoders {
         }
 
         [Theory]
-        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
-        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJsonReference)]
-        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJsonReference, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJson, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaBinary, ContentEncodings.MimeTypeUaBinary)]
-        [InlineData(ContentEncodings.MimeTypeUaXml, ContentEncodings.MimeTypeUaXml)]
+        [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJsonReference)]
+        [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJsonReference)]
+        [InlineData(ContentMimeType.UaNonReversibleJsonReference, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaNonReversibleJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaBinary, ContentMimeType.UaBinary)]
+        [InlineData(ContentMimeType.UaXml, ContentMimeType.UaXml)]
         public void ReadWriteStringArray(string encoderType, string decoderType) {
             var expected = new string[] { "1", "2", "3", "4", "5" };
             CreateSerializers(out var encoder, out var decoder);
@@ -333,14 +333,14 @@ namespace Opc.Ua.Encoders {
         }
 
         [Theory]
-        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
-        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJsonReference)]
-        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJsonReference, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJson, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaBinary, ContentEncodings.MimeTypeUaBinary)]
-        [InlineData(ContentEncodings.MimeTypeUaXml, ContentEncodings.MimeTypeUaXml)]
+        [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJsonReference)]
+        [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJsonReference)]
+        [InlineData(ContentMimeType.UaNonReversibleJsonReference, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaNonReversibleJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaBinary, ContentMimeType.UaBinary)]
+        [InlineData(ContentMimeType.UaXml, ContentMimeType.UaXml)]
         public void ReadWriteEmptyStringArray(string encoderType, string decoderType) {
             var expected = new string[0];
             CreateSerializers(out var encoder, out var decoder);
@@ -356,10 +356,10 @@ namespace Opc.Ua.Encoders {
         // [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
         // [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJsonReference)]
         // [InlineData(ContentEncodings.MimeTypeUaNonReversibleJsonReference, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJson, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaBinary, ContentEncodings.MimeTypeUaBinary)]
-        [InlineData(ContentEncodings.MimeTypeUaXml, ContentEncodings.MimeTypeUaXml)]
+        [InlineData(ContentMimeType.UaNonReversibleJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaBinary, ContentMimeType.UaBinary)]
+        [InlineData(ContentMimeType.UaXml, ContentMimeType.UaXml)]
         public void ReadWriteStringVariant(string encoderType, string decoderType) {
             var expected = new Variant("5");
             CreateSerializers(out var encoder, out var decoder);
@@ -375,10 +375,10 @@ namespace Opc.Ua.Encoders {
         // [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
         // [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJsonReference)]
         // [InlineData(ContentEncodings.MimeTypeUaNonReversibleJsonReference, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJson, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaBinary, ContentEncodings.MimeTypeUaBinary)]
-        [InlineData(ContentEncodings.MimeTypeUaXml, ContentEncodings.MimeTypeUaXml)]
+        [InlineData(ContentMimeType.UaNonReversibleJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaBinary, ContentMimeType.UaBinary)]
+        [InlineData(ContentMimeType.UaXml, ContentMimeType.UaXml)]
         public void ReadWriteStringMatrixVariant(string encoderType, string decoderType) {
             var expected = new Variant(new[, ,] {
                 { { "1", "1", "1" }, { "2", "2", "2" }, { "3", "3", "3" } },
@@ -403,10 +403,10 @@ namespace Opc.Ua.Encoders {
         // [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
         // [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJsonReference)]
         // [InlineData(ContentEncodings.MimeTypeUaNonReversibleJsonReference, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJson, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaBinary, ContentEncodings.MimeTypeUaBinary)]
-        [InlineData(ContentEncodings.MimeTypeUaXml, ContentEncodings.MimeTypeUaXml)]
+        [InlineData(ContentMimeType.UaNonReversibleJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaBinary, ContentMimeType.UaBinary)]
+        [InlineData(ContentMimeType.UaXml, ContentMimeType.UaXml)]
         public void ReadWriteIntMatrixVariant(string encoderType, string decoderType) {
             var expected = new Variant(new[, ,] {
                 { { 1L, 1L, 1L }, { 2L, 2L, 2L }, { 3L, 3L, 3L } },
@@ -431,10 +431,10 @@ namespace Opc.Ua.Encoders {
         // [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
         // [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJsonReference)]
         // [InlineData(ContentEncodings.MimeTypeUaNonReversibleJsonReference, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJson, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaBinary, ContentEncodings.MimeTypeUaBinary)]
-        [InlineData(ContentEncodings.MimeTypeUaXml, ContentEncodings.MimeTypeUaXml)]
+        [InlineData(ContentMimeType.UaNonReversibleJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaBinary, ContentMimeType.UaBinary)]
+        [InlineData(ContentMimeType.UaXml, ContentMimeType.UaXml)]
         public void ReadWriteBooleanMatrixVariant(string encoderType, string decoderType) {
             var expected = new Variant(new[, ,] {
                 { { true, false, true }, { false, true, false }, { true, false, false } },
@@ -459,10 +459,10 @@ namespace Opc.Ua.Encoders {
         // [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
         // [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJsonReference)]
         // [InlineData(ContentEncodings.MimeTypeUaNonReversibleJsonReference, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJson, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaBinary, ContentEncodings.MimeTypeUaBinary)]
-        [InlineData(ContentEncodings.MimeTypeUaXml, ContentEncodings.MimeTypeUaXml)]
+        [InlineData(ContentMimeType.UaNonReversibleJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaBinary, ContentMimeType.UaBinary)]
+        [InlineData(ContentMimeType.UaXml, ContentMimeType.UaXml)]
         public void ReadWriteNullVariant(string encoderType, string decoderType) {
             var expected = Variant.Null;
             CreateSerializers(out var encoder, out var decoder);
@@ -474,12 +474,12 @@ namespace Opc.Ua.Encoders {
         }
 
         [Theory]
-        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
-        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJsonReference)]
-        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaBinary, ContentEncodings.MimeTypeUaBinary)]
-        [InlineData(ContentEncodings.MimeTypeUaXml, ContentEncodings.MimeTypeUaXml)]
+        [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJsonReference)]
+        [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJsonReference)]
+        [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaBinary, ContentMimeType.UaBinary)]
+        [InlineData(ContentMimeType.UaXml, ContentMimeType.UaXml)]
         public void ReadWriteUintVariant(string encoderType, string decoderType) {
             var expected = new Variant((uint)99);
             CreateSerializers(out var encoder, out var decoder);
@@ -491,14 +491,14 @@ namespace Opc.Ua.Encoders {
         }
 
         [Theory]
-        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
-        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJsonReference)]
-        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJsonReference, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJson, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaBinary, ContentEncodings.MimeTypeUaBinary)]
-        [InlineData(ContentEncodings.MimeTypeUaXml, ContentEncodings.MimeTypeUaXml)]
+        [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJsonReference)]
+        [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJsonReference)]
+        [InlineData(ContentMimeType.UaNonReversibleJsonReference, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaNonReversibleJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaBinary, ContentMimeType.UaBinary)]
+        [InlineData(ContentMimeType.UaXml, ContentMimeType.UaXml)]
         public void ReadWriteUint64AsUint16(string encoderType, string decoderType) {
             var expected = (ulong)99;
             CreateSerializers(out var encoder, out var decoder);
@@ -513,13 +513,13 @@ namespace Opc.Ua.Encoders {
         /// Test encode string variant - cannot do this on binary
         /// </summary>
         [Theory]
-        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
-        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJsonReference)]
-        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJsonReference, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJson, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaXml, ContentEncodings.MimeTypeUaXml)]
+        [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJsonReference)]
+        [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJsonReference)]
+        [InlineData(ContentMimeType.UaNonReversibleJsonReference, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaNonReversibleJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaXml, ContentMimeType.UaXml)]
         public void ReadWriteUint64AsString(string encoderType, string decoderType) {
             var expected = (ulong)99;
             CreateSerializers(out var encoder, out var decoder);
@@ -532,13 +532,13 @@ namespace Opc.Ua.Encoders {
 
         [Theory]
         // [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
-        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJson)]
         // [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJsonReference)]
-        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJsonReference, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJson, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaBinary, ContentEncodings.MimeTypeUaBinary)]
-        [InlineData(ContentEncodings.MimeTypeUaXml, ContentEncodings.MimeTypeUaXml)]
+        [InlineData(ContentMimeType.UaNonReversibleJsonReference, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaNonReversibleJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaBinary, ContentMimeType.UaBinary)]
+        [InlineData(ContentMimeType.UaXml, ContentMimeType.UaXml)]
         public void ReadWriteStringArrayVariant(string encoderType, string decoderType) {
             var expected = new Variant(new string[] { "1", "2", "3", "4", "5" });
             CreateSerializers(out var encoder, out var decoder);
@@ -551,13 +551,13 @@ namespace Opc.Ua.Encoders {
 
         [Theory]
         // Broken [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
-        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJson)]
         // Broken [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJsonReference)]
         // Broken [InlineData(ContentEncodings.MimeTypeUaNonReversibleJsonReference, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJson, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaBinary, ContentEncodings.MimeTypeUaBinary)]
-        [InlineData(ContentEncodings.MimeTypeUaXml, ContentEncodings.MimeTypeUaXml)]
+        [InlineData(ContentMimeType.UaNonReversibleJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaBinary, ContentMimeType.UaBinary)]
+        [InlineData(ContentMimeType.UaXml, ContentMimeType.UaXml)]
         public void ReadWriteVariantCollection(string encoderType, string decoderType) {
             var expected = new VariantCollection {
                 new Variant(4L),
@@ -581,9 +581,9 @@ namespace Opc.Ua.Encoders {
         // [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
         // [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
         // [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJsonReference)]
-        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaBinary, ContentEncodings.MimeTypeUaBinary)]
-        [InlineData(ContentEncodings.MimeTypeUaXml, ContentEncodings.MimeTypeUaXml)]
+        [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaBinary, ContentMimeType.UaBinary)]
+        [InlineData(ContentMimeType.UaXml, ContentMimeType.UaXml)]
         public void ReadNodeAttributeSet(string encoderType, string decoderType) {
             var expected = new NodeAttributeSet();
             var map = new AttributeMap();
@@ -604,13 +604,13 @@ namespace Opc.Ua.Encoders {
 
         [Theory]
         // [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJsonReference)]
-        [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJson)]
         // [InlineData(ContentEncodings.MimeTypeUaJsonReference, ContentEncodings.MimeTypeUaJsonReference)]
         // [InlineData(ContentEncodings.MimeTypeUaNonReversibleJsonReference, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaNonReversibleJson, ContentEncodings.MimeTypeUaJson)]
-        [InlineData(ContentEncodings.MimeTypeUaJson, ContentEncodings.MimeTypeUaJson)]
+        [InlineData(ContentMimeType.UaNonReversibleJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJson)]
         // TODO [InlineData(ContentEncodings.MimeTypeUaBinary, ContentEncodings.MimeTypeUaBinary)]
-        [InlineData(ContentEncodings.MimeTypeUaXml, ContentEncodings.MimeTypeUaXml)]
+        [InlineData(ContentMimeType.UaXml, ContentMimeType.UaXml)]
         public void ReadWriteProgramDiagnostic2DataType(string encoderType, string decoderType) {
 
             // Create dummy type
@@ -655,7 +655,7 @@ namespace Opc.Ua.Encoders {
                 LastMethodReturnStatus = new StatusResult(
                     StatusCodes.BadAggregateConfigurationRejected),
                 LastMethodSessionId = new NodeId(
-                    Opc.Ua.Utils.Nonce.CreateNonce(32)),
+                    Utils.Nonce.CreateNonce(32)),
                 LastTransitionTime = DateTime.UtcNow - TimeSpan.FromDays(23)
             };
             CreateSerializers(out var encoder, out var decoder);

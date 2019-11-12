@@ -245,7 +245,7 @@ namespace DataAccess {
         /// <param name="counter">The number of simulation cycles that have elapsed.</param>
         /// <param name="index">The index of the block within the system.</param>
         /// <param name="generator">An object which generates random data.</param>
-        public void DoSimulation(long counter, int index, Opc.Ua.Test.DataGenerator generator) {
+        public void DoSimulation(long counter, int index, Opc.Ua.Test.TestDataGenerator generator) {
             try {
                 TagsChangedEventHandler onTagsChanged = null;
                 var snapshots = new List<UnderlyingSystemTag>();
@@ -312,7 +312,7 @@ namespace DataAccess {
         /// </summary>
         private bool UpdateTagValue(
             UnderlyingSystemTag tag,
-            Opc.Ua.Test.DataGenerator generator) {
+            Opc.Ua.Test.TestDataGenerator generator) {
             // don't update writeable tags.
             if (tag.IsWriteable) {
                 return false;
@@ -416,7 +416,7 @@ namespace DataAccess {
         /// </summary>
         private bool UpdateTagMetadata(
             UnderlyingSystemTag tag,
-            Opc.Ua.Test.DataGenerator generator) {
+            Opc.Ua.Test.TestDataGenerator generator) {
             switch (tag.TagType) {
                 case UnderlyingSystemTagType.Analog: {
                         if (tag.EuRange != null) {

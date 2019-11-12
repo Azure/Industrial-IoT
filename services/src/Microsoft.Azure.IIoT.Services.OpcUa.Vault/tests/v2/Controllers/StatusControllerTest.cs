@@ -12,7 +12,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Controllers {
     public class StatusControllerTest : IClassFixture<WebAppFixture> {
 
         [Fact]
-        public async Task TestStatus() {
+        public async Task TestStatusAsync() {
 
             // Arrange
             var client = _factory.CreateClient();

@@ -50,10 +50,10 @@ Function GetEnvironmentVariables() {
     $EVENTHUB_NAME = $deployment.Outputs["eventhub-name"].Value
     $SERVICEBUS_CONNSTRING = $deployment.Outputs["sb-connstring"].Value
     $KEYVAULT_URL = $deployment.Outputs["keyvault-url"].Value
-    $AZURE_WEBSITE = $deployment.Outputs["azureWebsite"].Value
     $WORKSPACE_NAME = $deployment.Outputs["workspace-name"].Value
     $APPINSIGHTS_NAME = $deployment.Outputs["appinsights-name"].Value
     $APPINSIGHTS_INSTRUMENTATIONKEY = $deployment.Outputs["appinsights-instrumentationkey"].Value
+    $AZURE_WEBSITE = $deployment.Outputs["azureWebsite"].Value
 
     Write-Output `
         "_HUB_CS=$IOTHUB_CONNSTRING"
@@ -116,6 +116,7 @@ Function GetEnvironmentVariables() {
 
     $AUTH_AUDIENCE = $aadConfig.Audience
     $AUTH_AAD_APPID = $aadConfig.ClientId
+    $AUTH_AAD_APPSECRET = $aadConfig.ClientSecret
     $AUTH_AAD_TENANT = $aadConfig.TenantId
     $AUTH_AAD_AUTHORITY = $aadConfig.Instance
 
@@ -128,24 +129,13 @@ Function GetEnvironmentVariables() {
     Write-Output `
         "PCS_AUTH_ISSUER=https://sts.windows.net/$AUTH_AAD_TENANT/"
     Write-Output `
+        "PCS_APPLICATION_SECRET=$AUTH_AAD_APPSECRET"
+    Write-Output `
         "PCS_WEBUI_AUTH_AAD_APPID=$AUTH_AAD_APPID"
     Write-Output `
         "PCS_WEBUI_AUTH_AAD_AUTHORITY=$AUTH_AAD_AUTHORITY"
     Write-Output `
         "PCS_WEBUI_AUTH_AAD_TENANT=$AUTH_AAD_TENANT"
-
-    Write-Output `
-        "REACT_APP_PCS_AUTH_REQUIRED=true"
-    Write-Output `
-        "REACT_APP_PCS_AUTH_AUDIENCE=$AUTH_AUDIENCE"
-    Write-Output `
-        "REACT_APP_PCS_AUTH_ISSUER=https://sts.windows.net/$AUTH_AAD_TENANT/"
-    Write-Output `
-        "REACT_APP_PCS_WEBUI_AUTH_AAD_APPID=$AUTH_AAD_APPID"
-    Write-Output `
-        "REACT_APP_PCS_WEBUI_AUTH_AAD_AUTHORITY=$AUTH_AAD_AUTHORITY"
-    Write-Output `
-        "REACT_APP_PCS_WEBUI_AUTH_AAD_TENANT=$AUTH_AAD_TENANT"
 }
 
 #******************************************************************************
@@ -267,7 +257,7 @@ $adminUser = "azureuser"
 $templateParameters = @{ 
     adminPassword = $adminPassword
     adminUsername = $adminUser
-    azureWebsiteName = $script:applicationName
+    siteName = $script:applicationName
 }
 
 # Try get branch name
@@ -280,49 +270,55 @@ if (![string]::IsNullOrEmpty($branchName)) {
         $branchName = $null
     }
 }
+$repo = "https://github.com/Azure/Industrial-IoT"
 if ([string]::IsNullOrEmpty($branchName)) {
     try {
-        $argumentList = @("rev-parse", "--abbrev-ref", "HEAD")
-        $branchName = (& "git" $argumentList 2>&1 | %{ "$_" });
+        $argumentList = @("rev-parse", "--abbrev-ref", "@{upstream}")
+        $symbolic = (& "git" $argumentList 2>&1 | %{ "$_" });
+        if ($LastExitCode -ne 0) {
+            throw "git $($argumentList) failed with $($LastExitCode)."
+        }
+        $remote = $symbolic.Split('/')[0]
+        $argumentList = @("remote", "get-url", $remote)
+        $giturl = (& "git" $argumentList 2>&1 | %{ "$_" });
+        if ($LastExitCode -ne 0) {
+            throw "git $($argumentList) failed with $($LastExitCode)."
+        }
+        if ($giturl -ne $repo) {
+            throw "Branch configuration only supported in '$($repo)'."
+        }
+        $branchName = $symbolic.Replace("$($remote)/", "")
+        if ($branchName -eq "HEAD") {
+            throw "You are not on a branch - using master branch."
+        }
     }
     catch {
-        $branchName = $null
+        Write-Host "$($_.Exception.Message)"
+        $branchName = "master"
     }
 }
-if ([string]::IsNullOrEmpty($branchName) -or ($branchName -eq "HEAD")) {
-    $branchName = "master"
-}
-Write-Host "VM deployment will use configuration from '$branchName' branch."
+Write-Host "VM deployment will use configuration from '$($branchName)' branch in '$($repo)'."
 $templateParameters.Add("branchName", $branchName)
 
 # Configure auth
 if ($aadConfig) {
-    if (![string]::IsNullOrEmpty($aadConfig.TenantId)) { 
-        $templateParameters.Add("aadTenantId", $aadConfig.TenantId)
+    if (![string]::IsNullOrEmpty($aadConfig.ServicePrincipalId)) { 
+        $templateParameters.Add("servicePrincipalId", $aadConfig.ServicePrincipalId)
     }
     if (![string]::IsNullOrEmpty($aadConfig.Instance)) { 
-        $templateParameters.Add("aadInstance", $aadConfig.Instance)
+        $templateParameters.Add("authorityUri", $aadConfig.Instance)
     }
     if (![string]::IsNullOrEmpty($aadConfig.ServiceId)) { 
-        $templateParameters.Add("aadServiceId", $aadConfig.ServiceId)
-    }
-    if (![string]::IsNullOrEmpty($aadConfig.ServicePrincipalId)) { 
-        $templateParameters.Add("aadServicePrincipalId", $aadConfig.ServicePrincipalId)
-    }
-    if (![string]::IsNullOrEmpty($aadConfig.ServiceSecret)) { 
-        $templateParameters.Add("aadServiceSecret", $aadConfig.ServiceSecret)
+        $templateParameters.Add("serviceAppId", $aadConfig.ServiceId)
     }
     if (![string]::IsNullOrEmpty($aadConfig.ClientId)) { 
-        $templateParameters.Add("aadClientId", $aadConfig.ClientId)
+        $templateParameters.Add("clientAppId", $aadConfig.ClientId)
     }
     if (![string]::IsNullOrEmpty($aadConfig.ClientSecret)) { 
-        $templateParameters.Add("aadClientSecret", $aadConfig.ClientSecret)
+        $templateParameters.Add("clientAppSecret", $aadConfig.ClientSecret)
     }
     if (![string]::IsNullOrEmpty($aadConfig.Audience)) { 
-        $templateParameters.Add("authAudience", $aadConfig.Audience)
-    }
-    if (![string]::IsNullOrEmpty($aadConfig.UserPrincipalId)) { 
-        $templateParameters.Add("aadUserPrincipalId", $aadConfig.UserPrincipalId)
+        $templateParameters.Add("serviceAudience", $aadConfig.Audience)
     }
 }
 
@@ -330,21 +326,20 @@ if (![string]::IsNullOrEmpty($script:containerRegistryPrefix)) {
     $templateParameters.Add("containerRegistryPrefix", $script:containerRegistryPrefix)
 }
 
-# Create ssl cert 
+# Create ssl self signed cert 
 $cert = New-SelfSignedCertificate -DnsName "opctwin.services.net" `
     -KeyExportPolicy Exportable -CertStoreLocation "Cert:\CurrentUser\My"
-if ($cert) {
-    $thumbprint = $cert.Thumbprint;
-    if (![string]::IsNullOrEmpty($thumbprint)) { 
-        $templateParameters.Add("remoteEndpointSSLThumbprint", $thumbprint)
-    }
-    $certificate = [Convert]::ToBase64String(`
-        $cert.Export([System.Security.Cryptography.X509Certificates.X509ContentType]::Pfx, `
-        $adminPassword))
-    if (![string]::IsNullOrEmpty($certificate)) { 
-        $templateParameters.Add("remoteEndpointCertificate", $certificate)
-    }
+if (!$cert) {
+    throw "Failed to generate self signed certificate for application gateway"
 }
+
+$certificate = [Convert]::ToBase64String(`
+    $cert.Export([System.Security.Cryptography.X509Certificates.X509ContentType]::Pfx, `
+    $adminPassword))
+    
+$templateParameters.Add("appGatewayCertificatePfxBase64", $certificate)
+$templateParameters.Add("appGatewayCertificatePfxPassword", $adminPassword)
+
 Write-Host "Creating simulated VM parameters.."
 # Set simulated virtual machine user and password
 $simVMPassword = CreateRandomPassword
@@ -365,7 +360,7 @@ Write-Host $simVMUser
 Write-Host $simVMPassword
 
 # Start the deployment
-$templateFilePath = Join-Path $ScriptDir "template.json"
+$templateFilePath = Join-Path $ScriptDir "azuredeploy.json"
 $deployment = New-AzureRmResourceGroupDeployment -ResourceGroupName $resourceGroupName `
     -TemplateFile $templateFilePath -TemplateParameterObject $templateParameters
 
@@ -419,14 +414,15 @@ if ($aadConfig -and $aadConfig.ClientObjectId) {
     # Update client application to add reply urls 
     #
     $replyUrls = New-Object System.Collections.Generic.List[System.String]
-    $replyUrls.Add($website)
+    $replyUrls.Add($website + "/signin-oidc")
     $replyUrls.Add($website + "/twin/oauth2-redirect.html")
     $replyUrls.Add($website + "/registry/oauth2-redirect.html")
     $replyUrls.Add($website + "/history/oauth2-redirect.html")
     $replyUrls.Add($website + "/vault/oauth2-redirect.html")
     $replyUrls.Add($website + "/ua/oauth2-redirect.html")
     if ($writeFile) {
-        $replyUrls.Add("http://localhost:3000")
+        $replyUrls.Add("http://localhost:44314/signin-oidc")
+        $replyUrls.Add("https://localhost:44314/signin-oidc")
         $replyUrls.Add("urn:ietf:wg:oauth:2.0:oob")
     }
     # still connected

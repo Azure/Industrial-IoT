@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
-    using Newtonsoft.Json.Linq;
+    using System;
     using System.Collections.Generic;
     using System.Linq;
 
@@ -48,13 +48,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             if (model == null || that == null) {
                 return false;
             }
-            if (!that.User.IsSameAs(model.User)) {
-                return false;
-            }
             if (!that.Certificate.SequenceEqualsSafe(model.Certificate)) {
                 return false;
             }
-            if (that.SecurityPolicy!= model.SecurityPolicy) {
+            if (that.SecurityPolicy != model.SecurityPolicy && that.SecurityPolicy != null && model.SecurityPolicy != null) {
                 return false;
             }
             if ((that.SecurityMode ?? SecurityMode.Best) !=
@@ -80,11 +77,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             hashCode = (hashCode * -1521134295) +
                 EqualityComparer<SecurityMode?>.Default.GetHashCode(
                     endpoint.SecurityMode ?? SecurityMode.Best);
-            hashCode = (hashCode * -1521134295) +
-                EqualityComparer<CredentialType?>.Default.GetHashCode(
-                    endpoint.User?.Type ?? CredentialType.None);
-            hashCode = (hashCode * -1521134295) +
-                JToken.EqualityComparer.GetHashCode(endpoint.User?.Value);
             return hashCode;
         }
 
@@ -145,7 +137,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 AlternativeUrls = model.AlternativeUrls.ToHashSetSafe(),
                 SecurityMode = model.SecurityMode,
                 SecurityPolicy = model.SecurityPolicy,
-                User = model.User.Clone(),
                 Url = model.Url
             };
         }

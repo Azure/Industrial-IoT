@@ -10,7 +10,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     using System.Collections.Generic;
 
     /// <summary>
-    /// Endpoint persisted in twin and comparable
+    /// Twin supervisor module registration
     /// </summary>
     [Serializable]
     public sealed class SupervisorRegistration : BaseRegistration {
@@ -27,11 +27,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         [JsonProperty(PropertyName = "id")]
         public override string SupervisorId =>
             SupervisorModelEx.CreateSupervisorId(DeviceId, ModuleId);
-
-        /// <summary>
-        /// Discovery state callback uris
-        /// </summary>
-        public Dictionary<string, CallbackModel> DiscoveryCallbacks { get; set; }
 
         /// <summary>
         /// Activation filter security mode
@@ -56,7 +51,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <summary>
         /// Current log level
         /// </summary>
-        public SupervisorLogLevel? LogLevel { get; set; }
+        public TraceLogLevel? LogLevel { get; set; }
 
         /// <summary>
         /// Address ranges to scan (null == all wired)
@@ -124,8 +119,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             var registration = obj as SupervisorRegistration;
             return base.Equals(registration) &&
                 ModuleId == registration.ModuleId &&
-                Discovery == registration.Discovery &&
                 LogLevel == registration.LogLevel &&
+                Discovery == registration.Discovery &&
                 AddressRangesToScan == registration.AddressRangesToScan &&
                 EqualityComparer<TimeSpan?>.Default.Equals(
                     NetworkProbeTimeout, registration.NetworkProbeTimeout) &&
@@ -149,10 +144,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 DiscoveryUrls.DecodeAsList().SequenceEqualsSafe(
                     registration.DiscoveryUrls.DecodeAsList()) &&
                 Locales.DecodeAsList().SequenceEqualsSafe(
-                    registration.Locales.DecodeAsList()) &&
-                DiscoveryCallbacks.DecodeAsList().SetEqualsSafe(
-                    registration.DiscoveryCallbacks.DecodeAsList(),
-                        (callback1, callback2) => callback1.IsSameAs(callback2));
+                    registration.Locales.DecodeAsList());
         }
 
         /// <inheritdoc/>
@@ -169,9 +161,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             hashCode = (hashCode * -1521134295) +
                 EqualityComparer<string>.Default.GetHashCode(ModuleId);
             hashCode = (hashCode * -1521134295) +
-                Discovery.GetHashCode();
+                EqualityComparer<TraceLogLevel?>.Default.GetHashCode(LogLevel);
             hashCode = (hashCode * -1521134295) +
-                EqualityComparer<SupervisorLogLevel?>.Default.GetHashCode(LogLevel);
+                Discovery.GetHashCode();
             hashCode = (hashCode * -1521134295) +
                 EqualityComparer<string>.Default.GetHashCode(AddressRangesToScan);
             hashCode = (hashCode * -1521134295) +

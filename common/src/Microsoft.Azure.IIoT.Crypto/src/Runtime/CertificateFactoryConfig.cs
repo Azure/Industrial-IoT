@@ -29,7 +29,7 @@ namespace Microsoft.Azure.IIoT.Crypto.Runtime {
         /// Configuration constructor
         /// </summary>
         /// <param name="configuration"></param>
-        public CertificateFactoryConfig(IConfigurationRoot configuration) :
+        public CertificateFactoryConfig(IConfiguration configuration) :
             base(configuration) {
         }
     }

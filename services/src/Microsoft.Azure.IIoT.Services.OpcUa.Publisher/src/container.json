@@ -1,0 +1,4 @@
+{
+    "name": "iot/opc-publisher-service",
+    "exposes": [9045]
+}

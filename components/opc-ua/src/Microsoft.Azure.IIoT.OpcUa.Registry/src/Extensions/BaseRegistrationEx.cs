@@ -84,7 +84,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             }
             var type = twin.Tags.GetValueOrDefault<string>(nameof(BaseRegistration.DeviceType), null);
             if (string.IsNullOrEmpty(type) && twin.Properties.Reported != null) {
-                type = twin.Properties.Reported.GetValueOrDefault<string>(TwinProperty.kType, null);
+                type = twin.Properties.Reported.GetValueOrDefault<string>(TwinProperty.Type, null);
             }
             switch (type?.ToLowerInvariant() ?? "") {
                 case "endpoint":
@@ -93,6 +93,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     return twin.ToApplicationRegistration();
                 case "supervisor":
                     return twin.ToSupervisorRegistration(onlyServerState);
+                case "publisher":
+                    return twin.ToPublisherRegistration(onlyServerState);
             }
             return null;
         }

@@ -19,9 +19,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Controllers {
     /// </summary>
     [ExceptionsFilter]
     [Route(VersionInfo.PATH + "/certificates")]
-    [Produces(ContentEncodings.MimeTypeJson)]
+    [Produces(ContentMimeType.Json)]
     [Authorize(Policy = Policies.CanRead)]
-    public sealed class CertificatesController : Controller {
+    [ApiController]
+    public sealed class CertificatesController : ControllerBase {
 
         /// <summary>
         /// Create the controller.

@@ -1,0 +1,1327 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "siteName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the solution that you want to create.  It will be located at {siteName}.azurewebsites.net"
+            }
+        },
+        "servicePrincipalId": {
+            "type": "string",
+            "metadata": {
+                "description": "Specifies the object ID of the service principal in your Azure Active Directory tenant.  You can obtain it using Get-AzADServicePrincipal cmdlet."
+            }
+        },
+        "adminUsername": {
+            "type": "string",
+            "defaultValue": "azureuser",
+            "metadata": {
+                "description": "User name for the Linux Virtual Machine."
+            }
+        },
+        "adminPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "A User password for the Linux Virtual Machines, must between 12 and 72 characters long and have 3 of the following: 1 uppercase character, 1 lowercase character, 1 number and 1 special character that is not slash (\\) or dash (-)"
+            }
+        },
+        "appGatewayCertificatePfxBase64": {
+            "type": "securestring",
+            "metadata": {
+                "description": "The SSL PFX certficate used to secure the Application Gateway connection to the VM as base64 encoded string."
+            }
+        },
+        "appGatewayCertificatePfxPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "The SSL PFX certficate password."
+            }
+        },
+        "serviceAppId": {
+            "type": "string",
+            "metadata": {
+                "description": "Specifies the registered service application identifier (GUID) in your Azure Active Directory tenant."
+            }
+        },
+        "clientAppId": {
+            "type": "string",
+            "metadata": {
+                "description": "Specifies the registered client application identifier (GUID) in your Azure Active Directory tenant."
+            }
+        },
+        "clientAppSecret": {
+            "type": "securestring",
+            "metadata": {
+                "description": "The registered client application secret."
+            }
+        },
+        "authorityUri": {
+            "type": "string",
+            "defaultValue": "https://login.microsoftonline.com/",
+            "metadata": {
+                "description": "Url of the Authority (example: https://login.microsoftonline.com/)"
+            }
+        },
+        "serviceAudience": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Optional Audience value to validate the token audience field against."
+            }
+        },
+        "trustedTokenIssuer": {
+            "type": "string",
+            "defaultValue": "[concat('https://sts.windows.net/', subscription().tenantId)]",
+            "metadata": {
+                "description": "Optional Issuer value to validate received tokens against."
+            }
+        },
+        "storageName": {
+            "type": "string",
+            "defaultValue": "[concat('storage', take(uniqueString(subscription().subscriptionId, resourceGroup().id, parameters('siteName')), 5))]",
+            "metadata": {
+                "description": "The name of the storage account created as part of the deployment."
+            }
+        },
+        "storageSkuName": {
+            "type": "string",
+            "defaultValue": "Standard_LRS",
+            "allowedValues": [
+                "Standard_LRS", "Standard_GRS", "Standard_RAGRS", "Standard_ZRS", "Premium_LRS"
+            ],
+            "metadata": {
+                "description": "The storage SKU to use."
+            }
+        },
+        "storageEndpointSuffix": {
+            "type": "string",
+            "defaultValue": "core.windows.net",
+            "allowedValues": [
+                "core.windows.net",
+                "core.chinacloudapi.cn",
+                "core.cloudapi.de"
+            ],
+            "metadata": {
+                "description": "Suffix added to Azure Storage hostname."
+            }
+        },
+        "cosmosDbName": {
+            "type": "string",
+            "defaultValue": "[concat('documentdb-', take(uniqueString(subscription().subscriptionId, resourceGroup().id, parameters('siteName')), 5))]",
+            "metadata": {
+                "description": "The name of the Azure Cosmos DB instance created as part of the deployment."
+            }
+        },
+        "cosmosDbConsistencyLevel": {
+            "type": "string",
+            "allowedValues": [
+                "Strong",
+                "BoundedStaleness",
+                "Session",
+                "ConsistentPrefix",
+                "Eventual"
+            ],
+            "defaultValue": "Session",
+            "metadata": {
+                "description": "The Azure Cosmos DB default consistency level for the account."
+            }
+        },
+        "cosmosDbMaxStalenessPrefix": {
+            "type": "int",
+            "minValue": 10,
+            "maxValue": 1000,
+            "defaultValue": 100,
+            "metadata": {
+                "description": "When Azure Cosmos DB consistency level is set to BoundedStaleness, then this value is required, otherwise it can be ignored."
+            }
+        },
+        "cosmosDbMaxIntervalInSeconds": {
+            "type": "int",
+            "minValue": 5,
+            "maxValue": 600,
+            "defaultValue": 5,
+            "metadata": {
+                "description": "When Azure Cosmos DB consistencyLevel is set to BoundedStaleness, then this value is required, otherwise it can be ignored."
+            }
+        },
+        "serviceBusNamespaceName": {
+            "type": "string",
+            "defaultValue": "[concat('sb-', take(uniqueString(subscription().subscriptionId, resourceGroup().id, parameters('siteName')), 5))]", 
+            "metadata": {
+                "description": "The name of the Azure Service Bus created as part of the deployment."
+            }
+        },
+        "serviceBusSkuTier": {
+            "type": "string",
+            "defaultValue": "Standard",
+            "allowedValues": [
+                "Basic", "Standard"
+            ],
+            "metadata": {
+                "description": "The Azure Service Bus SKU Tier to use."
+            }
+        },
+        "eventHubNamespaceName": {
+            "type": "string",
+            "defaultValue": "[concat('eventhubnamespace-', take(uniqueString(subscription().subscriptionId, resourceGroup().id, parameters('siteName')), 5))]",
+            "metadata": {
+                "description": "The name of the Event Hub namespace created as part of the deployment."
+            }
+        },
+        "eventHubName": {
+            "type": "string",
+            "defaultValue": "[concat('eventhub-', take(uniqueString(subscription().subscriptionId, resourceGroup().id, parameters('siteName')), 5))]",
+            "metadata": {
+                "description": "The name of the Event Hub created as part of the deployment."
+            }
+        },
+        "eventHubRetentionInDays": {
+            "type": "int",
+            "defaultValue": 1,
+            "metadata": {
+                "description": "The event hub message retention in days."
+            }
+        },
+        "eventHubPartitionCount": {
+            "type": "int",
+            "defaultValue": 2,
+            "metadata": {
+                "description": "The event hub partition count."
+            }
+        },
+        "eventHubSkuTier": {
+            "type": "string",
+            "defaultValue": "Basic",
+            "allowedValues": [
+                "Basic", "Standard"
+            ],
+            "metadata": {
+                "description": "The Azure Event Hub SKU Tier."
+            }
+        },
+        "eventHubSkuCapacity": {
+            "type": "int",
+            "defaultValue": 1,
+            "metadata": {
+                "description": "The Azure Event Hub SKU Capacity to use."
+            }
+        },
+        "eventHubAuthorizationName": {
+            "type": "string",
+            "defaultValue": "eventhub-key",
+            "metadata": {
+                "description": "The name of the Authorization Rule Name for the Event Hub endpoint."
+            }
+        },
+        "serviceBusEndpointSuffix": {
+            "type": "string",
+            "defaultValue": "servicebus.windows.net",
+            "allowedValues": [
+                "servicebus.windows.net",
+                "servicebus.chinacloudapi.cn"
+            ],
+            "metadata": {
+                "description": "Suffix added to Service Bus endpoint"
+            }
+        },
+        "tsiEnvironmentName": {
+            "type": "string",
+            "defaultValue": "[concat('tsi-', take(uniqueString(subscription().subscriptionId, resourceGroup().id, parameters('siteName')), 5))]",
+            "metadata": {
+                "description": "Name of the Azure Time Series Insights environment created as part of the deployment. The name cannot include: '<', '>', '%', '&', ':', '\\', '?', '/' and any control characters. All other characters are allowed."
+            }
+        },
+        "tsiEnvironmentSkuName": {
+            "type": "string",
+            "defaultValue": "L1",
+            "allowedValues": [
+                "L1"
+            ],
+            "metadata": {
+                "description": "The Azure Time Series Insights SKU name."
+            }
+        },
+        "tsiEnvironmentSkuCapacity": {
+            "type": "int",
+            "defaultValue": 1,
+            "minValue": 1,
+            "maxValue": 10,
+            "metadata": {
+                "description": "The Azure Time Series Insights SKU capacity to use."
+            }
+        },
+        "tsiEnvironmentKind": {
+            "type": "string",
+            "defaultValue": "LongTerm",
+            "allowedValues": [
+                "LongTerm"
+            ],
+            "metadata": {
+                "description": "The Azure Time Series Insights environment."
+            }
+        },
+        "tsiEnvironmentDisplayName": {
+            "type": "string",
+            "defaultValue": "Time Series Analytics",
+            "maxLength": 90,
+            "metadata": {
+                "description": "An optional friendly name to show in Azure Time Series tooling or user interfaces instead of the environment name."
+            }
+        },
+        "tsiEventSourceDisplayName": {
+            "type": "string",
+            "defaultValue": "Telemetry",
+            "maxLength": 90,
+            "metadata": {
+                "description": "An optional friendly name to show in Azure Time Series tooling or user interfaces for the event source."
+            }
+        },
+        "signalRName": {
+            "type": "string",
+            "defaultValue": "[concat('hub', take(uniqueString(subscription().subscriptionId, resourceGroup().id, parameters('siteName')), 5))]",
+            "metadata": {
+                "description": "The name of the signalR endpoint created as part of the deployment."
+            }
+        },
+        "signalRSkuTier": {
+            "type": "string",
+            "defaultValue": "Standard",
+            "allowedValues": [
+                "Free", 
+                "Standard", 
+                "Premium"
+            ],
+            "metadata": {
+                "description": "The Azure SignalR Service SKU Tier to use."
+            }
+        },
+        "signalRSkuName": {
+            "type": "string",
+            "defaultValue": "Standard_S1",
+            "allowedValues": [
+                "Free_F1", 
+                "Standard_S1"
+            ],
+            "metadata": {
+                "description": "The Azure SignalR Service SKU to use."
+            }
+        },
+        "signalRSkuCapacity": {
+            "type": "int",
+            "defaultValue": 1,
+            "allowedValues": [
+                1, 2, 5, 10, 20, 50, 100
+            ],
+            "metadata": {
+                "description": "The Azure SignalR SKU Capacity"
+            }
+        },
+        "iotHubName": {
+            "type": "string",
+            "defaultValue": "[concat('iothub-', take(uniqueString(subscription().subscriptionId, resourceGroup().id, parameters('siteName')), 5))]",
+            "metadata": {
+                "description": "The name of Azure IoT Hub created as part of the deployment."
+            }
+        },
+        "iotHubSku": {
+            "type": "string",
+            "defaultValue": "S1",
+            "allowedValues": [
+                "S1", 
+                "S2", 
+                "S3"
+            ],
+            "metadata": {
+                "description": "The Azure IoT Hub SKU to use."
+            }
+        },
+        "iotHubTier": {
+            "type": "string",
+            "defaultValue": "Standard",
+            "allowedValues": [
+                "Free", 
+                "Standard"
+            ],
+            "metadata": {
+                "description": "The Azure IoT Hub tier to use."
+            }
+        },
+        "iotHubPartitionCount": {
+            "type": "int",
+            "defaultValue": 4,
+            "metadata": {
+                "description": "The Azure IoT Hub default endpoint partition count."
+            }
+        },
+        "keyVaultName": {
+            "type": "string",
+            "defaultValue": "[concat('keyvault-', take(uniqueString(subscription().subscriptionId, resourceGroup().id, parameters('siteName')), 5))]",
+            "metadata": {
+                "description": "The resource name of the KeyVault created as part of the deployment."
+            }
+        },
+        "keyVaultSkuName": {
+            "type": "string",
+            "defaultValue": "Premium",
+            "allowedValues": [
+                "Standard", 
+                "Premium"
+            ],
+            "metadata": {
+                "description": "The KeyVault SKU to use."
+            }
+        },
+        "workspaceName": {
+            "type": "string",
+            "defaultValue": "[concat('workspace-', take(uniqueString(subscription().subscriptionId, resourceGroup().id, parameters('siteName')), 5))]",
+            "metadata": {
+                "description": "Specifies the name of the Azure Log Analytics workspace created as part of the deployment."
+            }
+        },
+        "workspaceSku": {
+            "type": "string",
+            "allowedValues": [
+                "Standalone",
+                "PerNode",
+                "PerGB2018"
+            ],
+            "defaultValue": "PerGB2018",
+            "metadata": {
+                "description": "Specifies the service tier of the Azure Log Analytics workspace."
+            }
+        },
+        "appInsightsName": {
+            "type": "string",
+            "defaultValue": "[concat('appinsights-', take(uniqueString(subscription().subscriptionId, resourceGroup().id, parameters('siteName')), 5))]",
+            "metadata": {
+                "description": "Specifies the name of Azure Application Insights instance created as part of the deployment."
+            }
+        },
+        "appInsightsPriceCode": {
+            "type": "int",
+            "defaultValue": 1,
+            "allowedValues": [
+                1,
+                2
+            ],
+            "metadata": {
+                "description": "The Azure Application Insights Prices code.  1 = Per GB (Basic), 2 = Per Node (Enterprise)."
+            }
+        },
+        "appInsightsDailyQuota": {
+            "type": "int",
+            "defaultValue": 100,
+            "minValue": 1,
+            "metadata": {
+                "description": "Specifies Azure Application Insights daily quota in GB."
+            }
+        },
+        "appInsightsDailyQuotaResetTime": {
+            "type": "int",
+            "defaultValue": 24,
+            "metadata": {
+                "description": "Specifies Azure Application Insights daily quota reset hour in UTC (0 to 23). Values outside the range will get a random reset hour."
+            }
+        },
+        "appInsightsWarningThreshold": {
+            "type": "int",
+            "defaultValue": 90,
+            "minValue": 1,
+            "maxValue": 100,
+            "metadata": {
+                "description": "Specifies Azure Application Insights % value of daily quota after which warning mail to be sent. "
+            }
+        },
+        "vmName": {
+            "type": "string",
+            "defaultValue": "[concat('vm-', take(uniqueString(subscription().subscriptionId, resourceGroup().id, parameters('siteName')), 5))]",
+            "metadata": {
+                "description": "The name of the Linux Virtual Machine created as part of the deployment."
+            }
+        },
+        "vmSize": {
+            "type": "string",
+            "defaultValue": "Standard_D1_v2",
+            "allowedValues": [
+                    "Standard_A0", "Standard_A1", "Standard_A2", "Standard_A3", "Standard_A4", "Standard_A5",
+                    "Standard_A6", "Standard_A7", "Standard_A8", "Standard_A9", "Standard_A10", "Standard_A11",
+                    "Standard_D1", "Standard_D2", "Standard_D3", "Standard_D4",
+                    "Standard_D11", "Standard_D12", "Standard_D13", "Standard_D14",
+                    "Standard_D1_v2", "Standard_D2_v2", "Standard_D3_v2", "Standard_D4_v2", "Standard_D5_v2",
+                    "Standard_D11_v2", "Standard_D12_v2", "Standard_D13_v2", "Standard_D14_v2",
+                    "Standard_G1", "Standard_G2", "Standard_G3", "Standard_G4", "Standard_G5",
+                    "Standard_DS1", "Standard_DS2", "Standard_DS3", "Standard_DS4",
+                    "Standard_DS11", "Standard_DS12", "Standard_DS13", "Standard_DS14",
+                    "Standard_GS1", "Standard_GS2", "Standard_GS3", "Standard_GS4", "Standard_GS5"
+            ],
+            "metadata": {
+                "description": "The size of the Virtual Machine."
+            }
+        },
+        "ubuntuOSVersion": {
+            "type": "string",
+            "defaultValue": "16.04.0-LTS",
+            "allowedValues": [
+                "16.04.0-LTS"
+            ],
+            "metadata": {
+                "description": "The Ubuntu version for the Virtual Machine."
+            }
+        },
+        "branchName": {
+            "type": "string",
+            "defaultValue": "master",
+            "metadata": {
+                "description": "The branch from which to procure scripts during VM initialization."
+            }
+        },
+        "vmFQDNSuffix": {
+            "type": "string",
+            "defaultValue": "cloudapp.azure.com",
+            "allowedValues": [
+                "cloudapp.azure.com",
+                "cloudapp.chinacloudapi.cn",
+                "cloudapp.azure.de"
+            ]
+        },
+        "containerRegistryPrefix": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "An optional prefix defining the registry and path of the micro services and modules that should be deployed."
+            }
+        }
+    },
+    "variables": {
+        "tenantId": "[subscription().tenantId]",
+        "location": "[resourceGroup().location]",
+        "keyVaultApiVersion": "2018-02-14",
+        "cosmosDbApiVersion": "2016-03-19",
+        "cosmosDbResourceId": "[resourceId('Microsoft.DocumentDb/databaseAccounts', parameters('cosmosDbName'))]",
+        "serviceBusApiVersion": "2017-04-01",
+        "serviceBusKeyName": "RootManageSharedAccessKey",
+        "serviceBusKeyResourceId": "[resourceId('Microsoft.ServiceBus/namespaces/authorizationRules', parameters('serviceBusNamespaceName'), variables('serviceBusKeyName'))]",
+        "eventHubApiVersion": "2017-04-01",
+        "eventHubKeyName": "RootManageSharedAccessKey",
+        "eventHubKeyResourceId": "[resourceId('Microsoft.EventHub/namespaces/AuthorizationRules', parameters('eventHubNamespaceName'), variables('eventHubKeyName'))]",
+        "eventHubNamespaceResourceId": "[resourceId('Microsoft.EventHub/namespaces', parameters('eventHubNamespaceName'))]",
+        "eventHubResourceId": "[resourceId('Microsoft.EventHub/namespaces/eventhubs', parameters('eventHubNamespaceName'), parameters('eventHubName'))]",
+        "signalRApiVersion": "2018-10-01",
+        "tsiApiVersion": "2018-08-15-preview",
+        "tsiEventSourceName": "TelemetryEventHub",
+        "tsiEventSourceKeyResourceId": "[resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', parameters('eventHubNamespaceName'), parameters('eventHubName'), parameters('eventHubAuthorizationName'))]",
+        "tsiEnvironmentTagsValue": { "displayName": "[parameters('tsiEnvironmentDisplayName')]" },
+        "tsiEventSourceTagsValue": { "displayName": "[parameters('tsiEventSourceDisplayName')]" },
+        "iotHubApiVersion": "2018-04-01",
+        "iotHubResourceId": "[resourceId('Microsoft.Devices/Iothubs', parameters('iotHubName'))]",
+        "iotHubKeyName": "iothubowner",
+        "iotHubContainerName": "[parameters('iotHubName')]",
+        "iotHubKeyResource": "[resourceId('Microsoft.Devices/Iothubs/Iothubkeys', parameters('iotHubName'), variables('iotHubKeyName'))]",
+        "iotHubDefaultEndpoint": "events",
+        "deviceNotificationRouteName": "DeviceNotifications",
+        "iothubConsumerGroup1": "telemetry",
+        "iothubConsumerGroup2": "events",
+        "storageApiVersion": "2017-06-01",
+        "storageResourceId": "[resourceId('Microsoft.Storage/storageAccounts/',  parameters('storageName'))]",
+        "computeApiVersion": "2017-03-30",
+        "vmFQDN": "[concat(parameters('vmName'), '.', variables('location'), '.', parameters('vmFQDNSuffix'))]",
+        "imagePublisher": "Canonical",
+        "imageOffer": "UbuntuServer",
+        "vmStorageAccountContainerName": "vhds",
+        "osDiskName": "[concat(parameters('siteName'), '-osdisk')]",
+        "networkApiVersion": "2017-06-01",
+        "vnetName": "[concat(parameters('siteName'), '-vnet')]",
+        "vnetResourceId": "[resourceId('Microsoft.Network/virtualNetworks',variables('vnetName'))]",
+        "vnetAddressPrefix": "10.0.0.0/16",
+        "networkSecurityGroupName": "[concat(parameters('siteName'), '-nsg')]",
+        "subnetName": "default",
+        "subnetPrefix": "10.0.0.0/24",
+        "subnetResourceId": "[concat(variables('vnetResourceId'),'/subnets/',variables('subnetName'))]",
+        "publicIPName": "[concat(parameters('siteName'), '-public-ip')]",
+        "nicName": "[concat(parameters('siteName'), '-nic')]",
+        "servicesBranch": "[parameters('branchName')]",
+        "servicesRepoUrl": "https://raw.githubusercontent.com/Azure/Industrial-IoT/",
+        "proxyBranch": "master",
+        "appGatewayCertificateName": "applicationGateway",
+        "appGatewayCertificateResourceId": "[resourceId('Microsoft.Web/certificates', variables('appGatewayCertificateName'))]",
+        "hostingPlanName": "[parameters('siteName')]",
+        "appServiceVersion": "2018-11-01",
+        "appServicePlanVersion": "2018-02-01",
+        "appServiceSku": "S1",
+        "appServiceWorkerSize": "0",
+        "appInsightsPriceArray": [ "Basic", "Application Insights Enterprise" ],
+        "appInsightsPricePlan": "[take(variables('appInsightsPriceArray'), parameters('appInsightsPriceCode'))]",
+        "appInsightsBillingPlan": "[concat(parameters('appInsightsName'), '/', variables('appInsightsPricePlan')[0])]",
+        "appInsightsVersion": "2014-04-01"
+    },
+    "resources": [
+        {
+            "comments": "KeyVault Premium Sku for secrets and certificate store.",
+            "type": "Microsoft.KeyVault/vaults",
+            "name": "[parameters('keyVaultName')]",
+            "apiVersion": "[variables('keyVaultApiVersion')]",
+            "location": "[variables('location')]",
+            "properties": {
+                "enabledForDeployment": false,
+                "enabledForTemplateDeployment": false,
+                "enabledForVolumeEncryption": false,
+                "tenantId": "[variables('tenantId')]",
+                "sku": {
+                    "name": "[parameters('keyVaultSkuName')]",
+                    "family": "A"
+                },
+                "accessPolicies": []
+            }
+        },
+        {
+            "comments": "KeyVault service principal permissions.",
+            "type": "Microsoft.KeyVault/vaults/accessPolicies",
+            "name": "[concat(parameters('keyVaultName'), '/replace')]",
+            "apiVersion": "[variables('keyVaultApiVersion')]",
+            "dependsOn": [
+                "[concat('Microsoft.KeyVault/vaults/', parameters('keyVaultName'))]"
+            ],
+            "properties": {
+                "accessPolicies": [
+                    {
+                        "tenantId": "[variables('tenantId')]",
+                        "objectId": "[parameters('servicePrincipalId')]",
+                        "permissions": {
+                            "keys": [ 
+                                "get", 
+                                "list", 
+                                "sign" 
+                            ],
+                            "secrets": [ 
+                                "get", 
+                                "list", 
+                                "set", 
+                                "delete" 
+                            ],
+                            "certificates": [ 
+                                "get", 
+                                "list", 
+                                "update", 
+                                "create", 
+                                "import"
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "comments": "Azure IoT Hub",
+            "apiVersion": "[variables('iotHubApiVersion')]",
+            "type": "Microsoft.Devices/Iothubs",
+            "name": "[parameters('iotHubName')]",
+            "location": "[variables('location')]",
+            "sku": {
+                "name": "[parameters('iotHubSku')]",
+                "tier": "[parameters('iotHubTier')]",
+                "capacity": 1
+            },
+            "properties": {
+                "location": "[variables('location')]",
+                "ipFilterRules": [],
+                "eventHubEndpoints": {
+                    "events": {
+                        "retentionTimeInDays": 1,
+                        "partitionCount": "[parameters('iotHubPartitionCount')]"
+                    }
+                },
+                "routing": {
+                    "endpoints": {
+                        "serviceBusQueues": [],
+                        "serviceBusTopics": [],
+                        "eventHubs": [],
+                        "storageContainers": []
+                    },
+                    "routes": [
+                        {
+                            "name": "TwinChanges",
+                            "source": "TwinChangeEvents",
+                            "condition": "true",
+                            "endpointNames": [
+                                "events"
+                            ],
+                            "isEnabled": true
+                        },
+                        {
+                            "name": "DeviceLifecycle",
+                            "source": "DeviceLifecycleEvents",
+                            "condition": "true",
+                            "endpointNames": [
+                                "events"
+                            ],
+                            "isEnabled": true
+                        }
+                    ],
+                    "fallbackRoute": {
+                        "name": "$fallback",
+                        "source": "DeviceMessages",
+                        "condition": "true",
+                        "endpointNames": [
+                            "events"
+                        ],
+                        "isEnabled": true
+                    }
+                },
+                "storageEndpoints": {
+                    "$default": {
+                        "sasTtlAsIso8601": "PT1H",
+                        "connectionString": "[concat('DefaultEndpointsProtocol=https;EndpointSuffix=', parameters('storageEndpointSuffix'), ';AccountName=', parameters('storageName'), ';AccountKey=', listKeys(variables('storageResourceId'), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value)]",
+                        "containerName": "[variables('iotHubContainerName')]"
+                    }
+                },
+                "messagingEndpoints": {
+                    "fileNotifications": {
+                        "lockDurationAsIso8601": "PT1M",
+                        "ttlAsIso8601": "PT1H",
+                        "maxDeliveryCount": 10
+                    }
+                },
+                "enableFileUploadNotifications": true,
+                "cloudToDevice": {
+                    "maxDeliveryCount": 10,
+                    "defaultTtlAsIso8601": "PT1H",
+                    "feedback": {
+                        "lockDurationAsIso8601": "PT1M",
+                        "ttlAsIso8601": "PT1H",
+                        "maxDeliveryCount": 10
+                    }
+                },
+                "features": "None"
+            },
+            "dependsOn": [
+                "[variables('storageResourceId')]"
+            ]
+        },
+        {
+            "comments": "Telemetry Consumer Group of IoT Hub",
+            "apiVersion": "[variables('iotHubApiVersion')]",
+            "name": "[concat(parameters('iotHubName'), '/events/', variables('iothubConsumerGroup1'))]",
+            "type": "Microsoft.Devices/Iothubs/eventhubEndpoints/ConsumerGroups",
+            "dependsOn": [
+                "[resourceId('Microsoft.Devices/Iothubs', parameters('iotHubName'))]"
+            ]
+        },
+        {
+            "comments": "Events Consumer Group of IoT Hub",
+            "apiVersion": "[variables('iotHubApiVersion')]",
+            "name": "[concat(parameters('iotHubName'), '/events/', variables('iothubConsumerGroup2'))]",
+            "type": "Microsoft.Devices/Iothubs/eventhubEndpoints/ConsumerGroups",
+            "dependsOn": [
+                "[resourceId('Microsoft.Devices/Iothubs', parameters('iotHubName'))]"
+            ]
+        },
+        {
+            "comments": "Storage account",
+            "type": "Microsoft.Storage/storageAccounts",
+            "name": "[parameters('storageName')]",
+            "apiVersion": "[variables('storageApiVersion')]",
+            "location": "[variables('location')]",
+            "kind": "Storage",
+            "sku": {
+                "name": "[parameters('storageSkuName')]"
+            },
+            "properties": {
+                "networkAcls": {
+                    "bypass": "AzureServices",
+                    "virtualNetworkRules": [],
+                    "ipRules": [],
+                    "defaultAction": "Allow"
+                },
+                "supportsHttpsTrafficOnly": true,
+                "encryption": {
+                    "services": {
+                        "file": {
+                            "enabled": true
+                        },
+                        "blob": {
+                            "enabled": true
+                        }
+                    },
+                    "keySource": "Microsoft.Storage"
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "comments": "Azure CosmosDb",
+            "apiVersion": "[variables('cosmosDbApiVersion')]",
+            "type": "Microsoft.DocumentDb/databaseAccounts",
+            "name": "[parameters('cosmosDbName')]",
+            "location": "[variables('location')]",
+            "properties": {
+                "name": "[parameters('cosmosDbName')]",
+                "enableAutomaticFailover": false,
+                "enableMultipleWriteLocations": false,
+                "isVirtualNetworkFilterEnabled": false,
+                "virtualNetworkRules": [],
+                "databaseAccountOfferType": "Standard",
+                "consistencyPolicy": {
+                    "defaultConsistencyLevel": "[parameters('cosmosDbConsistencyLevel')]",
+                    "maxStalenessPrefix": "[parameters('cosmosDbMaxStalenessPrefix')]",
+                    "maxIntervalInSeconds": "[parameters('cosmosDbMaxIntervalInSeconds')]"
+                },
+                "capabilities": []
+            },
+            "dependsOn": []
+        },
+        {
+            "comments": "Azure Service Bus Namespace",
+            "apiVersion": "[variables('serviceBusApiVersion')]",
+            "type": "Microsoft.ServiceBus/namespaces",
+            "name": "[parameters('serviceBusNamespaceName')]",
+            "location": "[variables('location')]",
+            "sku": {
+                "name": "[parameters('serviceBusSkuTier')]"
+            },
+            "properties": { 
+            },
+            "dependsOn": []
+        },
+        {
+            "comments": "Azure Event Hub Namespace",
+            "apiVersion": "[variables('eventHubApiVersion')]",
+            "type": "Microsoft.EventHub/namespaces",
+            "name": "[parameters('eventHubNamespaceName')]",
+            "location": "[variables('location')]",
+            "sku": {
+                "name": "[parameters('eventHubSkuTier')]",
+                "tier": "[parameters('eventHubSkuTier')]",
+                "capacity": "[parameters('eventHubSkuCapacity')]"
+            },
+            "properties": {
+                "isAutoInflateEnabled": false,
+                "maximumThroughputUnits": 0
+            },
+            "dependsOn": []
+        },
+        {
+            "comments": "Azure Event Hub for Device Telemetry",
+            "type": "Microsoft.EventHub/namespaces/eventhubs",
+            "name": "[concat(parameters('eventHubNamespaceName'), '/', parameters('eventHubName'))]",
+            "apiVersion": "[variables('eventHubApiVersion')]",
+            "location": "[variables('location')]",
+            "properties": {
+                "messageRetentionInDays": "[parameters('eventHubRetentionInDays')]",
+                "partitionCount": "[parameters('eventHubPartitionCount')]",
+                "status": "Active"
+            },
+            "dependsOn": [
+                "[variables('eventHubNamespaceResourceId')]"
+            ]
+        },
+        {
+            "comments": "Event Hub Authorization for Device Telemetry Consumers",
+            "type": "Microsoft.EventHub/namespaces/eventhubs/authorizationRules",
+            "name": "[concat(parameters('eventHubNamespaceName'), '/', parameters('eventHubName'), '/', parameters('eventHubAuthorizationName'))]",
+            "apiVersion": "[variables('eventHubApiVersion')]",
+            "location": "[variables('location')]",
+            "properties": {
+                "rights": [
+                    "Listen", 
+                ]
+            },
+            "dependsOn": [
+                "[variables('eventHubResourceId')]"
+            ]
+        },
+        {
+            "comments": "Timeseries Insights Environment",
+            "type": "Microsoft.TimeSeriesInsights/environments",
+            "name": "[parameters('tsiEnvironmentName')]",
+            "apiVersion": "[variables('tsiApiVersion')]",
+            "location": "[variables('location')]",
+            "kind": "[parameters('tsiEnvironmentKind')]",
+            "properties": {
+                "storageConfiguration": {
+                    "accountName": "[parameters('storageName')]",
+                    "managementKey": "[listKeys(variables('storageResourceId'), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value]"
+                },
+                "timeSeriesIdProperties": [ 
+                    { 
+                        "type": "string",
+                        "name": "SubscriptionId"
+                    },
+                    {
+                        "type": "string",
+                        "name": "EndpointId"
+                    },
+                    {
+                        "type": "string",
+                        "name": "DataSetId"
+                    }
+                ]
+            },
+            "sku": {
+                "name": "[parameters('tsiEnvironmentSkuName')]",
+                "capacity": "[parameters('tsiEnvironmentSkuCapacity')]"
+            },
+            "tags": "[variables('tsiEnvironmentTagsValue')]",
+            "dependsOn": []
+        },
+        {
+            "comments": "Timeseries Insights Device Telemetry Event Hub Event Source",
+            "type": "Microsoft.TimeSeriesInsights/environments/eventsources",
+            "name": "[concat(parameters('tsiEnvironmentName'), '/', variables('tsiEventSourceName'))]",
+            "apiVersion": "[variables('tsiApiVersion')]",
+            "location": "[variables('location')]",
+            "kind": "Microsoft.EventHub",
+            "properties": {
+                "eventSourceResourceId": "[variables('eventHubResourceId')]",
+                "eventHubName": "[parameters('eventHubName')]",
+                "serviceBusNamespace": "[parameters('eventHubNamespaceName')]",
+                "consumerGroupName": "$Default",
+                "keyName": "[parameters('eventHubAuthorizationName')]",
+                "sharedAccessKey": "[listkeys(variables('tsiEventSourceKeyResourceId'), variables('eventHubApiVersion')).primaryKey]",
+                "timestampPropertyName": "TimeStamp"
+            },
+            "tags": "[variables('tsiEventSourceTagsValue')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.TimeSeriesInsights/environments/', parameters('tsiEnvironmentName'))]",
+                "[variables('tsiEventSourceKeyResourceId')]"
+            ]
+        },
+        {
+            "type": "Microsoft.SignalRService/SignalR",
+            "name": "[parameters('signalRName')]",
+            "apiVersion": "[variables('signalRApiVersion')]",
+            "location": "[variables('location')]",
+            "properties": {
+                "hostNamePrefix": "[parameters('signalRName')]",
+                "features": [
+                    {
+                        "flag": "ServiceMode",
+                        "value": "Serverless"
+                    }
+                ]
+            },
+            "sku": {
+                "name": "[parameters('signalRSkuName')]",
+                "tier": "[parameters('signalRSkuTier')]",
+                "capacity": "[parameters('signalRSkuCapacity')]"
+            },
+            "dependsOn": []
+        },
+        {
+            "type": "Microsoft.OperationalInsights/workspaces",
+            "name": "[parameters('workspaceName')]",
+            "apiVersion": "2015-11-01-preview",
+            "location": "[variables('location')]",
+            "properties": {
+                "sku": {
+                    "Name": "[parameters('workspaceSku')]"
+                },
+                "features": {
+                    "searchVersion": 1
+                }
+            }
+        }, 
+        {
+            "type": "microsoft.insights/components",
+            "name": "[parameters('appInsightsName')]",
+            "apiVersion": "2014-04-01",
+            "location": "[variables('location')]",
+            "tags": {},
+            "properties": {
+                "ApplicationId": "[parameters('appInsightsName')]"
+            },
+            "dependsOn": []
+        }, 
+        {
+            "name": "[variables('appInsightsBillingPlan')]",
+            "type": "microsoft.insights/components/CurrentBillingFeatures",
+            "location": "[variables('location')]",
+            "apiVersion": "2015-05-01",
+            "properties": {
+                "CurrentBillingFeatures": "[variables('appInsightsPricePlan')]",
+                "DataVolumeCap": {
+                    "Cap": "[parameters('appInsightsDailyQuota')]",
+                    "WarningThreshold": "[parameters('appInsightsWarningThreshold')]",
+                    "ResetTime": "[parameters('appInsightsDailyQuotaResetTime')]"
+                }
+            },
+            "dependsOn": [
+                "[resourceId('microsoft.insights/components', parameters('appInsightsName'))]"
+            ]
+        },
+        {
+            "comments": "AppService plan to host the Application Gateway Web App",
+            "type": "Microsoft.Web/serverfarms",
+            "apiVersion": "[variables('appServicePlanVersion')]",
+            "name": "[variables('hostingPlanName')]",
+            "location": "[resourceGroup().location]",
+            "sku": {
+                "name": "[variables('appServiceSku')]",
+                "capacity": "[variables('appServiceWorkerSize')]"
+            },
+            "properties": {
+                "name": "[variables('hostingPlanName')]"
+            },
+            "dependsOn": []
+        },
+        {
+            "comments": "Application Gateway certificate",
+            "type": "Microsoft.Web/certificates",
+            "apiVersion": "[variables('appServicePlanVersion')]",
+            "name": "[variables('appGatewayCertificateName')]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "pfxBlob": "[parameters('appGatewayCertificatePfxBase64')]",
+                "password": "[parameters('appGatewayCertificatePfxPassword')]"
+            },
+            "tags": {
+                "displayName": "Certificate"
+            },
+            "dependsOn": []
+        },
+        {
+            "comments": "Application Gateway Web App",
+            "type": "Microsoft.Web/sites",
+            "name": "[parameters('siteName')]",
+            "apiVersion": "[variables('appServiceVersion')]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "enabled": true,
+                "clientAffinityEnabled": false,
+                "serverFarmId": "[variables('hostingPlanName')]",
+                "httpsOnly": "true",
+                "siteConfig": {
+                    "minTlsVersion": "1.2",
+                    "appSettings": [
+                        {
+                            "name": "REMOTE_ENDPOINT",
+                            "value": "[concat('https://', reference(variables('publicIPName')).dnsSettings.fqdn)]"
+                        },
+                        {
+                            "name": "REMOTE_ENDPOINT_SSL_THUMBPRINT",
+                            "value": "[reference(variables('appGatewayCertificateResourceId'), variables('appServicePlanVersion')).thumbprint]"
+                        }
+                    ]
+                }
+            },
+            "resources": [
+                {
+                    "apiVersion": "[variables('appServiceVersion')]",
+                    "name": "web",
+                    "type": "sourcecontrols",
+                    "properties": {
+                        "RepoUrl": "https://github.com/Azure/reverse-proxy-dotnet.git",
+                        "branch": "[variables('proxyBranch')]",
+                        "IsManualIntegration": true
+                    },
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Web/Sites', parameters('siteName'))]"
+                    ]
+                },
+                {
+                    "apiVersion": "[variables('appServiceVersion')]",
+                    "name": "web",
+                    "type": "config",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Web/sites', parameters('siteName'))]"
+                    ],
+                    "properties": {
+                        "numberOfWorkers": 1,
+                        "requestTracingEnabled": true,
+                        "httpLoggingEnabled": true,
+                        "detailedErrorLoggingEnabled": true,
+                        "alwaysOn": true,
+                        "minTlsVersion": "1.2"
+                    }
+                }
+            ],
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+                "[resourceId('Microsoft.Web/certificates', variables('appGatewayCertificateName'))]"
+            ]
+        },
+        {
+            "comments": "Security rules used for the VM network interface",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "[variables('networkSecurityGroupName')]",
+            "apiVersion": "[variables('networkApiVersion')]",
+            "location": "[variables('location')]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "UASC",
+                        "properties": {
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "4840",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 100,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "HTTPS",
+                        "properties": {
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "443",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 101,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "SSH",
+                        "properties": {
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "22",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Deny",
+                            "priority": 102,
+                            "direction": "Inbound"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "name": "[variables('vnetName')]",
+            "apiVersion": "[variables('networkApiVersion')]",
+            "location": "[variables('location')]",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[variables('vnetAddressPrefix')]"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[variables('subnetName')]",
+                        "properties": {
+                            "addressPrefix": "[variables('subnetPrefix')]"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/publicIPAddresses",
+            "name": "[variables('publicIPName')]",
+            "apiVersion": "2016-11-01",
+            "location": "[variables('location')]",
+            "properties": {
+                "publicIPAllocationMethod": "Dynamic",
+                "dnsSettings": {
+                    "domainNameLabel": "[toLower(parameters('vmName'))]"
+                },
+                "idleTimeoutInMinutes": 4
+            }
+        },
+        {
+            "comments": "Network interface used by the VM",
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[variables('nicName')]",
+            "apiVersion": "[variables('networkApiVersion')]",
+            "location": "[variables('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIPName'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetName'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroupName'))]"
+            ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAddress": "10.0.0.4",
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIPName'))]"
+                            },
+                            "subnet": {
+                                "id": "[variables('subnetResourceId')]"
+                            }
+                        }
+                    }
+                ],
+                "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroupName'))]"
+                }
+            }
+        },
+        {
+            "comments": "VM running the microservices",
+            "type": "Microsoft.Compute/virtualMachines",
+            "name": "[parameters('vmName')]",
+            "apiVersion": "[variables('computeApiVersion')]",
+            "location": "[variables('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts/', parameters('storageName'))]",
+                "[resourceId('Microsoft.Network/networkInterfaces/', variables('nicName'))]"
+            ],
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[parameters('vmSize')]"
+                },
+                "osProfile": {
+                    "computerName": "[parameters('vmName')]",
+                    "adminUsername": "[parameters('adminUsername')]",
+                    "adminPassword": "[parameters('adminPassword')]"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "[variables('imagePublisher')]",
+                        "offer": "[variables('imageOffer')]",
+                        "sku": "[parameters('ubuntuOSVersion')]",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "name": "osdisk1",
+                        "vhd": {
+                            "uri": "[concat('http://',parameters('storageName'),'.blob.',parameters('storageEndpointSuffix'),'/',variables('vmStorageAccountContainerName'),'/',variables('osDiskName'),'.vhd')]"
+                        },
+                        "caching": "ReadWrite",
+                        "createOption": "FromImage"
+                    }
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces',variables('nicName'))]"
+                        }
+                    ]
+                },
+                "diagnosticsProfile": {
+                    "bootDiagnostics": {
+                        "enabled": "true",
+                        "storageUri": "[concat(reference(concat('Microsoft.Storage/storageAccounts/', parameters('storageName')), '2016-01-01').primaryEndpoints.blob)]"
+                    }
+                }
+            }
+        },
+        {
+            "comments": "One time script execution to prepare the VM environment",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(parameters('vmName'), '/', 'scriptextensions')]",
+            "apiVersion": "[variables('computeApiVersion')]",
+            "location": "[variables('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Devices/Iothubs/', parameters('iotHubName'))]",
+                "[resourceId('Microsoft.DocumentDb/databaseAccounts/', parameters('cosmosDbName'))]",
+                "[resourceId('Microsoft.ServiceBus/namespaces', parameters('serviceBusNamespaceName'))]",
+                "[variables('eventHubNamespaceResourceId')]"
+            ],
+            "properties": {
+                "publisher": "Microsoft.Azure.Extensions",
+                "type": "CustomScript",
+                "typeHandlerVersion": "2.0",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "fileUris": [
+                        "[concat(variables('servicesRepoUrl'), variables('servicesBranch'), '/services/deploy/vm/setup.sh')]",
+                        "[concat(variables('servicesRepoUrl'), variables('servicesBranch'), '/services/deploy/vm/ctrl.sh')]",
+                        "[concat(variables('servicesRepoUrl'), variables('servicesBranch'), '/services/deploy/vm/docker-compose.yml')]",
+                        "[concat(variables('servicesRepoUrl'), variables('servicesBranch'), '/services/deploy/vm/nginx.conf')]"
+                    ]
+                },
+                "protectedSettings": {
+                    "commandToExecute": "[concat('sh setup.sh', ' --unsafe false', ' --admin ', concat('\"', parameters('adminUsername'), '\"'), ' --registry-prefix ', concat('\"', parameters('containerRegistryPrefix'), '\"'), ' --hostname ', concat('\"', variables('vmFQDN'), '\"'), ' --ssl-certificate-key ', concat('\"', parameters('adminPassword'), '\"'), ' --ssl-certificate ', concat('\"', parameters('appGatewayCertificatePfxBase64'), '\"'), ' --auth-type aad ', ' --auth-audience ', concat('\"', parameters('serviceAudience'), '\"'), ' --aad-appid ', concat('\"', parameters('clientAppId'), '\"'), ' --aad-tenant ', concat('\"', variables('tenantId'), '\"'), ' --workspace-name ', concat('\"', parameters('workspaceName'), '\"'), ' --appinsights-name ', concat('\"', parameters('appInsightsName'), '\"'), ' --appinsights-ikey ', concat('\"', reference(resourceId('Microsoft.Insights/components', parameters('appInsightsName')), variables('appInsightsVersion')).InstrumentationKey, '\"'), ' --aad-appsecret ', concat('\"', parameters('clientAppSecret'), '\"'), ' --aad-instance ', concat('\"', parameters('authorityUri'), '\"'), ' --iothub-connstring ', concat('\"', 'HostName=', reference(variables('iotHubResourceId')).hostName, ';SharedAccessKeyName=', variables('iotHubKeyName'), ';SharedAccessKey=', listkeys(variables('iotHubKeyResource'), variables('iotHubApiVersion')).primaryKey, '\"'), ' --docdb-connstring ', concat('\"', 'AccountEndpoint=', reference(variables('cosmosDbResourceId')).documentEndpoint, ';AccountKey=', listkeys(variables('cosmosDbResourceId'), variables('cosmosDbApiVersion')).primaryMasterKey, ';', '\"'), ' --iothub-name ', concat('\"', reference(variables('iotHubResourceId')).eventHubEndpoints.events.path, '\"'), ' --iothub-endpoint ', concat('\"', reference(variables('iotHubResourceId')).eventHubEndpoints.events.endpoint, '\"'), ' --azureblob-account ', concat('\"', parameters('storageName'), '\"'), ' --azureblob-key ', concat('\"', listKeys(variables('storageResourceId'), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, '\"'), ' --azureblob-endpoint-suffix ',  concat('\"', parameters('storageEndpointSuffix'), '\"'), ' --release-version ', concat('\"', variables('servicesBranch'), '\"'), ' --iothub-consumer-group ', concat('\"', variables('iothubConsumerGroup1'), '\"'), ' --sb-connstring ', concat('\"', listkeys(variables('serviceBusKeyResourceId'), variables('serviceBusApiVersion')).primaryConnectionString, '\"'), ' --signalr-connstring ', concat('\"', listkeys(parameters('signalRName'), variables('signalRApiVersion')).primaryConnectionString, '\"'), ' --eventhub-connstring ', concat('\"Endpoint=sb://', parameters('eventHubNamespaceName'), '.', parameters('serviceBusEndpointSuffix'), '/;SharedAccessKeyName=', variables('eventHubKeyName'), ';SharedAccessKey=', listkeys(variables('eventHubKeyResourceId'), variables('eventHubApiVersion')).primaryKey, '\"'), ' --eventhub-name ', parameters('eventHubName'))]"
+                }
+            }
+        }
+    ],
+    "outputs": {
+        "azureWebsite": {
+            "type": "string",
+            "value": "[concat('https://', reference(concat('Microsoft.Web/sites/', parameters('siteName'))).hostNames[0])]"
+        },
+        "vmFQDN": {
+            "type": "string",
+            "value": "[reference(variables('publicIPName')).dnsSettings.fqdn]"
+        },
+        "adminUsername": {
+            "type": "string",
+            "value": "[parameters('adminUsername')]"
+        },
+        "iothub-connstring": {
+            "type": "string",
+            "value": "[concat('HostName=', reference(variables('iotHubResourceId')).hostName, ';SharedAccessKeyName=', variables('iotHubKeyName'), ';SharedAccessKey=', listkeys(variables('iotHubKeyResource'), variables('iotHubApiVersion')).primaryKey)]"
+        },
+        "docdb-connstring": {
+            "type": "string",
+            "value": "[concat('AccountEndpoint=', reference(variables('cosmosDbResourceId')).documentEndpoint, ';AccountKey=', listkeys(variables('cosmosDbResourceId'), variables('cosmosDbApiVersion')).primaryMasterKey, ';')]"
+        },
+        "eventhub-name": {
+            "type": "string",
+            "value": "[parameters('eventHubName')]"
+        },
+        "eventhub-connstring": {
+            "type": "string",
+            "value": "[concat('Endpoint=sb://', parameters('eventHubNamespaceName'), '.', parameters('serviceBusEndpointSuffix'), '/;SharedAccessKeyName=', variables('eventHubKeyName'), ';SharedAccessKey=', listkeys(variables('eventHubKeyResourceId'), variables('eventHubApiVersion')).primaryKey, ';')]"
+        },
+        "tsi-url": {
+            "type": "string",
+            "value": "[reference(resourceId('Microsoft.TimeSeriesInsights/environments', parameters('tsiEnvironmentName'))).dataAccessFQDN]"
+        },
+        "sb-connstring": {
+            "type": "string",
+            "value": "[listkeys(variables('serviceBusKeyResourceId'), variables('serviceBusApiVersion')).primaryConnectionString]"
+        },
+        "signalr-connstring": {
+            "type": "string",
+            "value": "[listkeys(parameters('signalRName'), variables('signalRApiVersion')).primaryConnectionString]"
+        },
+        "iothub-name": {
+            "type": "string",
+            "value": "[reference(variables('iotHubResourceId')).eventHubEndpoints.events.path]"
+        },
+        "iothub-endpoint": {
+            "type": "string",
+            "value": "[reference(variables('iotHubResourceId')).eventHubEndpoints.events.endpoint]"
+        },
+        "iothub-consumer-group": {
+            "type": "string",
+            "value": "[variables('iothubConsumerGroup1')]"
+        },
+        "workspace-name": {
+            "type": "string",
+            "value": "[parameters('workspaceName')]"
+        },
+        "azureblob-account": {
+            "type": "string",
+            "value": "[parameters('storageName')]"
+        },
+        "azureblob-key": {
+            "type": "string",
+            "value": "[listKeys(variables('storageResourceId'), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value]"
+        },
+        "azureblob-endpoint-suffix": {
+            "type": "string",
+            "value": "[parameters('storageEndpointSuffix')]"
+        },
+        "keyvault-url": {
+            "type": "string",
+            "value": "[reference(resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))).vaultUri]"
+        },
+        "resourceGroup": {
+            "type": "string",
+            "value": "[resourceGroup().name]"
+        },
+        "appinsights-name": {
+            "type": "string",
+            "value": "[parameters('appInsightsName')]"
+        },
+        "appinsights-instrumentationkey": {
+            "type": "string",
+            "value": "[reference(resourceId('Microsoft.Insights/components', parameters('appInsightsName')), variables('appInsightsVersion')).InstrumentationKey]"
+        }
+    }
+}

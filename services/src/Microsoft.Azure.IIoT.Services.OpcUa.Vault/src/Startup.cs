@@ -28,7 +28,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Http.Auth;
     using Microsoft.Azure.IIoT.Http.Default;
-    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.KeyVault;
     using Microsoft.Azure.Services.AppAuthentication;
     using Microsoft.Extensions.Configuration;
@@ -39,7 +38,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
     using Newtonsoft.Json;
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
-    using AutofacSerilogIntegration;
     using Serilog;
     using Swashbuckle.AspNetCore.Swagger;
     using System;
@@ -90,7 +88,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
                 .AddFromDotEnvFile()
                 .AddEnvironmentVariables();
 
-            IConfigurationRoot config;
+            IConfiguration config;
             try {
                 var builtConfig = configBuilder.Build();
                 var keyVault = builtConfig["KeyVault"];
@@ -217,7 +215,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
         }
 
         /// <summary>
-        /// Autofac configuration. Find more information here:
+        /// Autofac configuration.
         /// </summary>
         /// <param name="builder"></param>
         public virtual void ConfigureContainer(ContainerBuilder builder) {
@@ -228,11 +226,9 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
             builder.RegisterInstance(Config)
                 .AsImplementedInterfaces().SingleInstance();
 
-            // register the serilog logger
-            builder.RegisterLogger(LogEx.ApplicationInsights(Config, Config.Configuration));
-            // Register metrics logger
-            builder.RegisterType<MetricLogger>()
-                .AsImplementedInterfaces().SingleInstance();
+            // Add diagnostics based on configuration
+            builder.AddDiagnostics(Config);
+
             // CORS setup
             builder.RegisterType<CorsSetup>()
                 .AsImplementedInterfaces().SingleInstance();
@@ -261,7 +257,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
                 .AsImplementedInterfaces().SingleInstance();
 
             // ... subscribe to application events ...
-            builder.RegisterType<ApplicationEventSubscriber>()
+            builder.RegisterType<ApplicationEventBusSubscriber>()
                 .AsImplementedInterfaces().SingleInstance();
             // ... and auto start
             builder.RegisterType<HostAutoStart>()

@@ -46,7 +46,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Header = new RequestHeaderModel {
                         Diagnostics = new DiagnosticsModel {
                             AuditId = nameof(NodeReadAllStaticArrayVariableNodeClassTest1Async),
-                            TimeStamp = System.DateTime.Now
+                            TimeStamp = DateTime.Now
                         }
                     },
                     Attributes = attributes
@@ -79,7 +79,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Header = new RequestHeaderModel {
                         Diagnostics = new DiagnosticsModel {
                             AuditId = nameof(NodeReadAllStaticArrayVariableAccessLevelTest1Async),
-                            TimeStamp = System.DateTime.Now
+                            TimeStamp = DateTime.Now
                         }
                     },
                     Attributes = attributes
@@ -112,7 +112,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Header = new RequestHeaderModel {
                         Diagnostics = new DiagnosticsModel {
                             AuditId = nameof(NodeReadAllStaticArrayVariableWriteMaskTest1Async),
-                            TimeStamp = System.DateTime.Now
+                            TimeStamp = DateTime.Now
                         }
                     },
                     Attributes = attributes
@@ -145,7 +145,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Header = new RequestHeaderModel {
                         Diagnostics = new DiagnosticsModel {
                             AuditId = nameof(NodeReadAllStaticArrayVariableWriteMaskTest2Async),
-                            TimeStamp = System.DateTime.Now
+                            TimeStamp = DateTime.Now
                         }
                     },
                     Attributes = attributes

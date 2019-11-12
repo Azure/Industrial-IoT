@@ -346,13 +346,13 @@ namespace Opc.Ua.Encoders {
                 throw new ArgumentNullException(nameof(stream));
             }
             switch (contentType.ToLowerInvariant()) {
-                case ContentEncodings.MimeTypeJson:
-                case ContentEncodings.MimeTypeUaJson:
+                case ContentMimeType.Json:
+                case ContentMimeType.UaJson:
                     return new JsonDecoderEx(stream, context);
-                case ContentEncodings.MimeTypeUaBinary:
+                case ContentMimeType.UaBinary:
                     return new BinaryDecoder(stream,
                         context ?? new ServiceMessageContext());
-                case ContentEncodings.MimeTypeUaXml:
+                case ContentMimeType.UaXml:
                     return new XmlDecoder(null, XmlReader.Create(stream),
                         context ?? new ServiceMessageContext());
                 default:

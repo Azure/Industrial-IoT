@@ -9,6 +9,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Controllers {
     using Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.Http;
+    using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using System;
@@ -16,15 +17,17 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Controllers {
     using System.Threading.Tasks;
     using System.ComponentModel.DataAnnotations;
     using Swashbuckle.AspNetCore.Swagger;
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
 
     /// <summary>
     /// CRUD and Query application resources
     /// </summary>
     [Route(VersionInfo.PATH + "/applications")]
     [ExceptionsFilter]
-    [Produces(ContentEncodings.MimeTypeJson)]
+    [Produces(ContentMimeType.Json)]
     [Authorize(Policy = Policies.CanQuery)]
-    public class ApplicationsController : Controller {
+    [ApiController]
+    public class ApplicationsController : ControllerBase {
 
         /// <summary>
         /// Create controller
@@ -32,9 +35,12 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Controllers {
         /// <param name="applications"></param>
         /// <param name="query"></param>
         /// <param name="onboarding"></param>
+        /// <param name="events"></param>
         public ApplicationsController(IApplicationRegistry applications,
-            IApplicationRecordQuery query, IOnboardingServices onboarding) {
+            IApplicationRecordQuery query, IOnboardingServices onboarding,
+            IGroupRegistration events) {
             _query = query;
+            _events = events;
             _applications = applications;
             _onboarding = onboarding;
         }
@@ -104,6 +110,26 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Controllers {
                 throw new ArgumentNullException(nameof(request));
             }
             await _onboarding.DiscoverAsync(request.ToServiceModel());
+        }
+
+        /// <summary>
+        /// Cancel discovery
+        /// </summary>
+        /// <remarks>
+        /// Cancels a discovery request using the request identifier.
+        /// </remarks>
+        /// <param name="requestId">Discovery request</param>
+        /// <returns></returns>
+        [HttpDelete("discover/{requestId}")]
+        [Authorize(Policy = Policies.CanManage)]
+        public async Task CancelAsync(string requestId) {
+            if (string.IsNullOrEmpty(requestId)) {
+                throw new ArgumentNullException(nameof(requestId));
+            }
+            await _onboarding.CancelAsync(new DiscoveryCancelModel {
+                Id = requestId
+                // TODO: AuthorityId = User.Identity.Name;
+            });
         }
 
         /// <summary>
@@ -343,7 +369,42 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Controllers {
             return new ApplicationInfoListApiModel(result);
         }
 
+        /// <summary>
+        /// Subscribe for application events
+        /// </summary>
+        /// <remarks>
+        /// Register a client to receive application events through SignalR.
+        /// </remarks>
+        /// <param name="userId">The user that will receive application
+        /// events.</param>
+        /// <returns></returns>
+        [HttpPut("events")]
+        public async Task SubscribeAsync([FromBody]string userId) {
+            if (string.IsNullOrEmpty(userId)) {
+                throw new ArgumentNullException(nameof(userId));
+            }
+            await _events.SubscribeAsync("applications", userId);
+        }
+
+        /// <summary>
+        /// Unsubscribe from application events
+        /// </summary>
+        /// <remarks>
+        /// Unregister a user and stop it from receiving events.
+        /// </remarks>
+        /// <param name="userId">The user id that will not receive
+        /// any more events</param>
+        /// <returns></returns>
+        [HttpDelete("events/{userId}")]
+        public async Task UnsubscribeAsync(string userId) {
+            if (string.IsNullOrEmpty(userId)) {
+                throw new ArgumentNullException(nameof(userId));
+            }
+            await _events.UnsubscribeAsync("applications", userId);
+        }
+
         private readonly IApplicationRecordQuery _query;
+        private readonly IGroupRegistration _events;
         private readonly IApplicationRegistry _applications;
         private readonly IOnboardingServices _onboarding;
     }

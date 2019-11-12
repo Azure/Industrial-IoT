@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Controllers {
     using Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Filters;
     using Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models;
-    using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.AspNetCore.Mvc;
 
@@ -15,8 +14,9 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Controllers {
     /// </summary>
     [Route(VersionInfo.PATH + "/status")]
     [ExceptionsFilter]
-    [Produces(ContentEncodings.MimeTypeJson)]
-    public class StatusController : Controller {
+    [Produces(ContentMimeType.Json)]
+    [ApiController]
+    public class StatusController : ControllerBase {
 
         /// <summary>
         /// Create controller

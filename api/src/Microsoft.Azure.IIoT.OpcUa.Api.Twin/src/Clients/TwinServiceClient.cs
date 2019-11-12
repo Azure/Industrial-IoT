@@ -103,57 +103,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task<PublishStartResponseApiModel> NodePublishStartAsync(string endpointId,
-            PublishStartRequestApiModel content, CancellationToken ct) {
-            if (string.IsNullOrEmpty(endpointId)) {
-                throw new ArgumentNullException(nameof(endpointId));
-            }
-            if (content == null) {
-                throw new ArgumentNullException(nameof(content));
-            }
-            if (content.Item == null) {
-                throw new ArgumentNullException(nameof(content.Item));
-            }
-            var request = _httpClient.NewRequest($"{_serviceUri}/v2/publish/{endpointId}/start",
-                _resourceId);
-            request.SetContent(content);
-            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return response.GetContent<PublishStartResponseApiModel>();
-        }
-
-        /// <inheritdoc/>
-        public async Task<PublishedItemListResponseApiModel> NodePublishListAsync(
-            string endpointId, PublishedItemListRequestApiModel content, CancellationToken ct) {
-            if (string.IsNullOrEmpty(endpointId)) {
-                throw new ArgumentNullException(nameof(endpointId));
-            }
-            var request = _httpClient.NewRequest($"{_serviceUri}/v2/publish/{endpointId}",
-                _resourceId);
-            request.SetContent(content);
-            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return response.GetContent<PublishedItemListResponseApiModel>();
-        }
-
-        /// <inheritdoc/>
-        public async Task<PublishStopResponseApiModel> NodePublishStopAsync(string endpointId,
-            PublishStopRequestApiModel content, CancellationToken ct) {
-            if (string.IsNullOrEmpty(endpointId)) {
-                throw new ArgumentNullException(nameof(endpointId));
-            }
-            if (content == null) {
-                throw new ArgumentNullException(nameof(content));
-            }
-            var request = _httpClient.NewRequest($"{_serviceUri}/v2/publish/{endpointId}/stop",
-                _resourceId);
-            request.SetContent(content);
-            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return response.GetContent<PublishStopResponseApiModel>();
-        }
-
-        /// <inheritdoc/>
         public async Task<ReadResponseApiModel> NodeReadAsync(string endpointId,
             ReadRequestApiModel content, CancellationToken ct) {
             if (string.IsNullOrEmpty(endpointId)) {

@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Hub {
+
     /// <summary>
     /// Event processor
     /// </summary>

@@ -10,7 +10,7 @@ namespace Microsoft.Azure.IIoT.Exceptions {
     /// This exception is thrown when the input validation
     /// fails. The client should fix the request before retrying.
     /// </summary>
-    public class BadRequestException : Exception {
+    public class BadRequestException : ArgumentException {
 
         /// <inheritdoc />
         public BadRequestException() {

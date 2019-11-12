@@ -56,6 +56,7 @@ call :generate_doc_for_service twin
 call :generate_doc_for_service registry
 call :generate_doc_for_service history
 call :generate_doc_for_service vault
+call :generate_doc_for_service onboarding
 
 set service=
 set convert=
@@ -63,7 +64,7 @@ if exist config.properties del /f config.properties
 popd
 goto :eof
 
-rem 
+rem
 rem generate doc
 rem
 :generate_doc_for_service

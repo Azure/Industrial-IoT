@@ -38,7 +38,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <summary>
         /// Current log level
         /// </summary>
-        public SupervisorLogLevel? LogLevel { get; set; }
+        public TraceLogLevel? LogLevel { get; set; }
 
         /// <summary>
         /// Whether the registration is out of sync between

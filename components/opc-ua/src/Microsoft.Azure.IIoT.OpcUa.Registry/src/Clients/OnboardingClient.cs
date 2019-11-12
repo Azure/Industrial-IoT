@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.Messaging;
-    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
@@ -32,24 +31,29 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
             if (request.DiscoveryUrl == null) {
                 throw new ArgumentNullException(nameof(request.DiscoveryUrl));
             }
-            if (string.IsNullOrEmpty(request.RegistrationId)) {
-                request.RegistrationId = Guid.NewGuid().ToString();
+            if (string.IsNullOrEmpty(request.Id)) {
+                request.Id = Guid.NewGuid().ToString();
             }
             await DiscoverAsync(new DiscoveryRequestModel {
                 Configuration = new DiscoveryConfigModel {
-                    ActivationFilter = request.ActivationFilter,
-                    Callbacks = request.Callback == null ? null :
-                        new List<CallbackModel> { request.Callback },
+                    ActivationFilter = request.ActivationFilter.Clone(),
                     DiscoveryUrls = new List<string> { request.DiscoveryUrl },
-                    Locales = request.Locales
                 },
-                Id = request.RegistrationId,
-                Context = request.Context
+                Id = request.Id,
+                Context = request.Context.Clone()
             });
         }
 
         /// <inheritdoc/>
         public async Task DiscoverAsync(DiscoveryRequestModel request) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            await _events.PublishAsync(request);
+        }
+
+        /// <inheritdoc/>
+        public async Task CancelAsync(DiscoveryCancelModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }

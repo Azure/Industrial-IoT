@@ -23,9 +23,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Controllers {
     /// </summary>
     [ExceptionsFilter]
     [Route(VersionInfo.PATH + "/requests")]
-    [Produces(ContentEncodings.MimeTypeJson)]
+    [Produces(ContentMimeType.Json)]
     [Authorize(Policy = Policies.CanRead)]
-    public sealed class RequestsController : Controller {
+    [ApiController]
+    public sealed class RequestsController : ControllerBase {
 
         /// <summary>
         /// Create controller with services

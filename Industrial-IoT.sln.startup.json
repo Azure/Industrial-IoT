@@ -1,0 +1,20 @@
+/*
+    This is a configuration file for the SwitchStartupProject Visual Studio Extension
+    See https://bitbucket.org/thirteen/switchstartupproject/src/tip/Configuration.md
+*/
+{
+  "Version": 3,
+
+  "ListAllProjects": false,
+  "MultiProjectConfigurations": {
+    "Full Scenario": {
+      "Projects": {
+        "Microsoft.Azure.IIoT.App": {},
+        "Microsoft.Azure.IIoT.Cli": {},
+        "Microsoft.Azure.IIoT.Services.All": {},
+        "Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Cli": {},
+        "Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Cli": {}
+      }
+    }
+  }
+}

@@ -341,7 +341,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// </summary>
         /// <param name="mock"></param>
         /// <param name="registry"></param>
-        private static IDiscoveryProcessor Setup(AutoMock mock, IoTHubServices registry) {
+        private static IDiscoveryResultProcessor Setup(AutoMock mock, IoTHubServices registry) {
             mock.Provide<IIoTHubTwinServices>(registry);
             mock.Provide<IApplicationRepository, ApplicationTwins>();
             mock.Provide<ISupervisorRegistry, SupervisorRegistry>();

@@ -114,7 +114,7 @@ namespace Microsoft.Azure.IIoT.Module.Default {
                 _payload = new byte[contentLength.Value];
                 _timeout = timeout ?? TimeSpan.FromSeconds(20);
                 _maxChunkLength = maxChunkLength ?? 64 * 1024;
-                _contentType = contentType ?? ContentEncodings.MimeTypeJson;
+                _contentType = contentType ?? ContentMimeType.Json;
             }
 
             /// <summary>

@@ -26,8 +26,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
         public ServerRegistrationRequestApiModel(
             ServerRegistrationRequestModel model) {
             DiscoveryUrl = model.DiscoveryUrl;
-            Callback = model.Callback == null ? null :
-                new CallbackApiModel(model.Callback);
+            Id = model.Id;
             ActivationFilter = model.ActivationFilter == null ? null :
                 new EndpointActivationFilterApiModel(model.ActivationFilter);
         }
@@ -39,8 +38,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
         public ServerRegistrationRequestModel ToServiceModel() {
             return new ServerRegistrationRequestModel {
                 DiscoveryUrl = DiscoveryUrl,
-                RegistrationId = RegistrationId,
-                Callback = Callback?.ToServiceModel(),
+                Id = Id,
                 ActivationFilter = ActivationFilter?.ToServiceModel()
             };
         }
@@ -58,15 +56,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
         [JsonProperty(PropertyName = "id",
             NullValueHandling = NullValueHandling.Ignore)]
         [DefaultValue(null)]
-        public string RegistrationId { get; set; }
-
-        /// <summary>
-        /// An optional callback hook to register.
-        /// </summary>
-        [JsonProperty(PropertyName = "callback",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
-        public CallbackApiModel Callback { get; private set; }
+        public string Id { get; set; }
 
         /// <summary>
         /// Upon discovery, activate all endpoints with this filter.

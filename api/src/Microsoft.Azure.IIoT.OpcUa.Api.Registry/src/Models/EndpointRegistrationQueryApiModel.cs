@@ -19,13 +19,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         public string Url { get; set; }
 
         /// <summary>
-        /// Type of credential selected for authentication
-        /// </summary>
-        [JsonProperty(PropertyName = "userAuthentication",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public CredentialType? UserAuthentication { get; set; }
-
-        /// <summary>
         /// Certificate of the endpoint
         /// </summary>
         [JsonProperty(PropertyName = "certificate",

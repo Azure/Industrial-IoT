@@ -20,9 +20,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Controllers {
     /// </summary>
     [ExceptionsFilter]
     [Route(VersionInfo.PATH + "/trustlists")]
-    [Produces(ContentEncodings.MimeTypeJson)]
+    [Produces(ContentMimeType.Json)]
     [Authorize(Policy = Policies.CanRead)]
-    public sealed class TrustListsController : Controller {
+    [ApiController]
+    public sealed class TrustListsController : ControllerBase {
 
         /// <summary>
         /// Create the controller.

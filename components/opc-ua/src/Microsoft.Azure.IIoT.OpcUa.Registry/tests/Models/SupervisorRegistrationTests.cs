@@ -134,8 +134,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services.Models {
                 .FromFactory(() => new SupervisorRegistration(
                     fix.Create<string>(), fix.Create<string>()))
                 .With(x => x.Certificate, cert.EncodeAsDictionary())
-                .With(x => x.DiscoveryCallbacks, fix.CreateMany<CallbackModel>()
-                    .ToList().EncodeAsDictionary())
                 .With(x => x.Locales, fix.CreateMany<string>()
                     .ToList().EncodeAsDictionary())
                 .With(x => x.SecurityPoliciesFilter, fix.CreateMany<string>()

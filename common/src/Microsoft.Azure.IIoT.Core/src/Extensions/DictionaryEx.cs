@@ -37,6 +37,19 @@ namespace System.Collections.Generic {
         }
 
         /// <summary>
+        /// Returns the contents of a dictionary as KeyValuePairs
+        /// </summary>
+        /// <typeparam name="TKey"></typeparam>
+        /// <typeparam name="TValues"></typeparam>
+        /// <param name="dictionary"></param>
+        /// <returns></returns>
+        public static IEnumerable<KeyValuePair<TKey, TValues>> ToKeyValuePairs<TKey, TValues>(this IDictionary dictionary) {
+            foreach (var key in dictionary.Keys) {
+                yield return new KeyValuePair<TKey, TValues>((TKey)key, (TValues)dictionary[key]);
+            }
+        }
+
+        /// <summary>
         /// Safe dictionary equals
         /// </summary>
         /// <typeparam name="K"></typeparam>

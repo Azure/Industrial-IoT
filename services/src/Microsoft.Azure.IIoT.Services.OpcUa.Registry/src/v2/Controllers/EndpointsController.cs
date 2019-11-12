@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Controllers {
     using Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Filters;
     using Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
+    using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.Http;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
@@ -22,16 +23,20 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Controllers {
     /// </summary>
     [Route(VersionInfo.PATH + "/endpoints")]
     [ExceptionsFilter]
-    [Produces(ContentEncodings.MimeTypeJson)]
+    [Produces(ContentMimeType.Json)]
     [Authorize(Policy = Policies.CanQuery)]
-    public class EndpointsController : Controller {
+    [ApiController]
+    public class EndpointsController : ControllerBase {
 
         /// <summary>
         /// Create controller for endpoints services
         /// </summary>
         /// <param name="endpoints"></param>
-        public EndpointsController(IEndpointRegistry endpoints) {
+        /// <param name="events"></param>
+        public EndpointsController(IEndpointRegistry endpoints,
+            IGroupRegistration events) {
             _endpoints = endpoints;
+            _events = events;
         }
 
         /// <summary>
@@ -47,22 +52,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Controllers {
         [Authorize(Policy = Policies.CanChange)]
         public async Task ActivateEndpointAsync(string endpointId) {
             await _endpoints.ActivateEndpointAsync(endpointId);
-        }
-
-        /// <summary>
-        /// Update endpoint information
-        /// </summary>
-        /// <param name="endpointId">endpoint identifier</param>
-        /// <param name="request">Endpoint update request</param>
-        [HttpPatch("{endpointId}")]
-        [Authorize(Policy = Policies.CanChange)]
-        public async Task UpdateEndpointAsync(string endpointId,
-            [FromBody] [Required] EndpointRegistrationUpdateApiModel request) {
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
-            }
-            await _endpoints.UpdateEndpointAsync(endpointId,
-                request.ToServiceModel());
         }
 
         /// <summary>
@@ -202,6 +191,35 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Controllers {
             await _endpoints.DeactivateEndpointAsync(endpointId);
         }
 
+        /// <summary>
+        /// Subscribe for endpoint events
+        /// </summary>
+        /// <remarks>
+        /// Register a user to receive endpoint events through SignalR.
+        /// </remarks>
+        /// <param name="userId">The user id that will receive endpoint
+        /// events.</param>
+        /// <returns></returns>
+        [HttpPut("events")]
+        public async Task SubscribeAsync([FromBody]string userId) {
+            await _events.SubscribeAsync("endpoints", userId);
+        }
+
+        /// <summary>
+        /// Unsubscribe from endpoint events
+        /// </summary>
+        /// <remarks>
+        /// Unregister a user and stop it from receiving endpoint events.
+        /// </remarks>
+        /// <param name="userId">The user id that will not receive
+        /// any more endpoint events</param>
+        /// <returns></returns>
+        [HttpDelete("events/{userId}")]
+        public async Task UnsubscribeAsync(string userId) {
+            await _events.UnsubscribeAsync("endpoints", userId);
+        }
+
         private readonly IEndpointRegistry _endpoints;
+        private readonly IGroupRegistration _events;
     }
 }

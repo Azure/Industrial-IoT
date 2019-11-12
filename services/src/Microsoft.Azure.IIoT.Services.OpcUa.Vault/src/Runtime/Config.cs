@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Runtime {
     using Microsoft.Azure.IIoT.Services.Cors.Runtime;
     using Microsoft.Azure.IIoT.Services.Swagger;
     using Microsoft.Azure.IIoT.Services.Swagger.Runtime;
+    using Microsoft.Azure.IIoT.Api.Runtime;
     using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Auth.Server;
@@ -17,26 +18,22 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Runtime {
     using Microsoft.Azure.IIoT.Hub.Client.Runtime;
     using Microsoft.Azure.IIoT.Messaging.ServiceBus;
     using Microsoft.Azure.IIoT.Messaging.ServiceBus.Runtime;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Runtime;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Vault;
     using Microsoft.Azure.IIoT.OpcUa.Vault.Runtime;
     using Microsoft.Azure.IIoT.Storage;
     using Microsoft.Azure.IIoT.Storage.CosmosDb;
     using Microsoft.Azure.IIoT.Storage.CosmosDb.Runtime;
-    using Microsoft.Azure.IIoT.Utils;
+    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Extensions.Configuration;
     using System;
-    using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.ApplicationInsights.Extensibility;
 
     /// <summary>
     /// Web service configuration
     /// </summary>
-    public class Config : ConfigBase, IAuthConfig, IIoTHubConfig, ICorsConfig,
+    public class Config : DiagnosticsConfig, IAuthConfig, IIoTHubConfig, ICorsConfig,
         IClientConfig, ISwaggerConfig, IVaultConfig, ICosmosDbConfig,
-        IItemContainerConfig, IKeyVaultConfig, IServiceBusConfig, IRegistryConfig,
-        IApplicationInsightsConfig {
+        IItemContainerConfig, IKeyVaultConfig, IServiceBusConfig, IRegistryConfig {
 
         /// <summary>
         /// Whether to use role based access
@@ -101,14 +98,12 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Runtime {
         public string OpcUaRegistryServiceUrl => _registry.OpcUaRegistryServiceUrl;
         /// <inheritdoc/>
         public string OpcUaRegistryServiceResourceId => _registry.OpcUaRegistryServiceResourceId;
-        /// <inheritdoc/>
-        public TelemetryConfiguration TelemetryConfiguration => _ai.TelemetryConfiguration;
 
         /// <summary>
         /// Configuration constructor
         /// </summary>
         /// <param name="configuration"></param>
-        internal Config(IConfigurationRoot configuration) :
+        internal Config(IConfiguration configuration) :
             base(configuration) {
             _vault = new VaultConfig(configuration);
             _keyVault = new KeyVaultConfig(configuration);
@@ -119,7 +114,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Runtime {
             _sb = new ServiceBusConfig(configuration);
             _hub = new IoTHubConfig(configuration);
             _registry = new ApiConfig(configuration);
-            _ai = new ApplicationInsightsConfig(configuration);
         }
 
         private readonly IVaultConfig _vault;
@@ -131,7 +125,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Runtime {
         private readonly ServiceBusConfig _sb;
         private readonly IoTHubConfig _hub;
         private readonly IRegistryConfig _registry;
-        private readonly ApplicationInsightsConfig _ai;
     }
 }
 

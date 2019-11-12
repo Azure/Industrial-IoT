@@ -205,6 +205,6 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
         private readonly Action<NetworkScanner, PingReply> _replies;
         private readonly TaskCompletionSource<bool> _completion;
         private readonly CancellationToken _ct;
-        private int _scanCount;
+        private volatile int _scanCount;
     }
 }

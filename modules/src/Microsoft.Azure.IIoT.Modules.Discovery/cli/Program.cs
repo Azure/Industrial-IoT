@@ -9,8 +9,8 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery.Cli {
     using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Utils;
+    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Extensions.Configuration;
-    using Serilog;
     using Serilog.Events;
     using System;
     using System.Threading;
@@ -106,7 +106,7 @@ Options:
         private static async Task HostAsync(IIoTHubConfig config,
             string deviceId, string moduleId, string[] args) {
             Console.WriteLine("Create or retrieve connection string...");
-            var logger = LogEx.Console(LogEventLevel.Error);
+            var logger = ConsoleLogger.Create(LogEventLevel.Error);
             var cs = await Retry.WithExponentialBackoff(logger,
                 () => AddOrGetAsync(config, deviceId, moduleId));
             Console.WriteLine("Starting discovery module...");
@@ -121,7 +121,7 @@ Options:
         /// </summary>
         private static async Task<ConnectionString> AddOrGetAsync(IIoTHubConfig config,
             string deviceId, string moduleId) {
-            var logger = LogEx.Console(LogEventLevel.Error);
+            var logger = ConsoleLogger.Create(LogEventLevel.Error);
             var registry = new IoTHubServiceHttpClient(new HttpClient(logger),
                 config, logger);
             await registry.CreateAsync(new DeviceTwinModel {

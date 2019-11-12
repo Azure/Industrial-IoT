@@ -12,24 +12,24 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Runtime {
     using Microsoft.Azure.IIoT.Hub.Client.Runtime;
     using Microsoft.Azure.IIoT.Messaging.ServiceBus;
     using Microsoft.Azure.IIoT.Messaging.ServiceBus.Runtime;
+    using Microsoft.Azure.IIoT.Messaging.SignalR.Runtime;
+    using Microsoft.Azure.IIoT.Messaging.SignalR;
     using Microsoft.Azure.IIoT.Storage.CosmosDb;
     using Microsoft.Azure.IIoT.Storage.CosmosDb.Runtime;
     using Microsoft.Azure.IIoT.Storage;
     using Microsoft.Azure.IIoT.Auth.Server;
     using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Auth.Clients;
-    using Microsoft.Azure.IIoT.Utils;
+    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Extensions.Configuration;
     using System;
-    using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.ApplicationInsights.Extensibility;
 
     /// <summary>
     /// Common web service configuration aggregation
     /// </summary>
-    public class Config : ConfigBase, IAuthConfig, IIoTHubConfig,
-        ICorsConfig, IClientConfig, ISwaggerConfig, IServiceBusConfig,
-        ICosmosDbConfig, IItemContainerConfig, IApplicationInsightsConfig {
+    public class Config : DiagnosticsConfig, IAuthConfig, IIoTHubConfig, ICorsConfig,
+        IClientConfig, ISwaggerConfig, IServiceBusConfig, ISignalRServiceConfig,
+        ICosmosDbConfig, IItemContainerConfig {
 
         /// <inheritdoc/>
         public string IoTHubConnString => _hub.IoTHubConnString;
@@ -77,19 +77,21 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Runtime {
         public string ContainerName => "iiot_opc";
         /// <inheritdoc/>
         public string DatabaseName => "iiot_opc";
+        /// <inheritdoc/>
+        public string SignalRHubName => _sr.SignalRHubName;
+        /// <inheritdoc/>
+        public string SignalRConnString => _sr.SignalRConnString;
 
         /// <summary>
         /// Whether to use role based access
         /// </summary>
         public bool UseRoles => GetBoolOrDefault("PCS_AUTH_ROLES");
-        /// <inheritdoc/>
-        public TelemetryConfiguration TelemetryConfiguration => _ai.TelemetryConfiguration;
 
         /// <summary>
         /// Configuration constructor
         /// </summary>
         /// <param name="configuration"></param>
-        public Config(IConfigurationRoot configuration) :
+        public Config(IConfiguration configuration) :
             base(configuration) {
 
             _swagger = new SwaggerConfig(configuration);
@@ -98,7 +100,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Runtime {
             _cors = new CorsConfig(configuration);
             _sb = new ServiceBusConfig(configuration);
             _cosmos = new CosmosDbConfig(configuration);
-            _ai = new ApplicationInsightsConfig(configuration);
+            _sr = new SignalRServiceConfig(configuration);
         }
 
         private readonly SwaggerConfig _swagger;
@@ -106,7 +108,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Runtime {
         private readonly CorsConfig _cors;
         private readonly ServiceBusConfig _sb;
         private readonly CosmosDbConfig _cosmos;
-        private readonly ApplicationInsightsConfig _ai;
+        private readonly SignalRServiceConfig _sr;
         private readonly IoTHubConfig _hub;
     }
 }

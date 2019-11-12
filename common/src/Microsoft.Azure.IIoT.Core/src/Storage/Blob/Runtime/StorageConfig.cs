@@ -46,7 +46,7 @@ namespace Microsoft.Azure.IIoT.Storage.Blob.Runtime {
         /// </summary>
         /// <param name="serviceId"></param>
         /// <param name="configuration"></param>
-        public StorageConfig(IConfigurationRoot configuration, string serviceId = "") :
+        public StorageConfig(IConfiguration configuration, string serviceId = "") :
             base(configuration) {
             _serviceId = serviceId ?? throw new ArgumentNullException(nameof(serviceId));
         }

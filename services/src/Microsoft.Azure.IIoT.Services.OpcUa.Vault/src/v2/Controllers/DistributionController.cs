@@ -20,7 +20,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Controllers {
     /// </summary>
     [ExceptionsFilter]
     [Route(VersionInfo.PATH)]
-    public sealed class DistributionController : Controller {
+    [ApiController]
+    public sealed class DistributionController : ControllerBase {
 
         /// <summary>
         /// Create the controller.
@@ -37,7 +38,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Controllers {
         /// <param name="serialNumber"></param>
         /// <returns>The Issuer Ca cert as a file</returns>
         [HttpGet("issuer/{serialNumber}")]
-        [Produces(ContentEncodings.MimeTypeCert)]
+        [Produces(ContentMimeType.Cert)]
         public async Task<ActionResult> GetIssuerCertificateChainAsync(string serialNumber) {
             if (string.IsNullOrEmpty(serialNumber)) {
                 throw new ArgumentNullException(nameof(serialNumber));
@@ -50,7 +51,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Controllers {
                         stream.Write(certificate.ToRawData());
                     }
                     return new FileContentResult(stream.ToArray(),
-                        ContentEncodings.MimeTypeCert) {
+                        ContentMimeType.Cert) {
                         FileDownloadName = serialNumber + ".cer"
                     };
                 }
@@ -66,7 +67,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Controllers {
         /// <param name="serialNumber"></param>
         /// <returns></returns>
         [HttpGet("crl/{serialNumber}")]
-        [Produces(ContentEncodings.MimeTypeCrl)]
+        [Produces(ContentMimeType.Crl)]
         public async Task<ActionResult> GetIssuerCrlChainAsync(string serialNumber) {
             if (string.IsNullOrEmpty(serialNumber)) {
                 throw new ArgumentNullException(nameof(serialNumber));
@@ -79,7 +80,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Controllers {
                         stream.Write(item.ToRawData());
                     }
                     return new FileContentResult(stream.ToArray(),
-                        ContentEncodings.MimeTypeCert) {
+                        ContentMimeType.Cert) {
                         FileDownloadName = serialNumber + ".crl"
                     };
                 }

@@ -28,7 +28,7 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Runtime {
         /// Configuration constructor
         /// </summary>
         /// <param name="configuration"></param>
-        public CosmosDbConfig(IConfigurationRoot configuration) :
+        public CosmosDbConfig(IConfiguration configuration) :
             base(configuration) {
         }
     }

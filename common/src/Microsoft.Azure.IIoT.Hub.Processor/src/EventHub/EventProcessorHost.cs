@@ -28,7 +28,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
         /// <param name="hub"></param>
         /// <param name="config"></param>
         /// <param name="logger"></param>
-        public EventProcessorHost(IEventProcessorFactory factory, IEventHubConfig hub,
+        public EventProcessorHost(IEventProcessorFactory factory, IEventHubConsumerConfig hub,
             IEventProcessorConfig config, ILogger logger) :
             this(factory, hub, config, null, null, logger) {
         }
@@ -42,7 +42,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
         /// <param name="logger"></param>
         /// <param name="checkpoint"></param>
         /// <param name="lease"></param>
-        public EventProcessorHost(IEventProcessorFactory factory, IEventHubConfig hub,
+        public EventProcessorHost(IEventProcessorFactory factory, IEventHubConsumerConfig hub,
             IEventProcessorConfig config, ICheckpointManager checkpoint,
             ILeaseManager lease, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -51,20 +51,19 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
             _factory = factory ?? throw new ArgumentNullException(nameof(factory));
             _lease = lease;
             _checkpoint = checkpoint;
-            _lock = new SemaphoreSlim(1);
+            _lock = new SemaphoreSlim(1, 1);
         }
 
         /// <inheritdoc/>
         public async Task StartAsync() {
-            if (_host != null) {
-                return;
-            }
+            await _lock.WaitAsync();
             try {
-                await _lock.WaitAsync();
                 if (_host != null) {
+                    _logger.Debug("Event processor host already running.");
                     return;
                 }
 
+                _logger.Debug("Starting event processor host...");
                 var consumerGroup = _hub.ConsumerGroup;
                 if (string.IsNullOrEmpty(consumerGroup)) {
                     consumerGroup = "$default";
@@ -94,9 +93,10 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
                         ReceiveTimeout = _config.ReceiveTimeout,
                         InvokeProcessorAfterReceiveTimeout = true
                     });
+                _logger.Information("Event processor host started.");
             }
             catch (Exception ex) {
-                _logger.Error(ex, "Error starting event processor host");
+                _logger.Error(ex, "Error starting event processor host.");
                 _host = null;
                 throw ex;
             }
@@ -107,15 +107,18 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
 
         /// <inheritdoc/>
         public async Task StopAsync() {
-            if (_host == null) {
-                return;
-            }
+            await _lock.WaitAsync();
             try {
-                await _lock.WaitAsync();
                 if (_host != null) {
+                    _logger.Debug("Stopping event processor host...");
                     await _host.UnregisterEventProcessorAsync();
                     _host = null;
+                    _logger.Information("Event processor host stopped.");
                 }
+            }
+            catch (Exception ex) {
+                _logger.Warning(ex, "Error stopping event processor host");
+                _host = null;
             }
             finally {
                 _lock.Release();
@@ -161,7 +164,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
 
         private readonly SemaphoreSlim _lock;
         private readonly ILogger _logger;
-        private readonly IEventHubConfig _hub;
+        private readonly IEventHubConsumerConfig _hub;
         private readonly IEventProcessorConfig _config;
         private readonly IEventProcessorFactory _factory;
         private readonly ILeaseManager _lease;

@@ -155,5 +155,48 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
             }
             return registrations;
         }
+
+        /// <summary>
+        /// List all publishers
+        /// </summary>
+        /// <param name="service"></param>
+        /// <param name="onlyServerState"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        public static async Task<IEnumerable<PublisherApiModel>> ListAllPublishersAsync(
+            this IRegistryServiceApi service, bool? onlyServerState = null,
+            CancellationToken ct = default) {
+            var registrations = new List<PublisherApiModel>();
+            var result = await service.ListPublishersAsync(null, onlyServerState, null, ct);
+            registrations.AddRange(result.Items);
+            while (result.ContinuationToken != null) {
+                result = await service.ListPublishersAsync(result.ContinuationToken,
+                    onlyServerState, null, ct);
+                registrations.AddRange(result.Items);
+            }
+            return registrations;
+        }
+
+        /// <summary>
+        /// Find publishers
+        /// </summary>
+        /// <param name="service"></param>
+        /// <param name="onlyServerState"></param>
+        /// <param name="ct"></param>
+        /// <param name="query"></param>
+        /// <returns></returns>
+        public static async Task<IEnumerable<PublisherApiModel>> QueryAllPublishersAsync(
+            this IRegistryServiceApi service, PublisherQueryApiModel query, bool? onlyServerState = null,
+            CancellationToken ct = default) {
+            var registrations = new List<PublisherApiModel>();
+            var result = await service.QueryPublishersAsync(query, onlyServerState, null, ct);
+            registrations.AddRange(result.Items);
+            while (result.ContinuationToken != null) {
+                result = await service.ListPublishersAsync(result.ContinuationToken,
+                    onlyServerState, null, ct);
+                registrations.AddRange(result.Items);
+            }
+            return registrations;
+        }
     }
 }

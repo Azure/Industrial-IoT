@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Microsoft.Azure.IIoT.JobServiceConsole": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}

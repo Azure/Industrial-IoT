@@ -6,9 +6,7 @@
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Newtonsoft.Json;
-    using System.Collections.Generic;
     using System.ComponentModel;
-    using System.Linq;
 
     /// <summary>
     /// Supervisor registration update request
@@ -30,9 +28,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
             LogLevel = model.LogLevel;
             DiscoveryConfig = model.DiscoveryConfig == null ? null :
                 new DiscoveryConfigApiModel(model.DiscoveryConfig);
-            DiscoveryCallbacks = model.DiscoveryCallbacks?
-                .Select(c => new CallbackApiModel(c)).ToList();
-            RemoveDiscoveryCallbacks = model.RemoveDiscoveryCallbacks;
         }
 
         /// <summary>
@@ -44,10 +39,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
                 SiteId = SiteId,
                 LogLevel = LogLevel,
                 Discovery = Discovery,
-                DiscoveryConfig = DiscoveryConfig?.ToServiceModel(),
-                DiscoveryCallbacks = DiscoveryCallbacks?
-                    .Select(c => c.ToServiceModel()).ToList(),
-                RemoveDiscoveryCallbacks = RemoveDiscoveryCallbacks
+                DiscoveryConfig = DiscoveryConfig?.ToServiceModel()
             };
         }
 
@@ -77,27 +69,11 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
         public DiscoveryConfigApiModel DiscoveryConfig { get; set; }
 
         /// <summary>
-        /// Callbacks to add or remove (see below)
-        /// </summary>
-        [JsonProperty(PropertyName = "discoveryCallbacks",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
-        public List<CallbackApiModel> DiscoveryCallbacks { get; set; }
-
-        /// <summary>
-        /// Whether to add or remove callbacks
-        /// </summary>
-        [JsonProperty(PropertyName = "removeDiscoveryCallbacks",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
-        public bool? RemoveDiscoveryCallbacks { get; set; }
-
-        /// <summary>
         /// Current log level
         /// </summary>
         [JsonProperty(PropertyName = "logLevel",
             NullValueHandling = NullValueHandling.Ignore)]
         [DefaultValue(null)]
-        public SupervisorLogLevel? LogLevel { get; set; }
+        public TraceLogLevel? LogLevel { get; set; }
     }
 }

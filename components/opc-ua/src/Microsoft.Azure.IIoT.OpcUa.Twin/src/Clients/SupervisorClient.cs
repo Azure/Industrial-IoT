@@ -23,8 +23,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
     /// Represents the supervisor api surface for browse and node operations.
     /// </summary>
     public sealed class SupervisorClient : IBrowseServices<EndpointRegistrationModel>,
-        IHistoricAccessServices<EndpointRegistrationModel>, INodeServices<EndpointRegistrationModel>,
-        IPublishServices<EndpointRegistrationModel> {
+        IHistoricAccessServices<EndpointRegistrationModel>, INodeServices<EndpointRegistrationModel> {
 
         /// <summary>
         /// Create service
@@ -34,39 +33,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
         public SupervisorClient(IMethodClient client, ILogger logger) {
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        }
-
-        /// <inheritdoc/>
-        public async Task<PublishStartResultModel> NodePublishStartAsync(
-            EndpointRegistrationModel registration, PublishStartRequestModel request) {
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
-            }
-            if (request.Item == null) {
-                throw new ArgumentNullException(nameof(request.Item));
-            }
-            var result = await CallServiceOnSupervisor<PublishStartRequestModel, PublishStartResultModel>(
-                "PublishStart_V2", registration, request);
-            return result;
-        }
-
-        /// <inheritdoc/>
-        public async Task<PublishStopResultModel> NodePublishStopAsync(
-            EndpointRegistrationModel registration, PublishStopRequestModel request) {
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
-            }
-            var result = await CallServiceOnSupervisor<PublishStopRequestModel, PublishStopResultModel>(
-                "PublishStop_V2", registration, request);
-            return result;
-        }
-
-        /// <inheritdoc/>
-        public async Task<PublishedItemListResultModel> NodePublishListAsync(
-            EndpointRegistrationModel registration, PublishedItemListRequestModel request) {
-            var result = await CallServiceOnSupervisor<PublishedItemListRequestModel, PublishedItemListResultModel>(
-                "PublishList_V2", registration, request);
-            return result;
         }
 
         /// <inheritdoc/>

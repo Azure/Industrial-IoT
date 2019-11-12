@@ -1,0 +1,41 @@
+﻿@page "/drawer"
+
+@using System
+@using Microsoft.AspNetCore.Components;
+
+<div class="@_divClass">
+    <div class="top-row px-4">
+        <div class="header ">@HeaderText</div>
+    </div>
+    <a aria-label="closePanel" href="javascript: void(0)" @onclick="@(() => closeContextPanel())" class="@_closeIcon"></a>
+    @ChildContent
+</div>
+
+@code {
+
+    [Parameter]
+    public string HeaderText { get; set; }
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    [Parameter]
+    public Object ObjectData { get; set; }
+
+    [Parameter]
+    public Action CloseDrawer { get; set; }
+
+    private string _divClass { get; set; } = "drawer";
+    private string _closeIcon { get; set; } = "oi oi-x closebtn";
+
+    protected override void OnInitialized() {
+        _divClass = "drawer drawer-right-open";
+        _closeIcon = "oi oi-x closebtn";
+    }
+
+    public void closeContextPanel() {
+        _divClass = "drawer drawer-close";
+        _closeIcon = string.Empty;
+        CloseDrawer.Invoke();
+    }
+}

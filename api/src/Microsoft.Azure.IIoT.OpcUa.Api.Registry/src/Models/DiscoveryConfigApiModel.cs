@@ -84,13 +84,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         public List<string> Locales { get; set; }
 
         /// <summary>
-        /// Callbacks to invoke once onboarding finishes
-        /// </summary>
-        [JsonProperty(PropertyName = "callbacks",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public List<CallbackApiModel> Callbacks { get; set; }
-
-        /// <summary>
         /// Activate all endpoints with this filter during onboarding.
         /// </summary>
         [JsonProperty(PropertyName = "activationFilter",

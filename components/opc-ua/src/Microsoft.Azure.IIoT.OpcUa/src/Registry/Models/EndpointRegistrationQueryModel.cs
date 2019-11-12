@@ -16,11 +16,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public string Url { get; set; }
 
         /// <summary>
-        /// Type of credential to use for authentication
-        /// </summary>
-        public CredentialType? UserAuthentication { get; set; }
-
-        /// <summary>
         /// Certificate of the endpoint
         /// </summary>
         public byte[] Certificate { get; set; }

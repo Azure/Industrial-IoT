@@ -14,7 +14,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
     using Microsoft.Azure.IIoT.Services.Auth;
     using Microsoft.Azure.IIoT.Services.Auth.Clients;
     using Microsoft.Azure.IIoT.Services.Cors;
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Http.Auth;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Hub.Client;
@@ -22,6 +22,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
     using Microsoft.Azure.IIoT.Messaging.Default;
     using Microsoft.Azure.IIoT.Messaging.ServiceBus.Clients;
     using Microsoft.Azure.IIoT.Messaging.ServiceBus.Services;
+    using Microsoft.Azure.IIoT.Messaging.SignalR.Services;
     using Microsoft.Azure.IIoT.Storage.CosmosDb.Services;
     using Microsoft.Azure.IIoT.Storage.Default;
     using Microsoft.Extensions.Configuration;
@@ -31,7 +32,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
     using Microsoft.AspNetCore.Hosting;
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
-    using AutofacSerilogIntegration;
     using Newtonsoft.Json;
     using Swashbuckle.AspNetCore.Swagger;
     using System;
@@ -186,12 +186,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
             builder.RegisterInstance(Config.Configuration)
                 .AsImplementedInterfaces().SingleInstance();
 
-            // Register logger
-            builder.RegisterLogger(LogEx.ApplicationInsights(Config, Config.Configuration));
-
-            // Register metrics logger
-            builder.RegisterType<MetricLogger>()
-                .AsImplementedInterfaces().SingleInstance();
+            // Add diagnostics based on configuration
+            builder.AddDiagnostics(Config);
 
             // CORS setup
             builder.RegisterType<CorsSetup>()
@@ -199,15 +195,11 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
 
             // Register http client module
             builder.RegisterModule<HttpClientModule>();
-            // ... with bearer auth
-            if (Config.AuthRequired) {
-                builder.RegisterType<BehalfOfTokenProvider>()
-                    .AsImplementedInterfaces().SingleInstance();
-                builder.RegisterType<DistributedTokenCache>()
-                    .AsImplementedInterfaces().SingleInstance();
-                builder.RegisterType<HttpBearerAuthentication>()
-                    .AsImplementedInterfaces().SingleInstance();
-            }
+
+            builder.RegisterType<HttpBearerAuthentication>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<PassThroughTokenProvider>()
+                .AsImplementedInterfaces().SingleInstance();
 
             // Iot hub services
             builder.RegisterType<IoTHubServiceHttpClient>()
@@ -225,6 +217,13 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
             builder.RegisterType<ServiceBusClientFactory>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<ServiceBusEventBus>()
+                .AsImplementedInterfaces().SingleInstance();
+            // And signalr host for api registration
+            builder.RegisterType<SignalRServiceHost>()
+                .AsImplementedInterfaces().SingleInstance();
+            // ... and auto start
+            builder.RegisterType<HostAutoStart>()
+                .AutoActivate()
                 .AsImplementedInterfaces().SingleInstance();
 
             // Cosmos db collection as storage

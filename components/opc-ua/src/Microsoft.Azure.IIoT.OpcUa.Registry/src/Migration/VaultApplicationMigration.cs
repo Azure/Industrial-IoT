@@ -29,7 +29,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Migration {
         /// <param name="configuration"></param>
         /// <param name="logger"></param>
         public VaultApplicationMigration(IApplicationRepository repo,
-            IDatabaseServer db, IConfigurationRoot configuration, ILogger logger) {
+            IDatabaseServer db, IConfiguration configuration, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _repo = repo ?? throw new ArgumentNullException(nameof(repo));
 

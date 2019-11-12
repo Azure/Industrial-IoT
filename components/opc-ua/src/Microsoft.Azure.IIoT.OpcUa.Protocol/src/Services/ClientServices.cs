@@ -34,7 +34,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="logger"></param>
         /// <param name="maxOpTimeout"></param>
         public ClientServices(ILogger logger, TimeSpan? maxOpTimeout = null) :
-            this (logger, new ClientServicesConfig(), maxOpTimeout) {
+            this (logger, new ClientServicesConfigOld(), maxOpTimeout) {
         }
 
         /// <summary>
@@ -43,7 +43,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="logger"></param>
         /// <param name="configuration"></param>
         /// <param name="maxOpTimeout"></param>
-        public ClientServices(ILogger logger, IClientServicesConfig configuration,
+        public ClientServices(ILogger logger, IClientServicesConfigOld configuration,
             TimeSpan? maxOpTimeout = null) {
 
             _logger = logger ??
@@ -459,7 +459,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         StorePath = _configuration.RejectedCertPath
                     },
                     NonceLength = 32,
-                    AutoAcceptUntrustedCertificates = _configuration.AutoAccept,
+                    AutoAcceptUntrustedCertificates = _configuration.AutoAcceptUntrustedCertificates,
                     RejectSHA1SignedCertificates = false,
                     AddAppCertToTrustedStore = false,
                     MinimumCertificateKeySize = 1024
@@ -700,13 +700,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         private const int kMaxDiscoveryAttempts = 3;
         private readonly ILogger _logger;
         private readonly TimeSpan? _maxOpTimeout;
-        private readonly IClientServicesConfig _configuration;
+        private readonly IClientServicesConfigOld _configuration;
         private readonly ApplicationConfiguration _opcApplicationConfig;
         private readonly Dictionary<EndpointIdentifier, IClientSession> _clients =
             new Dictionary<EndpointIdentifier, IClientSession>();
         private readonly ConcurrentDictionary<EndpointIdentifier, Func<EndpointConnectivityState, Task>> _callbacks =
             new ConcurrentDictionary<EndpointIdentifier, Func<EndpointConnectivityState, Task>>();
-        private readonly SemaphoreSlim _lock = new SemaphoreSlim(1);
+        private readonly SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
 #pragma warning disable IDE0069 // Disposable fields should be disposed
         private readonly CancellationTokenSource _cts =
             new CancellationTokenSource();

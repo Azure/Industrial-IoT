@@ -42,11 +42,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <returns></returns>
         private Func<Stream, IEncodeable> CreateDecoder(string contentType) {
             switch (contentType.ToLowerInvariant()) {
-                case ContentEncodings.MimeTypeUaXml:
+                case ContentMimeType.UaXml:
                     throw new NotSupportedException();
-                case ContentEncodings.MimeTypeUaJson:
-                case ContentEncodings.MimeTypeUaNonReversibleJson:
-                case ContentEncodings.MimeTypeUaNonReversibleJsonReference:
+                case ContentMimeType.UaJson:
+                case ContentMimeType.UaNonReversibleJson:
+                case ContentMimeType.UaNonReversibleJsonReference:
                     throw new NotSupportedException();
                 default:
                     return stream => DecodeBinaryMessage(stream, _context);
@@ -60,15 +60,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <returns></returns>
         private Action<IEncodeable, Stream> CreateEncoder(string contentType) {
             switch (contentType.ToLowerInvariant()) {
-                case ContentEncodings.MimeTypeUaJson:
+                case ContentMimeType.UaJson:
                     throw new NotSupportedException();
-                case ContentEncodings.MimeTypeUaNonReversibleJson:
+                case ContentMimeType.UaNonReversibleJson:
                     throw new NotSupportedException();
-                case ContentEncodings.MimeTypeUaJsonReference:
+                case ContentMimeType.UaJsonReference:
                     throw new NotSupportedException();
-                case ContentEncodings.MimeTypeUaNonReversibleJsonReference:
+                case ContentMimeType.UaNonReversibleJsonReference:
                     throw new NotSupportedException();
-                case ContentEncodings.MimeTypeUaXml:
+                case ContentMimeType.UaXml:
                     throw new NotSupportedException();
                 default:
                     return (encodeable, stream) => EncodeBinaryMessage(

@@ -26,7 +26,6 @@ jobs:
     matrix: $[ dependencies.imagesprep.outputs['acrmatrix.acrMatrix'] ]
   variables:
     skipComponentGovernanceDetection: true
-    PROJECT_BUILD: ${{ parameters.useNugets }}
   steps:
   - task: PowerShell@2
     displayName: Versioning
@@ -47,4 +46,4 @@ jobs:
       azureSubscription: azureiiot
       scriptLocation: inlineScript
       inlineScript: powershell ./tools/scripts/acr-build.ps1 $(dockerFolder) -debug
-      
+

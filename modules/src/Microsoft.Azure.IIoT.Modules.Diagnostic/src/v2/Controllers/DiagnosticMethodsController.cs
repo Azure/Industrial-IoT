@@ -26,7 +26,7 @@ namespace Microsoft.Azure.IIoT.Modules.Diagnostic.v2.Supervisor {
         /// </summary>
         /// <param name="publisher"></param>
         /// <param name="logger"></param>
-        public DiagnosticMethodsController(IPublisher publisher, ILogger logger) {
+        public DiagnosticMethodsController(ITelemetrySender publisher, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _publisher = publisher ?? throw new ArgumentNullException(nameof(publisher));
         }
@@ -68,6 +68,6 @@ namespace Microsoft.Azure.IIoT.Modules.Diagnostic.v2.Supervisor {
         }
 
         private readonly ILogger _logger;
-        private readonly IPublisher _publisher;
+        private readonly ITelemetrySender _publisher;
     }
 }

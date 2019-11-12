@@ -181,7 +181,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         private readonly ILogger _logger;
         private readonly IServerFactory _factory;
-        private readonly SemaphoreSlim _lock = new SemaphoreSlim(1);
+        private readonly SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
         private ServerBase _server;
     }
 }

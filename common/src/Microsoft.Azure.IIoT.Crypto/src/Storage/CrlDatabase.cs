@@ -13,7 +13,6 @@ namespace Microsoft.Azure.IIoT.Crypto.Storage {
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -81,17 +80,19 @@ namespace Microsoft.Azure.IIoT.Crypto.Storage {
 
         /// <inheritdoc/>
         public async Task StartAsync() {
-            if (_cacheManager != null) {
-                throw new InvalidOperationException("Already started");
-            }
             await _lock.WaitAsync();
             try {
-                if (_cacheManager == null) {
-                    _cts = new CancellationTokenSource();
-                    _cacheManager = Task.Run(() => ManageCacheAsync(_cts.Token));
-                    return;
+                if (_cacheManager != null) {
+                    _logger.Debug("Cache manager host already running.");
                 }
-                throw new InvalidOperationException("Already started");
+                _logger.Debug("Starting cache manager host...");
+                _cts = new CancellationTokenSource();
+                _cacheManager = Task.Run(() => ManageCacheAsync(_cts.Token));
+                _logger.Information("Cache manager host started.");
+            }
+            catch (Exception ex) {
+                _logger.Error(ex, "Failed to start cache manager host.");
+                throw ex;
             }
             finally {
                 _lock.Release();
@@ -100,15 +101,17 @@ namespace Microsoft.Azure.IIoT.Crypto.Storage {
 
         /// <inheritdoc/>
         public async Task StopAsync() {
-            if (_cacheManager == null) {
-                return;
-            }
             await _lock.WaitAsync();
             try {
                 _cts?.Cancel();
                 if (_cacheManager != null) {
+                    _logger.Debug("Stopping cache manager host...");
                     await Try.Async(() => _cacheManager);
+                    _logger.Information("Cache manager host stopped.");
                 }
+            }
+            catch (Exception ex) {
+                _logger.Warning(ex, "Failed to stop cache manager host.");
             }
             finally {
                 _cacheManager = null;
@@ -219,7 +222,7 @@ namespace Microsoft.Azure.IIoT.Crypto.Storage {
         private readonly IDocuments _crls;
         private readonly ICrlFactory _factory;
         private readonly ICertificateStore _certificates;
-        private readonly SemaphoreSlim _lock = new SemaphoreSlim(1);
+        private readonly SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
         private CancellationTokenSource _cts;
         private Task _cacheManager;
     }

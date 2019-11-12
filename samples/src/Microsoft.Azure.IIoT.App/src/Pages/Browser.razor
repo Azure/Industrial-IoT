@@ -1,0 +1,116 @@
+﻿@page "/browser/{endpointId}"
+@page "/browser/{supervisorId}/{endpointId}"
+@page "/browser/{supervisorId}/{endpointId}/{page}"
+
+
+@using Microsoft.Azure.IIoT.App.Services
+@using Microsoft.Azure.IIoT.App.Components.Pager
+@using Microsoft.Azure.IIoT.App.Data
+@using Microsoft.AspNetCore.Components;
+@using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models;
+
+@inject NavigationManager NavigationManager
+@inject Services.Browser Tree
+
+<h1>Browser</h1>
+
+<div>@supervisorId/@endpointId/@Tree.Path</div>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>NodeId</th>
+            <th>NodeType</th>
+            <th>
+                @if (pagedNodeList.Results.Count > 0)
+                {
+                    if (pagedNodeList.Results[0].parentName != "Root")
+                    {
+                        <a href="javascript: void(0)" @onclick="@(() => GetTreeBackAsync(pagedNodeList.Results[0].nextParentId, pagedNodeList.Results[0].ParentIdList))">
+                            <span class="oi oi-arrow-left"></span>
+                        </a>
+                    }
+                    else
+                    {
+                        if (pagedNodeList.Results[0].supervisorId != null)
+                        {
+                            <a href='endpoint/@pagedNodeList.Results[0].supervisorId'>
+                                <span class="oi oi-arrow-left"></span>
+                            </a>
+                        }
+                    }
+                }
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var node in pagedNodeList.Results)
+        {
+        <tr>
+            <td>@node.nodeName</td>
+            <td>@node.Id</td>
+            @if (node.children == true)
+            {
+                <td>
+                    <a href="javascript: void(0)" @onclick="@(() => GetTreeAsync(node.Id, node.ParentIdList))">
+                        @node.NodeClass
+                    </a>
+                </td>
+            }
+            else
+            {
+                <td>@node.NodeClass</td>
+            }
+        </tr>
+
+        }
+    </tbody>
+</table>
+
+<Pager Result=@NodeList PageChanged=@((Page) => PagerPageChanged(Page)) />
+
+
+@code {
+
+    [Parameter]
+    public string supervisorId { get; set; } = string.Empty;
+
+    [Parameter]
+    public string endpointId { get; set; } = "uat2a0ca049f2a8cfd99f2b0b972281b40baf6bb378";
+
+    [Parameter]
+    public string Page { get; set; } = "1";
+
+    PagedResult<ListNode> NodeList = new PagedResult<ListNode>();
+    PagedResult<ListNode> pagedNodeList = new PagedResult<ListNode>();
+
+    public void PagerPageChanged(int page)
+    {
+        pagedNodeList = NodeList.GetPaged(page, 10);
+        NavigationManager.NavigateTo("/browser/" + supervisorId + "/" + endpointId + "/" + page);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetTree(string.Empty, new List<string>(), BrowseDirection.Forward);
+    }
+
+    private async Task GetTreeAsync(string id, List<string> parentId)
+    {
+        await GetTree(id, parentId, BrowseDirection.Forward);
+    }
+
+    private async Task GetTreeBackAsync(string id, List<string> parentId)
+    {
+        await GetTree(id, parentId, BrowseDirection.Backward);
+        NavigationManager.NavigateTo("/browser/" + supervisorId + "/" +endpointId);
+    }
+
+    private async Task GetTree(String id, List<string> parentId, BrowseDirection direction )
+    {
+        NodeList = await Tree.GetTreeAsync(endpointId, id, parentId, supervisorId, direction);
+        Page = "1";
+        pagedNodeList = NodeList.GetPaged(Int32.Parse(Page), 10);
+    }
+}

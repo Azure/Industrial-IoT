@@ -37,7 +37,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.Equal("i=84", results.Node.NodeId);
             Assert.Equal("Root", results.Node.DisplayName);
             Assert.Equal(true, results.Node.Children);
-            Assert.NotNull(results.Node.Description);
+            Assert.Null(results.Node.Description);
             Assert.Null(results.Node.AccessRestrictions);
             Assert.Null(results.ContinuationToken);
             Assert.Collection(results.References,
@@ -85,7 +85,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.Equal("i=84", results.Node.NodeId);
             Assert.Equal("Root", results.Node.DisplayName);
             Assert.Equal(true, results.Node.Children);
-            Assert.NotNull(results.Node.Description);
+            Assert.Null(results.Node.Description);
             Assert.Null(results.Node.AccessRestrictions);
             Assert.Null(results.ContinuationToken);
             Assert.Collection(results.References,
@@ -134,7 +134,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.Equal("i=84", results.Node.NodeId);
             Assert.Equal("Root", results.Node.DisplayName);
             Assert.Equal(true, results.Node.Children);
-            Assert.NotNull(results.Node.Description);
+            Assert.Null(results.Node.Description);
             Assert.Null(results.Node.AccessRestrictions);
 
             Assert.NotNull(results.ContinuationToken);
@@ -166,7 +166,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.Equal("i=84", results.Node.NodeId);
             Assert.Equal("Root", results.Node.DisplayName);
             Assert.Equal(true, results.Node.Children);
-            Assert.NotNull(results.Node.Description);
+            Assert.Null(results.Node.Description);
             Assert.Null(results.Node.AccessRestrictions);
 
             Assert.NotNull(results.ContinuationToken);
@@ -2156,7 +2156,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Header = new RequestHeaderModel {
                         Diagnostics = new DiagnosticsModel {
                             AuditId = nameof(NodeBrowseDiagnosticsStatusTestAsync),
-                            TimeStamp = System.DateTime.Now,
+                            TimeStamp = DateTime.Now,
                             Level = DiagnosticsLevel.Status
                         }
                     },

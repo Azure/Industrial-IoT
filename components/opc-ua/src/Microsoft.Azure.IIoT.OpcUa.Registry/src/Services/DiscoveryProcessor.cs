@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
     using Microsoft.Azure.IIoT.Http;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
-    using Newtonsoft.Json.Linq;
     using Serilog;
     using System;
     using System.Collections.Generic;
@@ -16,7 +15,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
     /// <summary>
     /// Processes the discovery results received from edge application discovery
     /// </summary>
-    public sealed class DiscoveryProcessor : IDiscoveryProcessor {
+    public sealed class DiscoveryProcessor : IDiscoveryResultProcessor {
 
         /// <summary>
         /// Create registry services
@@ -64,16 +63,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                     result.DiscoveryConfig = supervisor.DiscoveryConfig;
                 }
                 else {
-                    if (supervisor.DiscoveryConfig?.Callbacks != null) {
-                        if (result.DiscoveryConfig.Callbacks == null) {
-                            result.DiscoveryConfig.Callbacks =
-                                supervisor.DiscoveryConfig.Callbacks;
-                        }
-                        else {
-                            result.DiscoveryConfig.Callbacks.AddRange(
-                                supervisor.DiscoveryConfig.Callbacks);
-                        }
-                    }
                     if (result.DiscoveryConfig.ActivationFilter == null) {
                         // Use global activation filter
                         result.DiscoveryConfig.ActivationFilter =
@@ -85,46 +74,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 await _applications.ProcessDiscoveryEventsAsync(siteId, supervisorId, result, events);
 
                 // Notify callbacks
-                await CallDiscoveryCallbacksAsync(siteId, supervisorId, result, null);
+                // await CallDiscoveryCallbacksAsync(siteId, supervisorId, result, null);
             }
             catch (Exception ex) {
                 // Notify callbacks
-                await CallDiscoveryCallbacksAsync(siteId, supervisorId, result, ex);
+                // await CallDiscoveryCallbacksAsync(siteId, supervisorId, result, ex);
                 throw ex;
-            }
-        }
-
-        /// <summary>
-        /// Notify discovery / registration callbacks
-        /// </summary>
-        /// <param name="siteId"></param>
-        /// <param name="supervisorId"></param>
-        /// <param name="result"></param>
-        /// <param name="exception"></param>
-        /// <returns></returns>
-        private async Task CallDiscoveryCallbacksAsync(string siteId,
-            string supervisorId, DiscoveryResultModel result, Exception exception) {
-            try {
-                var callbacks = result?.DiscoveryConfig?.Callbacks;
-                if (callbacks == null || callbacks.Count == 0) {
-                    return;
-                }
-                await _client.CallAsync(JToken.FromObject(
-                    new {
-                        id = result.Id,
-                        supervisorId,
-                        siteId = siteId ?? supervisorId,
-                        result = new {
-                            config = result.DiscoveryConfig,
-                            diagnostics = exception != null ?
-                                JToken.FromObject(exception) : result.Diagnostics
-                        }
-                    }),
-                    callbacks.ToArray());
-            }
-            catch (Exception ex) {
-                _logger.Debug(ex, "Failed to notify callbacks. Continue...");
-                // Continue...
             }
         }
 

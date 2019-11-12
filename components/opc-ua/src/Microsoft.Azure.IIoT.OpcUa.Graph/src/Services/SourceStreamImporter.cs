@@ -35,13 +35,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Services {
         /// <inheritdoc/>
         public async Task<BlobDisposition> ProcessAsync(Stream stream,
             IDictionary<string, string> properties, CancellationToken ct) {
-            if (!properties.TryGetValue(CommonProperties.kDeviceId, out var sourceId)) {
+            if (!properties.TryGetValue(CommonProperties.DeviceId, out var sourceId)) {
                 _logger.Error("Missing sourceId information in stream properties");
                 return BlobDisposition.Delete;
             }
-            if (!properties.TryGetValue(CommonProperties.kContentType, out var contentType)) {
+            if (!properties.TryGetValue(CommonProperties.EventSchemaType, out var contentType)) {
                 // Use default encoding
-                contentType = ContentEncodings.MimeTypeUaJson;
+                contentType = ContentMimeType.UaJson;
             }
             await ImportAsync(stream, sourceId, contentType, properties, ct);
             return BlobDisposition.Delete;
@@ -65,7 +65,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Services {
             if (contentType == null) {
                 throw new ArgumentNullException(nameof(contentType));
             }
-            if (contentType != ContentEncodings.MimeTypeUaJson) {
+            if (contentType != ContentMimeType.UaJson) {
                 throw new ArgumentException(nameof(contentType));
             }
 

@@ -2397,7 +2397,7 @@ namespace Reference {
 
         private object GetNewValue(BaseVariableState variable) {
             if (_generator == null) {
-                _generator = new Opc.Ua.Test.DataGenerator(null) {
+                _generator = new Opc.Ua.Test.TestDataGenerator() {
                     BoundaryValueFrequency = 0
                 };
             }
@@ -2487,7 +2487,7 @@ namespace Reference {
         }
 
         private readonly ReferenceServerConfiguration _configuration;
-        private Opc.Ua.Test.DataGenerator _generator;
+        private Opc.Ua.Test.TestDataGenerator _generator;
         private Timer _simulationTimer;
         private ushort _simulationInterval = 1000;
         private bool _simulationEnabled = true;

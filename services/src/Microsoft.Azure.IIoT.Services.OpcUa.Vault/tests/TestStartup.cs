@@ -4,14 +4,12 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
-    using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Extensions.Configuration;
     using Microsoft.AspNetCore;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Mvc.Testing;
     using Autofac;
     using System.Net.Http;
-    using System.Threading.Tasks;
 
     /// <summary>
     /// Startup class for tests
@@ -29,25 +27,14 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
 
         /// <inheritdoc/>
         public override void ConfigureContainer(ContainerBuilder builder) {
-            base.ConfigureContainer(builder);
-
-            builder.RegisterType<JsonVariantEncoder>()
+            // Register service info and configuration interfaces
+            builder.RegisterInstance(ServiceInfo)
                 .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<MockHost>()
+            builder.RegisterInstance(Config)
                 .AsImplementedInterfaces().SingleInstance();
-        }
 
-        public class MockHost : IHost {
-
-            /// <inheritdoc/>
-            public Task StartAsync() {
-                return Task.CompletedTask;
-            }
-
-            /// <inheritdoc/>
-            public Task StopAsync() {
-                return Task.CompletedTask;
-            }
+            // Add diagnostics based on configuration
+            builder.AddDiagnostics(Config);
         }
     }
 

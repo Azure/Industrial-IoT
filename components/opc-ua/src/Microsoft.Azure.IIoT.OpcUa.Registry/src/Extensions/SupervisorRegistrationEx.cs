@@ -11,7 +11,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     using System.Collections.Generic;
 
     /// <summary>
-    /// Endpoint registration extensions
+    /// Twin registration extensions
     /// </summary>
     public static class SupervisorRegistrationEx {
 
@@ -52,15 +52,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             if (update?.SiteOrSupervisorId != existing?.SiteOrSupervisorId) {
                 twin.Tags.Add(nameof(SupervisorRegistration.SiteOrSupervisorId),
                     update?.SiteOrSupervisorId);
-            }
-
-            var cbUpdate = update?.DiscoveryCallbacks?.DecodeAsList()?.SetEqualsSafe(
-                existing?.DiscoveryCallbacks?.DecodeAsList(),
-                    (callback1, callback2) => callback1.IsSameAs(callback2));
-            if (!(cbUpdate ?? true)) {
-                twin.Tags.Add(nameof(SupervisorRegistration.DiscoveryCallbacks),
-                    update?.DiscoveryCallbacks == null ?
-                    null : JToken.FromObject(update.DiscoveryCallbacks));
             }
 
             var policiesUpdate = update?.SecurityPoliciesFilter.DecodeAsList().SequenceEqualsSafe(
@@ -164,7 +155,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             }
 
             if (update?.SiteId != existing?.SiteId) {
-                twin.Properties.Desired.Add(TwinProperty.kSiteId, update?.SiteId);
+                twin.Properties.Desired.Add(TwinProperty.SiteId, update?.SiteId);
             }
 
             twin.Tags.Add(nameof(SupervisorRegistration.DeviceType), update?.DeviceType);
@@ -203,8 +194,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     tags.GetValueOrDefault<DateTime>(nameof(SupervisorRegistration.NotSeenSince), null),
                 Thumbprint =
                     tags.GetValueOrDefault<string>(nameof(SupervisorRegistration.Thumbprint), null),
-                DiscoveryCallbacks =
-                    tags.GetValueOrDefault<Dictionary<string, CallbackModel>>(nameof(SupervisorRegistration.DiscoveryCallbacks), null),
                 SecurityModeFilter =
                     tags.GetValueOrDefault<SecurityMode>(nameof(SupervisorRegistration.SecurityModeFilter), null),
                 SecurityPoliciesFilter =
@@ -217,7 +206,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 Certificate =
                     properties.GetValueOrDefault<Dictionary<string, string>>(nameof(SupervisorRegistration.Certificate), null),
                 LogLevel =
-                    properties.GetValueOrDefault<SupervisorLogLevel>(nameof(SupervisorRegistration.LogLevel), null),
+                    properties.GetValueOrDefault<TraceLogLevel>(nameof(SupervisorRegistration.LogLevel), null),
                 Discovery =
                     properties.GetValueOrDefault(nameof(SupervisorRegistration.Discovery), DiscoveryMode.Off),
                 AddressRangesToScan =
@@ -242,11 +231,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     properties.GetValueOrDefault<Dictionary<string, string>>(nameof(SupervisorRegistration.Locales), null),
 
                 SiteId =
-                    properties.GetValueOrDefault<string>(TwinProperty.kSiteId, null),
+                    properties.GetValueOrDefault<string>(TwinProperty.SiteId, null),
                 Connected = connected ??
-                    properties.GetValueOrDefault(TwinProperty.kConnected, false),
+                    properties.GetValueOrDefault(TwinProperty.Connected, false),
                 Type =
-                    properties.GetValueOrDefault<string>(TwinProperty.kType, null)
+                    properties.GetValueOrDefault<string>(TwinProperty.Type, null)
             };
             return registration;
         }
@@ -341,8 +330,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 IdleTimeBetweenScans = model.DiscoveryConfig?.IdleTimeBetweenScans,
                 MinPortProbesPercent = model.DiscoveryConfig?.MinPortProbesPercent,
                 Certificate = model.Certificate?.EncodeAsDictionary(),
-                DiscoveryCallbacks = model.DiscoveryConfig?.Callbacks.
-                    EncodeAsDictionary(),
                 SecurityModeFilter = model.DiscoveryConfig?.ActivationFilter?.
                     SecurityMode,
                 TrustListsFilter = model.DiscoveryConfig?.ActivationFilter?.
@@ -392,7 +379,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 registration.MaxPortProbes == null &&
                 registration.MinPortProbesPercent == null &&
                 registration.PortProbeTimeout == null &&
-                (registration.DiscoveryCallbacks == null || registration.DiscoveryCallbacks.Count == 0) &&
                 (registration.DiscoveryUrls == null || registration.DiscoveryUrls.Count == 0) &&
                 (registration.Locales == null || registration.Locales.Count == 0) &&
                 registration.IdleTimeBetweenScans == null) {
@@ -416,7 +402,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 MinPortProbesPercent = registration.MinPortProbesPercent,
                 PortProbeTimeout = registration.PortProbeTimeout,
                 IdleTimeBetweenScans = registration.IdleTimeBetweenScans,
-                Callbacks = registration.DiscoveryCallbacks?.DecodeAsList(),
                 DiscoveryUrls = registration.DiscoveryUrls?.DecodeAsList(),
                 Locales = registration.Locales?.DecodeAsList(),
                 ActivationFilter = registration.ToFilterModel()

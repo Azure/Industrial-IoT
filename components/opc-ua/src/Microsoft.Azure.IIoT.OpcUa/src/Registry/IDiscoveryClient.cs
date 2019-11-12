@@ -21,7 +21,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// <param name="ct"></param>
         /// <returns></returns>
         Task DiscoverAsync(string supervisorId,
-            DiscoveryRequestModel request,
-            CancellationToken ct = default);
+            DiscoveryRequestModel request, CancellationToken ct = default);
+
+        /// <summary>
+        /// Cancel discovery request
+        /// </summary>
+        /// <param name="supervisorId"></param>
+        /// <param name="request"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task CancelAsync(string supervisorId,
+            DiscoveryCancelModel request, CancellationToken ct = default);
     }
 }

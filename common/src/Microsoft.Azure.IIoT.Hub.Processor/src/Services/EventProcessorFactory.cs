@@ -24,8 +24,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
         /// </summary>
         /// <param name="handler"></param>
         /// <param name="logger"></param>
-        public EventProcessorFactory(IEventHandler handler,
-            ILogger logger) {
+        public EventProcessorFactory(IEventHandler handler, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _handler = handler ?? throw new ArgumentNullException(nameof(handler));
         }
@@ -61,6 +60,11 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
                 foreach (var eventData in messages) {
                     var properties = new EventProperties(eventData.SystemProperties,
                         eventData.Properties);
+                    if (eventData.Body.Array == null) {
+                        _logger.Verbose("WARNING: Received empty message with properties {@properties}",
+                            properties);
+                        continue;
+                    }
                     await _factory._handler.HandleAsync(eventData.Body.Array, properties,
                         () => Try.Async(() => context.CheckpointAsync(eventData)));
                 }

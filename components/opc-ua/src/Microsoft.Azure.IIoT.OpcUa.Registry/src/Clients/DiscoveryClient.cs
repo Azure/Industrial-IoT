@@ -5,10 +5,10 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
-    using Serilog;
     using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.Hub;
     using Newtonsoft.Json;
+    using Serilog;
     using System;
     using System.Threading.Tasks;
     using System.Diagnostics;
@@ -35,7 +35,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            await CallServiceOnSupervisor(supervisorId, "Discover_V2", request, ct);
+            await CallServiceOnSupervisorAsync(supervisorId, "Discover_V2", request, ct);
+        }
+
+        /// <inhertitdoc/>
+        public async Task CancelAsync(string supervisorId,
+            DiscoveryCancelModel request, CancellationToken ct) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            await CallServiceOnSupervisorAsync(supervisorId, "Cancel_V2", request, ct);
         }
 
         /// <summary>
@@ -47,7 +56,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        private async Task CallServiceOnSupervisor<T>(string supervisorId,
+        private async Task CallServiceOnSupervisorAsync<T>(string supervisorId,
             string service, T request, CancellationToken ct) {
             if (string.IsNullOrEmpty(supervisorId)) {
                 throw new ArgumentNullException(nameof(supervisorId));

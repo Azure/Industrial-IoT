@@ -8,7 +8,6 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery.v2.Models {
     using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;
-    using System.Linq;
 
     /// <summary>
     /// Discovery configuration
@@ -36,9 +35,6 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery.v2.Models {
             MaxPortProbes = model.MaxPortProbes;
             MinPortProbesPercent = model.MinPortProbesPercent;
             IdleTimeBetweenScans = IdleTimeBetweenScans;
-            Callbacks = model.Callbacks?
-                .Select(c => c == null ? null : new CallbackApiModel(c))
-                .ToList();
             DiscoveryUrls = model.DiscoveryUrls;
             Locales = model.Locales;
             ActivationFilter = model.ActivationFilter == null ? null :
@@ -60,10 +56,6 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery.v2.Models {
                 MinPortProbesPercent = MinPortProbesPercent,
                 IdleTimeBetweenScans = IdleTimeBetweenScans,
                 ActivationFilter = ActivationFilter?.ToServiceModel(),
-                Callbacks = Callbacks?
-                    .Where(c => c != null)
-                    .Select(c => c.ToServiceModel())
-                    .ToList(),
                 Locales = Locales,
                 DiscoveryUrls = DiscoveryUrls,
             };
@@ -138,13 +130,6 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery.v2.Models {
         [JsonProperty(PropertyName = "Locales",
             NullValueHandling = NullValueHandling.Ignore)]
         public List<string> Locales { get; set; }
-
-        /// <summary>
-        /// Callbacks to invoke once onboarding finishes
-        /// </summary>
-        [JsonProperty(PropertyName = "Callbacks",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public List<CallbackApiModel> Callbacks { get; set; }
 
         /// <summary>
         /// Activate all twins with this filter during onboarding.

@@ -191,6 +191,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Sample {
                                 SecurityMode = MessageSecurityMode.SignAndEncrypt,
                                 SecurityPolicyUri =
                 "http://opcfoundation.org/UA/SecurityPolicy#Basic256Sha256"
+                            },
+                            new ServerSecurityPolicy {
+                                SecurityMode = MessageSecurityMode.None,
+                                SecurityPolicyUri =
+                                    "http://opcfoundation.org/UA/SecurityPolicy#None"
                             }
                         },
                         UserTokenPolicies = new UserTokenPolicyCollection {

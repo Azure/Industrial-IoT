@@ -34,7 +34,7 @@ namespace Microsoft.Azure.IIoT.Crypto.KeyVault.Runtime {
         /// Configuration constructor
         /// </summary>
         /// <param name="configuration"></param>
-        public KeyVaultConfig(IConfigurationRoot configuration) :
+        public KeyVaultConfig(IConfiguration configuration) :
             base(configuration) {
         }
     }

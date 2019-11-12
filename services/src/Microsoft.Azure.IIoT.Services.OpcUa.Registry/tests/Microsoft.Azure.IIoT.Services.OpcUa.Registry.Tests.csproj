@@ -1,8 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
-    <IsPackable>false</IsPackable>
-  </PropertyGroup>
+   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="2.2.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.3.0" />
@@ -18,20 +17,10 @@
     <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\api\src\Microsoft.Azure.IIoT.Api\src\Microsoft.Azure.IIoT.Api.csproj" />
     <ProjectReference Include="..\src\Microsoft.Azure.IIoT.Services.OpcUa.Registry.csproj" />
   </ItemGroup>
-  <Choose>
-    <When Condition="'$(PROJECT_BUILD)' == ''">
-      <ItemGroup>
-        <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Hub\mock\Microsoft.Azure.IIoT.Hub.Mock.csproj" />
-        <ProjectReference Include="..\..\..\..\api\src\Microsoft.Azure.IIoT.OpcUa.Api\src\Microsoft.Azure.IIoT.OpcUa.Api.csproj" />
-      </ItemGroup>
-    </When>
-    <Otherwise>
-      <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.Hub.Mock" Version="$(ReleaseVersion)" />
-        <PackageReference Include="Microsoft.Azure.IIoT.OpcUa.Api" Version="$(ReleaseVersion)" />
-      </ItemGroup>
-    </Otherwise>
-  </Choose>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Hub.Mock\src\Microsoft.Azure.IIoT.Hub.Mock.csproj" />
+  </ItemGroup>
 </Project>

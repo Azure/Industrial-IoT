@@ -28,6 +28,11 @@ The overall Azure Industrial IOT [architecture](architecture.md) looks like belo
 
 Details on how things work together can be found at [architectural code flow](architecture.md).
 
+The Platform includes several [Azure IoT Edge](https://azure.microsoft.com/services/iot-edge/) modules, which can be [deployed](howto-deploy-modules.md) and used in conjunction with the included cloud services, or standalone with Azure IoT Hub (but with limited functionality).   These include:
+
+- [OPC Publisher](modules/publisher.md)
+- [OPC Twin](modules/twin.md)
+
 ## Deploying Azure Industrial IoT
 
 Deploying Azure Industrial IoT includes deploying the Azure Industrial IoT Microservices to Azure and the corresponding modules to Azure IoT Edge. The following articles provide more information about how to deploy both Microservices and edge modules in addition to their dependencies.

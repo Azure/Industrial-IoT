@@ -31,7 +31,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// <param name="metrics"></param>
         public ApplicationRegistry(IApplicationRepository database,
             IApplicationEndpointRegistry endpoints, IEndpointBulkProcessor bulk,
-            IApplicationEventBroker broker, ILogger logger, IMetricLogger metrics) {
+            IApplicationEventBroker broker, ILogger logger, IMetricsLogger metrics) {
 
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _metrics = metrics ?? throw new ArgumentNullException(nameof(metrics));
@@ -396,7 +396,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
         private readonly IApplicationRepository _database;
         private readonly ILogger _logger;
-        private readonly IMetricLogger _metrics;
+        private readonly IMetricsLogger _metrics;
         private readonly IEndpointBulkProcessor _bulk;
         private readonly IApplicationEndpointRegistry _endpoints;
         private readonly IApplicationEventBroker _broker;

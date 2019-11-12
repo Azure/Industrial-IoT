@@ -58,7 +58,7 @@ namespace Opc.Ua.Nodeset {
         /// </summary>
         /// <param name="context"></param>
         public void ClearModellingRules(ISystemContext context) {
-            if (ModellingRuleId != ObjectIds.ModellingRule_MandatoryShared) {
+            if (ModellingRuleId != 79) { // TODO: Constant
                 ModellingRuleId = null;
             }
             foreach (var child in GetChildren(context).OfType<InstanceNodeModel>()) {

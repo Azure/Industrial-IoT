@@ -12,30 +12,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
     public class ServerRegistrationRequestApiModel {
 
         /// <summary>
+        /// Registration operation id
+        /// </summary>
+        [JsonProperty(PropertyName = "id",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public string Id { get; set; }
+
+        /// <summary>
         /// Discovery url to use for registration
         /// </summary>
         [JsonProperty(PropertyName = "discoveryUrl")]
         public string DiscoveryUrl { get; set; }
 
         /// <summary>
-        /// Registration id
-        /// </summary>
-        [JsonProperty(PropertyName = "id",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public string RegistrationId { get; set; }
-
-        /// <summary>
-        /// Callback
-        /// </summary>
-        [JsonProperty(PropertyName = "callback",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public CallbackApiModel Callback { get; private set; }
-
-        /// <summary>
         /// Upon discovery, activate all endpoints with this filter.
         /// </summary>
         [JsonProperty(PropertyName = "activationFilter",
-           NullValueHandling = NullValueHandling.Ignore)]
+            NullValueHandling = NullValueHandling.Ignore)]
         public EndpointActivationFilterApiModel ActivationFilter { get; set; }
     }
 }

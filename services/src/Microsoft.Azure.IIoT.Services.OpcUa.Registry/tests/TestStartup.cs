@@ -4,17 +4,13 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
-    using Microsoft.Azure.IIoT.Hub.Client;
-    using Microsoft.Azure.IIoT.Utils;
+    using Microsoft.Azure.IIoT.Storage.Default;
     using Microsoft.AspNetCore;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Mvc.Testing;
     using Microsoft.Extensions.Configuration;
     using Autofac;
-    using System;
     using System.Net.Http;
-    using System.Text;
-    using Microsoft.Azure.IIoT.Storage.Default;
 
     /// <summary>
     /// Startup class for tests
@@ -32,19 +28,13 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
 
         /// <inheritdoc/>
         public override void ConfigureContainer(ContainerBuilder builder) {
-            base.ConfigureContainer(builder);
-            builder.RegisterType<TestIoTHubConfig>()
-               .AsImplementedInterfaces().SingleInstance();
+            // Add diagnostics based on configuration
+            builder.AddDiagnostics(Config);
+            // Register service info and configuration interfaces
+            builder.RegisterInstance(ServiceInfo)
+                .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<MemoryDatabase>()
                .AsImplementedInterfaces().SingleInstance();
-        }
-
-        public class TestIoTHubConfig : IIoTHubConfig {
-            public string IoTHubConnString =>
-                ConnectionString.CreateServiceConnectionString(
-                    "test.test.org", "iothubowner", Convert.ToBase64String(
-                        Encoding.UTF8.GetBytes(Guid.NewGuid().ToString()))).ToString();
-            public string IoTHubResourceId => null;
         }
     }
 

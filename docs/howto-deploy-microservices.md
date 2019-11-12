@@ -2,9 +2,23 @@
 
 [Home](readme.md)
 
-This article explains how to deploy the Azure Industrial IoT Microservices in Azure.
+This article explains how to deploy the Azure Industrial IoT Microservices in Azure.  
 
-## Prerequisites
+## Deploy Industrial IoT Microservices to Azure using the Azure Portal
+
+You can deploy from the *master* branch using the Deploy to Azure button:
+
+<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Findustrial-iot%2Fmaster%2Fservices%2Fdeploy%2Fvm%2Fazuredeploy.json" target="_blank">
+    <img src="http://azuredeploy.net/deploybutton.png"/>
+</a>
+
+<a href="http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Findustrial-iot%2Fmaster%2Fservices%2Fdeploy%2Fvm%2Fazuredeploy.json" target="_blank">
+    <img src="http://armviz.io/visualizebutton.png"/>
+</a>
+
+## Deploy Industrial IoT Microservices to Azure using deployment script
+
+### Prerequisites
 
 > [!NOTE]
 > Note: Due to the dependency on the AzureRM module, deployment currently is only supported on Windows.  We will add support for Linux soon.
@@ -23,7 +37,7 @@ This article explains how to deploy the Azure Industrial IoT Microservices in Az
    cd Industrial-IoT
    ```
 
-## Deploy Industrial IoT Microservices to Azure
+### Deploy
 
 1. Open a command prompt or terminal in the repository root and run:
 

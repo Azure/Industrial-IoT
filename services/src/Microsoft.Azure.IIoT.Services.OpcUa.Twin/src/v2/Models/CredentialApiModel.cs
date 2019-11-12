@@ -47,7 +47,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.v2.Models {
         /// </summary>
         [JsonProperty(PropertyName = "type",
             NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(Microsoft.Azure.IIoT.OpcUa.Registry.Models.CredentialType.None)]
+        [DefaultValue(CredentialType.None)]
         public CredentialType? Type { get; set; }
 
         /// <summary>

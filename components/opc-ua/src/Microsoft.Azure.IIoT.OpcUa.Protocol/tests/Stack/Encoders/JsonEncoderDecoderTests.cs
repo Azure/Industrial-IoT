@@ -56,7 +56,7 @@ namespace Opc.Ua.Encoders {
                 LastMethodReturnStatus = new StatusResult(
                     StatusCodes.BadAggregateConfigurationRejected),
                 LastMethodSessionId = new NodeId(
-                    Opc.Ua.Utils.Nonce.CreateNonce(32)),
+                    Utils.Nonce.CreateNonce(32)),
                 LastTransitionTime = DateTime.UtcNow - TimeSpan.FromDays(23)
             };
 

@@ -6,7 +6,7 @@
 namespace Microsoft.Azure.IIoT.Module {
     using Microsoft.Azure.IIoT.Module.Default;
     using Microsoft.Azure.IIoT.Module.Models;
-    using Serilog;
+    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Hub;
     using Newtonsoft.Json;
     using System;
@@ -68,9 +68,9 @@ namespace Microsoft.Azure.IIoT.Module {
             var expectedContentType = fixture.Create<string>();
 
             var expectedRequest = new byte[200000];
-            r.NextBytes(expectedRequest);
+            kR.NextBytes(expectedRequest);
             var expectedResponse = new byte[300000];
-            r.NextBytes(expectedResponse);
+            kR.NextBytes(expectedResponse);
 
             var server = new TestServer(chunkSize, (method, buffer, type) => {
                 Assert.Equal(expectedMethod, method);
@@ -84,18 +84,18 @@ namespace Microsoft.Azure.IIoT.Module {
             Assert.Equal(expectedResponse, result);
         }
 
-        private static readonly Random r = new Random();
+        private static readonly Random kR = new Random();
         public class TestServer : IJsonMethodClient, IMethodHandler {
 
             public TestServer(int size,
                 Func<string, byte[], string, byte[]> handler) {
                 MaxMethodPayloadCharacterCount = size;
                 _handler = handler;
-                _server = new ChunkMethodServer(this, LogEx.Trace());
+                _server = new ChunkMethodServer(this, TraceLogger.Create());
             }
 
             public IMethodClient CreateClient() {
-                return new ChunkMethodClient(this, LogEx.Trace());
+                return new ChunkMethodClient(this, TraceLogger.Create());
             }
 
             public int MaxMethodPayloadCharacterCount { get; }

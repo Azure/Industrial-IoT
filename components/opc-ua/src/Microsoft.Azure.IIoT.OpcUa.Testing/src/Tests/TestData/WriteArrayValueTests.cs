@@ -106,7 +106,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10303";
 
-            var expected = JToken.FromObject(_generator.GetRandomArray<short>(false, 100, false));
+            var expected = JToken.FromObject(_generator.GetRandomArray<short>());
 
             // Act
             var result = await browser.NodeValueWriteAsync(_endpoint,
@@ -126,7 +126,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10304";
 
-            var expected = JToken.FromObject(_generator.GetRandomArray<ushort>(false, 100, false));
+            var expected = JToken.FromObject(_generator.GetRandomArray<ushort>());
 
             // Act
             var result = await browser.NodeValueWriteAsync(_endpoint,
@@ -146,7 +146,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10305";
 
-            var expected = JToken.FromObject(_generator.GetRandomArray<int>(false, 100, false));
+            var expected = JToken.FromObject(_generator.GetRandomArray<int>());
 
             // Act
             var result = await browser.NodeValueWriteAsync(_endpoint,
@@ -166,7 +166,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10306";
 
-            var expected = JToken.FromObject(_generator.GetRandomArray<uint>(false, 100, false));
+            var expected = JToken.FromObject(_generator.GetRandomArray<uint>());
 
             // Act
             var result = await browser.NodeValueWriteAsync(_endpoint,
@@ -186,7 +186,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10307";
 
-            var expected = JToken.FromObject(_generator.GetRandomArray<long>(false, 100, false));
+            var expected = JToken.FromObject(_generator.GetRandomArray<long>());
 
             // Act
             var result = await browser.NodeValueWriteAsync(_endpoint,
@@ -206,7 +206,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10308";
 
-            var expected = JToken.FromObject(_generator.GetRandomArray<ulong>(false, 100, false));
+            var expected = JToken.FromObject(_generator.GetRandomArray<ulong>());
 
             // Act
             var result = await browser.NodeValueWriteAsync(_endpoint,
@@ -312,7 +312,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10311";
 
-            var expected = JToken.FromObject(_generator.GetRandomArray<string>(false, 100, false));
+            var expected = JToken.FromObject(_generator.GetRandomArray<string>());
 
             // Act
             var result = await browser.NodeValueWriteAsync(_endpoint,
@@ -332,7 +332,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10312";
 
-            var expected = JToken.FromObject(_generator.GetRandomArray<DateTime>(false, 100, false));
+            var expected = JToken.FromObject(_generator.GetRandomArray<DateTime>());
 
             // Act
             var result = await browser.NodeValueWriteAsync(_endpoint,
@@ -352,7 +352,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10313";
 
-            var expected = JToken.FromObject(_generator.GetRandomArray<Guid>(false, 100, false));
+            var expected = JToken.FromObject(_generator.GetRandomArray<Guid>());
 
             // Act
             var result = await browser.NodeValueWriteAsync(_endpoint,
@@ -504,7 +504,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10315";
 
-            var expected = JToken.FromObject(_generator.GetRandomArray<XmlElement>(false, 100, false));
+            var expected = JToken.FromObject(_generator.GetRandomArray<XmlElement>());
 
             // Act
             var result = await browser.NodeValueWriteAsync(_endpoint,
@@ -701,7 +701,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var node = "http://test.org/UA/Data/#i=10321";
 
             var encoder = new JsonVariantEncoder();
-            var values = _generator.GetRandomArray<string>(false, 100, false);
+            var values = _generator.GetRandomArray<string>();
             var expected = new JArray(values
                 .Select(delegate (object v) {
                     var body = encoder.Encode(new Variant(v), out var t, null);
@@ -1085,7 +1085,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var node = "http://test.org/UA/Data/#i=10324";
 
             var encoder = new JsonVariantEncoder();
-            var values = _generator.GetRandomArray<sbyte>(false, 100, false);
+            var values = _generator.GetRandomArray<sbyte>();
             var expected = new JArray(values
                 .Select(v => JToken.FromObject(new {
                     Type = "SByte",
@@ -1111,7 +1111,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var node = "http://test.org/UA/Data/#i=10324";
 
             var encoder = new JsonVariantEncoder();
-            var values = _generator.GetRandomArray<sbyte>(false, 100, false);
+            var values = _generator.GetRandomArray<sbyte>();
             var expected = JArray.FromObject(values);
 
             // Act
@@ -1133,7 +1133,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var node = "http://test.org/UA/Data/#i=10325";
 
             var encoder = new JsonVariantEncoder();
-            var values = _generator.GetRandomArray<int>(false, 100, false);
+            var values = _generator.GetRandomArray<int>();
             var expected = new JArray(values
                 .Select(v => JToken.FromObject(new {
                     Type = "Int32",
@@ -1159,7 +1159,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var node = "http://test.org/UA/Data/#i=10325";
 
             var encoder = new JsonVariantEncoder();
-            var values = _generator.GetRandomArray<int>(false, 100, false);
+            var values = _generator.GetRandomArray<int>();
             var expected = new JArray(values);
 
             // Act
@@ -1181,7 +1181,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var node = "http://test.org/UA/Data/#i=10326";
 
             var encoder = new JsonVariantEncoder();
-            var values = _generator.GetRandomArray<ushort>(false, 100, false);
+            var values = _generator.GetRandomArray<ushort>();
             var expected = new JArray(values
                 .Select(v => JToken.FromObject(new {
                     Type = "UInt16",
@@ -1207,7 +1207,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var node = "http://test.org/UA/Data/#i=10326";
 
             var encoder = new JsonVariantEncoder();
-            var values = _generator.GetRandomArray<ushort>(false, 100, false);
+            var values = _generator.GetRandomArray<ushort>();
             var expected = JToken.FromObject(values);
 
             // Act
@@ -1235,7 +1235,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         private readonly T _endpoint;
         private readonly Func<T, string, Task<JToken>> _readExpected;
         private readonly Func<INodeServices<T>> _services;
-        private readonly Opc.Ua.Test.DataGenerator _generator =
-            new Opc.Ua.Test.DataGenerator(null);
+        private readonly Opc.Ua.Test.TestDataGenerator _generator =
+            new Opc.Ua.Test.TestDataGenerator();
     }
 }

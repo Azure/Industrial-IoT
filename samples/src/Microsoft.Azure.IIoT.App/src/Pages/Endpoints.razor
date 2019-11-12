@@ -1,0 +1,109 @@
+﻿@page "/endpoints/{supervisorId}"
+@page "/endpoints/{supervisorId}/{page}"
+
+@using Microsoft.AspNetCore.Components;
+@using Microsoft.Azure.IIoT.App.Services
+@using Microsoft.Azure.IIoT.App.Components.Pager
+@using Microsoft.Azure.IIoT.App.Data
+@using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
+@using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
+
+@inject NavigationManager NavigationManager
+@inject IRegistryServiceApi RegistryService
+@inject Registry RegistryHelper
+
+<h1>Endpoint</h1>
+
+<div>@SupervisorId</div>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>EndpointUrl</th>
+            <th>SecurityMode</th>
+            <th>SecurityPolicy</th>
+            <th>SecurityLevel</th>
+            <th>EndpointActivation</th>
+            <th>
+                <a href="/supervisor/">
+                    <span class="oi oi-arrow-left"></span>
+                </a>
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var endpoint in pagedendpointList.Results) {
+            <tr>
+                @if (endpoint.ActivationState == EndpointActivationState.ActivatedAndConnected) {
+                    <td>
+                        <a href='browser/@SupervisorId/@endpoint.Registration.Id'>
+                            @endpoint.Registration.Endpoint.Url
+                        </a>
+                    </td>
+                }
+                else {
+                    <td>@endpoint.Registration.Endpoint.Url</td>
+                }
+                <td>@endpoint.Registration.Endpoint.SecurityMode</td>
+                <td>@endpoint.Registration.Endpoint.SecurityPolicy</td>
+                <td>@endpoint.Registration.SecurityLevel</td>
+
+                <td>
+                    <input type="checkbox" @bind="@endpoint.ActivationState"
+                           @onclick="@(() => SetActivation(endpoint.Registration.Id,
+                                       endpoint.ActivationState))" />
+                    @endpoint.ActivationState.ToString()
+                </td>
+                <td></td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<Pager Result=@endpointList PageChanged=@((Page) => PagerPageChanged(Page)) />
+
+@code {
+
+    [Parameter]
+    public string Page { get; set; } = "1";
+
+    [Parameter]
+    public string SupervisorId { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Notify page change
+    /// </summary>
+    /// <param name="page"></param>
+    public void PagerPageChanged(int page) {
+        pagedendpointList = endpointList.GetPaged(page, 10);
+        NavigationManager.NavigateTo("/endpoints/" + SupervisorId + "/" + page);
+    }
+
+    /// <inheritdoc/>
+    protected override async Task OnInitializedAsync() {
+        endpointList = await RegistryHelper.GetEndpointListAsync(SupervisorId);
+        Page = "1";
+        pagedendpointList = endpointList.GetPaged(Int32.Parse(Page), 10);
+    }
+
+    /// <summary>
+    /// Activate or deactivate
+    /// </summary>
+    /// <param name="endpointId"></param>
+    /// <param name="isActivated"></param>
+    /// <returns></returns>
+    private async Task SetActivation(string endpointId, EndpointActivationState? state) {
+        if (state == EndpointActivationState.Activated ||
+            state == EndpointActivationState.ActivatedAndConnected) {
+            await RegistryService.DeactivateEndpointAsync(endpointId);
+        }
+        else {
+            await RegistryService.ActivateEndpointAsync(endpointId);
+        }
+    }
+
+    private PagedResult<EndpointInfoApiModel> endpointList =
+        new PagedResult<EndpointInfoApiModel>();
+    private PagedResult<EndpointInfoApiModel> pagedendpointList =
+        new PagedResult<EndpointInfoApiModel>();
+}

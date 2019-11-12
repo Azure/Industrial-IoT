@@ -46,7 +46,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Header = new RequestHeaderModel {
                         Diagnostics = new DiagnosticsModel {
                             AuditId = nameof(NodeReadAllStaticScalarVariableNodeClassTest1Async),
-                            TimeStamp = System.DateTime.Now
+                            TimeStamp = DateTime.Now
                         }
                     },
                     Attributes = attributes
@@ -79,7 +79,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Header = new RequestHeaderModel {
                         Diagnostics = new DiagnosticsModel {
                             AuditId = nameof(NodeReadAllStaticScalarVariableAccessLevelTest1Async),
-                            TimeStamp = System.DateTime.Now
+                            TimeStamp = DateTime.Now
                         }
                     },
                     Attributes = attributes
@@ -112,7 +112,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Header = new RequestHeaderModel {
                         Diagnostics = new DiagnosticsModel {
                             AuditId = nameof(NodeReadAllStaticScalarVariableWriteMaskTest1Async),
-                            TimeStamp = System.DateTime.Now
+                            TimeStamp = DateTime.Now
                         }
                     },
                     Attributes = attributes
@@ -145,7 +145,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Header = new RequestHeaderModel {
                         Diagnostics = new DiagnosticsModel {
                             AuditId = nameof(NodeReadAllStaticScalarVariableWriteMaskTest2Async),
-                            TimeStamp = System.DateTime.Now
+                            TimeStamp = DateTime.Now
                         }
                     },
                     Attributes = attributes
@@ -172,7 +172,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Header = new RequestHeaderModel {
                         Diagnostics = new DiagnosticsModel {
                             AuditId = nameof(NodeReadStaticScalarBooleanValueVariableTestAsync),
-                            TimeStamp = System.DateTime.Now
+                            TimeStamp = DateTime.Now
                         }
                     },
                     NodeId = node
@@ -206,7 +206,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Header = new RequestHeaderModel {
                         Diagnostics = new DiagnosticsModel {
                             AuditId = nameof(NodeReadStaticScalarBooleanValueVariableTestAsync),
-                            TimeStamp = System.DateTime.Now
+                            TimeStamp = DateTime.Now
                         }
                     },
                     NodeId = node,
@@ -238,7 +238,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Header = new RequestHeaderModel {
                         Diagnostics = new DiagnosticsModel {
                             AuditId = nameof(NodeReadStaticScalarBooleanValueVariableTestAsync),
-                            TimeStamp = System.DateTime.Now
+                            TimeStamp = DateTime.Now
                         }
                     },
                     NodeId = node,
@@ -274,7 +274,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Header = new RequestHeaderModel {
                         Diagnostics = new DiagnosticsModel {
                             AuditId = nameof(NodeReadStaticScalarBooleanValueVariableTestAsync),
-                            TimeStamp = System.DateTime.Now
+                            TimeStamp = DateTime.Now
                         }
                     },
                     BrowsePath = path
@@ -368,7 +368,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Header = new RequestHeaderModel {
                         Diagnostics = new DiagnosticsModel {
                             AuditId = nameof(NodeReadStaticScalarUInt16ValueVariableTestAsync),
-                            TimeStamp = System.DateTime.Now
+                            TimeStamp = DateTime.Now
                         }
                     },
                     NodeId = node
@@ -907,7 +907,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Header = new RequestHeaderModel {
                         Diagnostics = new DiagnosticsModel {
                             AuditId = nameof(NodeReadDiagnosticsStatusTestAsync),
-                            TimeStamp = System.DateTime.Now
+                            TimeStamp = DateTime.Now
                         }
                     },
                     NodeId = "http://opcfoundation.org/UA/Boiler/#s=unknown"

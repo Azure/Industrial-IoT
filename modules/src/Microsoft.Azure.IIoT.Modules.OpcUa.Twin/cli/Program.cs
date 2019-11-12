@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Cli {
+    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Client;
@@ -14,6 +15,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Cli {
     using Serilog.Events;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics.Tracing;
     using System.Linq;
     using System.Net;
     using System.Threading;
@@ -43,6 +45,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Cli {
         /// </summary>
         public static void Main(string[] args) {
             var op = Op.None;
+            bool verbose = false;
             string deviceId = null, moduleId = null;
             Console.WriteLine("Twin module command line interface.");
             var configuration = new ConfigurationBuilder()
@@ -57,6 +60,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Cli {
             try {
                 for (var i = 0; i < args.Length; i++) {
                     switch (args[i]) {
+                        case "-v":
+                        case "--verbose":
+                            verbose = true;
+                            break;
                         case "-C":
                         case "--connection-string":
                             i++;
@@ -213,7 +220,7 @@ Options:
             try {
                 switch (op) {
                     case Op.Host:
-                        HostAsync(config, deviceId, moduleId, args).Wait();
+                        HostAsync(config, deviceId, moduleId, verbose).Wait();
                         break;
                     case Op.Add:
                         AddAsync(config, deviceId, moduleId).Wait();
@@ -259,17 +266,26 @@ Options:
         /// Host the supervisor module giving it its connection string.
         /// </summary>
         private static async Task HostAsync(IIoTHubConfig config,
-            string deviceId, string moduleId, string[] args) {
+            string deviceId, string moduleId, bool verbose = false) {
             Console.WriteLine("Create or retrieve connection string...");
-            var logger = LogEx.Console(LogEventLevel.Error);
+            var logger = ConsoleLogger.Create(LogEventLevel.Error);
             var cs = await Retry.WithExponentialBackoff(logger,
                 () => AddOrGetAsync(config, deviceId, moduleId));
-            Console.WriteLine("Starting twin module...");
-            var arguments = new List<string> {
-                $"EdgeHubConnectionString={cs}"
-            };
-            Twin.Program.Main(arguments.ToArray());
-            Console.WriteLine("Twin module exited.");
+
+            // Hook event source
+            using (var broker = new EventSourceBroker()) {
+                LogControl.Level.MinimumLevel = verbose ?
+                    LogEventLevel.Verbose : LogEventLevel.Information;
+
+                Console.WriteLine("Starting publisher module...");
+                broker.Subscribe(IoTSdkLogger.EventSource, new IoTSdkLogger(logger));
+                Console.WriteLine("Starting twin module...");
+                var arguments = new List<string> {
+                    $"EdgeHubConnectionString={cs}"
+                };
+                Twin.Program.Main(arguments.ToArray());
+                Console.WriteLine("Twin module exited.");
+            }
         }
 
         /// <summary>
@@ -277,7 +293,7 @@ Options:
         /// </summary>
         private static async Task GetAsync(
             IIoTHubConfig config, string deviceId, string moduleId) {
-            var logger = LogEx.Console(LogEventLevel.Error);
+            var logger = ConsoleLogger.Create(LogEventLevel.Error);
             var registry = new IoTHubServiceHttpClient(new HttpClient(logger),
                 config, logger);
             var cs = await registry.GetConnectionStringAsync(deviceId, moduleId);
@@ -289,7 +305,7 @@ Options:
         /// </summary>
         private static async Task ResetAsync(IIoTHubConfig config,
             string deviceId, string moduleId) {
-            var logger = LogEx.Console(LogEventLevel.Error);
+            var logger = ConsoleLogger.Create(LogEventLevel.Error);
             var registry = new IoTHubServiceHttpClient(new HttpClient(logger),
                 config, logger);
             await ResetAsync(registry, await registry.GetAsync(deviceId, moduleId,
@@ -301,7 +317,7 @@ Options:
         /// </summary>
         private static async Task DeleteAsync(IIoTHubConfig config,
             string deviceId, string moduleId) {
-            var logger = LogEx.Console(LogEventLevel.Error);
+            var logger = ConsoleLogger.Create(LogEventLevel.Error);
             var registry = new IoTHubServiceHttpClient(new HttpClient(logger),
                 config, logger);
             await registry.DeleteAsync(deviceId, moduleId, null, CancellationToken.None);
@@ -311,12 +327,12 @@ Options:
         /// List all twin module identities
         /// </summary>
         private static async Task ListAsync(IIoTHubConfig config) {
-            var logger = LogEx.Console(LogEventLevel.Error);
+            var logger = ConsoleLogger.Create(LogEventLevel.Error);
             var registry = new IoTHubServiceHttpClient(new HttpClient(logger),
                 config, logger);
 
             var query = "SELECT * FROM devices.modules WHERE " +
-                $"properties.reported.{TwinProperty.kType} = 'supervisor'";
+                $"properties.reported.{TwinProperty.Type} = 'supervisor'";
             var supers = await registry.QueryAllDeviceTwinsAsync(query);
             foreach (var item in supers) {
                 Console.WriteLine($"{item.Id} {item.ModuleId}");
@@ -327,12 +343,12 @@ Options:
         /// Reset all supervisor tags and properties
         /// </summary>
         private static async Task ResetAllAsync(IIoTHubConfig config) {
-            var logger = LogEx.Console(LogEventLevel.Error);
+            var logger = ConsoleLogger.Create(LogEventLevel.Error);
             var registry = new IoTHubServiceHttpClient(new HttpClient(logger),
                 config, logger);
 
             var query = "SELECT * FROM devices.modules WHERE " +
-                $"properties.reported.{TwinProperty.kType} = 'supervisor'";
+                $"properties.reported.{TwinProperty.Type} = 'supervisor'";
             var supers = await registry.QueryAllDeviceTwinsAsync(query);
             foreach (var item in supers) {
                 Console.WriteLine($"Resetting {item.Id} {item.ModuleId ?? ""}");
@@ -345,7 +361,7 @@ Options:
         /// </summary>
         private static async Task CleanupAsync(IIoTHubConfig config,
             bool includeSupervisors) {
-            var logger = LogEx.Console(LogEventLevel.Error);
+            var logger = ConsoleLogger.Create(LogEventLevel.Error);
             var registry = new IoTHubServiceHttpClient(new HttpClient(logger),
                 config, logger);
             var result = await registry.QueryAllDeviceTwinsAsync(
@@ -359,7 +375,7 @@ Options:
                 return;
             }
             var query = "SELECT * FROM devices.modules WHERE " +
-             $"properties.reported.{TwinProperty.kType} = 'supervisor'";
+             $"properties.reported.{TwinProperty.Type} = 'supervisor'";
             var supers = await registry.QueryAllDeviceTwinsAsync(query);
             foreach (var item in supers) {
                 Console.WriteLine($"Deleting {item.Id} {item.ModuleId ?? ""}");
@@ -404,7 +420,7 @@ Options:
         /// </summary>
         private static async Task<ConnectionString> AddOrGetAsync(IIoTHubConfig config,
             string deviceId, string moduleId) {
-            var logger = LogEx.Console(LogEventLevel.Error);
+            var logger = ConsoleLogger.Create(LogEventLevel.Error);
             var registry = new IoTHubServiceHttpClient(new HttpClient(logger),
                 config, logger);
             await registry.CreateAsync(new DeviceTwinModel {
@@ -416,6 +432,31 @@ Options:
             }, true, CancellationToken.None);
             var cs = await registry.GetConnectionStringAsync(deviceId, moduleId);
             return cs;
+        }
+
+        /// <summary>
+        /// Sdk logger event source hook
+        /// </summary>
+        sealed class IoTSdkLogger : EventSourceSerilogSink {
+            public IoTSdkLogger(ILogger logger) :
+                base(logger.ForContext("SourceContext", EventSource.Replace('-', '.'))) {
+            }
+
+            public override void OnEvent(EventWrittenEventArgs eventData) {
+                switch (eventData.EventName) {
+                    case "Enter":
+                    case "Exit":
+                    case "Associate":
+                        WriteEvent(LogEventLevel.Verbose, eventData);
+                        break;
+                    default:
+                        WriteEvent(LogEventLevel.Debug, eventData);
+                        break;
+                }
+            }
+
+            // ddbee999-a79e-5050-ea3c-6d1a8a7bafdd
+            public const string EventSource = "Microsoft-Azure-Devices-Device-Client";
         }
     }
 }

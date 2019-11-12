@@ -1,0 +1,69 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------
+
+namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding.v2.Controllers {
+    using Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding.v2.Auth;
+    using Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding.v2.Filters;
+    using Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding.v2.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Registry;
+    using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Mvc;
+    using System;
+    using System.Linq;
+    using System.Threading.Tasks;
+    using System.ComponentModel.DataAnnotations;
+
+    /// <summary>
+    /// Handle discovery events and onboard applications
+    /// </summary>
+    [Route(VersionInfo.PATH + "/discovery")]
+    [ExceptionsFilter]
+    [Produces(ContentMimeType.Json)]
+    [Authorize(Policy = Policies.CanOnboard)]
+    [ApiController]
+    public class DiscoveryController : ControllerBase {
+
+        /// <summary>
+        /// Create controller
+        /// </summary>
+        /// <param name="onboarding"></param>
+        public DiscoveryController(IDiscoveryResultProcessor onboarding) {
+            _onboarding = onboarding;
+        }
+
+        /// <summary>
+        /// Process discovery results
+        /// </summary>
+        /// <remarks>
+        /// Bulk processes discovery events and onboards new entities
+        /// to the application registry
+        /// </remarks>
+        /// <param name="supervisorId"></param>
+        /// <param name="model">Discovery event list model</param>
+        /// <returns></returns>
+        [HttpPost]
+        public async Task ProcessDiscoveryResultsAsync(
+            [FromQuery] [Required] string supervisorId,
+            [FromBody] [Required] DiscoveryResultListApiModel model) {
+            if (string.IsNullOrEmpty(supervisorId)) {
+                throw new ArgumentNullException(nameof(supervisorId));
+            }
+            if (model == null) {
+                throw new ArgumentNullException(nameof(model));
+            }
+            if (model.Result == null) {
+                throw new ArgumentNullException(nameof(model.Result));
+            }
+            if (model.Events == null) {
+                throw new ArgumentNullException(nameof(model.Events));
+            }
+            await _onboarding.ProcessDiscoveryResultsAsync(
+                supervisorId, model.Result.ToServiceModel(),
+                model.Events.Select(e => e.ToServiceModel()));
+        }
+
+        private readonly IDiscoveryResultProcessor _onboarding;
+    }
+}

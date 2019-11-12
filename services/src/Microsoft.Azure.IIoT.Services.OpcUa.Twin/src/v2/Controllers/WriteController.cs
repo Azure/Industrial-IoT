@@ -19,9 +19,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.v2.Controllers {
     /// </summary>
     [Route(VersionInfo.PATH + "/write")]
     [ExceptionsFilter]
-    [Produces(ContentEncodings.MimeTypeJson)]
+    [Produces(ContentMimeType.Json)]
     [Authorize(Policy = Policies.CanControl)]
-    public class WriteController : Controller {
+    [ApiController]
+    public class WriteController : ControllerBase {
 
         /// <summary>
         /// Create controller with service

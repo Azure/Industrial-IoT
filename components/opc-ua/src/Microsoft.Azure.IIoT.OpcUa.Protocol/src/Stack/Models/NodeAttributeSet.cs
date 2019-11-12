@@ -109,7 +109,7 @@ namespace Opc.Ua.Models {
 
         /// <inheritdoc/>
         public NodeId LocalId =>
-            this.GetAttribute(Attributes.NodeId, Opc.Ua.NodeId.Null);
+            this.GetAttribute(Attributes.NodeId, Ua.NodeId.Null);
 
         /// <inheritdoc/>
         public NodeClass NodeClass {

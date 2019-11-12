@@ -20,5 +20,9 @@ namespace Microsoft.Azure.IIoT.Exceptions {
         public CommunicationException(string message, Exception innerException) :
             base(message, innerException) {
         }
+
+        /// <inheritdoc />
+        public CommunicationException() {
+        }
     }
 }

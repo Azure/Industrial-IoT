@@ -2,6 +2,14 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Build Status](https://msazure.visualstudio.com/One/_apis/build/status/Custom/Azure_IOT/Industrial/Components/Azure.Industrial-IoT?branchName=master)](https://msazure.visualstudio.com/One/_build/latest?definitionId=86580&branchName=master)
 
+<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Findustrial-iot%2Fmaster%2Fservices%2Fdeploy%2Fsim%2Fazuredeploy.json" target="_blank">
+    <img src="http://azuredeploy.net/deploybutton.png"/>
+</a>
+
+<a href="http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Findustrial-iot%2Fmaster%2Fservices%2Fdeploy%2Fsim%2Fazuredeploy.json" target="_blank">
+    <img src="http://armviz.io/visualizebutton.png"/>
+</a>
+
 ## Features
 
 ### Discover, register and manage your Industrial Assets with Azure
@@ -22,34 +30,38 @@ Azure Industrial IoT manages OPC UA Application Certificates and Trust Lists of 
 
 ## Architecture and Components
 
-This repository includes the Industrial IoT Microservices as well as Azure IoT Edge modules, including:
-
-- [OPC Twin module](docs/modules/twin.md)
-
-* [OPC Publisher module](docs/modules/publisher.md)
-
-These are all part of the Azure Industrial IoT platform architecture.
+This repository contains the Azure Industrial IoT Platform which includes the Industrial IoT Microservices as well as several [Azure IoT Edge](https://azure.microsoft.com/services/iot-edge/) modules.  
 
 ![architecture](docs/media/architecture.PNG)
 
-Details on how things work together can be found in the [architectural flow](docs/architecture.md) document.
+Applications can utilize the platform components to enable new Industry 4.0 scenarios without worrying about connectivity. [Details](https://azure.github.io/Industrial-IoT/) on how things work together can be found in the [architectural flow](docs/architecture.md) document.
 
-### Learn more
+## IoT Edge Modules
 
-* [Deploy Azure Industrial IoT](docs/readme.md)
+The Azure IoT Edge modules included in this repository include:
+
+- [OPC Twin module](docs/modules/twin.md)
+
+- [OPC Publisher module](docs/modules/publisher.md)
+
+They can be [deployed](docs/howto-deploy-modules.md) and used in conjunction with the included cloud services, or with limited functionality standalone connected to Azure IoT Hub.
+
+## Learn more
+
+* [Deploy Azure Industrial IoT Platform](docs/readme.md)
 * [Read the docs](https://azure.github.io/Industrial-IoT/)
 * Explore the samples
   * [Connected Factory](https://github.com/Azure/Azure-IoT-Connected-Factory) Solution Accelerator which you can try out [here](https://www.azureiotsolutions.com/Accelerators).
   * [OPC Vault Dashboard](https://github.com/Azure/azure-iiot-opc-vault-service/tree/master/app)
   * [OPC Twin Browser](https://github.com/Azure/azure-iiot-opc-twin-webui)
 
-### Give feedback and report bugs
+## Give feedback and report bugs
 
 Please report any security related issues by following our [Security](security.md) process.
 
 Please enter all other bugs, documentation issues, or suggestions as GitHub Issues [here](https://github.com/Azure/Industrial-IoT/issues).   
 
-### Contribute
+## Contribute
 
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct).  For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
 

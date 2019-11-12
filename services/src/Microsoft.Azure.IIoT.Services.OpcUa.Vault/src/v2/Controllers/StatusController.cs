@@ -14,8 +14,9 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Controllers {
     /// </summary>
     [Route(VersionInfo.PATH + "/status")]
     [ExceptionsFilter]
-    [Produces(ContentEncodings.MimeTypeJson)]
-    public class StatusController : Controller {
+    [Produces(ContentMimeType.Json)]
+    [ApiController]
+    public class StatusController : ControllerBase {
 
         /// <summary>
         /// Create controller

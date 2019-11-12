@@ -96,8 +96,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
         /// </summary>
         [JsonProperty(PropertyName = "logLevel",
             NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(SupervisorLogLevel.Information)]
-        public SupervisorLogLevel? LogLevel { get; set; }
+        [DefaultValue(TraceLogLevel.Information)]
+        public TraceLogLevel? LogLevel { get; set; }
 
         /// <summary>
         /// Whether the registration is out of sync between

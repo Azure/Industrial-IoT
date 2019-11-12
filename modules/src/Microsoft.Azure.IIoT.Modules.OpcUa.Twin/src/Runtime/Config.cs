@@ -4,10 +4,12 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Runtime {
-    using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
-    using Microsoft.Azure.IIoT.Utils;
+    using Microsoft.Azure.IIoT.Hub.Module.Client.Runtime;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime;
+    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Extensions.Configuration;
     using System.Runtime.InteropServices;
     using System;
@@ -15,24 +17,62 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Runtime {
     /// <summary>
     /// Wraps a configuration root
     /// </summary>
-    public class Config : ConfigBase, IModuleConfig, IClientServicesConfig {
+    public class Config : DiagnosticsConfig, IModuleConfig, IClientServicesConfig,
+        ISecurityConfig, ITransportQuotaConfig, IClientServicesConfigOld {
+
+        /// <inheritdoc/>
+        public string EdgeHubConnectionString => _module.EdgeHubConnectionString;
+        /// <inheritdoc/>
+        public bool BypassCertVerification => _module.BypassCertVerification;
+        /// <inheritdoc/>
+        public TransportOption Transport => _module.Transport;
+        /// <inheritdoc/>
+        public string ApplicationName => _opc.ApplicationName;
+        /// <inheritdoc/>
+        public string ApplicationUri => _opc.ApplicationUri;
+        /// <inheritdoc/>
+        public string ProductUri => _opc.ProductUri;
+        /// <inheritdoc/>
+        public uint DefaultSessionTimeout => _opc.DefaultSessionTimeout;
+        /// <inheritdoc/>
+        public int KeepAliveInterval => _opc.KeepAliveInterval;
+        /// <inheritdoc/>
+        public uint MaxKeepAliveCount => _opc.MaxKeepAliveCount;
+        /// <inheritdoc/>
+        public int MinSubscriptionLifetime => _opc.MinSubscriptionLifetime;
+        /// <inheritdoc/>
+        public CertificateInfo ApplicationCertificate => _opc.ApplicationCertificate;
+        /// <inheritdoc/>
+        public bool AutoAcceptUntrustedCertificates => _opc.AutoAcceptUntrustedCertificates;
+        /// <inheritdoc/>
+        public ushort MinimumCertificateKeySize => _opc.MinimumCertificateKeySize;
+        /// <inheritdoc/>
+        public CertificateStore RejectedCertificateStore => _opc.RejectedCertificateStore;
+        /// <inheritdoc/>
+        public bool RejectSha1SignedCertificates => _opc.RejectSha1SignedCertificates;
+        /// <inheritdoc/>
+        public CertificateStore TrustedIssuerCertificates => _opc.TrustedIssuerCertificates;
+        /// <inheritdoc/>
+        public CertificateStore TrustedPeerCertificates => _opc.TrustedPeerCertificates;
+        /// <inheritdoc/>
+        public int ChannelLifetime => _opc.ChannelLifetime;
+        /// <inheritdoc/>
+        public int MaxArrayLength => _opc.MaxArrayLength;
+        /// <inheritdoc/>
+        public int MaxBufferSize => _opc.MaxBufferSize;
+        /// <inheritdoc/>
+        public int MaxByteStringLength => _opc.MaxByteStringLength;
+        /// <inheritdoc/>
+        public int MaxMessageSize => _opc.MaxMessageSize;
+        /// <inheritdoc/>
+        public int MaxStringLength => _opc.MaxStringLength;
+        /// <inheritdoc/>
+        public int OperationTimeout => _opc.OperationTimeout;
+        /// <inheritdoc/>
+        public int SecurityTokenLifetime => _opc.SecurityTokenLifetime;
 
         /// <summary>
-        /// Module configuration
-        /// </summary>
-        private const string kEdgeHubConnectionString = "EdgeHubConnectionString";
-        /// <summary>Hub connection string</summary>
-        public string EdgeHubConnectionString =>
-            GetStringOrDefault(kEdgeHubConnectionString);
-        /// <summary>Whether to bypass cert validation</summary>
-        public bool BypassCertVerification =>
-            GetBoolOrDefault(nameof(BypassCertVerification), false);
-        /// <summary>Transports to use</summary>
-        public TransportOption Transport => Enum.Parse<TransportOption>(
-            GetStringOrDefault(nameof(Transport), nameof(TransportOption.Any)), true);
-
-        /// <summary>
-        /// ClientServicesConfig
+        /// ClientServicesConfigOld
         /// </summary>
         private const string kAppCertStoreType = "AppCertStoreType";
         private const string kPkiRootPath = "PkiRootPath";
@@ -67,21 +107,26 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Runtime {
         public string OwnCertX509StorePathDefault =>
             GetStringOrDefault(kOwnCertX509StorePathDefault, "CurrentUser\\UA_MachineDefault");
         /// <inheritdoc/>
-        public bool AutoAccept =>
+        bool IClientServicesConfigOld.AutoAcceptUntrustedCertificates =>
             GetBoolOrDefault(kAutoAccept, false);
         /// <inheritdoc/>
-        public TimeSpan? SessionTimeout =>
+        TimeSpan? IClientServicesConfigOld.DefaultSessionTimeout =>
             GetDurationOrNull(kSessionTimeout);
         /// <inheritdoc/>
-        public TimeSpan? OperationTimeout =>
+        TimeSpan? IClientServicesConfigOld.OperationTimeout =>
             GetDurationOrNull(kOperationTimeout);
 
         /// <summary>
         /// Configuration constructor
         /// </summary>
         /// <param name="configuration"></param>
-        public Config(IConfigurationRoot configuration) :
+        public Config(IConfiguration configuration) :
             base(configuration) {
+            _module = new ModuleConfig(configuration);
+            _opc = new ClientServicesConfig(configuration);
         }
+
+        private readonly ClientServicesConfig _opc;
+        private readonly ModuleConfig _module;
     }
 }

@@ -9,7 +9,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
     using System;
     using System.Collections.Generic;
     using System.ComponentModel;
-    using System.Linq;
 
     /// <summary>
     /// Discovery configuration
@@ -37,9 +36,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
             MaxPortProbes = model.MaxPortProbes;
             MinPortProbesPercent = model.MinPortProbesPercent;
             IdleTimeBetweenScansSec = (int?)model.IdleTimeBetweenScans?.TotalSeconds;
-            Callbacks = model.Callbacks?
-                .Select(c => c == null ? null : new CallbackApiModel(c))
-                .ToList();
             DiscoveryUrls = model.DiscoveryUrls;
             Locales = model.Locales;
             ActivationFilter = model.ActivationFilter == null ? null :
@@ -64,10 +60,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
                 IdleTimeBetweenScans = IdleTimeBetweenScansSec == null ?
                     (TimeSpan?)null : TimeSpan.FromSeconds((double)IdleTimeBetweenScansSec),
                 ActivationFilter = ActivationFilter?.ToServiceModel(),
-                Callbacks = Callbacks?
-                    .Where(c => c != null)
-                    .Select(c => c.ToServiceModel())
-                    .ToList(),
                 Locales = Locales,
                 DiscoveryUrls = DiscoveryUrls
             };
@@ -152,14 +144,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
             NullValueHandling = NullValueHandling.Ignore)]
         [DefaultValue(null)]
         public List<string> Locales { get; set; }
-
-        /// <summary>
-        /// Callbacks to invoke once onboarding finishes
-        /// </summary>
-        [JsonProperty(PropertyName = "callbacks",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
-        public List<CallbackApiModel> Callbacks { get; set; }
 
         /// <summary>
         /// Activate all twins with this filter during onboarding.

@@ -34,7 +34,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Runtime {
         /// Configuration constructor
         /// </summary>
         /// <param name="configuration"></param>
-        public EventProcessorConfig(IConfigurationRoot configuration) :
+        public EventProcessorConfig(IConfiguration configuration) :
             base(configuration) {
         }
     }

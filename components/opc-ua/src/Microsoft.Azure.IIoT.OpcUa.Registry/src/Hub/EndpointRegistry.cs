@@ -109,28 +109,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 query += $"AND properties.desired.{nameof(EndpointRegistration.SecurityPolicy)} = " +
                     $"'{model.SecurityPolicy}' ";
             }
-            if (model?.UserAuthentication != null) {
-                // If TokenType provided, include it in search
-                if (model.UserAuthentication.Value != CredentialType.None) {
-                    query += $"AND properties.desired.{nameof(EndpointRegistration.CredentialType)} = " +
-                            $"'{model.UserAuthentication}' ";
-                }
-                else {
-                    query += $"AND (properties.desired.{nameof(EndpointRegistration.CredentialType)} = " +
-                            $"'{model.UserAuthentication}' " +
-                        $"OR NOT IS_DEFINED(tags.{nameof(EndpointRegistration.CredentialType)})) ";
-                }
-            }
-            if (model?.Connected != null) {
-                // If flag provided, include it in search
-                if (model.Connected.Value) {
-                    query += $"AND connectionState = 'Connected' ";
-                    // Do not use connected property as module might have exited before updating.
-                }
-                else {
-                    query += $"AND (connectionState = 'Disconnected' " +
-                        $"OR properties.reported.{TwinProperty.kConnected} != true) ";
-                }
+            if (model?.EndpointState != null && model?.Connected != false && model?.Activated != false) {
+                query += $"AND properties.reported.{nameof(EndpointRegistration.State)} = " +
+                    $"'{model.EndpointState}' ";
+
+                // Force query for activated and connected
+                model.Connected = true;
+                model.Activated = true;
             }
             if (model?.Activated != null) {
                 // If flag provided, include it in search
@@ -142,9 +127,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                         $"OR NOT IS_DEFINED(tags.{nameof(EndpointRegistration.Activated)})) ";
                 }
             }
-            if (model?.EndpointState != null) {
-                query += $"AND properties.reported.{nameof(EndpointRegistration.State)} = " +
-                    $"'{model.EndpointState}' ";
+            if (model?.Connected != null) {
+                // If flag provided, include it in search
+                if (model.Connected.Value) {
+                    query += $"AND connectionState = 'Connected' ";
+                    // Do not use connected property as module might have exited before updating.
+                }
+                else {
+                    query += $"AND (connectionState = 'Disconnected' " +
+                        $"OR properties.reported.{TwinProperty.Connected} != true) ";
+                }
             }
             var result = await _iothub.QueryDeviceTwinsAsync(query, null, pageSize, ct);
             return new EndpointInfoListModel {
@@ -154,78 +146,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                     .Select(s => s.ToServiceModel())
                     .ToList()
             };
-        }
-
-        /// <inheritdoc/>
-        public async Task UpdateEndpointAsync(string endpointId,
-            EndpointRegistrationUpdateModel request, CancellationToken ct) {
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
-            }
-            if (string.IsNullOrEmpty(endpointId)) {
-                throw new ArgumentException(nameof(endpointId));
-            }
-            var context = request.Context.Validate();
-            while (true) {
-                try {
-                    // Get existing endpoint and compare to see if we need to patch.
-                    var twin = await _iothub.GetAsync(endpointId, null, ct);
-                    if (twin.Id != endpointId) {
-                        throw new ArgumentException("Id must be same as twin to patch",
-                            nameof(endpointId));
-                    }
-
-                    // Convert to twin registration
-                    var registration = twin.ToRegistration(true) as EndpointRegistration;
-                    if (registration == null) {
-                        throw new ResourceNotFoundException(
-                            $"{endpointId} is not a endpoint registration.");
-                    }
-
-                    if (registration.IsDisabled ?? false) {
-                        throw new ResourceInvalidStateException(
-                            $"{endpointId} is disabled - cannot update.");
-                    }
-
-                    // Update registration from update request
-                    var patched = registration.ToServiceModel();
-
-                    var duplicate = false;
-                    if (request.User != null) {
-                        patched.Registration.Endpoint.User = new CredentialModel();
-
-                        if (request.User.Type != null) {
-                            // Change token type?  Always duplicate since id changes.
-                            duplicate = request.User.Type !=
-                                patched.Registration.Endpoint.User.Type;
-
-                            patched.Registration.Endpoint.User.Type =
-                                (CredentialType)request.User.Type;
-                        }
-                        if ((patched.Registration.Endpoint.User.Type
-                            ?? CredentialType.None) != CredentialType.None) {
-                            patched.Registration.Endpoint.User.Value =
-                                request.User.Value;
-                        }
-                        else {
-                            patched.Registration.Endpoint.User.Value = null;
-                        }
-                    }
-
-                    var existing = duplicate ? null : registration;
-                    var update = patched.ToEndpointRegistration(registration.IsDisabled);
-
-                    // Patch
-                    await _iothub.PatchAsync(existing.Patch(update), false, ct);
-                    await _broker.NotifyAllAsync(
-                        l => l.OnEndpointUpdatedAsync(context, patched));
-                    return;
-                }
-                catch (ResourceOutOfDateException ex) {
-                    _logger.Debug(ex, "Retrying updating endpoint...");
-                    continue;
-                }
-            }
         }
 
         /// <inheritdoc/>
@@ -492,7 +412,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             // Update endpoints that were disabled
             foreach (var exists in unchange) {
                 try {
-                    if (exists.SupervisorId == supervisorId || (exists.IsDisabled ?? false)) {
+                    if (exists.SupervisorId == null || exists.SupervisorId == supervisorId ||
+                        (exists.IsDisabled ?? false)) {
                         // Get the new one we will patch over the existing one...
                         var patch = change.First(x =>
                             EndpointRegistrationEx.Logical.Equals(x, exists));

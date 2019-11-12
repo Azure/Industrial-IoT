@@ -46,10 +46,12 @@ for /f %%i in ('netstat -na ^| findstr "9041" ^| findstr "LISTENING"') do set _t
 for /f %%i in ('netstat -na ^| findstr "9042" ^| findstr "LISTENING"') do set _registry_up=1
 for /f %%i in ('netstat -na ^| findstr "9043" ^| findstr "LISTENING"') do set _history_up=1
 for /f %%i in ('netstat -na ^| findstr "9044" ^| findstr "LISTENING"') do set _vault_up=1
+for /f %%i in ('netstat -na ^| findstr "9050" ^| findstr "LISTENING"') do set _onboarding_up=1
 if "%_twin_up%" == "" goto :wait_up_0
 if "%_registry_up%" == "" goto :wait_up_0
 if "%_history_up%" == "" goto :wait_up_0
 if "%_vault_up%" == "" goto :wait_up_0
+if "%_onboarding_up%" == "" goto :wait_up_0
 ping nowhere -w 5000 >nul 2>&1
 goto :eof
 
@@ -63,6 +65,7 @@ curl -o twin.json http://%_hostname%:9041/v2/swagger.json
 curl -o registry.json http://%_hostname%:9042/v2/swagger.json
 curl -o history.json http://%_hostname%:9043/v2/swagger.json
 curl -o vault.json http://%_hostname%:9044/v2/swagger.json
+curl -o onboarding.json http://%_hostname%:9050/v2/swagger.json
 popd
 goto :eof
 

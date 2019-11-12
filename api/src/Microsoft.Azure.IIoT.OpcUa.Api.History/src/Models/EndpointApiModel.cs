@@ -55,13 +55,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
         public HashSet<string> AlternativeUrls { get; set; }
 
         /// <summary>
-        /// User Authentication
-        /// </summary>
-        [JsonProperty(PropertyName = "user",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public CredentialApiModel User { get; set; }
-
-        /// <summary>
         /// Security Mode to use for communication.
         /// default to best.
         /// </summary>

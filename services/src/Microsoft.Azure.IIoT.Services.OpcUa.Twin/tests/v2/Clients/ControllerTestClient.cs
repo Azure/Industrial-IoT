@@ -127,24 +127,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.v2.Controllers.Test {
             return Task.FromException<BrowsePathResponseApiModel>(new NotImplementedException());
         }
 
-        /// <inheritdoc/>
-        public Task<PublishStartResponseApiModel> NodePublishStartAsync(string endpointId,
-            PublishStartRequestApiModel content, CancellationToken ct) {
-            return Task.FromException<PublishStartResponseApiModel>(new NotImplementedException());
-        }
-
-        /// <inheritdoc/>
-        public Task<PublishedItemListResponseApiModel> NodePublishListAsync(
-            string endpointId, PublishedItemListRequestApiModel content, CancellationToken ct) {
-            return Task.FromException<PublishedItemListResponseApiModel>(new NotImplementedException());
-        }
-
-        /// <inheritdoc/>
-        public Task<PublishStopResponseApiModel> NodePublishStopAsync(string endpointId,
-            PublishStopRequestApiModel content, CancellationToken ct) {
-            return Task.FromException<PublishStopResponseApiModel>(new NotImplementedException());
-        }
-
         private readonly IHttpClient _httpClient;
         private readonly string _serviceUri;
     }

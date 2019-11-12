@@ -19,9 +19,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.v2.Controllers {
     /// </summary>
     [Route(VersionInfo.PATH + "/call")]
     [ExceptionsFilter]
-    [Produces(ContentEncodings.MimeTypeJson)]
+    [Produces(ContentMimeType.Json)]
     [Authorize(Policy = Policies.CanControl)]
-    public class CallController : Controller {
+    [ApiController]
+    public class CallController : ControllerBase {
 
         /// <summary>
         /// Create controller with service

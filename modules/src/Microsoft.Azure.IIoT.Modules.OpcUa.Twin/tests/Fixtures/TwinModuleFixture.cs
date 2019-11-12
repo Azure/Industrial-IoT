@@ -11,8 +11,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
     using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Clients;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Servers;
     using Microsoft.Azure.IIoT.OpcUa.History.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
@@ -23,7 +21,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
     using Microsoft.Azure.IIoT.OpcUa.Testing.Runtime;
     using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients;
+    using Microsoft.Azure.IIoT.OpcUa.Api.History.Clients;
+    using Microsoft.Azure.IIoT.OpcUa.Api.History.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.History;
+    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Utils;
     using Autofac;
     using AutofacSerilogIntegration;
@@ -33,10 +35,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
     using System.Text;
     using System.Threading.Tasks;
     using Xunit;
-    using Serilog;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients;
-    using Microsoft.Azure.IIoT.OpcUa.Api.History.Clients;
-    using Microsoft.Azure.IIoT.OpcUa.Api.History.Models;
 
     /// <summary>
     /// Harness for opc twin module
@@ -116,12 +114,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
             // Add mock sdk
             builder.RegisterModule<IoTHubMockModule>();
 
-            // Override publisher
-            builder.RegisterType<ConfiguredPublisher>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<PublisherMethodClient>()
-                .AsImplementedInterfaces();
-
             // Override client config
             builder.RegisterType<TestClientServicesConfig>()
                 .AsImplementedInterfaces();
@@ -178,7 +170,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
             Assert.False(_running);
             var twin = _hub.GetAsync(DeviceId, ModuleId).Result;
             // Assert
-            Assert.False((bool)twin.Properties.Reported[TwinProperty.kConnected]);
+            Assert.False((bool)twin.Properties.Reported[TwinProperty.Connected]);
 
             // TODO : Fix cleanup!!!
             // TODO :Assert.NotEqual("testType", twin.Properties.Reported[TwinProperty.kType]);
@@ -195,9 +187,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
             var twin = _hub.GetAsync(DeviceId, ModuleId).Result;
             // Assert
             Assert.Equal("connected", twin.ConnectionState);
-            Assert.Equal(true, twin.Properties.Reported[TwinProperty.kConnected]);
-            Assert.Equal("supervisor", twin.Properties.Reported[TwinProperty.kType]);
-            Assert.Equal(JValue.CreateNull(), twin.Properties.Reported[TwinProperty.kSiteId]);
+            Assert.Equal(true, twin.Properties.Reported[TwinProperty.Connected]);
+            Assert.Equal("supervisor", twin.Properties.Reported[TwinProperty.Type]);
+            Assert.Equal(JValue.CreateNull(), twin.Properties.Reported[TwinProperty.SiteId]);
         }
 
         /// <summary>
@@ -277,7 +269,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
         private IContainer CreateHubContainer() {
             var builder = new ContainerBuilder();
             builder.RegisterInstance(this).AsImplementedInterfaces();
-            builder.RegisterLogger(LogEx.ConsoleOut());
+            builder.RegisterLogger(TraceLogger.Create());
             builder.RegisterModule<IoTHubMockService>();
             builder.RegisterType<TestIoTHubConfig>()
                 .AsImplementedInterfaces();

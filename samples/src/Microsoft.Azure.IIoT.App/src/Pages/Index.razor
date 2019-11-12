@@ -1,0 +1,20 @@
+﻿@page "/"
+
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+
+
+<h1>IIoT Engineering Tool</h1>
+
+@code {
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        if (authState.User == null) // cache.Count == 0)
+        {
+            NavigationManager.NavigateTo("AzureAD/Account/SignIn", true);
+        }
+    }
+}

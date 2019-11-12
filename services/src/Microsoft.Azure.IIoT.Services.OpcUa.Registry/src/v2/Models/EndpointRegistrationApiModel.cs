@@ -38,6 +38,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
                 .Select(p => p == null ? null : new AuthenticationMethodApiModel(p))
                 .ToList();
             SiteId = model.SiteId;
+            SupervisorId = model.SupervisorId;
             SecurityLevel = model.SecurityLevel;
         }
 
@@ -53,7 +54,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
                 AuthenticationMethods = AuthenticationMethods?
                     .Select(p => p?.ToServiceModel()).ToList(),
                 SecurityLevel = SecurityLevel,
-                SiteId = SiteId
+                SiteId = SiteId,
+                SupervisorId = SupervisorId
             };
         }
 
@@ -78,6 +80,14 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
             NullValueHandling = NullValueHandling.Ignore)]
         [DefaultValue(null)]
         public string SiteId { get; set; }
+
+        /// <summary>
+        /// Supervisor that registered the endpoint.
+        /// </summary>
+        [JsonProperty(PropertyName = "supervisorId",
+            NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
+        public string SupervisorId { get; set; }
 
         /// <summary>
         /// Endpoint information of the registration

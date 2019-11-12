@@ -19,16 +19,5 @@ namespace Microsoft.Azure.IIoT.Messaging.EventHub {
         /// Event hub name
         /// </summary>
         string EventHubPath { get; }
-
-        /// <summary>
-        /// Whether to use websockets
-        /// </summary>
-        bool UseWebsockets { get; }
-
-        /// <summary>
-        /// Consumer group
-        /// (optional, default to $default)
-        /// </summary>
-        string ConsumerGroup { get; }
     }
 }

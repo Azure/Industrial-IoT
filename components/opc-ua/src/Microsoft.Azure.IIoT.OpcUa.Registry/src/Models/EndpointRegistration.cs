@@ -62,16 +62,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public Dictionary<string, string> AlternativeUrls { get; set; }
 
         /// <summary>
-        /// Default user authentication credential type
-        /// </summary>
-        public CredentialType? CredentialType { get; set; }
-
-        /// <summary>
-        /// Default user authentication credential to use on endpoint
-        /// </summary>
-        public JToken Credential { get; set; }
-
-        /// <summary>
         /// Endpoint security policy to use.
         /// </summary>
         public string SecurityPolicy { get; set; }
@@ -127,9 +117,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 (Activated ?? false) == (registration.Activated ?? false) &&
                 EndpointUrlLC == registration.EndpointUrlLC &&
                 SupervisorId == registration.SupervisorId &&
-                JToken.DeepEquals(Credential, registration.Credential) &&
                 State == registration.State &&
-                CredentialType == registration.CredentialType &&
                 SecurityLevel == registration.SecurityLevel &&
                 SecurityPolicy == registration.SecurityPolicy &&
                 SecurityMode == registration.SecurityMode &&
@@ -156,11 +144,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             hashCode = (hashCode * -1521134295) +
                 EqualityComparer<bool>.Default.GetHashCode(Activated ?? false);
             hashCode = (hashCode * -1521134295) +
-                JToken.EqualityComparer.GetHashCode(Credential);
-            hashCode = (hashCode * -1521134295) +
                 EqualityComparer<int?>.Default.GetHashCode(SecurityLevel);
-            hashCode = (hashCode * -1521134295) +
-                EqualityComparer<CredentialType?>.Default.GetHashCode(CredentialType);
             hashCode = (hashCode * -1521134295) +
                 EqualityComparer<EndpointConnectivityState?>.Default.GetHashCode(State);
             hashCode = (hashCode * -1521134295) +

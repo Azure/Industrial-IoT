@@ -24,7 +24,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
         /// <param name="model"></param>
         public EndpointRegistrationQueryApiModel(EndpointRegistrationQueryModel model) {
             Url = model.Url;
-            UserAuthentication = model.UserAuthentication;
             Connected = model.Connected;
             Activated = model.Activated;
             EndpointState = model.EndpointState;
@@ -41,7 +40,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
         public EndpointRegistrationQueryModel ToServiceModel() {
             return new EndpointRegistrationQueryModel {
                 Url = Url,
-                UserAuthentication = UserAuthentication,
                 Connected = Connected,
                 Activated = Activated,
                 EndpointState = EndpointState,
@@ -59,14 +57,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
             NullValueHandling = NullValueHandling.Ignore)]
         [DefaultValue(null)]
         public string Url { get; set; }
-
-        /// <summary>
-        /// Type of credential selected for authentication
-        /// </summary>
-        [JsonProperty(PropertyName = "userAuthentication",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
-        public CredentialType? UserAuthentication { get; set; }
 
         /// <summary>
         /// Certificate of the endpoint

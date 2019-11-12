@@ -9,6 +9,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Controllers {
     using Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.Http;
+    using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using System.Linq;
@@ -22,18 +23,21 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Controllers {
     /// </summary>
     [Route(VersionInfo.PATH + "/supervisors")]
     [ExceptionsFilter]
-    [Produces(ContentEncodings.MimeTypeJson)]
+    [Produces(ContentMimeType.Json)]
     [Authorize(Policy = Policies.CanQuery)]
-    public class SupervisorsController : Controller {
+    [ApiController]
+    public class SupervisorsController : ControllerBase {
 
         /// <summary>
         /// Create controller for supervisor services
         /// </summary>
         /// <param name="supervisors"></param>
         /// <param name="diagnostics"></param>
+        /// <param name="events"></param>
         public SupervisorsController(ISupervisorRegistry supervisors,
-            ISupervisorDiagnostics diagnostics) {
+            ISupervisorDiagnostics diagnostics, IGroupRegistration events) {
             _supervisors = supervisors;
+            _events = events;
             _diagnostics = diagnostics;
         }
 
@@ -214,7 +218,36 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Controllers {
             return new SupervisorListApiModel(result);
         }
 
+        /// <summary>
+        /// Subscribe to supervisor registry events
+        /// </summary>
+        /// <remarks>
+        /// Register a user to receive supervisor events through SignalR.
+        /// </remarks>
+        /// <param name="userId">The user id that will receive supervisor
+        /// events.</param>
+        /// <returns></returns>
+        [HttpPut("events")]
+        public async Task SubscribeAsync([FromBody]string userId) {
+            await _events.SubscribeAsync("supervisors", userId);
+        }
+
+        /// <summary>
+        /// Unsubscribe registry events
+        /// </summary>
+        /// <remarks>
+        /// Unregister a user and stop it from receiving supervisor events.
+        /// </remarks>
+        /// <param name="userId">The user id that will not receive
+        /// any more supervisor events</param>
+        /// <returns></returns>
+        [HttpDelete("events/{userId}")]
+        public async Task UnsubscribeAsync(string userId) {
+            await _events.UnsubscribeAsync("supervisors", userId);
+        }
+
         private readonly ISupervisorRegistry _supervisors;
+        private readonly IGroupRegistration _events;
         private readonly ISupervisorDiagnostics _diagnostics;
     }
 }

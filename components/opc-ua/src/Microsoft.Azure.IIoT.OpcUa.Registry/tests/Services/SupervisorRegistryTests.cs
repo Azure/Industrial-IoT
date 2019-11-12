@@ -167,7 +167,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 .Select(a => a.ToDeviceTwin())
                 .Select(t => {
                     t.Properties.Reported = new Dictionary<string, JToken> {
-                        [TwinProperty.kType] = "supervisor"
+                        [TwinProperty.Type] = "supervisor"
                     };
                     return t;
                 })

@@ -1,0 +1,5 @@
+{
+    "name": "iot/industrial-iot-frontend",
+    "exposes": [443, 80],
+    "base": "mcr.microsoft.com/dotnet/core/aspnet:3.0"
+}

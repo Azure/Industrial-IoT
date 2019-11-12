@@ -78,7 +78,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public void TestEqualIsNotEqualWithDeviceModel() {
             var r1 = CreateRegistration();
             var m = r1.ToDeviceTwin();
-            m.Properties.Desired["Credential"] = "password";
+            m.Properties.Desired["SecurityPolicy"] = "babab";
             var r2 = m.ToRegistration();
 
             Assert.NotEqual(r1, r2);

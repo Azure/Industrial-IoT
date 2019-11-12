@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.Crypto {
     using Microsoft.Azure.IIoT.Crypto.Models;
-    using System;
 
     /// <summary>
     /// Issuer policies extensions

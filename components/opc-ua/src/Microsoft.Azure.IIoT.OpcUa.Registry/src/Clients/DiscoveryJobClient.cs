@@ -9,8 +9,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Models;
-    using Serilog;
     using Newtonsoft.Json;
+    using Serilog;
     using System;
     using System.Threading;
     using System.Threading.Tasks;
@@ -38,7 +38,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            await CallServiceOnAllSupervisors("Discover_V2",
+            await CallServiceOnAllSupervisorsAsync("Discover_V2",
+                request, kDiscoveryTimeout, ct);
+        }
+
+        /// <inheritdoc/>
+        public async Task CancelAsync(DiscoveryCancelModel request,
+            CancellationToken ct) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            await CallServiceOnAllSupervisorsAsync("Cancel_V2",
                 request, kDiscoveryTimeout, ct);
         }
 
@@ -52,7 +62,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
         /// <param name="timeout"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        private async Task CallServiceOnAllSupervisors<T>(
+        private async Task CallServiceOnAllSupervisorsAsync<T>(
             string service, T request, TimeSpan timeout, CancellationToken ct) {
 
             // Create job to all supervisors
@@ -60,7 +70,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
             var job = await _jobs.CreateAsync(new JobModel {
                 JobId = jobId,
                 QueryCondition = "FROM devices.modules WHERE " +
-                    $"properties.reported.{TwinProperty.kType} = 'supervisor'",
+                    $"properties.reported.{TwinProperty.Type} = 'supervisor'",
                 Type = JobType.ScheduleDeviceMethod,
                 MaxExecutionTimeInSeconds = timeout.Seconds,
                 MethodParameter = new MethodParameterModel {

@@ -679,9 +679,13 @@ OPC Publisher uses the hostname of the machine is running on for certificate and
 
     docker run -h publisher mcr.microsoft.com/iotedge/opc-publisher <applicationname> [<iothubconnectionstring>] [options]
 
-### Using bind mounts (shared filesystem)
+### Using shared volume bind mounts
 
-In certain use cases it may make sense to read configuration information from or write log files to locations on the host and not keep them in the container file system only. To achieve this you need to use the `-v` option of `docker run` in the bind mount mode.
+In certain use cases it may make sense to read configuration information from or write log files to locations on the host and not keep them in the container file system only. To achieve this you need to use the `-v` option of `docker run` in the bind mount mode.   
+
+> If you are using Linux Containers on Windows you also need to configure the shared drives before you can use volume mounts on any of these: 
+
+![](https://user-images.githubusercontent.com/1756871/65963108-6093cf80-e45a-11e9-9b3c-3771361c5294.png)
 
 ### Using IoT Edge
 
@@ -696,17 +700,19 @@ Here is a set of `Container Create Options`which allow you to achieve this (be a
             ],
             "HostConfig": {
                 "Binds": [
-                    "d:/iiotedge:/appdata"
+                    "c:/iiotedge:/appdata"
                 ]
             }
         }
 With those options OPC Publisher will read the nodes it should publish from the file `./pn.json`. The container's working directory is set to `/appdata`at startup (see `./Dockerfile` in the repository) and thus OPC Publisher will read the file `/appdata/pn.json` inside the container to get the configuration.
 Without the `--pf` option, OPC Publisher will try to read its default configuration file `./publishednodes.json`.
-The log file `publisher-publisher.log` (default name) will be written to `/appdata` and the `CertificateStores` directory will also be created in this directory.
-To make all those files available in the host file system the container configuration requires a bind mount volume.
-The `d://iiotedge:/appdata` bind will map the directory `/appdata` (which is the current working directory on container startup) to the host directory `d://iiotedge`.
-If this is not given, all file data will be not persisted when the container is started again.
+
+The log file `publisher-publisher.log` (default name) will be written to `/appdata` and the `CertificateStores` directory will also be created in this directory.  To make all those files available in the host file system the container configuration requires a bind mount volume.
+
+The `c:/iiotedge:/appdata` bind will map the directory `/appdata` (which is the current working directory on container startup) to the host directory `c://iiotedge`. If this is not given, all file data will be not persisted when the container is started again.
+
 If you are running Windows containers, then the syntax of the `Binds`parameter is different. At container startup the working directory is `c:\appdata`.
+
 That means you need to specify the following mapping in the `HostConfig` if you want to put the configuration file in the directory `d:\iiotedge`on the host:
 
             "HostConfig": {
@@ -715,8 +721,7 @@ That means you need to specify the following mapping in the `HostConfig` if you 
                 ]
             }
 
-If you are running Linux containers on Linux, then the syntax of the `Binds`parameter is again different. At container startup the working directory is `/appdata`.
-That means if you specify the following mapping in the `HostConfig`, then the configuration file should reside in the directory `/iiotedge` on the host:
+If you are running Linux containers on Linux, then the syntax of the `Binds`parameter is again different. At container startup the working directory is `/appdata`. That means if you specify the following mapping in the `HostConfig`, then the configuration file should reside in the directory `/iiotedge` on the host:
 
             "HostConfig": {
                 "Binds": [
@@ -732,8 +737,7 @@ If you need to connect to an OPC UA server using the hostname of the OPC UA serv
                 ]
             }
 
-This setting will allow OPC Publisher running in the IoT Edge module to resolve the hostname `opctestsvr` to the IP Address `192.168.178.26`.
-This is equivilant as using `--add-host opctestsvr:192.168.178.26` as parameter to the `docker run` command.
+This setting will allow OPC Publisher running in the IoT Edge module to resolve the hostname `opctestsvr` to the IP Address `192.168.178.26`.  This is equivalent to using `--add-host opctestsvr:192.168.178.26` as parameter to the `docker run` command.
 
 ## OPC UA X.509 certificates
 

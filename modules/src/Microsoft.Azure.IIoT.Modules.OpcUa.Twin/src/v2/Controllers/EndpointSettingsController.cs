@@ -8,7 +8,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
     using Microsoft.Azure.IIoT.OpcUa.Edge;
     using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.Hub;
-    using Serilog;
     using System;
     using System.Threading.Tasks;
     using System.Collections.Generic;
@@ -36,22 +35,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
         public Dictionary<string, string> AlternativeUrls {
             get => _alternativeUrls;
             set => _alternativeUrls = value;
-        }
-
-        /// <summary>
-        /// User token to pass to server
-        /// </summary>
-        public JToken Credential {
-            get => _credential;
-            set => _credential = value;
-        }
-
-        /// <summary>
-        /// Type of token
-        /// </summary>
-        public JToken CredentialType {
-            get => JToken.FromObject(_credentialType);
-            set => _credentialType = value?.ToObject<CredentialType>();
         }
 
         /// <summary>
@@ -100,25 +83,17 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
                 new EndpointModel {
                     SecurityMode = _securityMode,
                     SecurityPolicy = _securityPolicy,
-                    User =
-                        _credentialType == IIoT.OpcUa.Registry.Models.CredentialType.None ?
-                            null : new CredentialModel {
-                                Value = _credential,
-                                Type = _credentialType,
-                            },
                     Url = _endpointUrl,
                     AlternativeUrls = _alternativeUrls?.DecodeAsList().ToHashSetSafe(),
                     Certificate = _certificate
                 });
         }
 
-        private CredentialType? _credentialType;
         private string _endpointUrl;
         private string _securityPolicy;
         private SecurityMode? _securityMode;
         private byte[] _certificate;
 #pragma warning disable IDE0032 // Use auto property
-        private JToken _credential;
         private Dictionary<string, string> _alternativeUrls;
 #pragma warning restore IDE0032 // Use auto property
         private readonly ITwinServices _twin;

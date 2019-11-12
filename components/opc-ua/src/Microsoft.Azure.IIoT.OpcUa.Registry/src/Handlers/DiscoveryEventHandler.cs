@@ -5,9 +5,9 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
-    using Serilog;
     using Microsoft.Azure.IIoT.Hub;
     using Newtonsoft.Json;
+    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -18,24 +18,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
     /// <summary>
     /// Server discovery result handling
     /// </summary>
-    public sealed class DiscoveryEventHandler : IDeviceEventHandler {
+    public sealed class DiscoveryEventHandler : IDeviceTelemetryHandler {
 
         /// <inheritdoc/>
-        public string ContentType => ContentTypes.DiscoveryEvents;
+        public string MessageSchema => MessageSchemaTypes.DiscoveryEvents;
 
         /// <summary>
         /// Create handler
         /// </summary>
-        /// <param name="registry"></param>
+        /// <param name="processor"></param>
         /// <param name="logger"></param>
-        public DiscoveryEventHandler(IDiscoveryProcessor registry, ILogger logger) {
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _registry = registry ?? throw new ArgumentNullException(nameof(registry));
+        public DiscoveryEventHandler(IEnumerable<IDiscoveryResultProcessor> processor,
+            ILogger logger) {
+            _logger = logger ??
+                throw new ArgumentNullException(nameof(logger));
+            _processors = processor?.ToList() ??
+                throw new ArgumentNullException(nameof(processor));
         }
 
         /// <inheritdoc/>
         public async Task HandleAsync(string deviceId, string moduleId,
-            byte[] payload, Func<Task> checkpoint) {
+            byte[] payload, IDictionary<string, string> properties, Func<Task> checkpoint) {
             var json = Encoding.UTF8.GetString(payload);
             DiscoveryEventModel discovery;
             try {
@@ -119,8 +122,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
                 if (queue.Completed) {
                     try {
                         // Process discoveries
-                        await _registry.ProcessDiscoveryResultsAsync(supervisorId,
-                            queue.Result, queue.Events);
+                        await Task.WhenAll(
+                            _processors.Select(p => p.ProcessDiscoveryResultsAsync(
+                                supervisorId, queue.Result, queue.Events)));
                     }
                     catch (Exception ex) {
                         _logger.Error(ex,
@@ -215,9 +219,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
             Dictionary<DateTime, SupervisorDiscoveryResult>> _supervisorQueues =
             new Dictionary<string,
                 Dictionary<DateTime, SupervisorDiscoveryResult>>();
-        private readonly SemaphoreSlim _queueLock = new SemaphoreSlim(1);
+        private readonly SemaphoreSlim _queueLock = new SemaphoreSlim(1, 1);
 
         private readonly ILogger _logger;
-        private readonly IDiscoveryProcessor _registry;
+        private readonly List<IDiscoveryResultProcessor> _processors;
     }
 }

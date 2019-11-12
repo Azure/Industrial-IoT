@@ -9,6 +9,33 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
     using System;
 
     /// <summary>
+    /// Log level
+    /// </summary>
+    [JsonConverter(typeof(StringEnumConverter))]
+    public enum TraceLogLevel {
+
+        /// <summary>
+        /// Error only
+        /// </summary>
+        Error = 0,
+
+        /// <summary>
+        /// Default
+        /// </summary>
+        Information = 1,
+
+        /// <summary>
+        /// Debug log
+        /// </summary>
+        Debug = 2,
+
+        /// <summary>
+        /// Verbose
+        /// </summary>
+        Verbose = 3
+    }
+
+    /// <summary>
     /// Level of diagnostics requested in responses
     /// </summary>
     [JsonConverter(typeof(StringEnumConverter))]

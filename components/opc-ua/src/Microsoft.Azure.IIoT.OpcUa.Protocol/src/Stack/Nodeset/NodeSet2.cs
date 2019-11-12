@@ -5,7 +5,6 @@
 
 namespace Opc.Ua.Nodeset {
     using Opc.Ua.Nodeset.Schema;
-    using Opc.Ua.Extensions;
     using Opc.Ua.Models;
     using Opc.Ua;
     using System;

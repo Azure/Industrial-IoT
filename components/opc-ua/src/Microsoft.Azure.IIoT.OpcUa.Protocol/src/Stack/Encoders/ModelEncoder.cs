@@ -379,18 +379,18 @@ fieldName, new EncodableWrapper(this, value), systemType);
                 throw new ArgumentNullException(nameof(stream));
             }
             switch (contentType.ToLowerInvariant()) {
-                case ContentEncodings.MimeTypeJson:
-                case ContentEncodings.MimeTypeUaJson:
+                case ContentMimeType.Json:
+                case ContentMimeType.UaJson:
                     return new JsonEncoderEx(new StreamWriter(stream),
                         context ?? new ServiceMessageContext(),
                         JsonEncoderEx.JsonEncoding.Array) {
                         UseAdvancedEncoding = true,
                         IgnoreDefaultValues = true
                     };
-                case ContentEncodings.MimeTypeUaBinary:
+                case ContentMimeType.UaBinary:
                     return new BinaryEncoder(stream,
                         context ?? new ServiceMessageContext());
-                case ContentEncodings.MimeTypeUaXml:
+                case ContentMimeType.UaXml:
                     return new XmlEncoder((Type)null, XmlWriter.Create(stream),
                         context ?? new ServiceMessageContext());
                 default:

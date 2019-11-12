@@ -1,0 +1,11 @@
+{
+  "$schema": "https://aka.ms/azure-quickstart-templates-metadata-schema#",
+  "type": "Application",
+  "icon": "docker",
+  "itemDisplayName": "Deploy Industrial IoT Platform dependencies",
+  "description": "This template lets you deploy the Azure Industrial IoT Platform dependencies.",
+  "summary": "Deploys Industrial IoT Cloud dependencies",
+  "githubUsername": "marcschier",
+  "dateUpdated": "2019-10-25"
+}
+

@@ -40,33 +40,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
     }
 
     /// <summary>
-    /// Log level for supervisor
-    /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
-    public enum SupervisorLogLevel {
-
-        /// <summary>
-        /// Error only
-        /// </summary>
-        Error = 0,
-
-        /// <summary>
-        /// Default
-        /// </summary>
-        Information = 1,
-
-        /// <summary>
-        /// Debug log
-        /// </summary>
-        Debug = 2,
-
-        /// <summary>
-        /// Verbose
-        /// </summary>
-        Verbose = 3
-    }
-
-    /// <summary>
     /// Supervisor registration model
     /// </summary>
     public class SupervisorApiModel {
@@ -110,7 +83,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "logLevel",
             NullValueHandling = NullValueHandling.Ignore)]
-        public SupervisorLogLevel? LogLevel { get; set; }
+        public TraceLogLevel? LogLevel { get; set; }
 
         /// <summary>
         /// Whether the registration is out of sync between

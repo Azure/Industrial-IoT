@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Vault.Services {
     using Microsoft.Azure.IIoT.OpcUa.Vault.Models;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Crypto;
+    using Microsoft.Azure.IIoT.Crypto.Models;
     using Serilog;
     using System;
     using System.Security.Cryptography.X509Certificates;
@@ -15,7 +16,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Vault.Services {
     using System.Threading.Tasks;
     using System.Linq;
     using System.Collections.Generic;
-    using Microsoft.Azure.IIoT.Crypto.Models;
 
     /// <summary>
     /// Signing request processor

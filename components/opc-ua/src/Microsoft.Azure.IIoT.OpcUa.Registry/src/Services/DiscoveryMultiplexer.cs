@@ -59,6 +59,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 }
             }
         }
+        /// <inheritdoc/>
+        public async Task CancelAsync(DiscoveryCancelModel request, CancellationToken ct) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            var supervisors = _supervisors;
+            foreach (var id in supervisors) {
+                try {
+                    await _client.CancelAsync(id, request, ct);
+                }
+                catch (Exception ex) {
+                    _logger.Debug(ex, "Failed to call cancel on {id}. Continue...",
+                        id);
+                }
+            }
+        }
 
         /// <inheritdoc/>
         public void Dispose() {
