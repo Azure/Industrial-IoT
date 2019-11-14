@@ -27,5 +27,6 @@
 /**/TestResults/**
 /**/packages/**
 .env
-
+*.crt
+*.key
 
