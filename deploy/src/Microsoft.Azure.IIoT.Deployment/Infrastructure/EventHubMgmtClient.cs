@@ -21,6 +21,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
     {
         public const string DEFAULT_EVENT_HUB_NAMESPACE_NAME_PREFIX = "eventhubnamespace-";
         public const string DEFAULT_EVENT_HUB_NAME_PREFIX = "eventhub-";
+        public const int NUM_OF_MAX_NAME_AVAILABILITY_CHECKS = 5;
 
         private const string EVENT_HUB_NAMESPACE_AUTHORIZATION_RULE = "RootManageSharedAccessKey";
 
@@ -47,6 +48,70 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             int suffixLen = 5
         ) {
             return SdkContext.RandomResourceName(prefix, suffixLen);
+        }
+
+        /// <summary>
+        /// Checks whether given EventHub Namespace name is available.
+        /// </summary>
+        /// <param name="eventHubNamespaceName"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns>True if name is available, False otherwise.</returns>
+        public async Task<bool> CheckNamespaceNameAvailabilityAsync(
+            string eventHubNamespaceName,
+            CancellationToken cancellationToken = default
+        ) {
+            try {
+                var nameAvailabilityInfo = await _eventHubManagementClient
+                    .Namespaces
+                    .CheckNameAvailabilityAsync(
+                        eventHubNamespaceName,
+                        cancellationToken
+                    );
+
+                if (nameAvailabilityInfo.NameAvailable.HasValue) {
+                    return nameAvailabilityInfo.NameAvailable.Value;
+                }
+            }
+            catch (Exception ex) {
+                Log.Error(ex, $"Failed to check EventHub Namespace name availability for {eventHubNamespaceName}");
+                throw;
+            }
+
+            // !nameAvailabilityInfo.NameAvailable.HasValue
+            throw new Exception($"Failed to check EventHub Namespace name availability for {eventHubNamespaceName}");
+        }
+
+        /// <summary>
+        /// Tries to generate EventHub Namespace name that is available.
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns>An available name for EventHub Namespace.</returns>
+        public async Task<string> GenerateAvailableNamespaceNameAsync(
+            CancellationToken cancellationToken = default
+        ) {
+            try {
+                for (var numOfChecks = 0; numOfChecks < NUM_OF_MAX_NAME_AVAILABILITY_CHECKS; ++numOfChecks) {
+                    var eventHubNamespaceName = GenerateEventHubNamespaceName();
+                    var nameAvailable = await CheckNamespaceNameAvailabilityAsync(
+                            eventHubNamespaceName,
+                            cancellationToken
+                        );
+
+                    if (nameAvailable) {
+                        return eventHubNamespaceName;
+                    }
+                }
+            }
+            catch (Exception ex) {
+                Log.Error(ex, "Failed to generate unique EventHub Namespace name");
+                throw;
+            }
+
+            var errorMessage = $"Failed to generate unique EventHub Namespace name " +
+                $"after {NUM_OF_MAX_NAME_AVAILABILITY_CHECKS} retries";
+
+            Log.Error(errorMessage);
+            throw new Exception(errorMessage);
         }
 
         public async Task<EHNamespaceInner> CreateEventHubNamespaceAsync(

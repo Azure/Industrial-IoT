@@ -19,6 +19,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
     class CosmosDBMgmtClient : IDisposable {
 
         public const string DEFAULT_COSMOS_DB_ACCOUNT_NAME_PREFIX = "cosmosDB-";
+        public const int NUM_OF_MAX_NAME_AVAILABILITY_CHECKS = 5;
 
         private const string COSMOS_DB_ACCOUNT_CONNECTION_STRING_FORMAT = "AccountEndpoint={0};AccountKey={1};";
 
@@ -38,6 +39,65 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             int suffixLen = 5
         ) {
             return SdkContext.RandomResourceName(prefix, suffixLen);
+        }
+
+        /// <summary>
+        /// Checks whether given CosmosDB account name is available.
+        /// </summary>
+        /// <param name="cosmosDBAccountName"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns>True if name is available, False otherwise.</returns>
+        public async Task<bool> CheckNameAvailabilityAsync(
+            string cosmosDBAccountName,
+            CancellationToken cancellationToken = default
+        ) {
+            try {
+                var nameExists = await _cosmosDBManagementClient
+                    .DatabaseAccounts
+                    .CheckNameExistsAsync(
+                        cosmosDBAccountName,
+                        cancellationToken
+                    );
+
+                return !nameExists;
+            }
+            catch (Exception ex) {
+                Log.Error(ex, $"Failed to check CosmosDB Account name availability for {cosmosDBAccountName}");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Tries to generate CosmosDB account name that is available.
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns>An available name for CosmosDB account.</returns>
+        public async Task<string> GenerateAvailableNameAsync(
+            CancellationToken cancellationToken = default
+        ) {
+            try {
+                for (var numOfChecks = 0; numOfChecks < NUM_OF_MAX_NAME_AVAILABILITY_CHECKS; ++numOfChecks) {
+                    var cosmosDBAccountName = GenerateCosmosDBAccountName();
+                    var nameAvailable = await CheckNameAvailabilityAsync(
+                            cosmosDBAccountName,
+                            cancellationToken
+                        );
+
+                    if (nameAvailable) {
+                        return cosmosDBAccountName;
+                    }
+                }
+            }
+            catch (Exception ex) {
+                Log.Error(ex, "Failed to generate unique CosmosDB Account name");
+                throw;
+            }
+
+            var errorMessage = $"Failed to generate unique CosmosDB Account name " +
+                $"after {NUM_OF_MAX_NAME_AVAILABILITY_CHECKS} retries";
+
+            Log.Error(errorMessage);
+            throw new Exception(errorMessage);
         }
 
         public async Task<DatabaseAccountInner> CreateDatabaseAccountAsync(

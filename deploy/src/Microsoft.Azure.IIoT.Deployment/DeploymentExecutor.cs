@@ -34,8 +34,6 @@ namespace Microsoft.Azure.IIoT.Deployment {
         public static readonly string ENV_FILE_PATH = @".env";
 
 
-        private const int NUM_OF_MAX_NAME_AVAILABILITY_CHECKS = 5;
-
         private List<string> _defaultTagsList;
         private Dictionary<string, string> _defaultTagsDict;
 
@@ -301,56 +299,28 @@ namespace Microsoft.Azure.IIoT.Deployment {
 
 
             // KeyVault names
-            _keyVaultName = Infrastructure.KeyVaultMgmtClient.GenerateName();
-
-            var keyVaultNameAvailable = await _keyVaultManagementClient
-                .CheckNameAvailabilityAsync(_keyVaultName, cancellationToken);
-
-            for (var numOfChecks = 0; numOfChecks < NUM_OF_MAX_NAME_AVAILABILITY_CHECKS
-                && !keyVaultNameAvailable; ++numOfChecks) {
-                _keyVaultName = Infrastructure.KeyVaultMgmtClient.GenerateName();
-
-                keyVaultNameAvailable = await _keyVaultManagementClient
-                    .CheckNameAvailabilityAsync(_keyVaultName, cancellationToken);
-            }
-
-            if (!keyVaultNameAvailable) {
-                Log.Error("Error: keyVaultName name is not available: {0}", _keyVaultName);
-                throw new Exception("Failed to generate unique keyVaultName name");
-            }
-
+            _keyVaultName = await _keyVaultManagementClient
+                .GenerateAvailableNameAsync(cancellationToken);
 
             // Storage Account names
-            _storageAccountName = Infrastructure.StorageMgmtClient.GenerateStorageAccountName();
-
-            var storageAccountNameAvailable = await _storageManagementClient
-                .CheckNameAvailabilityAsync(_storageAccountName, cancellationToken);
-
-            for (var numOfChecks = 0; numOfChecks < NUM_OF_MAX_NAME_AVAILABILITY_CHECKS && 
-                !storageAccountNameAvailable; ++numOfChecks) {
-                _storageAccountName = Infrastructure.StorageMgmtClient.GenerateStorageAccountName();
-
-                storageAccountNameAvailable = await _storageManagementClient
-                    .CheckNameAvailabilityAsync(_storageAccountName, cancellationToken);
-            }
-
-            if (!storageAccountNameAvailable) {
-                Log.Error("Error: Storage Account name is not available: {0}", _storageAccountName);
-                throw new Exception("Failed to generate unique Storage Account name");
-            }
-
+            _storageAccountName = await _storageManagementClient
+                .GenerateAvailableNameAsync(cancellationToken);
 
             // IoT hub names
-            _iotHubName = Infrastructure.IotHubMgmtClient.GenerateIotHubName();
+            _iotHubName = await _iotHubManagementClient
+                .GenerateAvailableNameAsync(cancellationToken);
 
             // CosmosDB names
-            _cosmosDBAccountName = Infrastructure.CosmosDBMgmtClient.GenerateCosmosDBAccountName();
+            _cosmosDBAccountName = await _cosmosDBManagementClient
+                .GenerateAvailableNameAsync(cancellationToken);
 
             // Service Bus Namespace names
-            _serviceBusNamespaceName = Infrastructure.ServiceBusMgmtClient.GenerateServiceBusNamespaceName();
+            _serviceBusNamespaceName = await _serviceBusManagementClient
+                .GenerateAvailableNamespaceNameAsync(cancellationToken);
 
             // Event Hub Namespace names
-            _eventHubNamespaceName = Infrastructure.EventHubMgmtClient.GenerateEventHubNamespaceName();
+            _eventHubNamespaceName = await _eventHubManagementClient
+                .GenerateAvailableNamespaceNameAsync(cancellationToken);
             _eventHubName = Infrastructure.EventHubMgmtClient.GenerateEventHubName();
 
             // Operational Insights workspace name.
@@ -376,10 +346,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
 
             // SignalR name
             _signalRName = await _signalRManagementClient
-                .GenerateAvailableNameAsync(
-                    _resourceGroup,
-                    cancellationToken
-                );
+                .GenerateAvailableNameAsync(_resourceGroup, cancellationToken);
         }
 
         public async Task RegisterApplicationsAsync(
