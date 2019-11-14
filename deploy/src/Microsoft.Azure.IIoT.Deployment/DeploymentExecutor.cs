@@ -72,6 +72,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
         private Infrastructure.NetworkMgmtClient _networkManagementClient;
         private Infrastructure.AuthorizationMgmtClient _authorizationManagementClient;
         private Infrastructure.AksMgmtClient _aksManagementClient;
+        private Infrastructure.SignalRMgmtClient _signalRManagementClient;
 
         // Resource names
         private string _servicesApplicationName;
@@ -95,6 +96,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
         //private string _publicIPAddressName;
         //private string _domainNameLabel;
         private string _aksClusterName;
+        private string _signalRName;
 
         // Resources
         private Application _serviceApplication;
@@ -281,6 +283,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
             _networkManagementClient = new Infrastructure.NetworkMgmtClient(subscriptionId, _restClient);
             _authorizationManagementClient = new Infrastructure.AuthorizationMgmtClient(subscriptionId, _restClient);
             _aksManagementClient = new Infrastructure.AksMgmtClient(subscriptionId, _restClient);
+            _signalRManagementClient = new Infrastructure.SignalRMgmtClient(subscriptionId, _restClient);
         }
 
         public async Task RegisterResourceProvidersAsync(
@@ -370,6 +373,13 @@ namespace Microsoft.Azure.IIoT.Deployment {
 
             // AKS cluster name
             _aksClusterName = Infrastructure.AksMgmtClient.GenerateName();
+
+            // SignalR name
+            _signalRName = await _signalRManagementClient
+                .GenerateAvailableNameAsync(
+                    _resourceGroup,
+                    cancellationToken
+                );
         }
 
         public async Task RegisterApplicationsAsync(
@@ -891,6 +901,18 @@ namespace Microsoft.Azure.IIoT.Deployment {
 
 
 
+            // SignalR
+            var signalRCreationTask = _signalRManagementClient
+                .CreateAsync(
+                    _resourceGroup,
+                    _signalRName,
+                    _defaultTagsDict,
+                    cancellationToken
+                );
+
+
+
+
             // Collect all necessary environment variables for IIoT services.
             var iotHubOwnerConnectionString = await _iotHubManagementClient
                 .GetIotHubConnectionStringAsync(
@@ -930,6 +952,14 @@ namespace Microsoft.Azure.IIoT.Deployment {
                     cancellationToken
                 );
 
+            var signalR = signalRCreationTask.Result;
+            var signalRConnectionString = await _signalRManagementClient
+                .GetConnectionStringAsync(
+                    _resourceGroup,
+                    signalR,
+                    cancellationToken
+                );
+
             var applicationInsightsComponent = applicationInsightsComponentCreationTask.Result;
             var webSite = webSiteCreationTask.Result;
 
@@ -946,6 +976,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 eventHub,
                 eventHubNamespaceConnectionString,
                 serviceBusNamespaceConnectionString,
+                signalRConnectionString,
                 keyVault,
                 operationalInsightsWorkspace,
                 applicationInsightsComponent,
@@ -1026,6 +1057,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
             disposeIfNotNull(_networkManagementClient);
             disposeIfNotNull(_authorizationManagementClient);
             disposeIfNotNull(_aksManagementClient);
+            disposeIfNotNull(_signalRManagementClient);
         }
     }
 }
