@@ -98,7 +98,16 @@ We are working on simplifying this flow, but as of right now these are the steps
     SubscriptionId: XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX, DisplayName: Visual Studio Enterprise
     ```
 
-8. Select Resource Group. You would be presented with options of either using an existing Resource Group or creating a new one. If you choose to use an existing one, you will be presented with a list of all Resource Group within the Subscription to choose from. Otherwise, you would be asked to select a Region for the new Resource Group and provide a name for it. Output for the latter case is below:
+8. Select Resource Group. You would be presented with options of either using an existing Resource Group or
+creating a new one. If you choose to use an existing one, you will be presented with a list of all Resource
+Groups within the Subscription to choose from. Otherwise, you would be asked to select a Region for the new
+Resource Group and provide a name for it. Output for the latter case is below.
+
+    > **Note:** If the application encounters an error during execution, it will ask you whether to perform a
+    cleanup or not. Cleanup works by deleting registered Applications and the Resource Group. This means
+    if an existing Resource Group has been selected for the deployment and an error occurs then selecting to
+    perform cleanup will also trigger deletion of all resources previously present in the Resource Group. More
+    details can be found in [Resource Cleanup](#resource-cleanup).
 
     ``` bash
     Do you want to create a new ResourceGroup or use an existing one ? Please select N[new] or E[existing]
@@ -188,6 +197,30 @@ To grant admin consent you have to be **admin** in the Azure account. Here are t
 * Find `AzureIndustrialIoTDeployment` in the list of applications and select it
 * On the left side find **Permissions** under **Security** group and select it. It will show list of permissions currently granted to `AzureIndustrialIoTDeployment`.
 * Click on `Grant admin consent for <your-directory-name>` button to grant consent for the application to manage Azure resources. It will show you a prompt with some additional permissions that `AzureIndustrialIoTDeployment` has requested.
+
+### Resource Cleanup
+
+`Microsoft.Azure.IIoT.Deployment` will prompt for resource cleanup if it encounters an error during
+deployment of Industrial IoT platform. Cleanup works by deleting registered Applications and the
+Resource Group that has been selected for deployment. This means, that one should be cautious with
+cleanup if an existing Resource Group has been selected for the deployment, since the cleanup will
+trigger deletion of **all** resources within the Resource Group, even the ones that have been present
+before execution of `Microsoft.Azure.IIoT.Deployment`. We will introduce more granular cleanup in the
+next iterations of the application.
+
+Cleanup prompt looks like this:
+
+```bash
+Do you want to delete registered Applications and the Resource Group ? Please select Y[yes] or N[no]
+y
+[11:24:48 INF] Initiated deletion of Resource Group: IAIDeployment
+[11:24:48 INF] Deleting application: IAIDeployment-services ...
+[11:24:57 INF] Deleted application: IAIDeployment-services
+[11:24:58 INF] Deleting application: IAIDeployment-clients ...
+[11:25:03 INF] Deleted application: IAIDeployment-clients
+[11:25:03 INF] Deleting application: IAIDeployment-aks ...
+[11:25:04 INF] Deleted application: IAIDeployment-aks
+```
 
 ## Deployed Resources
 
