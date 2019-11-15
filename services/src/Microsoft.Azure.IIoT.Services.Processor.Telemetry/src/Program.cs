@@ -25,7 +25,6 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry {
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Http.Auth;
     using Microsoft.Azure.IIoT.Auth.Clients.Default;
-    using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Cdm.Services;
     using Microsoft.Azure.IIoT.Cdm.Storage;
     using Microsoft.Extensions.Configuration;
@@ -133,8 +132,14 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry {
             builder.RegisterType<DiscoveryEventHandler>()
                 .AsImplementedInterfaces().SingleInstance();
             // ... requires the corresponding services
-
+            // Register http client module (needed for api)
             builder.RegisterModule<HttpClientModule>();
+            // Use bearer authentication
+            builder.RegisterType<HttpBearerAuthentication>()
+                .AsImplementedInterfaces().SingleInstance();
+            // Use device code token provider to get tokens
+            builder.RegisterType<AppAuthenticationProvider>()
+                .AsImplementedInterfaces().SingleInstance();
 
             builder.RegisterType<OnboardingAdapter>()
                 .AsImplementedInterfaces().SingleInstance();

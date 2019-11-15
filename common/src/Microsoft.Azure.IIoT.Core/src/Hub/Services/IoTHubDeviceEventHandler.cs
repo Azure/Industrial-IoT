@@ -39,6 +39,7 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
                 return;
             }
             if (properties.TryGetValue(CommonProperties.EventSchemaType, out var contentType) ||
+                properties.TryGetValue("content-type", out contentType) || // TODO remove when new publisher in use
                 properties.TryGetValue(SystemProperties.MessageSchema, out contentType)) {
 
                 properties.TryGetValue(CommonProperties.ModuleId, out var moduleId);

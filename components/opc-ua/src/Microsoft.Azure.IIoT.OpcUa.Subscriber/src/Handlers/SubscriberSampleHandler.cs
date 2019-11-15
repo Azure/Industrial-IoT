@@ -20,7 +20,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
     public sealed class SubscriberCdmSampleHandler : IDeviceTelemetryHandler {
 
         /// <inheritdoc/>
-        public string ContentType => ContentTypes.LegacySubscriberSample;
+        public string MessageSchema => ContentTypes.LegacySubscriberSample;
 
         /// <summary>
         /// Create handler
@@ -34,7 +34,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
 
         /// <inheritdoc/>
         public async Task HandleAsync(string deviceId, string moduleId,
-            byte[] payload, Func<Task> checkpoint) {
+            byte[] payload, IDictionary<string, string> properties, Func<Task> checkpoint) {
             var json = Encoding.UTF8.GetString(payload);
             IEnumerable<JToken> messages;
             try {
