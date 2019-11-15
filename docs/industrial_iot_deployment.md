@@ -100,12 +100,12 @@ We are working on simplifying this flow, but as of right now these are the steps
 
 8. Select Resource Group. You would be presented with options of either using an existing Resource Group or
 creating a new one. If you choose to use an existing one, you will be presented with a list of all Resource
-Group within the Subscription to choose from. Otherwise, you would be asked to select a Region for the new
+Groups within the Subscription to choose from. Otherwise, you would be asked to select a Region for the new
 Resource Group and provide a name for it. Output for the latter case is below.
 
     > **Note:** If the application encounters an error during execution, it will ask you whether to perform a
-    cleanup or not. Cleanup works by deleting registered Applications and the Resource Group. This means,
-    that if an existing Resource Group has been selected for the deployment and error occurs, then selecting to
+    cleanup or not. Cleanup works by deleting registered Applications and the Resource Group. This means
+    if an existing Resource Group has been selected for the deployment and an error occurs then selecting to
     perform cleanup will also trigger deletion of all resources previously present in the Resource Group. More
     details can be found in [Resource Cleanup](#resource-cleanup).
 
