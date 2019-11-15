@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
 
     using System;
+    using System.Diagnostics;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -41,62 +42,64 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             string resourceId,
             CancellationToken cancellationToken = default
         ) {
+            const int retrySeconds = 180;
+            const int waitSeconds = 5;
+
             try {
-                async Task<RoleAssignmentInner> createRoleAssignment() {
-                    var roleAssignmentDefinition = new RoleAssignmentCreateParameters {
-                        PrincipalId = servicePrincipal.Id,
-                        RoleDefinitionId = _networkContributorRoleDefinitionId
-                    };
+                Log.Debug($"Assigning NetworkContributor role to Service Principal: {servicePrincipal.DisplayName} ...");
 
-                    var roleAssignment = await _authorizationManagementClient
-                        .RoleAssignments
-                        .CreateAsync(
-                            resourceId,
-                            Guid.NewGuid().ToString(),
-                            roleAssignmentDefinition,
-                            cancellationToken
-                        );
+                var roleAssignmentDefinition = new RoleAssignmentCreateParameters {
+                    PrincipalId = servicePrincipal.Id,
+                    RoleDefinitionId = _networkContributorRoleDefinitionId
+                };
 
-                    return roleAssignment;
-                }
+                var spIdFormatted = new Guid(servicePrincipal.Id).ToString("N");
+                var spDoesNotExistMessage = $"principal {spIdFormatted} does not exist";
 
-                Log.Verbose($"Assigning NetworkContributor role to Service Principal: {servicePrincipal.DisplayName} ...");
+                var stopwatch = new Stopwatch();
+                stopwatch.Start();
 
-                RoleAssignmentInner roleAssignmentResult;
+                // It can take some time for new service principal to 
+                // propagate throughout Azure AD. So we will retry in
+                // a loop for retrySeconds.
+                do {
+                    try {
+                        var roleAssignmentResult = await _authorizationManagementClient
+                            .RoleAssignments
+                            .CreateAsync(
+                                resourceId,
+                                Guid.NewGuid().ToString(),
+                                roleAssignmentDefinition,
+                                cancellationToken
+                            );
 
-                try {
-                    roleAssignmentResult = await createRoleAssignment();
-                }
-                catch (Rest.Azure.CloudException ex) {
-                    // It can take some time for new service principal to 
-                    // propagate throughout Azure AD. Because of this we will
-                    // wait for some time and retry again.
-                    var spIdFormatted = new Guid(servicePrincipal.Id).ToString("N");
-                    var msg = $"principal {spIdFormatted} does not exist";
+                        Log.Debug($"Assigned NetworkContributor role to Service Principal: {servicePrincipal.DisplayName}");
 
-                    if (ex.Message.ToLower().Contains(msg)) {
-                        const int waitSeconds = 120;
-
-                        Log.Warning($"ServicePrincipal creation has not propagated correcty. " +
-                            $"Waiting for {waitSeconds} seconds before retry.");
-
-                        await Task.Delay(waitSeconds * 1000);
-
-                        roleAssignmentResult = await createRoleAssignment();
+                        return roleAssignmentResult;
                     }
-                    else {
-                        throw;
+                    catch (Rest.Azure.CloudException ex) {
+                        if (ex.Message.ToLower().Contains(spDoesNotExistMessage)) {
+                            Log.Debug($"ServicePrincipal creation has not propagated correctly. " +
+                                $"Waiting for {waitSeconds} seconds before retry.");
+
+                            await Task.Delay(waitSeconds * 1000, cancellationToken);
+                        }
+                        else {
+                            throw;
+                        }
                     }
-                }
-
-                Log.Verbose($"Assigned NetworkContributor role to Service Principal: {servicePrincipal.DisplayName}");
-
-                return roleAssignmentResult;
+                } while (stopwatch.Elapsed < TimeSpan.FromSeconds(retrySeconds));
             }
             catch (Exception ex) {
-                Log.Error(ex, $"Failed to assign NetworkContributor role to Service Principal: {servicePrincipal.DisplayName}");
+                Log.Error(ex, $"Failed to assign NetworkContributor role " +
+                    $"to Service Principal: {servicePrincipal.DisplayName}");
                 throw;
             }
+
+            // We exited do/while loop without successfully creating role assignment.
+            var errorMessage = $"Failed to assign NetworkContributor role within {retrySeconds} seconds " +
+                $"to Service Principal: {servicePrincipal.DisplayName}";
+            throw new Exception(errorMessage);
         }
 
         public void Dispose() {
