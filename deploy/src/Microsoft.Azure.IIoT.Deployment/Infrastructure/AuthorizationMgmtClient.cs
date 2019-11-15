@@ -79,7 +79,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                     }
                     catch (Rest.Azure.CloudException ex) {
                         if (ex.Message.ToLower().Contains(spDoesNotExistMessage)) {
-                            Log.Debug($"ServicePrincipal creation has not propagated correcty. " +
+                            Log.Debug($"ServicePrincipal creation has not propagated correctly. " +
                                 $"Waiting for {waitSeconds} seconds before retry.");
 
                             await Task.Delay(waitSeconds * 1000, cancellationToken);
