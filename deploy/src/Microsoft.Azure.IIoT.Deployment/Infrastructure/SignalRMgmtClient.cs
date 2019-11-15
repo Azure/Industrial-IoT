@@ -60,6 +60,13 @@
 
                 tags = tags ?? new Dictionary<string, string>();
 
+                // Constructor of SignalRFeature will set Flag to "ServiceMode".
+                // Bug report for adding feature to explicitly set the Flag to "ServiceMode":
+                // https://github.com/Azure/azure-sdk-for-net/issues/8806
+                var serviceModeFeature = new SignalRFeature {
+                    Value = "Default"
+                };
+
                 var signalRCreateParameters = new SignalRCreateParameters() {
                     Location = resourceGroup.RegionName,
                     Tags = tags,
@@ -72,14 +79,10 @@
                     Properties = new SignalRCreateOrUpdateProperties {
                         HostNamePrefix = signalRName,
                         Features = new List<SignalRFeature> {
-                            new SignalRFeature {
-                                Value = "Default"
-                            }
+                           serviceModeFeature
                         }
                     }
                 };
-
-                // ToDo: Check that SignalRFeature Flag is "ServiceMode"
 
                 signalRCreateParameters.Validate();
 
