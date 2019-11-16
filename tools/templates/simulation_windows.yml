@@ -38,4 +38,3 @@ jobs:
         ScriptPath: 'tools/scripts/connect-edge.ps1'
         ScriptArguments: '-ResourceGroupName "$(Output_resourceGroup)" -IoTHubName "$(Output_iothub-name)" -IoTHubConnectionString "$(Output_iothub-connstring)" -SimulationVMName "$(Output_edgeVMName)" -Env "windows"'
         azurePowerShellVersion: 'LatestVersion'
-        
