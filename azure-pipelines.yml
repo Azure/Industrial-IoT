@@ -31,8 +31,3 @@ stages:
   - template: tools/templates/acrbuild.yml
     parameters:
       useNugets: ${{ startsWith(variables['Build.SourceBranch'], 'refs/heads/') }}
-- stage: simulation
-  displayName: Create or update simulation environment
-  jobs:
-  - template: tools/templates/simulation_linux.yml
-  - template: tools/templates/simulation_windows.yml

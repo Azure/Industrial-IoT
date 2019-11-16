@@ -1,0 +1,13 @@
+schedules:
+- cron: "0 0 * * *"
+  displayName: Daily midnight build
+  branches:
+    include:
+    - master
+
+stages:
+- stage: simulation
+  displayName: Create or update simulation environment
+  jobs:
+  - template: tools/templates/simulation_linux.yml
+  - template: tools/templates/simulation_windows.yml
