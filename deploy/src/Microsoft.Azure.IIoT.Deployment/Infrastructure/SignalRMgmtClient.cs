@@ -1,4 +1,9 @@
-﻿namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
+﻿// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------
+
+namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
 
     using System;
     using System.Collections.Generic;
@@ -56,9 +61,9 @@
             CancellationToken cancellationToken = default
         ) {
             try {
-                Log.Information($"Creating SignalR Service: {signalRName} ...");
-
                 tags = tags ?? new Dictionary<string, string>();
+
+                Log.Information($"Creating SignalR Service: {signalRName} ...");
 
                 // Constructor of SignalRFeature will set Flag to "ServiceMode".
                 // Bug report for adding feature to explicitly set the Flag to "ServiceMode":

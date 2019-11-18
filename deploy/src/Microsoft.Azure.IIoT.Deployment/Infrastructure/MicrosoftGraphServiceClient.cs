@@ -62,9 +62,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             IEnumerable<string> tags = null,
             CancellationToken cancellationToken = default
         ) {
-            if (null == tags) {
-                tags = new List<string> { };
-            }
+            tags = tags ?? new List<string>();
 
             // Setup AppRoles for service application
             var serviceApplicationAppRoles = new List<AppRole>();
@@ -138,7 +136,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                 keyVaultUserImpersonationRequiredResourceAccess,
                 microsoftGraphUserReadRequiredResourceAccess
             };
-
 
             // Add OAuth2Permissions
             var oauth2Permissions = new List<PermissionScope> {
@@ -262,9 +259,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             IEnumerable<string> tags = null,
             CancellationToken cancellationToken = default
         ) {
-            if (null == tags) {
-                tags = new List<string> { };
-            }
+            tags = tags ?? new List<string>();
 
             // Extract id of Oauth2PermissionScope for user impersonation
             var saApiOauth2PermissionScopeUserImpersonationList = serviceApplication
@@ -382,9 +377,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             IEnumerable<string> tags = null,
             CancellationToken cancellationToken = default
         ) {
-            if (null == tags) {
-                tags = new List<string> { };
-            }
+            tags = tags ?? new List<string>();
 
             // Add OAuth2Permissions for user impersonation
             var aksOauth2Permissions = new List<PermissionScope> {
@@ -584,9 +577,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             IEnumerable<string> tags = null,
             CancellationToken cancellationToken = default
         ) {
-            if (null == tags) {
-                tags = new List<string> { };
-            }
+            tags = tags ?? new List<string>();
 
             var servicePrincipalDefinition = new ServicePrincipal {
                 Tags = tags, // Add WindowsAzureActiveDirectoryIntegratedApp
@@ -725,9 +716,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                 }
             }
         }
-
-
-
 
         private static byte[] ToBase64Bytes(string message) {
             return System.Text.Encoding.UTF8.GetBytes(message);

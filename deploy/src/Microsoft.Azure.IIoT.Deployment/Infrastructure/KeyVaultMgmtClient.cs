@@ -49,9 +49,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             User user,
             IDictionary<string, string> tags = null
         ) {
-            if (null == tags) {
-                tags = new Dictionary<string, string> { };
-            }
+            tags = tags ?? new Dictionary<string, string>();
 
             var keyVaultAccessPolicies = new List<AccessPolicyEntry> {
                     new AccessPolicyEntry {

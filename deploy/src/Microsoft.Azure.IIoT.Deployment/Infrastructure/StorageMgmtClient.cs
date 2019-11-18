@@ -108,9 +108,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             CancellationToken cancellationToken = default
         ) {
             try {
-                if (null == tags) {
-                    tags = new Dictionary<string, string> { };
-                }
+                tags = tags ?? new Dictionary<string, string>();
 
                 Log.Information($"Creating Azure Storage Account: {storageAccountName} ...");
 
@@ -163,7 +161,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             }
         }
 
-
         public async Task<StorageAccountInner> GetStorageAccountAsync(
             IResourceGroup resourceGroup,
             string storageAccountName,
@@ -180,7 +177,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
 
             return storageAccount;
         }
-
 
         public async Task<StorageAccountKey> GetStorageAccountKeyAsync(
             IResourceGroup resourceGroup,
@@ -226,9 +222,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             CancellationToken cancellationToken = default
         ) {
             try {
-                if (null == tags) {
-                    tags = new Dictionary<string, string> { };
-                }
+                tags = tags ?? new Dictionary<string, string>();
 
                 Log.Information($"Creating Blob Container: {containerName} ...");
 
