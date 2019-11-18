@@ -22,7 +22,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
         // Docs: https://docs.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#network-contributor
         public const string NETWORK_CONTRIBUTOR_ROLE_ID = "4d97b98b-1d4f-4787-a291-c67834d212e7";
 
-
         private readonly AuthorizationManagementClient _authorizationManagementClient;
         private readonly string _networkContributorRoleDefinitionId;
 

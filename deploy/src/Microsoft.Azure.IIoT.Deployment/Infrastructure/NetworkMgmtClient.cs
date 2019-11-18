@@ -64,9 +64,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             CancellationToken cancellationToken = default
         ) {
             try {
-                if (null == tags) {
-                    tags = new Dictionary<string, string> { };
-                }
+                tags = tags ?? new Dictionary<string, string>();
 
                 Log.Information($"Creating Azure Network Security Group: {networkSecurityGroupName} ...");
 
@@ -144,9 +142,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             IDictionary<string, string> tags = null,
             CancellationToken cancellationToken = default
         ) {
-            if (null == tags) {
-                tags = new Dictionary<string, string> { };
-            }
+            tags = tags ?? new Dictionary<string, string>();
 
             // Define Rout Table
             var routTableDefinition = new RouteTableInner {
@@ -185,9 +181,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             CancellationToken cancellationToken = default
         ) {
             try {
-                if (null == tags) {
-                    tags = new Dictionary<string, string> { };
-                }
+                tags = tags ?? new Dictionary<string, string>();
 
                 Log.Information($"Creating Azure Virtual Network: {virtualNetworkName} ...");
 
@@ -255,9 +249,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             IDictionary<string, string> tags = null,
             CancellationToken cancellationToken = default
         ) {
-            if (null == tags) {
-                tags = new Dictionary<string, string> { };
-            }
+            tags = tags ?? new Dictionary<string, string>();
 
             // Define Public IP
             var publicIPAddressDefinition = new PublicIPAddressInner {
@@ -294,9 +286,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             IDictionary<string, string> tags = null,
             CancellationToken cancellationToken = default
         ) {
-            if (null == tags) {
-                tags = new Dictionary<string, string> { };
-            }
+            tags = tags ?? new Dictionary<string, string>();
 
             // Define Network Interface
             var networkInterfaceDefinition = new NetworkInterfaceInner {

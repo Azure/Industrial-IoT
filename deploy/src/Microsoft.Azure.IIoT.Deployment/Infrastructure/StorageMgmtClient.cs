@@ -19,6 +19,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
     class StorageMgmtClient : IDisposable {
 
         public const string DEFAULT_STORAGE_ACCOUNT_NAME_PREFIX = "storage";
+        public const int NUM_OF_MAX_NAME_AVAILABILITY_CHECKS = 5;
 
         public const string STORAGE_ACCOUNT_IOT_HUB_CONTAINER_NAME = "iothub-default";
 
@@ -46,6 +47,12 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             return SdkContext.RandomResourceName(prefix, suffixLen);
         }
 
+        /// <summary>
+        /// Checks whether given Storage account name is available.
+        /// </summary>
+        /// <param name="storageAccountName"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns>True if name is available, False otherwise.</returns>
         public async Task<bool> CheckNameAvailabilityAsync(
             string storageAccountName,
             CancellationToken cancellationToken = default
@@ -60,6 +67,40 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             return storageAccountNameCheck.NameAvailable.Value;
         }
 
+        /// <summary>
+        /// Tries to generate Storage account name that is available.
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns>An available name for Storage account.</returns>
+        public async Task<string> GenerateAvailableNameAsync(
+            CancellationToken cancellationToken = default
+        ) {
+            try {
+                for (var numOfChecks = 0; numOfChecks < NUM_OF_MAX_NAME_AVAILABILITY_CHECKS; ++numOfChecks) {
+                    var storageAccountName = GenerateStorageAccountName();
+                    var nameAvailable = await CheckNameAvailabilityAsync(
+                        storageAccountName,
+                        cancellationToken
+                    );
+
+                    if (nameAvailable) {
+                        return storageAccountName;
+                    }
+                }
+
+            }
+            catch (Exception ex) {
+                Log.Error(ex, "Failed to generate unique Storage Account name");
+                throw;
+            }
+
+            var errorMessage = $"Failed to generate unique Storage Account name " +
+                $"after {NUM_OF_MAX_NAME_AVAILABILITY_CHECKS} retries";
+
+            Log.Error(errorMessage);
+            throw new Exception(errorMessage);
+        }
+
         public async Task<StorageAccountInner> CreateStorageAccountAsync(
             IResourceGroup resourceGroup,
             string storageAccountName,
@@ -67,9 +108,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             CancellationToken cancellationToken = default
         ) {
             try {
-                if (null == tags) {
-                    tags = new Dictionary<string, string> { };
-                }
+                tags = tags ?? new Dictionary<string, string>();
 
                 Log.Information($"Creating Azure Storage Account: {storageAccountName} ...");
 
@@ -122,7 +161,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             }
         }
 
-
         public async Task<StorageAccountInner> GetStorageAccountAsync(
             IResourceGroup resourceGroup,
             string storageAccountName,
@@ -139,7 +177,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
 
             return storageAccount;
         }
-
 
         public async Task<StorageAccountKey> GetStorageAccountKeyAsync(
             IResourceGroup resourceGroup,
@@ -185,9 +222,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             CancellationToken cancellationToken = default
         ) {
             try {
-                if (null == tags) {
-                    tags = new Dictionary<string, string> { };
-                }
+                tags = tags ?? new Dictionary<string, string>();
 
                 Log.Information($"Creating Blob Container: {containerName} ...");
 
