@@ -51,9 +51,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             CancellationToken cancellationToken = default
         ) {
             try {
-                if (null == tags) {
-                    tags = new Dictionary<string, string> { };
-                }
+                tags = tags ?? new Dictionary<string, string>();
 
                 Log.Information($"Creating Azure AppService Plan: {appServicePlanName} ...");
 
@@ -98,9 +96,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             CancellationToken cancellationToken = default
         ) {
             try {
-                if (null == tags) {
-                    tags = new Dictionary<string, string> { };
-                }
+                tags = tags ?? new Dictionary<string, string>();
 
                 Log.Information($"Creating Azure AppService: {azureWebsiteName} ...");
 

@@ -33,13 +33,11 @@ namespace Microsoft.Azure.IIoT.Deployment {
         };
 
 
-
         private readonly AzureEnvironment _azureEnvironment;
         private readonly IPublicClientApplication _publicClientApplication;
 
         private IAccount _account;
         private Guid _tenantId;
-
 
         public AuthenticationManager(
             AzureEnvironment azureEnvironment,

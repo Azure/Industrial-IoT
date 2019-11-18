@@ -19,6 +19,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
     class ServiceBusMgmtClient : IDisposable {
 
         public const string DEFAULT_SERVICE_BUS_NAMESPACE_NAME_PREFIX = "sb-";
+        public const int NUM_OF_MAX_NAME_AVAILABILITY_CHECKS = 5;
 
         public const string SERVICE_BUS_AUTHORIZATION_RULE = "RootManageSharedAccessKey";
 
@@ -33,11 +34,75 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             };
         }
 
-        public static string GenerateServiceBusNamespaceName(
+        public static string GenerateNamespaceName(
             string prefix = DEFAULT_SERVICE_BUS_NAMESPACE_NAME_PREFIX,
             int suffixLen = 5
         ) {
             return SdkContext.RandomResourceName(prefix, suffixLen);
+        }
+
+        /// <summary>
+        /// Checks whether given ServiceBus Namespace name is available.
+        /// </summary>
+        /// <param name="serviceBusNamespaceName"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns>True if name is available, False otherwise.</returns>
+        public async Task<bool> CheckNamespaceNameAvailabilityAsync(
+            string serviceBusNamespaceName,
+            CancellationToken cancellationToken = default
+        ) {
+            try {
+                var nameAvailabilityInfo = await _serviceBusManagementClient
+                    .Namespaces
+                    .CheckNameAvailabilityMethodAsync(
+                        serviceBusNamespaceName,
+                        cancellationToken
+                    );
+
+                if (nameAvailabilityInfo.NameAvailable.HasValue) {
+                    return nameAvailabilityInfo.NameAvailable.Value;
+                }
+            }
+            catch (Exception ex) {
+                Log.Error(ex, $"Failed to check ServiceBus Namespace name availability for {serviceBusNamespaceName}");
+                throw;
+            }
+
+            // !nameAvailabilityInfo.NameAvailable.HasValue
+            throw new Exception($"Failed to check ServiceBus Namespace name availability for {serviceBusNamespaceName}");
+        }
+
+        /// <summary>
+        /// Tries to generate ServiceBus Namespace name that is available.
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns>An available name for ServiceBus Namespace.</returns>
+        public async Task<string> GenerateAvailableNamespaceNameAsync(
+            CancellationToken cancellationToken = default
+        ) {
+            try {
+                for (var numOfChecks = 0; numOfChecks < NUM_OF_MAX_NAME_AVAILABILITY_CHECKS; ++numOfChecks) {
+                    var serviceBusNamespaceName = GenerateNamespaceName();
+                    var nameAvailable = await CheckNamespaceNameAvailabilityAsync(
+                            serviceBusNamespaceName,
+                            cancellationToken
+                        );
+
+                    if (nameAvailable) {
+                        return serviceBusNamespaceName;
+                    }
+                }
+            }
+            catch (Exception ex) {
+                Log.Error(ex, "Failed to generate unique ServiceBus Namespace name");
+                throw;
+            }
+
+            var errorMessage = $"Failed to generate unique ServiceBus Namespace name " +
+                $"after {NUM_OF_MAX_NAME_AVAILABILITY_CHECKS} retries";
+
+            Log.Error(errorMessage);
+            throw new Exception(errorMessage);
         }
 
         public async Task<NamespaceModelInner> CreateServiceBusNamespaceAsync(
@@ -47,9 +112,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             CancellationToken cancellationToken = default
         ) {
             try {
-                if (null == tags) {
-                    tags = new Dictionary<string, string> { };
-                }
+                tags = tags ?? new Dictionary<string, string>();
 
                 Log.Information($"Creating Azure Service Bus Namespace: {serviceBusNamespaceName} ...");
 

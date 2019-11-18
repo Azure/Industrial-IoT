@@ -10,7 +10,6 @@ namespace Microsoft.Azure.IIoT.Deployment {
     using System;
     using System.Threading;
 
-
     class Program {
 
         public const int SUCCESS = 0;
