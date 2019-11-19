@@ -628,6 +628,10 @@ Function GetAzureADApplicationConfig() {
         $requiredPermissions = GetRequiredPermissions -applicationDisplayName "Microsoft Graph" `
             -requiredDelegatedPermissions "User.Read" 
         $requiredResourcesAccess.Add($requiredPermissions)
+        $requiredPermissions = GetRequiredPermissions -applicationDisplayName "Azure Storage" `
+            -requiredDelegatedPermissions "user_impersonation" 
+        $requiredResourcesAccess.Add($requiredPermissions)
+
         Set-AzureADApplication -ObjectId $serviceAadApplication.ObjectId `
             -KnownClientApplications $knownApplications -AppRoles $appRoles `
             -RequiredResourceAccess $requiredResourcesAccess
@@ -673,6 +677,10 @@ Function GetAzureADApplicationConfig() {
         $requiredPermissions = GetRequiredPermissions -applicationDisplayName "Microsoft Graph" `
             -requiredDelegatedPermissions "User.Read" 
         $requiredResourcesAccess.Add($requiredPermissions)
+        $requiredPermissions = GetRequiredPermissions -applicationDisplayName "Azure Storage" `
+            -requiredDelegatedPermissions "user_impersonation" 
+        $requiredResourcesAccess.Add($requiredPermissions)
+		
         Set-AzureADApplication -ObjectId $clientAadApplication.ObjectId `
             -RequiredResourceAccess $requiredResourcesAccess -ReplyUrls $replyUrls `
             -Oauth2AllowImplicitFlow $True -Oauth2AllowUrlPathMatching $True

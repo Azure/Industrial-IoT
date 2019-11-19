@@ -53,8 +53,8 @@ namespace Microsoft.Azure.IIoT.Cdm.Services {
                 }
             });
 
-            _adapter = new ADLSAdapter(config.ADLSg2HostName + "/" + config.ADLSg2BlobName, 
-                config.RootFolder,config.TenantId, config.AppId, config.AppSecret);
+            _adapter = new ADLSAdapter($"{config.ADLSg2HostName}/{config.ADLSg2BlobName}", 
+                $"/{config.RootFolder}", config.TenantId, config.AppId, config.AppSecret);
             _cdmCorpus.Storage.Mount("adls", _adapter);
             _cdmCorpus.Storage.DefaultNamespace = "adls";
             
@@ -90,6 +90,10 @@ namespace Microsoft.Azure.IIoT.Cdm.Services {
                     // unable to retrieve the root folder
                     return;
                 }
+
+                // validate if the root already exist
+                await _storage.CreateBlobRoot(_config.ADLSg2HostName, 
+                    _config.ADLSg2BlobName, _config.RootFolder);
 
                 // create a new Manifest definition
                 Manifest = _cdmCorpus.MakeObject<CdmManifestDefinition>(

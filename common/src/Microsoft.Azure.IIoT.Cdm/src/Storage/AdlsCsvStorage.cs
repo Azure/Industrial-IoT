@@ -109,6 +109,46 @@ namespace Microsoft.Azure.IIoT.Cdm.Storage {
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="hostName"></param>
+        /// <param name="blobName"></param>
+        /// <param name="rootFolder"></param>
+        /// <returns></returns>
+        public async Task CreateBlobRoot(string hostName, string blobName, string rootFolder) {
+
+            var url = $"https://{hostName}";
+            var request = _httpClient.NewRequest($"{url}/{blobName}?resource=filesystem", kResource);
+            var response = await _httpClient.HeadAsync(request);
+            if (response.IsError()) {
+                request = _httpClient.NewRequest($"{url}/{blobName}?resource=filesystem", kResource);
+                response = await _httpClient.PutAsync(request);
+                if (response.IsError()) {
+                    // failed to create or get the filesystem, give up
+                    return;
+                }
+                request = _httpClient.NewRequest($"{url}/{blobName}/{rootFolder}?resource=directory", kResource);
+                response = await _httpClient.PutAsync(request);
+                if (response.IsError()) {
+                    // failed to create or get the root folder, give up
+                    return;
+                }
+            }
+            else {
+                request = _httpClient.NewRequest($"{url}/{blobName}/{rootFolder}", kResource);
+                response = await _httpClient.HeadAsync(request);
+                if (response.IsError()) {
+                    request = _httpClient.NewRequest($"{url}/{blobName}/{rootFolder}?resource=directory", kResource);
+                    response = await _httpClient.PutAsync(request);
+                    if (response.IsError()) {
+                        // failed to create or get the root folder, give up
+                        return;
+                    }
+                }
+            }
+        }
+
         /// <inheritdoc/>
         public void Dispose() {
         }

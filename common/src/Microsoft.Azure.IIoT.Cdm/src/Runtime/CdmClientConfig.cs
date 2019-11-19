@@ -6,13 +6,14 @@
 namespace Microsoft.Azure.IIoT.Cdm.Runtime {
     using Microsoft.Azure.IIoT.Cdm; 
     using Microsoft.Azure.IIoT.Auth.Runtime;
+    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Extensions.Configuration;
-    
+
     /// <summary>
     /// CDM storage configuration
     /// </summary>
-    public class CdmClientConfig : ClientConfig, ICdmClientConfig {
-        
+    public class CdmClientConfig : DiagnosticsConfig, ICdmClientConfig {
+
         /// <summary>
         /// CDM's ADLSg2 configuration
         /// </summary>
@@ -20,15 +21,41 @@ namespace Microsoft.Azure.IIoT.Cdm.Runtime {
         private const string kCdmADLSg2BlobName = "Cdm:ADLSg2BlobName";
         private const string kCdmRootFolder = "Cdm:RootFolder";
 
+        private const string kAuth_AppIdKey = "Auth:ServiceId";
+        private const string kAuth_AppSecretKey = "Auth:ServiceSecret";
+        private const string kAuth_TenantIdKey = "Auth:TenantId";
+        private const string kAuth_InstanceUrlKey = "Auth:InstanceUrl";
+        private const string kAuth_AudienceKey = "Auth:Audience";
+
+
+        /// <summary>Application id</summary>
+        public string AppId => GetStringOrDefault(kAuth_AppIdKey,
+            GetStringOrDefault("PCS_AUTH_AAD_SERVICEID"))?.Trim();
+        /// <summary>App secret</summary>
+        public string AppSecret => GetStringOrDefault(kAuth_AppSecretKey,
+            GetStringOrDefault("PCS_AUTH_AAD_SERVICESECRET"))?.Trim();
+        /// <summary>Optional tenant</summary>
+        public string TenantId => GetStringOrDefault(kAuth_TenantIdKey,
+            GetStringOrDefault("PCS_WEBUI_AUTH_AAD_TENANT", "common")).Trim();
+        /// <summary>Aad instance url</summary>
+        public string InstanceUrl => GetStringOrDefault(kAuth_InstanceUrlKey,
+            GetStringOrDefault("PCS_WEBUI_AUTH_AAD_INSTANCE",
+                "https://login.microsoftonline.com")).Trim();
+        /// <summary>Audience</summary>
+        public string Audience => GetStringOrDefault(kAuth_AudienceKey,
+            GetStringOrDefault("PCS_AUTH_AUDIENCE", null));
+
         /// <summary>ADLSg2 host's name </summary>
         public string ADLSg2HostName => GetStringOrDefault(kCdmAdDLS2HostName,
-            GetStringOrDefault("PCS_CDM_ADLSG2_HOSTNAME", null));
+            GetStringOrDefault(
+                "PCS_CDM_ADLSG2_HOSTNAME",
+                GetStringOrDefault("PCS_IOTHUBREACT_AZUREBLOB_ACCOUNT") + ".dfs.core.windows.net"));
         /// <summary>Blob name to store data in the ADLSg2</summary>
         public string ADLSg2BlobName => GetStringOrDefault(kCdmADLSg2BlobName,
             GetStringOrDefault("PCS_CDM_ADLSG2_BLOBNAME", "powerbi"));
         /// <summary>Root Folder within the blob</summary>
         public string RootFolder => GetStringOrDefault(kCdmRootFolder,
-            GetStringOrDefault("PCS_CDM_ROOTFOLDER", "/IIoTDataFlow"));
+            GetStringOrDefault("PCS_CDM_ROOTFOLDER", "IIoTDataFlow"));
         
         /// <summary>
         /// Configuration constructor

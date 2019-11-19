@@ -116,6 +116,9 @@ Function GetEnvironmentVariables() {
     $AUTH_AAD_APPSECRET = $aadConfig.ClientSecret
     $AUTH_AAD_TENANT = $aadConfig.TenantId
     $AUTH_AAD_AUTHORITY = $aadConfig.Instance
+    $AUTH_AAD_SERVICEID = $aadConfig.ServiceId
+    $AUTH_AAD_SERVICESECRET = $aadConfig.ServiceSecret
+
 
     Write-Output `
         "PCS_AUTH_HTTPSREDIRECTPORT=0"
@@ -133,6 +136,11 @@ Function GetEnvironmentVariables() {
         "PCS_WEBUI_AUTH_AAD_AUTHORITY=$AUTH_AAD_AUTHORITY"
     Write-Output `
         "PCS_WEBUI_AUTH_AAD_TENANT=$AUTH_AAD_TENANT"
+    Write-Output `
+        "PCS_AUTH_AAD_SERVICEID=$AUTH_AAD_SERVICEID"
+    Write-Output `
+        "PCS_AUTH_AAD_SERVICESECRET=$AUTH_AAD_SERVICESECRET"
+
 }
 
 #******************************************************************************

@@ -523,7 +523,7 @@
         "deviceNotificationRouteName": "DeviceNotifications",
         "iothubConsumerGroup1": "telemetry",
         "iothubConsumerGroup2": "events",
-        "storageApiVersion": "2017-06-01",
+        "storageApiVersion": "2018-02-01",
         "storageResourceId": "[resourceId('Microsoft.Storage/storageAccounts/',  parameters('storageName'))]",
         "computeApiVersion": "2017-03-30",
         "vmFQDN": "[concat(parameters('vmName'), '.', variables('location'), '.', parameters('vmFQDNSuffix'))]",
@@ -723,11 +723,12 @@
             "name": "[parameters('storageName')]",
             "apiVersion": "[variables('storageApiVersion')]",
             "location": "[variables('location')]",
-            "kind": "Storage",
+            "kind": "StorageV2",
             "sku": {
                 "name": "[parameters('storageSkuName')]"
             },
             "properties": {
+                "isHnsEnabled": true,
                 "networkAcls": {
                     "bypass": "AzureServices",
                     "virtualNetworkRules": [],
@@ -748,6 +749,18 @@
                 }
             },
             "dependsOn": []
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/providers/roleAssignments",
+            "apiVersion": "2018-09-01-preview",
+            "name": "[concat(parameters('storageName'), '/Microsoft.Authorization/', guid(uniqueString(parameters('storageName'))))]",
+            "dependsOn": [
+                "[parameters('storageName')]"
+            ],
+            "properties": {
+                "roleDefinitionId": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')]",
+                "principalId": "[parameters('servicePrincipalId')]"
+            }
         },
         {
             "comments": "Azure CosmosDb",

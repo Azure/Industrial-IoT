@@ -25,6 +25,6 @@ namespace Microsoft.Azure.IIoT.Cdm {
         /// <summary>
         /// the cdm storage's root folder
         /// </summary>
-        string RootFolder { get; }        
+        string RootFolder { get; }
     }
 }

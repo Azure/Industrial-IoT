@@ -30,7 +30,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
             _client = client;
         }
         /// <inheritdoc/>
-        public Task OnSubscriberSampleAsync(SubscriberSampleModel sample) {                 
+        public Task OnSubscriberSampleAsync(SubscriberSampleModel sample) {
             var cdmModel = new SubscriberCdmSampleModel() {
                 SubscriptionId = sample.SubscriptionId,
                 EndpointId = sample.EndpointId,
