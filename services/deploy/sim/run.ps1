@@ -54,6 +54,7 @@ Function GetEnvironmentVariables() {
     $APPINSIGHTS_NAME = $deployment.Outputs["appinsights-name"].Value
     $APPINSIGHTS_INSTRUMENTATIONKEY = $deployment.Outputs["appinsights-instrumentationkey"].Value
     $AZURE_WEBSITE = $deployment.Outputs["azureWebsite"].Value
+    $ADLSG2_ACCOUNT = $deployment.Outputs["adlsg2-account"].Value
 
     Write-Output `
         "_HUB_CS=$IOTHUB_CONNSTRING"
@@ -142,7 +143,9 @@ Function GetEnvironmentVariables() {
    Write-Output `
         "PCS_AUTH_AAD_SERVICEID=$AUTH_AAD_SERVICEID"
     Write-Output `
-        "PCS_AUTH_AAD_SERVICESECRET=$AUTH_AAD_SERVICESECRET"	
+        "PCS_AUTH_AAD_SERVICESECRET=$AUTH_AAD_SERVICESECRET"
+    Write-Output `
+        "PCS_ADLSG2_ACCOUNT=$ADLSG2_ACCOUNT"
 }
 
 #******************************************************************************

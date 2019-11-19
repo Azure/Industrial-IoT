@@ -47,9 +47,7 @@ namespace Microsoft.Azure.IIoT.Cdm.Runtime {
 
         /// <summary>ADLSg2 host's name </summary>
         public string ADLSg2HostName => GetStringOrDefault(kCdmAdDLS2HostName,
-            GetStringOrDefault(
-                "PCS_CDM_ADLSG2_HOSTNAME",
-                GetStringOrDefault("PCS_IOTHUBREACT_AZUREBLOB_ACCOUNT") + ".dfs.core.windows.net"));
+                (GetStringOrDefault("PCS_ADLSG2_ACCOUNT") + ".dfs.core.windows.net"));
         /// <summary>Blob name to store data in the ADLSg2</summary>
         public string ADLSg2BlobName => GetStringOrDefault(kCdmADLSg2BlobName,
             GetStringOrDefault("PCS_CDM_ADLSG2_BLOBNAME", "powerbi"));

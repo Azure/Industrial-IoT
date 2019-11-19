@@ -22,11 +22,22 @@
                 "description": "The name of the storage account created as part of the deployment."
             }
         },
+        "storageGen2Name": {
+            "type": "string",
+            "defaultValue": "[concat('storageg2', take(uniqueString(subscription().subscriptionId, resourceGroup().id, parameters('siteName')), 5))]",
+            "metadata": {
+                "description": "The name of the storage Gen2 account created as part of the deployment."
+            }
+        },
         "storageSkuName": {
             "type": "string",
             "defaultValue": "Standard_LRS",
             "allowedValues": [
-                "Standard_LRS", "Standard_GRS", "Standard_RAGRS", "Standard_ZRS", "Premium_LRS"
+                "Standard_LRS",
+                "Standard_GRS",
+                "Standard_RAGRS",
+                "Standard_ZRS",
+                "Premium_LRS"
             ],
             "metadata": {
                 "description": "The storage SKU to use."
@@ -85,7 +96,7 @@
         },
         "serviceBusNamespaceName": {
             "type": "string",
-            "defaultValue": "[concat('sb-', take(uniqueString(subscription().subscriptionId, resourceGroup().id, parameters('siteName')), 5))]", 
+            "defaultValue": "[concat('sb-', take(uniqueString(subscription().subscriptionId, resourceGroup().id, parameters('siteName')), 5))]",
             "metadata": {
                 "description": "The name of the Azure Service Bus created as part of the deployment."
             }
@@ -94,7 +105,8 @@
             "type": "string",
             "defaultValue": "Standard",
             "allowedValues": [
-                "Basic", "Standard"
+                "Basic",
+                "Standard"
             ],
             "metadata": {
                 "description": "The Azure Service Bus SKU Tier to use."
@@ -132,7 +144,8 @@
             "type": "string",
             "defaultValue": "Basic",
             "allowedValues": [
-                "Basic", "Standard"
+                "Basic",
+                "Standard"
             ],
             "metadata": {
                 "description": "The Azure Event Hub SKU Tier."
@@ -226,8 +239,8 @@
             "type": "string",
             "defaultValue": "Standard",
             "allowedValues": [
-                "Free", 
-                "Standard", 
+                "Free",
+                "Standard",
                 "Premium"
             ],
             "metadata": {
@@ -238,7 +251,7 @@
             "type": "string",
             "defaultValue": "Standard_S1",
             "allowedValues": [
-                "Free_F1", 
+                "Free_F1",
                 "Standard_S1"
             ],
             "metadata": {
@@ -249,7 +262,13 @@
             "type": "int",
             "defaultValue": 1,
             "allowedValues": [
-                1, 2, 5, 10, 20, 50, 100
+                1,
+                2,
+                5,
+                10,
+                20,
+                50,
+                100
             ],
             "metadata": {
                 "description": "The Azure SignalR SKU Capacity"
@@ -266,8 +285,8 @@
             "type": "string",
             "defaultValue": "S1",
             "allowedValues": [
-                "S1", 
-                "S2", 
+                "S1",
+                "S2",
                 "S3"
             ],
             "metadata": {
@@ -278,7 +297,7 @@
             "type": "string",
             "defaultValue": "Standard",
             "allowedValues": [
-                "Free", 
+                "Free",
                 "Standard"
             ],
             "metadata": {
@@ -303,7 +322,7 @@
             "type": "string",
             "defaultValue": "Premium",
             "allowedValues": [
-                "Standard", 
+                "Standard",
                 "Premium"
             ],
             "metadata": {
@@ -401,8 +420,10 @@
         "deviceNotificationRouteName": "DeviceNotifications",
         "iothubConsumerGroup1": "telemetry",
         "iothubConsumerGroup2": "events",
-        "storageApiVersion": "2018-02-01",
+        "storageApiVersion": "2017-06-01",
+        "storageGen2ApiVersion": "2018-02-01",
         "storageResourceId": "[resourceId('Microsoft.Storage/storageAccounts/',  parameters('storageName'))]",
+        "storageGen2ResourceId": "[resourceId('Microsoft.Storage/storageAccounts/',  parameters('storageGen2Name'))]",
         "appInsightsPriceArray": [ "Basic", "Application Insights Enterprise" ],
         "appInsightsPricePlan": "[take(variables('appInsightsPriceArray'), parameters('appInsightsPriceCode'))]",
         "appInsightsBillingPlan": "[concat(parameters('appInsightsName'), '/', variables('appInsightsPricePlan')[0])]",
@@ -575,6 +596,38 @@
             "name": "[parameters('storageName')]",
             "apiVersion": "[variables('storageApiVersion')]",
             "location": "[variables('location')]",
+            "kind": "Storage",
+            "sku": {
+                "name": "[parameters('storageSkuName')]"
+            },
+            "properties": {
+                "networkAcls": {
+                    "bypass": "AzureServices",
+                    "virtualNetworkRules": [],
+                    "ipRules": [],
+                    "defaultAction": "Allow"
+                },
+                "supportsHttpsTrafficOnly": true,
+                "encryption": {
+                    "services": {
+                        "file": {
+                            "enabled": true
+                        },
+                        "blob": {
+                            "enabled": true
+                        }
+                    },
+                    "keySource": "Microsoft.Storage"
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "comments": "Storage Gen2 account",
+            "type": "Microsoft.Storage/storageAccounts",
+            "name": "[parameters('storageGen2Name')]",
+            "apiVersion": "[variables('storageGen2ApiVersion')]",
+            "location": "[variables('location')]",
             "kind": "StorageV2",
             "sku": {
                 "name": "[parameters('storageSkuName')]"
@@ -605,9 +658,9 @@
         {
             "type": "Microsoft.Storage/storageAccounts/providers/roleAssignments",
             "apiVersion": "2018-09-01-preview",
-            "name": "[concat(parameters('storageName'), '/Microsoft.Authorization/', guid(uniqueString(parameters('storageName'))))]",
+            "name": "[concat(parameters('storageGen2Name'), '/Microsoft.Authorization/', guid(uniqueString(parameters('storageGen2Name'))))]",
             "dependsOn": [
-                "[parameters('storageName')]"
+                "[parameters('storageGen2Name')]"
             ],
             "properties": {
                 "roleDefinitionId": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')]",
@@ -689,7 +742,7 @@
             "location": "[variables('location')]",
             "properties": {
                 "rights": [
-                    "Listen",
+                    "Listen"
                 ]
             },
             "dependsOn": [
@@ -888,6 +941,10 @@
         "appinsights-instrumentationkey": {
             "type": "string",
             "value": "[reference(resourceId('Microsoft.Insights/components', parameters('appInsightsName')), variables('appInsightsVersion')).InstrumentationKey]"
+        },
+        "adlsg2-account": {
+            "type": "string",
+            "value": "[parameters('storageGen2Name')]"
         }
     }
 }
