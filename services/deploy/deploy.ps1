@@ -554,6 +554,7 @@ Function GetAzureADApplicationConfig() {
         $tenantName =  ($tenant.VerifiedDomains | Where { $_._Default -eq $True }).Name
         Write-Host "Selected Tenant '$tenantName' as authority."
 
+        # Get or create service application
         $serviceAadApplication=Get-AzureADApplication `
             -Filter "identifierUris/any(uri:uri eq 'https://$tenantName/$serviceDisplayName')"  
         if (!$serviceAadApplication) {
@@ -562,6 +563,8 @@ Function GetAzureADApplicationConfig() {
                 -IdentifierUris "https://$tenantName/$serviceDisplayName"
             Write-Host "Created new AAD service application '$($serviceDisplayName)'."
         }
+
+        # Find service principal
         $serviceServicePrincipal=Get-AzureADServicePrincipal `
              -Filter "AppId eq '$($serviceAadApplication.AppId)'"
         if (!$serviceServicePrincipal) {
@@ -570,6 +573,7 @@ Function GetAzureADApplicationConfig() {
                 -Tags {WindowsAzureActiveDirectoryIntegratedApp}
         }
 
+        # Get or create client application
         $clientAadApplication=Get-AzureADApplication `
             -Filter "DisplayName eq '$clientDisplayName'"
         if (!$clientAadApplication) {
@@ -587,9 +591,7 @@ Function GetAzureADApplicationConfig() {
                 -Tags {WindowsAzureActiveDirectoryIntegratedApp}
         }
 
-        #
         # Try to add current user as app owner 
-        #
         try {
             $user = Get-AzureADUser -ObjectId $creds.Account.Id -ErrorAction Stop
             # TODO: Check whether already owner...
@@ -604,9 +606,7 @@ Function GetAzureADApplicationConfig() {
             Write-Verbose "Adding $($creds.Account.Id) as owner failed."
         }
 
-        #
         # Update service application to add roles, known applications and required permissions
-        #
         $approverRole = CreateAppRole -current $serviceAadApplication.AppRoles -name "Approver" `
             -value "Sign" -description "Approvers have the ability to issue certificates."
         $writerRole = CreateAppRole -current $serviceAadApplication.AppRoles -name "Writer" `
@@ -618,28 +618,30 @@ Function GetAzureADApplicationConfig() {
         $appRoles.Add($writerRole)
         $appRoles.Add($approverRole)
         $appRoles.Add($adminRole)
+
         $knownApplications = New-Object System.Collections.Generic.List[System.String]
         $knownApplications.Add($clientAadApplication.AppId)
+        
         $requiredResourcesAccess = `
             New-Object System.Collections.Generic.List[Microsoft.Open.AzureAD.Model.RequiredResourceAccess]
-        $requiredPermissions = GetRequiredPermissions -appId "cfa8b339-82a2-471a-a3c9-0fc0be7a4093" `
+        $requiredPermissions = GetRequiredPermissions -applicationDisplayName "Azure Key Vault" `
             -requiredDelegatedPermissions "user_impersonation"
         $requiredResourcesAccess.Add($requiredPermissions)
         $requiredPermissions = GetRequiredPermissions -applicationDisplayName "Microsoft Graph" `
             -requiredDelegatedPermissions "User.Read" 
         $requiredResourcesAccess.Add($requiredPermissions)
+        
         Set-AzureADApplication -ObjectId $serviceAadApplication.ObjectId `
-            -KnownClientApplications $knownApplications -AppRoles $appRoles `
+            -KnownClientApplications $knownApplications `
+            -AppRoles $appRoles `
             -RequiredResourceAccess $requiredResourcesAccess
         Write-Host "'$($serviceDisplayName)' updated with required resource access, app roles and known applications."  
 
-        # read updated app roles for service principal
+        # Read updated app roles for service principal
         $serviceServicePrincipal=Get-AzureADServicePrincipal `
              -Filter "AppId eq '$($serviceAadApplication.AppId)'"
 
-        #
-        # Add current user as Writer, Approver and Administrator
-        #
+        # Add current user as Writer, Approver and Administrator for service applicatoin
         try {
             $app_role_name = "Writer"
             $app_role = $serviceServicePrincipal.AppRoles | Where-Object { $_.DisplayName -eq $app_role_name }
@@ -660,9 +662,7 @@ Function GetAzureADApplicationConfig() {
             Write-Host "User already has all app roles assigned."
         }
 
-        # 
         # Update client application to add reply urls required permissions.
-        #
         $replyUrls = New-Object System.Collections.Generic.List[System.String]
         $replyUrls.Add("urn:ietf:wg:oauth:2.0:oob")
         $requiredResourcesAccess = `
@@ -683,9 +683,7 @@ Function GetAzureADApplicationConfig() {
         $clientSecret = New-AzureADApplicationPasswordCredential -ObjectId $clientAadApplication.ObjectId `
             -CustomKeyIdentifier "Client Key" -EndDate (get-date).AddYears(2)
 
-        #
         # Grant permissions to app
-        #
         try {
             GrantPermission -azureAppId $clientAadApplication.AppId -tenantId $creds.Tenant.Id
         }

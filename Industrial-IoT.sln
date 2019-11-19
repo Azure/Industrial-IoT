@@ -254,6 +254,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Api.Jo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Api.Edge", "api\src\Microsoft.Azure.IIoT.Api.Edge\src\Microsoft.Azure.IIoT.Api.Edge.csproj", "{C5D00945-D24F-4421-80DD-FAC549E79B33}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "deploy", "deploy", "{8D316DA2-FC23-4F5A-ABE0-725C6E9653EC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{24CC83C2-F144-4EB9-9C7E-48406B1E2932}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Deployment", "deploy\src\Microsoft.Azure.IIoT.Deployment\Microsoft.Azure.IIoT.Deployment.csproj", "{4676D2B5-492B-47FF-9AD8-CB546CA0CEEF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -879,6 +885,12 @@ Global
 		{C5D00945-D24F-4421-80DD-FAC549E79B33}.Develop|Any CPU.Build.0 = Debug|Any CPU
 		{C5D00945-D24F-4421-80DD-FAC549E79B33}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C5D00945-D24F-4421-80DD-FAC549E79B33}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4676D2B5-492B-47FF-9AD8-CB546CA0CEEF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4676D2B5-492B-47FF-9AD8-CB546CA0CEEF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4676D2B5-492B-47FF-9AD8-CB546CA0CEEF}.Develop|Any CPU.ActiveCfg = Debug|Any CPU
+		{4676D2B5-492B-47FF-9AD8-CB546CA0CEEF}.Develop|Any CPU.Build.0 = Debug|Any CPU
+		{4676D2B5-492B-47FF-9AD8-CB546CA0CEEF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4676D2B5-492B-47FF-9AD8-CB546CA0CEEF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1005,6 +1017,8 @@ Global
 		{52663E78-E255-4263-B4D9-84B06AA8241E} = {ECAAA1FA-0A5C-4D41-8E39-E2E296BE8F1B}
 		{1A92E086-C472-4B97-B68F-B4403B380B99} = {AFBD4A17-2EB1-421C-BB0C-407C875F3F50}
 		{C5D00945-D24F-4421-80DD-FAC549E79B33} = {AFBD4A17-2EB1-421C-BB0C-407C875F3F50}
+		{24CC83C2-F144-4EB9-9C7E-48406B1E2932} = {8D316DA2-FC23-4F5A-ABE0-725C6E9653EC}
+		{4676D2B5-492B-47FF-9AD8-CB546CA0CEEF} = {24CC83C2-F144-4EB9-9C7E-48406B1E2932}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F09EFCEA-59F6-4A16-9CB6-7E865A3F62D8}
