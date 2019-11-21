@@ -6,14 +6,27 @@ stages:
   - template: tools/templates/sdl.yml
 - stage: pack
   displayName: 'Package and Sign Nuget'
-  dependsOn: build
+  dependsOn:
+  - build
   jobs:
   - template: tools/templates/nuget.yml
     parameters:
       sign: ${{ startsWith(variables['Build.SourceBranch'], 'refs/heads/') }}
+- stage: iiot_deployment
+  displayName: 'Publish Microsoft.Azure.IIoT.Deployment'
+  dependsOn:
+  - build
+  jobs:
+  - template: tools/templates/iiot_deployment_win.yml
+    parameters:
+      sign: ${{ startsWith(variables['Build.SourceBranch'], 'refs/heads/') }}
+  - template: tools/templates/iiot_deployment_linux.yml
+  - template: tools/templates/iiot_deployment_mac.yml
 - stage: images
   displayName: 'Create and Push Images'
-  dependsOn: pack
+  dependsOn:
+  - pack
+  - iiot_deployment
   jobs:
   - template: tools/templates/acrbuild.yml
     parameters:

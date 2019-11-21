@@ -1,0 +1,21 @@
+﻿apiVersion: v1
+kind: Service
+metadata:
+  name: gateway-service
+  namespace: industrial-iot
+  labels:
+    app: gatewayservice
+spec:
+  type: ClusterIP
+  selector:
+    app: gatewayservice
+  ports:
+  - port: 443
+    protocol: TCP
+    name: https
+  - port: 9040
+    protocol: TCP
+    name: rest
+  - port: 51111
+    protocol: TCP
+    name: opc-ua-access

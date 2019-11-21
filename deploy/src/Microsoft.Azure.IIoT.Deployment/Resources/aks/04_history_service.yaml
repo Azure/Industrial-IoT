@@ -1,0 +1,18 @@
+﻿apiVersion: v1
+kind: Service
+metadata:
+  name: history-service
+  namespace: industrial-iot
+  labels:
+    app: historyservice
+spec:
+  type: ClusterIP
+  selector:
+    app: historyservice
+  ports:
+  - port: 443
+    protocol: TCP
+    name: https
+  - port: 9043
+    protocol: TCP
+    name: rest

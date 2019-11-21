@@ -28,5 +28,6 @@
 /**/packages/**
 /**/appsettings.*.json
 .env
-
+*.crt
+*.key
 
