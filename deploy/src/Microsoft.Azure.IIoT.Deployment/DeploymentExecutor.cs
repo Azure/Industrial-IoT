@@ -917,15 +917,30 @@ namespace Microsoft.Azure.IIoT.Deployment {
 
             var iiotK8SClient = new IIoTK8SClient(_aksKubeConfig);
 
-            iiotK8SClient.CreateIIoTNamespaceAsync().Wait();
-            iiotK8SClient.CreateIIoTEnvSecretAsync(iiotEnvironment.Dict).Wait();
-            iiotK8SClient.DeployIIoTServicesAsync().Wait();
+            // industrial-iot namespace
+            iiotK8SClient.CreateIIoTNamespaceAsync(cancellationToken).Wait();
+            iiotK8SClient.SetupIIoTServiceAccountAsync(cancellationToken).Wait();
+            iiotK8SClient.CreateIIoTEnvSecretAsync(iiotEnvironment.Dict, cancellationToken).Wait();
+            iiotK8SClient.DeployIIoTServicesAsync(cancellationToken).Wait();
+
+            // We will add default SSL certificate for Ingress
+            // NGINX controler to industrial-iot namespace
             iiotK8SClient
                 .CreateNGINXDefaultSSLCertificateSecretAsync(
                     webAppPemCertificate,
-                    webAppPemPrivateKey
+                    webAppPemPrivateKey,
+                    cancellationToken
                 )
                 .Wait();
+
+            // ingress-nginx namespace
+            iiotK8SClient.CreateNGINXNamespaceAsync(cancellationToken).Wait();
+            iiotK8SClient.SetupNGINXServiceAccountAsync(cancellationToken).Wait();
+            iiotK8SClient.DeployNGINXIngressControllerAsync(cancellationToken).Wait();
+
+            // After we have NGINX Ingress controller we can create Ingress
+            // for our Industrial IoT services.
+            iiotK8SClient.CreateIIoTIngressAsync(cancellationToken).Wait();
 
             // Check if we want to save environment to .env file
             var saveEnvFile = _configurationProvider.CheckIfSaveEnvFile();

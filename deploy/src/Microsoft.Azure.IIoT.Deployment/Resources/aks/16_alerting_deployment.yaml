@@ -1,10 +1,14 @@
-﻿apiVersion: extensions/v1beta1
+﻿apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: alerting-deployment
   namespace: industrial-iot
   labels:
     app: alertingservice
+    app.kubernetes.io/name: alertingservice
+    app.kubernetes.io/part-of: industrial-iot
+    app.kubernetes.io/version: 2.5.1
+    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
 spec:
   replicas: 1
   selector:
@@ -14,7 +18,12 @@ spec:
     metadata:
       labels:
         app: alertingservice
+        app.kubernetes.io/name: alertingservice
+        app.kubernetes.io/part-of: industrial-iot
+        app.kubernetes.io/version: 2.5.1
+        app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
     spec:
+      serviceAccountName: industrial-iot-serviceaccount
       containers:
       - name: alertingservice
         image: mcr.microsoft.com/iot/opc-alerting-service:2.5.1

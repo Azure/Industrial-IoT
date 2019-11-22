@@ -1,10 +1,14 @@
-﻿apiVersion: extensions/v1beta1
+﻿apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: blobnotification-deployment
   namespace: industrial-iot
   labels:
     app: blobnotification
+    app.kubernetes.io/name: blobnotification
+    app.kubernetes.io/part-of: industrial-iot
+    app.kubernetes.io/version: 2.5.1
+    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
 spec:
   replicas: 1
   selector:
@@ -14,7 +18,12 @@ spec:
     metadata:
       labels:
         app: blobnotification
+        app.kubernetes.io/name: blobnotification
+        app.kubernetes.io/part-of: industrial-iot
+        app.kubernetes.io/version: 2.5.1
+        app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
     spec:
+      serviceAccountName: industrial-iot-serviceaccount
       containers:
       - name: blobnotification
         image: mcr.microsoft.com/iot/blob-notification-service:2.5.1

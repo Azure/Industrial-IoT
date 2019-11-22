@@ -1,23 +1,32 @@
-﻿apiVersion: extensions/v1beta1
+﻿apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: onboarding-deployment
+  name: modelprocessor-deployment
   namespace: industrial-iot
   labels:
-    app: onboardingservice
+    app: modelprocessor
+    app.kubernetes.io/name: modelprocessor
+    app.kubernetes.io/part-of: industrial-iot
+    app.kubernetes.io/version: 2.5.1
+    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: onboardingservice
+      app: modelprocessor
   template:
     metadata:
       labels:
-        app: onboardingservice
+        app: modelprocessor
+        app.kubernetes.io/name: modelprocessor
+        app.kubernetes.io/part-of: industrial-iot
+        app.kubernetes.io/version: 2.5.1
+        app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
     spec:
+      serviceAccountName: industrial-iot-serviceaccount
       containers:
-      - name: onboardingservice
-        image: mcr.microsoft.com/iot/opc-onboarding-service:2.5.1
+      - name: modelprocessor
+        image: mcr.microsoft.com/iot/opc-processor-service:2.5.1
         resources:
           requests:
             memory: "64Mi"
@@ -41,6 +50,11 @@ spec:
             secretKeyRef:
               name: industrial-iot-env
               key: PCS_SERVICEBUS_CONNSTRING
+        - name: PCS_TELEMETRY_DOCUMENTDB_CONNSTRING
+          valueFrom:
+            secretKeyRef:
+              name: industrial-iot-env
+              key: PCS_TELEMETRY_DOCUMENTDB_CONNSTRING
         - name: PCS_IOTHUBREACT_HUB_ENDPOINT
           valueFrom:
             secretKeyRef:

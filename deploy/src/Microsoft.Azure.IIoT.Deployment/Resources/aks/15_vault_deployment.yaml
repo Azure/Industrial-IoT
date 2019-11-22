@@ -1,10 +1,14 @@
-﻿apiVersion: extensions/v1beta1
+﻿apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: vault-deployment
   namespace: industrial-iot
   labels:
     app: vaultservice
+    app.kubernetes.io/name: vaultservice
+    app.kubernetes.io/part-of: industrial-iot
+    app.kubernetes.io/version: 2.5.1
+    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
 spec:
   replicas: 1
   selector:
@@ -14,7 +18,12 @@ spec:
     metadata:
       labels:
         app: vaultservice
+        app.kubernetes.io/name: vaultservice
+        app.kubernetes.io/part-of: industrial-iot
+        app.kubernetes.io/version: 2.5.1
+        app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
     spec:
+      serviceAccountName: industrial-iot-serviceaccount
       containers:
       - name: vaultservice
         image: mcr.microsoft.com/iot/opc-vault-service:2.5.1
