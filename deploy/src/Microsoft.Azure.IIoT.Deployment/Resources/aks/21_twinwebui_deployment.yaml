@@ -1,11 +1,10 @@
 ﻿apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: twinwebui-deployment
+  name: twin-webui-deployment
   namespace: industrial-iot
   labels:
-    app: twinwebui
-    app.kubernetes.io/name: twinwebui
+    app.kubernetes.io/name: twin-webui-service
     app.kubernetes.io/part-of: industrial-iot
     app.kubernetes.io/version: 2.5.1
     app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
@@ -13,19 +12,19 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: twinwebui
+      app.kubernetes.io/name: twin-webui-service
+      app.kubernetes.io/part-of: industrial-iot
   template:
     metadata:
       labels:
-        app: twinwebui
-        app.kubernetes.io/name: twinwebui
+        app.kubernetes.io/name: twin-webui-service
         app.kubernetes.io/part-of: industrial-iot
         app.kubernetes.io/version: 2.5.1
         app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
     spec:
       serviceAccountName: industrial-iot-serviceaccount
       containers:
-      - name: twinwebui
+      - name: twin-webui-service-container
         image: mcr.microsoft.com/iot/opc-twin-webui:2.5.1
         resources:
           requests:

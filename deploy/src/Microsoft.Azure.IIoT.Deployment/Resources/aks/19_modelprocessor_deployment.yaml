@@ -1,11 +1,10 @@
 ﻿apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: modelprocessor-deployment
+  name: model-processor-deployment
   namespace: industrial-iot
   labels:
-    app: modelprocessor
-    app.kubernetes.io/name: modelprocessor
+    app.kubernetes.io/name: model-processor-service
     app.kubernetes.io/part-of: industrial-iot
     app.kubernetes.io/version: 2.5.1
     app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
@@ -13,19 +12,19 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: modelprocessor
+      app.kubernetes.io/name: model-processor-service
+      app.kubernetes.io/part-of: industrial-iot
   template:
     metadata:
       labels:
-        app: modelprocessor
-        app.kubernetes.io/name: modelprocessor
+        app.kubernetes.io/name: model-processor-service
         app.kubernetes.io/part-of: industrial-iot
         app.kubernetes.io/version: 2.5.1
         app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
     spec:
       serviceAccountName: industrial-iot-serviceaccount
       containers:
-      - name: modelprocessor
+      - name: model-processor-service-container
         image: mcr.microsoft.com/iot/opc-processor-service:2.5.1
         resources:
           requests:
