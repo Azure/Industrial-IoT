@@ -946,7 +946,8 @@ namespace Microsoft.Azure.IIoT.Deployment {
             var iiotIngressIPAddresses = await iiotK8SClient.WaitForIngressIPAsync(iiotIngress, cancellationToken);
             var iiotIngressIPAdress = iiotIngressIPAddresses.FirstOrDefault().Ip;
 
-            // Update value of REMOTE_ENDPOINT setting of AppServise proxy
+            // Update remote endpoint and certificate thumbprint application settings
+            // of App Servise.
             var iiotIngressRemoteEndpoint = $"https://{iiotIngressIPAdress}";
             await _webSiteManagementClient
                 .UpdateSiteApplicationSettingsAsync(
@@ -954,6 +955,16 @@ namespace Microsoft.Azure.IIoT.Deployment {
                     webSite,
                     iiotIngressRemoteEndpoint,
                     _webAppX509Certificate,
+                    cancellationToken
+                );
+
+            // Deploy reverse proxy to App Service. It will consume values of remote
+            // endpoint and certificate thumbprint application settings of App Service.
+            var proxySiteSourceControl = await _webSiteManagementClient
+                .DeployProxyAsync(
+                    _resourceGroup,
+                    webSite,
+                    _defaultTagsDict,
                     cancellationToken
                 );
 

@@ -112,7 +112,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                         AppSettings = new List<NameValuePair> {
                             new NameValuePair{
                                 Name = PROXY_ENV_REMOTE_ENDPOINT,
-                                // NOTE: This should be PublicIP address exposed by Ingress.
+                                // NOTE: This should be Public IP address exposed by Ingress.
                                 Value = remoteEndpoint
                             },
                             new NameValuePair{
@@ -143,7 +143,65 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                         cancellationToken
                     );
 
-                var siteSourceControlRequest = new SiteSourceControlInner() {
+                Log.Information($"Created Azure AppService: {azureWebsiteName}");
+
+                return webSite;
+            }
+            catch (Exception ex) {
+                Log.Error(ex, $"Failed to create Azure AppService: {azureWebsiteName}");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Get AppService by its name.
+        /// </summary>
+        /// <param name="resourceGroup"></param>
+        /// <param name="azureWebsiteName"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public async Task<SiteInner> GetSiteAsync(
+            IResourceGroup resourceGroup,
+            string azureWebsiteName,
+            CancellationToken cancellationToken = default
+        ) {
+            try {
+                var webSite = await _webSiteManagementClient
+                    .WebApps
+                    .GetAsync(
+                        resourceGroup.Name,
+                        azureWebsiteName,
+                        cancellationToken
+                    );
+
+                return webSite;
+            }
+            catch (Exception ex) {
+                Log.Error(ex, $"Failed to get Azure AppService: {azureWebsiteName}");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Deploy lightweight reverse proxy to App Service.
+        /// </summary>
+        /// <param name="resourceGroup"></param>
+        /// <param name="webSite"></param>
+        /// <param name="tags"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public async Task<SiteSourceControlInner> DeployProxyAsync(
+            IResourceGroup resourceGroup,
+            SiteInner webSite,
+            IDictionary<string, string> tags = null,
+            CancellationToken cancellationToken = default
+        ) {
+            try {
+                tags = tags ?? new Dictionary<string, string>();
+
+                Log.Information($"Deploying proxy service to AppService: {webSite.Name} ...");
+
+                var siteSourceControlDefinition = new SiteSourceControlInner() {
                     Location = resourceGroup.RegionName,
                     Tags = tags,
 
@@ -152,31 +210,23 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                     IsManualIntegration = true
                 };
 
-                siteSourceControlRequest.Validate();
+                siteSourceControlDefinition.Validate();
 
                 var siteSourceControl = await _webSiteManagementClient
                     .WebApps
                     .CreateOrUpdateSourceControlAsync(
                         resourceGroup.Name,
-                        azureWebsiteName,
-                        siteSourceControlRequest,
+                        webSite.Name,
+                        siteSourceControlDefinition,
                         cancellationToken
                     );
 
-                webSite = await _webSiteManagementClient
-                    .WebApps
-                    .GetAsync(
-                        resourceGroup.Name,
-                        azureWebsiteName,
-                        cancellationToken
-                    );
+                Log.Information($"Deployed proxy service to AppService: {webSite.Name}");
 
-                Log.Information($"Created Azure AppService: {azureWebsiteName}");
-
-                return webSite;
+                return siteSourceControl;
             }
             catch (Exception ex) {
-                Log.Error(ex, $"Failed to create Azure AppService: {azureWebsiteName}");
+                Log.Error(ex, $"Failed deploy proxy service to AppService: {webSite.Name}");
                 throw;
             }
         }
