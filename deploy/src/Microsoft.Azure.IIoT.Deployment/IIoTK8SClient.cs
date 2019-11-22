@@ -15,6 +15,8 @@ namespace Microsoft.Azure.IIoT.Deployment {
     using k8s.Models;
     using k8s.KubeConfigModels;
     using Serilog;
+    using System.Linq;
+    using System.Diagnostics;
 
     class IIoTK8SClient {
 
@@ -389,6 +391,71 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 _iiotNamespace,
                 cancellationToken
             );
+        }
+
+        /// <summary>
+        /// Wait untill IP address of Ingress LoadBalancer is available.
+        /// </summary>
+        /// <param name="ingress"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public async Task<IEnumerable<V1LoadBalancerIngress>> WaitForIngressIPAsync(
+            Extensionsv1beta1Ingress extensionsv1beta1Ingress,
+            CancellationToken cancellationToken = default
+        ) {
+            Exception exception = null;
+
+            try {
+                var tmpIngress = extensionsv1beta1Ingress;
+
+                var namespaceProperty = tmpIngress.Metadata.NamespaceProperty;
+                var labels = tmpIngress.Metadata.Labels
+                    .Select(kvp => $"{kvp.Key}={kvp.Value}")
+                    .ToList();
+                var labelsStr = string.Join(",", labels);
+
+                const int secondsDelay = 5;
+                const int secondsRetry = 240;
+
+                var stopwatch = new Stopwatch();
+                stopwatch.Start();
+
+                // Now we will loop untill LoadBalancer Ingress IP address is available.
+                while (null == tmpIngress.Status
+                    || null == tmpIngress.Status.LoadBalancer
+                    || null == tmpIngress.Status.LoadBalancer.Ingress
+                    || 0 == tmpIngress.Status.LoadBalancer.Ingress.Count()
+                ) {
+                    if (stopwatch.Elapsed >= TimeSpan.FromSeconds(secondsRetry)) {
+                        exception = new Exception($"Ingress IP address is not available after " +
+                            $"{secondsRetry} seconds for: {tmpIngress.Metadata.Name}");
+                        break;
+                    }
+
+                    await Task.Delay(secondsDelay * 1000, cancellationToken);
+
+                    var ingresses = await _k8sClient
+                        .ListNamespacedIngressAsync(
+                            namespaceProperty,
+                            labelSelector: labelsStr,
+                            cancellationToken: cancellationToken
+                        );
+
+                    tmpIngress = ingresses
+                        .Items
+                        .Where(ingress => ingress.Metadata.Name == tmpIngress.Metadata.Name)
+                        .FirstOrDefault();
+                }
+
+                if (null == exception) {
+                    return tmpIngress.Status.LoadBalancer.Ingress.ToList();
+                }
+            } catch (Exception ex) {
+                Log.Error(ex, $"Failure while waiting for IP address of Ingress LoadBalancer");
+                throw;
+            }
+
+            throw exception;
         }
 
         public async Task<V1Secret> CreateNGINXDefaultSSLCertificateSecretAsync(

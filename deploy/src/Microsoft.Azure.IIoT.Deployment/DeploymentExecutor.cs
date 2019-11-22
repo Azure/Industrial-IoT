@@ -22,6 +22,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
     using Microsoft.Azure.Management.Network.Fluent.Models;
     using Microsoft.Identity.Client;
     using Microsoft.Graph;
+    using System.Linq;
 
     class DeploymentExecutor : IDisposable {
 
@@ -805,14 +806,14 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 );
 
             // This will point to PublicIP address of Ingress.
-            var remoteEndpoint = "";
+            var emptyRemoteEndpoint = "";
 
             var webSiteCreationTask = _webSiteManagementClient
                 .CreateSiteAsync(
                     _resourceGroup,
                     appServicePlan,
                     _azureWebsiteName,
-                    remoteEndpoint,
+                    emptyRemoteEndpoint,
                     _webAppX509Certificate,
                     _defaultTagsDict,
                     cancellationToken
@@ -939,8 +940,22 @@ namespace Microsoft.Azure.IIoT.Deployment {
             iiotK8SClient.DeployNGINXIngressControllerAsync(cancellationToken).Wait();
 
             // After we have NGINX Ingress controller we can create Ingress
-            // for our Industrial IoT services.
-            iiotK8SClient.CreateIIoTIngressAsync(cancellationToken).Wait();
+            // for our Industrial IoT services and wait for IP address of
+            // its LoadBalancer.
+            var iiotIngress = await iiotK8SClient.CreateIIoTIngressAsync(cancellationToken);
+            var iiotIngressIPAddresses = await iiotK8SClient.WaitForIngressIPAsync(iiotIngress, cancellationToken);
+            var iiotIngressIPAdress = iiotIngressIPAddresses.FirstOrDefault().Ip;
+
+            // Update value of REMOTE_ENDPOINT setting of AppServise proxy
+            var iiotIngressRemoteEndpoint = $"https://{iiotIngressIPAdress}";
+            await _webSiteManagementClient
+                .UpdateSiteApplicationSettingsAsync(
+                    _resourceGroup,
+                    webSite,
+                    iiotIngressRemoteEndpoint,
+                    _webAppX509Certificate,
+                    cancellationToken
+                );
 
             // Check if we want to save environment to .env file
             var saveEnvFile = _configurationProvider.CheckIfSaveEnvFile();

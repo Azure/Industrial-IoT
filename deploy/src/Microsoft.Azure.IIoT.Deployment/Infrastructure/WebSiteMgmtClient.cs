@@ -181,6 +181,50 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             }
         }
 
+        /// <summary>
+        /// Update application settings of App Service.
+        /// </summary>
+        /// <param name="resourceGroup"></param>
+        /// <param name="webSite"></param>
+        /// <param name="remoteEndpoint"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public async Task UpdateSiteApplicationSettingsAsync(
+            IResourceGroup resourceGroup,
+            SiteInner webSite,
+            string remoteEndpoint,
+            X509Certificate2 webAppX509Certificate,
+            CancellationToken cancellationToken = default
+        ) {
+            try {
+                var remoteEndpointSettings = new StringDictionaryInner {
+                    Location = webSite.Location,
+
+                    Properties = new Dictionary<string, string> {
+                        { PROXY_ENV_REMOTE_ENDPOINT, remoteEndpoint },
+                        { PROXY_ENV_REMOTE_ENDPOINT_SSL_THUMBPRINT, webAppX509Certificate.Thumbprint }
+                    }
+                };
+
+                remoteEndpointSettings.Validate();
+
+                // Note: UpdateApplicationSettingsAsync(...) replaces existing
+                // settings with new ones.
+                var applicationSettings = await _webSiteManagementClient
+                    .WebApps
+                    .UpdateApplicationSettingsAsync(
+                        resourceGroup.Name,
+                        webSite.Name,
+                        remoteEndpointSettings,
+                        cancellationToken
+                    );
+            }
+            catch (Exception ex) {
+                Log.Error(ex, $"Failed to update {PROXY_ENV_REMOTE_ENDPOINT} setting of Azure AppService: {webSite.Name}");
+                throw;
+            }
+        }
+
         public void Dispose() {
             if (null != _webSiteManagementClient) {
                 _webSiteManagementClient.Dispose();
