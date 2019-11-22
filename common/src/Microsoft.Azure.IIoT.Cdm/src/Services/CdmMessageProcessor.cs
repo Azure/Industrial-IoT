@@ -56,6 +56,8 @@ namespace Microsoft.Azure.IIoT.Cdm.Services {
             _adapter = new ADLSAdapter($"{config.ADLSg2HostName}/{config.ADLSg2BlobName}", 
                 $"/{config.RootFolder}", config.TenantId, config.AppId, config.AppSecret);
             _cdmCorpus.Storage.Mount("adls", _adapter);
+            var gitAdapter = new GithubAdapter();
+            _cdmCorpus.Storage.Mount("cdm", gitAdapter);
             _cdmCorpus.Storage.DefaultNamespace = "adls";
             
         }
@@ -253,6 +255,7 @@ namespace Microsoft.Azure.IIoT.Cdm.Services {
             var publisherSampleEntityDoc = _cdmCorpus.MakeObject<CdmDocumentDefinition>(
                 CdmObjectType.DocumentDef, $"{kPublisherSampleEntityName}.cdm.json", false);
             publisherSampleEntityDoc.Imports.Add($"{kPublisherSampleEntityName}.cdm.json");
+            publisherSampleEntityDoc.Imports.Add("cdm:/foundations.cdm.json");
             publisherSampleEntityDoc.Definitions.Add(publisherSampleEntity);
             _cdmCorpus.Storage.FetchRootFolder("adls").Documents.Add(
                 publisherSampleEntityDoc, publisherSampleEntityDoc.Name);

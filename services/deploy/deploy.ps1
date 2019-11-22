@@ -630,14 +630,11 @@ Function GetAzureADApplicationConfig() {
         $requiredPermissions = GetRequiredPermissions -applicationDisplayName "Microsoft Graph" `
             -requiredDelegatedPermissions "User.Read" 
         $requiredResourcesAccess.Add($requiredPermissions)
-<<<<<<< HEAD
+
         $requiredPermissions = GetRequiredPermissions -applicationDisplayName "Azure Storage" `
             -requiredDelegatedPermissions "user_impersonation" 
         $requiredResourcesAccess.Add($requiredPermissions)
 
-=======
-        
->>>>>>> 77381f64ab004c1402b0ba572295bcdd0c96f69f
         Set-AzureADApplication -ObjectId $serviceAadApplication.ObjectId `
             -KnownClientApplications $knownApplications `
             -AppRoles $appRoles `
