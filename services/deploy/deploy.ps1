@@ -634,7 +634,11 @@ Function GetAzureADApplicationConfig() {
         $requiredPermissions = GetRequiredPermissions -applicationDisplayName "Azure Storage" `
             -requiredDelegatedPermissions "user_impersonation" 
         $requiredResourcesAccess.Add($requiredPermissions)
+<<<<<<< HEAD
        
+=======
+
+>>>>>>> update
         Set-AzureADApplication -ObjectId $serviceAadApplication.ObjectId `
             -KnownClientApplications $knownApplications `
             -AppRoles $appRoles `
