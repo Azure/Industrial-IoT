@@ -225,7 +225,7 @@ namespace Microsoft.Azure.IIoT.Cdm.Services {
             timestamp.Purpose = _cdmCorpus.MakeRef<CdmPurposeReference>(
                 CdmObjectType.PurposeRef, "hasA", true);
             timestamp.DataType = _cdmCorpus.MakeRef<CdmDataTypeReference>(
-                CdmObjectType.DataTypeRef, "datetime", true);
+                CdmObjectType.DataTypeRef, "dateTime", true);
             timestamp.DataFormat = CdmDataFormat.DateTime;
             publisherSampleEntity.Attributes.Add(timestamp);
 
@@ -234,7 +234,7 @@ namespace Microsoft.Azure.IIoT.Cdm.Services {
             sourceTimestamp.Purpose = _cdmCorpus.MakeRef<CdmPurposeReference>(
                 CdmObjectType.PurposeRef, "hasA", true);
             sourceTimestamp.DataType = _cdmCorpus.MakeRef<CdmDataTypeReference>(
-                CdmObjectType.DataTypeRef, "datetime", true);
+                CdmObjectType.DataTypeRef, "dateTime", true);
             sourceTimestamp.DataFormat = CdmDataFormat.DateTime;
             publisherSampleEntity.Attributes.Add(sourceTimestamp);
 
@@ -243,12 +243,12 @@ namespace Microsoft.Azure.IIoT.Cdm.Services {
             serverTimestamp.Purpose = _cdmCorpus.MakeRef<CdmPurposeReference>(
                 CdmObjectType.PurposeRef, "hasA", true);
             serverTimestamp.DataType = _cdmCorpus.MakeRef<CdmDataTypeReference>(
-                CdmObjectType.DataTypeRef, "datetime", true);
+                CdmObjectType.DataTypeRef, "dateTime", true);
             serverTimestamp.DataFormat = CdmDataFormat.DateTime;
             publisherSampleEntity.Attributes.Add(serverTimestamp);
 
             publisherSampleEntity.DisplayName = kPublisherSampleEntityName;
-            publisherSampleEntity.Version = "0.1";
+            publisherSampleEntity.Version = "0.0.1";
             publisherSampleEntity.Description = "Publisher Sample Model";
 
             // Create a new document where the new entity's definition will be stored
