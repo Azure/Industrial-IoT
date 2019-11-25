@@ -56,6 +56,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
         /// <param name="eventHubNamespaceName"></param>
         /// <param name="cancellationToken"></param>
         /// <returns>True if name is available, False otherwise.</returns>
+        /// <exception cref="Microsoft.Rest.Azure.CloudException"></exception>
         public async Task<bool> CheckNamespaceNameAvailabilityAsync(
             string eventHubNamespaceName,
             CancellationToken cancellationToken = default
@@ -72,6 +73,12 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                     return nameAvailabilityInfo.NameAvailable.Value;
                 }
             }
+            catch (Microsoft.Rest.Azure.CloudException) {
+                // Will be thrown if there is no registered resource provider
+                // found for specified location and/or api version to perform
+                // name availability check.
+                throw;
+            }
             catch (Exception ex) {
                 Log.Error(ex, $"Failed to check EventHub Namespace name availability for {eventHubNamespaceName}");
                 throw;
@@ -86,6 +93,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
         /// </summary>
         /// <param name="cancellationToken"></param>
         /// <returns>An available name for EventHub Namespace.</returns>
+        /// <exception cref="Microsoft.Rest.Azure.CloudException"></exception>
         public async Task<string> GenerateAvailableNamespaceNameAsync(
             CancellationToken cancellationToken = default
         ) {
@@ -101,6 +109,12 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                         return eventHubNamespaceName;
                     }
                 }
+            }
+            catch (Microsoft.Rest.Azure.CloudException) {
+                // Will be thrown if there is no registered resource provider
+                // found for specified location and/or api version to perform
+                // name availability check.
+                throw;
             }
             catch (Exception ex) {
                 Log.Error(ex, "Failed to generate unique EventHub Namespace name");

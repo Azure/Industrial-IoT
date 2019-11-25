@@ -183,6 +183,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
         /// </summary>
         /// <param name="cancellationToken"></param>
         /// <returns>An available name for KeyVault.</returns>
+        /// <exception cref="Microsoft.Rest.Azure.CloudException"></exception>
         public async Task<string> GenerateAvailableNameAsync(
             CancellationToken cancellationToken = default
         ) {
@@ -198,7 +199,12 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                         return keyVaultName;
                     }
                 }
-
+            }
+            catch (Microsoft.Rest.Azure.CloudException) {
+                // Will be thrown if there is no registered resource provider
+                // found for specified location and/or api version to perform
+                // name availability check.
+                throw;
             }
             catch (Exception ex) {
                 Log.Error(ex, "Failed to generate unique KeyVault service name");

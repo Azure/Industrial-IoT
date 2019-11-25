@@ -290,7 +290,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
             _aksApplicationName = _applicationName + "-aks";
 
             // It might happen that there is no registered resource provider
-            // found for specified location and api version to perform name
+            // found for specified location and/or api version to perform name
             // availability check. In these cases, we will silently ignore
             // errors and just use generated random names.
             const string notAvailableApiFormat = "Name availability APIs are not available for '{0}'";
@@ -300,8 +300,8 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 _keyVaultName = await _keyVaultManagementClient
                     .GenerateAvailableNameAsync(cancellationToken);
             }
-            catch (Rest.Azure.CloudException) {
-                Log.Debug(notAvailableApiFormat, "KeyVault");
+            catch (Microsoft.Rest.Azure.CloudException) {
+                Log.Warning(notAvailableApiFormat, "KeyVault");
                 _keyVaultName = KeyVaultMgmtClient.GenerateName();
             }
 
@@ -310,8 +310,8 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 _storageAccountName = await _storageManagementClient
                     .GenerateAvailableNameAsync(cancellationToken);
             }
-            catch (Rest.Azure.CloudException) {
-                Log.Debug(notAvailableApiFormat, "Storage Account");
+            catch (Microsoft.Rest.Azure.CloudException) {
+                Log.Warning(notAvailableApiFormat, "Storage Account");
                 _storageAccountName = StorageMgmtClient.GenerateStorageAccountName();
             }
 
@@ -320,8 +320,8 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 _iotHubName = await _iotHubManagementClient
                     .GenerateAvailableNameAsync(cancellationToken);
             }
-            catch (Rest.Azure.CloudException) {
-                Log.Debug(notAvailableApiFormat, "IoT Hub");
+            catch (Microsoft.Rest.Azure.CloudException) {
+                Log.Warning(notAvailableApiFormat, "IoT Hub");
                 _iotHubName = IotHubMgmtClient.GenerateIotHubName();
             }
 
@@ -330,8 +330,8 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 _cosmosDBAccountName = await _cosmosDBManagementClient
                     .GenerateAvailableNameAsync(cancellationToken);
             }
-            catch (Rest.Azure.CloudException) {
-                Log.Debug(notAvailableApiFormat, "CosmosDB Account");
+            catch (Microsoft.Rest.Azure.CloudException) {
+                Log.Warning(notAvailableApiFormat, "CosmosDB Account");
                 _cosmosDBAccountName = CosmosDBMgmtClient.GenerateCosmosDBAccountName();
             }
 
@@ -340,8 +340,8 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 _serviceBusNamespaceName = await _serviceBusManagementClient
                     .GenerateAvailableNamespaceNameAsync(cancellationToken);
             }
-            catch (Rest.Azure.CloudException) {
-                Log.Debug(notAvailableApiFormat, "ServiceBus Namespace");
+            catch (Microsoft.Rest.Azure.CloudException) {
+                Log.Warning(notAvailableApiFormat, "ServiceBus Namespace");
                 _serviceBusNamespaceName = ServiceBusMgmtClient.GenerateNamespaceName();
             }
 
@@ -350,8 +350,8 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 _eventHubNamespaceName = await _eventHubManagementClient
                     .GenerateAvailableNamespaceNameAsync(cancellationToken);
             }
-            catch (Rest.Azure.CloudException) {
-                Log.Debug(notAvailableApiFormat, "EventHub Namespace");
+            catch (Microsoft.Rest.Azure.CloudException) {
+                Log.Warning(notAvailableApiFormat, "EventHub Namespace");
                 _eventHubNamespaceName = EventHubMgmtClient.GenerateEventHubNamespaceName();
             }
 
@@ -383,8 +383,8 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 _signalRName = await _signalRManagementClient
                     .GenerateAvailableNameAsync(_resourceGroup, cancellationToken);
             }
-            catch (Rest.Azure.CloudException) {
-                Log.Debug(notAvailableApiFormat, "SignalR");
+            catch (Microsoft.Rest.Azure.CloudException) {
+                Log.Warning(notAvailableApiFormat, "SignalR");
                 _signalRName = SignalRMgmtClient.GenerateName();
             }
         }
