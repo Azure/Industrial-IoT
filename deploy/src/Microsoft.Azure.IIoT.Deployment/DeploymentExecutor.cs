@@ -33,6 +33,8 @@ namespace Microsoft.Azure.IIoT.Deployment {
         public static readonly string APPLICATION_IIOT = "industrial-iot";
         public static readonly string VERSION_KEY = "version";
         public static readonly string VERSION_IIOT = "2.5.1";
+        public static readonly string MANAGED_BY_KEY = "managed-by";
+        public static readonly string MANAGED_BY_IIOT = "Microsoft.Azure.IIoT.Deployment";
 
         public static readonly string ENV_FILE_PATH = @".env";
 
@@ -144,13 +146,15 @@ namespace Microsoft.Azure.IIoT.Deployment {
             _defaultTagsList = new List<string> {
                 _account.Username,
                 APPLICATION_IIOT,
-                VERSION_IIOT
+                VERSION_IIOT,
+                MANAGED_BY_IIOT
             };
 
             _defaultTagsDict = new Dictionary<string, string> {
                 { OWNER_KEY, _account.Username },
                 { APPLICATION_KEY, APPLICATION_IIOT },
-                { VERSION_KEY, VERSION_IIOT }
+                { VERSION_KEY, VERSION_IIOT },
+                { MANAGED_BY_KEY, MANAGED_BY_IIOT}
             };
         }
 
