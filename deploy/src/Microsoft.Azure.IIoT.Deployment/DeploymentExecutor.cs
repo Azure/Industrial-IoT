@@ -968,6 +968,24 @@ namespace Microsoft.Azure.IIoT.Deployment {
                     cancellationToken
                 );
 
+            // After we have proxy deployed to App Service, we will update 
+            // client application to have redirect URIs for App Service.
+            var redirectUris = new List<string> {
+                $"https://{webSite.DefaultHostName}/",
+                $"https://{webSite.DefaultHostName}/registry/",
+                $"https://{webSite.DefaultHostName}/twin/",
+                $"https://{webSite.DefaultHostName}/history/",
+                $"https://{webSite.DefaultHostName}/ua/",
+                $"https://{webSite.DefaultHostName}/vault/"
+            };
+
+            _clientApplication = await _msGraphServiceClient
+                .UpdateRedirectUrisAsync(
+                    _clientApplication,
+                    redirectUris,
+                    cancellationToken
+                );
+
             // Check if we want to save environment to .env file
             var saveEnvFile = _configurationProvider.CheckIfSaveEnvFile();
 
