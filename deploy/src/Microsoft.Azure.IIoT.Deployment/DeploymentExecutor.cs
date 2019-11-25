@@ -369,7 +369,6 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 .RegisterClientApplicationAsync(
                     _serviceApplication,
                     _clientsApplicationName,
-                    _azureWebsiteName,
                     _defaultTagsList,
                     cancellationToken
                 );
@@ -383,7 +382,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 .AddMeAsApplicationOwnerAsync(_clientApplication, cancellationToken);
 
             // Update service application to include client applicatoin as knownClientApplications
-            await _msGraphServiceClient
+            _serviceApplication = await _msGraphServiceClient
                 .AddAsKnownClientApplicationAsync(
                     _serviceApplication,
                     _clientApplication,

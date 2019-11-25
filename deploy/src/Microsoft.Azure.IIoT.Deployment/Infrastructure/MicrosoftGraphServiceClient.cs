@@ -255,7 +255,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
         public async Task<Application> RegisterClientApplicationAsync(
             Application serviceApplication,
             string clientsApplicationName,
-            string azureWebsiteName, // ToDo: This should be set after App Service is deployed.
             IEnumerable<string> tags = null,
             CancellationToken cancellationToken = default
         ) {
@@ -491,7 +490,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             CancellationToken cancellationToken = default
         ) {
             try {
-                var updatedServiceApplication = await _graphServiceClient
+                await _graphServiceClient
                     .Applications[serviceApplication.Id]
                     .Request()
                     .UpdateAsync(
@@ -504,6 +503,14 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                         },
                         cancellationToken
                     );
+
+                // As of Microsoft.Graph.Beta version 0.8.0-preview, UpdateAsync(...)
+                // returns null and not updated application. Thus we will have to get
+                // the application after update and return it.
+                var updatedServiceApplication = await _graphServiceClient
+                    .Applications[serviceApplication.Id]
+                    .Request()
+                    .GetAsync(cancellationToken);
 
                 return updatedServiceApplication;
             }
@@ -527,7 +534,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             CancellationToken cancellationToken = default
         ) {
             try {
-                var updatedApplication = await _graphServiceClient
+                await _graphServiceClient
                     .Applications[application.Id]
                     .Request()
                     .UpdateAsync(
@@ -538,6 +545,14 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                         },
                         cancellationToken
                     );
+
+                // As of Microsoft.Graph.Beta version 0.8.0-preview, UpdateAsync(...)
+                // returns null and not updated application. Thus we will have to get
+                // the application after update and return it.
+                var updatedApplication = await _graphServiceClient
+                    .Applications[application.Id]
+                    .Request()
+                    .GetAsync(cancellationToken);
 
                 return updatedApplication;
             }
