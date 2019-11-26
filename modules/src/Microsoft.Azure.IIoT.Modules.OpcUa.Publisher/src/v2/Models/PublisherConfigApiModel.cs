@@ -3,13 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.v2.Controller {
-    using Microsoft.Azure.IIoT.Agent.Framework.Models;
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.Azure.IIoT.Agent.Framework.Models;
+using Newtonsoft.Json;
 
+namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.v2.Models {
     /// <summary>
     /// Default publisher configuration
     /// </summary>

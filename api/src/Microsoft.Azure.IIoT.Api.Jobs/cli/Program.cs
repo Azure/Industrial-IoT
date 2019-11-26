@@ -7,7 +7,6 @@ namespace Microsoft.Azure.IIoT.Api.Jobs.Cli {
     using Microsoft.Azure.IIoT.Api.Jobs;
     using Microsoft.Azure.IIoT.Api.Jobs.Clients;
     using Microsoft.Azure.IIoT.Api.Jobs.Models;
-    using Microsoft.Azure.IIoT.Agent.Framework.Serializer;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Extensions.Configuration;
     using Autofac;
@@ -54,13 +53,8 @@ namespace Microsoft.Azure.IIoT.Api.Jobs.Cli {
             containerBuilder.RegisterInstance(jobManagerServiceConfiguration ?? new JobsServiceConfig());
             containerBuilder.AddConsoleLogger();
             containerBuilder.RegisterType<JobsServiceClient>().AsImplementedInterfaces().SingleInstance();
-            containerBuilder.RegisterType<DefaultJobSerializer>().AsImplementedInterfaces().SingleInstance();
             containerBuilder.RegisterModule<HttpClientModule>();
             containerBuilder.RegisterInstance(config).As<IConfiguration>();
-
-            var manualKnownJobTypesProvider =
-                new KnownJobConfigProvider(new[] { typeof(MonitoredItemDeviceJobModel), typeof(PubSubJobModel) });
-            containerBuilder.RegisterInstance(manualKnownJobTypesProvider).AsImplementedInterfaces();
 
             _container = containerBuilder.Build();
 

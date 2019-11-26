@@ -49,11 +49,16 @@ namespace Microsoft.Azure.IIoT.Agent.Framework {
             await _lock.WaitAsync();
             try {
                 var jobs = _jobs.Select(j => j.Clone()).ToList();
+                
                 if (query != null) {
-
-                    // TODO
-                    throw new NotImplementedException();
+                    if (query.Status.HasValue) {
+                        jobs = jobs.Where(j => j.LifetimeData.Status == query.Status.Value).ToList();
+                    }
+                    if (!string.IsNullOrWhiteSpace(query.JobConfigurationType)) {
+                        jobs = jobs.Where(j => j.JobConfigurationType == query.JobConfigurationType).ToList();
+                    }
                 }
+
                 return new JobInfoListModel {
                     Jobs = jobs
                 };

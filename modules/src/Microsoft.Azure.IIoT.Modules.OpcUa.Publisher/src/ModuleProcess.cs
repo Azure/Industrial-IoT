@@ -3,45 +3,49 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
-    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.v2.Controller;
-    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Agent;
-    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime;
-    using Microsoft.Azure.IIoT.Agent.Framework;
-    using Microsoft.Azure.IIoT.Api.Jobs.Clients;
-    using Microsoft.Azure.IIoT.Module.Framework;
-    using Microsoft.Azure.IIoT.Module.Framework.Client;
-    using Microsoft.Azure.IIoT.Module.Framework.Services;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Encoding;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Sinks;
-    using Microsoft.Azure.IIoT.OpcUa.Publisher;
-    using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
-    using Microsoft.Extensions.Configuration;
-    using Autofac;
-    using Serilog;
-    using System;
-    using System.Diagnostics;
-    using System.Runtime.Loader;
-    using System.Threading;
-    using System.Threading.Tasks;
-    using static Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime.CommandLine;
-    using Microsoft.Azure.IIoT.Agent.Framework.Jobs;
-    using Microsoft.Azure.IIoT.Agent.Framework.Storage.Filesystem;
-    using Microsoft.Azure.IIoT.Agent.Framework.Storage.InMemory;
-    using Microsoft.Azure.IIoT.Agent.Framework.Models;
-    using Microsoft.Azure.IIoT.Agent.Framework.Serializer;
-    using Microsoft.Azure.IIoT.Agent.Framework.Jobs.Runtime;
+using System;
+using System.Diagnostics;
+using System.IO;
+using System.Runtime.Loader;
+using System.Threading;
+using System.Threading.Tasks;
+using Autofac;
+using Microsoft.Azure.IIoT.Agent.Framework;
+using Microsoft.Azure.IIoT.Agent.Framework.Agent;
+using Microsoft.Azure.IIoT.Agent.Framework.Jobs;
+using Microsoft.Azure.IIoT.Agent.Framework.Jobs.Runtime;
+using Microsoft.Azure.IIoT.Agent.Framework.Models;
+using Microsoft.Azure.IIoT.Agent.Framework.Storage.InMemory;
+using Microsoft.Azure.IIoT.Api.Jobs.Clients;
+using Microsoft.Azure.IIoT.Module.Framework;
+using Microsoft.Azure.IIoT.Module.Framework.Client;
+using Microsoft.Azure.IIoT.Module.Framework.Services;
+using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Agent;
+using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime;
+using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.v2.Controller;
+using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher;
+using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Encoding;
+using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine;
+using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Sinks;
+using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
+using Microsoft.Azure.IIoT.OpcUa.Publisher;
+using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
+using Microsoft.Azure.IIoT.OpcUa.Publisher.Runtime;
+using Microsoft.Extensions.Configuration;
+using Serilog;
 
+namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
     /// <summary>
-    /// Publisher module
+    ///     Publisher module
     /// </summary>
     public class ModuleProcess : IProcessControl {
+        private readonly IConfigurationRoot _config;
+        private readonly TaskCompletionSource<bool> _exit;
+        private int _exitCode;
+        private TaskCompletionSource<bool> _reset;
 
         /// <summary>
-        /// Create process
+        ///     Create process
         /// </summary>
         /// <param name="config"></param>
         public ModuleProcess(IConfigurationRoot config) {
@@ -53,7 +57,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
         }
 
         /// <summary>
-        /// Site of the module
+        ///     Site of the module
         /// </summary>
         public string SiteId { get; set; }
 
@@ -76,12 +80,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
         }
 
         /// <summary>
-        /// Whether the module is running
+        ///     Whether the module is running
         /// </summary>
         public event EventHandler<bool> OnRunning;
 
         /// <summary>
-        /// Run module host
+        ///     Run module host
         /// </summary>
         public async Task<int> RunAsync() {
             // Wait until the module unloads
@@ -92,6 +96,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                     var workerSupervisor = hostScope.Resolve<IWorkerSupervisor>();
                     var logger = hostScope.Resolve<ILogger>();
                     try {
+                        await TryMigrateFromLegacy(hostScope);
+
                         // Start module
                         await module.StartAsync("publisher", SiteId, "Publisher", this);
                         await workerSupervisor.StartAsync();
@@ -118,16 +124,15 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
         }
 
         /// <summary>
-        /// Autofac configuration.
+        ///     Autofac configuration.
         /// </summary>
         /// <param name="configuration"></param>
         /// <returns></returns>
         private IContainer ConfigureContainer(IConfiguration configuration) {
-
             var config = new Config(configuration);
             var legacyCliOptions = new LegacyCliOptions(configuration);
+
             var builder = new ContainerBuilder();
-            MonitoredItemJobModel monitoredItemJobModel = null;
 
             // Register configuration interfaces
             builder.RegisterInstance(config)
@@ -148,37 +153,21 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
             builder.RegisterModule<PublisherJobsConfiguration>();
 
             if (legacyCliOptions.RunInLegacyMode) {
-                var knownJobConfigProvider = new KnownJobConfigProvider(new[] { typeof(MonitoredItemDeviceJobModel) });
-                var defaultJobSerializer = new DefaultJobSerializer(knownJobConfigProvider);
-                var publishedNodesJobConverter = new PublishedNodesJobConverter(legacyCliOptions);
+                //Registrations for standalone mode
                 var jobOrchestratorConfig = new JobOrchestratorConfig(configuration);
+                var legacyCommandLineModel = legacyCliOptions.ToLegacyCommandLineModel();
+                var engineConfiguration = new PublisherEngineConfig {BatchSize = 1, DiagnosticsInterval = legacyCommandLineModel.DiagnosticsInterval};
+                var agentConfigProvider = new AgentConfigProvider(legacyCliOptions.ToAgentConfigModel());
 
-                using (var tr = System.IO.File.OpenText(legacyCliOptions.PublishedNodesFile)) {
-                    monitoredItemJobModel = publishedNodesJobConverter.Read(tr);
-                }
-
-                string jobConfigurationType;
-
-                var jobInfoModel = new JobInfoModel() {
-                    Id = "SingletonJob",
-                    JobConfiguration = defaultJobSerializer.SerializeJobConfiguration(new MonitoredItemDeviceJobModel() { ConnectionString = legacyCliOptions.EdgeHubConnectionString, Job = monitoredItemJobModel }, out jobConfigurationType),
-                    JobConfigurationType = jobConfigurationType,
-                    Name = "SingletonJob",
-                    RedundancyConfig = new RedundancyConfigModel() { DesiredActiveAgents = 1, DesiredPassiveAgents = 0 },
-                    LifetimeData = new JobLifetimeDataModel(),
-                    Demands = null
-                };
-
-                var jobRepo = new SingleInstanceJobRepository(jobInfoModel);
-
-                builder.RegisterType<DefaultJobOrchestrator>().AsImplementedInterfaces().SingleInstance();
-                builder.RegisterType<DefaultDemandMatcher>().AsImplementedInterfaces();
-
-                builder.RegisterInstance(jobRepo).AsImplementedInterfaces();
-                builder.RegisterInstance(knownJobConfigProvider).AsImplementedInterfaces();
-                builder.RegisterInstance(defaultJobSerializer).AsImplementedInterfaces();
-                builder.RegisterInstance(legacyCliOptions).AsImplementedInterfaces();
+                builder.RegisterInstance(legacyCommandLineModel);
                 builder.RegisterInstance(jobOrchestratorConfig).AsImplementedInterfaces();
+                builder.RegisterInstance(engineConfiguration).AsImplementedInterfaces();
+                builder.RegisterInstance(agentConfigProvider).AsImplementedInterfaces();
+
+                builder.RegisterType<PublishedNodesJobConverter>().SingleInstance();
+                builder.RegisterType<DefaultJobOrchestrator>().AsImplementedInterfaces().SingleInstance();
+                builder.RegisterType<DefaultDemandMatcher>().AsImplementedInterfaces().SingleInstance();
+                builder.RegisterType<InMemoryJobRepository>().AsImplementedInterfaces().SingleInstance();
             }
             else {
                 // Use cloud job manager
@@ -225,9 +214,30 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
             return builder.Build();
         }
 
-        private readonly IConfigurationRoot _config;
-        private readonly TaskCompletionSource<bool> _exit;
-        private TaskCompletionSource<bool> _reset;
-        private int _exitCode;
+        private async Task TryMigrateFromLegacy(IContainer container) {
+            if (container.TryResolve<LegacyCommandLineModel>(out var legacyCommandLineModel)) {
+                var jobSerializer = container.Resolve<IJobSerializer>();
+                var jobConverter = container.Resolve<PublishedNodesJobConverter>();
+                var jobRepo = container.Resolve<IJobRepository>();
+
+                MonitoredItemJobModel monitoredItemJobModel;
+
+                using (var tr = File.OpenText(legacyCommandLineModel.PublishedNodesFile)) {
+                    monitoredItemJobModel = jobConverter.Read(tr);
+                }
+
+                var jobInfoModel = new JobInfoModel {
+                    Id = "LegacyMigratedJob",
+                    Name = "LegacyMigratedJob",
+                    JobConfiguration = jobSerializer.SerializeJobConfiguration(new MonitoredItemDeviceJobModel { ConnectionString = legacyCommandLineModel.EdgeHubConnectionString, Job = monitoredItemJobModel }, out var jobConfigurationType),
+                    JobConfigurationType = jobConfigurationType,
+                    RedundancyConfig = new RedundancyConfigModel { DesiredActiveAgents = 1, DesiredPassiveAgents = 0 },
+                    LifetimeData = new JobLifetimeDataModel { Status = JobStatus.Active },
+                    Demands = null
+                };
+
+                await jobRepo.AddAsync(jobInfoModel);
+            }
+        }
     }
 }
