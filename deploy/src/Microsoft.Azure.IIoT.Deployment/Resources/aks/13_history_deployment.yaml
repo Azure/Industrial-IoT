@@ -1,23 +1,31 @@
-﻿apiVersion: extensions/v1beta1
+﻿apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: twin-deployment
+  name: history-deployment
   namespace: industrial-iot
   labels:
-    app: twinservice
+    app.kubernetes.io/name: history-service
+    app.kubernetes.io/part-of: industrial-iot
+    app.kubernetes.io/version: 2.5.1
+    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: twinservice
+      app.kubernetes.io/name: history-service
+      app.kubernetes.io/part-of: industrial-iot
   template:
     metadata:
       labels:
-        app: twinservice
+        app.kubernetes.io/name: history-service
+        app.kubernetes.io/part-of: industrial-iot
+        app.kubernetes.io/version: 2.5.1
+        app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
     spec:
+      serviceAccountName: industrial-iot-serviceaccount
       containers:
-      - name: twinservice
-        image: mcr.microsoft.com/iot/opc-twin-service:2.5.1
+      - name: history-service-container
+        image: mcr.microsoft.com/iot/opc-history-service:2.5.1
         resources:
           requests:
             memory: "64Mi"
@@ -27,7 +35,7 @@ spec:
             cpu: "250m"
         ports:
         - containerPort: 443
-        - containerPort: 9041
+        - containerPort: 9043
         env:
         - name: PCS_KEYVAULT_URL
           valueFrom:
