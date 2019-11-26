@@ -25,8 +25,8 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
         /// <param name="demandMatcher"></param>
         /// <param name="jobOrchestratorConfig"></param>
         public DefaultJobOrchestrator(IJobRepository jobRepository,
-            IWorkerRepository workerRepository, IDemandMatcher demandMatcher,
-            IJobOrchestratorConfig jobOrchestratorConfig) {
+            IDemandMatcher demandMatcher,
+            IJobOrchestratorConfig jobOrchestratorConfig, IWorkerRepository workerRepository = null) {
             _jobRepository = jobRepository;
             _demandMatcher = demandMatcher;
             _workerRepository = workerRepository;

@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime;
+    using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
     using System;
     using System.IO;
@@ -20,13 +21,16 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
         /// <param name="args"></param>
         public static void Main(string[] args) {
 
+            string environment = Environment.GetEnvironmentVariable("ASPNET_ENVIRONMENT");
+
             var config = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", true)
+                .AddJsonFile($"appsettings.{environment}.json", true)
                 .AddEnvironmentVariables()
                 .AddFromDotEnvFile()
                 .AddEnvironmentVariables(EnvironmentVariableTarget.User)
-                .AddPublisherCommandLine(args)
+                .AddLegacyPublisherCommandLine(args)
                 .Build();
 
             var module = new ModuleProcess(config);

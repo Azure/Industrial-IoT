@@ -27,6 +27,13 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
     using System.Runtime.Loader;
     using System.Threading;
     using System.Threading.Tasks;
+    using static Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime.CommandLine;
+    using Microsoft.Azure.IIoT.Agent.Framework.Jobs;
+    using Microsoft.Azure.IIoT.Agent.Framework.Storage.Filesystem;
+    using Microsoft.Azure.IIoT.Agent.Framework.Storage.InMemory;
+    using Microsoft.Azure.IIoT.Agent.Framework.Models;
+    using Microsoft.Azure.IIoT.Agent.Framework.Serializer;
+    using Microsoft.Azure.IIoT.Agent.Framework.Jobs.Runtime;
 
     /// <summary>
     /// Publisher module
@@ -118,7 +125,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
         private IContainer ConfigureContainer(IConfiguration configuration) {
 
             var config = new Config(configuration);
+            var legacyCliOptions = new LegacyCliOptions(configuration);
             var builder = new ContainerBuilder();
+            MonitoredItemJobModel monitoredItemJobModel = null;
 
             // Register configuration interfaces
             builder.RegisterInstance(config)
@@ -135,18 +144,52 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
             builder.RegisterModule<AgentFramework>();
             builder.RegisterModule<ModuleFramework>();
 
-            // ... plus controllers
-            builder.RegisterType<ConfigurationSettingsController>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<IdentityTokenSettingsController>()
-                .AsImplementedInterfaces().SingleInstance();
-
             // Register job types...
             builder.RegisterModule<PublisherJobsConfiguration>();
 
-            // Use cloud job manager
-            builder.RegisterType<JobOrchestratorClient>()
-                .AsImplementedInterfaces().SingleInstance();
+            if (legacyCliOptions.RunInLegacyMode) {
+                var knownJobConfigProvider = new KnownJobConfigProvider(new[] { typeof(MonitoredItemDeviceJobModel) });
+                var defaultJobSerializer = new DefaultJobSerializer(knownJobConfigProvider);
+                var publishedNodesJobConverter = new PublishedNodesJobConverter(legacyCliOptions);
+                var jobOrchestratorConfig = new JobOrchestratorConfig(configuration);
+
+                using (var tr = System.IO.File.OpenText(legacyCliOptions.PublishedNodesFile)) {
+                    monitoredItemJobModel = publishedNodesJobConverter.Read(tr);
+                }
+
+                string jobConfigurationType;
+
+                var jobInfoModel = new JobInfoModel() {
+                    Id = "SingletonJob",
+                    JobConfiguration = defaultJobSerializer.SerializeJobConfiguration(new MonitoredItemDeviceJobModel() { ConnectionString = legacyCliOptions.EdgeHubConnectionString, Job = monitoredItemJobModel }, out jobConfigurationType),
+                    JobConfigurationType = jobConfigurationType,
+                    Name = "SingletonJob",
+                    RedundancyConfig = new RedundancyConfigModel() { DesiredActiveAgents = 1, DesiredPassiveAgents = 0 },
+                    LifetimeData = new JobLifetimeDataModel(),
+                    Demands = null
+                };
+
+                var jobRepo = new SingleInstanceJobRepository(jobInfoModel);
+
+                builder.RegisterType<DefaultJobOrchestrator>().AsImplementedInterfaces().SingleInstance();
+                builder.RegisterType<DefaultDemandMatcher>().AsImplementedInterfaces();
+
+                builder.RegisterInstance(jobRepo).AsImplementedInterfaces();
+                builder.RegisterInstance(knownJobConfigProvider).AsImplementedInterfaces();
+                builder.RegisterInstance(defaultJobSerializer).AsImplementedInterfaces();
+                builder.RegisterInstance(legacyCliOptions).AsImplementedInterfaces();
+                builder.RegisterInstance(jobOrchestratorConfig).AsImplementedInterfaces();
+            }
+            else {
+                // Use cloud job manager
+                builder.RegisterType<JobOrchestratorClient>()
+                    .AsImplementedInterfaces().SingleInstance();
+                // ... plus controllers
+                builder.RegisterType<ConfigurationSettingsController>()
+                    .AsImplementedInterfaces().SingleInstance();
+                builder.RegisterType<IdentityTokenSettingsController>()
+                    .AsImplementedInterfaces().SingleInstance();
+            }
 
             // ... encoders ...
             builder.RegisterType<JsonNetworkMessageEncoder>()
