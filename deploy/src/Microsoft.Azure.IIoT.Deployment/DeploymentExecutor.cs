@@ -25,7 +25,6 @@ namespace Microsoft.Azure.IIoT.Deployment {
     using Microsoft.Azure.Management.Network.Fluent.Models;
     using Microsoft.Identity.Client;
     using Microsoft.Graph;
-    using System.Linq;
 
     class DeploymentExecutor : IDisposable {
 
