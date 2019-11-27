@@ -22,6 +22,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
     using Microsoft.Azure.Management.Network.Fluent.Models;
     using Microsoft.Identity.Client;
     using Microsoft.Graph;
+    using System.Linq;
 
     class DeploymentExecutor : IDisposable {
 
@@ -368,7 +369,6 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 .RegisterClientApplicationAsync(
                     _serviceApplication,
                     _clientsApplicationName,
-                    _azureWebsiteName,
                     _defaultTagsList,
                     cancellationToken
                 );
@@ -382,7 +382,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 .AddMeAsApplicationOwnerAsync(_clientApplication, cancellationToken);
 
             // Update service application to include client applicatoin as knownClientApplications
-            await _msGraphServiceClient
+            _serviceApplication = await _msGraphServiceClient
                 .AddAsKnownClientApplicationAsync(
                     _serviceApplication,
                     _clientApplication,
@@ -805,14 +805,14 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 );
 
             // This will point to PublicIP address of Ingress.
-            var remoteEndpoint = "";
+            var emptyRemoteEndpoint = "";
 
             var webSiteCreationTask = _webSiteManagementClient
                 .CreateSiteAsync(
                     _resourceGroup,
                     appServicePlan,
                     _azureWebsiteName,
-                    remoteEndpoint,
+                    emptyRemoteEndpoint,
                     _webAppX509Certificate,
                     _defaultTagsDict,
                     cancellationToken
@@ -917,15 +917,73 @@ namespace Microsoft.Azure.IIoT.Deployment {
 
             var iiotK8SClient = new IIoTK8SClient(_aksKubeConfig);
 
-            iiotK8SClient.CreateIIoTNamespaceAsync().Wait();
-            iiotK8SClient.CreateIIoTEnvSecretAsync(iiotEnvironment.Dict).Wait();
-            iiotK8SClient.DeployIIoTServicesAsync().Wait();
+            // industrial-iot namespace
+            iiotK8SClient.CreateIIoTNamespaceAsync(cancellationToken).Wait();
+            iiotK8SClient.SetupIIoTServiceAccountAsync(cancellationToken).Wait();
+            iiotK8SClient.CreateIIoTEnvSecretAsync(iiotEnvironment.Dict, cancellationToken).Wait();
+            iiotK8SClient.DeployIIoTServicesAsync(cancellationToken).Wait();
+
+            // We will add default SSL certificate for Ingress
+            // NGINX controler to industrial-iot namespace
             iiotK8SClient
                 .CreateNGINXDefaultSSLCertificateSecretAsync(
                     webAppPemCertificate,
-                    webAppPemPrivateKey
+                    webAppPemPrivateKey,
+                    cancellationToken
                 )
                 .Wait();
+
+            // ingress-nginx namespace
+            iiotK8SClient.CreateNGINXNamespaceAsync(cancellationToken).Wait();
+            iiotK8SClient.SetupNGINXServiceAccountAsync(cancellationToken).Wait();
+            iiotK8SClient.DeployNGINXIngressControllerAsync(cancellationToken).Wait();
+
+            // After we have NGINX Ingress controller we can create Ingress
+            // for our Industrial IoT services and wait for IP address of
+            // its LoadBalancer.
+            var iiotIngress = await iiotK8SClient.CreateIIoTIngressAsync(cancellationToken);
+            var iiotIngressIPAddresses = await iiotK8SClient.WaitForIngressIPAsync(iiotIngress, cancellationToken);
+            var iiotIngressIPAdress = iiotIngressIPAddresses.FirstOrDefault().Ip;
+
+            // Update remote endpoint and certificate thumbprint application settings
+            // of App Servise.
+            var iiotIngressRemoteEndpoint = $"https://{iiotIngressIPAdress}";
+            await _webSiteManagementClient
+                .UpdateSiteApplicationSettingsAsync(
+                    _resourceGroup,
+                    webSite,
+                    iiotIngressRemoteEndpoint,
+                    _webAppX509Certificate,
+                    cancellationToken
+                );
+
+            // Deploy reverse proxy to App Service. It will consume values of remote
+            // endpoint and certificate thumbprint application settings of App Service.
+            var proxySiteSourceControl = await _webSiteManagementClient
+                .DeployProxyAsync(
+                    _resourceGroup,
+                    webSite,
+                    _defaultTagsDict,
+                    cancellationToken
+                );
+
+            // After we have proxy deployed to App Service, we will update 
+            // client application to have redirect URIs for App Service.
+            var redirectUris = new List<string> {
+                $"https://{webSite.DefaultHostName}/",
+                $"https://{webSite.DefaultHostName}/registry/",
+                $"https://{webSite.DefaultHostName}/twin/",
+                $"https://{webSite.DefaultHostName}/history/",
+                $"https://{webSite.DefaultHostName}/ua/",
+                $"https://{webSite.DefaultHostName}/vault/"
+            };
+
+            _clientApplication = await _msGraphServiceClient
+                .UpdateRedirectUrisAsync(
+                    _clientApplication,
+                    redirectUris,
+                    cancellationToken
+                );
 
             // Check if we want to save environment to .env file
             var saveEnvFile = _configurationProvider.CheckIfSaveEnvFile();
