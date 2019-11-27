@@ -83,12 +83,14 @@ else {
     }
 }
 
+$maxBranchNameLength = 24
+
 # Try get branch name
 $branchName = $env:BUILD_SOURCEBRANCH
 $isDeveloperBuild = [string]::IsNullOrEmpty($env:RELEASE_BUILD)
 if (![string]::IsNullOrEmpty($branchName)) {
     if ($branchName.StartsWith("refs/heads/")) {
-        $branchName = $branchName.Replace("refs/heads/", "")
+        $branchName = $branchName.Replace("refs/heads/", "").Replace("feature/", "").Substring(0, $maxBranchNameLength)
     }
     else {
         Write-Warning "Error - '$($branchName)' not recognized as branch."
@@ -98,7 +100,7 @@ if (![string]::IsNullOrEmpty($branchName)) {
 if ([string]::IsNullOrEmpty($branchName)) {
     try {
         $argumentList = @("rev-parse", "--abbrev-ref", "HEAD")
-        $branchName = (& "git" $argumentList 2>&1 | %{ "$_" });
+        $branchName = (& "git" $argumentList 2>&1 | %{ "$_" }).Substring(0, $maxBranchNameLength);
     }
     catch {
         Write-Warning $_.Exception
