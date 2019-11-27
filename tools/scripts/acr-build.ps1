@@ -86,12 +86,15 @@ else {
     }
 }
 
+$maxBranchNameLength = 24
+
 # Try get branch name
 $branchName = $env:BUILD_SOURCEBRANCH
 $isDeveloperBuild = [string]::IsNullOrEmpty($env:RELEASE_BUILD)
 if (![string]::IsNullOrEmpty($branchName)) {
     if ($branchName.StartsWith("refs/heads/")) {
-        $branchName = $branchName.Replace("refs/heads/", "")
+        $branchName = $branchName.Replace("refs/heads/", "").Replace("feature/", "")
+        $branchName = $branchName.Substring(0, [Math]::Min($branchName.Length, $maxBranchNameLength))
     }
     else {
         Write-Warning "Error - '$($branchName)' not recognized as branch."
@@ -105,6 +108,7 @@ if ([string]::IsNullOrEmpty($branchName)) {
         if ($LastExitCode -ne 0) {
             throw "git $($argumentList) failed with $($LastExitCode)."
         }
+        $branchName = $branchName.Substring(0, [Math]::Min($branchName.Length, $maxBranchNameLength))
     }
     catch {
         Write-Warning $_.Exception
@@ -191,8 +195,12 @@ if ($versionParts.Count -gt 0) {
     $tagList = ("'{0}'" -f ($tags -join "', '"))
 }
 
+$fullImageName = "$($Registry).azurecr.io/$($namespace)$($imageName):$($tagPrefix)latest$($tagPostfix)"
+
+Write-Host "Full image name: $($fullImageName)"
+
 $manifest = @" 
-image: $($Registry).azurecr.io/$($namespace)$($imageName):$($tagPrefix)latest$($tagPostfix)
+image: $($fullImageName)
 tags: [$($tagList)]
 manifests:
 "@

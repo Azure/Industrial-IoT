@@ -255,7 +255,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
         public async Task<Application> RegisterClientApplicationAsync(
             Application serviceApplication,
             string clientsApplicationName,
-            string azureWebsiteName, // ToDo: This should be set after App Service is deployed.
             IEnumerable<string> tags = null,
             CancellationToken cancellationToken = default
         ) {
@@ -313,16 +312,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             // Note: Oauth2AllowImplicitFlow will be enabled automatically since both
             // EnableIdTokenIssuance and EnableAccessTokenIssuance are set to true.
 
-            // ToDo: RedirectUris should be set after App Service is deployed.
             var clientApplicationWebApplicatoin = new WebApplication {
-                RedirectUris = new List<string> {
-                    $"https://{azureWebsiteName}.azurewebsites.net/",
-                    $"https://{azureWebsiteName}.azurewebsites.net/registry/",
-                    $"https://{azureWebsiteName}.azurewebsites.net/twin/",
-                    $"https://{azureWebsiteName}.azurewebsites.net/history/",
-                    $"https://{azureWebsiteName}.azurewebsites.net/ua/",
-                    $"https://{azureWebsiteName}.azurewebsites.net/vault/"
-                },
                 //Oauth2AllowImplicitFlow = true,
                 ImplicitGrantSettings = new ImplicitGrantSettings {
                     EnableIdTokenIssuance = true,
@@ -460,6 +450,12 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             return result;
         }
 
+        /// <summary>
+        /// Delete registered application.
+        /// </summary>
+        /// <param name="application"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public async Task DeleteApplicationAsync(
             Application application,
             CancellationToken cancellationToken = default
@@ -480,25 +476,90 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             }
         }
 
-        public async Task AddAsKnownClientApplicationAsync(
+        /// <summary>
+        /// Update service application to include client application 
+        /// as knownClientApplications.
+        /// </summary>
+        /// <param name="serviceApplication"></param>
+        /// <param name="clientApplication"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns>Updated service application</returns>
+        public async Task<Application> AddAsKnownClientApplicationAsync(
             Application serviceApplication,
             Application clientApplication,
             CancellationToken cancellationToken = default
         ) {
-            // Update service application to include client applicatoin as knownClientApplications
-            await _graphServiceClient
-                .Applications[serviceApplication.Id]
-                .Request()
-                .UpdateAsync(
-                    new Application {
-                        Api = new ApiApplication {
-                            KnownClientApplications = new List<Guid> {
-                                new Guid(clientApplication.AppId)
+            try {
+                await _graphServiceClient
+                    .Applications[serviceApplication.Id]
+                    .Request()
+                    .UpdateAsync(
+                        new Application {
+                            Api = new ApiApplication {
+                                KnownClientApplications = new List<Guid> {
+                                    new Guid(clientApplication.AppId)
+                                }
                             }
-                        }
-                    },
-                    cancellationToken
-                );
+                        },
+                        cancellationToken
+                    );
+
+                // As of Microsoft.Graph.Beta version 0.8.0-preview, UpdateAsync(...)
+                // returns null and not updated application. Thus we will have to get
+                // the application after update and return it.
+                var updatedServiceApplication = await _graphServiceClient
+                    .Applications[serviceApplication.Id]
+                    .Request()
+                    .GetAsync(cancellationToken);
+
+                return updatedServiceApplication;
+            }
+            catch (Exception ex) {
+                Log.Error(ex, $"Failed to add {clientApplication.DisplayName} as " +
+                    $"knownClientApplications for application: {serviceApplication.DisplayName}");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Update redirect URIs of the application with provided list.
+        /// </summary>
+        /// <param name="application"></param>
+        /// <param name="redirectUris"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns>Updated application.</returns>
+        public async Task<Application> UpdateRedirectUrisAsync(
+            Application application,
+            IEnumerable<string> redirectUris,
+            CancellationToken cancellationToken = default
+        ) {
+            try {
+                await _graphServiceClient
+                    .Applications[application.Id]
+                    .Request()
+                    .UpdateAsync(
+                        new Application {
+                            Web = new WebApplication {
+                                RedirectUris = redirectUris
+                            }
+                        },
+                        cancellationToken
+                    );
+
+                // As of Microsoft.Graph.Beta version 0.8.0-preview, UpdateAsync(...)
+                // returns null and not updated application. Thus we will have to get
+                // the application after update and return it.
+                var updatedApplication = await _graphServiceClient
+                    .Applications[application.Id]
+                    .Request()
+                    .GetAsync(cancellationToken);
+
+                return updatedApplication;
+            }
+            catch (Exception ex) {
+                Log.Error(ex, $"Failed to update RedirectUris of application: {application.DisplayName}");
+                throw;
+            }
         }
 
         //public async Task<Application> GetApplicationByAppIdAsync(
@@ -524,52 +585,49 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
         //    //return application;
         //}
 
+        /// <summary>
+        /// Get ServicePrincipal by AppId of the application.
+        /// </summary>
+        /// <param name="AppId"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns>ServicePrincipal object.</returns>
         public async Task<ServicePrincipal> GetServicePrincipalByAppIdAsync(
             string AppId,
             CancellationToken cancellationToken = default
         ) {
-            var idFilterClause = $"AppId eq '{AppId}'";
+            var appIdFilterClause = $"AppId eq '{AppId}'";
 
-            var servicePrincipals = await _graphServiceClient
-                .ServicePrincipals
-                .Request()
-                .Filter(idFilterClause)
-                .GetAsync(cancellationToken);
-
-            if (servicePrincipals.Count == 0) {
-                var msg = string.Format("Unable to find ServicePrincipal with AppId={0}", AppId);
-                throw new System.Exception(msg);
-            }
-
-            if (servicePrincipals.Count > 1) {
-                var msg = string.Format("Found more than one ServicePrincipal with AppId={0}", AppId);
-                throw new System.Exception(msg);
-            }
-
-            return servicePrincipals.First();
-        }
-
-        public async Task<ServicePrincipal> GetServicePrincipalAsync(
-            Application application,
-            CancellationToken cancellationToken = default
-        ) {
-            var appIdFilterClause = $"AppId eq '{application.AppId}'";
-
-            var serviceApplicationSPs = await _graphServiceClient
+            var applicationSPs = await _graphServiceClient
                 .ServicePrincipals
                 .Request()
                 .Filter(appIdFilterClause)
                 .GetAsync(cancellationToken);
 
-            if (serviceApplicationSPs.Count == 0) {
-                throw new Exception($"No service principal found for AppId=='{application.AppId}'");
+            if (applicationSPs.Count == 0) {
+                throw new Exception($"No service principal found for AppId='{AppId}'");
             }
 
-            if (serviceApplicationSPs.Count > 1) {
-                throw new Exception($"More than one service principal found for AppId=='{application.AppId}'");
+            if (applicationSPs.Count > 1) {
+                throw new Exception($"More than one service principal found for AppId='{AppId}'");
             }
 
-            return serviceApplicationSPs.First();
+            return applicationSPs.First();
+        }
+
+        /// <summary>
+        /// Get ServicePrincipal of the application.
+        /// </summary>
+        /// <param name="application"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public async Task<ServicePrincipal> GetServicePrincipalAsync(
+            Application application,
+            CancellationToken cancellationToken = default
+        ) {
+            return await GetServicePrincipalByAppIdAsync(
+                application.AppId,
+                cancellationToken
+            );
         }
 
         public async Task<ServicePrincipal> CreateServicePrincipalAsync(
@@ -619,7 +677,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             Application application,
             CancellationToken cancellationToken = default
         ) {
-            // Try to add current user (_me) as app owner the application, if it is not already.
+            // Add current user (_me) as owner of the application, if it is not already.
             var me = Me(cancellationToken);
             var idFilterClause = $"Id eq '{me.Id}'";
 
