@@ -167,6 +167,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
         /// <param name="signalRName"></param>
         /// <param name="cancellationToken"></param>
         /// <returns>True if name is available, False otherwise.</returns>
+        /// <exception cref="Microsoft.Rest.Azure.CloudException"></exception>
         public async Task<bool> CheckNameAvailabilityAsync(
             IResourceGroup resourceGroup,
             string signalRName,
@@ -186,16 +187,22 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                         cancellationToken
                     );
 
-                if (!nameAvailability.NameAvailable.HasValue) {
-                    throw new Exception($"Failed to check SignalR Service name availability for {signalRName}");
+                if (nameAvailability.NameAvailable.HasValue) {
+                    return nameAvailability.NameAvailable.Value;
                 }
-
-                return nameAvailability.NameAvailable.Value;
+            }
+            catch (Microsoft.Rest.Azure.CloudException) {
+                // Will be thrown if there is no registered resource provider
+                // found for specified location and/or api version to perform
+                // name availability check.
+                throw;
             }
             catch (Exception ex) {
                 Log.Error(ex, $"Failed to check SignalR Service name availability for {signalRName}");
                 throw;
             }
+
+            throw new Exception($"Failed to check SignalR Service name availability for {signalRName}");
         }
 
         /// <summary>
@@ -204,6 +211,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
         /// <param name="resourceGroup"></param>
         /// <param name="cancellationToken"></param>
         /// <returns>An available name for SignalR.</returns>
+        /// <exception cref="Microsoft.Rest.Azure.CloudException"></exception>
         public async Task<string> GenerateAvailableNameAsync(
             IResourceGroup resourceGroup,
             CancellationToken cancellationToken = default
@@ -221,6 +229,12 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                         return signalRName;
                     }
                 }
+            }
+            catch (Microsoft.Rest.Azure.CloudException) {
+                // Will be thrown if there is no registered resource provider
+                // found for specified location and/or api version to perform
+                // name availability check.
+                throw;
             }
             catch (Exception ex) {
                 Log.Error(ex, "Failed to generate unique SignalR service name");

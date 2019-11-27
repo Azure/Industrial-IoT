@@ -47,6 +47,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
         /// <param name="cosmosDBAccountName"></param>
         /// <param name="cancellationToken"></param>
         /// <returns>True if name is available, False otherwise.</returns>
+        /// <exception cref="Microsoft.Rest.Azure.CloudException"></exception>
         public async Task<bool> CheckNameAvailabilityAsync(
             string cosmosDBAccountName,
             CancellationToken cancellationToken = default
@@ -61,6 +62,12 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
 
                 return !nameExists;
             }
+            catch (Microsoft.Rest.Azure.CloudException) {
+                // Will be thrown if there is no registered resource provider
+                // found for specified location and/or api version to perform
+                // name availability check.
+                throw;
+            }
             catch (Exception ex) {
                 Log.Error(ex, $"Failed to check CosmosDB Account name availability for {cosmosDBAccountName}");
                 throw;
@@ -72,6 +79,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
         /// </summary>
         /// <param name="cancellationToken"></param>
         /// <returns>An available name for CosmosDB account.</returns>
+        /// <exception cref="Microsoft.Rest.Azure.CloudException"></exception>
         public async Task<string> GenerateAvailableNameAsync(
             CancellationToken cancellationToken = default
         ) {
@@ -87,6 +95,12 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                         return cosmosDBAccountName;
                     }
                 }
+            }
+            catch (Microsoft.Rest.Azure.CloudException) {
+                // Will be thrown if there is no registered resource provider
+                // found for specified location and/or api version to perform
+                // name availability check.
+                throw;
             }
             catch (Exception ex) {
                 Log.Error(ex, "Failed to generate unique CosmosDB Account name");
