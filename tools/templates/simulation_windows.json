@@ -256,8 +256,8 @@
                 "autoUpgradeMinorVersion": true,
                 "settings": {
                     "fileUris": [
-                        "https://raw.githubusercontent.com/monikavar/MyShop/master/MyShop/scripts/install-edge.ps1",
-                        "https://raw.githubusercontent.com/monikavar/MyShop/master/MyShop/scripts/initialize-edge.ps1"
+                        "https://raw.githubusercontent.com/Azure/Industrial-IoT/master/tools/scripts/install-edge.ps1",
+                        "https://raw.githubusercontent.com/Azure/Industrial-IoT/master/tools/scripts/initialize-edge.ps1"
                     ],
                     "commandToExecute": "[concat('powershell -command \"./install-edge.ps1 -edgeKey ',  concat( split(parameters('edgeDeviceKey'),'|')[copyIndex()], '\"'))]"
                 }
