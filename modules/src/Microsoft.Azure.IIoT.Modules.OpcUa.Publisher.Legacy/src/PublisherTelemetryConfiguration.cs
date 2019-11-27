@@ -1,17 +1,13 @@
-﻿// ------------------------------------------------------------
-//  Copyright (c) Microsoft Corporation.  All rights reserved.
-//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
-// ------------------------------------------------------------
+﻿using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
-namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
+namespace OpcPublisher
 {
     using System.IO;
     using System.Linq;
     using System.Text.RegularExpressions;
-    using Newtonsoft.Json;
-    using System;
-    using System.Collections.Generic;
-    using System.Threading.Tasks;
     using static Program;
 
     /// <summary>
@@ -98,7 +94,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
 
             // build the result string based on the pattern
             string result = string.Empty;
-            var match = _patternRegex.Match(stringToParse);
+            Match match = _patternRegex.Match(stringToParse);
             if (match.Groups[0].Success)
             {
                 foreach (var group in match.Groups.Skip(1))
@@ -228,20 +224,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         }
 
         /// <summary>
-        /// The ServerTimestamp value telemetry configuration.
-        /// </summary>
-        public ITelemetrySettings ServerTimestamp
-        {
-            get => _serverTimestamp;
-            set
-            {
-                _serverTimestamp.Publish = value.Publish;
-                _serverTimestamp.Name = value.Name;
-                _serverTimestamp.Pattern = value.Pattern;
-            }
-        }
-
-        /// <summary>
         /// The StatusCode value telemetry configuration.
         /// </summary>
         public ITelemetrySettings StatusCode
@@ -277,7 +259,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
             _flat = null;
             _value = new TelemetrySettings();
             _sourceTimestamp = new TelemetrySettings();
-            _serverTimestamp = new TelemetrySettings();
             _statusCode = new TelemetrySettings();
             _status = new TelemetrySettings();
         }
@@ -285,7 +266,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         private bool? _flat;
         private readonly TelemetrySettings _value;
         private readonly TelemetrySettings _sourceTimestamp;
-        private readonly TelemetrySettings _serverTimestamp;
         private readonly TelemetrySettings _statusCode;
         private readonly TelemetrySettings _status;
     }
@@ -299,20 +279,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         /// Specifies the endpoint URL the telemetry should be configured for.
         /// </summary>
         public string ForEndpointUrl { get; set; }
-
-        /// <summary>
-        /// Specifies the configuration for the value EndpointId.
-        /// </summary>
-        public ITelemetrySettings EndpointId
-        {
-            get => _endpointId;
-            set
-            {
-                _endpointId.Publish = value.Publish;
-                _endpointId.Name = value.Name;
-                _endpointId.Pattern = value.Pattern;
-            }
-        }
 
         /// <summary>
         /// Specifies the configuration for the value EndpointUrl.
@@ -378,7 +344,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                 _value.Flat = value.Flat;
                 _value.Value = value.Value;
                 _value.SourceTimestamp = value.SourceTimestamp;
-                _value.ServerTimestamp = value.ServerTimestamp;
                 _value.StatusCode = value.StatusCode;
                 _value.Status = value.Status;
             }
@@ -391,7 +356,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         {
             ForEndpointUrl = null;
             _endpointUrl = new TelemetrySettings();
-            _endpointId = new TelemetrySettings();
             _nodeId = new TelemetrySettings();
             _expandedNodeId = new TelemetrySettings();
             _monitoredItem = new MonitoredItemTelemetryConfiguration();
@@ -399,7 +363,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         }
 
         private readonly TelemetrySettings _endpointUrl;
-        private readonly TelemetrySettings _endpointId;
         private readonly MonitoredItemTelemetryConfiguration _monitoredItem;
         private readonly ValueTelemetryConfiguration _value;
         private readonly TelemetrySettings _nodeId;
@@ -433,14 +396,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
     public class PublisherTelemetryConfiguration : IPublisherTelemetryConfiguration
     {
         public const string EndpointUrlNameDefault = "EndpointUrl";
-        public const string EndpointIdNameDefault = "EndpointId";
         public const string NodeIdNameDefault = "NodeId";
         public const string ExpandedNodeIdNameDefault = "ExpandedNodeId";
         public const string ApplicationUriNameDefault = "ApplicationUri";
         public const string DisplayNameNameDefault = "DisplayName";
         public const string ValueNameDefault = "Value";
         public const string SourceTimestampNameDefault = "SourceTimestamp";
-        public const string ServerTimestampNameDefault = "ServerTimestamp";
         public const string StatusNameDefault = "Status";
         public const string StatusCodeNameDefault = "StatusCode";
 
@@ -515,9 +476,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                 Logger.Fatal($"The value '{config.ForEndpointUrl}' for property 'ForEndpointUrl' is only allowed to used once in the 'EndpointSpecific' array. Please change.");
                 return false;
             }
-            if (config.EndpointUrl.Name != null || config.EndpointId.Name != null || config.NodeId.Name != null ||
+            if (config.EndpointUrl.Name != null || config.NodeId.Name != null ||
                 config.MonitoredItem.ApplicationUri.Name != null || config.MonitoredItem.DisplayName.Name != null ||
-                config.Value.Value.Name != null || config.Value.SourceTimestamp.Name != null || config.Value.ServerTimestamp.Name != null || config.Value.StatusCode.Name != null || config.Value.Status.Name != null)
+                config.Value.Value.Name != null || config.Value.SourceTimestamp.Name != null || config.Value.StatusCode.Name != null || config.Value.Status.Name != null)
             {
                 Logger.Fatal("The property 'Name' is not allowed in any object in the 'EndpointSpecific' array. Please change.");
                 return false;
@@ -540,27 +501,23 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
 
             // set defaults for 'Name' to be compatible with Connected factory
             _defaultEndpointTelemetryConfiguration.EndpointUrl.Name = EndpointUrlNameDefault;
-            _defaultEndpointTelemetryConfiguration.EndpointId.Name = EndpointIdNameDefault;
             _defaultEndpointTelemetryConfiguration.NodeId.Name = NodeIdNameDefault;
             _defaultEndpointTelemetryConfiguration.ExpandedNodeId.Name = ExpandedNodeIdNameDefault;
             _defaultEndpointTelemetryConfiguration.MonitoredItem.ApplicationUri.Name = ApplicationUriNameDefault;
             _defaultEndpointTelemetryConfiguration.MonitoredItem.DisplayName.Name = DisplayNameNameDefault;
             _defaultEndpointTelemetryConfiguration.Value.Value.Name = ValueNameDefault;
-            _defaultEndpointTelemetryConfiguration.Value.ServerTimestamp.Name = ServerTimestampNameDefault;
             _defaultEndpointTelemetryConfiguration.Value.SourceTimestamp.Name = SourceTimestampNameDefault;
             _defaultEndpointTelemetryConfiguration.Value.StatusCode.Name = StatusCodeNameDefault;
             _defaultEndpointTelemetryConfiguration.Value.Status.Name = StatusCodeNameDefault;
 
             // set defaults for 'Publish' to be compatible with Connected factory
             _defaultEndpointTelemetryConfiguration.EndpointUrl.Publish = false;
-            _defaultEndpointTelemetryConfiguration.EndpointId.Publish = true;
             _defaultEndpointTelemetryConfiguration.NodeId.Publish = true;
             _defaultEndpointTelemetryConfiguration.ExpandedNodeId.Publish = false;
             _defaultEndpointTelemetryConfiguration.MonitoredItem.ApplicationUri.Publish = true;
-            _defaultEndpointTelemetryConfiguration.MonitoredItem.DisplayName.Publish = false;
+            _defaultEndpointTelemetryConfiguration.MonitoredItem.DisplayName.Publish = true;
             _defaultEndpointTelemetryConfiguration.Value.Value.Publish = true;
             _defaultEndpointTelemetryConfiguration.Value.SourceTimestamp.Publish = true;
-            _defaultEndpointTelemetryConfiguration.Value.ServerTimestamp.Publish = true;
             _defaultEndpointTelemetryConfiguration.Value.StatusCode.Publish = false;
             _defaultEndpointTelemetryConfiguration.Value.Status.Publish = false;
 
@@ -587,7 +544,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
 
                 // process all properties
                 _defaultEndpointTelemetryConfiguration.EndpointUrl = _telemetryConfiguration.Defaults.EndpointUrl;
-                _defaultEndpointTelemetryConfiguration.EndpointId = _telemetryConfiguration.Defaults.EndpointId;
                 _defaultEndpointTelemetryConfiguration.NodeId = _telemetryConfiguration.Defaults.NodeId;
                 _defaultEndpointTelemetryConfiguration.ExpandedNodeId = _telemetryConfiguration.Defaults.ExpandedNodeId;
                 _defaultEndpointTelemetryConfiguration.MonitoredItem = _telemetryConfiguration.Defaults.MonitoredItem;
@@ -606,10 +562,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
             config.EndpointUrl.Name = config.EndpointUrl.Name ?? _defaultEndpointTelemetryConfiguration.EndpointUrl.Name;
             config.EndpointUrl.Publish = config.EndpointUrl.Publish ?? _defaultEndpointTelemetryConfiguration.EndpointUrl.Publish;
             config.EndpointUrl.Pattern = config.EndpointUrl.Pattern ?? _defaultEndpointTelemetryConfiguration.EndpointUrl.Pattern;
-
-            config.EndpointUrl.Name = config.EndpointId.Name ?? _defaultEndpointTelemetryConfiguration.EndpointId.Name;
-            config.EndpointUrl.Publish = config.EndpointId.Publish ?? _defaultEndpointTelemetryConfiguration.EndpointId.Publish;
-            config.EndpointUrl.Pattern = config.EndpointId.Pattern ?? _defaultEndpointTelemetryConfiguration.EndpointId.Pattern;
 
             config.NodeId.Name = config.NodeId.Name ?? _defaultEndpointTelemetryConfiguration.NodeId.Name;
             config.NodeId.Publish = config.NodeId.Publish ?? _defaultEndpointTelemetryConfiguration.NodeId.Publish;
@@ -638,10 +590,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
             config.Value.SourceTimestamp.Name = config.Value.SourceTimestamp.Name ?? _defaultEndpointTelemetryConfiguration.Value.SourceTimestamp.Name;
             config.Value.SourceTimestamp.Publish = config.Value.SourceTimestamp.Publish ?? _defaultEndpointTelemetryConfiguration.Value.SourceTimestamp.Publish;
             config.Value.SourceTimestamp.Pattern = config.Value.SourceTimestamp.Pattern ?? _defaultEndpointTelemetryConfiguration.Value.SourceTimestamp.Pattern;
-
-            config.Value.ServerTimestamp.Name = config.Value.ServerTimestamp.Name ?? _defaultEndpointTelemetryConfiguration.Value.ServerTimestamp.Name;
-            config.Value.ServerTimestamp.Publish = config.Value.ServerTimestamp.Publish ?? _defaultEndpointTelemetryConfiguration.Value.ServerTimestamp.Publish;
-            config.Value.ServerTimestamp.Pattern = config.Value.ServerTimestamp.Pattern ?? _defaultEndpointTelemetryConfiguration.Value.ServerTimestamp.Pattern;
 
             config.Value.StatusCode.Name = config.Value.StatusCode.Name ?? _defaultEndpointTelemetryConfiguration.Value.StatusCode.Name;
             config.Value.StatusCode.Publish = config.Value.StatusCode.Publish ?? _defaultEndpointTelemetryConfiguration.Value.StatusCode.Publish;

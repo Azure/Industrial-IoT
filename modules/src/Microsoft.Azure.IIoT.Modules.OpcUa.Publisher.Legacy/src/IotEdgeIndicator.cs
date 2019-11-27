@@ -1,11 +1,7 @@
-﻿// ------------------------------------------------------------
-//  Copyright (c) Microsoft Corporation.  All rights reserved.
-//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
-// ------------------------------------------------------------
+﻿using System;
 
-namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
+namespace OpcPublisher
 {
-    using System;
     public static class IotEdgeIndicator
     {
         public static bool RunsAsIotEdgeModule => runsAsIotEdgeModule;

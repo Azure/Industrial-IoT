@@ -1,9 +1,4 @@
-﻿// ------------------------------------------------------------
-//  Copyright (c) Microsoft Corporation.  All rights reserved.
-//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
-// ------------------------------------------------------------
-
-using Mono.Options;
+﻿using Mono.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,10 +6,11 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
+namespace OpcPublisher
 {
     using Microsoft.Azure.Devices.Client;
     using Opc.Ua;
+    using Opc.Ua.Server;
     using Serilog;
     using System.Diagnostics;
     using System.Globalization;
@@ -33,7 +29,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
     using static PublisherTelemetryConfiguration;
     using static System.Console;
     using System.ComponentModel;
-    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Crypto;
+    using OpcPublisher.Crypto;
 
     public sealed class Program
     {
@@ -108,14 +104,14 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
 
                 if (waitForDebugger)
                 {
-                    WriteLine("Waiting for debugger to attach...");
+                    Console.WriteLine("Waiting for debugger to attach...");
 
                     while (!Debugger.IsAttached)
                     {
                         Thread.Sleep(1000);
                     }
 
-                    WriteLine("Debugger attached.");
+                    Console.WriteLine("Debugger attached.");
                 }
             }
 
@@ -202,7 +198,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                                 }
                                 else
                                 {
-                                    throw new OptionException("The logflushtimespan must be a positive number.", "logflushtimespan");
+                                    throw new Mono.Options.OptionException("The logflushtimespan must be a positive number.", "logflushtimespan");
                                 }
                             }
                         },
@@ -216,7 +212,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
 #pragma warning restore CA1308 // Normalize strings to uppercase
                                 else
                                 {
-                                    throw new OptionException("The loglevel must be one of: fatal, error, warn, info, debug, verbose", "loglevel");
+                                    throw new Mono.Options.OptionException("The loglevel must be one of: fatal, error, warn, info, debug, verbose", "loglevel");
                                 }
                             }
                         },
@@ -224,11 +220,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
 
                         // IoTHub specific options
                         { "ih|iothubprotocol=", $"the protocol to use for communication with IoTHub (allowed values: {$"{string.Join(", ", Enum.GetNames(HubProtocol.GetType()))}"}) or IoT EdgeHub (allowed values: Mqtt_Tcp_Only, Amqp_Tcp_Only).\nDefault for IoTHub: {IotHubProtocolDefault}\nDefault for IoT EdgeHub: {IotEdgeHubProtocolDefault}",
-                            (TransportType p) => {
+                            (Microsoft.Azure.Devices.Client.TransportType p) => {
                                 HubProtocol = p;
                                 if (IotEdgeIndicator.RunsAsIotEdgeModule)
                                 {
-                                    if (p != TransportType.Mqtt_Tcp_Only && p != TransportType.Amqp_Tcp_Only)
+                                    if (p != Microsoft.Azure.Devices.Client.TransportType.Mqtt_Tcp_Only && p != Microsoft.Azure.Devices.Client.TransportType.Amqp_Tcp_Only)
                                     {
                                         WriteLine("When running as IoTEdge module only Mqtt_Tcp_Only or Amqp_Tcp_Only are supported. Using Amqp_Tcp_Only");
                                         HubProtocol = IotEdgeHubProtocolDefault;
@@ -260,10 +256,13 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                         },
 
                         { "dc|deviceconnectionstring=", $"{(IotEdgeIndicator.RunsAsIotEdgeModule ? "not supported when running as IoTEdge module\n" : $"if publisher is not able to register itself with IoTHub, you can create a device with name <applicationname> manually and pass in the connectionstring of this device.\nDefault: none")}",
-                            (string dc) => DeviceConnectionString = IotEdgeIndicator.RunsAsIotEdgeModule ? null : dc
+                            (string dc) => DeviceConnectionString = (IotEdgeIndicator.RunsAsIotEdgeModule ? null : dc)
                         },
                         { "ec|edgehubconnectionstring=", $"{(IotEdgeIndicator.RunsAsIotEdgeModule ? "not supported when running as IoTEdge module\n" : $"if publisher is not able to register itself with IoTHub, you can create a device with name <applicationname> manually and pass in the connectionstring of this device.\nDefault: none")}",
-                            (string dc) => EdgeHubConnectionString = IotEdgeIndicator.RunsAsIotEdgeModule ? null : dc
+                            (string dc) => EdgeHubConnectionString = (IotEdgeIndicator.RunsAsIotEdgeModule ? null : dc)
+                        },
+                        { "c|connectionstring=", $"the IoTHub owner connectionstring.\nDefault: none",
+                            (string cs) => IotHubOwnerConnectionString = cs
                         },
 
                         { "hb|heartbeatinterval=", "the publisher is using this as default value in seconds for the heartbeat interval setting of nodes without\n" +
@@ -560,7 +559,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                     extraArgs = options.Parse(args);
 
                     // verify opc status codes to suppress
-                    var statusCodesToSuppress = ParseListOfStrings(opcStatusCodesToSuppress);
+                    List<string> statusCodesToSuppress = ParseListOfStrings(opcStatusCodesToSuppress);
                     foreach (var statusCodeValueOrName in statusCodesToSuppress)
                     {
                         uint statusCodeValue;
@@ -623,6 +622,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
 
                 // Validate and parse extra arguments.
                 const int APP_NAME_INDEX = 0;
+                const int CS_INDEX = 1;
                 switch (extraArgs.Count)
                 {
                     case 0:
@@ -633,6 +633,19 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                     case 1:
                         {
                             ApplicationName = extraArgs[APP_NAME_INDEX];
+                            break;
+                        }
+                    case 2:
+                        {
+                            ApplicationName = extraArgs[APP_NAME_INDEX];
+                            if (IotEdgeIndicator.RunsAsIotEdgeModule)
+                            {
+                                WriteLine($"Warning: connection string parameter is not supported in IoTEdge context, given parameter is ignored");
+                            }
+                            else
+                            {
+                                IotHubOwnerConnectionString = extraArgs[CS_INDEX];
+                            }
                             break;
                         }
                     default:
@@ -660,7 +673,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                 var quitEvent = new ManualResetEvent(false);
                 try
                 {
-                    CancelKeyPress += (sender, eArgs) =>
+                    Console.CancelKeyPress += (sender, eArgs) =>
                     {
                         quitEvent.Set();
                         eArgs.Cancel = true;
@@ -695,6 +708,21 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                     Logger.Information($"Publisher is in site '{PublisherSite}'.");
                 }
 
+                // start our server interface
+                try
+                {
+                    Logger.Information($"Starting server on endpoint {OpcApplicationConfiguration.ApplicationConfiguration.ServerConfiguration.BaseAddresses[0].ToString(CultureInfo.InvariantCulture)} ...");
+                    _publisherServer = new PublisherServer();
+                    _publisherServer.Start(OpcApplicationConfiguration.ApplicationConfiguration);
+                    Logger.Information("Server started.");
+                }
+                catch (Exception e)
+                {
+                    Logger.Fatal(e, "Failed to start Publisher OPC UA server.");
+                    Logger.Fatal("exiting...");
+                    return;
+                }
+
                 // initialize the telemetry configuration
                 TelemetryConfiguration = PublisherTelemetryConfiguration.Instance;
 
@@ -716,6 +744,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
 
                 // kick off OPC session creation and node monitoring
                 await SessionStartAsync().ConfigureAwait(false);
+
+                // Show notification on session events
+                _publisherServer.CurrentInstance.SessionManager.SessionActivated += ServerEventStatus;
+                _publisherServer.CurrentInstance.SessionManager.SessionClosing += ServerEventStatus;
+                _publisherServer.CurrentInstance.SessionManager.SessionCreated += ServerEventStatus;
 
                 // startup completed
                 StartupCompleted = true;
@@ -741,6 +774,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                 Logger.Information("");
                 ShutdownTokenSource.Cancel();
                 Logger.Information("Publisher is shutting down...");
+
+                // stop the server
+                _publisherServer.Stop();
 
                 // shutdown all OPC sessions
                 await SessionShutdownAsync().ConfigureAwait(false);
@@ -857,7 +893,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
             Logger.Information("                 The application name is also used to register the publisher under this name in the");
             Logger.Information("                 IoTHub device registry.");
             Logger.Information("");
+            Logger.Information("iothubconnectionstring: the IoTHub owner connectionstring, optional");
+            Logger.Information("");
             Logger.Information("There are a couple of environment variables which can be used to control the application:");
+            Logger.Information("_HUB_CS: sets the IoTHub owner connectionstring");
             Logger.Information("_GW_LOGP: sets the filename of the log file to use");
             Logger.Information("_TPC_SP: sets the path to store certificates of trusted stations");
             Logger.Information("_GW_PNFP: sets the filename of the publishing configuration file");
@@ -874,6 +913,31 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
             foreach (var line in helpLines)
             {
                 Logger.Information(line);
+            }
+        }
+
+        /// <summary>
+        /// Handler for server status changes.
+        /// </summary>
+        private static void ServerEventStatus(Session session, SessionEventReason reason)
+        {
+            PrintSessionStatus(session, reason.ToString());
+        }
+
+        /// <summary>
+        /// Shows the session status.
+        /// </summary>
+        private static void PrintSessionStatus(Session session, string reason)
+        {
+            lock (session.DiagnosticsLock)
+            {
+                string item = string.Format(CultureInfo.InvariantCulture, "{0,9}:{1,20}:", reason, session.SessionDiagnostics.SessionName);
+                if (session.Identity != null)
+                {
+                    item += string.Format(CultureInfo.InvariantCulture, ":{0,20}", session.Identity.DisplayName);
+                }
+                item += string.Format(CultureInfo.InvariantCulture, ":{0}", session.Id);
+                Logger.Information(item);
             }
         }
 
@@ -1033,6 +1097,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
             return fileNames;
         }
 
+        private static PublisherServer _publisherServer;
         private static bool _noShutdown;
         private static bool _installOnly;
         private static TimeSpan _logFileFlushTimeSpanSec = TimeSpan.FromSeconds(30);

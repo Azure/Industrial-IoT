@@ -6,9 +6,10 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
-namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
+namespace OpcPublisher
 {
     using Opc.Ua;
+    using System.Net.Http;
     using static OpcApplicationConfiguration;
     using static Program;
 
@@ -42,10 +43,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
             CleanupContainerAsync().Wait();
 
             // pull the latest image
-            ImagesCreateParameters createParameters = new ImagesCreateParameters {
-                FromImage = _plcImage,
-                Tag = "latest"
-            };
+            ImagesCreateParameters createParameters = new ImagesCreateParameters();
+            createParameters.FromImage = _plcImage;
+            createParameters.Tag = "latest";
             try
             {
                 _dockerClient.Images.CreateImageAsync(createParameters, new AuthConfig(), new Progress<JSONMessage>()).Wait();
@@ -59,15 +59,14 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
             ImageInspectResponse imageInspectResponse = _dockerClient.Images.InspectImageAsync(_plcImage).Result;
 
             // create a new container
-            CreateContainerParameters containerParams = new CreateContainerParameters {
-                Image = _plcImage,
-                Hostname = "opcplc",
-                Name = "opcplc",
-                Cmd = new string[]
+            CreateContainerParameters containerParams = new CreateContainerParameters();
+            containerParams.Image = _plcImage;
+            containerParams.Hostname = "opcplc";
+            containerParams.Name = "opcplc";
+            containerParams.Cmd = new string[]
             {
                 "--aa",
                 "--pn", $"{_plcPort}"
-            }
             };
             // workaround .NET2.1 issue for private key access
             if (imageInspectResponse.Os.Equals("windows", StringComparison.InvariantCultureIgnoreCase))
@@ -78,10 +77,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
             containerParams.ExposedPorts = new Dictionary<string, EmptyStruct>();
             containerParams.ExposedPorts.Add(new KeyValuePair<string, EmptyStruct>($"{_plcPort}/tcp", new EmptyStruct()));
             containerParams.HostConfig = new HostConfig();
-            PortBinding portBinding = new PortBinding {
-                HostPort = _plcPort,
-                HostIP = null
-            };
+            PortBinding portBinding = new PortBinding();
+            portBinding.HostPort = _plcPort;
+            portBinding.HostIP = null;
             List<PortBinding> portBindings = new List<PortBinding>();
             portBindings.Add(portBinding);
             containerParams.HostConfig.PortBindings = new Dictionary<string, IList<PortBinding>>();

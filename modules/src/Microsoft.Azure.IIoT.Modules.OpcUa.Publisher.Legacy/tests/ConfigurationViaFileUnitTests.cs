@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Xunit;
 
-namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
+namespace OpcPublisher
 {
     using Moq;
     using Newtonsoft.Json;

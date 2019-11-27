@@ -1,13 +1,9 @@
-﻿// ------------------------------------------------------------
-//  Copyright (c) Microsoft Corporation.  All rights reserved.
-//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
-// ------------------------------------------------------------
+﻿using Opc.Ua;
+using System;
+using System.Security.Cryptography.X509Certificates;
 
-namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
+namespace OpcPublisher
 {
-    using Opc.Ua;
-    using System;
-    using System.Security.Cryptography.X509Certificates;
     using System.Collections.Generic;
     using System.IO;
     using System.Threading.Tasks;
@@ -92,30 +88,26 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         public static async Task InitApplicationSecurityAsync()
         {
             // security configuration
-            ApplicationConfiguration.SecurityConfiguration = new SecurityConfiguration {
+            ApplicationConfiguration.SecurityConfiguration = new SecurityConfiguration();
 
-                // configure trusted issuer certificates store
-                TrustedIssuerCertificates = new CertificateTrustList {
-                    StoreType = CertificateStoreType.Directory,
-                    StorePath = OpcIssuerCertStorePath
-                }
-            };
+            // configure trusted issuer certificates store
+            ApplicationConfiguration.SecurityConfiguration.TrustedIssuerCertificates = new CertificateTrustList();
+            ApplicationConfiguration.SecurityConfiguration.TrustedIssuerCertificates.StoreType = CertificateStoreType.Directory;
+            ApplicationConfiguration.SecurityConfiguration.TrustedIssuerCertificates.StorePath = OpcIssuerCertStorePath;
             Logger.Information($"Trusted Issuer store type is: {ApplicationConfiguration.SecurityConfiguration.TrustedIssuerCertificates.StoreType}");
             Logger.Information($"Trusted Issuer Certificate store path is: {ApplicationConfiguration.SecurityConfiguration.TrustedIssuerCertificates.StorePath}");
 
             // configure trusted peer certificates store
-            ApplicationConfiguration.SecurityConfiguration.TrustedPeerCertificates = new CertificateTrustList {
-                StoreType = CertificateStoreType.Directory,
-                StorePath = OpcTrustedCertStorePath
-            };
+            ApplicationConfiguration.SecurityConfiguration.TrustedPeerCertificates = new CertificateTrustList();
+            ApplicationConfiguration.SecurityConfiguration.TrustedPeerCertificates.StoreType = CertificateStoreType.Directory;
+            ApplicationConfiguration.SecurityConfiguration.TrustedPeerCertificates.StorePath = OpcTrustedCertStorePath;
             Logger.Information($"Trusted Peer Certificate store type is: {ApplicationConfiguration.SecurityConfiguration.TrustedPeerCertificates.StoreType}");
             Logger.Information($"Trusted Peer Certificate store path is: {ApplicationConfiguration.SecurityConfiguration.TrustedPeerCertificates.StorePath}");
 
             // configure rejected certificates store
-            ApplicationConfiguration.SecurityConfiguration.RejectedCertificateStore = new CertificateTrustList {
-                StoreType = CertificateStoreType.Directory,
-                StorePath = OpcRejectedCertStorePath
-            };
+            ApplicationConfiguration.SecurityConfiguration.RejectedCertificateStore = new CertificateTrustList();
+            ApplicationConfiguration.SecurityConfiguration.RejectedCertificateStore.StoreType = CertificateStoreType.Directory;
+            ApplicationConfiguration.SecurityConfiguration.RejectedCertificateStore.StorePath = OpcRejectedCertStorePath;
 
             Logger.Information($"Rejected certificate store type is: {ApplicationConfiguration.SecurityConfiguration.RejectedCertificateStore.StoreType}");
             Logger.Information($"Rejected Certificate store path is: {ApplicationConfiguration.SecurityConfiguration.RejectedCertificateStore.StorePath}");
@@ -132,11 +124,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
             Logger.Information($"Minimum certificate key size set to {ApplicationConfiguration.SecurityConfiguration.MinimumCertificateKeySize}");
 
             // configure application certificate store
-            ApplicationConfiguration.SecurityConfiguration.ApplicationCertificate = new CertificateIdentifier {
-                StoreType = OpcOwnCertStoreType,
-                StorePath = OpcOwnCertStorePath,
-                SubjectName = ApplicationConfiguration.ApplicationName
-            };
+            ApplicationConfiguration.SecurityConfiguration.ApplicationCertificate = new CertificateIdentifier();
+            ApplicationConfiguration.SecurityConfiguration.ApplicationCertificate.StoreType = OpcOwnCertStoreType;
+            ApplicationConfiguration.SecurityConfiguration.ApplicationCertificate.StorePath = OpcOwnCertStorePath;
+            ApplicationConfiguration.SecurityConfiguration.ApplicationCertificate.SubjectName = ApplicationConfiguration.ApplicationName;
             Logger.Information($"Application Certificate store type is: {ApplicationConfiguration.SecurityConfiguration.ApplicationCertificate.StoreType}");
             Logger.Information($"Application Certificate store path is: {ApplicationConfiguration.SecurityConfiguration.ApplicationCertificate.StorePath}");
             Logger.Information($"Application Certificate subject name is: {ApplicationConfiguration.SecurityConfiguration.ApplicationCertificate.SubjectName}");
@@ -147,8 +138,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                 Logger.Warning("WARNING: Automatically accepting certificates. This is a security risk.");
                 ApplicationConfiguration.SecurityConfiguration.AutoAcceptUntrustedCertificates = true;
             }
-            ApplicationConfiguration.CertificateValidator = new CertificateValidator();
-            ApplicationConfiguration.CertificateValidator.CertificateValidation += new CertificateValidationEventHandler(CertificateValidator_CertificateValidation);
+            ApplicationConfiguration.CertificateValidator = new Opc.Ua.CertificateValidator();
+            ApplicationConfiguration.CertificateValidator.CertificateValidation += new Opc.Ua.CertificateValidationEventHandler(CertificateValidator_CertificateValidation);
 
             // update security information
             await ApplicationConfiguration.CertificateValidator.Update(ApplicationConfiguration.SecurityConfiguration).ConfigureAwait(false);
@@ -243,7 +234,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                 // ensure it is trusted
                 try
                 {
-                    using (var trustedStore = ApplicationConfiguration.SecurityConfiguration.TrustedPeerCertificates.OpenStore())
+                    using (ICertificateStore trustedStore = ApplicationConfiguration.SecurityConfiguration.TrustedPeerCertificates.OpenStore())
                     {
                         Logger.Information($"Adding server certificate to trusted peer store. StorePath={ApplicationConfiguration.SecurityConfiguration.TrustedPeerCertificates.StorePath}");
                         await trustedStore.Add(certificate).ConfigureAwait(false);
@@ -298,6 +289,20 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                 Logger.Information($"ApplicationName: {ApplicationConfiguration.ApplicationName}");
                 Logger.Information($"ApplicationType: {ApplicationConfiguration.ApplicationType}");
                 Logger.Information($"ProductUri: {ApplicationConfiguration.ProductUri}");
+                if (ApplicationConfiguration.ApplicationType != ApplicationType.Client)
+                {
+                    int serverNum = 0;
+                    foreach (var endpoint in ApplicationConfiguration.ServerConfiguration.BaseAddresses)
+                    {
+                        Logger.Information($"DiscoveryUrl[{serverNum++}]: {endpoint}");
+                    }
+                    foreach (var endpoint in ApplicationConfiguration.ServerConfiguration.AlternateBaseAddresses)
+                    {
+                        Logger.Information($"DiscoveryUrl[{serverNum++}]: {endpoint}");
+                    }
+                    string[] serverCapabilities = ApplicationConfiguration.ServerConfiguration.ServerCapabilities.ToArray();
+                    Logger.Information($"ServerCapabilities: {string.Join(", ", serverCapabilities)}");
+                }
                 Logger.Information($"CSR (base64 encoded):");
                 Console.WriteLine($"{ Convert.ToBase64String(certificateSigningRequest)}");
                 Logger.Information($"---------------------------------------------------------------------------");
@@ -326,7 +331,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
             // show trusted issuer certs
             try
             {
-                using (var certStore = ApplicationConfiguration.SecurityConfiguration.TrustedIssuerCertificates.OpenStore())
+                using (ICertificateStore certStore = ApplicationConfiguration.SecurityConfiguration.TrustedIssuerCertificates.OpenStore())
                 {
                     var certs = await certStore.Enumerate().ConfigureAwait(false);
                     int certNum = 1;
@@ -355,7 +360,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
             // show trusted peer certs
             try
             {
-                using (var certStore = ApplicationConfiguration.SecurityConfiguration.TrustedPeerCertificates.OpenStore())
+                using (ICertificateStore certStore = ApplicationConfiguration.SecurityConfiguration.TrustedPeerCertificates.OpenStore())
                 {
                     var certs = await certStore.Enumerate().ConfigureAwait(false);
                     int certNum = 1;
@@ -384,7 +389,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
             // show rejected peer certs
             try
             {
-                using (var certStore = ApplicationConfiguration.SecurityConfiguration.RejectedCertificateStore.OpenStore())
+                using (ICertificateStore certStore = ApplicationConfiguration.SecurityConfiguration.RejectedCertificateStore.OpenStore())
                 {
                     var certs = await certStore.Enumerate().ConfigureAwait(false);
                     int certNum = 1;
@@ -404,9 +409,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         /// <summary>
         /// Event handler to validate certificates.
         /// </summary>
-        private static void CertificateValidator_CertificateValidation(CertificateValidator validator, CertificateValidationEventArgs e)
+        private static void CertificateValidator_CertificateValidation(Opc.Ua.CertificateValidator validator, Opc.Ua.CertificateValidationEventArgs e)
         {
-            if (e.Error.StatusCode == StatusCodes.BadCertificateUntrusted)
+            if (e.Error.StatusCode == Opc.Ua.StatusCodes.BadCertificateUntrusted)
             {
                 e.Accept = AutoAcceptCerts;
                 if (AutoAcceptCerts)
@@ -442,7 +447,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
             try
             {
                 Logger.Information($"Starting to remove certificate(s) from trusted peer and trusted issuer store.");
-                using (var trustedStore = CertificateStoreIdentifier.OpenStore(ApplicationConfiguration.SecurityConfiguration.TrustedPeerCertificates.StorePath))
+                using (ICertificateStore trustedStore = CertificateStoreIdentifier.OpenStore(ApplicationConfiguration.SecurityConfiguration.TrustedPeerCertificates.StorePath))
                 {
                     foreach (var thumbprint in thumbprintsToRemove)
                     {
@@ -470,7 +475,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
             // search the trusted issuer store and remove certificates with a specified thumbprint
             try
             {
-                using (var issuerStore = CertificateStoreIdentifier.OpenStore(ApplicationConfiguration.SecurityConfiguration.TrustedIssuerCertificates.StorePath))
+                using (ICertificateStore issuerStore = CertificateStoreIdentifier.OpenStore(ApplicationConfiguration.SecurityConfiguration.TrustedIssuerCertificates.StorePath))
                 {
                     foreach (var thumbprint in thumbprintsToRemove)
                     {
@@ -555,7 +560,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
             {
                 try
                 {
-                    using (var issuerStore = CertificateStoreIdentifier.OpenStore(ApplicationConfiguration.SecurityConfiguration.TrustedIssuerCertificates.StorePath))
+                    using (ICertificateStore issuerStore = CertificateStoreIdentifier.OpenStore(ApplicationConfiguration.SecurityConfiguration.TrustedIssuerCertificates.StorePath))
                     {
                         foreach (var certificateToAdd in certificatesToAdd)
                         {
@@ -582,7 +587,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
             {
                 try
                 {
-                    using (var trustedStore = CertificateStoreIdentifier.OpenStore(ApplicationConfiguration.SecurityConfiguration.TrustedPeerCertificates.StorePath))
+                    using (ICertificateStore trustedStore = CertificateStoreIdentifier.OpenStore(ApplicationConfiguration.SecurityConfiguration.TrustedPeerCertificates.StorePath))
                     {
                         foreach (var certificateToAdd in certificatesToAdd)
                         {
@@ -651,7 +656,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
             }
 
             // check if CRL was signed by a trusted peer cert
-            using (var trustedStore = CertificateStoreIdentifier.OpenStore(ApplicationConfiguration.SecurityConfiguration.TrustedPeerCertificates.StorePath))
+            using (ICertificateStore trustedStore = CertificateStoreIdentifier.OpenStore(ApplicationConfiguration.SecurityConfiguration.TrustedPeerCertificates.StorePath))
             {
                 bool trustedCrlIssuer = false;
                 var trustedCertificates = await trustedStore.Enumerate().ConfigureAwait(false);
@@ -705,7 +710,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
             }
 
             // check if CRL was signed by a trusted issuer cert
-            using (var issuerStore = CertificateStoreIdentifier.OpenStore(ApplicationConfiguration.SecurityConfiguration.TrustedIssuerCertificates.StorePath))
+            using (ICertificateStore issuerStore = CertificateStoreIdentifier.OpenStore(ApplicationConfiguration.SecurityConfiguration.TrustedIssuerCertificates.StorePath))
             {
                 bool trustedCrlIssuer = false;
                 var issuerCertificates = await issuerStore.Enumerate().ConfigureAwait(false);
@@ -862,7 +867,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                     CertificateValidator certValidator = new CertificateValidator();
                     CertificateTrustList verificationTrustList = new CertificateTrustList();
                     CertificateIdentifierCollection verificationCollection = new CertificateIdentifierCollection();
-                    using (var issuerStore = CertificateStoreIdentifier.OpenStore(ApplicationConfiguration.SecurityConfiguration.TrustedIssuerCertificates.StorePath))
+                    using (ICertificateStore issuerStore = CertificateStoreIdentifier.OpenStore(ApplicationConfiguration.SecurityConfiguration.TrustedIssuerCertificates.StorePath))
                     {
                         var certs = await issuerStore.Enumerate().ConfigureAwait(false);
                         foreach (var cert in certs)
@@ -870,7 +875,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                             verificationCollection.Add(new CertificateIdentifier(cert));
                         }
                     }
-                    using (var trustedStore = CertificateStoreIdentifier.OpenStore(ApplicationConfiguration.SecurityConfiguration.TrustedPeerCertificates.StorePath))
+                    using (ICertificateStore trustedStore = CertificateStoreIdentifier.OpenStore(ApplicationConfiguration.SecurityConfiguration.TrustedPeerCertificates.StorePath))
                     {
                         var certs = await trustedStore.Enumerate().ConfigureAwait(false);
                         foreach (var cert in certs)
@@ -897,7 +902,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
             {
                 try
                 {
-                    var certWithPrivateKey = CertificateFactory.CreateCertificateFromPKCS12(privateKey, certificatePassword);
+                    X509Certificate2 certWithPrivateKey = CertificateFactory.CreateCertificateFromPKCS12(privateKey, certificatePassword);
                     newCertificateWithPrivateKey = CertificateFactory.CreateCertificateWithPrivateKey(newCertificate, certWithPrivateKey);
                     newCertFormat = "PFX";
                     Logger.Information($"The private key for the new certificate was passed in using PFX format.");
@@ -928,7 +933,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                 {
                     if (hasApplicationCertificate)
                     {
-                        var certWithPrivateKey = await ApplicationConfiguration.SecurityConfiguration.ApplicationCertificate.LoadPrivateKey(certificatePassword).ConfigureAwait(false);
+                        X509Certificate2 certWithPrivateKey = await ApplicationConfiguration.SecurityConfiguration.ApplicationCertificate.LoadPrivateKey(certificatePassword).ConfigureAwait(false);
                         newCertificateWithPrivateKey = CertificateFactory.CreateCertificateWithPrivateKey(newCertificate, certWithPrivateKey);
                         newCertFormat = "DER";
                     }
@@ -962,7 +967,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
             }
 
             // remove the existing and add the new application cert
-            using (var appStore = CertificateStoreIdentifier.OpenStore(ApplicationConfiguration.SecurityConfiguration.ApplicationCertificate.StorePath))
+            using (ICertificateStore appStore = CertificateStoreIdentifier.OpenStore(ApplicationConfiguration.SecurityConfiguration.ApplicationCertificate.StorePath))
             {
                 Logger.Information($"Remove the existing application certificate.");
                 try

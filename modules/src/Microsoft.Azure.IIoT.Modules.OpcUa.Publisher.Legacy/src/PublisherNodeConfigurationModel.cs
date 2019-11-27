@@ -1,16 +1,13 @@
-﻿// ------------------------------------------------------------
-//  Copyright (c) Microsoft Corporation.  All rights reserved.
-//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
-// ------------------------------------------------------------
+﻿using Newtonsoft.Json;
+using Opc.Ua;
+using System;
+using System.Collections.Generic;
 
-namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
+namespace OpcPublisher
 {
-    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Crypto;
     using Newtonsoft.Json.Converters;
-    using Newtonsoft.Json;
+    using OpcPublisher.Crypto;
     using System.ComponentModel;
-    using System;
-    using System.Collections.Generic;
 
 
     /// <summary>
@@ -74,17 +71,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         [DefaultValue(true)]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore, NullValueHandling = NullValueHandling.Ignore)]
         public bool? UseSecurity { get; set; }
-
-        // Optional - since 2.6
-
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public string SecurityProfileUri { get; set; }
-
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public string SecurityMode { get; set; }
-
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public string EndpointId { get; set; }
 
         /// <summary>
         /// Gets ot sets the authentication mode to authenticate against the OPC UA Server.
@@ -159,19 +145,19 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         public string EndpointUrl { get; set; }
 
         /// <summary>
-        /// Optional Endpoint identity - defaults to Uri
-        /// </summary>
-        public string EndpointId { get; set; }
-
-        /// <summary>
         /// Flag if a secure transport should be used to connect to the endpoint.
         /// </summary>
-        public bool? UseSecurity { get; set; }
+        public bool UseSecurity { get; set; }
 
-        // Optional - defines the exact endpoint - otherwise UseSecurity is used - since 2.6
+        /// <summary>
+        /// The node to monitor in "ns=" syntax.
+        /// </summary>
+        public NodeId NodeId { get; set; }
 
-        public string SecurityProfileUri { get; set; }
-        public string SecurityMode { get; set; }
+        /// <summary>
+        /// The node to monitor in "nsu=" syntax.
+        /// </summary>
+        public ExpandedNodeId ExpandedNodeId { get; set; }
 
         /// <summary>
         /// The node id as it was configured.
@@ -216,25 +202,15 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         /// <summary>
         /// Ctor of the object.
         /// </summary>
-        public NodePublishingConfigurationModel(string originalId, string endpointUrl,
-            string endpointId, bool? useSecurity, string securityProfileUri, string securityMode,
-            int? opcPublishingInterval, int? opcSamplingInterval, string displayName,
-            int? heartbeatInterval, bool? skipFirst, OpcAuthenticationMode opcAuthenticationMode,
-            EncryptedNetworkCredential encryptedAuthCredential)
+        public NodePublishingConfigurationModel(ExpandedNodeId expandedNodeId, string originalId, string endpointUrl, bool? useSecurity,
+                    int? opcPublishingInterval, int? opcSamplingInterval, string displayName, int? heartbeatInterval, bool? skipFirst, OpcAuthenticationMode opcAuthenticationMode, EncryptedNetworkCredential encryptedAuthCredential)
 
         {
+            NodeId = null;
+            ExpandedNodeId = expandedNodeId;
             OriginalId = originalId;
             EndpointUrl = endpointUrl;
-            if (endpointId == null)
-            {
-                // Create an endpoint id lazily
-                endpointId = CreateEndpointId(endpointUrl, useSecurity, securityProfileUri,
-                    securityMode, encryptedAuthCredential);
-            }
-            EndpointId = endpointId;
-            UseSecurity = useSecurity;
-            SecurityProfileUri = securityProfileUri;
-            SecurityMode = securityMode;
+            UseSecurity = useSecurity ?? true;
             DisplayName = displayName;
             OpcSamplingInterval = opcSamplingInterval;
             OpcPublishingInterval = opcPublishingInterval;
@@ -245,19 +221,23 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         }
 
         /// <summary>
-        /// Create endpoint id
+        /// Ctor of the object.
         /// </summary>
-        public static string CreateEndpointId(string endpointUrl, bool? useSecurity,
-            string securityProfileUri, string securityMode,
-            EncryptedNetworkCredential encryptedAuthCredential)
+        public NodePublishingConfigurationModel(NodeId nodeId, string originalId, string endpointUrl, bool? useSecurity,
+                    int? opcPublishingInterval, int? opcSamplingInterval, string displayName, int? heartbeatInterval, bool? skipFirst, OpcAuthenticationMode opcAuthenticationMode, EncryptedNetworkCredential encryptedAuthCredential)
         {
-            // Create unique id to distinguish subscriptions
-            return "uap" + (endpointUrl.ToLowerInvariant() +
-                securityProfileUri?.ToLowerInvariant() ?? "" +
-                securityMode?.ToLowerInvariant() ?? "" +
-                encryptedAuthCredential?.GetHashCode().ToString() ?? "" +
-                (useSecurity == null ? "" : useSecurity.ToString()))
-                    .ToSha1Hash();
+            NodeId = nodeId;
+            ExpandedNodeId = null;
+            OriginalId = originalId;
+            EndpointUrl = endpointUrl;
+            UseSecurity = useSecurity ?? true;
+            DisplayName = displayName;
+            OpcSamplingInterval = opcSamplingInterval;
+            OpcPublishingInterval = opcPublishingInterval;
+            HeartbeatInterval = heartbeatInterval;
+            SkipFirst = skipFirst;
+            OpcAuthenticationMode = opcAuthenticationMode;
+            EncryptedAuthCredential = encryptedAuthCredential;
         }
     }
 
@@ -280,7 +260,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         /// </summary>
         public PublisherConfigurationFileEntryLegacyModel(string nodeId, string endpointUrl)
         {
-            NodeId = nodeId;
+            NodeId = new NodeId(nodeId);
             EndpointUrl = new Uri(endpointUrl);
         }
 
@@ -296,22 +276,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore, NullValueHandling = NullValueHandling.Ignore)]
         public bool? UseSecurity { get; set; }
 
-        // Optional - since 2.6
-
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public string SecurityProfileUri { get; set; }
-
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public string SecurityMode { get; set; }
-
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public string EndpointId { get; set; }
-
         /// <summary>
         /// The node to monitor in "ns=" syntax. This key is only supported for backward compatibility and should not be used anymore.
         /// </summary>
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public string NodeId { get; set; }
+        public NodeId NodeId { get; set; }
 
         /// <summary>
         /// Gets ot sets the authentication mode to authenticate against the OPC UA Server.

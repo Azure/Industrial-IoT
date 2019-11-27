@@ -1,24 +1,19 @@
-﻿// ------------------------------------------------------------
-//  Copyright (c) Microsoft Corporation.  All rights reserved.
-//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
-// ------------------------------------------------------------
+﻿using Opc.Ua.Client;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
-
-namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
+namespace OpcPublisher
 {
-    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Crypto;
     using Opc.Ua;
-    using Opc.Ua.Client;
-    using Opc.Ua.Extensions;
-    using System;
-    using System.Collections.Generic;
+    using OpcPublisher.Crypto;
     using System.Diagnostics;
-    using System.Linq;
     using System.Net;
+    using System.Security;
     using System.Threading;
     using System.Threading.Tasks;
-    using static Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.OpcMonitoredItem;
     using static OpcApplicationConfiguration;
+    using static OpcPublisher.OpcMonitoredItem;
     using static Program;
 
     /// <summary>
@@ -62,14 +57,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         public static int SessionConnectWaitSec { get; set; } = 10;
 
         /// <summary>
-        /// The endpoint id for the session.
+        /// The endpoint to connect to for the session.
         /// </summary>
-        public string EndpointId { get; set; }
-
-        /// <summary>
-        /// The endpoint url for the session.
-        /// </summary>
-        public string Endpointuri { get; }
+        public string EndpointUrl { get; set; }
 
         /// <summary>
         /// The OPC UA stack session object of the session.
@@ -109,9 +99,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         /// <summary>
         /// Flag to control if a secure or unsecure OPC UA transport should be used for the session.
         /// </summary>
-        public bool? UseSecurity { get; set; } = true;
-        public string SecurityProfileUri { get; }
-        public string SecurityMode { get; }
+        public bool UseSecurity { get; set; } = true;
 
         /// <summary>
         /// Signals to run the connect and monitor task.
@@ -244,36 +232,32 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         /// <summary>
         /// Ctor for the session.
         /// </summary>
-        public OpcSession(string endpointUrl, string endpointId, bool? useSecurity, string securityMode, string securityProfileUri,
-            uint sessionTimeout,
-            OpcAuthenticationMode opcAuthenticationMode, EncryptedNetworkCredential encryptedAuthCredential)
+        public OpcSession(string endpointUrl, bool useSecurity, uint sessionTimeout, OpcAuthenticationMode opcAuthenticationMode, EncryptedNetworkCredential encryptedAuthCredential)
         {
             State = SessionState.Disconnected;
-            EndpointId = endpointId ?? throw new ArgumentNullException(nameof(endpointId));
-            Endpointuri = endpointUrl ?? throw new ArgumentNullException(nameof(endpointUrl));
+            EndpointUrl = endpointUrl;
             SessionTimeout = sessionTimeout * 1000;
             OpcSubscriptions = new List<IOpcSubscription>();
             UnsuccessfulConnectionCount = 0;
             MissedKeepAlives = 0;
             PublishingInterval = OpcPublishingInterval;
             UseSecurity = useSecurity;
-            SecurityProfileUri = securityProfileUri;
-            SecurityMode = securityMode;
             ConnectAndMonitorSession = new AutoResetEvent(false);
             _sessionCancelationTokenSource = new CancellationTokenSource();
             _sessionCancelationToken = _sessionCancelationTokenSource.Token;
-            _opcSessionSemaphore = new SemaphoreSlim(1, 1);
+            _opcSessionSemaphore = new SemaphoreSlim(1);
+            _namespaceTable = new NamespaceTable();
             _telemetryConfiguration = TelemetryConfiguration.GetEndpointTelemetryConfiguration(endpointUrl);
             _connectAndMonitorAsync = Task.Run(ConnectAndMonitorAsync, _sessionCancelationToken);
-            OpcAuthenticationMode = opcAuthenticationMode;
-            EncryptedAuthCredential = encryptedAuthCredential;
+            this.OpcAuthenticationMode= opcAuthenticationMode;
+            this.EncryptedAuthCredential = encryptedAuthCredential;
         }
 
         public async Task Reconnect()
         {
             try
             {
-                bool sessionLocked = await LockSessionAsync().ConfigureAwait(false);
+                var sessionLocked = await LockSessionAsync().ConfigureAwait(false);
 
                 if (sessionLocked)
                 {
@@ -438,7 +422,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                     throw;
                 }
 
-                Logger.Information($"Connect and monitor session and nodes on endpoint '{EndpointId}({Endpointuri})'.");
+                Logger.Information($"Connect and monitor session and nodes on endpoint '{EndpointUrl}'.");
                 State = SessionState.Connecting;
                 try
                 {
@@ -447,10 +431,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                     sessionLocked = false;
 
                     // start connecting
-                    selectedEndpoint = SelectEndpoint(Endpointuri, UseSecurity, SecurityProfileUri, SecurityMode);
+                    selectedEndpoint = CoreClientUtils.SelectEndpoint(EndpointUrl, UseSecurity);
                     configuredEndpoint = new ConfiguredEndpoint(null, selectedEndpoint, EndpointConfiguration.Create(OpcApplicationConfiguration.ApplicationConfiguration));
                     uint timeout = SessionTimeout * ((UnsuccessfulConnectionCount >= OpcSessionCreationBackoffMax) ? OpcSessionCreationBackoffMax : UnsuccessfulConnectionCount + 1);
-                    Logger.Information($"Create session for endpoint '{EndpointId}({Endpointuri})' with timeout of {timeout} ms.");
+                    Logger.Information($"Create {(UseSecurity ? "secured" : "unsecured")} session for endpoint URI '{EndpointUrl}' with timeout of {timeout} ms.");
 
                     UserIdentity userIdentity = null;
 
@@ -485,7 +469,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                 }
                 catch (Exception e)
                 {
-                    Logger.Error(e, $"Session creation to endpoint '{EndpointId}({Endpointuri})' failed {++UnsuccessfulConnectionCount} time(s). Please verify if server is up and Publisher configuration is correct.");
+                    Logger.Error(e, $"Session creation to endpoint '{EndpointUrl}' failed {++UnsuccessfulConnectionCount} time(s). Please verify if server is up and Publisher configuration is correct.");
                     State = SessionState.Disconnected;
                     OpcUaClientSession = null;
                     return;
@@ -509,13 +493,13 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                             OpcUaClientSession.KeepAlive += StandardClient_KeepAlive;
 
                             // fetch the namespace array and cache it. it will not change as long the session exists.
-                            var namespaceArrayNodeValue = OpcUaClientSession.ReadValue(VariableIds.Server_NamespaceArray);
+                            DataValue namespaceArrayNodeValue = OpcUaClientSession.ReadValue(VariableIds.Server_NamespaceArray);
+                            _namespaceTable.Update(namespaceArrayNodeValue.GetValue<string[]>(null));
 
                             // show the available namespaces
-                            Logger.Information($"The session to endpoint '{selectedEndpoint.EndpointUrl}' has " +
-                                $"{OpcUaClientSession.Context.NamespaceUris.Count} entries in its namespace array:");
+                            Logger.Information($"The session to endpoint '{selectedEndpoint.EndpointUrl}' has {_namespaceTable.Count} entries in its namespace array:");
                             int i = 0;
-                            foreach (string ns in OpcUaClientSession.Context.NamespaceUris.ToArray())
+                            foreach (var ns in _namespaceTable.ToArray())
                             {
                                 Logger.Information($"Namespace index {i++}: {ns}");
                             }
@@ -539,61 +523,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                     ReleaseSession();
                 }
             }
-        }
-
-        /// <summary>
-        /// Select endpoint
-        /// </summary>
-        private EndpointDescription SelectEndpoint(string discoveryUrl,
-                bool? useSecurity, string securityProfileUri,
-                string securityMode, int operationTimeout = -1)
-        {
-            if (discoveryUrl.StartsWith("https") && !discoveryUrl.EndsWith("/discovery"))
-            {
-                discoveryUrl += "/discovery";
-            }
-            Uri uri = new Uri(discoveryUrl);
-            EndpointConfiguration endpointConfiguration = EndpointConfiguration.Create();
-            if (operationTimeout > 0)
-            {
-                endpointConfiguration.OperationTimeout = operationTimeout;
-            }
-            EndpointDescription endpointDescription = null;
-            using (DiscoveryClient discoveryClient = DiscoveryClient.Create(uri, endpointConfiguration))
-            {
-                var endpoints = discoveryClient.GetEndpoints(null)
-                    .Where(e => e.EndpointUrl.StartsWith(uri.Scheme));
-
-                // Match them based on security mode if available and optionally the provided profile uri
-                var matching = endpoints
-                    .Where(e => securityMode?
-                        .Equals(e.SecurityMode.ToString(), StringComparison.InvariantCultureIgnoreCase) ?? false)
-                    .Where(e => securityProfileUri?
-                        .Equals(e.SecurityPolicyUri, StringComparison.InvariantCultureIgnoreCase) ?? true)
-                    ;
-
-                //
-                // If none were found none matched the security settings provided
-                // Then try to get secure endpoints, or if the bool overrides the default use all available.
-                //
-                if (!matching.Any() || useSecurity.HasValue)
-                {
-                    // Filter out insecure endpoints if necessary
-                    matching = endpoints
-                        .Where(e => !(useSecurity ?? true) || e.SecurityMode != MessageSecurityMode.None);
-                }
-
-                // Now select the one with highest security level
-                endpointDescription = endpoints.FirstOrDefault();
-                foreach (var endpointDescription2 in endpoints)
-                {
-                    if (endpointDescription2.SecurityLevel > endpointDescription.SecurityLevel)
-                    {
-                        endpointDescription = endpointDescription2;
-                    }
-                }
-            }
-            return endpointDescription;
         }
 
         /// <summary>
@@ -627,7 +556,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                     {
                         opcSubscription.OpcUaClientSubscription = CreateSubscription(opcSubscription.RequestedPublishingInterval, out int revisedPublishingInterval);
                         opcSubscription.PublishingInterval = revisedPublishingInterval;
-                        Logger.Information($"Create subscription on endpoint '{EndpointId}({Endpointuri})' requested OPC publishing interval is {opcSubscription.RequestedPublishingInterval} ms. (revised: {revisedPublishingInterval} ms)");
+                        Logger.Information($"Create subscription on endpoint '{EndpointUrl}' requested OPC publishing interval is {opcSubscription.RequestedPublishingInterval} ms. (revised: {revisedPublishingInterval} ms)");
                     }
 
                     // process all unmonitored items.
@@ -637,8 +566,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                     if (unmonitoredItems.Any())
                     {
                         haveUnmonitoredItems = true;
-                        monitoredItemsCount = opcSubscription.OpcMonitoredItems.Count(i => i.State == OpcMonitoredItemState.Monitored);
-                        Logger.Information($"Start monitoring items on endpoint '{EndpointId}({Endpointuri})'. Currently monitoring {monitoredItemsCount} items.");
+                        monitoredItemsCount = opcSubscription.OpcMonitoredItems.Count(i => (i.State == OpcMonitoredItemState.Monitored));
+                        Logger.Information($"Start monitoring items on endpoint '{EndpointUrl}'. Currently monitoring {monitoredItemsCount} items.");
                     }
 
                     // init perf data
@@ -653,6 +582,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                             break;
                         }
 
+                        NodeId currentNodeId = null;
                         try
                         {
                             // update the namespace of the node if requested. there are two cases where this is requested:
@@ -662,22 +592,64 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                             //    the namespace index. this is set now.
                             if (item.State == OpcMonitoredItemState.UnmonitoredNamespaceUpdateRequested)
                             {
+                                if (item.ConfigType == OpcMonitoredItemConfigurationType.ExpandedNodeId)
+                                {
+                                    int namespaceIndex = _namespaceTable.GetIndex(item.ConfigExpandedNodeId?.NamespaceUri);
+                                    if (namespaceIndex < 0)
+                                    {
+                                        Logger.Information($"The namespace URI of node '{item.ConfigExpandedNodeId.ToString()}' can be not mapped to a namespace index.");
+                                    }
+                                    else
+                                    {
+                                        item.ConfigExpandedNodeId = new ExpandedNodeId(item.ConfigExpandedNodeId.Identifier, (ushort)namespaceIndex, item.ConfigExpandedNodeId?.NamespaceUri, 0);
+                                    }
+                                }
+                                if (item.ConfigType == OpcMonitoredItemConfigurationType.NodeId)
+                                {
+                                    string namespaceUri = _namespaceTable.ToArray().ElementAtOrDefault(item.ConfigNodeId.NamespaceIndex);
+                                    if (string.IsNullOrEmpty(namespaceUri))
+                                    {
+                                        Logger.Information($"The namespace index of node '{item.ConfigNodeId.ToString()}' is invalid and the node format can not be updated.");
+                                    }
+                                    else
+                                    {
+                                        item.ConfigExpandedNodeId = new ExpandedNodeId(item.ConfigNodeId.Identifier, item.ConfigNodeId.NamespaceIndex, namespaceUri, 0);
+                                        item.ConfigType = OpcMonitoredItemConfigurationType.ExpandedNodeId;
+                                    }
+                                }
                                 item.State = OpcMonitoredItemState.Unmonitored;
                             }
 
-                            NodeId currentNodeId = item.ConfiguredNodeId.ToNodeId(OpcUaClientSession.Context);
+                            // lookup namespace index if ExpandedNodeId format has been used and build NodeId identifier.
+                            if (item.ConfigType == OpcMonitoredItemConfigurationType.ExpandedNodeId)
+                            {
+                                int namespaceIndex = _namespaceTable.GetIndex(item.ConfigExpandedNodeId?.NamespaceUri);
+                                if (namespaceIndex < 0)
+                                {
+                                    Logger.Warning($"Syntax or namespace URI of ExpandedNodeId '{item.ConfigExpandedNodeId.ToString()}' is invalid and will be ignored.");
+                                    continue;
+                                }
+                                currentNodeId = new NodeId(item.ConfigExpandedNodeId.Identifier, (ushort)namespaceIndex);
+                            }
+                            else
+                            {
+                                currentNodeId = item.ConfigNodeId;
+                                var ns = _namespaceTable.GetString(currentNodeId.NamespaceIndex);
+                                item.ConfigExpandedNodeId = new ExpandedNodeId(currentNodeId, ns);
+                            }
 
                             // if configured, get the DisplayName for the node, otherwise use the nodeId
+                            Node node;
                             if (string.IsNullOrEmpty(item.DisplayName))
                             {
                                 if (FetchOpcNodeDisplayName == true)
                                 {
-                                    var node = OpcUaClientSession.ReadNode(currentNodeId);
+                                    node = OpcUaClientSession.ReadNode(currentNodeId);
                                     item.DisplayName = node.DisplayName.Text ?? currentNodeId.ToString();
                                 }
                                 else
                                 {
-                                    item.DisplayName = item.ConfiguredNodeId;
+                                    item.DisplayName = currentNodeId.ToString();
                                 }
                             }
 
@@ -691,7 +663,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                             }
 
                             // add the new monitored item.
-                            IOpcUaMonitoredItem monitoredItem = new OpcUaMonitoredItem {
+                            IOpcUaMonitoredItem monitoredItem = new OpcUaMonitoredItem
+                            {
                                 StartNodeId = currentNodeId,
                                 AttributeId = item.AttributeId,
                                 DisplayName = item.DisplayName,
@@ -710,8 +683,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                             }
                             item.OpcUaClientMonitoredItem = monitoredItem;
                             item.State = OpcMonitoredItemState.Monitored;
-                            item.EndpointUrl = Endpointuri;
-                            Logger.Verbose($"Created monitored item for node '{currentNodeId.ToString()}' in subscription with id '{opcSubscription.OpcUaClientSubscription.Id}' on endpoint '{EndpointId}({Endpointuri})' (version: {NodeConfigVersion:X8})");
+                            item.EndpointUrl = EndpointUrl;
+                            Logger.Verbose($"Created monitored item for node '{currentNodeId.ToString()}' in subscription with id '{opcSubscription.OpcUaClientSubscription.Id}' on endpoint '{EndpointUrl}' (version: {NodeConfigVersion:X8})");
                             if (item.RequestedSamplingInterval != monitoredItem.SamplingInterval)
                             {
                                 Logger.Information($"Sampling interval: requested: {item.RequestedSamplingInterval}; revised: {monitoredItem.SamplingInterval}");
@@ -729,43 +702,43 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                             {
                                 case StatusCodes.BadSessionIdInvalid:
                                     {
-                                        Logger.Information($"Session with Id {OpcUaClientSession.SessionId} is no longer available on endpoint '{EndpointId}({Endpointuri})'. Cleaning up.");
+                                        Logger.Information($"Session with Id {OpcUaClientSession.SessionId} is no longer available on endpoint '{EndpointUrl}'. Cleaning up.");
                                         // clean up the session
                                         InternalDisconnect();
                                         break;
                                     }
                                 case StatusCodes.BadSubscriptionIdInvalid:
-                                    {
-                                        Logger.Information($"Subscription with Id {opcSubscription.OpcUaClientSubscription.Id} is no longer available on endpoint '{EndpointId}({Endpointuri})'. Cleaning up.");
-                                        // clean up the session/subscription
-                                        InternalDisconnect();
-                                        break;
-                                    }
+                                {
+                                    Logger.Information($"Subscription with Id {opcSubscription.OpcUaClientSubscription.Id} is no longer available on endpoint '{EndpointUrl}'. Cleaning up.");
+                                    // clean up the session/subscription
+                                    InternalDisconnect();
+                                    break;
+                                }
                                 case StatusCodes.BadNodeIdInvalid:
                                 case StatusCodes.BadNodeIdUnknown:
                                     {
-                                        Logger.Error($"Failed to monitor node '{item.ConfiguredNodeId}' on endpoint '{EndpointId}({Endpointuri})'.");
+                                        Logger.Error($"Failed to monitor node '{currentNodeId}' on endpoint '{EndpointUrl}'.");
                                         Logger.Error($"OPC UA ServiceResultException is '{sre.Result}'. Please check your publisher configuration for this node.");
                                         break;
                                     }
                                 default:
                                     {
-                                        Logger.Error($"Unhandled OPC UA ServiceResultException '{sre.Result}' when monitoring node '{item.ConfiguredNodeId}' on endpoint '{EndpointId}({Endpointuri})'. Continue.");
+                                        Logger.Error($"Unhandled OPC UA ServiceResultException '{sre.Result}' when monitoring node '{currentNodeId}' on endpoint '{EndpointUrl}'. Continue.");
                                         break;
                                     }
                             }
                         }
                         catch (Exception e)
                         {
-                            Logger.Error(e, $"Failed to monitor node '{item.ConfiguredNodeId}' on endpoint '{EndpointId}({Endpointuri})'");
+                            Logger.Error(e, $"Failed to monitor node '{currentNodeId}' on endpoint '{EndpointUrl}'");
                         }
                     }
 
                     stopWatch.Stop();
                     if (haveUnmonitoredItems == true)
                     {
-                        monitoredItemsCount = opcSubscription.OpcMonitoredItems.Count(i => i.State == OpcMonitoredItemState.Monitored);
-                        Logger.Information($"Done processing unmonitored items on endpoint '{EndpointId}({Endpointuri})' took {stopWatch.ElapsedMilliseconds} msec. Now monitoring {monitoredItemsCount} items in subscription with id '{opcSubscription.OpcUaClientSubscription.Id}'.");
+                        monitoredItemsCount = opcSubscription.OpcMonitoredItems.Count(i => (i.State == OpcMonitoredItemState.Monitored));
+                        Logger.Information($"Done processing unmonitored items on endpoint '{EndpointUrl}' took {stopWatch.ElapsedMilliseconds} msec. Now monitoring {monitoredItemsCount} items in subscription with id '{opcSubscription.OpcUaClientSubscription.Id}'.");
                     }
                 }
             }
@@ -813,7 +786,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                     {
                         try
                         {
-                            Logger.Information($"Remove nodes in subscription with id {opcSubscription.OpcUaClientSubscription.Id} on endpoint '{EndpointId}({Endpointuri})'");
+                            Logger.Information($"Remove nodes in subscription with id {opcSubscription.OpcUaClientSubscription.Id} on endpoint '{EndpointUrl}'");
                             opcSubscription.OpcUaClientSubscription.RemoveItems(itemsToRemove.Select(i => i.OpcUaClientMonitoredItem));
                             Logger.Information($"There are now {opcSubscription.OpcUaClientSubscription.MonitoredItemCount} monitored items in this subscription.");
                         }
@@ -866,7 +839,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                 {
                     try
                     {
-                        Logger.Information($"Remove unused subscriptions on endpoint '{EndpointId}({Endpointuri})'.");
+                        Logger.Information($"Remove unused subscriptions on endpoint '{EndpointUrl}'.");
                         OpcUaClientSession.RemoveSubscriptions(subscriptionsToRemove.Select(s => s.OpcUaClientSubscription));
                         Logger.Information($"There are now {OpcUaClientSession.SubscriptionCount} subscriptions in this session.");
                     }
@@ -916,7 +889,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                 var sessionsToRemove = NodeConfiguration.OpcSessions.Where(s => s.OpcSubscriptions.Count == 0);
                 foreach (var sessionToRemove in sessionsToRemove)
                 {
-                    Logger.Information($"Remove unused session on endpoint '{EndpointId}({Endpointuri})'.");
+                    Logger.Information($"Remove unused session on endpoint '{EndpointUrl}'.");
                     await sessionToRemove.ShutdownAsync().ConfigureAwait(false);
                 }
                 // remove then in our data structures
@@ -943,10 +916,18 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                 }
                 catch (Exception e)
                 {
-                    Logger.Error(e, $"Exception while disconnecting '{EndpointId}({Endpointuri})'.");
+                    Logger.Error(e, $"Exception while disconnecting '{EndpointUrl}'.");
                 }
                 ReleaseSession();
             }
+        }
+
+        /// <summary>
+        /// Returns the namespace index for a namespace URI.
+        /// </summary>
+        public int GetNamespaceIndexUnlocked(string namespaceUri)
+        {
+            return _namespaceTable.GetIndex(namespaceUri);
         }
 
         /// <summary>
@@ -1007,7 +988,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         /// Adds a node to be monitored. If there is no subscription with the requested publishing interval,
         /// one is created.
         /// </summary>
-        public async Task<HttpStatusCode> AddNodeForMonitoringAsync(string nodeId,
+        public async Task<HttpStatusCode> AddNodeForMonitoringAsync(NodeId nodeId, ExpandedNodeId expandedNodeId,
             int? opcPublishingInterval, int? opcSamplingInterval, string displayName,
             int? heartbeatInterval, bool? skipFirst, CancellationToken ct)
         {
@@ -1023,7 +1004,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
 
                 // check if there is already a subscription with the same publishing interval, which can be used to monitor the node
                 int opcPublishingIntervalForNode = opcPublishingInterval ?? OpcPublishingIntervalDefault;
-                var opcSubscription = OpcSubscriptions.FirstOrDefault(s => s.RequestedPublishingInterval == opcPublishingIntervalForNode);
+                IOpcSubscription opcSubscription = OpcSubscriptions.FirstOrDefault(s => s.RequestedPublishingInterval == opcPublishingIntervalForNode);
 
                 // if there was none found, create one
                 if (opcSubscription == null)
@@ -1042,14 +1023,39 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                     OpcSubscriptions.Add(opcSubscription);
                 }
 
+                // create objects for publish check
+                ExpandedNodeId expandedNodeIdCheck = expandedNodeId;
+                NodeId nodeIdCheck = nodeId;
+                if (State == SessionState.Connected)
+                {
+                    if (expandedNodeId == null)
+                    {
+                        string namespaceUri = _namespaceTable.ToArray().ElementAtOrDefault(nodeId.NamespaceIndex);
+                        expandedNodeIdCheck = new ExpandedNodeId(nodeId.Identifier, nodeId.NamespaceIndex, namespaceUri, 0);
+                    }
+                    if (nodeId == null)
+                    {
+                        nodeIdCheck = new NodeId(expandedNodeId.Identifier, (ushort)(_namespaceTable.GetIndex(expandedNodeId.NamespaceUri)));
+                    }
+                }
+
                 // if it is already published, we do nothing, else we create a new monitored item
                 // todo check properties and update
-                if (!IsNodePublishedInSessionInternal(nodeId))
+                if (!IsNodePublishedInSessionInternal(nodeIdCheck, expandedNodeIdCheck))
                 {
-                    OpcMonitoredItem opcMonitoredItem = new OpcMonitoredItem(nodeId, Endpointuri, EndpointId, opcSamplingInterval, displayName, heartbeatInterval, skipFirst);
+                    OpcMonitoredItem opcMonitoredItem = null;
+                    // add a new item to monitor
+                    if (expandedNodeId == null)
+                    {
+                        opcMonitoredItem = new OpcMonitoredItem(nodeId, EndpointUrl, opcSamplingInterval, displayName, heartbeatInterval, skipFirst);
+                    }
+                    else
+                    {
+                        opcMonitoredItem = new OpcMonitoredItem(expandedNodeId, EndpointUrl, opcSamplingInterval, displayName, heartbeatInterval, skipFirst);
+                    }
                     opcSubscription.OpcMonitoredItems.Add(opcMonitoredItem);
                     Interlocked.Increment(ref NodeConfigVersion);
-                    Logger.Debug($"{logPrefix} Added item with nodeId '{nodeId}' for monitoring.");
+                    Logger.Debug($"{logPrefix} Added item with nodeId '{(expandedNodeId == null ? nodeId.ToString() : expandedNodeId.ToString())}' for monitoring.");
 
                     // trigger the actual OPC communication with the server to be done
                     ConnectAndMonitorSession.Set();
@@ -1057,12 +1063,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                 }
                 else
                 {
-                    Logger.Debug($"{logPrefix} Node with Id '{nodeId}' is already monitored.");
+                    Logger.Debug($"{logPrefix} Node with Id '{(expandedNodeId == null ? nodeId.ToString() : expandedNodeId.ToString())}' is already monitored.");
                 }
             }
             catch (Exception e)
             {
-                Logger.Error(e, $"{logPrefix} Exception while trying to add node '{nodeId}' for monitoring.");
+                Logger.Error(e, $"{logPrefix} Exception while trying to add node '{(expandedNodeId == null ? nodeId.ToString() : expandedNodeId.ToString())}' for monitoring.");
                 return HttpStatusCode.InternalServerError;
             }
             finally
@@ -1078,9 +1084,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         /// <summary>
         /// Tags a monitored node to stop monitoring and remove it.
         /// </summary>
-        public async Task<HttpStatusCode> RequestMonitorItemRemovalAsync(string nodeId, CancellationToken ct, bool takeLock = true)
+        public async Task<HttpStatusCode> RequestMonitorItemRemovalAsync(NodeId nodeId, ExpandedNodeId expandedNodeId, CancellationToken ct, bool takeLock = true)
         {
-            var result = HttpStatusCode.Gone;
+            HttpStatusCode result = HttpStatusCode.Gone;
             bool sessionLocked = false;
             try
             {
@@ -1094,10 +1100,27 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                     }
                 }
 
-                // if node is not published return success
-                if (!IsNodePublishedInSessionInternal(nodeId))
+                // create objects for publish check
+                ExpandedNodeId expandedNodeIdCheck = expandedNodeId;
+                NodeId nodeIdCheck = nodeId;
+                if (State == SessionState.Connected)
                 {
-                    Logger.Information($"RequestMonitorItemRemoval: Node '{nodeId}' is not monitored.");
+                    if (expandedNodeId == null)
+                    {
+                        string namespaceUri = _namespaceTable.ToArray().ElementAtOrDefault(nodeId.NamespaceIndex);
+                        expandedNodeIdCheck = new ExpandedNodeId(nodeIdCheck, namespaceUri, 0);
+                    }
+                    if (nodeId == null)
+                    {
+                        nodeIdCheck = new NodeId(expandedNodeId.Identifier, (ushort)(_namespaceTable.GetIndex(expandedNodeId.NamespaceUri)));
+                    }
+
+                }
+
+                // if node is not published return success
+                if (!IsNodePublishedInSessionInternal(nodeIdCheck, expandedNodeIdCheck))
+                {
+                    Logger.Information($"RequestMonitorItemRemoval: Node '{(expandedNodeId == null ? nodeId.ToString() : expandedNodeId.ToString())}' is not monitored.");
                     return HttpStatusCode.OK;
                 }
 
@@ -1105,12 +1128,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                 // if the node to tag is specified as NodeId, it will also tag nodes configured in ExpandedNodeId format.
                 foreach (var opcSubscription in OpcSubscriptions)
                 {
-                    var opcMonitoredItems = opcSubscription.OpcMonitoredItems.Where(m => { return m.IsMonitoringThisNode(nodeId, OpcUaClientSession.Context); });
+                    var opcMonitoredItems = opcSubscription.OpcMonitoredItems.Where(m => { return m.IsMonitoringThisNode(nodeIdCheck, expandedNodeIdCheck, _namespaceTable); });
                     foreach (var opcMonitoredItem in opcMonitoredItems)
                     {
                         // tag it for removal.
                         opcMonitoredItem.State = OpcMonitoredItemState.RemovalRequested;
-                        Logger.Information($"RequestMonitorItemRemoval: Node with id '{nodeId}' tagged to stop monitoring.");
+                        Logger.Information($"RequestMonitorItemRemoval: Node with id '{(expandedNodeId == null ? nodeId.ToString() : expandedNodeId.ToString())}' tagged to stop monitoring.");
                         result = HttpStatusCode.Accepted;
                     }
                 }
@@ -1120,7 +1143,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
             }
             catch (Exception e)
             {
-                Logger.Error(e, $"RequestMonitorItemRemoval: Exception while trying to tag node '{nodeId}' to stop monitoring.");
+                Logger.Error(e, $"RequestMonitorItemRemoval: Exception while trying to tag node '{(expandedNodeId == null ? nodeId.ToString() : expandedNodeId.ToString())}' to stop monitoring.");
                 result = HttpStatusCode.InternalServerError;
             }
             finally
@@ -1136,13 +1159,13 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         /// <summary>
         /// Checks if the node specified by either the given NodeId or ExpandedNodeId on the given endpoint is published in the session. Caller to take session semaphore.
         /// </summary>
-        private bool IsNodePublishedInSessionInternal(string nodeId)
+        private bool IsNodePublishedInSessionInternal(NodeId nodeId, ExpandedNodeId expandedNodeId)
         {
             try
             {
                 foreach (var opcSubscription in OpcSubscriptions)
                 {
-                    if (opcSubscription.OpcMonitoredItems.Any(m => { return m.IsMonitoringThisNode(nodeId, OpcUaClientSession.Context); }))
+                    if (opcSubscription.OpcMonitoredItems.Any(m => { return m.IsMonitoringThisNode(nodeId, expandedNodeId, _namespaceTable); }))
                     {
                         return true;
                     }
@@ -1158,7 +1181,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         /// <summary>
         /// Checks if the node specified by either the given NodeId or ExpandedNodeId on the given endpoint is published in the session.
         /// </summary>
-        public bool IsNodePublishedInSession(string nodeId)
+        public bool IsNodePublishedInSession(NodeId nodeId, ExpandedNodeId expandedNodeId)
         {
             bool result = false;
             bool sessionLocked = false;
@@ -1168,7 +1191,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
 
                 if (sessionLocked && !_sessionCancelationToken.IsCancellationRequested)
                 {
-                    result = IsNodePublishedInSessionInternal(nodeId);
+                    result = IsNodePublishedInSessionInternal(nodeId, expandedNodeId);
                 }
             }
             catch (Exception e)
@@ -1188,7 +1211,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         /// <summary>
         /// Checks if the node specified by either the given NodeId or ExpandedNodeId on the given endpoint is published.
         /// </summary>
-        public static bool IsNodePublished(string nodeId, string endpointUri, string endpointId)
+        public static bool IsNodePublished(NodeId nodeId, ExpandedNodeId expandedNodeId, string endpointUrl)
         {
             try
             {
@@ -1197,9 +1220,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                 // itereate through all sessions, subscriptions and monitored items and create config file entries
                 foreach (var opcSession in NodeConfiguration.OpcSessions)
                 {
-                    if (opcSession.EndpointId.Equals(endpointId, StringComparison.OrdinalIgnoreCase))
+                    if (opcSession.EndpointUrl.Equals(endpointUrl, StringComparison.OrdinalIgnoreCase))
                     {
-                        if (opcSession.IsNodePublishedInSession(nodeId))
+                        if (opcSession.IsNodePublishedInSession(nodeId, expandedNodeId))
                         {
                             return true;
                         }
@@ -1240,19 +1263,19 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                         Logger.Information($"Removing {OpcUaClientSession.SubscriptionCount} subscriptions from session.");
                         while (OpcSubscriptions.Count > 0)
                         {
-                            var opcSubscription = OpcSubscriptions.ElementAt(0);
+                            IOpcSubscription opcSubscription = OpcSubscriptions.ElementAt(0);
                             OpcSubscriptions.RemoveAt(0);
-                            var opcUaClientSubscription = opcSubscription.OpcUaClientSubscription;
+                            IOpcUaSubscription opcUaClientSubscription = opcSubscription.OpcUaClientSubscription;
                             opcUaClientSubscription.Delete(true);
                         }
-                        Logger.Information($"Closing session to endpoint URI '{EndpointId}({Endpointuri})' closed successfully.");
+                        Logger.Information($"Closing session to endpoint URI '{EndpointUrl}' closed successfully.");
                         OpcUaClientSession.Close();
                         State = SessionState.Disconnected;
-                        Logger.Information($"Session to endpoint URI '{EndpointId}({Endpointuri})' closed successfully.");
+                        Logger.Information($"Session to endpoint URI '{EndpointUrl}' closed successfully.");
                     }
                     catch (Exception e)
                     {
-                        Logger.Error(e, $"Exception while closing session to endpoint '{EndpointId}({Endpointuri})'.");
+                        Logger.Error(e, $"Exception while closing session to endpoint '{EndpointUrl}'.");
                         State = SessionState.Disconnected;
                         return;
                     }
@@ -1276,13 +1299,14 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         /// </summary>
         private IOpcUaSubscription CreateSubscription(int requestedPublishingInterval, out int revisedPublishingInterval)
         {
-            IOpcUaSubscription subscription = new OpcUaSubscription {
+            IOpcUaSubscription subscription = new OpcUaSubscription
+            {
                 PublishingInterval = requestedPublishingInterval,
             };
             // need to happen before the create to set the Session property.
             OpcUaClientSession.AddSubscription(subscription);
             subscription.Create();
-            Logger.Information($"Created subscription with id {subscription.Id} on endpoint '{EndpointId}({Endpointuri})'");
+            Logger.Information($"Created subscription with id {subscription.Id} on endpoint '{EndpointUrl}'");
             if (requestedPublishingInterval != subscription.PublishingInterval)
             {
                 Logger.Information($"Publishing interval: requested: {requestedPublishingInterval}; revised: {subscription.PublishingInterval}");
@@ -1370,11 +1394,15 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         /// <summary>
         /// Release the session semaphore.
         /// </summary>
-        public void ReleaseSession() => _opcSessionSemaphore?.Release();
+        public void ReleaseSession()
+        {
+            _opcSessionSemaphore?.Release();
+        }
 
         private SemaphoreSlim _opcSessionSemaphore;
         private CancellationTokenSource _sessionCancelationTokenSource;
         private readonly CancellationToken _sessionCancelationToken;
+        private readonly NamespaceTable _namespaceTable;
         private readonly EndpointTelemetryConfigurationModel _telemetryConfiguration;
         private readonly Task _connectAndMonitorAsync;
     }

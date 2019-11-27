@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using System.Threading.Tasks;
 
-namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Crypto
+namespace OpcPublisher.Crypto
 {
     /// <summary>
     /// Class to provide in-memory access to encrypted credentials. It uses the static CryptoProvider from the
@@ -11,7 +11,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Crypto
     {
         public async static Task<EncryptedNetworkCredential> FromPlainCredential(string username, string password)
         {
-            return await FromNetworkCredential(new NetworkCredential(username, password));
+            return await EncryptedNetworkCredential.FromNetworkCredential(new NetworkCredential(username, password));
         }
 
         public async static Task<EncryptedNetworkCredential> FromNetworkCredential(NetworkCredential networkCredential)
@@ -35,14 +35,14 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Crypto
         {
             var result = new NetworkCredential();
 
-            if (UserName != null)
+            if (this.UserName != null)
             {
-                result.UserName = await Program.CryptoProvider.DecryptAsync(UserName);
+                result.UserName = await Program.CryptoProvider.DecryptAsync(this.UserName);
             }
 
-            if (Password != null)
+            if (this.Password != null)
             {
-                result.Password = await Program.CryptoProvider.DecryptAsync(Password);
+                result.Password = await Program.CryptoProvider.DecryptAsync(this.Password);
             }
 
             return result;
@@ -54,7 +54,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Crypto
 
             if (other != null)
             {
-                return UserName.Equals(other.UserName) && Password.Equals(other.Password);
+                return this.UserName.Equals(other.UserName) && this.Password.Equals(other.Password);
             }
             else
             {
@@ -64,7 +64,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Crypto
 
         public override int GetHashCode()
         {
-            return (UserName + Password).GetHashCode();
+            return (this.UserName + this.Password).GetHashCode();
         }
     }
 }

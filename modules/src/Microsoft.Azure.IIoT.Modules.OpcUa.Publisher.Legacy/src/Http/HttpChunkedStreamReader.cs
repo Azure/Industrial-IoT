@@ -39,39 +39,39 @@ namespace Microsoft.Azure.Devices.Edge.Util.Uds
 
         public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
-            if (eos)
+            if (this.eos)
             {
                 return 0;
             }
 
-            if (chunkBytes == 0)
+            if (this.chunkBytes == 0)
             {
-                string line = await stream.ReadLineAsync(cancellationToken);
-                if (!int.TryParse(line, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out chunkBytes))
+                string line = await this.stream.ReadLineAsync(cancellationToken);
+                if (!int.TryParse(line, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out this.chunkBytes))
                 {
                     throw new IOException($"Cannot parse chunk header - {line}");
                 }
             }
 
             int bytesRead = 0;
-            if (chunkBytes > 0)
+            if (this.chunkBytes > 0)
             {
-                int bytesToRead = Math.Min(count, chunkBytes);
-                bytesRead = await stream.ReadAsync(buffer, offset, bytesToRead, cancellationToken);
+                int bytesToRead = Math.Min(count, this.chunkBytes);
+                bytesRead = await this.stream.ReadAsync(buffer, offset, bytesToRead, cancellationToken);
                 if (bytesToRead == 0)
                 {
                     throw new EndOfStreamException();
                 }
 
-                chunkBytes -= bytesToRead;
+                this.chunkBytes -= bytesToRead;
             }
 
-            if (chunkBytes == 0)
+            if (this.chunkBytes == 0)
             {
-                await stream.ReadLineAsync(cancellationToken);
+                await this.stream.ReadLineAsync(cancellationToken);
                 if (bytesRead == 0)
                 {
-                    eos = true;
+                    this.eos = true;
                 }
             }
 
@@ -82,39 +82,39 @@ namespace Microsoft.Azure.Devices.Edge.Util.Uds
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            if (eos)
+            if (this.eos)
             {
                 return 0;
             }
 
-            if (chunkBytes == 0)
+            if (this.chunkBytes == 0)
             {
-                string line = stream.ReadLine();
-                if (!int.TryParse(line, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out chunkBytes))
+                string line = this.stream.ReadLine();
+                if (!int.TryParse(line, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out this.chunkBytes))
                 {
                     throw new IOException($"Cannot parse chunk header - {line}");
                 }
             }
 
             int bytesRead = 0;
-            if (chunkBytes > 0)
+            if (this.chunkBytes > 0)
             {
-                int bytesToRead = Math.Min(count, chunkBytes);
-                bytesRead = stream.Read(buffer, offset, bytesToRead);
+                int bytesToRead = Math.Min(count, this.chunkBytes);
+                bytesRead = this.stream.Read(buffer, offset, bytesToRead);
                 if (bytesToRead == 0)
                 {
                     throw new EndOfStreamException();
                 }
 
-                chunkBytes -= bytesToRead;
+                this.chunkBytes -= bytesToRead;
             }
 
-            if (chunkBytes == 0)
+            if (this.chunkBytes == 0)
             {
-                stream.ReadLine();
+                this.stream.ReadLine();
                 if (bytesRead == 0)
                 {
-                    eos = true;
+                    this.eos = true;
                 }
             }
 

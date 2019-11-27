@@ -1,12 +1,9 @@
-﻿// ------------------------------------------------------------
-//  Copyright (c) Microsoft Corporation.  All rights reserved.
-//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
-// ------------------------------------------------------------
+﻿using Opc.Ua.Client;
+using System;
+using System.Linq;
 
-namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
+namespace OpcPublisher
 {
-    using Opc.Ua.Client;
-    using System;
     using Opc.Ua;
     using System.Collections.Generic;
     using System.Globalization;
@@ -14,7 +11,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
     using static HubCommunicationBase;
     using static OpcApplicationConfiguration;
     using static Program;
-    using Opc.Ua.Extensions;
 
     /// <summary>
     /// Class used to pass data from the MonitoredItem notification to the hub message processing.
@@ -25,11 +21,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         /// The endpoint URL the monitored item belongs to.
         /// </summary>
         public string EndpointUrl { get; set; }
-
-        /// <summary>
-        /// The Endpoint id
-        /// </summary>
-        public string EndpointId { get; set; }
 
         /// <summary>
         /// The OPC UA NodeId of the monitored item.
@@ -62,11 +53,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         public string SourceTimestamp { get; set; }
 
         /// <summary>
-        /// The OPC UA server timestamp the value was seen.
-        /// </summary>
-        public string ServerTimestamp { get; set; }
-
-        /// <summary>
         /// The OPC UA status code of the value.
         /// </summary>
         public uint? StatusCode { get; set; }
@@ -87,7 +73,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         public MessageData()
         {
             EndpointUrl = null;
-            EndpointId = null;
             NodeId = null;
             ExpandedNodeId = null;
             ApplicationUri = null;
@@ -95,7 +80,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
             Value = null;
             StatusCode = null;
             SourceTimestamp = null;
-            ServerTimestamp = null;
             Status = null;
             PreserveValueQuotes = false;
         }
@@ -108,10 +92,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
             if (telemetryConfiguration.EndpointUrl.Publish == true)
             {
                 EndpointUrl = telemetryConfiguration.EndpointUrl.PatternMatch(EndpointUrl);
-            }
-            if (telemetryConfiguration.EndpointId.Publish == true)
-            {
-                EndpointId = telemetryConfiguration.EndpointUrl.PatternMatch(EndpointId);
             }
             if (telemetryConfiguration.NodeId.Publish == true)
             {
@@ -132,10 +112,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
             if (telemetryConfiguration.Value.SourceTimestamp.Publish == true)
             {
                 SourceTimestamp = telemetryConfiguration.Value.SourceTimestamp.PatternMatch(SourceTimestamp);
-            }
-            if (telemetryConfiguration.Value.ServerTimestamp.Publish == true)
-            {
-                ServerTimestamp = telemetryConfiguration.Value.ServerTimestamp.PatternMatch(ServerTimestamp);
             }
             if (telemetryConfiguration.Value.StatusCode.Publish == true && StatusCode != null)
             {
@@ -165,6 +141,15 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
             UnmonitoredNamespaceUpdateRequested,
             Monitored,
             RemovalRequested,
+        }
+
+        /// <summary>
+        /// The configuration type of the monitored item.
+        /// </summary>
+        public enum OpcMonitoredItemConfigurationType
+        {
+            NodeId = 0,
+            ExpandedNodeId
         }
 
         /// <summary>
@@ -228,24 +213,29 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         public string EndpointUrl { get; set; }
 
         /// <summary>
-        /// The endpoint Id of the endpoint
-        /// </summary>
-        public string EndpointId { get; set; }
-
-        /// <summary>
         /// The OPC UA stacks monitored item object.
         /// </summary>
         public IOpcUaMonitoredItem OpcUaClientMonitoredItem { get; set; }
 
         /// <summary>
-        /// The OPC UA identifier of the node in ExpandedNodeId syntax.
+        /// The OPC UA identifier of the node in NodeId ("ns=") syntax.
         /// </summary>
-        public string ConfiguredNodeId { get; set; }
+        public NodeId ConfigNodeId { get; set; }
+
+        /// <summary>
+        /// The OPC UA identifier of the node in ExpandedNodeId ("nsu=") syntax.
+        /// </summary>
+        public ExpandedNodeId ConfigExpandedNodeId { get; set; }
 
         /// <summary>
         /// The OPC UA identifier of the node as it was configured.
         /// </summary>
         public string OriginalId { get; set; }
+
+        /// <summary>
+        /// Identifies the configuration type of the node.
+        /// </summary>
+        public OpcMonitoredItemConfigurationType ConfigType { get; set; }
 
         public const int HeartbeatIntvervalMax = 24 * 60 * 60;
 
@@ -253,15 +243,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
 
         public int HeartbeatInterval
         {
-            get
-            {
-                return _heartbeatInterval;
-            }
-
-            set
-            {
-                _heartbeatInterval = value <= 0 ? 0 : value > HeartbeatIntvervalMax ? HeartbeatIntvervalMax : value;
-            }
+            get => _heartbeatInterval;
+            set => _heartbeatInterval = value <= 0 ? 0 : value > HeartbeatIntvervalMax ? HeartbeatIntvervalMax : value;
         }
 
         public bool HeartbeatIntervalFromConfiguration { get; set; } = false;
@@ -283,29 +266,87 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         public static List<uint> SuppressedOpcStatusCodes { get; } = new List<uint>();
 
         /// <summary>
-        /// Create
+        /// Ctor using NodeId (ns syntax for namespace).
         /// </summary>
-        public OpcMonitoredItem(string expandedNodeId, string sessionEndpointUrl, string endpointId, int? samplingInterval,
+        public OpcMonitoredItem(NodeId nodeId, string sessionEndpointUrl, int? samplingInterval,
             string displayName, int? heartbeatInterval, bool? skipFirst)
         {
-            ConfiguredNodeId = expandedNodeId;
+            ConfigNodeId = nodeId;
+            ConfigExpandedNodeId = null;
+            OriginalId = nodeId.ToString();
+            ConfigType = OpcMonitoredItemConfigurationType.NodeId;
+            Init(sessionEndpointUrl, samplingInterval, displayName, heartbeatInterval, skipFirst);
+            State = OpcMonitoredItemState.Unmonitored;
+        }
+
+        /// <summary>
+        /// Ctor using ExpandedNodeId ("nsu=") syntax.
+        /// </summary>
+        public OpcMonitoredItem(ExpandedNodeId expandedNodeId, string sessionEndpointUrl, int? samplingInterval,
+            string displayName, int? heartbeatInterval, bool? skipFirst)
+        {
+            ConfigNodeId = null;
+            ConfigExpandedNodeId = expandedNodeId;
             OriginalId = expandedNodeId.ToString();
-            Init(endpointId, sessionEndpointUrl, samplingInterval, displayName, heartbeatInterval, skipFirst);
+            ConfigType = OpcMonitoredItemConfigurationType.ExpandedNodeId;
+            Init(sessionEndpointUrl, samplingInterval, displayName, heartbeatInterval, skipFirst);
             State = OpcMonitoredItemState.UnmonitoredNamespaceUpdateRequested;
         }
 
         /// <summary>
         /// Checks if the monitored item does monitor the node described by the given objects.
         /// </summary>
-        public bool IsMonitoringThisNode(string nodeId, ServiceMessageContext context)
+        public bool IsMonitoringThisNode(NodeId nodeId, ExpandedNodeId expandedNodeId, NamespaceTable namespaceTable)
         {
             if (State == OpcMonitoredItemState.RemovalRequested)
             {
                 return false;
             }
-
-            ExpandedNodeId expandedNodeId = nodeId?.ToExpandedNodeId(context);
-            return expandedNodeId == ConfiguredNodeId.ToExpandedNodeId(context);
+            if (ConfigType == OpcMonitoredItemConfigurationType.NodeId)
+            {
+                if (nodeId != null)
+                {
+                    if (ConfigNodeId == nodeId)
+                    {
+                        return true;
+                    }
+                }
+                if (expandedNodeId != null)
+                {
+                    string namespaceUri = namespaceTable.ToArray().ElementAtOrDefault(ConfigNodeId.NamespaceIndex);
+                    if (expandedNodeId.NamespaceUri != null && expandedNodeId.NamespaceUri.Equals(namespaceUri, StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (expandedNodeId.Identifier.ToString().Equals(ConfigNodeId.Identifier.ToString(), StringComparison.OrdinalIgnoreCase))
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+            if (ConfigType == OpcMonitoredItemConfigurationType.ExpandedNodeId)
+            {
+                if (nodeId != null)
+                {
+                    int namespaceIndex = namespaceTable.GetIndex(ConfigExpandedNodeId?.NamespaceUri);
+                    if (nodeId.NamespaceIndex == namespaceIndex)
+                    {
+                        if (nodeId.Identifier.ToString().Equals(ConfigExpandedNodeId.Identifier.ToString(), StringComparison.OrdinalIgnoreCase))
+                        {
+                            return true;
+                        }
+                    }
+                }
+                if (expandedNodeId != null)
+                {
+                    if (ConfigExpandedNodeId.NamespaceUri != null &&
+                        ConfigExpandedNodeId.NamespaceUri.Equals(expandedNodeId.NamespaceUri, StringComparison.OrdinalIgnoreCase) &&
+                        ConfigExpandedNodeId.Identifier.ToString().Equals(expandedNodeId.Identifier.ToString(), StringComparison.OrdinalIgnoreCase))
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
 
         /// <summary>
@@ -352,9 +393,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                     if (value.Value != null)
                     {
                         // use the Value as reported in the notification event argument encoded with the OPC UA JSON endcoder
-#pragma warning disable IDE0067 // Dispose objects before losing scope
                         JsonEncoder encoder = new JsonEncoder(monitoredItem.Subscription.Session.MessageContext, false);
-#pragma warning restore IDE0067 // Dispose objects before losing scope
                         value.ServerTimestamp = DateTime.MinValue;
                         value.SourceTimestamp = DateTime.MinValue;
                         value.StatusCode = StatusCodes.Good;
@@ -391,15 +430,14 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                 else
                 {
                     // update the required message data to pass only the required data to the hub communication
-                    var telemetryConfiguration = TelemetryConfiguration.GetEndpointTelemetryConfiguration(EndpointUrl);
+                    EndpointTelemetryConfigurationModel telemetryConfiguration = TelemetryConfiguration.GetEndpointTelemetryConfiguration(EndpointUrl);
 
                     // the endpoint URL is required to allow HubCommunication lookup the telemetry configuration
                     messageData.EndpointUrl = EndpointUrl;
-                    messageData.EndpointId = EndpointId;
 
                     if (telemetryConfiguration.ExpandedNodeId.Publish == true)
                     {
-                        messageData.ExpandedNodeId = ConfiguredNodeId?.ToString();
+                        messageData.ExpandedNodeId = ConfigExpandedNodeId?.ToString();
                     }
                     if (telemetryConfiguration.NodeId.Publish == true)
                     {
@@ -418,11 +456,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                     {
                         // use the SourceTimestamp as reported in the notification event argument in ISO8601 format
                         messageData.SourceTimestamp = value.SourceTimestamp.ToString("o", CultureInfo.InvariantCulture);
-                    }
-                    if (telemetryConfiguration.Value.ServerTimestamp.Publish == true)
-                    {
-                        // use the SourceTimestamp as reported in the notification event argument in ISO8601 format
-                        messageData.ServerTimestamp = value.ServerTimestamp.ToString("o", CultureInfo.InvariantCulture);
                     }
                     if (telemetryConfiguration.Value.StatusCode.Publish == true)
                     {
@@ -477,7 +510,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
 
                     Logger.Debug($"   ApplicationUri: {messageData.ApplicationUri}");
                     Logger.Debug($"   EndpointUrl: {messageData.EndpointUrl}");
-                    Logger.Debug($"   EndpointId: {messageData.EndpointId}");
                     Logger.Debug($"   DisplayName: {messageData.DisplayName}");
                     Logger.Debug($"   Value: {messageData.Value}");
                 }
@@ -548,7 +580,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         /// <summary>
         /// Init instance variables.
         /// </summary>
-        private void Init(string endpointId, string sessionEndpointUrl, int? samplingInterval, string displayName, int? heartbeatInterval, bool? skipFirst)
+        private void Init(string sessionEndpointUrl, int? samplingInterval, string displayName, int? heartbeatInterval, bool? skipFirst)
         {
             State = OpcMonitoredItemState.Unmonitored;
             AttributeId = Attributes.Value;
@@ -557,7 +589,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
             DiscardOldest = true;
             Notification = new MonitoredItemNotificationEventHandler(MonitoredItemNotificationEventHandler);
             EndpointUrl = sessionEndpointUrl;
-            EndpointId = endpointId;
             DisplayName = displayName;
             DisplayNameFromConfiguration = string.IsNullOrEmpty(displayName) ? false : true;
             RequestedSamplingInterval = samplingInterval ?? OpcSamplingInterval;
