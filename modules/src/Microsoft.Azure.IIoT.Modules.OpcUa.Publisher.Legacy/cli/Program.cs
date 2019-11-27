@@ -178,7 +178,7 @@ Options:
                     arguments.Add("--at=X509Store");
                 }
                 Try.Op(() => File.Delete("publishednodes.json"));
-                Publisher.Program.Main(arguments.ToArray());
+                OpcPublisher.Program.Main(arguments.ToArray());
                 Console.WriteLine("Publisher module exited.");
             }
         }
