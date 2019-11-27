@@ -1,23 +1,31 @@
-﻿apiVersion: extensions/v1beta1
+﻿apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: alerting-deployment
+  name: jobs-deployment
   namespace: industrial-iot
   labels:
-    app: alertingservice
+    app.kubernetes.io/name: jobs-service
+    app.kubernetes.io/part-of: industrial-iot
+    app.kubernetes.io/version: 2.5.1
+    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: alertingservice
+      app.kubernetes.io/name: jobs-service
+      app.kubernetes.io/part-of: industrial-iot
   template:
     metadata:
       labels:
-        app: alertingservice
+        app.kubernetes.io/name: jobs-service
+        app.kubernetes.io/part-of: industrial-iot
+        app.kubernetes.io/version: 2.5.1
+        app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
     spec:
+      serviceAccountName: industrial-iot-serviceaccount
       containers:
-      - name: alertingservice
-        image: mcr.microsoft.com/iot/opc-alerting-service:2.5.1
+      - name: jobs-service-container
+        image: mcr.microsoft.com/iot/opc-jobs-service:2.5.1
         resources:
           requests:
             memory: "64Mi"
@@ -31,11 +39,6 @@ spec:
             secretKeyRef:
               name: industrial-iot-env
               key: PCS_KEYVAULT_URL
-        - name: PCS_WORKSPACE_NAME
-          valueFrom:
-            secretKeyRef:
-              name: industrial-iot-env
-              key: PCS_WORKSPACE_NAME
         - name: PCS_IOTHUB_CONNSTRING
           valueFrom:
             secretKeyRef:
