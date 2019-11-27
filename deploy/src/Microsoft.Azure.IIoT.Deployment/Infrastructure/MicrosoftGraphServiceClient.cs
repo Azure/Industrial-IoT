@@ -515,9 +515,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                         cancellationToken
                     );
 
-                // As of Microsoft.Graph.Beta version 0.8.0-preview, UpdateAsync(...)
-                // returns null and not updated application. Thus we will have to get
-                // the application after update and return it.
+                // UpdateAsync(...) is a wrapper around HTTP PATCH method and
+                // is supposed to return null, despite its documentation. So we
+                // will have to get updated application definition to return it.
                 var updatedServiceApplication = await _graphServiceClient
                     .Applications[serviceApplication.Id]
                     .Request()
@@ -557,9 +557,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                         cancellationToken
                     );
 
-                // As of Microsoft.Graph.Beta version 0.8.0-preview, UpdateAsync(...)
-                // returns null and not updated application. Thus we will have to get
-                // the application after update and return it.
+                // UpdateAsync(...) is a wrapper around HTTP PATCH method and
+                // is supposed to return null, despite its documentation. So we
+                // will have to get updated application definition to return it.
                 var updatedApplication = await _graphServiceClient
                     .Applications[application.Id]
                     .Request()
