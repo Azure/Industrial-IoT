@@ -4,7 +4,7 @@
 parameters:
   poolName: 'windows-2019'
   rgName: 'sandbox-iiot'
-  deviceCount: '2'
+  deviceCount: '1'
 
 jobs:
   - job: Build_linux_environment

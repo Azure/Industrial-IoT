@@ -263,7 +263,7 @@
                 "typeHandlerVersion": "2.0",
                 "autoUpgradeMinorVersion": true,
                 "settings": {
-                    "commandToExecute": "[concat('sudo /etc/iotedge/configedge.sh ', concat('\"', split(parameters('edgeDeviceKey'),'|')[copyIndex()], '\"'))]"
+                    "commandToExecute": "[concat('sudo /etc/iotedge/configedge.sh ', split(parameters('edgeDeviceKey'),'|')[copyIndex()])]"
                 }
             }
         },

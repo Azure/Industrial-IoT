@@ -113,7 +113,7 @@ while ($deviceNum -lt $script:VmCount) {
     $device = $device | ConvertFrom-Json
     Write-Host "Fetching device key.."
     $key = $device.authentication.symmetricKey.primaryKey
-    $edgeDeviceConnectionString += "HostName=${iothubName}.azure-devices.net;DeviceId=${deviceId};SharedAccessKey=${key}"
+    $edgeDeviceConnectionString += "'HostName=${iothubName}.azure-devices.net;DeviceId=${deviceId};SharedAccessKey=${key}'"
 
     $deviceNum += 1 # Increase the value stored in the variable by 1.
 }
