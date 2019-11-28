@@ -308,7 +308,7 @@ Write-Host ""
 
 # Build manifest using the manifest tool
 $manifestFile = New-TemporaryFile
-$url = "https://github.com/estesp/manifest-tool/releases/download/v0.9.0/"
+$url = "https://github.com/estesp/manifest-tool/releases/download/v1.0.0/"
 if ($env:OS -eq "windows_nt") {
     $manifestTool = "manifest-tool-windows-amd64.exe"
 }
