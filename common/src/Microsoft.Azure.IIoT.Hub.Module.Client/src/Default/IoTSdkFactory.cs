@@ -9,7 +9,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.Devices.Client;
     using Microsoft.Azure.Devices.Client.Transport.Mqtt;
-    using Microsoft.Azure.Devices.Shared;
     using Serilog;
     using Serilog.Events;
     using System;
@@ -18,19 +17,24 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
     using System.Linq;
     using System.Security.Cryptography.X509Certificates;
     using System.Threading.Tasks;
-    using System.Threading;
     using System.Diagnostics.Tracing;
+    using System.Runtime.CompilerServices;
+    using System.Collections.Concurrent;
 
     /// <summary>
     /// Injectable factory that creates clients from device sdk
     /// </summary>
-    public sealed class IoTSdkFactory : IClientFactory, IDisposable {
+    public sealed partial class IoTSdkFactory : IClientFactory, IDisposable {
+
+        private readonly ConcurrentDictionary<string, IClient> _clients = new ConcurrentDictionary<string, IClient>();
 
         /// <inheritdoc />
-        public string DeviceId { get; }
+        private string EnvironmentDeviceId { get; }
 
         /// <inheritdoc />
-        public string ModuleId { get; }
+        private string EnvironmentModuleId { get; }
+
+        private string EnvironmentGateway { get; }
 
         /// <inheritdoc />
         public IRetryPolicy RetryPolicy { get; set; }
@@ -38,10 +42,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         /// <summary>
         /// Create sdk factory
         /// </summary>
-        /// <param name="config"></param>
         /// <param name="broker"></param>
         /// <param name="logger"></param>
-        public IoTSdkFactory(IModuleConfig config, IEventSourceBroker broker, ILogger logger) {
+        public IoTSdkFactory(IEventSourceBroker broker, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             if (broker != null) {
@@ -49,36 +52,77 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             }
 
             // The runtime injects this as an environment variable
-            var deviceId = Environment.GetEnvironmentVariable("IOTEDGE_DEVICEID");
-            var moduleId = Environment.GetEnvironmentVariable("IOTEDGE_MODULEID");
-            var ehubHost = Environment.GetEnvironmentVariable("IOTEDGE_GATEWAYHOSTNAME");
+            EnvironmentDeviceId = Environment.GetEnvironmentVariable("IOTEDGE_DEVICEID");
+            EnvironmentModuleId = Environment.GetEnvironmentVariable("IOTEDGE_MODULEID");
+            EnvironmentGateway = Environment.GetEnvironmentVariable("IOTEDGE_GATEWAYHOSTNAME");
+
+            _timeout = TimeSpan.FromMinutes(5);
+        }
+
+        /// <inheritdoc/>
+        public void Dispose() {
+            foreach(var client in _clients.Values) {
+                client.Dispose();
+            }
+
+            _logHook?.Dispose();
+        }
+
+        private string GetClientId(string deviceId, string moduleId) {
+            return deviceId + moduleId;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="deviceId"></param>
+        /// <param name="moduleId"></param>
+        /// <returns></returns>
+        public Task DisposeClient(string deviceId, string moduleId) {
+            var clientKey = GetClientId(deviceId, moduleId);
+
+            if (_clients.TryGetValue(clientKey, out var client)) {
+                IClient removed;
+                _clients.TryRemove(clientKey, out removed);
+                client.Dispose();
+            }
+
+            return Task.CompletedTask;
+        }
+
+        /// <inheritdoc/>
+        public async Task<IClient> CreateAsync(IModuleConfig config, string product, IProcessControl ctrl) {
+
+            IotHubConnectionStringBuilder csb = null;
+            string deviceId = EnvironmentDeviceId;
+            string moduleId = EnvironmentModuleId;
+            string gateway = EnvironmentGateway;
+            var bypassCertValidation = config?.BypassCertVerification ?? false;
+            TransportOption transport;
 
             try {
-                if (!string.IsNullOrEmpty(config.EdgeHubConnectionString)) {
-                    _cs = IotHubConnectionStringBuilder.Create(config.EdgeHubConnectionString);
+                if (!string.IsNullOrEmpty(config?.EdgeHubConnectionString)) {
+                    csb = IotHubConnectionStringBuilder.Create(config.EdgeHubConnectionString);
 
-                    if (string.IsNullOrEmpty(_cs.SharedAccessKey)) {
+                    if (string.IsNullOrEmpty(csb.SharedAccessKey)) {
                         throw new InvalidConfigurationException(
                             "Connection string is missing shared access key.");
                     }
-                    if (string.IsNullOrEmpty(_cs.DeviceId)) {
+                    if (string.IsNullOrEmpty(csb.DeviceId)) {
                         throw new InvalidConfigurationException(
                             "Connection string is missing device id.");
                     }
 
-                    deviceId = _cs.DeviceId;
-                    moduleId = _cs.ModuleId;
-                    ehubHost = _cs.GatewayHostName;
+                    deviceId = csb.DeviceId;
+                    moduleId = csb.ModuleId;
+                    gateway = csb.GatewayHostName;
                 }
             }
             catch (Exception e) {
                 _logger.Error(e, "Bad configuration value in EdgeHubConnectionString config.");
             }
 
-            ModuleId = moduleId;
-            DeviceId = deviceId;
-
-            if (string.IsNullOrEmpty(DeviceId)) {
+            if (string.IsNullOrEmpty(deviceId)) {
                 var ex = new InvalidConfigurationException(
                     "If you are running outside of an IoT Edge context or in EdgeHubDev mode, then the " +
                     "host configuration is incomplete and missing the EdgeHubConnectionString setting." +
@@ -89,482 +133,87 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 throw ex;
             }
 
-            _bypassCertValidation = config.BypassCertVerification;
-            if (!_bypassCertValidation) {
+            var clientKey = GetClientId(deviceId, moduleId);
+
+            if (_clients.ContainsKey(clientKey)) {
+                return _clients[clientKey];
+            }
+
+            IClient client = null;
+
+            if (!bypassCertValidation) {
                 var certPath = Environment.GetEnvironmentVariable("EdgeModuleCACertificateFile");
                 if (!string.IsNullOrWhiteSpace(certPath)) {
                     InstallCert(certPath);
                 }
             }
 
-            if (_bypassCertValidation) {
+            if (bypassCertValidation) {
                 // Running in debug mode - can only use mqtt over tcp
-                _transport = TransportOption.MqttOverTcp;
+                transport = TransportOption.MqttOverTcp;
             }
             else {
-                _transport = config.Transport;
+                transport = config.Transport;
             }
-            _timeout = TimeSpan.FromMinutes(5);
-        }
-
-        /// <inheritdoc/>
-        public void Dispose() {
-            _logHook?.Dispose();
-        }
-
-        /// <inheritdoc/>
-        public async Task<IClient> CreateAsync(string product, IProcessControl ctrl) {
 
             // Configure transport settings
             var transportSettings = new List<ITransportSettings>();
 
-            if ((_transport & TransportOption.MqttOverTcp) != 0) {
+            if ((transport & TransportOption.MqttOverTcp) != 0) {
                 var setting = new MqttTransportSettings(
                     TransportType.Mqtt_Tcp_Only);
-                if (_bypassCertValidation) {
+                if (config.BypassCertVerification) {
                     setting.RemoteCertificateValidationCallback =
                         (sender, certificate, chain, sslPolicyErrors) => true;
                 }
                 transportSettings.Add(setting);
             }
-            if ((_transport & TransportOption.MqttOverWebsocket) != 0) {
+            if ((transport & TransportOption.MqttOverWebsocket) != 0) {
                 transportSettings.Add(new MqttTransportSettings(
                     TransportType.Mqtt_WebSocket_Only));
             }
-            if ((_transport & TransportOption.AmqpOverTcp) != 0) {
+            if ((transport & TransportOption.AmqpOverTcp) != 0) {
                 transportSettings.Add(new AmqpTransportSettings(
                     TransportType.Amqp_Tcp_Only));
             }
-            if ((_transport & TransportOption.AmqpOverWebsocket) != 0) {
+            if ((transport & TransportOption.AmqpOverWebsocket) != 0) {
                 transportSettings.Add(new AmqpTransportSettings(
                     TransportType.Amqp_WebSocket_Only));
             }
             if (transportSettings.Count != 0) {
-                return await Try.Options(transportSettings
+                client = await Try.Options(transportSettings
                     .Select<ITransportSettings, Func<Task<IClient>>>(t =>
-                         () => CreateAdapterAsync(product, () => ctrl?.Reset(), t))
+                         () => CreateAdapterAsync(csb, deviceId, moduleId, product, () => ctrl?.Reset(), t))
                     .ToArray());
             }
-            return await CreateAdapterAsync(product, () => ctrl?.Reset());
+            client = await CreateAdapterAsync(csb, deviceId, moduleId, product, () => ctrl?.Reset());
+
+            _clients[clientKey] = client;
+            return client;
         }
 
         /// <summary>
-        /// Create client adapter
+        /// 
         /// </summary>
+        /// <param name="cs"></param>
+        /// <param name="deviceId"></param>
+        /// <param name="moduleId"></param>
         /// <param name="product"></param>
         /// <param name="onError"></param>
         /// <param name="transportSetting"></param>
         /// <returns></returns>
-        private Task<IClient> CreateAdapterAsync(string product, Action onError,
+        private Task<IClient> CreateAdapterAsync(IotHubConnectionStringBuilder cs, string deviceId, string moduleId, string product, Action onError,
             ITransportSettings transportSetting = null) {
-            if (string.IsNullOrEmpty(ModuleId)) {
-                if (_cs == null) {
+            if (string.IsNullOrEmpty(cs?.ModuleId)) {
+                if (cs == null) {
                     throw new InvalidConfigurationException(
                         "No connection string for device client specified.");
                 }
-                return DeviceClientAdapter.CreateAsync(product, _cs, DeviceId,
+                return DeviceClientAdapter.CreateAsync(product, cs, deviceId,
                     transportSetting, _timeout, RetryPolicy, onError, _logger);
             }
-            return ModuleClientAdapter.CreateAsync(product, _cs, DeviceId, ModuleId,
+            return ModuleClientAdapter.CreateAsync(product, cs, deviceId, moduleId,
                 transportSetting, _timeout, RetryPolicy, onError, _logger);
-        }
-
-        /// <summary>
-        /// Adapts module client to interface
-        /// </summary>
-        public sealed class ModuleClientAdapter : IClient {
-
-            /// <summary>
-            /// Whether the client is closed
-            /// </summary>
-            public bool IsClosed { get; internal set; }
-
-            /// <summary>
-            /// Create client
-            /// </summary>
-            /// <param name="client"></param>
-            internal ModuleClientAdapter(ModuleClient client) {
-                _client = client ??
-                    throw new ArgumentNullException(nameof(client));
-            }
-
-            /// <summary>
-            /// Factory
-            /// </summary>
-            /// <param name="product"></param>
-            /// <param name="cs"></param>
-            /// <param name="deviceId"></param>
-            /// <param name="moduleId"></param>
-            /// <param name="transportSetting"></param>
-            /// <param name="timeout"></param>
-            /// <param name="retry"></param>
-            /// <param name="onConnectionLost"></param>
-            /// <param name="logger"></param>
-            /// <returns></returns>
-            public static async Task<IClient> CreateAsync(string product,
-                IotHubConnectionStringBuilder cs, string deviceId, string moduleId,
-                ITransportSettings transportSetting,
-                TimeSpan timeout, IRetryPolicy retry, Action onConnectionLost,
-                ILogger logger) {
-
-                if (cs == null) {
-                    logger.Information("Running in iotedge context.");
-                }
-                else {
-                    logger.Information("Running outside iotedge context.");
-                }
-
-                var client = await CreateAsync(cs, transportSetting);
-                var adapter = new ModuleClientAdapter(client);
-
-                // Configure
-                client.OperationTimeoutInMilliseconds = (uint)timeout.TotalMilliseconds;
-                client.SetConnectionStatusChangesHandler((s, r) =>
-                    adapter.OnConnectionStatusChange(deviceId, moduleId, onConnectionLost,
-                        logger, s, r));
-                if (retry != null) {
-                    client.SetRetryPolicy(retry);
-                }
-                client.DiagnosticSamplingPercentage = 5;
-                client.ProductInfo = product;
-                await client.OpenAsync();
-                return adapter;
-            }
-
-            /// <inheritdoc />
-            public Task CloseAsync() {
-                _client.OperationTimeoutInMilliseconds = 3000;
-                _client.SetRetryPolicy(new NoRetry());
-                return IsClosed ? Task.CompletedTask : _client.CloseAsync();
-            }
-
-            /// <inheritdoc />
-            public Task SendEventAsync(Message message) {
-                return IsClosed ? Task.CompletedTask : _client.SendEventAsync(message);
-            }
-
-            /// <inheritdoc />
-            public Task SendEventBatchAsync(IEnumerable<Message> messages) {
-                return IsClosed ? Task.CompletedTask : _client.SendEventBatchAsync(messages);
-            }
-
-            /// <inheritdoc />
-            public Task SetMethodHandlerAsync(string methodName,
-                MethodCallback methodHandler, object userContext) {
-                return _client.SetMethodHandlerAsync(methodName, methodHandler, userContext);
-            }
-
-            /// <inheritdoc />
-            public Task SetMethodDefaultHandlerAsync(
-                MethodCallback methodHandler, object userContext) {
-                return _client.SetMethodDefaultHandlerAsync(methodHandler, userContext);
-            }
-
-            /// <inheritdoc />
-            public Task SetDesiredPropertyUpdateCallbackAsync(
-                DesiredPropertyUpdateCallback callback, object userContext) {
-                return _client.SetDesiredPropertyUpdateCallbackAsync(callback, userContext);
-            }
-
-            /// <inheritdoc />
-            public Task<Twin> GetTwinAsync() {
-                return _client.GetTwinAsync();
-            }
-
-            /// <inheritdoc />
-            public Task UpdateReportedPropertiesAsync(TwinCollection reportedProperties) {
-                return IsClosed ? Task.CompletedTask : _client.UpdateReportedPropertiesAsync(reportedProperties);
-            }
-
-            /// <inheritdoc />
-            public Task UploadToBlobAsync(string blobName, Stream source) {
-                throw new NotSupportedException("Module client does not support upload");
-            }
-
-            /// <inheritdoc />
-            public Task<MethodResponse> InvokeMethodAsync(string deviceId, string moduleId,
-                MethodRequest methodRequest, CancellationToken cancellationToken) {
-                return _client.InvokeMethodAsync(deviceId, moduleId, methodRequest, cancellationToken);
-            }
-
-            /// <inheritdoc />
-            public Task<MethodResponse> InvokeMethodAsync(string deviceId,
-                MethodRequest methodRequest, CancellationToken cancellationToken) {
-                return _client.InvokeMethodAsync(deviceId, methodRequest, cancellationToken);
-            }
-
-            /// <inheritdoc />
-            public Task SetStreamsDefaultHandlerAsync(StreamCallback streamHandler,
-                object userContext) {
-                throw new NotSupportedException("Module client does not support streams");
-            }
-
-            /// <inheritdoc />
-            public Task SetStreamHandlerAsync(string streamName, StreamCallback
-                streamHandler, object userContext) {
-                throw new NotSupportedException("Module client does not support streams");
-            }
-
-            /// <inheritdoc />
-            public Task<Stream> CreateStreamAsync(string streamName, string hostName,
-                ushort port, CancellationToken cancellationToken) {
-                throw new NotSupportedException("Module client does not support streams");
-            }
-
-            /// <inheritdoc />
-            public void Dispose() {
-                _client?.Dispose();
-            }
-
-            /// <summary>
-            /// Handle status change event
-            /// </summary>
-            /// <param name="deviceId"></param>
-            /// <param name="moduleId"></param>
-            /// <param name="onConnectionLost"></param>
-            /// <param name="logger"></param>
-            /// <param name="status"></param>
-            /// <param name="reason"></param>
-            private void OnConnectionStatusChange(string deviceId, string moduleId,
-                Action onConnectionLost, ILogger logger, ConnectionStatus status,
-                ConnectionStatusChangeReason reason) {
-
-                if (status == ConnectionStatus.Connected) {
-                    logger.Information("{counter}: Module {deviceId}_{moduleId} reconnected " +
-                        "due to {reason}.", _reconnectCounter, deviceId, moduleId, reason);
-                    _reconnectCounter++;
-                    return;
-                }
-                logger.Information("{counter}: Module {deviceId}_{moduleId} disconnected " +
-                    "due to {reason} - now {status}...", _reconnectCounter, deviceId, moduleId,
-                        reason, status);
-                if (IsClosed) {
-                    // Already closed - nothing to do
-                    return;
-                }
-                if (status == ConnectionStatus.Disconnected ||
-                    status == ConnectionStatus.Disabled) {
-                    // Force
-                    IsClosed = true;
-                    onConnectionLost?.Invoke();
-                }
-            }
-
-            /// <summary>
-            /// Helper to create module client
-            /// </summary>
-            /// <param name="cs"></param>
-            /// <param name="transportSetting"></param>
-            /// <returns></returns>
-            private static async Task<ModuleClient> CreateAsync(IotHubConnectionStringBuilder cs,
-                ITransportSettings transportSetting) {
-                if (transportSetting == null) {
-                    if (cs == null) {
-                        return await ModuleClient.CreateFromEnvironmentAsync();
-                    }
-                    return ModuleClient.CreateFromConnectionString(cs.ToString());
-                }
-                var ts = new ITransportSettings[] { transportSetting };
-                if (cs == null) {
-                    return await ModuleClient.CreateFromEnvironmentAsync(ts);
-                }
-                return ModuleClient.CreateFromConnectionString(cs.ToString(), ts);
-            }
-
-            private readonly ModuleClient _client;
-            private int _reconnectCounter;
-        }
-
-        /// <summary>
-        /// Adapts device client to interface
-        /// </summary>
-        public sealed class DeviceClientAdapter : IClient {
-
-            /// <summary>
-            /// Whether the client is closed
-            /// </summary>
-            public bool IsClosed { get; internal set; }
-
-            /// <summary>
-            /// Create client
-            /// </summary>
-            /// <param name="client"></param>
-            internal DeviceClientAdapter(DeviceClient client) {
-                _client = client ??
-                    throw new ArgumentNullException(nameof(client));
-            }
-
-            /// <summary>
-            /// Factory
-            /// </summary>
-            /// <param name="product"></param>
-            /// <param name="cs"></param>
-            /// <param name="deviceId"></param>
-            /// <param name="transportSetting"></param>
-            /// <param name="timeout"></param>
-            /// <param name="retry"></param>
-            /// <param name="onConnectionLost"></param>
-            /// <param name="logger"></param>
-            /// <returns></returns>
-            public static async Task<IClient> CreateAsync(string product,
-                IotHubConnectionStringBuilder cs, string deviceId,
-                ITransportSettings transportSetting, TimeSpan timeout,
-                IRetryPolicy retry, Action onConnectionLost, ILogger logger) {
-                var client = Create(cs, transportSetting);
-                var adapter = new DeviceClientAdapter(client);
-
-                // Configure
-                client.OperationTimeoutInMilliseconds = (uint)timeout.TotalMilliseconds;
-                client.SetConnectionStatusChangesHandler((s, r) =>
-                    adapter.OnConnectionStatusChange(deviceId, onConnectionLost, logger, s, r));
-                if (retry != null) {
-                    client.SetRetryPolicy(retry);
-                }
-                client.DiagnosticSamplingPercentage = 5;
-                client.ProductInfo = product;
-
-                await client.OpenAsync();
-                return adapter;
-            }
-
-            /// <inheritdoc />
-            public Task CloseAsync() {
-                _client.OperationTimeoutInMilliseconds = 3000;
-                _client.SetRetryPolicy(new NoRetry());
-                return IsClosed ? Task.CompletedTask : _client.CloseAsync();
-            }
-
-            /// <inheritdoc />
-            public Task SendEventAsync(Message message) {
-                return IsClosed ? Task.CompletedTask : _client.SendEventAsync(message);
-            }
-
-            /// <inheritdoc />
-            public Task SendEventBatchAsync(IEnumerable<Message> messages) {
-                return IsClosed ? Task.CompletedTask : _client.SendEventBatchAsync(messages);
-            }
-
-            /// <inheritdoc />
-            public Task SetMethodHandlerAsync(string methodName,
-                MethodCallback methodHandler, object userContext) {
-                return _client.SetMethodHandlerAsync(methodName, methodHandler, userContext);
-            }
-
-            /// <inheritdoc />
-            public Task SetMethodDefaultHandlerAsync(
-                MethodCallback methodHandler, object userContext) {
-                return _client.SetMethodDefaultHandlerAsync(methodHandler, userContext);
-            }
-
-            /// <inheritdoc />
-            public Task SetDesiredPropertyUpdateCallbackAsync(
-                DesiredPropertyUpdateCallback callback, object userContext) {
-                return _client.SetDesiredPropertyUpdateCallbackAsync(callback, userContext);
-            }
-
-            /// <inheritdoc />
-            public Task<Twin> GetTwinAsync() {
-                return _client.GetTwinAsync();
-            }
-
-            /// <inheritdoc />
-            public Task UpdateReportedPropertiesAsync(TwinCollection reportedProperties) {
-                return IsClosed ? Task.CompletedTask : _client.UpdateReportedPropertiesAsync(reportedProperties);
-            }
-
-            /// <inheritdoc />
-            public Task UploadToBlobAsync(string blobName, Stream source) {
-                return IsClosed ? Task.CompletedTask : _client.UploadToBlobAsync(blobName, source);
-            }
-
-            /// <inheritdoc />
-            public Task<MethodResponse> InvokeMethodAsync(string deviceId, string moduleId,
-                MethodRequest methodRequest, CancellationToken cancellationToken) {
-                throw new NotSupportedException("Device client does not support methods");
-            }
-
-            /// <inheritdoc />
-            public Task<MethodResponse> InvokeMethodAsync(string deviceId,
-                MethodRequest methodRequest, CancellationToken cancellationToken) {
-                throw new NotSupportedException("Device client does not support methods");
-            }
-
-            /// <inheritdoc />
-            public Task SetStreamsDefaultHandlerAsync(StreamCallback streamHandler,
-                object userContext) {
-                throw new NotSupportedException("Device client does not support streams");
-            }
-
-            /// <inheritdoc />
-            public Task SetStreamHandlerAsync(string streamName, StreamCallback
-                streamHandler, object userContext) {
-                throw new NotSupportedException("Device client does not support streams");
-            }
-
-            /// <inheritdoc />
-            public Task<Stream> CreateStreamAsync(string streamName, string hostName,
-                ushort port, CancellationToken cancellationToken) {
-                throw new NotSupportedException("Device client does not support streams");
-            }
-
-            /// <inheritdoc />
-            public void Dispose() {
-                _client?.Dispose();
-            }
-
-            /// <summary>
-            /// Handle status change event
-            /// </summary>
-            /// <param name="deviceId"></param>
-            /// <param name="onConnectionLost"></param>
-            /// <param name="logger"></param>
-            /// <param name="status"></param>
-            /// <param name="reason"></param>
-            private void OnConnectionStatusChange(string deviceId,
-                Action onConnectionLost, ILogger logger, ConnectionStatus status,
-                ConnectionStatusChangeReason reason) {
-
-                if (status == ConnectionStatus.Connected) {
-                    logger.Information("{counter}: Device {deviceId} reconnected " +
-                        "due to {reason}.", _reconnectCounter, deviceId, reason);
-                    _reconnectCounter++;
-                    return;
-                }
-                logger.Information("{counter}: Device {deviceId} disconnected " +
-                    "due to {reason} - now {status}...", _reconnectCounter, deviceId,
-                        reason, status);
-                if (IsClosed) {
-                    // Already closed - nothing to do
-                    return;
-                }
-                if (status == ConnectionStatus.Disconnected ||
-                    status == ConnectionStatus.Disabled) {
-                    // Force
-                    IsClosed = true;
-                    onConnectionLost?.Invoke();
-                }
-            }
-
-            /// <summary>
-            /// Helper to create device client
-            /// </summary>
-            /// <param name="cs"></param>
-            /// <param name="transportSetting"></param>
-            /// <returns></returns>
-            private static DeviceClient Create(IotHubConnectionStringBuilder cs,
-                ITransportSettings transportSetting) {
-                if (cs == null) {
-                    throw new ArgumentNullException(nameof(cs));
-                }
-                if (transportSetting != null) {
-                    return DeviceClient.CreateFromConnectionString(cs.ToString(),
-                        new ITransportSettings[] { transportSetting });
-                }
-                return DeviceClient.CreateFromConnectionString(cs.ToString());
-            }
-
-            private readonly DeviceClient _client;
-            private int _reconnectCounter;
         }
 
         /// <summary>
@@ -616,10 +265,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         }
 
         private readonly TimeSpan _timeout;
-        private readonly TransportOption _transport;
-        private readonly IotHubConnectionStringBuilder _cs;
         private readonly ILogger _logger;
         private readonly IDisposable _logHook;
-        private readonly bool _bypassCertValidation;
     }
 }

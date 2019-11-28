@@ -15,8 +15,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         /// Create client
         /// </summary>
         /// <returns></returns>
-        public static Task<IClient> CreateAsync(this IClientFactory factory) {
-            return factory.CreateAsync("Module");
+        public static Task<IClient> CreateAsync(this IClientFactory factory, IModuleConfig moduleConfig) {
+            return factory.CreateAsync(moduleConfig, "Module");
         }
     }
 }

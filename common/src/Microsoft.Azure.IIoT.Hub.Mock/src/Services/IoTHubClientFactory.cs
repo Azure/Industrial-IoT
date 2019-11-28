@@ -49,12 +49,22 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
         }
 
         /// <inheritdoc/>
-        public Task<IClient> CreateAsync(string product, IProcessControl ctrl) {
-            var client = new IoTHubClient(ctrl);
+        public Task<IClient> CreateAsync(IModuleConfig config, string product, IProcessControl ctrl) {
+            var client = new IoTHubClient(ctrl, null, null);
             var connection = _hub.Connect(DeviceId, ModuleId, client);
             client.Connection = connection ??
                 throw new CommunicationException("Failed to connect to fake hub");
             return Task.FromResult<IClient>(client);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="deviceId"></param>
+        /// <param name="moduleId"></param>
+        /// <returns></returns>
+        public Task DisposeClient(string deviceId, string moduleId) {
+            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -71,13 +81,28 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
             /// Connection to iot hub
             /// </summary>
             public IIoTHubConnection Connection { get; internal set; }
+            
+            /// <summary>
+            /// 
+            /// </summary>
+            public string DeviceId { get; }
+
+
+            /// <summary>
+            /// 
+            /// </summary>
+            public string ModuleId { get; }
 
             /// <summary>
             /// Create client
             /// </summary>
             /// <param name="ctrl"></param>
-            internal IoTHubClient(IProcessControl ctrl) {
+            /// <param name="deviceId"></param>
+            /// <param name="moduleId"></param>
+            internal IoTHubClient(IProcessControl ctrl, string deviceId, string moduleId) {
                 _ctrl = ctrl;
+                DeviceId = deviceId;
+                ModuleId = moduleId;
             }
 
             /// <inheritdoc />

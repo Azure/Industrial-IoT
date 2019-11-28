@@ -34,13 +34,13 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         public IReadOnlyDictionary<string, dynamic> Reported => _reported;
 
         /// <inheritdoc/>
-        public string DeviceId { get; private set; }
-
-        /// <inheritdoc/>
-        public string ModuleId { get; private set; }
-
-        /// <inheritdoc/>
         public string SiteId { get; private set; }
+
+        /// <inheritdoc/>
+        public string DeviceId => _client?.DeviceId;
+
+        /// <inheritdoc/>
+        public string ModuleId => _client?.ModuleId;
 
         /// <summary>
         /// Create module host
@@ -88,8 +88,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 finally {
                     _client = null;
                     _reported?.Clear();
-                    DeviceId = null;
-                    ModuleId = null;
                     SiteId = null;
                     _lock.Release();
                 }
@@ -105,9 +103,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     if (_client == null) {
                         // Create client
                         _logger.Debug("Starting Module Host...");
-                        _client = await _factory.CreateAsync(serviceInfo, reset);
-                        DeviceId = _factory.DeviceId;
-                        ModuleId = _factory.ModuleId;
+                        _client = await _factory.CreateAsync(null, serviceInfo, reset);
 
                         // Register callback to be called when a method request is received
                         await _client.SetMethodDefaultHandlerAsync((request, _) =>
@@ -141,8 +137,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     _client?.Dispose();
                     _client = null;
                     _reported?.Clear();
-                    DeviceId = null;
-                    ModuleId = null;
                     SiteId = null;
                     throw ex;
                 }
@@ -181,7 +175,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     var messages = batch
                         .Select(ev =>
                              CreateMessage(ev, contentEncoding, contentType, eventSchema,
-                                DeviceId, ModuleId))
+                                _client.DeviceId, _client.ModuleId))
                         .ToList();
                     try {
                         await _client.SendEventBatchAsync(messages);
@@ -203,7 +197,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 await _lock.WaitAsync();
                 if (_client != null) {
                     using (var msg = CreateMessage(data, contentEncoding, contentType,
-                        eventSchema, DeviceId, ModuleId)) {
+                        eventSchema, _client.DeviceId, _client.ModuleId)) {
                         await _client.SendEventAsync(msg);
                     }
                 }
@@ -333,12 +327,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             // Process initial setting snapshot from twin
             _twin = await _client.GetTwinAsync();
 
-            if (!string.IsNullOrEmpty(_twin.DeviceId)) {
-                DeviceId = _twin.DeviceId;
-            }
-            if (!string.IsNullOrEmpty(_twin.ModuleId)) {
-                ModuleId = _twin.ModuleId;
-            }
             _logger.Information("Initialize device twin for {deviceId} - {moduleId}",
                 DeviceId, ModuleId ?? "standalone");
 

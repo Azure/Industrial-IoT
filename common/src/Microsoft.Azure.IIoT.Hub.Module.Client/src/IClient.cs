@@ -16,6 +16,15 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
     /// A hub client
     /// </summary>
     public interface IClient : IDisposable {
+        /// <summary>
+        /// 
+        /// </summary>
+        string DeviceId { get; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        string ModuleId { get; }
 
         /// <summary>
         /// Sends an event to device hub

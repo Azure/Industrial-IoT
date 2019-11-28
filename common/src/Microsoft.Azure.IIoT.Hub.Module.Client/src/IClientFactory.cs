@@ -13,16 +13,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
     public interface IClientFactory {
 
         /// <summary>
-        /// Device id
-        /// </summary>
-        string DeviceId { get; }
-
-        /// <summary>
-        /// Module id
-        /// </summary>
-        string ModuleId { get; }
-
-        /// <summary>
         /// Set retry policy
         /// </summary>
         IRetryPolicy RetryPolicy { get; set; }
@@ -30,10 +20,19 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         /// <summary>
         /// Create client
         /// </summary>
+        /// <param name="config"></param>
         /// <param name="product"></param>
         /// <param name="onError"></param>
         /// <returns></returns>
-        Task<IClient> CreateAsync(string product,
+        Task<IClient> CreateAsync(IModuleConfig config, string product,
             IProcessControl onError = null);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="deviceId"></param>
+        /// <param name="moduleId"></param>
+        /// <returns></returns>
+        Task DisposeClient(string deviceId, string moduleId);
     }
 }

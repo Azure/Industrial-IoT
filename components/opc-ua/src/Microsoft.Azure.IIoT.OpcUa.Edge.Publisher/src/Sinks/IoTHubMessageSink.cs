@@ -25,10 +25,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Sinks {
         /// <summary>
         /// Create IoT hub message sink
         /// </summary>
+        /// <param name="moduleConfig"></param>
         /// <param name="clientFactory"></param>
         /// <param name="logger"></param>
-        public IoTHubMessageSink(IClientFactory clientFactory, ILogger logger) {
-            _client = clientFactory.CreateAsync().Result;
+        public IoTHubMessageSink(IModuleConfig moduleConfig, IClientFactory clientFactory, ILogger logger) {
+            _client = clientFactory.CreateAsync(moduleConfig).Result;
             // TODO : Use higher level abstraction in module framework to send
             _logger = logger;
         }
