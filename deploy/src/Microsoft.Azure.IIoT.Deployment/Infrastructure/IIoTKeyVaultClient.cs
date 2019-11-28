@@ -100,7 +100,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                 // necessary if we intend to export private key.
                 var x509Certificate2 = new X509Certificate2(
                     certPFX,
-                    (string)null,
+                    (string) null,
                     X509KeyStorageFlags.Exportable
                 );
 
@@ -117,6 +117,8 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             CancellationToken cancellationToken = default
         ) {
             try {
+                tags ??= new Dictionary<string, string>();
+
                 Log.Information($"Adding certificate to Azure KeyVault: {certificateName} ...");
 
                 // ToDo: Add support of PEM certificate creation: CertificateContentType.Pem
