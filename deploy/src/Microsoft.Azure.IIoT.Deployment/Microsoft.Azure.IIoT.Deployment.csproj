@@ -41,6 +41,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Resources\IIoTDeploymentTags.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>IIoTDeploymentTags.resx</DependentUpon>
+    </Compile>
     <Compile Update="Resources\IIoTK8SResources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -49,6 +54,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Update="Resources\IIoTDeploymentTags.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>IIoTDeploymentTags.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
     <EmbeddedResource Update="Resources\IIoTK8SResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>IIoTK8SResources.Designer.cs</LastGenOutput>
