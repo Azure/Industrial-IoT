@@ -8,8 +8,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Net.Http;
-    using System.Net.Http.Headers;
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Graph;
@@ -19,7 +17,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
     class MicrosoftGraphServiceClient {
 
         private readonly Guid _tenantGuid;
-        private readonly ITokenProvider _microsoftGraphTokenProvider;
         private readonly GraphServiceClient _graphServiceClient;
         private User _me;
 
@@ -29,7 +26,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             CancellationToken cancellationToken = default
         ) {
             _tenantGuid = tenantGuid;
-            _microsoftGraphTokenProvider = microsoftGraphTokenProvider;
 
             var delegateAuthenticationProvider = new DelegateAuthenticationProvider(
                 async (requestMessage) => {
@@ -204,6 +200,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                 cancellationToken
             );
 
+            // Add app role assignment to me as Approver, Writer and Administrator.
             var me = Me(cancellationToken);
 
             var approverAppRoleAssignmentRequest = new AppRoleAssignment {
@@ -226,28 +223,42 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                 AppRoleId = serviceApplicationWriterRoleIdGuid
             };
 
-            var adminAppRoleAssignmentRequest = new AppRoleAssignment {
+            var administratorAppRoleAssignmentRequest = new AppRoleAssignment {
                 //PrincipalDisplayName = "",
                 PrincipalType = "User",
                 PrincipalId = new Guid(me.Id),
                 ResourceId = new Guid(serviceApplicationSP.Id),
-                ResourceDisplayName = "Admin",
+                ResourceDisplayName = "Administrator",
                 Id = serviceApplicationAdministratorRoleIdGuid.ToString(),
                 AppRoleId = serviceApplicationAdministratorRoleIdGuid
             };
 
-            //// ToDo: Use AddAsync() instead of the workaround bellow
-            //// when AddAsync() is added.
-            //var appRoleAssignment = _graphServiceClient
-            //    .ServicePrincipals[serviceApplicationSP.Id]
-            //    .AppRoleAssignments
-            //    .Request()
-            //    .AddAsync(appRoleAssignmentRequest);
+            await _graphServiceClient
+                .ServicePrincipals[serviceApplicationSP.Id]
+                .AppRoleAssignments
+                .Request()
+                .AddAsync(
+                    approverAppRoleAssignmentRequest,
+                    cancellationToken
+                );
 
-            // Workaround using HttpClient
-            await AddAppRoleAssignmentAsync(serviceApplicationSP, approverAppRoleAssignmentRequest);
-            await AddAppRoleAssignmentAsync(serviceApplicationSP, writerAppRoleAssignmentRequest);
-            await AddAppRoleAssignmentAsync(serviceApplicationSP, adminAppRoleAssignmentRequest);
+            await _graphServiceClient
+                .ServicePrincipals[serviceApplicationSP.Id]
+                .AppRoleAssignments
+                .Request()
+                .AddAsync(
+                    writerAppRoleAssignmentRequest,
+                    cancellationToken
+                );
+
+            await _graphServiceClient
+                .ServicePrincipals[serviceApplicationSP.Id]
+                .AppRoleAssignments
+                .Request()
+                .AddAsync(
+                    administratorAppRoleAssignmentRequest,
+                    cancellationToken
+                );
 
             return serviceApplication;
         }
@@ -504,9 +515,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                         cancellationToken
                     );
 
-                // As of Microsoft.Graph.Beta version 0.8.0-preview, UpdateAsync(...)
-                // returns null and not updated application. Thus we will have to get
-                // the application after update and return it.
+                // UpdateAsync(...) is a wrapper around HTTP PATCH method and
+                // is supposed to return null, despite its documentation. So we
+                // will have to get updated application definition to return it.
                 var updatedServiceApplication = await _graphServiceClient
                     .Applications[serviceApplication.Id]
                     .Request()
@@ -546,9 +557,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                         cancellationToken
                     );
 
-                // As of Microsoft.Graph.Beta version 0.8.0-preview, UpdateAsync(...)
-                // returns null and not updated application. Thus we will have to get
-                // the application after update and return it.
+                // UpdateAsync(...) is a wrapper around HTTP PATCH method and
+                // is supposed to return null, despite its documentation. So we
+                // will have to get updated application definition to return it.
                 var updatedApplication = await _graphServiceClient
                     .Applications[application.Id]
                     .Request()
@@ -561,29 +572,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                 throw;
             }
         }
-
-        //public async Task<Application> GetApplicationByAppIdAsync(
-        //    string AppId,
-        //    CancellationToken cancellationToken = default
-        //) {
-        //    throw new Exception("Currently Application filterring does not work on AppId");
-
-        //    //var appIdFilterClause = $"AppId eq '{AppId}'";
-
-        //    //var applications = await _graphServiceClient
-        //    //    .Applications
-        //    //    .Request()
-        //    //    .Filter(appIdFilterClause)
-        //    //    .GetAsync(cancellationToken);
-
-        //    //if (applications.Count != 1) {
-        //    //    throw new Exception($"Could not find Application with AppId='{AppId}'");
-        //    //}
-
-        //    //var application = applications.First();
-
-        //    //return application;
-        //}
 
         /// <summary>
         /// Get ServicePrincipal by AppId of the application.
@@ -743,36 +731,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                     clientApplicationOAuth2PermissionGrantUserReadRequest,
                     cancellationToken
                 );
-        }
-
-        public async Task AddAppRoleAssignmentAsync(
-            ServicePrincipal servicePrincipal,
-            AppRoleAssignment appRoleAssignment,
-            CancellationToken cancellationToken = default
-        ) {
-            const string ROLE_ASSIGNMENT_FORMATTER = "https://graph.microsoft.com/beta/servicePrincipals/{0}/appRoleAssignments";
-            var url = string.Format(ROLE_ASSIGNMENT_FORMATTER, servicePrincipal.Id);
-
-            using (var client = new HttpClient()) {
-                client.DefaultRequestHeaders.Authorization = await _microsoftGraphTokenProvider
-                    .GetAuthenticationHeaderAsync(cancellationToken);
-
-                var content = new StringContent(
-                    Newtonsoft.Json.JsonConvert.SerializeObject(appRoleAssignment),
-                    System.Text.Encoding.UTF8,
-                    "application/json"
-                );
-
-                content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-                var response = await client.PostAsync(url, content);
-
-                if (response.IsSuccessStatusCode) {
-                    return;
-                }
-                else {
-                    throw new HttpRequestException(response.ReasonPhrase);
-                }
-            }
         }
 
         private static byte[] ToBase64Bytes(string message) {
