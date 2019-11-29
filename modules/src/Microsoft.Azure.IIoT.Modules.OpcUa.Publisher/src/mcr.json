@@ -1,4 +1,3 @@
 {
-    "name": "iotedge/opc-publisher",
-    "workdir": "appdata"
+    "name": "iotedge/opc-publisher"
 }
