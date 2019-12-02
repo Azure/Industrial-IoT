@@ -20,11 +20,12 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
     using System.Diagnostics.Tracing;
     using System.Runtime.CompilerServices;
     using System.Collections.Concurrent;
+    using DotNetty.Codecs;
 
     /// <summary>
     /// Injectable factory that creates clients from device sdk
     /// </summary>
-    public sealed partial class IoTSdkFactory : IClientFactory, IDisposable {
+    public sealed class IoTSdkFactory : IClientFactory, IDisposable {
 
         private readonly ConcurrentDictionary<string, IClient> _clients = new ConcurrentDictionary<string, IClient>();
 
@@ -35,6 +36,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         private string EnvironmentModuleId { get; }
 
         private string EnvironmentGateway { get; }
+
+        private string EnvironmentConnectionString { get; }
 
         /// <inheritdoc />
         public IRetryPolicy RetryPolicy { get; set; }
@@ -55,6 +58,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             EnvironmentDeviceId = Environment.GetEnvironmentVariable("IOTEDGE_DEVICEID");
             EnvironmentModuleId = Environment.GetEnvironmentVariable("IOTEDGE_MODULEID");
             EnvironmentGateway = Environment.GetEnvironmentVariable("IOTEDGE_GATEWAYHOSTNAME");
+            EnvironmentConnectionString = Environment.GetEnvironmentVariable("EdgeHubConnectionString");
 
             _timeout = TimeSpan.FromMinutes(5);
         }
@@ -75,13 +79,12 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="deviceId"></param>
-        /// <param name="moduleId"></param>
+        /// <param name="client"></param>
         /// <returns></returns>
-        public Task DisposeClient(string deviceId, string moduleId) {
-            var clientKey = GetClientId(deviceId, moduleId);
+        public Task DisposeClient(IClient client) {
+            var clientKey = GetClientId(client.DeviceId, client.ModuleId);
 
-            if (_clients.TryGetValue(clientKey, out var client)) {
+            if (_clients.TryGetValue(clientKey, out client)) {
                 IClient removed;
                 _clients.TryRemove(clientKey, out removed);
                 client.Dispose();
@@ -92,7 +95,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
 
         /// <inheritdoc/>
         public async Task<IClient> CreateAsync(IModuleConfig config, string product, IProcessControl ctrl) {
-
             IotHubConnectionStringBuilder csb = null;
             string deviceId = EnvironmentDeviceId;
             string moduleId = EnvironmentModuleId;
@@ -101,9 +103,15 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             TransportOption transport;
 
             try {
+                if (!string.IsNullOrWhiteSpace(EnvironmentConnectionString)) {
+                    csb = IotHubConnectionStringBuilder.Create(EnvironmentConnectionString);
+                }
+
                 if (!string.IsNullOrEmpty(config?.EdgeHubConnectionString)) {
                     csb = IotHubConnectionStringBuilder.Create(config.EdgeHubConnectionString);
+                }
 
+                if (csb != null) {
                     if (string.IsNullOrEmpty(csb.SharedAccessKey)) {
                         throw new InvalidConfigurationException(
                             "Connection string is missing shared access key.");
@@ -186,7 +194,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                          () => CreateAdapterAsync(csb, deviceId, moduleId, product, () => ctrl?.Reset(), t))
                     .ToArray());
             }
-            client = await CreateAdapterAsync(csb, deviceId, moduleId, product, () => ctrl?.Reset());
+            else {
+                client = await CreateAdapterAsync(csb, deviceId, moduleId, product, () => ctrl?.Reset());
+            }
 
             _clients[clientKey] = client;
             return client;

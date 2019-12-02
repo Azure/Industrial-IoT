@@ -30,9 +30,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="deviceId"></param>
-        /// <param name="moduleId"></param>
+        /// <param name="client"></param>
         /// <returns></returns>
-        Task DisposeClient(string deviceId, string moduleId);
+        Task DisposeClient(IClient client);
     }
 }

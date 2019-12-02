@@ -49,9 +49,11 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// <param name="settings"></param>
         /// <param name="logger"></param>
         /// <param name="router"></param>
+        /// <param name="moduleConfig"></param>
         public ModuleHost(IMethodRouter router, ISettingsRouter settings,
-            IClientFactory factory, ILogger logger) {
+            IClientFactory factory, ILogger logger, IModuleConfig moduleConfig) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _moduleConfig = moduleConfig;
             _factory = factory ?? throw new ArgumentNullException(nameof(factory));
             _router = router ?? throw new ArgumentNullException(nameof(router));
             _settings = settings ?? throw new ArgumentNullException(nameof(settings));
@@ -103,7 +105,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     if (_client == null) {
                         // Create client
                         _logger.Debug("Starting Module Host...");
-                        _client = await _factory.CreateAsync(null, serviceInfo, reset);
+                        _client = await _factory.CreateAsync(_moduleConfig, serviceInfo, reset);
 
                         // Register callback to be called when a method request is received
                         await _client.SetMethodDefaultHandlerAsync((request, _) =>
@@ -467,6 +469,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         private readonly IMethodRouter _router;
         private readonly ISettingsRouter _settings;
         private readonly ILogger _logger;
+        private readonly IModuleConfig _moduleConfig;
         private readonly IClientFactory _factory;
         private readonly SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
         private readonly Dictionary<string, dynamic> _reported =

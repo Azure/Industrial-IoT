@@ -60,10 +60,9 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="deviceId"></param>
-        /// <param name="moduleId"></param>
+        /// <param name="client"></param>
         /// <returns></returns>
-        public Task DisposeClient(string deviceId, string moduleId) {
+        public Task DisposeClient(IClient client) {
             throw new NotImplementedException();
         }
 

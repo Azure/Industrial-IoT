@@ -50,10 +50,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         public void Dispose() {
             // Cleanup remaining subscriptions
             var subscriptions = _subscriptions.Values.ToList();
+
             _subscriptions.Clear();
             subscriptions.ForEach(s => Try.Op(() => s.Dispose()));
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="subscription"></param>
+        /// <returns></returns>
+        public Task DisposeSubscription(ISubscription subscription) {
+            subscription.Dispose();
+            _subscriptions.TryRemove(subscription.Id, out var removed);
+            return Task.CompletedTask;
+        }
 
         // TODO : Timer to lazily invalidate subscriptions after a while
 

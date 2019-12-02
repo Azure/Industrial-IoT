@@ -18,7 +18,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Triggering {
     /// <summary>
     /// Monitored item message trigger
     /// </summary>
-    public class MonitoredItemMessageTrigger : IMessageTrigger {
+    public class MonitoredItemMessageTrigger : IMessageTrigger, IDisposable {
 
         /// <inheritdoc/>
         public string Id => Guid.NewGuid().ToString();
@@ -57,7 +57,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Triggering {
 
             _subscriptions.ForEach(sc => {
                 sc.OnSubscriptionMessage -= SubscriptionClient_MessageReceived;
-                sc.Dispose(); // TODO
+                _subscriptionManager.DisposeSubscription(sc);
             });
             _subscriptions.Clear();
         }
@@ -73,6 +73,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Triggering {
                     "This trigger does only support MonitoredItemSample messages.");
             }
             MessageReceived?.Invoke(this, e);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void Dispose() {
+            
         }
 
         private readonly List<ISubscription> _subscriptions;

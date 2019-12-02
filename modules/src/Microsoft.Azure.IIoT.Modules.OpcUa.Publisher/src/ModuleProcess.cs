@@ -158,6 +158,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                 var legacyCommandLineModel = legacyCliOptions.ToLegacyCommandLineModel();
                 var engineConfiguration = new PublisherEngineConfig {BatchSize = 1, DiagnosticsInterval = legacyCommandLineModel.DiagnosticsInterval};
                 var agentConfigProvider = new AgentConfigProvider(legacyCliOptions.ToAgentConfigModel());
+                //var moduleConfig = new ModuleCon
 
                 builder.RegisterInstance(legacyCommandLineModel);
                 builder.RegisterInstance(jobOrchestratorConfig).AsImplementedInterfaces();

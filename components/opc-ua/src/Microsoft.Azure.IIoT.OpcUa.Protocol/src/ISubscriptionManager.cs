@@ -24,5 +24,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <returns></returns>
         Task<ISubscription> GetOrCreateSubscriptionAsync(
             SubscriptionInfoModel subscriptionModel);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="subscription"></param>
+        /// <returns></returns>
+        Task DisposeSubscription(ISubscription subscription);
     }
 }

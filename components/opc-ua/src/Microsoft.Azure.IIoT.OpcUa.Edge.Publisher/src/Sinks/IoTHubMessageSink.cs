@@ -30,14 +30,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Sinks {
         /// <param name="logger"></param>
         public IoTHubMessageSink(IModuleConfig moduleConfig, IClientFactory clientFactory, ILogger logger) {
             _client = clientFactory.CreateAsync(moduleConfig).Result;
+            _clientFactory = clientFactory;
             // TODO : Use higher level abstraction in module framework to send
             _logger = logger;
         }
 
         /// <inheritdoc/>
         public void Dispose() {
-            // TODO : Use higher level abstraction in module framework to send
-            _client.Dispose();
+            _clientFactory.DisposeClient(_client);
         }
 
         /// <inheritdoc/>
@@ -98,6 +98,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Sinks {
 
         private const long kMessageCounterResetThreshold = long.MaxValue - 1000;
         private readonly IClient _client;
+        private readonly IClientFactory _clientFactory;
         private readonly ILogger _logger;
     }
 }
