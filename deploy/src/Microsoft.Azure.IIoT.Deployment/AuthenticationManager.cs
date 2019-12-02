@@ -18,7 +18,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
     class AuthenticationManager {
 
         // ClientId of AzureIndustrialIoTIAI Application
-        public const string AzureIndustrialIoTIAIClientID = "fb2ca262-60d8-4167-ac33-1998d6d5c50b";
+        public const string AzureIndustrialIoTDeploymentClientID = "fb2ca262-60d8-4167-ac33-1998d6d5c50b";
 
         public static readonly string[] MicrosoftGraphIAIScopes = new string[] {
             "https://graph.microsoft.com/Directory.AccessAsUser.All"
@@ -47,7 +47,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
             var azureCloudInstance = ToAzureCloudInstance(azureEnvironment);
 
             _publicClientApplication = PublicClientApplicationBuilder
-                .Create(AzureIndustrialIoTIAIClientID)
+                .Create(AzureIndustrialIoTDeploymentClientID)
                 .WithAuthority(azureCloudInstance, tenant)
                 //.WithAuthority(azureCloudInstance, AadAuthorityAudience.AzureAdMultipleOrgs)
                 .WithDefaultRedirectUri()

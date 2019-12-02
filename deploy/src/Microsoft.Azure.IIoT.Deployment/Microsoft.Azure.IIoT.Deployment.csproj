@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -39,6 +39,8 @@
     <PackageReference Include="KubernetesClient" Version="1.6.4" />
 
     <PackageReference Include="System.Private.Uri" Version="4.3.2" />
+
+    <PackageReference Include="CommandLineParser" Version="2.6.0" />
   </ItemGroup>
 
   <ItemGroup>

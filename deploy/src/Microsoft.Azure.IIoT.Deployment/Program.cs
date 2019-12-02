@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Deployment {
 
+    using CommandLine;
     using Serilog;
 
     using System;
@@ -15,19 +16,39 @@ namespace Microsoft.Azure.IIoT.Deployment {
         public const int SUCCESS = 0;
         public const int ERROR = 1;
 
-        static int Main(/*string[] args*/) {
+        static int Main(string[] args) {
+
+            return Parser.Default.ParseArguments<Cli.InitOptions, Cli.DeployOptions>(args)
+                .MapResult(
+                    (Cli.InitOptions options) => Init(options),
+                    (Cli.DeployOptions options) => Run(options),
+                    errors => ERROR
+                );
+        }
+
+        static void SetupLogger() {
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Information)
+                .Enrich.FromLogContext()
+                .WriteTo.Console()
+                .CreateLogger();
+        }
+
+        static int Init(Cli.InitOptions commandLineOptions) {
+            //SetupLogger();
+            return SUCCESS;
+        }
+
+        static int Run(Cli.DeployOptions commandLineOptions) {
+            //return SUCCESS;
 
             var returnError = false;
 
             try {
-                Log.Logger = new LoggerConfiguration()
-                    .MinimumLevel.Debug()
-                    .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Information)
-                    .Enrich.FromLogContext()
-                    .WriteTo.Console()
-                    .CreateLogger();
+                SetupLogger();
 
-                Configuration.IConfigurationProvider configurationProvider = 
+                Configuration.IConfigurationProvider configurationProvider =
                     new Configuration.ConsoleConfigurationProvider();
 
                 using var cts = new CancellationTokenSource();
