@@ -28,12 +28,6 @@ namespace Microsoft.Azure.IIoT.Deployment {
 
     class DeploymentExecutor : IDisposable {
 
-        public static readonly string OWNER_KEY = "owner";
-        public static readonly string APPLICATION_KEY = "application";
-        public static readonly string APPLICATION_IIOT = "industrial-iot";
-        public static readonly string VERSION_KEY = "version";
-        public static readonly string VERSION_IIOT = "2.5.1";
-
         public static readonly string ENV_FILE_PATH = @".env";
 
         private List<string> _defaultTagsList;
@@ -141,16 +135,27 @@ namespace Microsoft.Azure.IIoT.Deployment {
             //    .Result;
             _azureCredentials = _authenticationManager.GetDelegatingAzureCredentials();
 
+            InitializeDefaultTags(_account.Username);
+        }
+
+        /// <summary>
+        /// Initialize default tags (list and dictionary) that will be added to
+        /// resources created by the application.
+        /// </summary>
+        /// <param name="username"></param>
+        private void InitializeDefaultTags(string username) {
             _defaultTagsList = new List<string> {
-                _account.Username,
-                APPLICATION_IIOT,
-                VERSION_IIOT
+                username,
+                Resources.IIoTDeploymentTags.VALUE_APPLICATION_IIOT,
+                Resources.IIoTDeploymentTags.VALUE_VERSION_IIOT,
+                Resources.IIoTDeploymentTags.VALUE_MANAGED_BY_IIOT
             };
 
             _defaultTagsDict = new Dictionary<string, string> {
-                { OWNER_KEY, _account.Username },
-                { APPLICATION_KEY, APPLICATION_IIOT },
-                { VERSION_KEY, VERSION_IIOT }
+                { Resources.IIoTDeploymentTags.KEY_OWNER, username },
+                { Resources.IIoTDeploymentTags.KEY_APPLICATION, Resources.IIoTDeploymentTags.VALUE_APPLICATION_IIOT },
+                { Resources.IIoTDeploymentTags.KEY_VERSION, Resources.IIoTDeploymentTags.VALUE_VERSION_IIOT},
+                { Resources.IIoTDeploymentTags.KEY_MANAGED_BY, Resources.IIoTDeploymentTags.VALUE_MANAGED_BY_IIOT}
             };
         }
 
