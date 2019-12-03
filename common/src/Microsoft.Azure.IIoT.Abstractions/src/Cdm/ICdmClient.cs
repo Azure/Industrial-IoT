@@ -29,7 +29,7 @@ namespace Microsoft.Azure.IIoT.Cdm {
         /// <returns></returns>
         Task ProcessAsync(SubscriberCdmSampleModel payload, 
             IDictionary<string, string> properties = null, string partitionKey = null);
-        
+
         /// <summary>
         /// Close the CDM Client
         /// </summary>

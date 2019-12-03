@@ -11,6 +11,7 @@
 
 @inject NavigationManager NavigationManager
 @inject Services.Browser Tree
+@inject Services.Publisher Publisher
 
 <h1>Browser</h1>
 
@@ -22,6 +23,7 @@
             <th>Name</th>
             <th>NodeId</th>
             <th>NodeType</th>
+            <th>Publishing</th>
             <th>
                 @if (pagedNodeList.Results.Count > 0)
                 {
@@ -62,8 +64,19 @@
             {
                 <td>@node.NodeClass</td>
             }
+            @if (node.NodeClass == "Variable")
+            {
+                <td>
+                    <input type="checkbox" @bind="@node.Publishing" @onclick="@(() => SetPublishing(endpointId, node) )" />
+                    @{string output = (node.Publishing == true && node.PublishedNode != null) ? $"On, sampling {node.PublishedNode.SampligInterval} ms" : "Off";}
+                    @output
+                </td>
+            }
+            else
+            {
+                <td>N/A</td>
+            }
         </tr>
-
         }
     </tbody>
 </table>
@@ -104,13 +117,55 @@
     private async Task GetTreeBackAsync(string id, List<string> parentId)
     {
         await GetTree(id, parentId, BrowseDirection.Backward);
-        NavigationManager.NavigateTo("/browser/" + supervisorId + "/" +endpointId);
+        NavigationManager.NavigateTo("/browser/" + supervisorId + "/" + endpointId);
     }
 
-    private async Task GetTree(String id, List<string> parentId, BrowseDirection direction )
+    private async Task GetTree(String id, List<string> parentId, BrowseDirection direction)
     {
         NodeList = await Tree.GetTreeAsync(endpointId, id, parentId, supervisorId, direction);
+
+        var publishedNodes = await Publisher.PublishedAsync(endpointId);
+        foreach (var node in NodeList.Results) 
+        {
+            foreach (var publishedNode in publishedNodes.Results)
+            {
+                if (node.Id == publishedNode.NodeId)
+                {
+                    node.PublishedNode = publishedNode;
+                    node.Publishing = true;
+                    break;
+                }
+            }
+        }
+
         Page = "1";
         pagedNodeList = NodeList.GetPaged(Int32.Parse(Page), 10);
+    }
+
+    private async Task SetPublishing(string endpointId, ListNode node)
+    {
+        if (!node.Publishing)
+        {
+            var result = await Publisher.StartPublishing(endpointId, node.Id, 1000, 1000);
+            if (result)
+            {
+                node.PublishedNode = new PublishedNode() { NodeId = node.Id, PublishingInterval = 1000, SampligInterval = 1000};
+                node.Publishing = true;
+            }
+            else
+            {
+                node.PublishedNode = null;
+                node.Publishing = false;
+            }
+        }
+        else
+        {
+            var result = await Publisher.StopPublishing(endpointId, node.Id);
+            if (result)
+            {
+                node.PublishedNode = null;
+                node.Publishing = false;
+            }
+        }
     }
 }
