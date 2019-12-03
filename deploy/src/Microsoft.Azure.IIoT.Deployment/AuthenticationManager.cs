@@ -11,11 +11,11 @@ namespace Microsoft.Azure.IIoT.Deployment {
     using System.Threading.Tasks;
 
     using Microsoft.Azure.Management.ResourceManager.Fluent;
-    using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
     using Microsoft.Identity.Client;
-    using Microsoft.Rest;
 
-    class AuthenticationManager {
+    using Microsoft.Azure.IIoT.Deployment.Infrastructure.Extensions;
+
+    class AuthenticationManager : IAuthenticationManager {
 
         // ClientId of AzureIndustrialIoTIAI Application
         public const string AzureIndustrialIoTDeploymentClientID = "fb2ca262-60d8-4167-ac33-1998d6d5c50b";
@@ -44,7 +44,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
             string tenant
         ) {
             _azureEnvironment = azureEnvironment;
-            var azureCloudInstance = ToAzureCloudInstance(azureEnvironment);
+            var azureCloudInstance = azureEnvironment.ToAzureCloudInstance();
 
             _publicClientApplication = PublicClientApplicationBuilder
                 .Create(AzureIndustrialIoTDeploymentClientID)
@@ -103,12 +103,24 @@ namespace Microsoft.Azure.IIoT.Deployment {
             _tenantId = new Guid(microsoftGraphAuthenticatoinResult.TenantId);
 
             // Validate that we have received Tokens.
-            await AcquireMicrosoftGraphTokenAsync(cancellationToken);
-            await AcquireAzureManagementTokenAsync(cancellationToken);
-            await AcquireKeyVaultTokenAsync(cancellationToken);
+            await AcquireMicrosoftGraphAuthenticationResultAsync(cancellationToken);
+            await AcquireAzureManagementAuthenticationResultAsync(cancellationToken);
+            await AcquireKeyVaultAuthenticationResultAsync(cancellationToken);
         }
 
-        public async Task<AuthenticationResult> AcquireMicrosoftGraphTokenAsync(
+        public AzureEnvironment GetAzureEnvironment() {
+            return _azureEnvironment;
+        }
+
+        public Guid GetTenantId() {
+            return _tenantId;
+        }
+
+        public IAccount GetAccount() {
+            return _account;
+        }
+
+        public async Task<AuthenticationResult> AcquireMicrosoftGraphAuthenticationResultAsync(
             CancellationToken cancellationToken = default
         ) {
             // Fetch AccessToken from cache
@@ -120,7 +132,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
             return authenticationResult;
         }
 
-        public async Task<AuthenticationResult> AcquireAzureManagementTokenAsync(
+        public async Task<AuthenticationResult> AcquireAzureManagementAuthenticationResultAsync(
             CancellationToken cancellationToken = default
         ) {
             // Fetch AccessToken from cache
@@ -132,7 +144,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
             return authenticationResult;
         }
 
-        public async Task<AuthenticationResult> AcquireKeyVaultTokenAsync(
+        public async Task<AuthenticationResult> AcquireKeyVaultAuthenticationResultAsync(
             CancellationToken cancellationToken = default
         ) {
             // Fetch AccessToken from cache
@@ -142,142 +154,6 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 .ExecuteAsync(cancellationToken);
 
             return authenticationResult;
-        }
-
-        public async Task<TokenCredentials> GetMicrosoftGraphTokenCredentialsAsync(
-            CancellationToken cancellationToken = default
-        ) {
-            var microsoftGraphAuthenticatoinResult = await AcquireMicrosoftGraphTokenAsync(cancellationToken);
-            var microsoftGraphTokenCredentials = GenerateTokenCredentials(microsoftGraphAuthenticatoinResult);
-            return microsoftGraphTokenCredentials;
-        }
-
-        public TokenCredentials GetMicrosoftGraphDelegatingTokenCredentials() {
-            var microsoftGraphTokenCredentials = GenerateDelegatingTokenCredentials(AcquireMicrosoftGraphTokenAsync);
-            return microsoftGraphTokenCredentials;
-        }
-
-        public async Task<TokenCredentials> GetAzureManagementTokenCredentialsAsync(
-            CancellationToken cancellationToken = default
-        ) {
-            var azureManagementAuthenticatoinResult = await AcquireAzureManagementTokenAsync(cancellationToken);
-            var azureManagementTokenCredentials = GenerateTokenCredentials(azureManagementAuthenticatoinResult);
-            return azureManagementTokenCredentials;
-        }
-
-        public TokenCredentials GetAzureManagementDelegatingTokenCredentials() {
-            var azureManagementTokenCredentials = GenerateDelegatingTokenCredentials(AcquireAzureManagementTokenAsync);
-            return azureManagementTokenCredentials;
-        }
-
-        public async Task<TokenCredentials> GetKeyVaultTokenCredentialsAsync(
-            CancellationToken cancellationToken = default
-        ) {
-            var keyVaultAuthenticatoinResult = await AcquireKeyVaultTokenAsync(cancellationToken);
-            var keyVaultTokenCredentials = GenerateTokenCredentials(keyVaultAuthenticatoinResult);
-            return keyVaultTokenCredentials;
-        }
-
-        public TokenCredentials GetKeyVaultDelegatingTokenCredentials() {
-            var keyVaultTokenCredentials = GenerateDelegatingTokenCredentials(AcquireKeyVaultTokenAsync);
-            return keyVaultTokenCredentials;
-        }
-
-        public IAccount GetAccount() {
-            return _account;
-        }
-
-        public Guid GetTenantId() {
-            return _tenantId;
-        }
-
-        public async Task<AzureCredentials> GetAzureCredentialsAsync(
-            CancellationToken cancellationToken = default
-        ) {
-            var azureManagementTokenCredentials = await GetAzureManagementTokenCredentialsAsync(cancellationToken);
-            var microsoftGraphTokenCredentials = await GetMicrosoftGraphTokenCredentialsAsync(cancellationToken);
-
-            var azureCredentials = new AzureCredentials(
-                azureManagementTokenCredentials,
-                microsoftGraphTokenCredentials,
-                _tenantId.ToString(),
-                _azureEnvironment
-            );
-
-            return azureCredentials;
-        }
-
-        public AzureCredentials GetDelegatingAzureCredentials() {
-            var azureManagementTokenCredentials = GetAzureManagementDelegatingTokenCredentials();
-            var microsoftGraphTokenCredentials = GetMicrosoftGraphDelegatingTokenCredentials();
-
-            var azureCredentials = new AzureCredentials(
-                azureManagementTokenCredentials,
-                microsoftGraphTokenCredentials,
-                _tenantId.ToString(),
-                _azureEnvironment
-            );
-
-            return azureCredentials;
-        }
-
-        public static AzureCloudInstance ToAzureCloudInstance(AzureEnvironment azureEnvironment) {
-            if (azureEnvironment.Equals(AzureEnvironment.AzureGlobalCloud)) {
-                return AzureCloudInstance.AzurePublic;
-            }
-            else if (azureEnvironment.Equals(AzureEnvironment.AzureChinaCloud)) {
-                return AzureCloudInstance.AzureChina;
-            }
-            else if (azureEnvironment.Equals(AzureEnvironment.AzureGermanCloud)) {
-                return AzureCloudInstance.AzureGermany;
-            }
-            else if (azureEnvironment.Equals(AzureEnvironment.AzureUSGovernment)) {
-                return AzureCloudInstance.AzureUsGovernment;
-            }
-            else {
-                throw new SystemException("Unknown AzureEnvironment: " + azureEnvironment.Name);
-            }
-        }
-
-        public static TokenCredentials GenerateTokenCredentials(
-            AuthenticationResult authenticationResult
-        ) {
-            ITokenProvider tokenProvider = new StringTokenProvider(authenticationResult.AccessToken, "Bearer");
-
-            var tokenCredentials = new TokenCredentials(
-                tokenProvider,
-                authenticationResult.TenantId,
-                authenticationResult.Account.Username
-            );
-
-            return tokenCredentials;
-        }
-
-        public ITokenProvider GenerateDelegatingTokenProvider(
-            Func<CancellationToken, Task<AuthenticationResult>> authenticationResultProvider
-        ) {
-            async Task<string> accessTokenProvider(CancellationToken cancellationToken) {
-                var authenticationResult = await authenticationResultProvider(cancellationToken);
-                return authenticationResult.AccessToken;
-            };
-
-            ITokenProvider tokenProvider = new DelegatingTokenProvider(accessTokenProvider);
-
-            return tokenProvider;
-        }
-
-        public TokenCredentials GenerateDelegatingTokenCredentials(
-            Func<CancellationToken, Task<AuthenticationResult>> authenticationResultProvider
-        ) {
-            var tokenProvider = GenerateDelegatingTokenProvider(authenticationResultProvider);
-
-            var tokenCredentials = new TokenCredentials(
-                tokenProvider,
-                _tenantId.ToString(),
-                _account.Username
-            );
-
-            return tokenCredentials;
         }
     }
 }

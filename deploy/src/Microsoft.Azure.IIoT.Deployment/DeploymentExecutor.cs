@@ -44,7 +44,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
         private string _applicationName;
         private IResourceGroup _resourceGroup;
 
-        private AuthenticationManager _authenticationManager;
+        private IAuthenticationManager _authenticationManager;
         private AzureResourceManager _azureResourceManager;
 
         // Resource management clients
@@ -245,7 +245,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
             // Microsoft Graph 
             var microsoftGraphTokenProvider = _authenticationManager
                 .GenerateDelegatingTokenProvider(
-                    _authenticationManager.AcquireMicrosoftGraphTokenAsync
+                    _authenticationManager.AcquireMicrosoftGraphAuthenticationResultAsync
                 );
 
             _msGraphServiceClient = new MicrosoftGraphServiceClient(
@@ -686,7 +686,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 async (authority, resource, scope) => {
                     // Fetch AccessToken from cache.
                     var authenticationResult = await _authenticationManager
-                        .AcquireKeyVaultTokenAsync(cancellationToken);
+                        .AcquireKeyVaultAuthenticationResultAsync(cancellationToken);
 
                     return authenticationResult.AccessToken;
                 }
