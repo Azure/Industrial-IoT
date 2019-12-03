@@ -142,9 +142,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
             builder.RegisterInstance(this)
                 .AsImplementedInterfaces().SingleInstance();
 
-            // register logger
-            builder.AddDiagnostics(config);
-
             // Register module and agent framework ...
             builder.RegisterModule<AgentFramework>();
             builder.RegisterModule<ModuleFramework>();
@@ -153,12 +150,21 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
             builder.RegisterModule<PublisherJobsConfiguration>();
 
             if (legacyCliOptions.RunInLegacyMode) {
+                var legacyCommandLineModel = legacyCliOptions.ToLegacyCommandLineModel();
+                var loggerConfiguration = new LoggerConfiguration();
+
+
+                if (!string.IsNullOrWhiteSpace(legacyCommandLineModel.LogFilename)) {
+                    loggerConfiguration = loggerConfiguration.WriteTo.File(legacyCommandLineModel.LogFilename, flushToDiskInterval: legacyCommandLineModel.LogFileFlushTimeSpan ?? TimeSpan.FromSeconds(30));
+                }
+
+                builder.AddDiagnostics(config, loggerConfiguration);
+
                 //Registrations for standalone mode
                 var jobOrchestratorConfig = new JobOrchestratorConfig(configuration);
-                var legacyCommandLineModel = legacyCliOptions.ToLegacyCommandLineModel();
+                
                 var engineConfiguration = new PublisherEngineConfig {BatchSize = 1, DiagnosticsInterval = legacyCommandLineModel.DiagnosticsInterval};
                 var agentConfigProvider = new AgentConfigProvider(legacyCliOptions.ToAgentConfigModel());
-                //var moduleConfig = new ModuleCon
 
                 builder.RegisterInstance(legacyCommandLineModel);
                 builder.RegisterInstance(jobOrchestratorConfig).AsImplementedInterfaces();
@@ -171,6 +177,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                 builder.RegisterType<InMemoryJobRepository>().AsImplementedInterfaces().SingleInstance();
             }
             else {
+                builder.AddDiagnostics(config);
+
                 // Use cloud job manager
                 builder.RegisterType<JobOrchestratorClient>()
                     .AsImplementedInterfaces().SingleInstance();
