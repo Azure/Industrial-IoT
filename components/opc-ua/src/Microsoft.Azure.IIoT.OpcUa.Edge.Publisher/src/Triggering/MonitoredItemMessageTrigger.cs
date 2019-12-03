@@ -79,7 +79,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Triggering {
         /// 
         /// </summary>
         public void Dispose() {
-            
+            var toDispose = _subscriptions.ToList();
+            _subscriptions.Clear();
+            toDispose.ForEach(s => _subscriptionManager.DisposeSubscription(s));
         }
 
         private readonly List<ISubscription> _subscriptions;

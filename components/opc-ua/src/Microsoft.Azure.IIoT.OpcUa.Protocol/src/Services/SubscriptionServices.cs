@@ -61,8 +61,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="subscription"></param>
         /// <returns></returns>
         public Task DisposeSubscription(ISubscription subscription) {
-            subscription.Dispose();
-            _subscriptions.TryRemove(subscription.Id, out var removed);
+            if (_subscriptions.TryRemove(subscription.Id, out var removed)) {
+                removed.Dispose();
+            }
+
             return Task.CompletedTask;
         }
 
