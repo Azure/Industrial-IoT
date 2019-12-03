@@ -5,16 +5,19 @@
 
 @using Microsoft.Azure.IIoT.App.Services
 @using Microsoft.Azure.IIoT.App.Components.Pager
+@using Microsoft.Azure.IIoT.App.Components.Drawer
 @using Microsoft.Azure.IIoT.App.Data
 @using Microsoft.AspNetCore.Components;
 @using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models;
+@using System.Collections.Generic;
+
 
 @inject NavigationManager NavigationManager
-@inject Services.Browser Tree
+@inject Services.Browser BrowseManager
 
 <h1>Browser</h1>
 
-<div>@supervisorId/@endpointId/@Tree.Path</div>
+<div>@supervisorId/@endpointId/@BrowseManager.Path</div>
 
 <table class="table">
     <thead>
@@ -22,20 +25,30 @@
             <th>Name</th>
             <th>NodeId</th>
             <th>NodeType</th>
+            @foreach (var node in pagedNodeList.Results)
+            {
+                if (node.Value != string.Empty)
+                {
+                    <th>
+                        Value
+                    </th>
+                    break;
+                }
+            }
             <th>
                 @if (pagedNodeList.Results.Count > 0)
                 {
-                    if (pagedNodeList.Results[0].parentName != "Root")
+                    if (pagedNodeList.Results[0].ParentName != "Root")
                     {
-                        <a href="javascript: void(0)" @onclick="@(() => GetTreeBackAsync(pagedNodeList.Results[0].nextParentId, pagedNodeList.Results[0].ParentIdList))">
+                        <a href="javascript: void(0)" @onclick="@(() => GetTreeBackAsync(pagedNodeList.Results[0].NextParentId, pagedNodeList.Results[0].ParentIdList))">
                             <span class="oi oi-arrow-left"></span>
                         </a>
                     }
                     else
                     {
-                        if (pagedNodeList.Results[0].supervisorId != null)
+                        if (pagedNodeList.Results[0].SupervisorId != null)
                         {
-                            <a href='endpoints/@pagedNodeList.Results[0].supervisorId'>
+                            <a href='endpoints/@pagedNodeList.Results[0].SupervisorId'>
                                 <span class="oi oi-arrow-left"></span>
                             </a>
                         }
@@ -47,26 +60,106 @@
     <tbody>
         @foreach (var node in pagedNodeList.Results)
         {
-        <tr>
-            <td>@node.nodeName</td>
-            <td>@node.Id</td>
-            @if (node.children == true)
-            {
-                <td>
-                    <a href="javascript: void(0)" @onclick="@(() => GetTreeAsync(node.Id, node.ParentIdList))">
-                        @node.NodeClass
-                    </a>
-                </td>
-            }
-            else
-            {
-                <td>@node.NodeClass</td>
-            }
-        </tr>
-
+            <tr>
+                <td>@node.NodeName</td>
+                <td>@node.Id</td>
+                @if (node.Children == true)
+                {
+                    <td>
+                        <a href="javascript: void(0)" @onclick="@(() => GetTreeAsync(node.Id, node.ParentIdList))">
+                            @node.NodeClass
+                        </a>
+                    </td>
+                }
+                else if (node.NodeClass == NodeClass.Method)
+                {
+                    <td>
+                        <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node))">
+                            @node.NodeClass
+                        </a>
+                    </td>
+                }
+                else
+                {
+                    <td>@node.NodeClass</td>
+                    @if (node.NodeClass == NodeClass.Variable && (node.AccessLevel == NodeAccessLevel.CurrentRead || node.AccessLevel == NodeAccessLevel.CurrentWrite ||
+                        node.AccessLevel == (NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite)))
+                    {
+                        <td>
+                            <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node))">
+                                @node.Value
+                            </a>
+                        </td>
+                    }
+                }
+            </tr>
         }
     </tbody>
 </table>
+
+<Drawer HeaderText="Select Action" ObjectData="@nodeData" IsOpened="@IsOpened" CloseDrawer="@(() => CloseDrawer())">
+    <div class="drawer-content list-group">
+        <div class="list-group-item text-justify list-group-item-heading">
+            <b>Select an action.</b>
+            <br>
+            <div class="dropdown">
+                <div class="select">
+                    <select name="dropdown" @onchange="((eventArgs) => SelectActionAsync(nodeData.Id, eventArgs))">
+                        <option value="@ActionType.Nothing">Select an action</option>
+                        @if (nodeData.NodeClass == NodeClass.Variable)
+                        {
+                            if (nodeData.AccessLevel == NodeAccessLevel.CurrentRead)
+                            {
+                                <option value="@ActionType.Read">@ActionType.Read.ToString()</option>
+                            }
+                            if (nodeData.AccessLevel == NodeAccessLevel.CurrentWrite)
+                            {
+                                <option value="@ActionType.Write">@ActionType.Write.ToString()</option>
+                            }
+                            if (nodeData.AccessLevel == (NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite))
+                            {
+                                <option value="@ActionType.Read">@ActionType.Read.ToString()</option>
+                                <option value="@ActionType.Write">@ActionType.Write.ToString()</option>
+                            }
+                        }
+                        else if (nodeData.NodeClass == NodeClass.Method)
+                        {
+                            <option value="@ActionType.Call">@ActionType.Call.ToString()</option>
+                        }
+                    </select>
+                </div>
+            </div>
+        </div>
+        <hr />
+        <div class="list-group-item text-left">
+            @if (TypeOfAction == ActionType.Read)
+            {
+                <span>value = </span>
+                <span>@Response</span>
+            }
+            else if (TypeOfAction == ActionType.Write)
+            {
+                <form>
+                    <div class="form-group">
+                        <label>Enter value</label>
+                        <input @bind="@Value" aria-label="value" type="text" class="form-control" placeholder="value" />
+                    </div>
+                    <hr />
+                    <div>
+                        <button @onclick="@(() => WriteAsync(nodeData.Id, Value))" type="button" class="btn btn-primary">Apply</button>
+                    </div>
+                </form>
+                <span>@Response</span>
+            }
+            else if (TypeOfAction == ActionType.Call)
+            {
+
+            }
+            <partial name="_Action" />
+        </div>
+    </div>
+</Drawer>
+
 
 <Pager Result=@NodeList PageChanged=@((Page) => PagerPageChanged(Page)) />
 
@@ -84,6 +177,14 @@
 
     PagedResult<ListNode> NodeList = new PagedResult<ListNode>();
     PagedResult<ListNode> pagedNodeList = new PagedResult<ListNode>();
+    public bool IsOpened { get; set; } = false;
+    public ListNode nodeData { get; set; }
+
+    private enum ActionType { Nothing, Read, Write, Call, Publish };
+    private ActionType TypeOfAction { get; set; } = ActionType.Nothing;
+    private string Response { get; set; } = string.Empty;
+    private string Value { get; set; } = string.Empty;
+
 
     public void PagerPageChanged(int page)
     {
@@ -93,24 +194,74 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await GetTree(string.Empty, new List<string>(), BrowseDirection.Forward);
+        await BrowseTreeAsync(string.Empty, new List<string>(), BrowseDirection.Forward);
     }
 
     private async Task GetTreeAsync(string id, List<string> parentId)
     {
-        await GetTree(id, parentId, BrowseDirection.Forward);
+        await BrowseTreeAsync(id, parentId, BrowseDirection.Forward);
     }
 
     private async Task GetTreeBackAsync(string id, List<string> parentId)
     {
-        await GetTree(id, parentId, BrowseDirection.Backward);
-        NavigationManager.NavigateTo("/browser/" + supervisorId + "/" +endpointId);
+        await BrowseTreeAsync(id, parentId, BrowseDirection.Backward);
+        NavigationManager.NavigateTo("/browser/" + supervisorId + "/" + endpointId);
     }
 
-    private async Task GetTree(String id, List<string> parentId, BrowseDirection direction )
+    private async Task BrowseTreeAsync(String id, List<string> parentId, BrowseDirection direction)
     {
-        NodeList = await Tree.GetTreeAsync(endpointId, id, parentId, supervisorId, direction);
+        NodeList = await BrowseManager.GetTreeAsync(endpointId, id, parentId, supervisorId, direction);
         Page = "1";
         pagedNodeList = NodeList.GetPaged(Int32.Parse(Page), 10);
     }
+
+    private void OpenDrawer(ListNode node)
+    {
+        IsOpened = true;
+        nodeData = node;
+    }
+
+    private void CloseDrawer()
+    {
+        IsOpened = false;
+        TypeOfAction = ActionType.Nothing;
+    }
+
+    private async Task SelectActionAsync(string nodeId, ChangeEventArgs action)
+    {
+        switch (action.Value)
+        {
+            case "Read":
+                TypeOfAction = ActionType.Read;
+                await ReadAsync(nodeId);
+                break;
+            case "Write":
+                TypeOfAction = ActionType.Write;
+                break;
+            case "Publish":
+                TypeOfAction = ActionType.Publish;
+                break;
+            case "Call":
+                TypeOfAction = ActionType.Call;
+                break;
+            default:
+                break;
+        }
+        this.StateHasChanged();
+    }
+
+    private async Task ReadAsync(string nodeId)
+    {
+        Response = await BrowseManager.ReadValueAsync(endpointId, nodeId);
+    }
+
+    private async Task WriteAsync(string nodeId, string value)
+    {
+        Response = await BrowseManager.WriteValueAsync(endpointId, nodeId, value);
+
+        var newValue = await BrowseManager.ReadValueAsync(endpointId, nodeId);
+        var index = pagedNodeList.Results.IndexOf(pagedNodeList.Results.SingleOrDefault(x => x.Id == nodeId));
+        pagedNodeList.Results[index].Value = newValue;
+    }
+
 }
