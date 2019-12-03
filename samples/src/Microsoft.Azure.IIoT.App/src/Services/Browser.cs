@@ -84,7 +84,9 @@ namespace Microsoft.Azure.IIoT.App.Services {
                                 children = (bool)nodeReference.Target.Children,
                                 ParentIdList = parentId,
                                 supervisorId = supervisorId,
-                                parentName = browseData.Node.DisplayName
+                                parentName = browseData.Node.DisplayName,
+                                Publishing = false,
+                                PublishedNode = null
                             });
                         }
                     }

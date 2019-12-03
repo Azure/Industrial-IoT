@@ -23,5 +23,9 @@ namespace Microsoft.Azure.IIoT.App.Services {
         public ListNode() {
             ParentIdList = new List<string>();
         }
+
+        public PublishedNode PublishedNode { get; set; }
+
+        public bool Publishing { get; set; }
     }
 }

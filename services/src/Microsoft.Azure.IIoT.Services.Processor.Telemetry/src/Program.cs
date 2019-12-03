@@ -164,6 +164,8 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry {
             // ... forward samples to the tsi eventhub
             builder.RegisterType<MonitoredItemSampleForwarder>()
                 .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<MonitoredItemSampleCdmProcessor>()
+                .AsImplementedInterfaces().SingleInstance();
 
             // Handle the CDM handler
             builder.RegisterType<AdlsCsvStorage>()

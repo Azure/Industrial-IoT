@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Cdm.Services {    
+namespace Microsoft.Azure.IIoT.Cdm.Services {
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
@@ -289,8 +289,8 @@ namespace Microsoft.Azure.IIoT.Cdm.Services {
 
         private static readonly string kPublisherSampleEntityName = "PublisherSampleModel";
         private static readonly string kCsvPartitionsDelimiter = ",";
-        private static readonly AttributeResolutionDirectiveSet kDirectives = 
-            new AttributeResolutionDirectiveSet(new HashSet<string>() { 
+        private static readonly AttributeResolutionDirectiveSet kDirectives =
+            new AttributeResolutionDirectiveSet(new HashSet<string>() {
                 "normalized", "referenceOnly" });
     }
 }
