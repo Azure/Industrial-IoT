@@ -29,6 +29,10 @@ namespace Microsoft.Azure.IIoT.Services.Common.Configuration.Runtime {
         public string CorsWhitelist => _cors.CorsWhitelist;
         /// <inheritdoc/>
         public bool CorsEnabled => _cors.CorsEnabled;
+
+        /// <inheritdoc/>
+        public int HttpsRedirectPort => _host.HttpsRedirectPort;
+
         /// <inheritdoc/>
         public string AppId => _auth.AppId;
         /// <inheritdoc/>
@@ -42,11 +46,12 @@ namespace Microsoft.Azure.IIoT.Services.Common.Configuration.Runtime {
         /// <inheritdoc/>
         public string Audience => _auth.Audience;
         /// <inheritdoc/>
-        public int HttpsRedirectPort => _auth.HttpsRedirectPort;
+        public string Domain => _auth.Domain;
         /// <inheritdoc/>
         public string TrustedIssuer => _auth.TrustedIssuer;
         /// <inheritdoc/>
         public TimeSpan AllowedClockSkew => _auth.AllowedClockSkew;
+
         /// <inheritdoc/>
         public bool UIEnabled => _swagger.UIEnabled;
         /// <inheritdoc/>
@@ -57,8 +62,10 @@ namespace Microsoft.Azure.IIoT.Services.Common.Configuration.Runtime {
         public string SwaggerAppId => _swagger.SwaggerAppId;
         /// <inheritdoc/>
         public string SwaggerAppSecret => _swagger.SwaggerAppSecret;
+
         /// <inheritdoc/>
         public string ServiceBusConnString => _sb.ServiceBusConnString;
+
         /// <inheritdoc/>
         public string SignalRConnString => _sr.SignalRConnString;
         /// <inheritdoc/>
@@ -77,6 +84,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Configuration.Runtime {
             base(configuration) {
 
             _swagger = new SwaggerConfig(configuration);
+            _host = new HostConfig(configuration);
             _auth = new AuthConfig(configuration);
             _cors = new CorsConfig(configuration);
             _sb = new ServiceBusConfig(configuration);
@@ -85,6 +93,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Configuration.Runtime {
 
         private readonly SwaggerConfig _swagger;
         private readonly AuthConfig _auth;
+        private readonly HostConfig _host;
         private readonly CorsConfig _cors;
         private readonly ServiceBusConfig _sb;
         private readonly SignalRServiceConfig _sr;

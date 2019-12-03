@@ -8,8 +8,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding.v2.Models {
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
     using System;
-    using System.ComponentModel;
-    using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// Authentication Method model

@@ -5,14 +5,11 @@
 
 namespace Microsoft.Azure.IIoT.Services.Auth.Clients {
     using Microsoft.Azure.IIoT.Auth;
-    using Microsoft.Azure.IIoT.Auth.Clients;
-    using Microsoft.Azure.IIoT.Auth.Modelss;
+    using Microsoft.Azure.IIoT.Auth.Models;
     using Microsoft.AspNetCore.Authentication;
     using Microsoft.AspNetCore.Http;
-    using Serilog;
     using System;
     using System.Collections.Generic;
-    using System.Security.Authentication;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -25,19 +22,8 @@ namespace Microsoft.Azure.IIoT.Services.Auth.Clients {
         /// to be able to get at the http context here.
         /// </summary>
         /// <param name="ctx"></param>
-        /// <param name="config"></param>
-        /// <param name="logger"></param>
-        public PassThroughTokenProvider(IHttpContextAccessor ctx,
-            IClientConfig config, ILogger logger) {
+        public PassThroughTokenProvider(IHttpContextAccessor ctx) {
             _ctx = ctx ?? throw new ArgumentNullException(nameof(ctx));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _config = config ?? throw new ArgumentNullException(nameof(config));
-
-            if (string.IsNullOrEmpty(_config.AppId) ||
-                string.IsNullOrEmpty(_config.AppSecret)) {
-                _logger.Error("On behalf token provider was not configured with " +
-                    "a client id or secret.  No tokens will be obtained. ");
-            }
         }
 
         /// <inheritdoc/>
@@ -62,8 +48,6 @@ namespace Microsoft.Azure.IIoT.Services.Auth.Clients {
         }
 
         private readonly IHttpContextAccessor _ctx;
-        private readonly ILogger _logger;
-        private readonly IClientConfig _config;
     }
 
 }

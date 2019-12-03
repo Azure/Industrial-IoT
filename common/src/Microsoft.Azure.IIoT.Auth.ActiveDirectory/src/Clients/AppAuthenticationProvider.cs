@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
-    using Microsoft.Azure.IIoT.Auth.Modelss;
+    using Microsoft.Azure.IIoT.Auth.Models;
     using Microsoft.Azure.Services.AppAuthentication;
     using System;
     using System.Collections.Generic;

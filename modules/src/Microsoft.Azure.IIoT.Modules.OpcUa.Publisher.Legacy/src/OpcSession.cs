@@ -1208,6 +1208,7 @@ namespace OpcPublisher
             return result;
         }
 
+#pragma warning disable IDE0060 // Remove unused parameter
         /// <summary>
         /// Checks if the node specified by either the given NodeId or ExpandedNodeId on the given endpoint is published.
         /// </summary>

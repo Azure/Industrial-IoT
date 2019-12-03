@@ -333,20 +333,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
                         continue;
                     }
                     var node = nodeReference.NodeId.ToNodeId(session.NamespaceUris);
-                    if (!(session.ReadNode(node) is VariableNode argumentsNode)) {
-                        continue;
-                    }
-                    var value = session.ReadValue(argumentsNode.NodeId);
-                    if (!(value.Value is ExtensionObject[] argumentsList)) {
-                        continue;
-                    }
-                    foreach (var argument in argumentsList.Select(a => (Argument)a.Body)) {
-                        var builtInType = TypeInfo.GetBuiltInType(argument.DataType);
-                        args.Add(Tuple.Create(new TypeInfo(builtInType,
-                            argument.ValueRank), argument.Value));
-                    }
-                    if (inputs != null && outputs != null) {
-                        break;
+                    if ((session.ReadNode(node) is VariableNode argumentsNode)) {
+                        var value = session.ReadValue(argumentsNode.NodeId);
+                        if ((value.Value is ExtensionObject[] argumentsList)) {
+                            foreach (var argument in argumentsList.Select(a => (Argument)a.Body)) {
+                                var builtInType = TypeInfo.GetBuiltInType(argument.DataType);
+                                args.Add(Tuple.Create(new TypeInfo(builtInType,
+                                    argument.ValueRank), argument.Value));
+                            }
+                            if (inputs != null && outputs != null) {
+                                break;
+                            }
+                        }
                     }
                 }
 

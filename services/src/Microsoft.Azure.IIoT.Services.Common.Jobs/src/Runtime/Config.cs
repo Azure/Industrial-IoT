@@ -9,7 +9,6 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Runtime {
     using Microsoft.Azure.IIoT.Services.Swagger;
     using Microsoft.Azure.IIoT.Services.Swagger.Runtime;
     using Microsoft.Azure.IIoT.Agent.Framework.Storage.Database;
-    using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Auth.Server;
     using Microsoft.Azure.IIoT.Diagnostics;
@@ -24,13 +23,14 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Runtime {
     /// Common web service configuration aggregation
     /// </summary>
     public class Config : DiagnosticsConfig, IAuthConfig, IIoTHubConfig,
-        ICorsConfig, IClientConfig, ISwaggerConfig,
-        ICosmosDbConfig, IJobDatabaseConfig, IWorkerDatabaseConfig {
+        ICorsConfig, ISwaggerConfig, ICosmosDbConfig, IJobDatabaseConfig,
+        IWorkerDatabaseConfig {
 
         /// <inheritdoc/>
         public string CorsWhitelist => _cors.CorsWhitelist;
         /// <inheritdoc/>
         public bool CorsEnabled => _cors.CorsEnabled;
+
         /// <inheritdoc/>
         public string AppId => _auth.AppId;
         /// <inheritdoc/>
@@ -42,6 +42,13 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Runtime {
         /// <inheritdoc/>
         public string Audience => _auth.Audience;
         /// <inheritdoc/>
+        public bool AuthRequired => _auth.AuthRequired;
+        /// <inheritdoc/>
+        public string TrustedIssuer => _auth.TrustedIssuer;
+        /// <inheritdoc/>
+        public TimeSpan AllowedClockSkew => _auth.AllowedClockSkew;
+
+        /// <inheritdoc/>
         public bool UIEnabled => _swagger.UIEnabled;
         /// <inheritdoc/>
         public bool WithAuth => _swagger.WithAuth;
@@ -51,6 +58,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Runtime {
         public string SwaggerAppId => _swagger.SwaggerAppId;
         /// <inheritdoc/>
         public string SwaggerAppSecret => _swagger.SwaggerAppSecret;
+
         /// <inheritdoc/>
         public string DbConnectionString => _cosmos.DbConnectionString;
         /// <inheritdoc/>
@@ -59,14 +67,10 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Runtime {
         public string ContainerName => "iiot_opc";
         /// <inheritdoc/>
         public string DatabaseName => "iiot_opc";
+
         /// <inheritdoc/>
-        public bool AuthRequired => _auth.AuthRequired;
-        /// <inheritdoc/>
-        public int HttpsRedirectPort => _auth.HttpsRedirectPort;
-        /// <inheritdoc/>
-        public string TrustedIssuer => _auth.TrustedIssuer;
-        /// <inheritdoc/>
-        public TimeSpan AllowedClockSkew => _auth.AllowedClockSkew;
+        public int HttpsRedirectPort => _host.HttpsRedirectPort;
+
         /// <inheritdoc/>
         public string IoTHubConnString => _hub.IoTHubConnString;
         /// <inheritdoc/>
@@ -86,12 +90,14 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Runtime {
 
             _swagger = new SwaggerConfig(configuration);
             _auth = new AuthConfig(configuration);
+            _host = new HostConfig(configuration);
             _hub = new IoTHubConfig(configuration);
             _cors = new CorsConfig(configuration);
             _cosmos = new CosmosDbConfig(configuration);
         }
 
         private readonly SwaggerConfig _swagger;
+        private readonly HostConfig _host;
         private readonly AuthConfig _auth;
         private readonly CorsConfig _cors;
         private readonly CosmosDbConfig _cosmos;

@@ -5,8 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.Module.Default {
     using Microsoft.Azure.IIoT.Module.Models;
-    using Serilog;
     using Microsoft.Azure.IIoT.Exceptions;
+    using Serilog;
     using System;
     using System.Collections.Concurrent;
     using System.Linq;
@@ -48,7 +48,7 @@ namespace Microsoft.Azure.IIoT.Module.Default {
             if (request.Handle != null) {
                 if (!_requests.TryGetValue(request.Handle, out processor)) {
                     throw new MethodCallStatusException(
-                        (int)HttpStatusCode.RequestTimeout);
+                        (int)HttpStatusCode.RequestTimeout, $"No handle {request.Handle}");
                 }
             }
             else {
@@ -58,7 +58,7 @@ namespace Microsoft.Azure.IIoT.Module.Default {
                     request.Timeout);
                 if (!_requests.TryAdd(handle, processor)) {
                     throw new MethodCallStatusException(
-                        (int)HttpStatusCode.InternalServerError);
+                        (int)HttpStatusCode.InternalServerError, "Adding handle {handle} failed.");
                 }
             }
             return await processor.ProcessAsync(request);

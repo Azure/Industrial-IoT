@@ -7,8 +7,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.v2.Models {
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Newtonsoft.Json;
     using System;
-    using System.Collections.Generic;
-    using System.Linq;
 
     /// <summary>
     /// Pub/sub job description
@@ -28,16 +26,15 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.v2.Models {
             if (model == null) {
                 throw new ArgumentNullException(nameof(model));
             }
-            Id = model.Id;
-            ContentEncoding = model.ContentEncoding;
-            DataSetContent = model.DataSetContent;
-            DataSets = model.DataSets?
-                .Select(d => new DataSetApiModel(d))
-                .ToList();
-            FieldContent = model.FieldContent;
-            KeyframeMessageInterval = model.KeyframeMessageInterval;
-            MetadataMessageInterval = model.MetadataMessageInterval;
-            NetworkMessageContent = model.NetworkMessageContent;
+            DataSetWriterId = model.DataSetWriterId;
+            DataSet = model.DataSet == null ? null :
+                new PublishedDataSetApiModel(model.DataSet);
+            DataSetFieldContentMask = model.DataSetFieldContentMask;
+            MessageSettings = model.MessageSettings == null ? null :
+                new DataSetWriterMessageSettingsApiModel(model.MessageSettings);
+            KeyFrameInterval = model.KeyFrameInterval;
+            DataSetMetaDataSendInterval = model.DataSetMetaDataSendInterval;
+            KeyFrameCount = model.KeyFrameCount;
         }
 
         /// <summary>
@@ -45,71 +42,62 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.v2.Models {
         /// </summary>
         public DataSetWriterModel ToServiceModel() {
             return new DataSetWriterModel {
-                Id = Id,
-                ContentEncoding = ContentEncoding,
-                DataSetContent = DataSetContent,
-                DataSets = DataSets?
-                    .Select(d => d.ToServiceModel())
-                    .ToList(),
-                FieldContent = FieldContent,
-                KeyframeMessageInterval = KeyframeMessageInterval,
-                MetadataMessageInterval = MetadataMessageInterval,
-                NetworkMessageContent = NetworkMessageContent,
+                DataSetWriterId = DataSetWriterId,
+                DataSet = DataSet?.ToServiceModel(),
+                DataSetFieldContentMask = DataSetFieldContentMask,
+                DataSetMetaDataSendInterval = DataSetMetaDataSendInterval,
+                KeyFrameCount = KeyFrameCount,
+                KeyFrameInterval = KeyFrameInterval,
+                MessageSettings = MessageSettings?.ToServiceModel()
             };
         }
 
         /// <summary>
         /// Dataset writer id
         /// </summary>
-        [JsonProperty(PropertyName = "Id")]
-        public string Id { get; set; }
+        [JsonProperty(PropertyName = "DataSetWriterId")]
+        public string DataSetWriterId { get; set; }
 
         /// <summary>
-        /// Datasets to publish
+        /// Published dataset inline definition
         /// </summary>
-        [JsonProperty(PropertyName = "dataSets")]
-        public List<DataSetApiModel> DataSets { get; set; }
-
-        /// <summary>
-        /// Keyframe message interval
-        /// </summary>
-        [JsonProperty(PropertyName = "keyframeMessageInterval",
+        [JsonProperty(PropertyName = "dataSet",
             NullValueHandling = NullValueHandling.Ignore)]
-        public TimeSpan? KeyframeMessageInterval { get; set; }
+        public PublishedDataSetApiModel DataSet { get; set; }
 
         /// <summary>
-        /// Metadata message interval
+        /// Dataset field content mask
         /// </summary>
-        [JsonProperty(PropertyName = "metadataMessageInterval",
+        [JsonProperty(PropertyName = "dataSetFieldContentMask",
             NullValueHandling = NullValueHandling.Ignore)]
-        public TimeSpan? MetadataMessageInterval { get; set; }
+        public DataSetFieldContentMask? DataSetFieldContentMask { get; set; }
 
         /// <summary>
-        /// Content type to use
+        /// Data set message settings
         /// </summary>
-        [JsonProperty(PropertyName = "contentEncoding",
+        [JsonProperty(PropertyName = "messageSettings",
             NullValueHandling = NullValueHandling.Ignore)]
-        public NetworkMessageEncoding? ContentEncoding { get; set; }
+        public DataSetWriterMessageSettingsApiModel MessageSettings { get; set; }
 
         /// <summary>
-        /// Network message content
+        /// Keyframe count
         /// </summary>
-        [JsonProperty(PropertyName = "networkMessageContent",
+        [JsonProperty(PropertyName = "keyFrameCount",
             NullValueHandling = NullValueHandling.Ignore)]
-        public NetworkMessageContentMask? NetworkMessageContent { get; set; }
+        public uint? KeyFrameCount { get; set; }
 
         /// <summary>
-        /// Dataset message content
+        /// Or keyframe timer interval (publisher extension)
         /// </summary>
-        [JsonProperty(PropertyName = "dataSetContent",
+        [JsonProperty(PropertyName = "keyFrameInterval",
             NullValueHandling = NullValueHandling.Ignore)]
-        public DataSetContentMask? DataSetContent { get; set; }
+        public TimeSpan? KeyFrameInterval { get; set; }
 
         /// <summary>
-        /// Field content
+        /// Metadata message sending interval (publisher extension)
         /// </summary>
-        [JsonProperty(PropertyName = "fieldContent",
+        [JsonProperty(PropertyName = "dataSetMetaDataSendInterval",
             NullValueHandling = NullValueHandling.Ignore)]
-        public DataSetFieldContentMask? FieldContent { get; set; }
+        public TimeSpan? DataSetMetaDataSendInterval { get; set; }
     }
 }

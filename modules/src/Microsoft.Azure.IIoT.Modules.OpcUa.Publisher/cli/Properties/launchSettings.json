@@ -1,0 +1,7 @@
+{
+  "profiles": {
+    "Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Cli": {
+      "commandName": "Project"
+    }
+  }
+}

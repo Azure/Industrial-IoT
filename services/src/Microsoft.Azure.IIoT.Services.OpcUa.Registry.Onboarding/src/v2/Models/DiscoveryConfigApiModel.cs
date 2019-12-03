@@ -8,7 +8,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding.v2.Models {
     using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;
-    using System.ComponentModel;
 
     /// <summary>
     /// Discovery configuration

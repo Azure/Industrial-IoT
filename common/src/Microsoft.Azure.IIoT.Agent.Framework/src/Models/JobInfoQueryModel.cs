@@ -4,8 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Agent.Framework.Models {
-    using System.Collections.Generic;
-
     /// <summary>
     /// Job info query model
     /// </summary>

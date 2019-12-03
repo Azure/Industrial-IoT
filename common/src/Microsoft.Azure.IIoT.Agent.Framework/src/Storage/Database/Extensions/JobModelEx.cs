@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
     using Microsoft.Azure.IIoT.Agent.Framework.Models;
     using Newtonsoft.Json.Linq;
-    using System;
     using System.Linq;
 
     /// <summary>

@@ -22,19 +22,20 @@ namespace Microsoft.Azure.IIoT.Storage.Blob.Runtime {
         /// <summary> Storage </summary>
         public string BlobStorageConnString {
             get {
+                var cs = GetStringOrDefault(kBlobStorageConnStringKey,
+                    GetStringOrDefault("PCS_STORAGE_CONNSTRING", null))?.Trim();
+                if (!string.IsNullOrEmpty(cs)) {
+                    return cs;
+                }
                 var account = GetStringOrDefault("PCS_ASA_DATA_AZUREBLOB_ACCOUNT",
                     GetStringOrDefault("PCS_IOTHUBREACT_AZUREBLOB_ACCOUNT", null));
                 var key = GetStringOrDefault("PCS_ASA_DATA_AZUREBLOB_KEY",
                     GetStringOrDefault("PCS_IOTHUBREACT_AZUREBLOB_KEY", null));
                 var suffix = GetStringOrDefault("PCS_ASA_DATA_AZUREBLOB_ENDPOINT_SUFFIX",
-                    GetStringOrDefault("PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX", "core.windows.net"));
+                    GetStringOrDefault("PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX",
+                        "core.windows.net"));
                 if (string.IsNullOrEmpty(account) || string.IsNullOrEmpty(key)) {
-                    var cs = GetStringOrDefault(kBlobStorageConnStringKey, GetStringOrDefault(
-                        _serviceId + "_STORE_CS", GetStringOrDefault("_STORE_CS", null)))?.Trim();
-                    if (string.IsNullOrEmpty(cs)) {
-                        return null;
-                    }
-                    return cs;
+                    return null;
                 }
                 return "DefaultEndpointsProtocol=https;" +
                     $"EndpointSuffix={suffix};AccountName={account};AccountKey={key}";

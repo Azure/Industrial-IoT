@@ -67,7 +67,7 @@ namespace Microsoft.Extensions.Configuration {
         }
 
         /// <summary>
-        /// 
+        /// Add environment variables
         /// </summary>
         /// <param name="configurationBuilder"></param>
         /// <param name="environmentVariableTarget"></param>

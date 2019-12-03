@@ -28,7 +28,6 @@
  * ======================================================================*/
 
 namespace MemoryBuffer {
-    using System;
     using System.Collections.Generic;
     using Opc.Ua;
 

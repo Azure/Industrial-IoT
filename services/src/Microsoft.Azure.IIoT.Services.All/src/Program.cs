@@ -4,7 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.All {
-    using System.Threading.Tasks;
+    using Microsoft.AspNetCore;
+    using Microsoft.AspNetCore.Hosting;
+    using Serilog;
 
     /// <summary>
     /// All in one services host
@@ -16,25 +18,19 @@ namespace Microsoft.Azure.IIoT.Services.All {
         /// </summary>
         /// <param name="args"></param>
         public static void Main(string[] args) {
-            Task.WaitAll(new[] {
-                Task.Run(() => Common.Configuration.Program.Main(args)),
-                Task.Run(() => Common.Identity.Program.Main(args)),
-                Task.Run(() => Common.Jobs.Program.Main(args)),
-                Task.Run(() => Common.Jobs.Edge.Program.Main(args)),
-                Task.Run(() => Common.Hub.Fileupload.Program.Main(args)),
-                Task.Run(() => Processor.Telemetry.Program.Main(args)),
-                Task.Run(() => OpcUa.Registry.Discovery.Program.Main(args)),
-                Task.Run(() => OpcUa.Registry.Onboarding.Program.Main(args)),
-                Task.Run(() => OpcUa.Registry.Events.Program.Main(args)),
-                Task.Run(() => OpcUa.Registry.Security.Program.Main(args)),
-                Task.Run(() => OpcUa.Registry.Program.Main(args)),
-                Task.Run(() => OpcUa.Twin.Program.Main(args)),
-                Task.Run(() => OpcUa.Twin.Import.Program.Main(args)),
-                Task.Run(() => OpcUa.Twin.Gateway.Program.Main(args)),
-                Task.Run(() => OpcUa.Twin.History.Program.Main(args)),
-                Task.Run(() => OpcUa.Publisher.Program.Main(args)),
-                Task.Run(() => OpcUa.Vault.Program.Main(args)),
-            });
+            CreateWebHostBuilder(args).Build().Run();
+        }
+
+        /// <summary>
+        /// Create host builder
+        /// </summary>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        public static IWebHostBuilder CreateWebHostBuilder(string[] args) {
+            return WebHost.CreateDefaultBuilder<Startup>(args)
+                .UseUrls("http://*:9080")
+                .UseIIS()
+                .UseSerilog();
         }
     }
 }

@@ -8,7 +8,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.v2.Models {
     using Newtonsoft.Json;
     using System;
     using System.ComponentModel;
-    using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// Method metadata request model
@@ -51,12 +50,12 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.v2.Models {
         /// (Required)
         /// </summary>
         [JsonProperty(PropertyName = "methodId")]
-        [Required]
+        [DefaultValue(null)]
         public string MethodId { get; set; }
 
         /// <summary>
         /// An optional component path from the node identified by
-        /// MethodId to the actual method node.  
+        /// MethodId to the actual method node.
         /// </summary>
         [JsonProperty(PropertyName = "methodBrowsePath",
             NullValueHandling = NullValueHandling.Ignore)]

@@ -8,7 +8,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.v2.Models {
     using Newtonsoft.Json;
     using System;
     using System.ComponentModel;
-    using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// Node value read request webservice api model
@@ -51,8 +50,9 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.v2.Models {
         /// <summary>
         /// Node to read from (mandatory)
         /// </summary>
-        [JsonProperty(PropertyName = "nodeId")]
-        [Required]
+        [JsonProperty(PropertyName = "nodeId",
+            NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public string NodeId { get; set; }
 
         /// <summary>

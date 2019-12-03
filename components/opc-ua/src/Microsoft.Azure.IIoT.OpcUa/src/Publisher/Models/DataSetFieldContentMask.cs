@@ -43,6 +43,39 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// <summary>
         /// Raw value
         /// </summary>
-        RawData = 0x20
+        RawData = 0x20,
+
+
+        // Publisher Extensions
+
+        /// <summary>
+        /// Node id included
+        /// </summary>
+        NodeId = 0x10000,
+
+        /// <summary>
+        /// Display name included
+        /// </summary>
+        DisplayName = 0x20000,
+
+        /// <summary>
+        /// Endpoint url included
+        /// </summary>
+        EndpointUrl = 0x40000,
+
+        /// <summary>
+        /// Application uri
+        /// </summary>
+        ApplicationUri = 0x80000,
+
+        /// <summary>
+        /// Subscription id included
+        /// </summary>
+        SubscriptionId = 0x100000,
+
+        /// <summary>
+        /// Extra fields included
+        /// </summary>
+        ExtraFields = 0x200000
     }
 }

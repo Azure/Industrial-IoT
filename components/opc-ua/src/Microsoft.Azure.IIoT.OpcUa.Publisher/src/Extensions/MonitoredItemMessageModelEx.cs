@@ -18,11 +18,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static MonitoredItemMessageModel Clone(this MonitoredItemMessageModel model) {
+        public static MonitoredItemSampleModel Clone(this MonitoredItemSampleModel model) {
             if (model == null) {
                 return null;
             }
-            return new MonitoredItemMessageModel {
+            return new MonitoredItemSampleModel {
                 SubscriptionId = model.SubscriptionId,
                 EndpointId = model.EndpointId,
                 DataSetId = model.DataSetId,
@@ -42,7 +42,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        internal static MonitoredItemMessageModel ToServiceModel(this JToken message) {
+        internal static MonitoredItemSampleModel ToServiceModel(this JToken message) {
             if (message.Type != JTokenType.Object || !(message is JObject sampleRoot)) {
                 // Not a publisher sample object - not accepted
                 return null;
@@ -65,35 +65,35 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                     StringComparison.InvariantCultureIgnoreCase);
             }
 
-            return new MonitoredItemMessageModel {
+            return new MonitoredItemSampleModel {
                 Value = GetValue(value, out var typeId),
                 TypeId = typeId?.ToString(),
                 DataSetId = sampleRoot.GetValueOrDefault<string>(
-                    nameof(MonitoredItemMessageModel.DataSetId),
+                    nameof(MonitoredItemSampleModel.DataSetId),
                         StringComparison.InvariantCultureIgnoreCase),
                 Timestamp = sampleRoot.GetValueOrDefault<DateTime?>(
-                    nameof(MonitoredItemMessageModel.Timestamp),
+                    nameof(MonitoredItemSampleModel.Timestamp),
                         StringComparison.InvariantCultureIgnoreCase),
                 SubscriptionId = sampleRoot.GetValueOrDefault<string>(
-                    nameof(MonitoredItemMessageModel.SubscriptionId),
+                    nameof(MonitoredItemSampleModel.SubscriptionId),
                         StringComparison.InvariantCultureIgnoreCase),
                 EndpointId = sampleRoot.GetValueOrDefault<string>(
-                    nameof(MonitoredItemMessageModel.EndpointId),
+                    nameof(MonitoredItemSampleModel.EndpointId),
                         StringComparison.InvariantCultureIgnoreCase),
                 NodeId = sampleRoot.GetValueOrDefault<string>(
-                    nameof(MonitoredItemMessageModel.NodeId),
+                    nameof(MonitoredItemSampleModel.NodeId),
                         StringComparison.InvariantCultureIgnoreCase),
                 SourcePicoseconds = dataValue.GetValueOrDefault<ushort?>(
-                    nameof(MonitoredItemMessageModel.SourcePicoseconds),
+                    nameof(MonitoredItemSampleModel.SourcePicoseconds),
                         StringComparison.InvariantCultureIgnoreCase),
                 ServerPicoseconds = dataValue.GetValueOrDefault<ushort?>(
-                    nameof(MonitoredItemMessageModel.ServerPicoseconds),
+                    nameof(MonitoredItemSampleModel.ServerPicoseconds),
                         StringComparison.InvariantCultureIgnoreCase),
                 SourceTimestamp = dataValue.GetValueOrDefault<DateTime?>(
-                    nameof(MonitoredItemMessageModel.SourceTimestamp),
+                    nameof(MonitoredItemSampleModel.SourceTimestamp),
                         StringComparison.InvariantCultureIgnoreCase),
                 ServerTimestamp = dataValue.GetValueOrDefault<DateTime?>(
-                    nameof(MonitoredItemMessageModel.ServerTimestamp),
+                    nameof(MonitoredItemSampleModel.ServerTimestamp),
                         StringComparison.InvariantCultureIgnoreCase),
             };
         }

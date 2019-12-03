@@ -4,9 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
-    using Microsoft.Azure.IIoT.Messaging;
-    using Opc.Ua;
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
@@ -19,12 +18,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <summary>
         /// Subscription change events
         /// </summary>
-        event EventHandler<MessageReceivedEventArgs> OnSubscriptionMessage;
+        event EventHandler<SubscriptionNotificationModel> OnSubscriptionChange;
 
         /// <summary>
         /// Item change events
         /// </summary>
-        event EventHandler<MessageReceivedEventArgs> OnMonitoredItemSample;
+        event EventHandler<SubscriptionNotificationModel> OnMonitoredItemChange;
 
         /// <summary>
         /// Identifier of the subscription
@@ -42,22 +41,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         long NumberOfConnectionRetries { get; }
 
         /// <summary>
-        /// Last values
-        /// </summary>
-        Dictionary<string, DataValue> LastValues { get; }
-
-        /// <summary>
-        /// Retrieve current service message context
+        /// Create snapshot
         /// </summary>
         /// <returns></returns>
-        Task<ServiceMessageContext> GetServiceMessageContextAsync();
+        Task<SubscriptionNotificationModel> GetSnapshotAsync();
 
         /// <summary>
-        /// Synchronize monitored items in the subscription
+        /// Apply desired state
         /// </summary>
         /// <param name="monitoredItems"></param>
+        /// <param name="configuration"></param>
         /// <returns></returns>
-        Task ApplyAsync(IEnumerable<MonitoredItemModel> monitoredItems);
+        Task ApplyAsync(IEnumerable<MonitoredItemModel> monitoredItems,
+            SubscriptionConfigurationModel configuration);
 
         /// <summary>
         /// Close and delete subscription

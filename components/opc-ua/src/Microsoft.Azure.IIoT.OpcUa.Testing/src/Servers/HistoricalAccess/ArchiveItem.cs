@@ -132,7 +132,7 @@ namespace HistoricalAccess {
         /// <summary>
         /// The data type for the item.
         /// </summary>
-        public BuiltInType DataType;
+        public BuiltInType DataType { get; set; }
 
         /// <summary>
         /// The value rank for the item.
@@ -206,12 +206,5 @@ namespace HistoricalAccess {
             public Assembly Assembly { get; set; }
             public string ResourcePath { get; set; }
         }
-    }
-
-    /// <summary>
-    /// The types of simulations.
-    /// </summary>
-    public static class SimulationTypes {
-        private const int Random = 0;
     }
 }

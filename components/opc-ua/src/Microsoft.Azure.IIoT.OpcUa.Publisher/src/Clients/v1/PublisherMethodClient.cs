@@ -69,10 +69,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v1 {
                     new PublisherNodeModel {
                         Id = request.Item.NodeId,
                         DisplayName = null,
-                        OpcPublishingInterval =
-                            request.Item.PublishingInterval,
-                        OpcSamplingInterval =
-                            request.Item.SamplingInterval
+                        OpcPublishingInterval = (int?)
+                            request.Item.PublishingInterval?.TotalMilliseconds,
+                        OpcSamplingInterval = (int?)
+                            request.Item.SamplingInterval?.TotalMilliseconds
                     }
                 }
             };
@@ -156,8 +156,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v1 {
                 Items = response.OpcNodes?
                     .Select(s => new PublishedItemModel {
                         NodeId = s.Id,
-                        PublishingInterval = s.OpcPublishingInterval,
-                        SamplingInterval = s.OpcSamplingInterval
+                        PublishingInterval = s.OpcPublishingInterval == null ? (TimeSpan?)null :
+                            TimeSpan.FromMilliseconds(s.OpcPublishingInterval.Value),
+                        SamplingInterval = s.OpcSamplingInterval == null ? (TimeSpan?)null :
+                            TimeSpan.FromMilliseconds(s.OpcSamplingInterval.Value),
                     }).ToList()
             };
         }

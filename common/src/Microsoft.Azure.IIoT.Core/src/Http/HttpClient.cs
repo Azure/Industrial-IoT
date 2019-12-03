@@ -116,7 +116,7 @@ namespace Microsoft.Azure.IIoT.Http.Default {
                             Content = await response.Content.ReadAsByteArrayAsync()
                         };
                         if (result.IsError()) {
-                            _logger.Error("{method} to {uri} returned {code} (took {elapsed}).",
+                            _logger.Warning("{method} to {uri} returned {code} (took {elapsed}).",
                                 httpMethod, httpRequest.Uri, response.StatusCode, sw.Elapsed,
                                  result.GetContentAsString(Encoding.UTF8));
                         }
@@ -132,7 +132,9 @@ namespace Microsoft.Azure.IIoT.Http.Default {
                     if (e.InnerException != null) {
                         errorMessage += " - " + e.InnerException.Message;
                     }
-                    _logger.Error(e, "{method} to {uri} failed (after {elapsed}) : {message}!",
+                    _logger.Warning("{method} to {uri} failed (after {elapsed}) : {message}!",
+                        httpMethod, httpRequest.Uri, sw.Elapsed, errorMessage);
+                    _logger.Verbose(e, "{method} to {uri} failed (after {elapsed}) : {message}!",
                         httpMethod, httpRequest.Uri, sw.Elapsed, errorMessage);
                     throw new HttpRequestException(errorMessage, e);
                 }

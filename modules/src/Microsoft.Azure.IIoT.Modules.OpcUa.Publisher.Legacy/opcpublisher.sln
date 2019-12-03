@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27130.2036
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Modules.OpcUa.Publisher", "src\Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.csproj", "{215DC07F-AFA5-445C-BE70-09BF009C9A66}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Legacy", "src\Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Legacy.csproj", "{215DC07F-AFA5-445C-BE70-09BF009C9A66}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests", "tests\Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests.csproj", "{C49E66B9-58AA-4794-BD97-D373244CACBD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Legacy.Tests", "tests\Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Legacy.Tests.csproj", "{C49E66B9-58AA-4794-BD97-D373244CACBD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

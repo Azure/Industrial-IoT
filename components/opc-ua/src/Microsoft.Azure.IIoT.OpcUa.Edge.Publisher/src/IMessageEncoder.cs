@@ -5,11 +5,11 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
-    using Microsoft.Azure.IIoT.Messaging;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Encoder to encode or decode opc ua telemetry messages
+    /// Encoder to encode data set writer messages
     /// </summary>
     public interface IMessageEncoder {
 
@@ -18,13 +18,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        Task<EncodedMessage> Encode(IMessageData message);
-
-        /// <summary>
-        /// Decodes the message
-        /// </summary>
-        /// <param name="encodedMessage"></param>
-        /// <returns></returns>
-        Task<IMessageData> Decode(string encodedMessage);
+        Task<IEnumerable<NetworkMessageModel>> EncodeAsync(
+            DataSetMessageModel message);
     }
 }

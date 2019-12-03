@@ -6,12 +6,9 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2 {
     using Microsoft.Azure.IIoT.Agent.Framework;
     using Microsoft.Azure.IIoT.Agent.Framework.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
-    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -28,10 +25,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2 {
         /// <param name="endpoints"></param>
         /// <param name="jobs"></param>
         /// <param name="serializer"></param>
-        /// <param name="logger"></param>
         public PublisherJobClient(IEndpointRegistry endpoints, IJobScheduler jobs,
-            IJobSerializer serializer, ILogger logger) {
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            IJobSerializer serializer) {
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _endpoints = endpoints ?? throw new ArgumentNullException(nameof(endpoints));
             _jobs = jobs ?? throw new ArgumentNullException(nameof(jobs));
@@ -54,8 +49,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2 {
             }
 
             var endpoint = await _endpoints.GetEndpointAsync(endpointId);
-            var result = await _jobs.NewOrUpdateJobAsync(GetDefaultJobId(endpointId), job => {
-                var publishJob = AsMonitoredItemJob(job);
+            var result = await _jobs.NewOrUpdateJobAsync(GetDefaultId(endpointId), job => {
+                var publishJob = AsJob(job);
 
                 // Add subscription
                 AddOrUpdateItemInJob(publishJob, request.Item, endpointId,
@@ -68,7 +63,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2 {
                 job.JobConfiguration = _serializer.SerializeJobConfiguration(
                     publishJob, out var jobType);
                 job.JobConfigurationType = jobType;
-                if (publishJob.Job.Subscriptions.Count != 0 &&
+                if (publishJob.WriterGroup.DataSetWriters.Count != 0 &&
                     job.LifetimeData.Status != JobStatus.Deleted) {
                     job.LifetimeData.Status = JobStatus.Active;
                 }
@@ -92,10 +87,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2 {
             }
 
             var endpoint = await _endpoints.GetEndpointAsync(endpointId);
-            var result = await _jobs.NewOrUpdateJobAsync(GetDefaultJobId(endpointId), job => {
+            var result = await _jobs.NewOrUpdateJobAsync(GetDefaultId(endpointId), job => {
 
                 // remove from job
-                var publishJob = AsMonitoredItemJob(job);
+                var publishJob = AsJob(job);
                 var jobChanged = RemoveItemFromJob(publishJob, request.NodeId,
                     new ConnectionModel {
                         Endpoint = endpoint.Registration.Endpoint,
@@ -107,7 +102,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2 {
                     job.JobConfiguration = _serializer.SerializeJobConfiguration(
                         publishJob, out var jobType);
                     job.JobConfigurationType = jobType;
-                    if (publishJob.Job.Subscriptions.Count == 0 &&
+                    if (publishJob.WriterGroup.DataSetWriters.Count == 0 &&
                         job.LifetimeData.Status == JobStatus.Active) {
                         job.LifetimeData.Status = JobStatus.Canceled;
                     }
@@ -129,14 +124,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2 {
                 throw new ArgumentNullException(nameof(request));
             }
             List<PublishedItemModel> list = null;
-            var result = await _jobs.NewOrUpdateJobAsync(GetDefaultJobId(endpointId), job => {
-                var publishJob = AsMonitoredItemJob(job);
-                list = publishJob.Job.Subscriptions
-                    .SelectMany(s => s.Subscription.MonitoredItems
-                        .Select(i => new PublishedItemModel {
-                            NodeId = i.NodeId,
-                            SamplingInterval = i.SamplingInterval,
-                            PublishingInterval = s.Subscription.PublishingInterval
+            var result = await _jobs.NewOrUpdateJobAsync(GetDefaultId(endpointId), job => {
+                var publishJob = AsJob(job);
+                list = publishJob.WriterGroup.DataSetWriters
+                    .Select(writer => writer.DataSet.DataSetSource)
+                    .SelectMany(source => source.PublishedVariables.PublishedData
+                        .Select(variable => new PublishedItemModel {
+                            NodeId = variable.PublishedVariableNodeId,
+                            SamplingInterval = variable.SamplingInterval,
+                            PublishingInterval = source.SubscriptionSettings.PublishingInterval
                         }))
                     .ToList();
                 return Task.FromResult(false);
@@ -151,7 +147,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2 {
         /// </summary>
         /// <param name="endpointId"></param>
         /// <returns></returns>
-        private static string GetDefaultJobId(string endpointId) {
+        private static string GetDefaultId(string endpointId) {
             return $"{endpointId}_default";
         }
 
@@ -160,18 +156,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2 {
         /// </summary>
         /// <param name="job"></param>
         /// <returns></returns>
-        private MonitoredItemDeviceJobModel AsMonitoredItemJob(JobInfoModel job) {
+        private WriterGroupJobModel AsJob(JobInfoModel job) {
             if (job.JobConfiguration != null) {
-                var publishJob = (MonitoredItemDeviceJobModel)_serializer.DeserializeJobConfiguration(
+                var publishJob = (WriterGroupJobModel)_serializer.DeserializeJobConfiguration(
                     job.JobConfiguration, job.JobConfigurationType);
                 if (publishJob != null) {
                     return publishJob;
                 }
             }
-            return new MonitoredItemDeviceJobModel {
-                Job = new MonitoredItemJobModel {
-                    Subscriptions = new List<SubscriptionInfoModel>()
-                }
+
+            return new WriterGroupJobModel {
+                MessagingMode = MessagingMode.Samples,
+                WriterGroup = new WriterGroupModel {
+                    WriterGroupId = job.Id,
+                    // ...
+                    DataSetWriters = new List<DataSetWriterModel>()
+                },
+                Engine = null,
+                ConnectionString = null
             };
         }
 
@@ -182,44 +184,67 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2 {
         /// <param name="publishedItem"></param>
         /// <param name="endpointId"></param>
         /// <param name="connection"></param>
-        private void AddOrUpdateItemInJob(MonitoredItemDeviceJobModel publishJob,
+        private void AddOrUpdateItemInJob(WriterGroupJobModel publishJob,
             PublishedItemModel publishedItem, string endpointId, ConnectionModel connection) {
 
             // Simple - first remove - then add.
             RemoveItemFromJob(publishJob, publishedItem.NodeId, connection);
 
             // Find existing subscription we can add node to
-            List<MonitoredItemModel> monitoredItems = null;
-            foreach (var s in publishJob.Job.Subscriptions) {
-                if (s.Connection.IsSameAs(connection) &&
-                    s.Subscription.PublishingInterval == publishedItem.PublishingInterval) {
-                    System.Diagnostics.Debug.Assert(s.Subscription.MonitoredItems != null);
-                    monitoredItems = s.Subscription.MonitoredItems;
+            List<PublishedDataSetVariableModel> variables = null;
+            foreach (var writer in publishJob.WriterGroup.DataSetWriters) {
+                if (writer.DataSet.DataSetSource.Connection.IsSameAs(connection) &&
+                    writer.DataSet.DataSetSource.SubscriptionSettings?.PublishingInterval ==
+                        publishedItem.PublishingInterval) {
+                    System.Diagnostics.Debug.Assert(writer.DataSet.DataSetSource.PublishedVariables.PublishedData != null);
+                    variables = writer.DataSet.DataSetSource.PublishedVariables.PublishedData;
+                    writer.DataSet.DataSetMetaData.ConfigurationVersion.MinorVersion++;
                     break;
                 }
             }
-            if (monitoredItems == null) {
-                // No subscription found - add new subscription
-                var subscription = new SubscriptionInfoModel {
-                    Connection = connection,
-                    MessageMode = MessageModes.MonitoredItem,
-                    Subscription = new SubscriptionModel {
-                        Id = GetDefaultJobId(endpointId),
-                        PublishingInterval = publishedItem.PublishingInterval,
-                        MonitoredItems = new List<MonitoredItemModel>()
+            if (variables == null) {
+                // No writer found - add new one with a published dataset
+                var dataSetWriter = new DataSetWriterModel {
+                    DataSetWriterId = GetDefaultId(endpointId),
+                    DataSet = new PublishedDataSetModel {
+                        Name = null,
+                        DataSetMetaData = new DataSetMetaDataModel {
+                            ConfigurationVersion = new ConfigurationVersionModel {
+                                MajorVersion = 1,
+                                MinorVersion = 0
+                            },
+                            DataSetClassId = Guid.NewGuid(),
+                            Name = endpointId
+                        },
+                        ExtensionFields = new Dictionary<string, string> {
+                            [nameof(MonitoredItemSampleModel.EndpointId)] = endpointId
+                        },
+                        DataSetSource = new PublishedDataSetSourceModel {
+                            Connection = connection,
+                            PublishedEvents = null,
+                            PublishedVariables = new PublishedDataItemsModel {
+                                PublishedData = new List<PublishedDataSetVariableModel>()
+                            },
+                            SubscriptionSettings = new PublishedDataSetSettingsModel {
+                                PublishingInterval = publishedItem.PublishingInterval,
+                                // ...
+                            }
+                        }
                     },
-                    ExtraFields = new Dictionary<string, string> {
-                        [nameof(MonitoredItemMessageModel.EndpointId)] = endpointId
-                    }
+                    MessageSettings = null,
+                    KeyFrameCount = null,
+                    DataSetFieldContentMask = null,
+                    DataSetMetaDataSendInterval = null,
+                    KeyFrameInterval = null
                 };
-                monitoredItems = subscription.Subscription.MonitoredItems;
-                publishJob.Job.Subscriptions.Add(subscription);
+                variables = dataSetWriter.DataSet.DataSetSource.PublishedVariables.PublishedData;
+                publishJob.WriterGroup.DataSetWriters.Add(dataSetWriter);
             }
 
-            // Add to monitored items
-            monitoredItems.Add(new MonitoredItemModel {
+            // Add to published variable list items
+            variables.Add(new PublishedDataSetVariableModel {
                 SamplingInterval = publishedItem.SamplingInterval,
-                NodeId = publishedItem.NodeId
+                PublishedVariableNodeId = publishedItem.NodeId
             });
         }
 
@@ -229,18 +254,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2 {
         /// <param name="publishJob"></param>
         /// <param name="nodeId"></param>
         /// <param name="connection"></param>
-        private bool RemoveItemFromJob(MonitoredItemDeviceJobModel publishJob,
+        private bool RemoveItemFromJob(WriterGroupJobModel publishJob,
             string nodeId, ConnectionModel connection) {
-            foreach (var s in publishJob.Job.Subscriptions.ToList()) {
-                if (!s.Connection.IsSameAs(connection)) {
+            foreach (var writer in publishJob.WriterGroup.DataSetWriters.ToList()) {
+                if (!writer.DataSet.DataSetSource.Connection.IsSameAs(connection)) {
                     continue;
                 }
-                foreach (var item in s.Subscription.MonitoredItems.ToList()) {
-                    if (item.NodeId == nodeId) {
-                        s.Subscription.MonitoredItems.Remove(item);
-                        if (s.Subscription.MonitoredItems.Count == 0) {
-                            // Trim subscription also
-                            publishJob.Job.Subscriptions.Remove(s);
+                foreach (var item in writer.DataSet.DataSetSource.PublishedVariables.PublishedData.ToList()) {
+                    if (item.PublishedVariableNodeId == nodeId) {
+                        writer.DataSet.DataSetSource.PublishedVariables.PublishedData.Remove(item);
+                        if (writer.DataSet.DataSetSource.PublishedVariables.PublishedData.Count == 0) {
+                            // Trim writer also
+                            publishJob.WriterGroup.DataSetWriters.Remove(writer);
                         }
                         return true;
                     }
@@ -282,7 +307,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2 {
 
         private readonly IEndpointRegistry _endpoints;
         private readonly IJobScheduler _jobs;
-        private readonly ILogger _logger;
         private readonly IJobSerializer _serializer;
     }
 }

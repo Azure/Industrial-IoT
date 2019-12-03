@@ -1658,8 +1658,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         public async Task NodeMethodCallBoiler2ResetTestAsync() {
 
             var service = _services();
-            var methodId = "ns=5;i=37";
-            var objectId = "ns=5;i=31";
+            var methodId = "ns=4;i=37";
+            var objectId = "ns=4;i=31";
 
             // Act
             var result = await service.NodeMethodCallAsync(_endpoint,

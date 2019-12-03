@@ -50,9 +50,7 @@ namespace OpcPublisher.Crypto
 
         public override bool Equals(object obj)
         {
-            var other = obj as EncryptedNetworkCredential;
-
-            if (other != null)
+            if (obj is EncryptedNetworkCredential other)
             {
                 return this.UserName.Equals(other.UserName) && this.Password.Equals(other.Password);
             }

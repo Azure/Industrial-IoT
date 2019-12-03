@@ -88,11 +88,13 @@ namespace Opc.Ua.PubSub {
             return false;
         }
 
+#pragma warning disable IDE0060 // Remove unused parameter
         /// <summary>
         /// Encode as binary
         /// </summary>
         /// <param name="encoder"></param>
         private void EncodeBinary(IEncoder encoder) {
+#pragma warning restore IDE0060 // Remove unused parameter
 
             // TODO
             throw new NotImplementedException();

@@ -4,11 +4,11 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
+    using Microsoft.Azure.IIoT.Services.OpcUa.Registry.Runtime;
     using Microsoft.Azure.IIoT.Storage.Default;
     using Microsoft.AspNetCore;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Mvc.Testing;
-    using Microsoft.Extensions.Configuration;
     using Autofac;
     using System.Net.Http;
 
@@ -21,9 +21,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
         /// Create startup
         /// </summary>
         /// <param name="env"></param>
-        /// <param name="configuration"></param>
-        public TestStartup(IHostingEnvironment env, IConfiguration configuration) :
-            base(env, configuration) {
+        public TestStartup(IHostingEnvironment env) : base(env, new Config(null)) {
         }
 
         /// <inheritdoc/>

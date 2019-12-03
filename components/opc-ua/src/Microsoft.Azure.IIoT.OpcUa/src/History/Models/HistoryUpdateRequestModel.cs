@@ -12,7 +12,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.History.Models {
     public class HistoryUpdateRequestModel<T> {
 
         /// <summary>
-        /// Node to update 
+        /// Node to update
         /// </summary>
         public string NodeId { get; set; }
 

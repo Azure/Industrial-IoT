@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// <param name="model"></param>
         /// <returns></returns>
         public static MonitoredItemMessageApiModel ToApiModel(
-            this MonitoredItemMessageModel model) {
+            this MonitoredItemSampleModel model) {
             return new MonitoredItemMessageApiModel {
                 SubscriptionId = model.SubscriptionId,
                 EndpointId = model.EndpointId,

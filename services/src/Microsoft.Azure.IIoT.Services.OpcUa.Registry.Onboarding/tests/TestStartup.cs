@@ -4,9 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding {
+    using Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding.Runtime;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Utils;
-    using Microsoft.Extensions.Configuration;
     using Microsoft.AspNetCore;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Mvc.Testing;
@@ -24,9 +24,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding {
         /// Create startup
         /// </summary>
         /// <param name="env"></param>
-        /// <param name="configuration"></param>
-        public TestStartup(IHostingEnvironment env, IConfiguration configuration) :
-            base(env, configuration) {
+        public TestStartup(IHostingEnvironment env) : base(env, new Config(null)) {
         }
 
         /// <inheritdoc/>

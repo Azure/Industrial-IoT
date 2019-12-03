@@ -26,7 +26,6 @@ namespace Microsoft.Azure.IIoT.Utils {
         protected ConfigBase(IConfiguration configuration) {
             if (configuration == null) {
                 configuration = new ConfigurationBuilder()
-                    .AddFromDotEnvFile()
                     .Build();
             }
             Configuration = configuration;

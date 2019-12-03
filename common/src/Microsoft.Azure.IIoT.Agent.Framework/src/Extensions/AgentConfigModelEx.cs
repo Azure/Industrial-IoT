@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Agent.Framework.Models {
-    using System.Collections.Generic;
     using System.Linq;
 
     /// <summary>

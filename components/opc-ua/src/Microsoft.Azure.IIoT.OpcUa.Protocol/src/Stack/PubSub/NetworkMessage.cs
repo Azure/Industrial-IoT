@@ -14,11 +14,6 @@ namespace Opc.Ua.PubSub {
     public class NetworkMessage : IEncodeable {
 
         /// <summary>
-        /// Subscription id
-        /// </summary>
-        public string SubscriptionId { get; set; }
-
-        /// <summary>
         /// Message content
         /// </summary>
         public uint MessageContentMask { get; set; }
@@ -29,11 +24,6 @@ namespace Opc.Ua.PubSub {
         public string MessageId { get; set; }
 
         /// <summary>
-        /// Message type
-        /// </summary>
-        public string MessageType { get; set; }
-
-        /// <summary>
         /// Publisher identifier
         /// </summary>
         public string PublisherId { get; set; }
@@ -42,11 +32,6 @@ namespace Opc.Ua.PubSub {
         /// Dataset class
         /// </summary>
         public string DataSetClassId { get; set; }
-
-        /// <summary>
-        /// Message context
-        /// </summary>
-        public ServiceMessageContext MessageContext { get; set; }
 
         /// <summary>
         /// Dataset Messages
@@ -101,29 +86,35 @@ namespace Opc.Ua.PubSub {
             return Utils.IsEqual(this, encodeable);
         }
 
+#pragma warning disable IDE0060 // Remove unused parameter
         /// <summary>
         /// Decode from binary
         /// </summary>
         /// <param name="decoder"></param>
         private void DecodeBinary(IDecoder decoder) {
+#pragma warning restore IDE0060 // Remove unused parameter
             // TODO
             throw new NotImplementedException();
         }
 
+#pragma warning disable IDE0060 // Remove unused parameter
         /// <summary>
         /// Decode from json
         /// </summary>
         /// <param name="decoder"></param>
         private void DecodeJson(IDecoder decoder) {
+#pragma warning restore IDE0060 // Remove unused parameter
             // TODO
             throw new NotImplementedException();
         }
 
+#pragma warning disable IDE0060 // Remove unused parameter
         /// <summary>
         /// Encode as binary
         /// </summary>
         /// <param name="encoder"></param>
         private void EncodeBinary(IEncoder encoder) {
+#pragma warning restore IDE0060 // Remove unused parameter
             // TODO
             throw new NotImplementedException();
         }

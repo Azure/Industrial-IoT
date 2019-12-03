@@ -56,8 +56,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.v2.Models {
         /// <summary>
         /// Node id to to write value to.
         /// </summary>
-        [JsonProperty(PropertyName = "nodeId")]
-        [Required]
+        [JsonProperty(PropertyName = "nodeId",
+            NullValueHandling = NullValueHandling.Ignore)]
         public string NodeId { get; set; }
 
         /// <summary>

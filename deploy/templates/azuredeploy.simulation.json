@@ -1,0 +1,378 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "edgeName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the IoT Edge virtual machine."
+            }
+        },
+        "edgeOs": {
+            "type": "string",
+            "allowedValues": [
+                "linux",
+                "windows"
+            ],
+            "defaultValue": "linux",
+            "metadata": {
+                "description": "Operating system to use for the virtual edge."
+            }
+        },
+        "edgeUsername": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Username for the IoT Edge virtual machine."
+            }
+        },
+        "edgePassword": {
+            "type": "securestring",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Password for the IoT Edge virtual machine."
+            }
+        },
+        "numberOfServers": {
+            "type": "int",
+            "defaultValue": 1,
+            "maxValue": 255,
+            "minValue": 0,
+            "metadata": {
+                "description": "Number of OPC UA servers to deploy into the edge sandbox."
+            }
+        },
+        "dockerServer": {
+            "type": "string",
+            "defaultValue": "mcr.microsoft.com",
+            "metadata": {
+                "description": "Specifies the endpoint of the Container Registry."
+            }
+        },
+        "dockerUser": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Specifies the user to log into the Container Registry."
+            }
+        },
+        "dockerPassword": {
+            "type": "secureString",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Specifies the password to the Container Registry."
+            }
+        },
+        "imageNamespace": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Specifies the namespace prefix for the images in the Container Registry."
+            }
+        },
+        "imageVersion": {
+            "type": "string",
+            "defaultValue": "latest",
+            "metadata": {
+                "description": "Specifies the image version tag to use for all images."
+            }
+        },
+        "repoUrl": {
+            "type": "string",
+            "defaultValue": "https://github.com/Azure/Industrial-IoT",
+            "metadata": {
+                "description": "The repository url from which to deploy services and application.  Default is official repository."
+            }
+        },
+        "branchName": {
+            "type": "string",
+            "defaultValue": "master",
+            "metadata": {
+                "description": "The branch from which to deploy deploy services and application.  Default to master."
+            }
+        },
+        "keyVaultUri": {
+            "type": "string",
+            "metadata": {
+                "description": "A user created keyvault containing service and client configuration."
+            }
+        },
+        "keyVaultAppId": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Specifies the registered application identifier (GUID) to access keyvault."
+            }
+        },
+        "keyVaultAppSecret": {
+            "type": "securestring",
+            "defaultValue": "",
+            "metadata": {
+                "description": "The registered application secret used to authenticate against KeyVault."
+            }
+        },
+        "managedIdentityResourceId": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "A user created managed identity to use for keyvault access.  If not provided, above secret will be used to gain access to keyvault."
+            }
+        }
+    },
+    "variables": {
+        "instanceId": "[take(uniqueString(subscription().subscriptionId, resourceGroup().id, parameters('edgeName'), parameters('edgeOs')), 7)]",
+        "vmPrefix": "[if(equals(parameters('edgeOs'), 'windows'), take(parameters('edgeName'), 6), parameters('edgeName'))]",
+        "vmName": "[concat(variables('vmPrefix'), '-', variables('instanceId'))]",
+        "vmResourceId": "[resourceId('Microsoft.Compute/virtualMachines', variables('vmName'))]",
+        "nicResourceName": "[concat(variables('vmName'), '-nic')]",
+        "nicResourceId": "[resourceId(resourceGroup().name,'Microsoft.Network/networkInterfaces', variables('nicResourceName'))]",
+        "vnetResourceName": "[concat(variables('vmName'), '-vnet')]",
+        "vnetResourceId": "[resourceId(resourceGroup().name,'Microsoft.Network/virtualNetworks', variables('vnetResourceName'))]",
+        "networkProfileResourceName": "[concat(variables('vmName'), '-nprofile')]",
+        "networkProfileResourceId": "[resourceId('Microsoft.Network/networkProfiles', variables('networkProfileResourceName'))]",
+        "dockerCredentials": [
+            {
+                "server": "[parameters('dockerServer')]",
+                "username": "[parameters('dockerUser')]",
+                "password": "[parameters('dockerPassword')]"
+            }
+        ],
+        "opcservers": "[tolower(replace(concat(variables('vmName'), 'opcservers'), '-', ''))]",
+        "identity": {
+            "type": "UserAssigned",
+            "userAssignedIdentities": {
+                "[parameters('managedIdentityResourceId')]": {
+                }
+            }
+        },
+        "windowsSetupCommand": "[concat('powershell ./vm-setup.ps1 -KeyVaultUri \"', parameters('keyVaultUri'), '\" -AppId \"', parameters('keyVaultAppId'), '\" -AppSecret \"', parameters('keyVaultAppSecret'), '\" -ImageVersion \"', parameters('imageVersion'), '\" -ImageNamespace \"', parameters('imageNamespace'), '\" -DockerUrl \"', parameters('dockerServer'), '\" -DockerUser \"', parameters('dockerUser'), '\" -DockerPassword \"', parameters('dockerPassword'), '\"')]",
+        "windowsImage": {
+            "publisher": "MicrosoftWindowsServer",
+            "offer": "WindowsServer",
+            "sku": "2019-datacenter",
+            "version": "latest"
+        },
+        "linuxSetupCommand": "[concat('sh vm-setup.sh --keyVaultUri \"', parameters('keyVaultUri'), '\" --appId \"', parameters('keyVaultAppId'), '\" --appSecret \"', parameters('keyVaultAppSecret'), '\" --imageVersion \"', parameters('imageVersion'), '\" --imageNamespace \"', parameters('imageNamespace'), '\" --dockerUrl \"', parameters('dockerServer'), '\" -dockerUser \"', parameters('dockerUser'), '\" --dockerPassword \"', parameters('dockerPassword'), '\"')]",
+        "linuxImage": {
+            "publisher": "microsoft_iot_edge",
+            "offer": "iot_edge_vm_ubuntu",
+            "sku": "ubuntu_1604_edgeruntimeonly",
+            "version": "1.0.1"
+        },
+        "linuxPlan": {
+            "name": "ubuntu_1604_edgeruntimeonly",
+            "publisher": "microsoft_iot_edge",
+            "product": "iot_edge_vm_ubuntu"
+        }
+    },
+    "resources": [
+        {
+            "comments": "Virtual edge network.",
+            "name": "[variables('vnetResourceName')]",
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2019-09-01",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "10.1.8.0/22"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "vm-subnet",
+                        "properties": {
+                            "addressPrefix": "10.1.8.0/24"
+                        }
+                    },
+                    {
+                        "name": "aci-subnet",
+                        "properties": {
+                            "addressPrefix": "10.1.9.0/24",
+                            "delegations": [
+                                {
+                                    "name": "DelegationService",
+                                    "properties": {
+                                        "serviceName": "Microsoft.ContainerInstance/containerGroups"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "dependsOn": [
+            ]
+        },
+        {
+            "comments": "Network interface for edge virtual machine to use.",
+            "name": "[variables('nicResourceName')]",
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2019-09-01",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "subnet": {
+                                "id": "[concat(variables('vnetResourceId'), '/subnets/', 'vm-subnet')]"
+                            },
+                            "privateIPAllocationMethod": "Dynamic"
+                        }
+                    }
+                ]
+            },
+            "dependsOn": [
+                "[variables('vnetResourceId')]"
+            ]
+        },
+        {
+            "comments": "Virtual machine hosting the IoT Edge installation.",
+            "name": "[variables('vmName')]",
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "2019-03-01",
+            "location": "[resourceGroup().location]",
+            "identity": "[if(not(empty(parameters('managedIdentityResourceId'))), variables('identity'), '')]",
+            "plan": "[if(equals(parameters('edgeOs'), 'linux'), variables('linuxPlan'), json('null'))]",
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "Standard_B2s"
+                },
+                "osProfile": {
+                    "computerName": "[variables('vmName')]",
+                    "adminUsername": "[parameters('edgeUsername')]",
+                    "adminPassword": "[if(not(empty(parameters('edgePassword'))), parameters('edgePassword'), json('null'))]"
+                },
+                "storageProfile": {
+                    "imageReference": "[if(equals(parameters('edgeOs'), 'linux'), variables('linuxImage'), variables('windowsImage'))]",
+                    "osDisk": {
+                        "createOption": "FromImage"
+                    }
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[variables('nicResourceId')]"
+                        }
+                    ]
+                }
+            },
+            "dependsOn": [
+                "[variables('nicResourceId')]"
+            ]
+        },
+        {
+            "comments": "One time script execution to install and onboard IoT Edge and deploy workloads",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(variables('vmName'), '/', 'scriptextensions')]",
+            "apiVersion": "2019-03-01",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "publisher": "Microsoft.Azure.Extensions",
+                "type": "CustomScript",
+                "typeHandlerVersion": "2.0",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "fileUris": [
+                        "[concat(parameters('repoUrl'), parameters('branchName'), '/tools/scripts/', if (equals(parameters('edgeOs'), 'linux'), 'vm-setup.sh', 'vm-setup.ps1'))]"
+                    ]
+                },
+                "protectedSettings": {
+                    "commandToExecute": "[if (equals(parameters('edgeOs'), 'linux'), variables('linuxSetupCommand'), variables('windowsSetupCommand'))]"
+                }
+            },
+            "dependsOn": [
+                "[variables('vmResourceId')]"
+            ]
+        },
+        {
+            "comments": "Network profile for test server containering.",
+            "name": "[variables('networkProfileResourceName')]",
+            "type": "Microsoft.Network/networkProfiles",
+            "apiVersion": "2019-09-01",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "containerNetworkInterfaceConfigurations": [
+                    {
+                        "name": "vm-container-network-interface",
+                        "properties": {
+                            "ipConfigurations": [
+                                {
+                                    "name": "vm-container-ipconfiguration",
+                                    "properties": {
+                                        "subnet": {
+                                            "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('vnetResourceName'), 'aci-subnet')]"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "dependsOn": [
+                "[variables('vnetResourceId')]"
+            ]
+        },
+        {
+            "comments": "OPC Test server containers hosted as container group.",
+            "type": "Microsoft.ContainerInstance/containerGroups",
+            "condition": "[not(equals(parameters('numberOfServers'), 0))]",
+            "name": "[variables('opcservers')]",
+            "apiVersion": "2018-10-01",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "copy": [
+                    {
+                        "name": "containers",
+                        "count": "[if(not(equals(0, parameters('numberOfServers'))), parameters('numberOfServers'), 1)]",
+                        "input": {
+                            "name": "[concat('opc-ua-test-server-container', copyIndex('containers'))]",
+                            "properties": {
+                                "image": "[concat(parameters('dockerServer'), '/', if(empty(parameters('imageNamespace')), '', concat(parameters('imageNamespace'), '/')), 'iot/opc-ua-test-server', ':', parameters('imageVersion'))]",
+                                "command": [
+                                    "--sample",
+                                    "--autoaccept",
+                                    "--port",
+                                    "[add(50000, copyIndex('containers'))]"
+                                ],
+                                "ports": [
+                                    {
+                                        "protocol": "TCP",
+                                        "port": "[add(50000, copyIndex('containers'))]"
+                                    }
+                                ],
+                                "resources": {
+                                    "requests": {
+                                        "memoryInGB": 0.5,
+                                        "cpu": 1
+                                    }
+                                }
+                            }
+                        }
+                    }
+                ],
+                "imageRegistryCredentials": "[if(not(empty(parameters('dockerPassword'))), variables('dockerCredentials'), json('null'))]",
+                "restartPolicy": "Always",
+                "networkProfile": {
+                    "Id": "[variables('networkProfileResourceId')]"
+                },
+                "osType": "linux"
+            },
+            "dependsOn": [
+                "[variables('networkProfileResourceId')]"
+            ]
+        }
+    ],
+    "outputs": {
+        "edgeUsername": {
+            "type": "string",
+            "value": "[parameters('edgeUsername')]"
+        },
+        "edgeVMName": {
+            "type": "string",
+            "value": "[variables('vmName')]"
+        }
+    }
+}

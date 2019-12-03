@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -18,10 +19,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         long SentMessagesCount { get; }
 
         /// <summary>
-        /// Send message
+        /// Send network message
         /// </summary>
         /// <param name="messages"></param>
         /// <returns></returns>
-        Task SendAsync(EncodedMessage[] messages);
+        Task SendAsync(IEnumerable<NetworkMessageModel> messages);
     }
 }

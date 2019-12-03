@@ -27,7 +27,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Handlers {
         /// </summary>
         /// <param name="handlers"></param>
         /// <param name="logger"></param>
-        public MonitoredItemSampleHandler(IEnumerable<IMonitoredItemMessageProcessor> handlers, ILogger logger) {
+        public MonitoredItemSampleHandler(IEnumerable<IMonitoredItemSampleProcessor> handlers, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _handlers = handlers?.ToList() ?? throw new ArgumentNullException(nameof(handlers));
         }
@@ -56,7 +56,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Handlers {
                     if (sample == null) {
                         continue;
                     }
-                    await Task.WhenAll(_handlers.Select(h => h.HandleMessageAsync(sample)));
+                    await Task.WhenAll(_handlers.Select(h => h.HandleSampleAsync(sample)));
                 }
                 catch (Exception ex) {
                     _logger.Error(ex,
@@ -72,6 +72,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Handlers {
         }
 
         private readonly ILogger _logger;
-        private readonly List<IMonitoredItemMessageProcessor> _handlers;
+        private readonly List<IMonitoredItemSampleProcessor> _handlers;
     }
 }

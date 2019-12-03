@@ -29,7 +29,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
     using Microsoft.Azure.IIoT.Utils;
     using Autofac;
     using AutofacSerilogIntegration;
-    using Newtonsoft.Json.Linq;
     using System;
     using System.Linq;
     using System.Text;
@@ -189,7 +188,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
             Assert.Equal("connected", twin.ConnectionState);
             Assert.Equal(true, twin.Properties.Reported[TwinProperty.Connected]);
             Assert.Equal("supervisor", twin.Properties.Reported[TwinProperty.Type]);
-            Assert.Equal(JValue.CreateNull(), twin.Properties.Reported[TwinProperty.SiteId]);
+            Assert.False(twin.Properties.Reported.ContainsKey(TwinProperty.SiteId));
         }
 
         /// <summary>

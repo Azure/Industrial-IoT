@@ -15,7 +15,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Handlers {
     /// <summary>
     /// Forwards samples to another event hub
     /// </summary>
-    public sealed class MonitoredItemSampleForwarder : IMonitoredItemMessageProcessor,
+    public sealed class MonitoredItemSampleForwarder : IMonitoredItemSampleProcessor,
         IDisposable {
 
         /// <summary>
@@ -30,7 +30,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Handlers {
         }
 
         /// <inheritdoc/>
-        public Task HandleMessageAsync(MonitoredItemMessageModel sample) {
+        public Task HandleSampleAsync(MonitoredItemSampleModel sample) {
             sample = sample.Clone();
             // Set timestamp as source timestamp
             // TODO: Make configurablew

@@ -23,8 +23,9 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
     using Microsoft.Azure.IIoT.Auth.Clients.Default;
     using Microsoft.Azure.IIoT.Http.Auth;
     using Microsoft.Azure.IIoT.Http.Default;
-    using Microsoft.Azure.IIoT.Http.SignalR;
+    using Microsoft.Azure.IIoT.Http.SignalR.Clients;
     using Microsoft.Azure.IIoT.Utils;
+    using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Extensions.Configuration;
     using Newtonsoft.Json;
     using Autofac;
@@ -52,20 +53,23 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
             // Register configuration interfaces and logger
             builder.RegisterInstance(config)
                 .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterInstance(new ApiClientConfig(configuration))
+                .AsImplementedInterfaces().SingleInstance();
 
             // Register logger
             builder.AddDiagnostics(config, addConsole: false);
 
-            // Register http client module (needed for api)
+            // Register http client module ...
             builder.RegisterModule<HttpClientModule>();
+            // ... as well as signalR client (needed for api)
+            builder.RegisterType<SignalRClient>()
+                .AsImplementedInterfaces().SingleInstance();
+
             // Use bearer authentication
             builder.RegisterType<HttpBearerAuthentication>()
                 .AsImplementedInterfaces().SingleInstance();
             // Use device code token provider to get tokens
-            builder.RegisterType<DeviceCodeTokenProvider>()
-                .AsImplementedInterfaces().SingleInstance();
-            // ... as well as signalR client
-            builder.RegisterType<SignalRClient>()
+            builder.RegisterType<CliAuthenticationProvider>()
                 .AsImplementedInterfaces().SingleInstance();
 
             // Register twin, vault, and registry services clients
@@ -99,6 +103,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddFromDotEnvFile()
                 .AddJsonFile("appsettings.json", true)
+                .AddFromKeyVault()
                 .Build();
 
             using (var scope = new Program(config)) {
@@ -148,11 +153,11 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                             break;
                         case "console":
                             Console.WriteLine(@"
-  ___               _                 _            _           _           ___           _____      ____                                 _
- |_ _|  _ __     __| |  _   _   ___  | |_   _ __  (_)   __ _  | |         |_ _|   ___   |_   _|    / ___|   ___    _ __    ___    ___   | |   ___
-  | |  | '_ \   / _` | | | | | / __| | __| | '__| | |  / _` | | |  _____   | |   / _ \    | |     | |      / _ \  | '_ \  / __|  / _ \  | |  / _ \
-  | |  | | | | | (_| | | |_| | \__ \ | |_  | |    | | | (_| | | | |_____|  | |  | (_) |   | |     | |___  | (_) | | | | | \__ \ | (_) | | | |  __/
- |___| |_| |_|  \__,_|  \__,_| |___/  \__| |_|    |_|  \__,_| |_|         |___|  \___/    |_|      \____|  \___/  |_| |_| |___/  \___/  |_|  \___|
+  ___               _                 _            _           _           ___           _____
+ |_ _|  _ __     __| |  _   _   ___  | |_   _ __  (_)   __ _  | |         |_ _|   ___   |_   _|
+  | |  | '_ \   / _` | | | | | / __| | __| | '__| | |  / _` | | |  _____   | |   / _ \    | |
+  | |  | | | | | (_| | | |_| | \__ \ | |_  | |    | | | (_| | | | |_____|  | |  | (_) |   | |
+ |___| |_| |_|  \__,_|  \__,_| |___/  \__| |_|    |_|  \__,_| |_|         |___|  \___/    |_|
 ");
                             interactive = true;
                             break;
