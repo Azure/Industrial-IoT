@@ -46,6 +46,7 @@
                 </td>
                 <td>
                     <input type="checkbox" @bind="@supervisor.ScanStatus" @onclick="@(() => SetScan(supervisor, true,
+                                                                                                    supervisor.SupervisorModel.DiscoveryConfig?.AddressRangesToScan,
                                                                                                     supervisor.SupervisorModel.DiscoveryConfig?.PortRangesToScan))" />
                     @{string output = supervisor.ScanStatus == true ?  "On" : "Off";}
                     @output
@@ -71,34 +72,31 @@
     </tbody>
 </table>
 
-@if(IsOpened)
-{
-    <Drawer HeaderText="Scan IP address range" ObjectData="@SupervisorData" CloseDrawer="@(() => CloseDrawer())">
-        <div class="drawer-content list-group">
-            <div class="list-group-item text-justify list-group-item-heading">
-                <b>Enter address range to scan.</b>
-                <br><b>To apply default config leave the input field blank and click on apply</b>
-            </div>
-            <hr />
-            <div class="list-group-item text-left">
-                <form>
-                    <div class="form-group">
-                        <label>Mask address range (CIDR notation)</label>
-                        <input @bind="@IpMask" aria-label="addressRange" id="ipAddressMask" type="text" class="form-control" placeholder="IP-address/netmask" />
-                    </div>
-                    <div class="form-group">
-                        <label>Port range</label>
-                        <input @bind-value="@PortRange" aria-label="portRange" id="PortRange" type="text" class="form-control" placeholder="StartPort-EndPort" />
-                    </div>
-                    <hr />
-                    <div>
-                        <button @onclick="@(() => SetScan(SupervisorData, true, IpMask, PortRange))" type="button" class="btn btn-primary">Apply</button>
-                    </div>
-                </form>
-            </div>
+<Drawer HeaderText="Scan IP address range" ObjectData="@SupervisorData" IsOpened="@IsOpened" CloseDrawer="@(() => CloseDrawer())">
+    <div class="drawer-content list-group">
+        <div class="list-group-item text-justify list-group-item-heading">
+            <b>Enter address range to scan.</b>
+            <br><b>To apply default config leave the input field blank and click on apply</b>
         </div>
-    </Drawer>
-}
+        <hr />
+        <div class="list-group-item text-left">
+            <form>
+                <div class="form-group">
+                    <label>Mask address range (CIDR notation)</label>
+                    <input @bind="@IpMask" aria-label="addressRange" id="ipAddressMask" type="text" class="form-control" placeholder="IP-address/netmask" />
+                </div>
+                <div class="form-group">
+                    <label>Port range</label>
+                    <input @bind-value="@PortRange" aria-label="portRange" id="PortRange" type="text" class="form-control" placeholder="StartPort-EndPort" />
+                </div>
+                <hr />
+                <div>
+                    <button @onclick="@(() => SetScan(SupervisorData, true, IpMask, PortRange))" type="button" class="btn btn-primary">Apply</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</Drawer>
 
 <Pager Result=@supervisorList PageChanged=@((Page) => PagerPageChanged(Page)) />
 
@@ -132,7 +130,7 @@
     private async Task SetScan(SupervisorInfo supervisor, bool forceScan, string ipMask=null, string portRange=null)
     {
 
-        RegistryHelper.SetScanAsync(supervisor, ipMask, portRange, forceScan);
+        await RegistryHelper.SetScanAsync(supervisor, ipMask, portRange, forceScan);
 
         if (supervisor.ScanStatus == false || forceScan == true)
         {
