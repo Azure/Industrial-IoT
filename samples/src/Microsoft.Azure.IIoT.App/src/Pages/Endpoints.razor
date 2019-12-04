@@ -36,27 +36,41 @@
         @foreach (var endpoint in pagedendpointList.Results)
         {
             <tr>
-                @if (endpoint.endpointModel.ActivationState == EndpointActivationState.ActivatedAndConnected)
+                @if (endpoint.ActivationState == EndpointActivationState.ActivatedAndConnected ||
+                     endpoint.ActivationState == EndpointActivationState.Activated)
                 {
                     <td>
-                        <a href='browser/@SupervisorId/@endpoint.endpointModel.Registration.Id'>
-                            @endpoint.endpointModel.Registration.Endpoint.Url
+                        <a href='browser/@SupervisorId/@endpoint.Registration.Id'>
+                            @endpoint.Registration.Endpoint.Url
                         </a>
                     </td>
                 }
                 else
                 {
-                    <td>@endpoint.endpointModel.Registration.Endpoint.Url</td>
+                    <td>@endpoint.Registration.Endpoint.Url</td>
                 }
-                <td>@endpoint.endpointModel.Registration.Endpoint.SecurityMode</td>
-                <td>@endpoint.endpointModel.Registration.Endpoint.SecurityPolicy</td>
-                <td>@endpoint.endpointModel.Registration.SecurityLevel</td>
+                <td>@endpoint.Registration.Endpoint.SecurityMode</td>
+                <td>@endpoint.Registration.Endpoint.SecurityPolicy</td>
+                <td>@endpoint.Registration.SecurityLevel</td>
 
                 <td>
-                    <input type="checkbox" @bind="@endpoint.endpointState" 
-                        @onclick="@(() => SetActivation(endpoint.endpointModel.Registration.Id,
-                        endpoint.endpointModel.ActivationState))" />
-                        @endpoint.endpointModel.ActivationState.ToString()
+                    @*<input type="checkbox" @bind="@endpoint.ActivationState" 
+                        @onclick="@(() => SetActivation(endpoint.Registration.Id,
+                        endpoint.ActivationState))" />
+                        @endpoint.ActivationState.ToString()*@
+
+                    @if (endpoint.ActivationState == EndpointActivationState.ActivatedAndConnected ||
+                         endpoint.ActivationState == EndpointActivationState.Activated) {
+                        <input type="checkbox" checked
+                            @onchange="async eventArgs => { await SetActivation(endpoint.Registration.Id, eventArgs.Value); }" />
+                            @endpoint.ActivationState.ToString()
+                    }
+                    else {
+                        <input type="checkbox"
+                            @onchange="async eventArgs => { await SetActivation(endpoint.Registration.Id, eventArgs.Value); }" />
+                            @endpoint.ActivationState.ToString()
+                    }
+                    
                 </td>
                 <td></td>
             </tr>
@@ -94,9 +108,31 @@
     /// Activate or deactivate
     /// </summary>
     /// <param name="endpointId"></param>
+    /// <param name="checkedValue"></param>
+    /// <returns></returns>
+    private async Task SetActivation(string endpointId, object checkedValue)
+    {
+        if ((bool)checkedValue) {
+
+            await RegistryService.ActivateEndpointAsync(endpointId);
+        }
+        else {
+            await RegistryService.DeactivateEndpointAsync(endpointId);
+        }
+
+        endpointList = await RegistryHelper.GetEndpointListAsync(SupervisorId);
+        pagedendpointList = endpointList.GetPaged(Int32.Parse(Page), 10);
+        await Task.CompletedTask;
+        this.StateHasChanged();
+    }
+
+    /// <summary>
+    /// Activate or deactivate
+    /// </summary>
+    /// <param name="endpointId"></param>
     /// <param name="isActivated"></param>
     /// <returns></returns>
-    private async Task SetActivation(string endpointId, EndpointActivationState? state) {
+    private async Task SetActivation1(string endpointId, EndpointActivationState? state) {
         if (state == EndpointActivationState.Activated ||
             state == EndpointActivationState.ActivatedAndConnected) {
             await RegistryService.DeactivateEndpointAsync(endpointId);
@@ -104,10 +140,11 @@
         else {
             await RegistryService.ActivateEndpointAsync(endpointId);
         }
+       
     }
 
-    public PagedResult<EndpointInfo> endpointList =
-        new PagedResult<EndpointInfo>();
-    public PagedResult<EndpointInfo> pagedendpointList =
-        new PagedResult<EndpointInfo>();
+    public PagedResult<EndpointInfoApiModel> endpointList =
+        new PagedResult<EndpointInfoApiModel>();
+    public PagedResult<EndpointInfoApiModel> pagedendpointList =
+        new PagedResult<EndpointInfoApiModel>();
 }
