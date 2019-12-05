@@ -8,24 +8,24 @@ namespace Microsoft.Azure.IIoT.Messaging {
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Subscriber extensions
+    /// Callback Registrar extensions
     /// </summary>
-    public static class SubscriberEx {
+    public static class CallbackRegistrarEx {
 
         /// <summary>
         /// Register action
         /// </summary>
-        /// <param name="subscriber"></param>
+        /// <param name="registrar"></param>
         /// <param name="method"></param>
         /// <param name="action"></param>
-        public static IDisposable Register<T0>(this ICallbackRegistrar subscriber,
+        public static IDisposable Register<T0>(this ICallbackRegistrar registrar,
             string method, Action<T0> action) {
-            return subscriber.Register((args, _) => {
+            return registrar.Register((args, _) => {
                 action.Invoke(
                     (T0)args[0]
                 );
                 return Task.CompletedTask;
-            }, subscriber, method,
+            }, registrar, method,
             new Type[] {
                 typeof(T0)
             });
@@ -34,18 +34,18 @@ namespace Microsoft.Azure.IIoT.Messaging {
         /// <summary>
         /// Register action
         /// </summary>
-        /// <param name="subscriber"></param>
+        /// <param name="registrar"></param>
         /// <param name="method"></param>
         /// <param name="action"></param>
-        public static IDisposable Register<T0, T1>(this ICallbackRegistrar subscriber,
+        public static IDisposable Register<T0, T1>(this ICallbackRegistrar registrar,
             string method, Action<T0, T1> action) {
-            return subscriber.Register((args, _) => {
+            return registrar.Register((args, _) => {
                 action.Invoke(
                     (T0)args[0],
                     (T1)args[1]
                 );
                 return Task.CompletedTask;
-            }, subscriber, method,
+            }, registrar, method,
             new Type[] {
                 typeof(T0),
                 typeof(T1)
@@ -55,19 +55,19 @@ namespace Microsoft.Azure.IIoT.Messaging {
         /// <summary>
         /// Register action
         /// </summary>
-        /// <param name="subscriber"></param>
+        /// <param name="registrar"></param>
         /// <param name="method"></param>
         /// <param name="action"></param>
-        public static IDisposable Register<T0, T1, T2>(this ICallbackRegistrar subscriber,
+        public static IDisposable Register<T0, T1, T2>(this ICallbackRegistrar registrar,
             string method, Action<T0, T1, T2> action) {
-            return subscriber.Register((args, _) => {
+            return registrar.Register((args, _) => {
                 action.Invoke(
                     (T0)args[0],
                     (T1)args[1],
                     (T2)args[2]
                 );
                 return Task.CompletedTask;
-            }, subscriber, method,
+            }, registrar, method,
             new Type[] {
                 typeof(T0),
                 typeof(T1),
@@ -78,12 +78,12 @@ namespace Microsoft.Azure.IIoT.Messaging {
         /// <summary>
         /// Register action
         /// </summary>
-        /// <param name="subscriber"></param>
+        /// <param name="registrar"></param>
         /// <param name="method"></param>
         /// <param name="action"></param>
-        public static IDisposable Register<T0, T1, T2, T3>(this ICallbackRegistrar subscriber,
+        public static IDisposable Register<T0, T1, T2, T3>(this ICallbackRegistrar registrar,
             string method, Action<T0, T1, T2, T3> action) {
-            return subscriber.Register((args, _) => {
+            return registrar.Register((args, _) => {
                 action.Invoke(
                     (T0)args[0],
                     (T1)args[1],
@@ -91,7 +91,7 @@ namespace Microsoft.Azure.IIoT.Messaging {
                     (T3)args[3]
                 );
                 return Task.CompletedTask;
-            }, subscriber, method,
+            }, registrar, method,
             new Type[] {
                 typeof(T0),
                 typeof(T1),
@@ -103,16 +103,16 @@ namespace Microsoft.Azure.IIoT.Messaging {
         /// <summary>
         /// Register action
         /// </summary>
-        /// <param name="subscriber"></param>
+        /// <param name="registrar"></param>
         /// <param name="method"></param>
         /// <param name="action"></param>
-        public static IDisposable Register<T0>(this ICallbackRegistrar subscriber,
+        public static IDisposable Register<T0>(this ICallbackRegistrar registrar,
             string method, Func<T0, Task> action) {
-            return subscriber.Register((args, _) => {
+            return registrar.Register((args, _) => {
                 return action.Invoke(
                     (T0)args[0]
                 );
-            }, subscriber, method,
+            }, registrar, method,
             new Type[] {
                 typeof(T0)
             });
@@ -121,17 +121,17 @@ namespace Microsoft.Azure.IIoT.Messaging {
         /// <summary>
         /// Register action
         /// </summary>
-        /// <param name="subscriber"></param>
+        /// <param name="registrar"></param>
         /// <param name="method"></param>
         /// <param name="action"></param>
-        public static IDisposable Register<T0, T1>(this ICallbackRegistrar subscriber,
+        public static IDisposable Register<T0, T1>(this ICallbackRegistrar registrar,
             string method, Func<T0, T1, Task> action) {
-            return subscriber.Register((args, _) => {
+            return registrar.Register((args, _) => {
                 return action.Invoke(
                     (T0)args[0],
                     (T1)args[1]
                 );
-            }, subscriber, method,
+            }, registrar, method,
             new Type[] {
                 typeof(T0),
                 typeof(T1)
@@ -141,18 +141,18 @@ namespace Microsoft.Azure.IIoT.Messaging {
         /// <summary>
         /// Register action
         /// </summary>
-        /// <param name="subscriber"></param>
+        /// <param name="registrar"></param>
         /// <param name="method"></param>
         /// <param name="action"></param>
-        public static IDisposable Register<T0, T1, T2>(this ICallbackRegistrar subscriber,
+        public static IDisposable Register<T0, T1, T2>(this ICallbackRegistrar registrar,
             string method, Func<T0, T1, T2, Task> action) {
-            return subscriber.Register((args, _) => {
+            return registrar.Register((args, _) => {
                 return action.Invoke(
                     (T0)args[0],
                     (T1)args[1],
                     (T2)args[2]
                 );
-            }, subscriber, method,
+            }, registrar, method,
             new Type[] {
                 typeof(T0),
                 typeof(T1),
@@ -163,19 +163,19 @@ namespace Microsoft.Azure.IIoT.Messaging {
         /// <summary>
         /// Register action
         /// </summary>
-        /// <param name="subscriber"></param>
+        /// <param name="registrar"></param>
         /// <param name="method"></param>
         /// <param name="action"></param>
-        public static IDisposable Register<T0, T1, T2, T3>(this ICallbackRegistrar subscriber,
+        public static IDisposable Register<T0, T1, T2, T3>(this ICallbackRegistrar registrar,
             string method, Func<T0, T1, T2, T3, Task> action) {
-            return subscriber.Register((args, _) => {
+            return registrar.Register((args, _) => {
                 return action.Invoke(
                     (T0)args[0],
                     (T1)args[1],
                     (T2)args[2],
                     (T3)args[3]
                 );
-            }, subscriber, method,
+            }, registrar, method,
             new Type[] {
                 typeof(T0),
                 typeof(T1),

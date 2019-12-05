@@ -137,15 +137,19 @@ namespace Microsoft.Azure.IIoT.Http.SignalR {
             /// <returns></returns>
             internal async Task<bool> DisposeIfEmptyAsync(bool force = false) {
                 lock (_handles) {
-                    if (_handles.Count == 0) {
+                    if (_handles.Count == 0 && !_disposed) {
+                        _disposed = true;
                         force = true;
                     }
-                    else if (force) {
+                    else if (force && !_disposed) {
+                        _disposed = true;
                         _handles.Clear();
                     }
+                    else {
+                        force = false;
+                    }
                 }
-                if (force && !_disposed) {
-                    _disposed = true;
+                if (force) {
                     // Refcount is 0 or forced dispose, stop.
                     await _client.StopAsync();
                     _client.Dispose();
@@ -158,7 +162,14 @@ namespace Microsoft.Azure.IIoT.Http.SignalR {
             /// </summary>
             /// <returns></returns>
             internal ICallbackRegistrar GetHandle() {
-                return new SignalRRegistrarHandle(this);
+                lock (_handles) {
+                    if (_disposed) {
+                        throw new ObjectDisposedException(nameof(SignalRClientRegistrar));
+                    }
+                    var handle = new SignalRRegistrarHandle(this);
+                    _handles.Add(handle);
+                    return handle;
+                }
             }
 
             /// <summary>

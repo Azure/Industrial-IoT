@@ -8,10 +8,12 @@ namespace Microsoft.Azure.IIoT.Http.SignalR.Services {
     using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.Messaging.SignalR;
     using Microsoft.AspNetCore.SignalR.Client;
+    using Microsoft.Extensions.DependencyInjection;
     using Serilog;
     using System;
     using System.Threading.Tasks;
     using System.Threading;
+    using Newtonsoft.Json;
 
     /// <summary>
     /// Subscriber for signalr service
@@ -63,15 +65,7 @@ namespace Microsoft.Azure.IIoT.Http.SignalR.Services {
             _lock.Wait();
             try {
                 if (!_started) {
-                    // Lazy start on first event registration
-                    _started = true;
-                    try {
-                        _connection = OpenAsync().Result;
-                    }
-                    catch {
-                        _started = false;
-                        throw;
-                    }
+                    throw new InvalidOperationException("Must start before registering");
                 }
                 return _connection.On(method, arguments, handler, thiz);
             }
@@ -147,6 +141,10 @@ namespace Microsoft.Azure.IIoT.Http.SignalR.Services {
         /// <returns></returns>
         private async Task<HubConnection> OpenAsync() {
             var connection = new HubConnectionBuilder()
+                .WithAutomaticReconnect()
+                .AddNewtonsoftJsonProtocol(options => {
+                    options.PayloadSerializerSettings = JsonConvertEx.GetSettings();
+                })
                 .WithUrl(_endpointUri)
                 .Build();
             connection.Closed += ex => OnClosedAsync(connection, ex);
