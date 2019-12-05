@@ -1,42 +1,43 @@
 ﻿using Microsoft.Azure.Devices.Edge.Util;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Crypto
+namespace OpcPublisher.Crypto
 {
 
     public class IotEdgeCryptoProvider : ICryptoProvider
     {
         private class EncryptRequestBody
         {
-            [JsonProperty(PropertyName = "plaintext")]
+            [JsonProperty("plaintext")]
             public string PlainText { get; set; }
 
-            [JsonProperty(PropertyName = "initializationVector")]
+            [JsonProperty("initializationVector")]
             public string InitializationVector { get; set; }
         }
 
         private class DecryptRequestBody
         {
-            [JsonProperty(PropertyName = "ciphertext")]
+            [JsonProperty("ciphertext")]
             public string CipherText { get; set; }
 
-            [JsonProperty(PropertyName = "initializationVector")]
+            [JsonProperty("initializationVector")]
             public string InitializationVector { get; set; }
         }
 
         private class EncryptResponse
         {
-            [JsonProperty(PropertyName = "ciphertext")]
+            [JsonProperty("ciphertext")]
             public string CipherText { get; set; }
         }
 
         private class DecryptResponse
         {
-            [JsonProperty(PropertyName = "plaintext")]
+            [JsonProperty("plaintext")]
             public string PlainText { get; set; }
         }
 
@@ -66,7 +67,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Crypto
 
             var requestResult = await workloadHttpClient.PostAsync(url, payloadContent);
             var jsonResult = await requestResult.Content.ReadAsStringAsync();
-            var result = JsonConvert.DeserializeObject<TOut>(jsonResult);
+            TOut result = JsonConvert.DeserializeObject<TOut>(jsonResult);
             return result;
         }
 

@@ -8,8 +8,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Net.Http;
-    using System.Net.Http.Headers;
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Graph;
@@ -19,7 +17,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
     class MicrosoftGraphServiceClient {
 
         private readonly Guid _tenantGuid;
-        private readonly ITokenProvider _microsoftGraphTokenProvider;
         private readonly GraphServiceClient _graphServiceClient;
         private User _me;
 
@@ -29,7 +26,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             CancellationToken cancellationToken = default
         ) {
             _tenantGuid = tenantGuid;
-            _microsoftGraphTokenProvider = microsoftGraphTokenProvider;
 
             var delegateAuthenticationProvider = new DelegateAuthenticationProvider(
                 async (requestMessage) => {
@@ -204,6 +200,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                 cancellationToken
             );
 
+            // Add app role assignment to me as Approver, Writer and Administrator.
             var me = Me(cancellationToken);
 
             var approverAppRoleAssignmentRequest = new AppRoleAssignment {
@@ -226,28 +223,42 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                 AppRoleId = serviceApplicationWriterRoleIdGuid
             };
 
-            var adminAppRoleAssignmentRequest = new AppRoleAssignment {
+            var administratorAppRoleAssignmentRequest = new AppRoleAssignment {
                 //PrincipalDisplayName = "",
                 PrincipalType = "User",
                 PrincipalId = new Guid(me.Id),
                 ResourceId = new Guid(serviceApplicationSP.Id),
-                ResourceDisplayName = "Admin",
+                ResourceDisplayName = "Administrator",
                 Id = serviceApplicationAdministratorRoleIdGuid.ToString(),
                 AppRoleId = serviceApplicationAdministratorRoleIdGuid
             };
 
-            //// ToDo: Use AddAsync() instead of the workaround bellow
-            //// when AddAsync() is added.
-            //var appRoleAssignment = _graphServiceClient
-            //    .ServicePrincipals[serviceApplicationSP.Id]
-            //    .AppRoleAssignments
-            //    .Request()
-            //    .AddAsync(appRoleAssignmentRequest);
+            await _graphServiceClient
+                .ServicePrincipals[serviceApplicationSP.Id]
+                .AppRoleAssignments
+                .Request()
+                .AddAsync(
+                    approverAppRoleAssignmentRequest,
+                    cancellationToken
+                );
 
-            // Workaround using HttpClient
-            await AddAppRoleAssignmentAsync(serviceApplicationSP, approverAppRoleAssignmentRequest);
-            await AddAppRoleAssignmentAsync(serviceApplicationSP, writerAppRoleAssignmentRequest);
-            await AddAppRoleAssignmentAsync(serviceApplicationSP, adminAppRoleAssignmentRequest);
+            await _graphServiceClient
+                .ServicePrincipals[serviceApplicationSP.Id]
+                .AppRoleAssignments
+                .Request()
+                .AddAsync(
+                    writerAppRoleAssignmentRequest,
+                    cancellationToken
+                );
+
+            await _graphServiceClient
+                .ServicePrincipals[serviceApplicationSP.Id]
+                .AppRoleAssignments
+                .Request()
+                .AddAsync(
+                    administratorAppRoleAssignmentRequest,
+                    cancellationToken
+                );
 
             return serviceApplication;
         }
@@ -255,7 +266,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
         public async Task<Application> RegisterClientApplicationAsync(
             Application serviceApplication,
             string clientsApplicationName,
-            string azureWebsiteName, // ToDo: This should be set after App Service is deployed.
             IEnumerable<string> tags = null,
             CancellationToken cancellationToken = default
         ) {
@@ -313,16 +323,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             // Note: Oauth2AllowImplicitFlow will be enabled automatically since both
             // EnableIdTokenIssuance and EnableAccessTokenIssuance are set to true.
 
-            // ToDo: RedirectUris should be set after App Service is deployed.
             var clientApplicationWebApplicatoin = new WebApplication {
-                RedirectUris = new List<string> {
-                    $"https://{azureWebsiteName}.azurewebsites.net/",
-                    $"https://{azureWebsiteName}.azurewebsites.net/registry/",
-                    $"https://{azureWebsiteName}.azurewebsites.net/twin/",
-                    $"https://{azureWebsiteName}.azurewebsites.net/history/",
-                    $"https://{azureWebsiteName}.azurewebsites.net/ua/",
-                    $"https://{azureWebsiteName}.azurewebsites.net/vault/"
-                },
                 //Oauth2AllowImplicitFlow = true,
                 ImplicitGrantSettings = new ImplicitGrantSettings {
                     EnableIdTokenIssuance = true,
@@ -460,6 +461,12 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             return result;
         }
 
+        /// <summary>
+        /// Delete registered application.
+        /// </summary>
+        /// <param name="application"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public async Task DeleteApplicationAsync(
             Application application,
             CancellationToken cancellationToken = default
@@ -480,96 +487,135 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             }
         }
 
-        public async Task AddAsKnownClientApplicationAsync(
+        /// <summary>
+        /// Update service application to include client application 
+        /// as knownClientApplications.
+        /// </summary>
+        /// <param name="serviceApplication"></param>
+        /// <param name="clientApplication"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns>Updated service application</returns>
+        public async Task<Application> AddAsKnownClientApplicationAsync(
             Application serviceApplication,
             Application clientApplication,
             CancellationToken cancellationToken = default
         ) {
-            // Update service application to include client applicatoin as knownClientApplications
-            await _graphServiceClient
-                .Applications[serviceApplication.Id]
-                .Request()
-                .UpdateAsync(
-                    new Application {
-                        Api = new ApiApplication {
-                            KnownClientApplications = new List<Guid> {
-                                new Guid(clientApplication.AppId)
+            try {
+                await _graphServiceClient
+                    .Applications[serviceApplication.Id]
+                    .Request()
+                    .UpdateAsync(
+                        new Application {
+                            Api = new ApiApplication {
+                                KnownClientApplications = new List<Guid> {
+                                    new Guid(clientApplication.AppId)
+                                }
                             }
-                        }
-                    },
-                    cancellationToken
-                );
+                        },
+                        cancellationToken
+                    );
+
+                // UpdateAsync(...) is a wrapper around HTTP PATCH method and
+                // is supposed to return null, despite its documentation. So we
+                // will have to get updated application definition to return it.
+                var updatedServiceApplication = await _graphServiceClient
+                    .Applications[serviceApplication.Id]
+                    .Request()
+                    .GetAsync(cancellationToken);
+
+                return updatedServiceApplication;
+            }
+            catch (Exception ex) {
+                Log.Error(ex, $"Failed to add {clientApplication.DisplayName} as " +
+                    $"knownClientApplications for application: {serviceApplication.DisplayName}");
+                throw;
+            }
         }
 
-        //public async Task<Application> GetApplicationByAppIdAsync(
-        //    string AppId,
-        //    CancellationToken cancellationToken = default
-        //) {
-        //    throw new Exception("Currently Application filterring does not work on AppId");
+        /// <summary>
+        /// Update redirect URIs of the application with provided list.
+        /// </summary>
+        /// <param name="application"></param>
+        /// <param name="redirectUris"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns>Updated application.</returns>
+        public async Task<Application> UpdateRedirectUrisAsync(
+            Application application,
+            IEnumerable<string> redirectUris,
+            CancellationToken cancellationToken = default
+        ) {
+            try {
+                await _graphServiceClient
+                    .Applications[application.Id]
+                    .Request()
+                    .UpdateAsync(
+                        new Application {
+                            Web = new WebApplication {
+                                RedirectUris = redirectUris
+                            }
+                        },
+                        cancellationToken
+                    );
 
-        //    //var appIdFilterClause = $"AppId eq '{AppId}'";
+                // UpdateAsync(...) is a wrapper around HTTP PATCH method and
+                // is supposed to return null, despite its documentation. So we
+                // will have to get updated application definition to return it.
+                var updatedApplication = await _graphServiceClient
+                    .Applications[application.Id]
+                    .Request()
+                    .GetAsync(cancellationToken);
 
-        //    //var applications = await _graphServiceClient
-        //    //    .Applications
-        //    //    .Request()
-        //    //    .Filter(appIdFilterClause)
-        //    //    .GetAsync(cancellationToken);
+                return updatedApplication;
+            }
+            catch (Exception ex) {
+                Log.Error(ex, $"Failed to update RedirectUris of application: {application.DisplayName}");
+                throw;
+            }
+        }
 
-        //    //if (applications.Count != 1) {
-        //    //    throw new Exception($"Could not find Application with AppId='{AppId}'");
-        //    //}
-
-        //    //var application = applications.First();
-
-        //    //return application;
-        //}
-
+        /// <summary>
+        /// Get ServicePrincipal by AppId of the application.
+        /// </summary>
+        /// <param name="AppId"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns>ServicePrincipal object.</returns>
         public async Task<ServicePrincipal> GetServicePrincipalByAppIdAsync(
             string AppId,
             CancellationToken cancellationToken = default
         ) {
-            var idFilterClause = $"AppId eq '{AppId}'";
+            var appIdFilterClause = $"AppId eq '{AppId}'";
 
-            var servicePrincipals = await _graphServiceClient
-                .ServicePrincipals
-                .Request()
-                .Filter(idFilterClause)
-                .GetAsync(cancellationToken);
-
-            if (servicePrincipals.Count == 0) {
-                var msg = string.Format("Unable to find ServicePrincipal with AppId={0}", AppId);
-                throw new System.Exception(msg);
-            }
-
-            if (servicePrincipals.Count > 1) {
-                var msg = string.Format("Found more than one ServicePrincipal with AppId={0}", AppId);
-                throw new System.Exception(msg);
-            }
-
-            return servicePrincipals.First();
-        }
-
-        public async Task<ServicePrincipal> GetServicePrincipalAsync(
-            Application application,
-            CancellationToken cancellationToken = default
-        ) {
-            var appIdFilterClause = $"AppId eq '{application.AppId}'";
-
-            var serviceApplicationSPs = await _graphServiceClient
+            var applicationSPs = await _graphServiceClient
                 .ServicePrincipals
                 .Request()
                 .Filter(appIdFilterClause)
                 .GetAsync(cancellationToken);
 
-            if (serviceApplicationSPs.Count == 0) {
-                throw new Exception($"No service principal found for AppId=='{application.AppId}'");
+            if (applicationSPs.Count == 0) {
+                throw new Exception($"No service principal found for AppId='{AppId}'");
             }
 
-            if (serviceApplicationSPs.Count > 1) {
-                throw new Exception($"More than one service principal found for AppId=='{application.AppId}'");
+            if (applicationSPs.Count > 1) {
+                throw new Exception($"More than one service principal found for AppId='{AppId}'");
             }
 
-            return serviceApplicationSPs.First();
+            return applicationSPs.First();
+        }
+
+        /// <summary>
+        /// Get ServicePrincipal of the application.
+        /// </summary>
+        /// <param name="application"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public async Task<ServicePrincipal> GetServicePrincipalAsync(
+            Application application,
+            CancellationToken cancellationToken = default
+        ) {
+            return await GetServicePrincipalByAppIdAsync(
+                application.AppId,
+                cancellationToken
+            );
         }
 
         public async Task<ServicePrincipal> CreateServicePrincipalAsync(
@@ -619,7 +665,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             Application application,
             CancellationToken cancellationToken = default
         ) {
-            // Try to add current user (_me) as app owner the application, if it is not already.
+            // Add current user (_me) as owner of the application, if it is not already.
             var me = Me(cancellationToken);
             var idFilterClause = $"Id eq '{me.Id}'";
 
@@ -685,36 +731,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                     clientApplicationOAuth2PermissionGrantUserReadRequest,
                     cancellationToken
                 );
-        }
-
-        public async Task AddAppRoleAssignmentAsync(
-            ServicePrincipal servicePrincipal,
-            AppRoleAssignment appRoleAssignment,
-            CancellationToken cancellationToken = default
-        ) {
-            const string ROLE_ASSIGNMENT_FORMATTER = "https://graph.microsoft.com/beta/servicePrincipals/{0}/appRoleAssignments";
-            var url = string.Format(ROLE_ASSIGNMENT_FORMATTER, servicePrincipal.Id);
-
-            using (var client = new HttpClient()) {
-                client.DefaultRequestHeaders.Authorization = await _microsoftGraphTokenProvider
-                    .GetAuthenticationHeaderAsync(cancellationToken);
-
-                var content = new StringContent(
-                    Newtonsoft.Json.JsonConvert.SerializeObject(appRoleAssignment),
-                    System.Text.Encoding.UTF8,
-                    "application/json"
-                );
-
-                content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-                var response = await client.PostAsync(url, content);
-
-                if (response.IsSuccessStatusCode) {
-                    return;
-                }
-                else {
-                    throw new HttpRequestException(response.ReasonPhrase);
-                }
-            }
         }
 
         private static byte[] ToBase64Bytes(string message) {

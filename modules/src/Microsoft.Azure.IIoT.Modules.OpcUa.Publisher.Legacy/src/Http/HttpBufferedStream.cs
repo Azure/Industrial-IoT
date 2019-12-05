@@ -14,41 +14,41 @@ namespace Microsoft.Azure.Devices.Edge.Util.Uds
 
         public HttpBufferedStream(Stream stream)
         {
-            innerStream = new BufferedStream(stream);
+            this.innerStream = new BufferedStream(stream);
         }
 
-        public override bool CanRead => innerStream.CanRead;
+        public override bool CanRead => this.innerStream.CanRead;
 
-        public override bool CanSeek => innerStream.CanSeek;
+        public override bool CanSeek => this.innerStream.CanSeek;
 
-        public override bool CanWrite => innerStream.CanWrite;
+        public override bool CanWrite => this.innerStream.CanWrite;
 
-        public override long Length => innerStream.Length;
+        public override long Length => this.innerStream.Length;
 
         public override long Position
         {
-            get => innerStream.Position;
-            set => innerStream.Position = value;
+            get => this.innerStream.Position;
+            set => this.innerStream.Position = value;
         }
 
         public override void Flush()
         {
-            innerStream.Flush();
+            this.innerStream.Flush();
         }
 
         public override Task FlushAsync(CancellationToken cancellationToken)
         {
-            return innerStream.FlushAsync(cancellationToken);
+            return this.innerStream.FlushAsync(cancellationToken);
         }
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            return innerStream.Read(buffer, offset, count);
+            return this.innerStream.Read(buffer, offset, count);
         }
 
         public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
-            return innerStream.ReadAsync(buffer, offset, count, cancellationToken);
+            return this.innerStream.ReadAsync(buffer, offset, count, cancellationToken);
         }
 
         public async Task<string> ReadLineAsync(CancellationToken cancellationToken)
@@ -59,7 +59,7 @@ namespace Microsoft.Azure.Devices.Edge.Util.Uds
             var builder = new StringBuilder();
             while (true)
             {
-                int length = await innerStream.ReadAsync(buffer, 0, buffer.Length, cancellationToken);
+                int length = await this.innerStream.ReadAsync(buffer, 0, buffer.Length, cancellationToken);
 
                 if (length == 0)
                 {
@@ -85,7 +85,7 @@ namespace Microsoft.Azure.Devices.Edge.Util.Uds
             var builder = new StringBuilder();
             while (true)
             {
-                int length = innerStream.Read(buffer, 0, buffer.Length);
+                int length = this.innerStream.Read(buffer, 0, buffer.Length);
                 if (length == 0)
                 {
                     throw new IOException("Unexpected end of stream.");
@@ -104,27 +104,27 @@ namespace Microsoft.Azure.Devices.Edge.Util.Uds
 
         public override long Seek(long offset, SeekOrigin origin)
         {
-            return innerStream.Seek(offset, origin);
+            return this.innerStream.Seek(offset, origin);
         }
 
         public override void SetLength(long value)
         {
-            innerStream.SetLength(value);
+            this.innerStream.SetLength(value);
         }
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-            innerStream.Write(buffer, offset, count);
+            this.innerStream.Write(buffer, offset, count);
         }
 
         public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
-            return innerStream.WriteAsync(buffer, offset, count, cancellationToken);
+            return this.innerStream.WriteAsync(buffer, offset, count, cancellationToken);
         }
 
         protected override void Dispose(bool disposing)
         {
-            innerStream.Dispose();
+            this.innerStream.Dispose();
         }
     }
 }

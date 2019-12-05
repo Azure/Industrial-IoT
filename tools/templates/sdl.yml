@@ -10,15 +10,6 @@ jobs:
     - msbuild
     - npm
   steps:
-  # # This step will rely on existing setup of .Net Core for now.
-  # # Once we move all projects to .Net Core 3, we will uncomment this.
-  # - task: UseDotNet@2
-  #   displayName: 'Install .NET Core SDK'
-  #   inputs:
-  #     packageType: sdk
-  #     version: 3.0.x
-  #     includePreviewVersions: false
-  #     installationPath: $(Agent.ToolsDirectory)/dotnet
   - task: PowerShell@2
     displayName: Versioning
     inputs:

@@ -453,7 +453,6 @@ namespace DataAccess {
             return true;
         }
 
-        private readonly object _lock = new object();
         private readonly List<UnderlyingSystemTag> _tags;
         private TagsChangedEventHandler _onTagsChanged;
     }

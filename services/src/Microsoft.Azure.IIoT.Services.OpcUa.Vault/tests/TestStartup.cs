@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
-    using Microsoft.Extensions.Configuration;
+    using Microsoft.Azure.IIoT.Services.OpcUa.Vault.Runtime;
     using Microsoft.AspNetCore;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Mvc.Testing;
@@ -20,9 +20,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
         /// Create startup
         /// </summary>
         /// <param name="env"></param>
-        /// <param name="configuration"></param>
-        public TestStartup(IHostingEnvironment env, IConfiguration configuration) :
-            base(env, configuration) {
+        public TestStartup(IHostingEnvironment env) : base(env, new Config(null)) {
         }
 
         /// <inheritdoc/>

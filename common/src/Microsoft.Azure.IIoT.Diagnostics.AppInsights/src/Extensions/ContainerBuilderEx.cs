@@ -12,7 +12,7 @@ namespace Autofac {
     /// <summary>
     /// Register loggers
     /// </summary>
-    public static class ContainerBuilderEx {
+    public static class AppInsightsContainerBuilderEx {
 
         /// <summary>
         /// Register telemetry client diagnostics logger

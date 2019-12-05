@@ -18,10 +18,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2 {
         /// <inheritdoc/>
         public object DeserializeJobConfiguration(JToken model, string jobConfigurationType) {
             switch (jobConfigurationType) {
-                case kMonitoredItemJobV2:
-                    return model.ToObject<MonitoredItemDeviceJobApiModel>().ToServiceModel();
-                    //case kDataSetWriterJobV2:
-                    //    return model.ToObject<PubSubJobApiModel>().ToServiceModel();
+                case kDataSetWriterJobV2:
+                    return model.ToObject<WriterGroupJobApiModel>().ToServiceModel();
                     // ... Add more if needed
             }
             throw new UnknownJobTypeException(jobConfigurationType);
@@ -30,19 +28,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2 {
         /// <inheritdoc/>
         public JToken SerializeJobConfiguration<T>(T jobConfig, out string jobConfigurationType) {
             switch (jobConfig) {
-                case MonitoredItemDeviceJobModel mj:
-                    jobConfigurationType = kMonitoredItemJobV2;
-                    return JObject.FromObject(new MonitoredItemDeviceJobApiModel(mj));
-                //  case PubSubJobModel pj:
-                //      jobConfigurationType = kDataSetWriterJobV2;
-                //      return JObject.FromObject(new PubSubJobApiModel(pj));
-                default:
-                    jobConfigurationType = kMonitoredItemJobV2;
-                    return JObject.FromObject(jobConfig);
+                case WriterGroupJobModel pj:
+                    jobConfigurationType = kDataSetWriterJobV2;
+                    return JObject.FromObject(new WriterGroupJobApiModel(pj));
+                    // ... Add more if needed
             }
+            throw new UnknownJobTypeException(typeof(T).Name);
         }
 
-      //  private const string kDataSetWriterJobV2 = "DataSetWriterV2";
-        private const string kMonitoredItemJobV2 = "MonitoredItemJobV2";
+        private const string kDataSetWriterJobV2 = "DataSetWriterV2";
     }
 }

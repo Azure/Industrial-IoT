@@ -9,11 +9,12 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
     /// Uses developer tool authentication
     /// </summary>
     public class VsAuthenticationProvider : AppAuthenticationProvider {
+
         /// <summary>
         /// Create auth provider
         /// </summary>
-        public VsAuthenticationProvider() :
-            base(null) {
+        public VsAuthenticationProvider(IClientConfig config = null) :
+            base(config) {
         }
 
         /// <inheritdoc/>

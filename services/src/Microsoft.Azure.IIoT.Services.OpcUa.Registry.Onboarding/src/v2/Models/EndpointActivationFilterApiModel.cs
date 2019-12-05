@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding.v2.Models {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Newtonsoft.Json;
-    using System.ComponentModel;
     using System.Collections.Generic;
     using System;
 

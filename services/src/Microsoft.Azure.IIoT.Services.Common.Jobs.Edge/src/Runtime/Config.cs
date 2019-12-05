@@ -46,6 +46,9 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge.Runtime {
         public string IoTHubResourceId => _hub.IoTHubResourceId;
 
         /// <inheritdoc/>
+        public int HttpsRedirectPort => _host.HttpsRedirectPort;
+
+        /// <inheritdoc/>
         public string AppId => _auth.AppId;
         /// <inheritdoc/>
         public string AppSecret => _auth.AppSecret;
@@ -56,9 +59,9 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge.Runtime {
         /// <inheritdoc/>
         public string Audience => _auth.Audience;
         /// <inheritdoc/>
-        public bool AuthRequired => _auth.AuthRequired;
+        public string Domain => _auth.Domain;
         /// <inheritdoc/>
-        public int HttpsRedirectPort => _auth.HttpsRedirectPort;
+        public bool AuthRequired => _auth.AuthRequired;
         /// <inheritdoc/>
         public string TrustedIssuer => _auth.TrustedIssuer;
         /// <inheritdoc/>
@@ -85,12 +88,10 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge.Runtime {
         /// <inheritdoc/>
         public string SwaggerAppSecret => _swagger.SwaggerAppSecret;
 
-
         /// <summary>
         /// Whether to use role based access
         /// </summary>
         public bool UseRoles => GetBoolOrDefault("PCS_AUTH_ROLES");
-
 
         /// <summary>
         /// Configuration constructor
@@ -101,6 +102,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge.Runtime {
 
             _swagger = new SwaggerConfig(configuration);
             _auth = new AuthConfig(configuration);
+            _host = new HostConfig(configuration);
             _hub = new IoTHubConfig(configuration);
             _cors = new CorsConfig(configuration);
             _cosmos = new CosmosDbConfig(configuration);
@@ -110,6 +112,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge.Runtime {
 
         private readonly SwaggerConfig _swagger;
         private readonly AuthConfig _auth;
+        private readonly HostConfig _host;
         private readonly CorsConfig _cors;
         private readonly CosmosDbConfig _cosmos;
         private readonly JobOrchestratorConfig _jobs;

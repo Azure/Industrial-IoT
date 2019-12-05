@@ -47,7 +47,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Models {
         /// <summary>
         /// Method id of method to call.
         /// </summary>
-        [JsonProperty(PropertyName = "MethodId")]
+        [JsonProperty(PropertyName = "MethodId",
+            NullValueHandling = NullValueHandling.Ignore)]
         public string MethodId { get; set; }
 
         /// <summary>

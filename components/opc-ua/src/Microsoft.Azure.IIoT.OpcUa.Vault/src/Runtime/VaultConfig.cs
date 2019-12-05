@@ -33,9 +33,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Vault.Runtime {
 
         /// <inheritdoc/>
         public string DbConnectionString => GetStringOrDefault(kOpcVault_DbConnectionStringKey,
-            GetStringOrDefault("OPC_VAULT_COSMOSDB_CONNSTRING",
-                GetStringOrDefault("PCS_TELEMETRY_DOCUMENTDB_CONNSTRING",
-                GetStringOrDefault("_DB_CS", null))));
+            GetStringOrDefault("PCS_COSMOSDB_CONNSTRING",
+               GetStringOrDefault("PCS_STORAGEADAPTER_DOCUMENTDB_CONNSTRING",
+               GetStringOrDefault("PCS_TELEMETRY_DOCUMENTDB_CONNSTRING",
+                    GetStringOrDefault("_DB_CS", null)))));
         /// <inheritdoc/>
         public int? ThroughputUnits => GetIntOrDefault(kCosmosDbThroughputUnits,
             GetIntOrDefault("PCS_COSMOSDB_THROUGHPUT", 400));

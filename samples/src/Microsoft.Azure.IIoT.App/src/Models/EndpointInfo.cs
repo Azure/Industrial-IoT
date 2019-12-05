@@ -1,12 +1,24 @@
-﻿using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App.Models {
+    using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
+
+    /// <summary>
+    /// Endpoint info wrapper
+    /// </summary>
     public class EndpointInfo {
-        public EndpointInfoApiModel endpointModel { get; set; }
-        public bool endpointState { get; set; }
+
+        /// <summary>
+        /// Model
+        /// </summary>
+        public EndpointInfoApiModel EndpointModel { get; set; }
+
+        /// <summary>
+        /// State
+        /// </summary>
+        public bool EndpointState { get; set; }
     }
 }

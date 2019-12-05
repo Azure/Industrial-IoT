@@ -1,13 +1,9 @@
-﻿// ------------------------------------------------------------
-//  Copyright (c) Microsoft Corporation.  All rights reserved.
-//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
-// ------------------------------------------------------------
+﻿using Opc.Ua.Client;
+using System;
+using System.Collections.Generic;
 
-namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
+namespace OpcPublisher
 {
-    using Opc.Ua.Client;
-    using System;
-    using System.Collections.Generic;
     using Opc.Ua;
 
     /// <summary>
@@ -24,7 +20,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
 
         event KeepAliveEventHandler KeepAlive;
 
-        ServiceMessageContext Context { get; }
 
         bool AddSubscription(IOpcUaSubscription subscription);
 

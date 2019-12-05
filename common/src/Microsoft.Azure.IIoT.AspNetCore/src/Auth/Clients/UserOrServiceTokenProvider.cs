@@ -7,7 +7,7 @@ namespace Microsoft.Azure.IIoT.Services.Auth.Clients {
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Auth.Clients.Default;
-    using Microsoft.Azure.IIoT.Auth.Modelss;
+    using Microsoft.Azure.IIoT.Auth.Models;
     using Microsoft.AspNetCore.Http;
     using Serilog;
     using System;

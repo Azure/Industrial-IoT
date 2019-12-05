@@ -1,12 +1,8 @@
-﻿// ------------------------------------------------------------
-//  Copyright (c) Microsoft Corporation.  All rights reserved.
-//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
-// ------------------------------------------------------------
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
-namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
+namespace OpcPublisher
 {
-    using System.Collections.Generic;
-    using System.Threading.Tasks;
     using System.Threading;
 
     public interface IPublisherNodeConfiguration
@@ -90,15 +86,13 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         /// Returns a list of all published nodes for a specific endpoint in config file format.
         /// </summary>
         /// <returns></returns>
-        List<PublisherConfigurationFileEntryModel> GetPublisherConfigurationFileEntries(
-            string endpointId, string endpointUrl, bool getAll, out uint nodeConfigVersion);
+        List<PublisherConfigurationFileEntryModel> GetPublisherConfigurationFileEntries(string endpointUrl, bool getAll, out uint nodeConfigVersion);
 
         /// <summary>
         /// Returns a list of all configured nodes in NodeId format.
         /// </summary>
         /// <returns></returns>
-        Task<List<PublisherConfigurationFileEntryLegacyModel>> GetPublisherConfigurationFileEntriesAsNodeIdsAsync(
-            string endpointId, string endpointUrl);
+        Task<List<PublisherConfigurationFileEntryLegacyModel>> GetPublisherConfigurationFileEntriesAsNodeIdsAsync(string endpointUrl);
 
         /// <summary>
         /// Updates the configuration file to persist all currently published nodes

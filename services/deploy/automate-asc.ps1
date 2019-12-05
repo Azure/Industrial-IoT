@@ -93,12 +93,12 @@ function SetSolutionEnableASCForIotAndCreateAlert() {
 	Invoke-RestMethod -Method PUT -Uri $enableSecuritySolutionUrl -ContentType $contentType -Headers $headers -Body $json;
 	
 	## enable asc for iot and add workspace
-	$iotSecuritysiteName = "AzureIotSolution-" + $workspaceName.substring($workspaceName.length - 5, 5)
-	$enableASCForIotUrl = $urlPrefix + "Microsoft.Security/IoTSecuritySolutions/" + $iotSecuritysiteName + "?api-version=2017-08-01-preview";
+	$iotSecuritySolutionName = "AzureIotSolution-" + $workspaceName.substring($workspaceName.length - 5, 5)
+	$enableASCForIotUrl = $urlPrefix + "Microsoft.Security/IoTSecuritySolutions/" + $iotSecuritySolutionName + "?api-version=2017-08-01-preview";
 	$bodyForASCForIoT = @{  
 		location = "northeurope";
 		properties = @{       
-			displayName = $iotSecuritysiteName;
+			displayName = $iotSecuritySolutionName;
 			status = "Enabled";
 			export = @("RawEvents");
 			disabledDataSources = @();

@@ -44,6 +44,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Cli {
             var configuration = new ConfigurationBuilder()
                 .AddFromDotEnvFile()
                 .AddEnvironmentVariables()
+                .AddFromKeyVault()
                 .Build();
             var cs = configuration.GetValue<string>("PCS_IOTHUB_CONNSTRING", null);
             if (string.IsNullOrEmpty(cs)) {
@@ -177,7 +178,7 @@ Options:
                     arguments.Add("--at=X509Store");
                 }
                 Try.Op(() => File.Delete("publishednodes.json"));
-                Publisher.Program.Main(arguments.ToArray());
+                OpcPublisher.Program.Main(arguments.ToArray());
                 Console.WriteLine("Publisher module exited.");
             }
         }

@@ -28,7 +28,7 @@ The overall Azure Industrial IOT [architecture](architecture.md) looks like belo
 
 Details on how things work together can be found at [architectural code flow](architecture.md).
 
-The Platform includes several [Azure IoT Edge](https://azure.microsoft.com/services/iot-edge/) modules, which can be [deployed](howto-deploy-modules.md) and used in conjunction with the included cloud services, or standalone with Azure IoT Hub (but with limited functionality).   These include:
+The Platform includes several [Azure IoT Edge modules](modules/readme.md), which can be [deployed](howto-deploy-modules.md) and used in conjunction with the included cloud services, or standalone with Azure IoT Hub (but with limited functionality).   These include:
 
 - [OPC Publisher](modules/publisher.md)
 - [OPC Twin](modules/twin.md)
@@ -37,17 +37,17 @@ The Platform includes several [Azure IoT Edge](https://azure.microsoft.com/servi
 
 Deploying Azure Industrial IoT includes deploying the Azure Industrial IoT Microservices to Azure and the corresponding modules to Azure IoT Edge. The following articles provide more information about how to deploy both Microservices and edge modules in addition to their dependencies.
 
-* [Deploy all Microservices and dependencies to Azure](howto-deploy-microservices.md)
-* For development and testing purposes, one can also [deploy only the Microservices dependencies in Azure](howto-deploy-dependencies.md) and [run Microservices locally](howto-run-microservices-locally.md)
-* [Deploy Azure Industrial IoT Edge modules](howto-deploy-modules.md)
-* [Enable ASC for IoT](enable-asc-for-iot-and-sentinel-steps.md) to monitor security of OPC UA endpoints
+- [Deploy all Microservices and dependencies to Azure](howto-deploy-microservices.md)
+- For development and testing purposes, one can also [deploy only the Microservices dependencies in Azure](howto-deploy-dependencies.md) and [run Microservices locally](howto-run-microservices-locally.md)
+- [Deploy Azure Industrial IoT Edge modules](howto-deploy-modules.md)
+- [Enable ASC for IoT](enable-asc-for-iot-and-sentinel-steps.md) to monitor security of OPC UA endpoints
 
 ## Learn more
 
-* [Explore the code structure](code-structure.md)
-* [Discover a server and browse its address space using REST and the CLI](services/howto-use-cli.md).
-* [Industrial IoT cloud Microservices](services/readme.md)
-  * [What is OPC Twin?](services/twin.md)
-  * [What is OPC Vault?](services/vault.md)
-* [Explore the REST API](api/readme.md) 
+- [Explore the code structure](code-structure.md)
+- [Discover a server and browse its address space using REST and the CLI](services/howto-use-cli.md).
+- [Industrial IoT cloud Microservices](services/readme.md)
+  - [What is OPC Twin?](services/twin.md)
+  - [What is OPC Vault?](services/vault.md)
+- [Explore the REST API](api/readme.md) 
 

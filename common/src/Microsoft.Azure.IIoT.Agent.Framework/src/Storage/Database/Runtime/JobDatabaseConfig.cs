@@ -4,8 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
-    using Microsoft.Extensions.Configuration;
-
     /// <summary>
     /// Job repository configuration
     /// </summary>

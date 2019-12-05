@@ -31,14 +31,24 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Runtime {
         IClientConfig, ISwaggerConfig, IServiceBusConfig, ISignalRServiceConfig,
         ICosmosDbConfig, IItemContainerConfig {
 
+        /// <summary>
+        /// Whether to use role based access
+        /// </summary>
+        public bool UseRoles => GetBoolOrDefault("PCS_AUTH_ROLES");
+
         /// <inheritdoc/>
         public string IoTHubConnString => _hub.IoTHubConnString;
         /// <inheritdoc/>
         public string IoTHubResourceId => _hub.IoTHubResourceId;
+
         /// <inheritdoc/>
         public string CorsWhitelist => _cors.CorsWhitelist;
         /// <inheritdoc/>
         public bool CorsEnabled => _cors.CorsEnabled;
+
+        /// <inheritdoc/>
+        public int HttpsRedirectPort => _host.HttpsRedirectPort;
+
         /// <inheritdoc/>
         public string AppId => _auth.AppId;
         /// <inheritdoc/>
@@ -50,13 +60,14 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Runtime {
         /// <inheritdoc/>
         public string Audience => _auth.Audience;
         /// <inheritdoc/>
-        public int HttpsRedirectPort => _auth.HttpsRedirectPort;
+        public string Domain => _auth.Domain;
         /// <inheritdoc/>
         public bool AuthRequired => _auth.AuthRequired;
         /// <inheritdoc/>
         public string TrustedIssuer => _auth.TrustedIssuer;
         /// <inheritdoc/>
         public TimeSpan AllowedClockSkew => _auth.AllowedClockSkew;
+
         /// <inheritdoc/>
         public bool UIEnabled => _swagger.UIEnabled;
         /// <inheritdoc/>
@@ -67,8 +78,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Runtime {
         public string SwaggerAppId => _swagger.SwaggerAppId;
         /// <inheritdoc/>
         public string SwaggerAppSecret => _swagger.SwaggerAppSecret;
+
         /// <inheritdoc/>
         public string ServiceBusConnString => _sb.ServiceBusConnString;
+
         /// <inheritdoc/>
         public string DbConnectionString => _cosmos.DbConnectionString;
         /// <inheritdoc/>
@@ -77,15 +90,11 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Runtime {
         public string ContainerName => "iiot_opc";
         /// <inheritdoc/>
         public string DatabaseName => "iiot_opc";
+
         /// <inheritdoc/>
         public string SignalRHubName => _sr.SignalRHubName;
         /// <inheritdoc/>
         public string SignalRConnString => _sr.SignalRConnString;
-
-        /// <summary>
-        /// Whether to use role based access
-        /// </summary>
-        public bool UseRoles => GetBoolOrDefault("PCS_AUTH_ROLES");
 
         /// <summary>
         /// Configuration constructor
@@ -96,6 +105,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Runtime {
 
             _swagger = new SwaggerConfig(configuration);
             _auth = new AuthConfig(configuration);
+            _host = new HostConfig(configuration);
             _hub = new IoTHubConfig(configuration);
             _cors = new CorsConfig(configuration);
             _sb = new ServiceBusConfig(configuration);
@@ -105,6 +115,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Runtime {
 
         private readonly SwaggerConfig _swagger;
         private readonly AuthConfig _auth;
+        private readonly HostConfig _host;
         private readonly CorsConfig _cors;
         private readonly ServiceBusConfig _sb;
         private readonly CosmosDbConfig _cosmos;

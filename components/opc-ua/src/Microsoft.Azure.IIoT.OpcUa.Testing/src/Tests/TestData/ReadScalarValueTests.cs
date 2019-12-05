@@ -948,7 +948,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("BadNodeIdUnknown", ((JProperty)j).Name);
                     var item = ((JProperty)j).Value as JArray;
                     Assert.NotNull(item);
-                    Assert.Equal("ReadValue_ns=4;s=unknown", (string)item[0]);
+                    Assert.Equal("ReadValue_ns=9;s=unknown", (string)item[0]);
                 });
         }
 

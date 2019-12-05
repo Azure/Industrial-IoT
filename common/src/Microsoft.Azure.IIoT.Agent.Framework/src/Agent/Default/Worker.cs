@@ -11,6 +11,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
     using System;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Azure.IIoT.Exceptions;
 
     /// <summary>
     /// Individual agent worker
@@ -149,7 +150,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                 return; // Done
             }
             catch (Exception ex) {
-                _logger.Error(ex, "Could not send heartbeat.");
+                _logger.Debug(ex, "Could not send worker heartbeat.");
             }
             Try.Op(() => _heartbeatTimer.Change(_heartbeatInterval, Timeout.InfiniteTimeSpan));
         }
@@ -173,7 +174,8 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                     ct.ThrowIfCancellationRequested();
                     if (jobProcessInstruction?.Job?.JobConfiguration == null ||
                         jobProcessInstruction?.ProcessMode == null) {
-                        _logger.Information("No job received, continue listening...");
+                        _logger.Information("No job received, wait {delay} ...",
+                            _jobCheckerInterval);
                         await Task.Delay(_jobCheckerInterval, ct);
                         continue;
                     }
@@ -181,7 +183,9 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                     // Process until cancelled
                     await ProcessAsync(jobProcessInstruction, ct);
                 }
-                catch (OperationCanceledException) { }
+                catch (OperationCanceledException) {
+                    _logger.Information("Worker cancelled...");
+                }
                 catch (Exception ex) {
                     _logger.Error(ex, "Exception during worker execution.  Continue...");
                 }
@@ -267,7 +271,9 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                     Job.JobConfiguration, Job.JobConfigurationType);
                 var jobProcessorFactory = workerScope.ResolveNamed<IProcessingEngineContainerFactory>(
                     Job.JobConfigurationType, new NamedParameter(nameof(jobConfig), jobConfig));
-                _jobScope = workerScope.BeginLifetimeScope(jobProcessorFactory.GetScopedRegistrations());
+
+                _jobScope = workerScope.BeginLifetimeScope(
+                    jobProcessorFactory.GetJobContainerScope(outer.WorkerId, Job.Id));
                 _currentProcessingEngine = _jobScope.Resolve<IProcessingEngine>();
 
                 // Continuously send job status heartbeats
@@ -413,8 +419,15 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                     await SendHeartbeatAsync(_cancellationTokenSource.Token);
                 }
                 catch (OperationCanceledException) { }
+                catch (ResourceNotFoundException) {
+                    if (!_cancellationTokenSource.IsCancellationRequested) {
+                        _logger.Debug("Heartbeat returned job not found - cancelling ...");
+                        _cancellationTokenSource.Cancel();
+                        return;
+                    }
+                }
                 catch (Exception ex) {
-                    _logger.Error(ex, "Could not send heartbeat.");
+                    _logger.Error(ex, "Could not send worker heartbeat.");
                 }
             }
 

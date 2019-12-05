@@ -31,7 +31,7 @@ namespace Microsoft.Azure.Devices.Edge.Util.Uds
                 throw new ArgumentNullException(nameof(request.RequestUri));
             }
 
-            PreProcessRequest(request);
+            this.PreProcessRequest(request);
 
             var builder = new StringBuilder();
             // request-line   = method SP request-target SP HTTP-version CRLF
@@ -69,8 +69,8 @@ namespace Microsoft.Azure.Devices.Edge.Util.Uds
         {
             var httpResponse = new HttpResponseMessage();
 
-            await SetResponseStatusLine(httpResponse, bufferedStream, cancellationToken);
-            await SetHeadersAndContent(httpResponse, bufferedStream, cancellationToken);
+            await this.SetResponseStatusLine(httpResponse, bufferedStream, cancellationToken);
+            await this.SetHeadersAndContent(httpResponse, bufferedStream, cancellationToken);
 
             return httpResponse;
         }
@@ -118,7 +118,7 @@ namespace Microsoft.Azure.Devices.Edge.Util.Uds
                 ? new StreamContent(new HttpChunkedStreamReader(bufferedStream))
                 : new StreamContent(bufferedStream);
 
-            foreach (var contentHeader in contentHeaders)
+            foreach (KeyValuePair<string, string> contentHeader in contentHeaders)
             {
                 httpResponse.Content.Headers.TryAddWithoutValidation(contentHeader.Key, contentHeader.Value);
                 if (string.Equals(contentHeader.Key, ContentLengthHeaderName, StringComparison.InvariantCultureIgnoreCase))
@@ -148,7 +148,7 @@ namespace Microsoft.Azure.Devices.Edge.Util.Uds
             }
 
             string[] httpVersion = statusLineParts[0].Split(new[] { ProtocolVersionSeparator }, 2);
-            if (httpVersion.Length < 2 || !Version.TryParse(httpVersion[1], out var versionNumber))
+            if (httpVersion.Length < 2 || !Version.TryParse(httpVersion[1], out Version versionNumber))
             {
                 throw new HttpRequestException($"Version is not valid {statusLineParts[0]}.");
             }

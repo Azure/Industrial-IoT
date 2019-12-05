@@ -1,17 +1,14 @@
-﻿// ------------------------------------------------------------
-//  Copyright (c) Microsoft Corporation.  All rights reserved.
-//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
-// ------------------------------------------------------------
+﻿using System;
+using System.Collections.Generic;
 
-namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
+namespace OpcPublisher
 {
-    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Crypto;
+    using Opc.Ua;
+    using OpcPublisher.Crypto;
     using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
-    using System;
-    using System.Collections.Generic;
-    using static Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.OpcSession;
+    using static OpcPublisher.OpcSession;
 
     /// <summary>
     /// Class to manage OPC sessions.
@@ -19,14 +16,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
     public interface IOpcSession : IDisposable
     {
         /// <summary>
-        /// Endpoint uri for the session
+        /// The endpoint to connect to for the session.
         /// </summary>
-        string Endpointuri { get; }
-
-        /// <summary>
-        /// The endpoint identifier for the session.
-        /// </summary>
-        string EndpointId { get; }
+        string EndpointUrl { get; set; }
 
         /// <summary>
         /// The encrypted credential for authentication against the OPC UA Server. This is only used, when <see cref="OpcAuthenticationMode"/> is set to "UsernamePassword".
@@ -74,11 +66,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         uint SessionTimeout { get; }
 
         /// <summary>
-        /// Security options that should be used for the session.
+        /// Flag to control if a secure or unsecure OPC UA transport should be used for the session.
         /// </summary>
-        bool? UseSecurity { get; set; }
-        string SecurityProfileUri { get; }
-        string SecurityMode { get; }
+        bool UseSecurity { get; set; }
 
         /// <summary>
         /// Signals to run the connect and monitor task.
@@ -152,22 +142,27 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         Task DisconnectAsync();
 
         /// <summary>
+        /// Returns the namespace index for a namespace URI.
+        /// </summary>
+        int GetNamespaceIndexUnlocked(string namespaceUri);
+
+        /// <summary>
         /// Adds a node to be monitored. If there is no subscription with the requested publishing interval,
         /// one is created.
         /// </summary>
-        Task<HttpStatusCode> AddNodeForMonitoringAsync(string nodeId,
+        Task<HttpStatusCode> AddNodeForMonitoringAsync(NodeId nodeId, ExpandedNodeId expandedNodeId,
             int? opcPublishingInterval, int? opcSamplingInterval, string displayName,
             int? heartbeatInterval, bool? skipFirst, CancellationToken ct);
 
         /// <summary>
         /// Tags a monitored node to stop monitoring and remove it.
         /// </summary>
-        Task<HttpStatusCode> RequestMonitorItemRemovalAsync(string nodeId, CancellationToken ct, bool takeLock = true);
+        Task<HttpStatusCode> RequestMonitorItemRemovalAsync(NodeId nodeId, ExpandedNodeId expandedNodeId, CancellationToken ct, bool takeLock = true);
 
         /// <summary>
         /// Checks if the node specified by either the given NodeId or ExpandedNodeId on the given endpoint is published in the session.
         /// </summary>
-        bool IsNodePublishedInSession(string nodeId);
+        bool IsNodePublishedInSession(NodeId nodeId, ExpandedNodeId expandedNodeId);
 
         /// <summary>
         /// Shutdown the current session if it is connected.

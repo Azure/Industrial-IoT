@@ -12,6 +12,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     using UaBrowseDirection = Opc.Ua.BrowseDirection;
     using UaTokenType = Opc.Ua.UserTokenType;
     using UaNodeClass = Opc.Ua.NodeClass;
+    using UaMonitoringMode = Opc.Ua.MonitoringMode;
     using UaPermissionType = Opc.Ua.PermissionType;
     using UaDiagnosticsLevel = Opc.Ua.DiagnosticsMasks;
     using UaMonitoredItemSampleContentMask = Opc.Ua.MonitoredItemSampleContentMask;
@@ -320,80 +321,114 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         }
 
         /// <summary>
-        /// Get message content mask
+        /// Convert monitoring mode
         /// </summary>
+        /// <param name="mode"></param>
         /// <returns></returns>
-        public static uint ToStackType(this MonitoredItemMessageContentMask? mask,
-            MonitoredItemMessageEncoding? encoding) {
-            switch (encoding) {
-                case MonitoredItemMessageEncoding.Json:
-                    return (uint)mask.ToJsonStackType();
-                // Binary?
+        public static MonitoringMode? ToServiceType(this UaMonitoringMode mode) {
+            switch (mode) {
+                case UaMonitoringMode.Disabled:
+                    return MonitoringMode.Disabled;
+                case UaMonitoringMode.Sampling:
+                    return MonitoringMode.Sampling;
+                case UaMonitoringMode.Reporting:
+                    return MonitoringMode.Reporting;
+                default:
+                    return null;
             }
-            return (uint)mask.ToJsonStackType();
+        }
+
+        /// <summary>
+        /// Convert monitoring mode
+        /// </summary>
+        /// <param name="mode"></param>
+        /// <returns></returns>
+        public static UaMonitoringMode? ToStackType(this MonitoringMode? mode) {
+            if (mode == null) {
+                return null;
+            }
+            switch (mode) {
+                case MonitoringMode.Disabled:
+                    return UaMonitoringMode.Disabled;
+                case MonitoringMode.Sampling:
+                    return UaMonitoringMode.Sampling;
+                case MonitoringMode.Reporting:
+                    return UaMonitoringMode.Reporting;
+                default:
+                    return UaMonitoringMode.Reporting;
+            }
         }
 
         /// <summary>
         /// Get message content mask
         /// </summary>
         /// <returns></returns>
-        public static UaMonitoredItemSampleContentMask ToJsonStackType(this MonitoredItemMessageContentMask? mask) {
-            if (mask == null) {
-                mask =
-                    MonitoredItemMessageContentMask.DisplayName |
-                    MonitoredItemMessageContentMask.StatusCode |
-                    MonitoredItemMessageContentMask.Status |
-                    MonitoredItemMessageContentMask.ExtraFields |
-                    MonitoredItemMessageContentMask.SubscriptionId |
-                    MonitoredItemMessageContentMask.NodeId |
-                    MonitoredItemMessageContentMask.Timestamp |
-                    MonitoredItemMessageContentMask.ServerTimestamp |
-                    MonitoredItemMessageContentMask.SourceTimestamp;
-            }
+        public static uint ToMonitoredItemSampleMask(this DataSetContentMask? message,
+            DataSetFieldContentMask? field) {
             UaMonitoredItemSampleContentMask result = 0;
-            if (0 != (mask & MonitoredItemMessageContentMask.SourceTimestamp)) {
-                result |= UaMonitoredItemSampleContentMask.SourceTimestamp;
+            if (field == null) {
+                result |=
+                    UaMonitoredItemSampleContentMask.StatusCode |
+                    UaMonitoredItemSampleContentMask.SourceTimestamp |
+                    UaMonitoredItemSampleContentMask.NodeId |
+                    UaMonitoredItemSampleContentMask.EndpointUrl |
+                    UaMonitoredItemSampleContentMask.ApplicationUri |
+                    UaMonitoredItemSampleContentMask.DisplayName |
+                    UaMonitoredItemSampleContentMask.SubscriptionId |
+                    UaMonitoredItemSampleContentMask.ExtraFields;
             }
-            if (0 != (mask & MonitoredItemMessageContentMask.SourcePicoSeconds)) {
-                result |= UaMonitoredItemSampleContentMask.SourcePicoSeconds;
+            else {
+                if (0 != (field & DataSetFieldContentMask.SourceTimestamp)) {
+                    result |= UaMonitoredItemSampleContentMask.SourceTimestamp;
+                }
+                if (0 != (field & DataSetFieldContentMask.SourcePicoSeconds)) {
+                    result |= UaMonitoredItemSampleContentMask.SourcePicoSeconds;
+                }
+                if (0 != (field & DataSetFieldContentMask.ServerTimestamp)) {
+                    result |= UaMonitoredItemSampleContentMask.ServerTimestamp;
+                }
+                if (0 != (field & DataSetFieldContentMask.ServerPicoSeconds)) {
+                    result |= UaMonitoredItemSampleContentMask.ServerPicoSeconds;
+                }
+                if (0 != (field & DataSetFieldContentMask.StatusCode)) {
+                    result |= UaMonitoredItemSampleContentMask.StatusCode;
+                }
+                if (0 != (field & DataSetFieldContentMask.NodeId)) {
+                    result |= UaMonitoredItemSampleContentMask.NodeId;
+                }
+                if (0 != (field & DataSetFieldContentMask.EndpointUrl)) {
+                    result |= UaMonitoredItemSampleContentMask.EndpointUrl;
+                }
+                if (0 != (field & DataSetFieldContentMask.ApplicationUri)) {
+                    result |= UaMonitoredItemSampleContentMask.ApplicationUri;
+                }
+                if (0 != (field & DataSetFieldContentMask.DisplayName)) {
+                    result |= UaMonitoredItemSampleContentMask.DisplayName;
+                }
+                if (0 != (field & DataSetFieldContentMask.SubscriptionId)) {
+                    result |= UaMonitoredItemSampleContentMask.SubscriptionId;
+                }
+                if (0 != (field & DataSetFieldContentMask.ExtraFields)) {
+                    result |= UaMonitoredItemSampleContentMask.ExtraFields;
+                }
             }
-            if (0 != (mask & MonitoredItemMessageContentMask.ServerTimestamp)) {
-                result |= UaMonitoredItemSampleContentMask.ServerTimestamp;
+            if (message == null) {
+                result |=
+                    UaMonitoredItemSampleContentMask.Timestamp |
+                    UaMonitoredItemSampleContentMask.Status;
             }
-            if (0 != (mask & MonitoredItemMessageContentMask.ServerPicoSeconds)) {
-                result |= UaMonitoredItemSampleContentMask.ServerPicoSeconds;
+            else {
+                if (0 != (message & DataSetContentMask.Timestamp)) {
+                    result |= UaMonitoredItemSampleContentMask.Timestamp;
+                }
+                if (0 != (message & DataSetContentMask.PicoSeconds)) {
+                    result |= UaMonitoredItemSampleContentMask.PicoSeconds;
+                }
+                if (0 != (message & DataSetContentMask.Status)) {
+                    result |= UaMonitoredItemSampleContentMask.Status;
+                }
             }
-            if (0 != (mask & MonitoredItemMessageContentMask.Timestamp)) {
-                result |= UaMonitoredItemSampleContentMask.Timestamp;
-            }
-            if (0 != (mask & MonitoredItemMessageContentMask.PicoSeconds)) {
-                result |= UaMonitoredItemSampleContentMask.PicoSeconds;
-            }
-            if (0 != (mask & MonitoredItemMessageContentMask.StatusCode)) {
-                result |= UaMonitoredItemSampleContentMask.StatusCode;
-            }
-            if (0 != (mask & MonitoredItemMessageContentMask.Status)) {
-                result |= UaMonitoredItemSampleContentMask.Status;
-            }
-            if (0 != (mask & MonitoredItemMessageContentMask.NodeId)) {
-                result |= UaMonitoredItemSampleContentMask.NodeId;
-            }
-            if (0 != (mask & MonitoredItemMessageContentMask.EndpointUrl)) {
-                result |= UaMonitoredItemSampleContentMask.EndpointUrl;
-            }
-            if (0 != (mask & MonitoredItemMessageContentMask.ApplicationUri)) {
-                result |= UaMonitoredItemSampleContentMask.ApplicationUri;
-            }
-            if (0 != (mask & MonitoredItemMessageContentMask.DisplayName)) {
-                result |= UaMonitoredItemSampleContentMask.DisplayName;
-            }
-            if (0 != (mask & MonitoredItemMessageContentMask.ExtraFields)) {
-                result |= UaMonitoredItemSampleContentMask.ExtraFields;
-            }
-            if (0 != (mask & MonitoredItemMessageContentMask.SubscriptionId)) {
-                result |= UaMonitoredItemSampleContentMask.SubscriptionId;
-            }
-            return result;
+            return (uint)result;
         }
 
         /// <summary>
@@ -402,11 +437,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="mask"></param>
         /// <param name="encoding"></param>
         /// <returns></returns>
-        public static uint ToStackType(this NetworkMessageContentMask? mask, NetworkMessageEncoding? encoding) {
+        public static uint ToStackType(this NetworkMessageContentMask? mask, MessageEncoding? encoding) {
             switch (encoding) {
-                case NetworkMessageEncoding.Uadp:
+                case MessageEncoding.Uadp:
                     return (uint)mask.ToUadpStackType();
-                case NetworkMessageEncoding.Json:
+                case MessageEncoding.Json:
                     return (uint)mask.ToJsonStackType();
             }
             return (uint)mask.ToJsonStackType();
@@ -418,11 +453,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="mask"></param>
         /// <param name="encoding"></param>
         /// <returns></returns>
-        public static uint ToStackType(this DataSetContentMask? mask, NetworkMessageEncoding? encoding) {
+        public static uint ToStackType(this DataSetContentMask? mask, MessageEncoding? encoding) {
             switch (encoding) {
-                case NetworkMessageEncoding.Uadp:
+                case MessageEncoding.Uadp:
                     return (uint)mask.ToUadpStackType();
-                case NetworkMessageEncoding.Json:
+                case MessageEncoding.Json:
                     return (uint)mask.ToJsonStackType();
             }
             return (uint)mask.ToJsonStackType();

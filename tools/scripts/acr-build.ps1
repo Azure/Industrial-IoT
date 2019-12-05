@@ -52,7 +52,7 @@ $metadata = Get-Content -Raw -Path (join-path $Path "container.json") `
     | ConvertFrom-Json
 
 # get and set build information from gitversion, git or version content
-$sourceTag = $env:GITVERSION_MajorMinorPatch
+$sourceTag = $env:Version_Prefix
 if ([string]::IsNullOrEmpty($sourceTag)) {
     try {
         $version = & (Join-Path $PSScriptRoot "get-version.ps1")
@@ -71,7 +71,7 @@ else {
         # Try get current tag
         try {
             $argumentList = @("tag", "--points-at", $env:BUILD_SOURCEVERSION)
-            $sourceTag = (& "git" $argumentList 2>&1 | %{ "$_" });
+            $sourceTag = (& "git" $argumentList 2>&1 | ForEach-Object { "$_" });
             if ($LastExitCode -ne 0) {
                 throw "git $($argumentList) failed with $($LastExitCode)."
             }
@@ -88,7 +88,6 @@ else {
 
 # Try get branch name
 $branchName = $env:BUILD_SOURCEBRANCH
-$isDeveloperBuild = [string]::IsNullOrEmpty($env:RELEASE_BUILD)
 if (![string]::IsNullOrEmpty($branchName)) {
     if ($branchName.StartsWith("refs/heads/")) {
         $branchName = $branchName.Replace("refs/heads/", "")
@@ -101,7 +100,7 @@ if (![string]::IsNullOrEmpty($branchName)) {
 if ([string]::IsNullOrEmpty($branchName)) {
     try {
         $argumentList = @("rev-parse", "--abbrev-ref", "HEAD")
-        $branchName = (& "git" $argumentList 2>&1 | %{ "$_" });
+        $branchName = (& "git" $argumentList 2>&1 | ForEach-Object { "$_" });
         if ($LastExitCode -ne 0) {
             throw "git $($argumentList) failed with $($LastExitCode)."
         }
@@ -111,21 +110,12 @@ if ([string]::IsNullOrEmpty($branchName)) {
         $branchName = $null
     }
 }
-if ([string]::IsNullOrEmpty($branchName) -or ($branchName -eq "HEAD")) {
-    Write-Warning "Error - Branch '$($branchName)' invalid - using default."
-    $branchName = "deletemesoon"
-}
 
 # Check and set registry
-$namespacePrefix = ""
 if ([string]::IsNullOrEmpty($Registry)) {
     $Registry = $env.BUILD_REGISTRY
     if ([string]::IsNullOrEmpty($Registry)) {
-        $Registry = "industrialiot"
-        if ($isDeveloperBuild -eq $true) {
-            $Registry = "industrialiotdev"
-            $namespacePrefix = ""
-        }
+        $Registry = "industrialiotdev"
         Write-Warning "No registry specified - using $($Registry).azurecr.io."
     }
 }
@@ -134,7 +124,7 @@ if ([string]::IsNullOrEmpty($Registry)) {
 if (![string]::IsNullOrEmpty($Subscription)) {
     Write-Debug "Setting subscription to $($Subscription)"
     $argumentList = @("account", "set", "--subscription", $Subscription)
-    & "az" $argumentList 2>&1 | %{ Write-Host "$_" }
+    & "az" $argumentList 2>&1 | ForEach-Object { Write-Host "$_" }
     if ($LastExitCode -ne 0) {
         throw "az $($argumentList) failed with $($LastExitCode)."
     }
@@ -142,7 +132,7 @@ if (![string]::IsNullOrEmpty($Subscription)) {
 
 # get registry information
 $argumentList = @("acr", "show", "--name", $Registry)
-$RegistryInfo = (& "az" $argumentList 2>&1 | %{ "$_" }) | ConvertFrom-Json
+$RegistryInfo = (& "az" $argumentList 2>&1 | ForEach-Object { "$_" }) | ConvertFrom-Json
 if ($LastExitCode -ne 0) {
     throw "az $($argumentList) failed with $($LastExitCode)."
 }
@@ -150,7 +140,7 @@ $resourceGroup = $RegistryInfo.resourceGroup
 Write-Debug "Using resource group $($resourceGroup)"
 # get credentials
 $argumentList = @("acr", "credential", "show", "--name", $Registry)
-$credentials = (& "az" $argumentList 2>&1 | %{ "$_" }) | ConvertFrom-Json
+$credentials = (& "az" $argumentList 2>&1 | ForEach-Object { "$_" }) | ConvertFrom-Json
 if ($LastExitCode -ne 0) {
     throw "az $($argumentList) failed with $($LastExitCode)."
 }
@@ -159,15 +149,25 @@ $password = $credentials.passwords[0].value
 Write-Debug "Using User name $($user) and passsword ****"
 # Set image name and namespace in acr based on branch and source tag
 $imageName = $metadata.name
+
 # Set namespace name
-if ($isDeveloperBuild -eq $true) {
-    $namespace = "$($namespacePrefix)$($branchName)/"
-    Write-Host "Pushing '$($sourceTag)' developer build for $($branchName)."
+if ([string]::IsNullOrEmpty($branchName) -or ($branchName -eq "HEAD")) {
+    Write-Warning "Error - Branch '$($branchName)' invalid - using default."
+    $namespace = "deletemesoon"
+    $branchName = "HEAD"
 }
 else {
-    $namespace = "public/"
-    Write-Host "Pushing release build '$($sourceTag)' to public."
+    $namespace = $branchName
+    if ($namespace.StartsWith("feature/")) {
+        $namespace = $namespace.Replace("feature/", "")
+    }
+    elseif ($namespace.StartsWith("release/")) {
+        $namespace = "master"
+    }
+    $namespace = $namespace.Substring(0, [Math]::Min($namespace.Length, 24))
 }
+$namespace = "$($namespace)/"
+Write-Host "Pushing '$($sourceTag)' build for $($branchName) to $($namespace)."
 
 $tagPostfix = ""
 $tagPrefix = ""
@@ -191,8 +191,12 @@ if ($versionParts.Count -gt 0) {
     $tagList = ("'{0}'" -f ($tags -join "', '"))
 }
 
+$fullImageName = "$($Registry).azurecr.io/$($namespace)$($imageName):$($tagPrefix)latest$($tagPostfix)"
+
+Write-Host "Full image name: $($fullImageName)"
+
 $manifest = @" 
-image: $($Registry).azurecr.io/$($namespace)$($imageName):$($tagPrefix)latest$($tagPostfix)
+image: $($fullImageName)
 tags: [$($tagList)]
 manifests:
 "@
@@ -282,16 +286,20 @@ $definitions | ForEach-Object {
     $argumentList += $buildContext
     $jobs += Start-Job -Name $platform -ArgumentList $argumentList `
         -ScriptBlock {
-            Write-Host "az $($args)"
-            & az $args 2>&1 | %{ "$_" }
+        Write-Host "az $($args)"
+        & az $args 2>&1 | ForEach-Object { "$_" }
+        if ($LastExitCode -ne 0) {
+            Write-Warning "az $($args) failed - 2nd attempt..."
+            & az $args 2>&1 | ForEach-Object { "$_" }
             if ($LastExitCode -ne 0) {
-                throw "Error: 'az $($args)' failed with $($LastExitCode)."
+                throw "Error: 'az $($args)' 2nd attempt failed with $($LastExitCode)."
             }
         }
+    }
     # Append to manifest
     if (![string]::IsNullOrEmpty($os)) {
         $manifest +=
-@"
+        @"
 
   - 
     image: $($Registry).azurecr.io/$($image)
@@ -315,7 +323,7 @@ Write-Host ""
 
 # Build manifest using the manifest tool
 $manifestFile = New-TemporaryFile
-$url = "https://github.com/estesp/manifest-tool/releases/download/v0.9.0/"
+$url = "https://github.com/estesp/manifest-tool/releases/download/v1.0.0/"
 if ($env:OS -eq "windows_nt") {
     $manifestTool = "manifest-tool-windows-amd64.exe"
 }
@@ -323,20 +331,27 @@ else {
     $manifestTool = "manifest-tool-linux-amd64"
 }
 $manifestToolPath = Join-Path $PSScriptRoot $manifestTool
+while ($true) {
+    try {
+        # Download and verify manifest tool
+        $wc = New-Object System.Net.WebClient
+        $url += $manifestTool
+        Write-Host "Downloading $($manifestTool)..."
+        $wc.DownloadFile($url, $manifestToolPath)
+
+        if (Test-Path $manifestToolPath) {
+            break
+        }
+    }
+    catch {
+        Write-Warning "Failed to download $($manifestTool) - try again..."
+        Start-Sleep -s 3
+    }
+}
+
 try {
-    # Download and verify manifest tool
-    $wc = New-Object System.Net.WebClient
-    $url += $manifestTool
-    Write-Host "Downloading $($manifestTool)..."
-    $wc.DownloadFile($url, $manifestToolPath)
-    Write-Host "Downloading $($manifestTool).asc..."
-    $url = $url + ".asc"
-    $wc.DownloadFile($url, "$($manifestToolPath).asc")
-
-    # TODO: validate 0F386284C03A1162
-
     Write-Host "Building and pushing manifest file:"
-    Write-Host ""
+    Write-Host
     $manifest | Out-Host
 
     $manifest | Out-File -Encoding ascii -FilePath $manifestFile.FullName
@@ -349,23 +364,19 @@ try {
 
     (& $manifestToolPath $argumentList) | Out-Host
     if ($LastExitCode -ne 0) {
-        throw "$($manifestToolPath) failed with $($LastExitCode)."
+        Write-Warning "Manifest push failed - 2nd attempt."
+        (& $manifestToolPath $argumentList) | Out-Host
+        if ($LastExitCode -ne 0) {
+            throw "$($manifestToolPath) end attempt failed with $($LastExitCode)."
+        }
     }
 
-    Write-Host ""
     Write-Host "Manifest pushed successfully."
 }
 catch {
-    if ($isDeveloperBuild -eq $true) {
-        Write-Error "Could not push manifest"
-        Write-Error $_.Exception.Message
-    }
-    else {
-        throw $_.Exception
-    }
+    throw $_.Exception
 }
 finally {
     Remove-Item -Force -Path $manifestFile.FullName
     Remove-Item -Force -Path $manifestToolPath
-    Remove-Item -Force -Path "$($manifestToolPath).asc"
 }

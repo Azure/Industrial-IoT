@@ -1,12 +1,13 @@
 using System.Collections.Generic;
 using Xunit;
 
-namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
+namespace OpcPublisher
 {
     using Microsoft.Azure.Devices.Client;
     using Moq;
     using System;
     using System.IO;
+    using System.Threading;
     using System.Threading.Tasks;
     using Xunit.Abstractions;
     using static Program;

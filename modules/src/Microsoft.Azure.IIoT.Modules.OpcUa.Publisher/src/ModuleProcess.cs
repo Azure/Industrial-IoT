@@ -13,9 +13,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
     using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Microsoft.Azure.IIoT.Module.Framework.Services;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Encoding;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Sinks;
     using Microsoft.Azure.IIoT.OpcUa.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
@@ -147,31 +145,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
             // Use cloud job manager
             builder.RegisterType<JobOrchestratorClient>()
                 .AsImplementedInterfaces().SingleInstance();
-
-            // ... encoders ...
-            builder.RegisterType<JsonNetworkMessageEncoder>()
-                .Named<IMessageEncoder>(MessageSchemaTypes.NetworkMessageJson)
-                .AsImplementedInterfaces().InstancePerDependency();
-            builder.RegisterType<UadpNetworkMessageEncoder>()
-                .Named<IMessageEncoder>(MessageSchemaTypes.NetworkMessageUadp)
-                .AsImplementedInterfaces().InstancePerDependency();
-            builder.RegisterType<MonitoredItemsMessageEncoder>()
-                .Named<IMessageEncoder>(MessageSchemaTypes.MonitoredItemMessageJson)
-                .AsImplementedInterfaces().InstancePerDependency();
-
-            // ... sinks ...
-            builder.RegisterType<IoTHubMessageSink>()
-                .AsImplementedInterfaces().InstancePerDependency();
-
-            // ... and the job processing engine.
-            builder.RegisterType<DataFlowProcessingEngine>()
-                .AsImplementedInterfaces().InstancePerDependency()
-                .OnActivated(e => {
-                    // Activated in instance
-                    var contentType = e.Context.Resolve<IEncodingConfig>().ContentType;
-                    var messageEncoder = e.Context.ResolveKeyed<IMessageEncoder>(contentType);
-                    e.Instance.Initialize(messageEncoder);
-                });
 
             // Opc specific parts
             builder.RegisterType<DefaultSessionManager>()

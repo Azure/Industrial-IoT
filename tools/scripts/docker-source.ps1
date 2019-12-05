@@ -174,6 +174,10 @@ ENV PATH="${PATH}:/root/vsdbg/vsdbg"
                 $exposes = "$("EXPOSE $($_)" | Out-String)$($exposes)"
             }
         }
+        $workdir = ""
+        if ($metadata.workdir -ne $null) {
+            $workdir = "WORKDIR /$($metadata.workdir)"
+        }
         $dockerFileContent = @"
 FROM $($baseImage)
 $($exposes)
@@ -185,6 +189,8 @@ $($runtimeOnly)
 $($debugger)
 
 ENTRYPOINT $($entryPoint)
+
+$($workdir)
 "@ 
         $imageContent = (Join-Path $output $runtimeId)
         $dockerFile = (Join-Path $imageContent "Dockerfile.$($platformTag)")

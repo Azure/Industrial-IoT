@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -23,6 +23,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="subscriptionModel"></param>
         /// <returns></returns>
         Task<ISubscription> GetOrCreateSubscriptionAsync(
-            SubscriptionInfoModel subscriptionModel);
+            SubscriptionModel subscriptionModel);
     }
 }

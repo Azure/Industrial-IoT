@@ -4,18 +4,18 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
-    using Microsoft.Azure.IIoT.Messaging;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
     using System;
     using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Message triggering support
+    /// Writer group
     /// </summary>
     public interface IMessageTrigger {
 
         /// <summary>
-        /// Identifier of the trigger
+        /// Writer group id
         /// </summary>
         string Id { get; }
 
@@ -25,12 +25,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         long NumberOfConnectionRetries { get; }
 
         /// <summary>
-        /// Receive triggered messages
+        /// Writer events
         /// </summary>
-        event EventHandler<MessageReceivedEventArgs> MessageReceived;
+        event EventHandler<DataSetMessageModel> OnMessage;
 
         /// <summary>
-        /// Run the triggering mechanism
+        /// Run the group triggering
         /// </summary>
         /// <param name="ct"></param>
         /// <returns></returns>

@@ -22,7 +22,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Models {
         /// Create from service model
         /// </summary>
         /// <param name="model"></param>
-        public AggregateConfigApiModel(AggregateConfigModel model) {
+        public AggregateConfigApiModel(AggregateConfigurationModel model) {
             if (model == null) {
                 throw new ArgumentNullException(nameof(model));
             }
@@ -36,8 +36,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Models {
         /// <summary>
         /// Create service model from api model
         /// </summary>
-        public AggregateConfigModel ToServiceModel() {
-            return new AggregateConfigModel {
+        public AggregateConfigurationModel ToServiceModel() {
+            return new AggregateConfigurationModel {
                 UseServerCapabilitiesDefaults = UseServerCapabilitiesDefaults,
                 TreatUncertainAsBad = TreatUncertainAsBad,
                 PercentDataBad = PercentDataBad,

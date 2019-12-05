@@ -103,7 +103,7 @@ namespace Opc.Ua.PubSub {
             foreach (var value in wrapper) {
                 if (!Utils.IsEqual(wrapper[value.Key], this[value.Key])) {
                     return false;
-                }                    
+                }
             }
 
             return true;
@@ -117,6 +117,16 @@ namespace Opc.Ua.PubSub {
             foreach (var item in this) {
                 EncodeField(encoder, item.Key, item.Value);
             }
+        }
+
+#pragma warning disable IDE0060 // Remove unused parameter
+        /// <summary>
+        /// Encode as binary
+        /// </summary>
+        /// <param name="encoder"></param>
+        private void EncodeBinary(IEncoder encoder) {
+#pragma warning restore IDE0060 // Remove unused parameter
+            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -194,20 +204,14 @@ namespace Opc.Ua.PubSub {
                 }
             }
         }
-
-        /// <summary>
-        /// Encode as binary
-        /// </summary>
-        /// <param name="encoder"></param>
-        private void EncodeBinary(IEncoder encoder) {
-            throw new NotImplementedException("Binary encoding is not implemented.");
-        }
-
+        
+#pragma warning disable IDE0060 // Remove unused parameter
         /// <summary>
         /// Decode as binary
         /// </summary>
         /// <param name="decoder"></param>
         private void DecodeBinary(IDecoder decoder) {
+#pragma warning restore IDE0060 // Remove unused parameter
             throw new NotImplementedException("Binary decoding is not implemented.");
         }
     }

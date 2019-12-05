@@ -39,8 +39,9 @@ namespace Microsoft.Azure.IIoT.Services.Common.Hub.Fileupload {
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", true)
                 .AddFromDotEnvFile()
-                .AddEnvironmentVariables()
+                .AddEnvironmentVariables(EnvironmentVariableTarget.User)
                 .AddCommandLine(args)
+                .AddFromKeyVault()
                 .Build();
 
             // Set up dependency injection for the event processor host

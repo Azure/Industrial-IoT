@@ -7,7 +7,6 @@ namespace Microsoft.Azure.IIoT.Services.Common.Configuration {
     using Microsoft.Azure.IIoT.Services.Common.Configuration.Runtime;
     using Microsoft.Azure.IIoT.Services.Common.Configuration.v2;
     using Microsoft.Azure.IIoT.Services;
-    using Microsoft.Azure.IIoT.Services.Auth;
     using Microsoft.Azure.IIoT.Services.Cors;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Messaging.SignalR.Services;
@@ -35,7 +34,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Configuration {
         /// <summary>
         /// Service info - Initialized in constructor
         /// </summary>
-        public ServiceInfo ServiceInfo { get; }
+        public ServiceInfo ServiceInfo { get; } = new ServiceInfo();
 
         /// <summary>
         /// Current hosting environment - Initialized in constructor
@@ -48,24 +47,27 @@ namespace Microsoft.Azure.IIoT.Services.Common.Configuration {
         public IContainer ApplicationContainer { get; private set; }
 
         /// <summary>
-        /// Created through builder
+        /// Create startup
         /// </summary>
         /// <param name="env"></param>
         /// <param name="configuration"></param>
-        public Startup(IHostingEnvironment env, IConfiguration configuration) {
-            Environment = env;
-            ServiceInfo = new ServiceInfo();
-            Config = new Config(
-                new ConfigurationBuilder()
-                    .AddConfiguration(configuration)
-                    .SetBasePath(env.ContentRootPath)
-                    .AddJsonFile(
-                        "appsettings.json", true, true)
-                    .AddJsonFile(
-                        $"appsettings.{env.EnvironmentName}.json", true, true)
-                    .Build());
+        public Startup(IHostingEnvironment env, IConfiguration configuration) :
+            this(env, new Config(new ConfigurationBuilder()
+                .AddConfiguration(configuration)
+                .AddFromDotEnvFile()
+                .AddFromKeyVault()
+                .Build())) {
         }
 
+        /// <summary>
+        /// Create startup
+        /// </summary>
+        /// <param name="env"></param>
+        /// <param name="configuration"></param>
+        public Startup(IHostingEnvironment env, Config configuration) {
+            Environment = env;
+            Config = configuration;
+        }
 
         /// <summary>
         /// This is where you register dependencies, add services to the

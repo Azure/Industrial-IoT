@@ -8,7 +8,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway.Runtime {
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Transport;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
-    using Microsoft.Azure.IIoT.Api.Runtime;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Runtime;
     using Microsoft.Azure.IIoT.Services.Cors;
     using Microsoft.Azure.IIoT.Services.Cors.Runtime;
     using Microsoft.Azure.IIoT.Hub.Client;
@@ -33,10 +33,15 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway.Runtime {
         public string IoTHubConnString => _hub.IoTHubConnString;
         /// <inheritdoc/>
         public string IoTHubResourceId => _hub.IoTHubResourceId;
+
         /// <inheritdoc/>
         public string CorsWhitelist => _cors.CorsWhitelist;
         /// <inheritdoc/>
         public bool CorsEnabled => _cors.CorsEnabled;
+
+        /// <inheritdoc/>
+        public int HttpsRedirectPort => _host.HttpsRedirectPort;
+
         /// <inheritdoc/>
         public string AppId => _auth.AppId;
         /// <inheritdoc/>
@@ -48,13 +53,14 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway.Runtime {
         /// <inheritdoc/>
         public string Audience => _auth.Audience;
         /// <inheritdoc/>
-        public int HttpsRedirectPort => _auth.HttpsRedirectPort;
+        public string Domain => _auth.Domain;
         /// <inheritdoc/>
         public bool AuthRequired => _auth.AuthRequired;
         /// <inheritdoc/>
         public string TrustedIssuer => _auth.TrustedIssuer;
         /// <inheritdoc/>
         public TimeSpan AllowedClockSkew => _auth.AllowedClockSkew;
+
         /// <inheritdoc/>
         public string[] ListenUrls => null;
         /// <inheritdoc/>
@@ -77,6 +83,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway.Runtime {
         public TimeSpan MaxSessionTimeout => _sessions.MaxSessionTimeout;
         /// <inheritdoc/>
         public TimeSpan MinSessionTimeout => _sessions.MinSessionTimeout;
+
         /// <inheritdoc/>
         public string OpcUaRegistryServiceUrl => _api.OpcUaRegistryServiceUrl;
         /// <inheritdoc/>
@@ -90,16 +97,18 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway.Runtime {
             base(configuration) {
 
             _auth = new AuthConfig(configuration);
+            _host = new HostConfig(configuration);
             _hub = new IoTHubConfig(configuration);
             _cors = new CorsConfig(configuration);
             _sessions = new SessionServicesConfig(configuration);
-            _api = new ApiConfig(configuration);
+            _api = new RegistryConfig(configuration);
         }
 
         private readonly AuthConfig _auth;
+        private readonly HostConfig _host;
         private readonly CorsConfig _cors;
         private readonly IoTHubConfig _hub;
         private readonly SessionServicesConfig _sessions;
-        private readonly ApiConfig _api;
+        private readonly RegistryConfig _api;
     }
 }

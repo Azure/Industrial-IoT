@@ -28,8 +28,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Http.Auth;
     using Microsoft.Azure.IIoT.Http.Default;
-    using Microsoft.Azure.KeyVault;
-    using Microsoft.Azure.Services.AppAuthentication;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
@@ -56,7 +54,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
         /// <summary>
         /// Service info - Initialized in constructor
         /// </summary>
-        public ServiceInfo ServiceInfo { get; }
+        public ServiceInfo ServiceInfo { get; } = new ServiceInfo();
 
         /// <summary>
         /// Current hosting environment - Initialized in constructor
@@ -69,60 +67,26 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
         public IContainer ApplicationContainer { get; private set; }
 
         /// <summary>
-        /// Created through builder
+        /// Create startup
         /// </summary>
         /// <param name="env"></param>
         /// <param name="configuration"></param>
-        public Startup(IHostingEnvironment env, IConfiguration configuration) {
-            if (configuration == null) {
-                throw new ArgumentNullException(nameof(configuration));
-            }
-            Environment = env;
-            ServiceInfo = new ServiceInfo();
-
-            var configBuilder = new ConfigurationBuilder()
-                .SetBasePath(env.ContentRootPath)
+        public Startup(IHostingEnvironment env, IConfiguration configuration) :
+            this(env, new Config(new ConfigurationBuilder()
                 .AddConfiguration(configuration)
-                .AddJsonFile("appsettings.json", true, true)
-                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", true, true)
                 .AddFromDotEnvFile()
-                .AddEnvironmentVariables();
+                .AddFromKeyVault()
+                .Build())) {
+        }
 
-            IConfiguration config;
-            try {
-                var builtConfig = configBuilder.Build();
-                var keyVault = builtConfig["KeyVault"];
-                if (!string.IsNullOrWhiteSpace(keyVault)) {
-                    var appSecret = builtConfig["Auth:AppSecret"];
-                    if (string.IsNullOrWhiteSpace(appSecret)) {
-                        // try managed service identity
-                        var azureServiceTokenProvider = new AzureServiceTokenProvider();
-#pragma warning disable IDE0067 // Dispose objects before losing scope
-                        var keyVaultClient = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(azureServiceTokenProvider.KeyVaultTokenCallback));
-#pragma warning restore IDE0067 // Dispose objects before losing scope
-                        configBuilder.AddAzureKeyVault(
-                            keyVault,
-                            keyVaultClient,
-                            new PrefixKeyVaultSecretManager("Service")
-                            );
-                    }
-                    else {
-                        // use AzureAD token
-                        configBuilder.AddAzureKeyVault(
-                            keyVault,
-                            builtConfig["Auth:AppId"],
-                            appSecret,
-                            new PrefixKeyVaultSecretManager("Service")
-                            );
-                    }
-                }
-            }
-#pragma warning disable RECS0022 // A catch clause that catches System.Exception and has an empty body
-            catch {
-#pragma warning restore RECS0022 // A catch clause that catches System.Exception and has an empty body
-            }
-            config = configBuilder.Build();
-            Config = new Config(config);
+        /// <summary>
+        /// Create startup
+        /// </summary>
+        /// <param name="env"></param>
+        /// <param name="configuration"></param>
+        public Startup(IHostingEnvironment env, Config configuration) {
+            Environment = env;
+            Config = configuration;
         }
 
         /// <summary>

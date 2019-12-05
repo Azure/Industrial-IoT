@@ -28,13 +28,13 @@
  * ======================================================================*/
 
 namespace Reference {
-    using System;
-    using System.Collections.Generic;
-    using System.Xml;
-    using System.Threading;
-    using System.Numerics;
     using Opc.Ua;
     using Opc.Ua.Server;
+    using System;
+    using System.Collections.Generic;
+    using System.Numerics;
+    using System.Threading;
+    using System.Xml;
 
     /// <summary>
     /// A node manager for a server that exposes several variables.
@@ -1537,11 +1537,13 @@ namespace Reference {
             ISystemContext context,
             NodeState node,
 #pragma warning disable RECS0154 // Parameter is never used
+#pragma warning disable IDE0060 // Remove unused parameter
             NumericRange indexRange,
             QualifiedName dataEncoding,
             ref object value,
             ref StatusCode statusCode,
             ref DateTime timestamp)
+#pragma warning restore IDE0060 // Remove unused parameter
 #pragma warning restore RECS0154 // Parameter is never used
         {
             var variable = node as DataItemState;
@@ -1957,19 +1959,17 @@ namespace Reference {
             ref object value,
             ref StatusCode statusCode,
             ref DateTime timestamp) {
-            var extensionObject = value as ExtensionObject;
             var typeInfo = TypeInfo.Construct(value);
 
             if (!(node is PropertyState<Opc.Ua.Range> variable) ||
-                extensionObject == null ||
+                !(value is ExtensionObject extensionObject) ||
                 typeInfo == null ||
                 typeInfo == Opc.Ua.TypeInfo.Unknown) {
                 return StatusCodes.BadTypeMismatch;
             }
 
-            var parent = variable.Parent as AnalogItemState;
             if (!(extensionObject.Body is Opc.Ua.Range newRange) ||
-                parent == null) {
+                !(variable.Parent is AnalogItemState parent)) {
                 return StatusCodes.BadTypeMismatch;
             }
 

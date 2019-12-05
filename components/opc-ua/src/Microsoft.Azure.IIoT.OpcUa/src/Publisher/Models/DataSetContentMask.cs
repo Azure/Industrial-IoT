@@ -53,6 +53,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// <summary>
         /// Sequence number
         /// </summary>
-        SequenceNumber = 128,
+        SequenceNumber = 128
     }
 }

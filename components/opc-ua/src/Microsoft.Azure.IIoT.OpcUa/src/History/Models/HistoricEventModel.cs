@@ -15,6 +15,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.History.Models {
         /// <summary>
         /// The selected fields of the event
         /// </summary>
-        public List<JToken> EventFields { get; set; }
+        public List<JToken> EventFields { get; set; } // TODO: Update to concrete type
     }
 }

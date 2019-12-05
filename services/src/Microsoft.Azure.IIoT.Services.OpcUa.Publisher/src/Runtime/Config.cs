@@ -36,10 +36,15 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Runtime {
         public string IoTHubConnString => _hub.IoTHubConnString;
         /// <inheritdoc/>
         public string IoTHubResourceId => _hub.IoTHubResourceId;
+
         /// <inheritdoc/>
         public string CorsWhitelist => _cors.CorsWhitelist;
         /// <inheritdoc/>
         public bool CorsEnabled => _cors.CorsEnabled;
+
+        /// <inheritdoc/>
+        public int HttpsRedirectPort => _host.HttpsRedirectPort;
+
         /// <inheritdoc/>
         public string AppId => _auth.AppId;
         /// <inheritdoc/>
@@ -51,13 +56,14 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Runtime {
         /// <inheritdoc/>
         public string Audience => _auth.Audience;
         /// <inheritdoc/>
-        public int HttpsRedirectPort => _auth.HttpsRedirectPort;
+        public string Domain => _auth.Domain;
         /// <inheritdoc/>
         public bool AuthRequired => _auth.AuthRequired;
         /// <inheritdoc/>
         public string TrustedIssuer => _auth.TrustedIssuer;
         /// <inheritdoc/>
         public TimeSpan AllowedClockSkew => _auth.AllowedClockSkew;
+
         /// <inheritdoc/>
         public bool UIEnabled => _swagger.UIEnabled;
         /// <inheritdoc/>
@@ -68,18 +74,22 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Runtime {
         public string SwaggerAppId => _swagger.SwaggerAppId;
         /// <inheritdoc/>
         public string SwaggerAppSecret => _swagger.SwaggerAppSecret;
+
         /// <inheritdoc/>
         public string SignalRHubName => _sr.SignalRHubName;
         /// <inheritdoc/>
         public string SignalRConnString => _sr.SignalRConnString;
+
         /// <inheritdoc/>
         public string OpcUaTwinServiceUrl => _api.OpcUaTwinServiceUrl;
         /// <inheritdoc/>
         public string OpcUaTwinServiceResourceId => _api.OpcUaTwinServiceResourceId;
+
         /// <inheritdoc/>
         public string OpcUaRegistryServiceUrl => _api.OpcUaRegistryServiceUrl;
         /// <inheritdoc/>
         public string OpcUaRegistryServiceResourceId => _api.OpcUaRegistryServiceResourceId;
+
         /// <inheritdoc/>
         public string DbConnectionString => _cosmos.DbConnectionString;
         /// <inheritdoc/>
@@ -103,6 +113,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Runtime {
             base(configuration) {
 
             _swagger = new SwaggerConfig(configuration);
+            _host = new HostConfig(configuration);
             _auth = new AuthConfig(configuration);
             _hub = new IoTHubConfig(configuration);
             _cors = new CorsConfig(configuration);
@@ -112,6 +123,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Runtime {
         }
 
         private readonly SwaggerConfig _swagger;
+        private readonly HostConfig _host;
         private readonly AuthConfig _auth;
         private readonly CorsConfig _cors;
         private readonly SignalRServiceConfig _sr;

@@ -13,11 +13,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
         /// <summary>
         /// Locale or null for default locale
         /// </summary>
-        public string Locale { get; }
+        public string Locale { get; set; }
 
         /// <summary>
         /// Text
         /// </summary>
-        public string Text { get; }
+        public string Text { get; set; }
     }
 }

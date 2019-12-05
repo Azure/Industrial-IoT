@@ -95,11 +95,13 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 if (!string.IsNullOrWhiteSpace(certPath)) {
                     InstallCert(certPath);
                 }
+                else if (!string.IsNullOrEmpty(ehubHost)) {
+                    _bypassCertValidation = true;
+                }
             }
-
-            if (_bypassCertValidation) {
-                // Running in debug mode - can only use mqtt over tcp
-                _transport = TransportOption.MqttOverTcp;
+            if (!string.IsNullOrEmpty(ehubHost)) {
+                // Running in edge mode - use amqp over tcp
+                _transport = TransportOption.AmqpOverTcp;
             }
             else {
                 _transport = config.Transport;
@@ -115,6 +117,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         /// <inheritdoc/>
         public async Task<IClient> CreateAsync(string product, IProcessControl ctrl) {
 
+            if (_bypassCertValidation) {
+                _logger.Warning("Bypassing certificate validation for client.");
+            }
+
             // Configure transport settings
             var transportSettings = new List<ITransportSettings>();
 
@@ -128,16 +134,31 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 transportSettings.Add(setting);
             }
             if ((_transport & TransportOption.MqttOverWebsocket) != 0) {
-                transportSettings.Add(new MqttTransportSettings(
-                    TransportType.Mqtt_WebSocket_Only));
+                var setting = new MqttTransportSettings(
+                    TransportType.Mqtt_WebSocket_Only);
+                if (_bypassCertValidation) {
+                    setting.RemoteCertificateValidationCallback =
+                        (sender, certificate, chain, sslPolicyErrors) => true;
+                }
+                transportSettings.Add(setting);
             }
             if ((_transport & TransportOption.AmqpOverTcp) != 0) {
-                transportSettings.Add(new AmqpTransportSettings(
-                    TransportType.Amqp_Tcp_Only));
+                var setting = new AmqpTransportSettings(
+                    TransportType.Amqp_Tcp_Only);
+                if (_bypassCertValidation) {
+                    setting.RemoteCertificateValidationCallback =
+                        (sender, certificate, chain, sslPolicyErrors) => true;
+                }
+                transportSettings.Add(setting);
             }
             if ((_transport & TransportOption.AmqpOverWebsocket) != 0) {
-                transportSettings.Add(new AmqpTransportSettings(
-                    TransportType.Amqp_WebSocket_Only));
+                var setting = new AmqpTransportSettings(
+                    TransportType.Amqp_WebSocket_Only);
+                if (_bypassCertValidation) {
+                    setting.RemoteCertificateValidationCallback =
+                        (sender, certificate, chain, sslPolicyErrors) => true;
+                }
+                transportSettings.Add(setting);
             }
             if (transportSettings.Count != 0) {
                 return await Try.Options(transportSettings

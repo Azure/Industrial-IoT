@@ -5,15 +5,13 @@
 
 namespace Microsoft.Azure.IIoT.App {
     using Microsoft.Azure.IIoT.App.Services;
-    using Microsoft.Azure.IIoT.Api.Runtime;
+    using Microsoft.Azure.IIoT.App.Runtime;
     using Microsoft.Azure.IIoT.Services.Auth.Clients;
     using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Http.Auth;
     using Microsoft.Azure.IIoT.Http.Default;
-    using Microsoft.Azure.IIoT.Http.SignalR;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher;
+    using Microsoft.Azure.IIoT.Http.SignalR.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Api.Vault.Clients;
@@ -43,7 +41,7 @@ namespace Microsoft.Azure.IIoT.App {
         /// <summary>
         /// Configuration - Initialized in constructor
         /// </summary>
-        public ApiConfig Config { get; }
+        public Config Config { get; }
 
         /// <summary>
         /// Di container
@@ -63,9 +61,10 @@ namespace Microsoft.Azure.IIoT.App {
                 .AddConfiguration(configuration)
                 .AddFromDotEnvFile()
                 .AddEnvironmentVariables()
+                .AddFromKeyVault()
                 .Build();
 
-            Config = new ApiConfig(configuration);
+            Config = new Config(configuration);
         }
 
         /// <summary>
@@ -125,7 +124,7 @@ namespace Microsoft.Azure.IIoT.App {
             services.AddAuthentication(AzureADDefaults.AuthenticationScheme)
                 .AddAzureAD(options => {
                     options.Instance = Config.InstanceUrl;
-                    options.Domain = new Uri(Config.Audience).DnsSafeHost;
+                    options.Domain = Config.Domain;
                     options.TenantId = Config.TenantId;
                     options.ClientId = Config.AppId;
                     options.ClientSecret = Config.AppSecret;
@@ -179,6 +178,9 @@ namespace Microsoft.Azure.IIoT.App {
 
             // Register http client module (needed for api)...
             builder.RegisterModule<HttpClientModule>();
+            builder.RegisterType<SignalRClient>()
+                .AsImplementedInterfaces().SingleInstance();
+
             // Use bearer authentication
             builder.RegisterType<HttpBearerAuthentication>()
                 .AsImplementedInterfaces().SingleInstance();
@@ -186,9 +188,6 @@ namespace Microsoft.Azure.IIoT.App {
             builder.RegisterType<BehalfOfTokenProvider>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<DistributedTokenCache>()
-                .AsImplementedInterfaces().SingleInstance();
-            // ... as well as signalR client
-            builder.RegisterType<SignalRClient>()
                 .AsImplementedInterfaces().SingleInstance();
 
             // Register twin, vault, and registry services clients
@@ -199,12 +198,6 @@ namespace Microsoft.Azure.IIoT.App {
             builder.RegisterType<VaultServiceClient>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<PublisherServiceClient>()
-                .AsImplementedInterfaces().SingleInstance();
-
-            // ... with client event callbacks
-            builder.RegisterType<RegistryServiceEvents>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<PublisherServiceEvents>()
                 .AsImplementedInterfaces().SingleInstance();
 
             builder.RegisterType<Registry>()

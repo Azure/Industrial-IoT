@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Auth.Modelss {
+namespace Microsoft.Azure.IIoT.Auth.Models {
     using System.IdentityModel.Tokens.Jwt;
     using System.Linq;
 

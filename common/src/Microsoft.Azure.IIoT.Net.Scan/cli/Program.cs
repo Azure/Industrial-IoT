@@ -8,7 +8,6 @@ namespace Microsoft.Azure.IIoT.Net.Cli {
     using Microsoft.Azure.IIoT.Net.Scanner;
     using Microsoft.Azure.IIoT.Net.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.Extensions.Configuration;
     using System;
     using System.Diagnostics;
     using System.Threading.Tasks;
@@ -34,9 +33,6 @@ namespace Microsoft.Azure.IIoT.Net.Cli {
             var op = Op.None;
             var host = Dns.GetHostName();
 
-            var configuration = new ConfigurationBuilder()
-                .AddFromDotEnvFile()
-                .Build();
             try {
                 for (var i = 0; i < args.Length; i++) {
                     switch (args[i]) {

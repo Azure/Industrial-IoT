@@ -1,62 +1,14 @@
 version: '3'
 services:
-  engineeringtool:
-    image: ${SERVICES_REPOSITORY:-mcr.microsoft.com}/iot/industrial-iot-frontend:${SERVICES_VERSION:-latest}
+  application:
+    build:
+      context: .
+      dockerfile: ./deploy/docker/application/Dockerfile
     ports:
       - "5000:80"
-  jobsorchestrator:
-    image: ${SERVICES_REPOSITORY:-mcr.microsoft.com}/iot/industrial-iot-jobs-orchestrator-service:${SERVICES_VERSION:-latest}
+  platform:
+    build:
+      context: .
+      dockerfile: ./deploy/docker/platform/Dockerfile
     ports:
-      - "9051:9051"
-  configurationservice:
-    image: ${SERVICES_REPOSITORY:-mcr.microsoft.com}/iot/industrial-iot-configuration-service:${SERVICES_VERSION:-latest}
-    ports:
-      - "9050:9050"
-  jobsservice:
-    image: ${SERVICES_REPOSITORY:-mcr.microsoft.com}/iot/industrial-iot-jobs-service:${SERVICES_VERSION:-latest}
-    ports:
-      - "9046:9046"
-  publisherservice:
-    image: ${SERVICES_REPOSITORY:-mcr.microsoft.com}/iot/opc-publisher-service:${SERVICES_VERSION:-latest}
-    ports:
-      - "9045:9045"
-  vaultservice:
-    image: ${SERVICES_REPOSITORY:-mcr.microsoft.com}/iot/opc-vault-service:${SERVICES_VERSION:-latest}
-    ports:
-      - "9044:9044"
-  historyservice:
-    image: ${SERVICES_REPOSITORY:-mcr.microsoft.com}/iot/opc-history-service:${SERVICES_VERSION:-latest}
-    ports:
-      - "9043:9043"
-  registryservice:
-    image: ${SERVICES_REPOSITORY:-mcr.microsoft.com}/iot/opc-registry-service:${SERVICES_VERSION:-latest}
-    ports:
-      - "9042:9042"
-  twinservice:
-    image: ${SERVICES_REPOSITORY:-mcr.microsoft.com}/iot/opc-twin-service:${SERVICES_VERSION:-latest}
-    ports:
-      - "9041:9041"
-  gatewayservice:
-    image: ${SERVICES_REPOSITORY:-mcr.microsoft.com}/iot/opc-gateway-service:${SERVICES_VERSION:-latest}
-    ports:
-      - "9040:9040"
-      - "51111:51111"
-  onboardingservice:
-    image: ${SERVICES_REPOSITORY:-mcr.microsoft.com}/iot/opc-onboarding-service:${SERVICES_VERSION:-latest}
-    ports:
-      - "9060:9060"
-  jobsdispatcher:
-    image: ${SERVICES_REPOSITORY:-mcr.microsoft.com}/iot/opc-jobs-service:${SERVICES_VERSION:-latest}
-  securityevents:
-    image: ${SERVICES_REPOSITORY:-mcr.microsoft.com}/iot/opc-alerting-service:${SERVICES_VERSION:-latest}
-  modelprocessor:
-    image: ${SERVICES_REPOSITORY:-mcr.microsoft.com}/iot/opc-processor-service:${SERVICES_VERSION:-latest}
-  registryevents:
-    image: ${SERVICES_REPOSITORY:-mcr.microsoft.com}/iot/opc-registry-events-forwarder:${SERVICES_VERSION:-latest}
-  fileuploadevents:
-    image: ${SERVICES_REPOSITORY:-mcr.microsoft.com}/iot/industrial-iot-fileupload-forwarder:${SERVICES_VERSION:-latest}
-  telemetryevents:
-    image: ${SERVICES_REPOSITORY:-mcr.microsoft.com}/iot/industrial-iot-telemetry-processor:${SERVICES_VERSION:-latest}
-  identityservice:
-    image: ${SERVICES_REPOSITORY:-mcr.microsoft.com}/iot/industrial-iot-identity-service:${SERVICES_VERSION:-latest}
-
+      - "9080:80"

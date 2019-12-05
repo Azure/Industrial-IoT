@@ -52,7 +52,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Models {
         /// <summary>
         /// Node to read from (mandatory)
         /// </summary>
-        [JsonProperty(PropertyName = "NodeId")]
+        [JsonProperty(PropertyName = "NodeId",
+            NullValueHandling = NullValueHandling.Ignore)]
         public string NodeId { get; set; }
 
         /// <summary>

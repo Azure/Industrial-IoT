@@ -1,4 +1,4 @@
-namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
+namespace OpcPublisher
 {
     using Xunit;
 

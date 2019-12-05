@@ -1,13 +1,8 @@
-﻿// ------------------------------------------------------------
-//  Copyright (c) Microsoft Corporation.  All rights reserved.
-//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
-// ------------------------------------------------------------
+﻿using Opc.Ua;
+using System;
 
-
-namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
+namespace OpcPublisher
 {
-    using Opc.Ua;
-    using System;
     using System.Globalization;
     using System.Threading.Tasks;
     using static Program;
@@ -112,36 +107,73 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
             // instead of using a configuration XML file, we configure everything programmatically
 
             // passed in as command line argument
-            ApplicationConfiguration = new ApplicationConfiguration {
-                ApplicationName = ApplicationName,
-                ApplicationUri = ApplicationUri,
-                ProductUri = ProductUri,
-                ApplicationType = ApplicationType.Client,
+            ApplicationConfiguration = new ApplicationConfiguration();
+            ApplicationConfiguration.ApplicationName = ApplicationName;
+            ApplicationConfiguration.ApplicationUri = ApplicationUri;
+            ApplicationConfiguration.ProductUri = ProductUri;
+            ApplicationConfiguration.ApplicationType = ApplicationType.ClientAndServer;
 
-                // configure OPC stack tracing
-                TraceConfiguration = new TraceConfiguration {
-                    TraceMasks = OpcStackTraceMask
-                }
-            };
+            // configure OPC stack tracing
+            ApplicationConfiguration.TraceConfiguration = new TraceConfiguration();
+            ApplicationConfiguration.TraceConfiguration.TraceMasks = OpcStackTraceMask;
             ApplicationConfiguration.TraceConfiguration.ApplySettings();
             Utils.Tracing.TraceEventHandler += new EventHandler<TraceEventArgs>(LoggerOpcUaTraceHandler);
             Logger.Information($"opcstacktracemask set to: 0x{OpcStackTraceMask:X}");
 
             // configure transport settings
-            ApplicationConfiguration.TransportQuotas = new TransportQuotas {
-                MaxStringLength = OpcMaxStringLength,
-                MaxMessageSize = 4 * 1024 * 1024,
+            ApplicationConfiguration.TransportQuotas = new TransportQuotas();
+            ApplicationConfiguration.TransportQuotas.MaxStringLength = OpcMaxStringLength;
+            ApplicationConfiguration.TransportQuotas.MaxMessageSize = 4 * 1024 * 1024;
 
-                // the OperationTimeout should be twice the minimum value for PublishingInterval * KeepAliveCount, so set to 120s
-                OperationTimeout = OpcOperationTimeout
-            };
+            // the OperationTimeout should be twice the minimum value for PublishingInterval * KeepAliveCount, so set to 120s
+            ApplicationConfiguration.TransportQuotas.OperationTimeout = OpcOperationTimeout;
             Logger.Information($"OperationTimeout set to {ApplicationConfiguration.TransportQuotas.OperationTimeout}");
+
+            // configure OPC UA server
+            ApplicationConfiguration.ServerConfiguration = new ServerConfiguration();
+
+            // configure server base addresses
+            if (ApplicationConfiguration.ServerConfiguration.BaseAddresses.Count == 0)
+            {
+                // we do not use the localhost replacement mechanism of the configuration loading, to immediately show the base address here
+                ApplicationConfiguration.ServerConfiguration.BaseAddresses.Add($"opc.tcp://{Hostname}:{ServerPort}{ServerPath}");
+            }
+            foreach (var endpoint in ApplicationConfiguration.ServerConfiguration.BaseAddresses)
+            {
+                Logger.Information($"OPC UA server base address: {endpoint}");
+            }
+
+            // by default use high secure transport
+            ServerSecurityPolicy newPolicy = new ServerSecurityPolicy
+            {
+                SecurityMode = MessageSecurityMode.SignAndEncrypt,
+                SecurityPolicyUri = SecurityPolicies.Basic256Sha256
+            };
+            ApplicationConfiguration.ServerConfiguration.SecurityPolicies.Add(newPolicy);
+            Logger.Information($"Security policy {newPolicy.SecurityPolicyUri} with mode {newPolicy.SecurityMode} added");
+
+            // add none secure transport on request
+            if (EnableUnsecureTransport)
+            {
+                newPolicy = new ServerSecurityPolicy
+                {
+                    SecurityMode = MessageSecurityMode.None,
+                    SecurityPolicyUri = SecurityPolicies.None
+                };
+                ApplicationConfiguration.ServerConfiguration.SecurityPolicies.Add(newPolicy);
+                Logger.Information($"Unsecure security policy {newPolicy.SecurityPolicyUri} with mode {newPolicy.SecurityMode} added");
+                Logger.Warning($"Note: This is a security risk and needs to be disabled for production use");
+            }
 
             // add default client configuration
             ApplicationConfiguration.ClientConfiguration = new ClientConfiguration();
 
             // security configuration
             await InitApplicationSecurityAsync().ConfigureAwait(false);
+
+            // set LDS registration interval
+            ApplicationConfiguration.ServerConfiguration.MaxRegistrationInterval = LdsRegistrationInterval;
+            Logger.Information($"LDS(-ME) registration intervall set to {LdsRegistrationInterval} ms (0 means no registration)");
 
             // show certificate store information
             await ShowCertificateStoreInformationAsync().ConfigureAwait(false);

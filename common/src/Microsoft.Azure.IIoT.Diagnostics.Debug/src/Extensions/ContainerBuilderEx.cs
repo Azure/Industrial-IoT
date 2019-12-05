@@ -12,7 +12,7 @@ namespace Autofac {
     /// <summary>
     /// Register trace logger
     /// </summary>
-    public static class ContainerBuilderEx {
+    public static class DebugContainerBuilderEx {
 
         /// <summary>
         /// Register trace logger

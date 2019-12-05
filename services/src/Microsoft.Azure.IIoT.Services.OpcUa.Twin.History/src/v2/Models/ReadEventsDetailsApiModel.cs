@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Models {
     using Microsoft.Azure.IIoT.OpcUa.History.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
     using System;
@@ -41,7 +42,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Models {
                 EndTime = EndTime,
                 StartTime = StartTime,
                 NumEvents = NumEvents,
-                Filter = Filter
+                Filter = Filter == null ? null : new ContentFilterModel(Filter)
             };
         }
 
@@ -71,6 +72,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Models {
         /// </summary>
         [JsonProperty(PropertyName = "filter",
             NullValueHandling = NullValueHandling.Ignore)]
-        public JToken Filter { get; set; }
+        public JObject Filter { get; set; }
     }
 }

@@ -1,12 +1,8 @@
-﻿// ------------------------------------------------------------
-//  Copyright (c) Microsoft Corporation.  All rights reserved.
-//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
-// ------------------------------------------------------------
+﻿using Opc.Ua.Client;
 
-namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
+namespace OpcPublisher
 {
     using Opc.Ua;
-    using Opc.Ua.Client;
     using static OpcMonitoredItem;
 
     /// <summary>
@@ -18,11 +14,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         /// The endpoint URL the monitored item belongs to.
         /// </summary>
         string EndpointUrl { get; set; }
-
-        /// <summary>
-        /// The endpoint id
-        /// </summary>
-        string EndpointId { get; set; }
 
         /// <summary>
         /// The OPC UA NodeId of the monitored item.
@@ -48,11 +39,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         /// The OPC UA source timestamp the value was seen.
         /// </summary>
         string SourceTimestamp { get; set; }
-
-        /// <summary>
-        /// The OPC UA source timestamp the value was seen.
-        /// </summary>
-        string ServerTimestamp { get; set; }
 
         /// <summary>
         /// The OPC UA status code of the value.
@@ -141,19 +127,19 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         string EndpointUrl { get; set; }
 
         /// <summary>
-        /// The endpoint Id of the endpoint
-        /// </summary>
-        string EndpointId { get; set; }
-
-        /// <summary>
         /// The OPC UA stacks monitored item object.
         /// </summary>
         IOpcUaMonitoredItem OpcUaClientMonitoredItem { get; set; }
 
         /// <summary>
-        /// The OPC UA identifier of the node in ExpandedNodeId syntax.
+        /// The OPC UA identifier of the node in NodeId ("ns=") syntax.
         /// </summary>
-        string ConfiguredNodeId { get; set; }
+        NodeId ConfigNodeId { get; set; }
+
+        /// <summary>
+        /// The OPC UA identifier of the node in ExpandedNodeId ("nsu=") syntax.
+        /// </summary>
+        ExpandedNodeId ConfigExpandedNodeId { get; set; }
 
         /// <summary>
         /// The OPC UA identifier of the node as it was configured.
@@ -161,9 +147,14 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         string OriginalId { get; set; }
 
         /// <summary>
+        /// Identifies the configuration type of the node.
+        /// </summary>
+        OpcMonitoredItemConfigurationType ConfigType { get; set; }
+
+        /// <summary>
         /// Checks if the monitored item does monitor the node described by the given objects.
         /// </summary>
-        bool IsMonitoringThisNode(string expandedNodeId, ServiceMessageContext context);
+        bool IsMonitoringThisNode(NodeId nodeId, ExpandedNodeId expandedNodeId, NamespaceTable namespaceTable);
 
         /// <summary>
         /// The notification that the data for a monitored item has changed on an OPC UA server.

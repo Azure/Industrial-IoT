@@ -14,11 +14,6 @@ namespace Opc.Ua.PubSub {
     public class NetworkMessage : IEncodeable {
 
         /// <summary>
-        /// Subscription id
-        /// </summary>
-        public string SubscriptionId { get; set; }
-
-        /// <summary>
         /// Message content
         /// </summary>
         public uint MessageContentMask { get; set; }
@@ -27,11 +22,6 @@ namespace Opc.Ua.PubSub {
         /// Message id
         /// </summary>
         public string MessageId { get; set; }
-
-        /// <summary>
-        /// Message type
-        /// </summary>
-        public string MessageType { get; set; }
 
         /// <summary>
         /// Publisher identifier
@@ -44,9 +34,9 @@ namespace Opc.Ua.PubSub {
         public string DataSetClassId { get; set; }
 
         /// <summary>
-        /// Message context
+        /// Message type 
         /// </summary>
-        public ServiceMessageContext MessageContext { get; set; }
+        public string MessageType { get; set; } = "ua-data";
 
         /// <summary>
         /// Dataset Messages
@@ -97,84 +87,19 @@ namespace Opc.Ua.PubSub {
         }
 
         /// <inheritdoc/>
-        public override bool Equals(Object value) {
-            return IsEqual(value as IEncodeable);
-        }
-
-        /// <inheritdoc/>
-        public override int GetHashCode() {
-            return base.GetHashCode();
-        }
-
-        /// <inheritdoc/>
         public bool IsEqual(IEncodeable encodeable) {
-
-            if (ReferenceEquals(this, encodeable)) {
-                return true;
-            }
-           
-            if (!(encodeable is NetworkMessage wrapper)) {
-                return false;
-            }
-
-            if (!Utils.IsEqual(wrapper.MessageContentMask, MessageContentMask)||
-                !Utils.IsEqual(wrapper.DataSetClassId, DataSetClassId) ||
-                !Utils.IsEqual(wrapper.MessageId, MessageId) ||
-                !Utils.IsEqual(wrapper.MessageType, MessageType) ||
-                !Utils.IsEqual(wrapper.PublisherId, PublisherId)) {
-                return false;
-            }
-
-            if (wrapper.Messages.Count != Messages.Count) {
-                return false;
-            }
-
-            for (var i=0; i < Messages.Count; i++) {
-                if (!Utils.IsEqual(wrapper.Messages[i], Messages[i])) {
-                    return false;
-                }
-            }
-                
-            return true;
+            return Utils.IsEqual(this, encodeable);
         }
 
+#pragma warning disable IDE0060 // Remove unused parameter
         /// <summary>
-        /// Encode as binary
+        /// Decode from binary
         /// </summary>
-        /// <param name="encoder"></param>
-        private void EncodeBinary(IEncoder encoder) {
+        /// <param name="decoder"></param>
+        private void DecodeBinary(IDecoder decoder) {
+#pragma warning restore IDE0060 // Remove unused parameter
             // TODO
             throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// Encode as json
-        /// </summary>
-        /// <param name="encoder"></param>
-        private void EncodeJson(IEncoder encoder) {
-            if ((MessageContentMask & (uint)JsonNetworkMessageContentMask.NetworkMessageHeader) != 0) {
-                encoder.WriteString(nameof(MessageId), MessageId);
-                encoder.WriteString("MessageType", "ua-data");
-                if ((MessageContentMask & (uint)JsonNetworkMessageContentMask.PublisherId) != 0) {
-                    encoder.WriteString(nameof(PublisherId), PublisherId);
-                }
-                if ((MessageContentMask & (uint)JsonNetworkMessageContentMask.DataSetClassId) != 0) {
-                    encoder.WriteString(nameof(DataSetClassId), DataSetClassId);
-                }
-                if (Messages != null && Messages.Count > 0) {
-                    if ((MessageContentMask & (uint)JsonNetworkMessageContentMask.SingleDataSetMessage) != 0) {
-                        encoder.WriteEncodeable(nameof(Messages), Messages[0], typeof(DataSetMessage));
-                    }
-                    else {
-                        encoder.WriteEncodeableArray(nameof(Messages), Messages.ToArray(), typeof(DataSetMessage[]));
-                    }
-                }
-            }
-        }
-
-        /// <inheritdoc/>
-        private void DecodeBinary(IDecoder decoder) {
-            throw new NotImplementedException("Binary decoding is not implemented");
         }
 
         /// <inheritdoc/>
@@ -207,6 +132,42 @@ namespace Opc.Ua.PubSub {
             }
             if (Messages.Count == 1) {
                 MessageContentMask |= (uint)JsonNetworkMessageContentMask.SingleDataSetMessage;
+            }
+        }
+
+#pragma warning disable IDE0060 // Remove unused parameter
+        /// <summary>
+        /// Encode as binary
+        /// </summary>
+        /// <param name="encoder"></param>
+        private void EncodeBinary(IEncoder encoder) {
+#pragma warning restore IDE0060 // Remove unused parameter
+            // TODO
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Encode as json
+        /// </summary>
+        /// <param name="encoder"></param>
+        private void EncodeJson(IEncoder encoder) {
+            if ((MessageContentMask & (uint)JsonNetworkMessageContentMask.NetworkMessageHeader) != 0) {
+                encoder.WriteString(nameof(MessageId), MessageId);
+                encoder.WriteString("MessageType", "ua-data");
+                if ((MessageContentMask & (uint)JsonNetworkMessageContentMask.PublisherId) != 0) {
+                    encoder.WriteString(nameof(PublisherId), PublisherId);
+                }
+                if ((MessageContentMask & (uint)JsonNetworkMessageContentMask.DataSetClassId) != 0) {
+                    encoder.WriteString(nameof(DataSetClassId), DataSetClassId);
+                }
+                if (Messages != null && Messages.Count > 0) {
+                    if ((MessageContentMask & (uint)JsonNetworkMessageContentMask.SingleDataSetMessage) != 0) {
+                        encoder.WriteEncodeable(nameof(Messages), Messages[0], typeof(DataSetMessage));
+                    }
+                    else {
+                        encoder.WriteEncodeableArray(nameof(Messages), Messages.ToArray(), typeof(DataSetMessage[]));
+                    }
+                }
             }
         }
     }

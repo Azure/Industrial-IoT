@@ -52,50 +52,50 @@
     <tbody>
         @foreach (var node in pagedNodeList.Results)
         {
-        <tr>
-            <td>@node.NodeName</td>
-            <td>@node.Id</td>
-            @if (node.Children == true)
-            {
-                <td>
-                    <a href="javascript: void(0)" @onclick="@(() => GetTreeAsync(node.Id, node.ParentIdList))">
-                        @node.NodeClass
-                    </a>
-                </td>
-            }
-            else
-            {
-                <td>@node.NodeClass</td>
-            }
-            @if ((node.NodeClass == NodeClass.Variable && (node.AccessLevel == NodeAccessLevel.CurrentRead || node.AccessLevel == NodeAccessLevel.CurrentWrite)) ||
-node.NodeClass == NodeClass.Method)
-            {
-                <td>
-                    <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node))">
-                        @{string output = $"{node.Value} ({node.DataType})";}
-                        @output
-                    </a>
-                </td>
-            }
-            else
-            {
-                <td>N/A</td>
-            }
-            @if (node.NodeClass == NodeClass.Variable)
-            {
-                <td>
-                    <input type="checkbox" @bind="@node.Publishing" @onclick="@(() => SetPublishing(endpointId, node) )" />
-                    <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node))">
-                        @{string output = (node.Publishing == true && node.PublishedNode != null) ? $"On, sampling {node.PublishedNode.SampligInterval} ms" : "Off";}
-                        @output
-                    </a>
-                </td>
-            }
-            else
-            {
-                <td>N/A</td>
-            }
-        </tr>
+	        <tr>
+	            <td>@node.NodeName</td>
+	            <td>@node.Id</td>
+	            @if (node.Children == true)
+	            {
+	                <td>
+	                    <a href="javascript: void(0)" @onclick="@(() => GetTreeAsync(node.Id, node.ParentIdList))">
+	                        @node.NodeClass
+	                    </a>
+	                </td>
+	            }
+	            else
+	            {
+	                <td>@node.NodeClass</td>
+	            }
+	            @if ((node.NodeClass == NodeClass.Variable && (node.AccessLevel == NodeAccessLevel.CurrentRead || node.AccessLevel == NodeAccessLevel.CurrentWrite)) ||
+	node.NodeClass == NodeClass.Method)
+	            {
+	                <td>
+	                    <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node))">
+	                        @{string output = $"{node.Value} ({node.DataType})";}
+	                        @output
+	                    </a>
+	                </td>
+	            }
+	            else
+	            {
+	                <td>N/A</td>
+	            }
+	            @if (node.NodeClass == NodeClass.Variable)
+	            {
+	                <td>
+	                    <input type="checkbox" @bind="@node.Publishing" @onclick="@(() => SetPublishing(endpointId, node) )" />
+	                    <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node))">
+	                        @{string output = (node.Publishing == true && node.PublishedNode != null) ? $"On, sampling {node.PublishedNode.SampligInterval} ms" : "Off";}
+	                        @output
+	                    </a>
+	                </td>
+	            }
+	            else
+	            {
+	                <td>N/A</td>
+	            }
+	        </tr>
         }
     </tbody>
 </table>

@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Agent {
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.v2.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Runtime;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Azure.IIoT.Agent.Framework;
     using Microsoft.Azure.IIoT.Agent.Framework.Exceptions;
@@ -25,10 +25,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Agent {
             /// <inheritdoc/>
             public object DeserializeJobConfiguration(JToken model, string jobConfigurationType) {
                 switch (jobConfigurationType) {
-                    case kMonitoredItemJobV2:
-                        return model.ToObject<MonitoredItemDeviceJobApiModel>().ToServiceModel();
                     case kDataSetWriterJobV2:
-                        return model.ToObject<PubSubJobApiModel>().ToServiceModel();
+                        return model.ToObject<WriterGroupJobApiModel>().ToServiceModel();
                     // ... Add more if needed
                 }
                 throw new UnknownJobTypeException(jobConfigurationType);
@@ -37,12 +35,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Agent {
             /// <inheritdoc/>
             public JToken SerializeJobConfiguration<T>(T jobConfig, out string jobConfigurationType) {
                 switch (jobConfig) {
-                    case MonitoredItemDeviceJobModel mj:
-                        jobConfigurationType = kMonitoredItemJobV2;
-                        return JObject.FromObject(new MonitoredItemDeviceJobApiModel(mj));
-                    case PubSubJobModel pj:
+                    case WriterGroupJobModel pj:
                         jobConfigurationType = kDataSetWriterJobV2;
-                        return JObject.FromObject(new PubSubJobApiModel(pj));
+                        return JObject.FromObject(new WriterGroupJobApiModel(pj));
                     // ... Add more if needed
                 }
                 throw new UnknownJobTypeException(typeof(T).Name);
@@ -53,16 +48,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Agent {
         protected override void Load(ContainerBuilder builder) {
             builder.RegisterType<PublisherJobSerializer>()
                 .AsImplementedInterfaces().InstancePerDependency();
-            builder.RegisterType<MonitoredItemDeviceJobContainerFactory>()
-                .Named<IProcessingEngineContainerFactory>(kMonitoredItemJobV2)
-                .AsImplementedInterfaces().InstancePerDependency();
-            builder.RegisterType<DataSetWriterDeviceJobContainerFactory>()
+            builder.RegisterType<WriterGroupJobContainerFactory>()
                 .Named<IProcessingEngineContainerFactory>(kDataSetWriterJobV2)
                 .AsImplementedInterfaces().InstancePerDependency();
             base.Load(builder);
         }
 
         private const string kDataSetWriterJobV2 = "DataSetWriterV2";
-        private const string kMonitoredItemJobV2 = "MonitoredItemJobV2";
     }
 }
