@@ -9,13 +9,6 @@ jobs:
   pool:
     name: Hosted Windows 2019 with VS2019
   steps:
-  - task: UseDotNet@2
-    displayName: 'Install .NET Core SDK'
-    inputs:
-      packageType: sdk
-      version: 2.2.x
-      includePreviewVersions: false
-      installationPath: $(Agent.ToolsDirectory)/dotnet
   - task: PowerShell@2
     displayName: Versioning
     inputs:
@@ -132,7 +125,7 @@ jobs:
     displayName: 'Publish Artifact'
     inputs:
       path: $(Build.ArtifactStagingDirectory)
-      artifact: 'release_$(NBGV_SemVer1)'
+      artifact: 'release_nugets'
   - task: NuGetCommand@2
     displayName: Push
     inputs:
@@ -147,5 +140,5 @@ jobs:
       SymbolServerType: TeamServices
       SymbolsMaximumWaitTime: 10
       SymbolsProduct: azureiiot
-      SymbolsVersion: '$(NBGV_SemVer1)'
+      SymbolsVersion: '$(Version_Full)'
     continueOnError: true

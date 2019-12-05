@@ -1149,8 +1149,8 @@ namespace Opc.Ua.Sample {
         /// Stores the state of a call method operation.
         /// </summary>
         private struct ReadWriteOperationState {
-            public NodeState Source;
-            public int Index;
+            public NodeState Source { get; set; }
+            public int Index { get; set; }
         }
 
         /// <summary>
@@ -1622,9 +1622,9 @@ namespace Opc.Ua.Sample {
         /// Stores the state of a call method operation.
         /// </summary>
         private struct CallOperationState {
-            public NodeState Source;
-            public MethodState Method;
-            public int Index;
+            public NodeState Source { get; set; }
+            public MethodState Method { get; set; }
+            public int Index { get; set; }
         }
 
         /// <summary>
@@ -2224,11 +2224,13 @@ namespace Opc.Ua.Sample {
             return samplingInterval;
         }
 
-#pragma warning disable RECS0154 // Parameter is never used
         /// <summary>
         /// Creates a new sampled item.
         /// </summary>
+#pragma warning disable RECS0154 // Parameter is never used
+#pragma warning disable IDE0060 // Remove unused parameter
         private void CreateSampledItem(double samplingInterval, DataChangeMonitoredItem monitoredItem) {
+#pragma warning restore IDE0060 // Remove unused parameter
 #pragma warning restore RECS0154 // Parameter is never used
             _sampledItems.Add(monitoredItem);
 

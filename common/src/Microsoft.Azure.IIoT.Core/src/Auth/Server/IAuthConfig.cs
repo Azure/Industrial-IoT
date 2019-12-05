@@ -9,22 +9,13 @@ namespace Microsoft.Azure.IIoT.Auth.Server {
     /// <summary>
     /// Configuration interface for server token validation
     /// </summary>
-    public interface IAuthConfig {
+    public interface IAuthConfig : IHostConfig {
 
         /// <summary>
         /// Whether the authentication and authorization is
         /// required or optional.
         /// </summary>
         bool AuthRequired { get; }
-
-        /// <summary>
-        /// null value allows http. Should always be set to
-        /// the https port except for local development.
-        /// JWT tokens are not encrypted and if not sent over
-        /// HTTPS will allow an attacker to get the same
-        /// authorization.
-        /// </summary>
-        int HttpsRedirectPort { get; }
 
         /// <summary>
         /// Our service's id or url that was registered and

@@ -1,14 +1,10 @@
-﻿// ------------------------------------------------------------
-//  Copyright (c) Microsoft Corporation.  All rights reserved.
-//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
-// ------------------------------------------------------------
+﻿using System.Threading.Tasks;
 
-namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
+namespace OpcPublisher
 {
     using Microsoft.Azure.Devices.Client;
-    using Microsoft.Azure.Devices.Shared;
     using System;
-    using System.Threading.Tasks;
+
 
     /// <summary>
     /// Class to encapsulate the IoTHub device/module client interface.
@@ -161,18 +157,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                 return _edgeHubClient.OpenAsync();
             }
             return _iotHubClient.OpenAsync();
-        }
-
-        /// <summary>
-        /// Update reported properties
-        /// </summary>
-        public Task UpdateReportedPropertiesAsync(TwinCollection properties)
-        {
-            if (_iotHubClient == null)
-            {
-                return _edgeHubClient.UpdateReportedPropertiesAsync(properties);
-            }
-            return _iotHubClient.UpdateReportedPropertiesAsync(properties);
         }
 
         /// <summary>

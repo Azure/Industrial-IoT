@@ -48,9 +48,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Models {
         }
 
         /// <summary>
-        /// Node to update 
+        /// Node to update
         /// </summary>
-        [JsonProperty(PropertyName = "NodeId")]
+        [JsonProperty(PropertyName = "NodeId",
+            NullValueHandling = NullValueHandling.Ignore)]
         public string NodeId { get; set; }
 
         /// <summary>

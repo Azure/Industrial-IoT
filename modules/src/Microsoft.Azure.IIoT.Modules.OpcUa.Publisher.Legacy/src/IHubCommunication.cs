@@ -1,14 +1,10 @@
 ﻿using System.Threading;
-// ------------------------------------------------------------
-//  Copyright (c) Microsoft Corporation.  All rights reserved.
-//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
-// ------------------------------------------------------------
+using System.Threading.Tasks;
 
-namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
+namespace OpcPublisher
 {
     using Microsoft.Azure.Devices.Client;
     using System.Collections.Generic;
-    using System.Threading.Tasks;
 
     /// <summary>
     /// Class to handle all IoTHub/EdgeHub communication.

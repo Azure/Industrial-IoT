@@ -8,16 +8,20 @@
 #>
 
 try {
-    $buildRoot = & (Join-Path $PSScriptRoot "get-root.ps1") -startDir $path `
-        -fileName "version.props"
-    # set version number from first encountered version.props
-    [xml] $props=Get-Content -Path (Join-Path $buildRoot "version.props")
-    $VersionPrefix="$($props.Project.PropertyGroup.VersionPrefix)".Trim()
-    $VersionFull = $VersionPrefix
+    # Try install tool
+    & dotnet @("tool", "install", "-g", "nbgv") 2>&1 | Out-Null
+
+    # Call tool
+    & nbgv  @("cloud", "-c", "-a")
+    if ($LastExitCode -ne 0) {
+        throw "Error: 'nbgv cloud -c -a' failed with $($LastExitCode)."
+    }
+
+    $props = (& nbgv  @("get-version", "-f", "json")) | ConvertFrom-Json
 
     return [pscustomobject] @{ 
-        Full = $VersionFull
-        Prefix = $VersionPrefix
+        Full = $props.CloudBuildAllVars.NBGV_NuGetPackageVersion
+        Prefix = $props.CloudBuildAllVars.NBGV_SimpleVersion
     }
 }
 catch {

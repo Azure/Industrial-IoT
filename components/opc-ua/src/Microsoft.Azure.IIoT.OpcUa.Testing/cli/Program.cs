@@ -36,7 +36,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cli {
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Storage.Default;
     using Microsoft.Azure.IIoT.Utils;
-    using Microsoft.Extensions.Configuration;
     using Serilog;
     using Newtonsoft.Json;
     using Opc.Ua;
@@ -89,10 +88,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cli {
             var stress = false;
             var host = Utils.GetHostName();
             var ports = new List<int>();
-            var configuration = new ConfigurationBuilder()
-                .AddFromDotEnvFile()
-                .AddEnvironmentVariables()
-                .Build();
             try {
                 for (var i = 0; i < args.Length; i++) {
                     switch (args[i]) {

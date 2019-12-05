@@ -6,7 +6,7 @@
     Deploys the Industrial IoT services dependencies and optionally micro services and UI to Azure.
 
  .PARAMETER type
-    The type of deployment (vm, sim, local)
+    The type of deployment (vm, local)
 
  .PARAMETER applicationName
     The name of the solution. 
@@ -29,8 +29,8 @@
  .PARAMETER containerRegistryPrefix
     Optional, a container registry prefix from which to pull the micro services containers to deploy.
 
- .PARAMETER applicationRegistrationPrefix
-    The application name prefix for all applications that are registered - defaults to 'iiot' for non-interactive usage. 
+ .PARAMETER aadApplicationName
+    The AAD application name to register - defaults to $applicationName. 
 
  .PARAMETER tenantId
     AD tenant to use. 
@@ -38,17 +38,8 @@
  .PARAMETER credentials
     To support non interactive usage of script. (TODO)
 
- .PARAMETER serviceAppId
-    The (preregistered) App id of the AAD service application registration.
-
- .PARAMETER servicePrincipalId
-    The (preregistered) principal Id of the AAD server application
-
- .PARAMETER clientAppId
-    The (preregistered) App id of the AAD client application registration.
-
- .PARAMETER clientSecret
-    The (preregistered) App secret for the client.
+ .PARAMETER development
+    Whether to deploy for development or production - defaults to $false (production).
 
 #>
 
@@ -63,11 +54,8 @@ param(
     [string] $containerRegistryPrefix,
     $credentials,
     [string] $tenantId,
-    [string] $applicationRegistrationPrefix,
-    [string] $serviceAppId,
-    [string] $servicePrincipalId,
-    [string] $clientAppId,
-    [string] $clientSecret,
+    [string] $aadApplicationName,
+    [bool] $development = $false,
     [ValidateSet("AzureCloud")] [string] $environmentName = "AzureCloud"
 )
 
@@ -508,20 +496,6 @@ Function CreateAppRole() {
 # Get configuration object for service and client applications
 #*******************************************************************************************************
 Function GetAzureADApplicationConfig() {
-
-    if (![string]::IsNullOrEmpty($script:serviceAppId) -and `
-        ![string]::IsNullOrEmpty($script:servicePrincipalId)) {
-        Write-Host "Using provided service and client AAD application registrations."
-        return [pscustomobject] @{ 
-            TenantId = $script:tenantId
-            Instance = $script:environment.ActiveDirectoryAuthority
-            ServiceId = $script:serviceAppId
-            ServicePrincipalId = $script:servicePrincipalId
-            ClientId = $script:clientAppId
-            ClientSecret = $script:clientSecret
-        }
-    }
-
     try {
         $creds = ConnectToAzureADTenant
         if (!$creds) {
@@ -532,28 +506,29 @@ Function GetAzureADApplicationConfig() {
             return $null
         }
         
-        $applicationRegistrationPrefix = $script:applicationRegistrationPrefix
-        if ([string]::IsNullOrEmpty($applicationRegistrationPrefix)) {
+        $aadApplicationName = $script:aadApplicationName
+        if ([string]::IsNullOrEmpty($aadApplicationName)) {
             if ($script:interactive) {
                 Write-Host
                 Write-Host "Please provide a name for the AAD application to register."
-                $applicationRegistrationPrefix = Read-Host "(Hit enter to use 'iiot')"
-                if ([string]::IsNullOrEmpty($applicationRegistrationPrefix)) {
-                    Write-Host "Registering 'iiot' in AAD."
-                    $applicationRegistrationPrefix = "iiot"
+                $aadApplicationName = Read-Host "(Hit enter to use '$script:applicationName')"
+                if ([string]::IsNullOrEmpty($aadApplicationName)) {
+                    Write-Host "Registering '$script:applicationName' in AAD."
+                    $aadApplicationName = $script:applicationName
                 }
             }
             else {
-                $applicationRegistrationPrefix = $script:applicationName
+                $aadApplicationName = $script:applicationName
             }
         }
-        $serviceDisplayName = $applicationRegistrationPrefix + "-service"
-        $clientDisplayName = $applicationRegistrationPrefix + "-client"
+        $serviceDisplayName = $aadApplicationName + "-services"
+        $clientDisplayName = $aadApplicationName + "-clients"
 
         $tenant = Get-AzureADTenantDetail
         $tenantName =  ($tenant.VerifiedDomains | Where { $_._Default -eq $True }).Name
         Write-Host "Selected Tenant '$tenantName' as authority."
 
+        # Get or create service application
         $serviceAadApplication=Get-AzureADApplication `
             -Filter "identifierUris/any(uri:uri eq 'https://$tenantName/$serviceDisplayName')"  
         if (!$serviceAadApplication) {
@@ -562,6 +537,8 @@ Function GetAzureADApplicationConfig() {
                 -IdentifierUris "https://$tenantName/$serviceDisplayName"
             Write-Host "Created new AAD service application '$($serviceDisplayName)'."
         }
+
+        # Find service principal
         $serviceServicePrincipal=Get-AzureADServicePrincipal `
              -Filter "AppId eq '$($serviceAadApplication.AppId)'"
         if (!$serviceServicePrincipal) {
@@ -570,6 +547,7 @@ Function GetAzureADApplicationConfig() {
                 -Tags {WindowsAzureActiveDirectoryIntegratedApp}
         }
 
+        # Get or create client application
         $clientAadApplication=Get-AzureADApplication `
             -Filter "DisplayName eq '$clientDisplayName'"
         if (!$clientAadApplication) {
@@ -587,9 +565,7 @@ Function GetAzureADApplicationConfig() {
                 -Tags {WindowsAzureActiveDirectoryIntegratedApp}
         }
 
-        #
         # Try to add current user as app owner 
-        #
         try {
             $user = Get-AzureADUser -ObjectId $creds.Account.Id -ErrorAction Stop
             # TODO: Check whether already owner...
@@ -604,9 +580,7 @@ Function GetAzureADApplicationConfig() {
             Write-Verbose "Adding $($creds.Account.Id) as owner failed."
         }
 
-        #
         # Update service application to add roles, known applications and required permissions
-        #
         $approverRole = CreateAppRole -current $serviceAadApplication.AppRoles -name "Approver" `
             -value "Sign" -description "Approvers have the ability to issue certificates."
         $writerRole = CreateAppRole -current $serviceAadApplication.AppRoles -name "Writer" `
@@ -618,11 +592,13 @@ Function GetAzureADApplicationConfig() {
         $appRoles.Add($writerRole)
         $appRoles.Add($approverRole)
         $appRoles.Add($adminRole)
+
         $knownApplications = New-Object System.Collections.Generic.List[System.String]
         $knownApplications.Add($clientAadApplication.AppId)
+        
         $requiredResourcesAccess = `
             New-Object System.Collections.Generic.List[Microsoft.Open.AzureAD.Model.RequiredResourceAccess]
-        $requiredPermissions = GetRequiredPermissions -appId "cfa8b339-82a2-471a-a3c9-0fc0be7a4093" `
+        $requiredPermissions = GetRequiredPermissions -applicationDisplayName "Azure Key Vault" `
             -requiredDelegatedPermissions "user_impersonation"
         $requiredResourcesAccess.Add($requiredPermissions)
         $requiredPermissions = GetRequiredPermissions -applicationDisplayName "Microsoft Graph" `
@@ -633,17 +609,16 @@ Function GetAzureADApplicationConfig() {
         $requiredResourcesAccess.Add($requiredPermissions)
 
         Set-AzureADApplication -ObjectId $serviceAadApplication.ObjectId `
-            -KnownClientApplications $knownApplications -AppRoles $appRoles `
+            -KnownClientApplications $knownApplications `
+            -AppRoles $appRoles `
             -RequiredResourceAccess $requiredResourcesAccess
         Write-Host "'$($serviceDisplayName)' updated with required resource access, app roles and known applications."  
 
-        # read updated app roles for service principal
+        # Read updated app roles for service principal
         $serviceServicePrincipal=Get-AzureADServicePrincipal `
              -Filter "AppId eq '$($serviceAadApplication.AppId)'"
 
-        #
-        # Add current user as Writer, Approver and Administrator
-        #
+        # Add current user as Writer, Approver and Administrator for service applicatoin
         try {
             $app_role_name = "Writer"
             $app_role = $serviceServicePrincipal.AppRoles | Where-Object { $_.DisplayName -eq $app_role_name }
@@ -664,9 +639,7 @@ Function GetAzureADApplicationConfig() {
             Write-Host "User already has all app roles assigned."
         }
 
-        # 
         # Update client application to add reply urls required permissions.
-        #
         $replyUrls = New-Object System.Collections.Generic.List[System.String]
         $replyUrls.Add("urn:ietf:wg:oauth:2.0:oob")
         $requiredResourcesAccess = `
@@ -687,9 +660,7 @@ Function GetAzureADApplicationConfig() {
         $clientSecret = New-AzureADApplicationPasswordCredential -ObjectId $clientAadApplication.ObjectId `
             -CustomKeyIdentifier "Client Key" -EndDate (get-date).AddYears(2)
 
-        #
         # Grant permissions to app
-        #
         try {
             GrantPermission -azureAppId $clientAadApplication.AppId -tenantId $creds.Tenant.Id
         }
@@ -701,17 +672,20 @@ Function GetAzureADApplicationConfig() {
             TenantId = $creds.Tenant.Id
             Instance = $script:environment.ActiveDirectoryAuthority
             Audience = $serviceAadApplication.IdentifierUris[0].ToString()
+            AppName = $aadApplicationName
+            AppId = $serviceAadApplication.AppId
+            AppObjectId = $serviceAadApplication.ObjectId
+            AppDisplayName = $serviceDisplayName
+            ServiceName = $aadApplicationName
             ServiceId = $serviceAadApplication.AppId
-            ClientId = $clientAadApplication.AppId
-            ServicePrincipalId = $serviceServicePrincipal.ObjectId
-
             ServiceObjectId = $serviceAadApplication.ObjectId
+            ServicePrincipalId = $serviceServicePrincipal.ObjectId
             ServiceSecret = $serviceSecret.Value
             ServiceDisplayName = $serviceDisplayName
+            ClientDisplayName = $clientDisplayName
+            ClientId = $clientAadApplication.AppId
             ClientObjectId = $clientAadApplication.ObjectId
             ClientSecret = $clientSecret.Value
-            ClientDisplayName = $clientDisplayName
-
             UserPrincipalId = $user.ObjectId
         }
     }
@@ -746,19 +720,13 @@ Function GetAzureToken() {
         $context = Get-AzureRmContext
         $refreshToken = @($context.TokenCache.ReadItems() | `
             where {$_.tenantId -eq $tenantId -and $_.ExpiresOn -gt (Get-Date)})[0].RefreshToken
-        if (!$refreshToken) {
-            throw "No refresh token found in token cache."
-        }
         $body = "grant_type=refresh_token&refresh_token=$($refreshToken)&resource=74658136-14ec-4630-ad9b-26e160ff0fc6"
-        $apiToken = Invoke-RestMethod "https://login.windows.net/$($tenantId)/oauth2/token" `
+        $apiToken = Invoke-RestMethod "https://login.windows.net/$tenantId/oauth2/token" `
             -Method POST -Body $body -ContentType "application/x-www-form-urlencoded"
-        if (!$apiToken.access_token) {
-            throw "Refreshing token returned empty new token"
-        }
         return $apiToken.access_token
     }
     catch {
-        Write-Host "An error occurred refreshing auth token: $($_.Exception.Message)"
+        Write-Host "An error occurred: $($_.Exception.Message)"
     }
 }
 
@@ -770,22 +738,19 @@ Function GrantPermission() {
         [string] $azureAppId,
         [string] $tenantId
     )
-    $url = "https://main.iam.ad.ext.azure.com/api/RegisteredApplications/$($azureAppId)/Consent?onBehalfOfAll=true"
     try { 
         $token = GetAzureToken -tenantId $tenantId
-        if (!$token) {
-            throw "Failed to get auth token for $($tenantId)."
-        }
         $header = @{
-            "Authorization"          = "Bearer $($token)"
+            "Authorization"          = "Bearer " + $token
             "X-Requested-With"       = "XMLHttpRequest"
             "x-ms-client-request-id" = [guid]::NewGuid()
             "x-ms-correlation-id"    = [guid]::NewGuid()
         } 
+        $url = "https://main.iam.ad.ext.azure.com/api/RegisteredApplications/" + $azureAppId + "/Consent?onBehalfOfAll=true"
         Invoke-RestMethod -Uri $url -Method POST -Headers $header
     }
     catch {
-        Write-Host "$($_.Exception.Message) at $($url) requesting consent for your application - Continue..."
+        Write-Host "An error occurred granting permissions: $($_.Exception.Message)"
     }
 }
 
@@ -900,14 +865,10 @@ catch {
                 Write-Host $_.Exception.Message
             }
             try {
-                if (![string]::IsNullOrEmpty($aadConfig.ServiceDisplayName)) {
-                    Write-Host "Delete AD App $($aadConfig.ServiceDisplayName)"
-                    Remove-AzureADApplication -ObjectId $aadConfig.ServiceObjectId
-                }
-                if (![string]::IsNullOrEmpty($aadConfig.ClientDisplayName)) {
-                    Write-Host "Delete AD App $($aadConfig.ClientDisplayName)"
-                    Remove-AzureADApplication -ObjectId $aadConfig.ClientObjectId
-                }
+                Write-Host "Delete AD App "$aadConfig.AppDisplayName
+                Remove-AzureADApplication -ObjectId $aadConfig.AppId
+                Write-Host "Delete AD App "$aadConfig.ClientDisplayName
+                Remove-AzureADApplication -ObjectId $aadConfig.ClientObjectId
             }
             catch {
                 Write-Host $_.Exception.Message

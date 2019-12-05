@@ -5,51 +5,45 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
     using System;
-    using System.Collections.Generic;
 
     /// <summary>
-    /// Dataset writer model
+    /// Data set writer
     /// </summary>
-    public class DataSetWriterModel {
-
+    public class DataSetWriterModel
+    {
         /// <summary>
         /// Dataset writer id
         /// </summary>
-        public string Id { get; set; }
+        public string DataSetWriterId { get; set; }
 
         /// <summary>
-        /// Datasets to publish
+        /// Published dataset inline definition
         /// </summary>
-        public List<DataSetModel> DataSets { get; set; }
-
-        /// <summary>
-        /// Keyframe interval
-        /// </summary>
-        public TimeSpan? KeyframeMessageInterval { get; set; }
-
-        /// <summary>
-        /// Metadata message interval
-        /// </summary>
-        public TimeSpan? MetadataMessageInterval { get; set; }
-
-        /// <summary>
-        /// Content encoding
-        /// </summary>
-        public NetworkMessageEncoding? ContentEncoding { get; set; }
-
-        /// <summary>
-        /// Network message content mask
-        /// </summary>
-        public NetworkMessageContentMask? NetworkMessageContent { get; set; }
-
-        /// <summary>
-        /// Dataset message content mask
-        /// </summary>
-        public DataSetContentMask? DataSetContent { get; set; }
+        public PublishedDataSetModel DataSet { get; set; }
 
         /// <summary>
         /// Dataset field content mask
         /// </summary>
-        public DataSetFieldContentMask? FieldContent { get; set; }
+        public DataSetFieldContentMask? DataSetFieldContentMask { get; set; }
+
+        /// <summary>
+        /// Data set message settings
+        /// </summary>
+        public DataSetWriterMessageSettingsModel MessageSettings { get; set; }
+
+        /// <summary>
+        /// Keyframe count
+        /// </summary>
+        public uint? KeyFrameCount { get; set; }
+
+        /// <summary>
+        /// Or keyframe timer interval (publisher extension)
+        /// </summary>
+        public TimeSpan? KeyFrameInterval { get; set; }
+
+        /// <summary>
+        /// Metadata message sending interval (publisher extension)
+        /// </summary>
+        public TimeSpan? DataSetMetaDataSendInterval { get; set; }
     }
 }

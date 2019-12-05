@@ -8,7 +8,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Runtime {
     using Microsoft.Azure.IIoT.Services.Cors.Runtime;
     using Microsoft.Azure.IIoT.Services.Swagger;
     using Microsoft.Azure.IIoT.Services.Swagger.Runtime;
-    using Microsoft.Azure.IIoT.Api.Runtime;
     using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Auth.Server;
@@ -19,6 +18,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Runtime {
     using Microsoft.Azure.IIoT.Messaging.ServiceBus;
     using Microsoft.Azure.IIoT.Messaging.ServiceBus.Runtime;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Runtime;
     using Microsoft.Azure.IIoT.OpcUa.Vault;
     using Microsoft.Azure.IIoT.OpcUa.Vault.Runtime;
     using Microsoft.Azure.IIoT.Storage;
@@ -44,6 +44,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Runtime {
         public string CorsWhitelist => _cors.CorsWhitelist;
         /// <inheritdoc/>
         public bool CorsEnabled => _cors.CorsEnabled;
+
         /// <inheritdoc/>
         public string AppId => _auth.AppId;
         /// <inheritdoc/>
@@ -55,31 +56,38 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Runtime {
         /// <inheritdoc/>
         public string Audience => _auth.Audience;
         /// <inheritdoc/>
-        public bool UIEnabled => _swagger.UIEnabled;
-        /// <inheritdoc/>
-        public bool WithAuth => !string.IsNullOrEmpty(_auth.AppId) && _swagger.WithAuth;
-        /// <inheritdoc/>
-        public string SwaggerAppId => _swagger.AppId;
-        /// <inheritdoc/>
-        public string SwaggerAppSecret => _swagger.AppSecret;
-        /// <inheritdoc/>
-        public bool WithHttpScheme => _swagger.WithHttpScheme;
+        public string Domain => _auth.Domain;
         /// <inheritdoc/>
         public bool AuthRequired => _auth.AuthRequired;
         /// <inheritdoc/>
         public string TrustedIssuer => _auth.TrustedIssuer;
         /// <inheritdoc/>
-        public int HttpsRedirectPort => _auth.HttpsRedirectPort;
-        /// <inheritdoc/>
         public TimeSpan AllowedClockSkew => _auth.AllowedClockSkew;
+
+        /// <inheritdoc/>
+        public bool UIEnabled => _swagger.UIEnabled;
+        /// <inheritdoc/>
+        public bool WithAuth => !string.IsNullOrEmpty(_auth.AppId) && _swagger.WithAuth;
+        /// <inheritdoc/>
+        public string SwaggerAppId => _swagger.SwaggerAppId;
+        /// <inheritdoc/>
+        public string SwaggerAppSecret => _swagger.SwaggerAppSecret;
+        /// <inheritdoc/>
+        public bool WithHttpScheme => _swagger.WithHttpScheme;
+
+        /// <inheritdoc/>
+        public int HttpsRedirectPort => _host.HttpsRedirectPort;
+
         /// <inheritdoc/>
         public bool AutoApprove => _vault.AutoApprove;
+
         /// <inheritdoc/>
         public string KeyVaultBaseUrl => _keyVault.KeyVaultBaseUrl;
         /// <inheritdoc/>
         public string KeyVaultResourceId => _keyVault.KeyVaultResourceId;
         /// <inheritdoc/>
         public bool KeyVaultIsHsm => _keyVault.KeyVaultIsHsm;
+
         /// <inheritdoc/>
         public string DbConnectionString => _cosmos.DbConnectionString;
         /// <inheritdoc/>
@@ -88,12 +96,15 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Runtime {
         public string ContainerName => "iiot_opc";
         /// <inheritdoc/>
         public string DatabaseName => "iiot_opc";
+
         /// <inheritdoc/>
         public string ServiceBusConnString => _sb.ServiceBusConnString;
+
         /// <inheritdoc/>
         public string IoTHubConnString => _hub.IoTHubConnString;
         /// <inheritdoc/>
         public string IoTHubResourceId => _hub.IoTHubResourceId;
+
         /// <inheritdoc/>
         public string OpcUaRegistryServiceUrl => _registry.OpcUaRegistryServiceUrl;
         /// <inheritdoc/>
@@ -110,10 +121,11 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Runtime {
             _cosmos = new CosmosDbConfig(configuration);
             _swagger = new SwaggerConfig(configuration);
             _auth = new AuthConfig(configuration);
+            _host = new HostConfig(configuration);
             _cors = new CorsConfig(configuration);
             _sb = new ServiceBusConfig(configuration);
             _hub = new IoTHubConfig(configuration);
-            _registry = new ApiConfig(configuration);
+            _registry = new RegistryConfig(configuration);
         }
 
         private readonly IVaultConfig _vault;
@@ -121,10 +133,11 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Runtime {
         private readonly ICosmosDbConfig _cosmos;
         private readonly SwaggerConfig _swagger;
         private readonly AuthConfig _auth;
+        private readonly HostConfig _host;
         private readonly CorsConfig _cors;
         private readonly ServiceBusConfig _sb;
         private readonly IoTHubConfig _hub;
-        private readonly IRegistryConfig _registry;
+        private readonly RegistryConfig _registry;
     }
 }
 

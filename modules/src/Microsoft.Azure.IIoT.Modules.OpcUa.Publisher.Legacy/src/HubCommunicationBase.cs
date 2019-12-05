@@ -1,31 +1,25 @@
-﻿// ------------------------------------------------------------
-//  Copyright (c) Microsoft Corporation.  All rights reserved.
-//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
-// ------------------------------------------------------------
+﻿using System.Collections.Concurrent;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
+namespace OpcPublisher
 {
-    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Crypto;
-    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
-    using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.Devices.Client;
     using Newtonsoft.Json;
+    using Opc.Ua;
     using System;
     using System.Collections.Generic;
-    using System.Collections.Concurrent;
-    using System.Text;
-    using System.Threading;
-    using System.Threading.Tasks;
     using System.Globalization;
     using System.IO;
     using System.Linq;
     using System.Net;
     using System.Reflection;
     using System.Runtime.InteropServices;
-    using static Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.OpcApplicationConfiguration;
-    using static Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Program;
-    using Opc.Ua.Extensions;
+    using static OpcApplicationConfiguration;
+    using static OpcPublisher.OpcMonitoredItem;
+    using static Program;
+    using OpcPublisher.Crypto;
 
     /// <summary>
     /// Class to handle all IoTHub/EdgeHub communication.
@@ -115,9 +109,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         /// <summary>
         /// The protocol to use for hub communication.
         /// </summary>
-        public const Microsoft.Azure.Devices.Client.TransportType IotHubProtocolDefault = Devices.Client.TransportType.Mqtt_WebSocket_Only;
-        public const Microsoft.Azure.Devices.Client.TransportType IotEdgeHubProtocolDefault = Devices.Client.TransportType.Amqp_Tcp_Only;
-        public static Microsoft.Azure.Devices.Client.TransportType HubProtocol { get; set; } = IotHubProtocolDefault;
+        public const TransportType IotHubProtocolDefault = TransportType.Mqtt_WebSocket_Only;
+        public const TransportType IotEdgeHubProtocolDefault = TransportType.Amqp_Tcp_Only;
+        public static TransportType HubProtocol { get; set; } = IotHubProtocolDefault;
 
         /// <summary>
         /// Dictionary of available IoTHub direct methods.
@@ -127,7 +121,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         /// <summary>
         /// Check if transport type to use is HTTP.
         /// </summary>
-        bool IsHttp1Transport() => HubProtocol == Devices.Client.TransportType.Http1;
+        bool IsHttp1Transport() => HubProtocol == TransportType.Http1;
 
         /// <summary>
         /// Ctor for the class.
@@ -222,17 +216,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                     await _hubClient.SetMethodDefaultHandlerAsync(DefaultMethodHandlerAsync).ConfigureAwait(false);
                 }
 
-                Logger.Debug("Update twin properties.");
-                Microsoft.Azure.Devices.Shared.TwinCollection properties = new Microsoft.Azure.Devices.Shared.TwinCollection();
-                properties["__type__"] = "publisher";
-                if (!string.IsNullOrEmpty(OpcSession.PublisherSite))
-                {
-                    properties["__siteid__"] = OpcSession.PublisherSite;
-                }
-
-                await _hubClient.UpdateReportedPropertiesAsync(properties);
-
-                Logger.Debug("Init D2C message processing");
+                Logger.Debug($"Init D2C message processing");
                 return await InitMessageProcessingAsync().ConfigureAwait(false);
             }
             catch (Exception e)
@@ -263,18 +247,15 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         public virtual async Task<MethodResponse> HandlePublishNodesMethodAsync(MethodRequest methodRequest, object userContext)
         {
             string logPrefix = "HandlePublishNodesMethodAsync:";
+            bool useSecurity = true;
             Uri endpointUri = null;
-            string endpointId = null;
-            bool? useSecurity = null;
-            string securityMode = null;
-            string securityProfileUri = null;
 
             OpcAuthenticationMode? desiredAuthenticationMode = null;
             EncryptedNetworkCredential desiredEncryptedCredential = null;
 
             PublishNodesMethodRequestModel publishNodesMethodData = null;
-            var statusCode = HttpStatusCode.OK;
-            var nodeStatusCode = HttpStatusCode.InternalServerError;
+            HttpStatusCode statusCode = HttpStatusCode.OK;
+            HttpStatusCode nodeStatusCode = HttpStatusCode.InternalServerError;
             List<string> statusResponse = new List<string>();
             string statusMessage = string.Empty;
             try
@@ -283,8 +264,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                 publishNodesMethodData = JsonConvert.DeserializeObject<PublishNodesMethodRequestModel>(methodRequest.DataAsJson);
                 endpointUri = new Uri(publishNodesMethodData.EndpointUrl);
                 useSecurity = publishNodesMethodData.UseSecurity;
-                securityProfileUri = publishNodesMethodData.SecurityProfileUri;
-                securityMode = publishNodesMethodData.SecurityMode;
 
                 if (publishNodesMethodData.OpcAuthenticationMode == OpcAuthenticationMode.UsernamePassword)
                 {
@@ -295,13 +274,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
 
                     desiredAuthenticationMode = OpcAuthenticationMode.UsernamePassword;
                     desiredEncryptedCredential = await EncryptedNetworkCredential.FromPlainCredential(publishNodesMethodData.UserName, publishNodesMethodData.Password);
-                }
-
-                endpointId = publishNodesMethodData.EndpointId;
-                if (string.IsNullOrEmpty(endpointId))
-                {
-                    endpointId = NodePublishingConfigurationModel.CreateEndpointId(endpointUri.OriginalString,
-                          useSecurity, securityProfileUri, securityMode, desiredEncryptedCredential);
                 }
             }
             catch (UriFormatException e)
@@ -318,7 +290,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                 statusResponse.Add(statusMessage);
                 statusCode = HttpStatusCode.InternalServerError;
             }
-
 
             if (statusCode == HttpStatusCode.OK)
             {
@@ -338,7 +309,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                     else
                     {
                         // find the session we need to monitor the node
-                        var opcSession = NodeConfiguration.OpcSessions.FirstOrDefault(s => s.EndpointId == endpointId);
+                        IOpcSession opcSession = null;
+                        opcSession = NodeConfiguration.OpcSessions.FirstOrDefault(s => s.EndpointUrl.Equals(endpointUri.OriginalString, StringComparison.OrdinalIgnoreCase));
 
                         // add a new session.
                         if (opcSession == null)
@@ -350,9 +322,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                             }
 
                             // create new session info.
-                            opcSession = new OpcSession(endpointUri.OriginalString, endpointId, useSecurity,
-                                securityMode, securityProfileUri, OpcSessionCreationTimeout,
-                                desiredAuthenticationMode.Value, desiredEncryptedCredential);
+                            opcSession = new OpcSession(endpointUri.OriginalString, useSecurity, OpcSessionCreationTimeout, desiredAuthenticationMode.Value, desiredEncryptedCredential);
                             NodeConfiguration.OpcSessions.Add(opcSession);
                             Logger.Information($"{logPrefix} No matching session found for endpoint '{endpointUri.OriginalString}'. Requested to create a new one.");
                         }
@@ -391,10 +361,26 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                                 node.Id = node.ExpandedNodeId;
                             }
 
-                            if (!NodeIdEx.IsValid(node.Id))
+                            NodeId nodeId = null;
+                            ExpandedNodeId expandedNodeId = null;
+                            bool isNodeIdFormat = true;
+                            try
                             {
-                                statusMessage = $"'{node.Id}' is not valid!";
-                                Logger.Error($"{logPrefix} {statusMessage}");
+                                if (node.Id.Contains("nsu=", StringComparison.InvariantCulture))
+                                {
+                                    expandedNodeId = ExpandedNodeId.Parse(node.Id);
+                                    isNodeIdFormat = false;
+                                }
+                                else
+                                {
+                                    nodeId = NodeId.Parse(node.Id);
+                                    isNodeIdFormat = true;
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                statusMessage = $"Exception ({e.Message}) while formatting node '{node.Id}'!";
+                                Logger.Error(e, $"{logPrefix} {statusMessage}");
                                 statusResponse.Add(statusMessage);
                                 statusCode = HttpStatusCode.NotAcceptable;
                                 continue;
@@ -402,12 +388,24 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
 
                             try
                             {
-                                // add the node info to the subscription with the default publishing interval, execute syncronously
-                                Logger.Debug($"{logPrefix} Request to monitor item with NodeId '{node.Id}' (PublishingInterval: {node.OpcPublishingInterval.ToString() ?? "--"}, SamplingInterval: {node.OpcSamplingInterval.ToString() ?? "--"})");
-                                nodeStatusCode = await opcSession.AddNodeForMonitoringAsync(node.Id,
-                                    node.OpcPublishingInterval, node.OpcSamplingInterval, node.DisplayName,
-                                    node.HeartbeatInterval, node.SkipFirst,
-                                    ShutdownTokenSource.Token).ConfigureAwait(false);
+                                if (isNodeIdFormat)
+                                {
+                                    // add the node info to the subscription with the default publishing interval, execute syncronously
+                                    Logger.Debug($"{logPrefix} Request to monitor item with NodeId '{node.Id}' (PublishingInterval: {node.OpcPublishingInterval.ToString() ?? "--"}, SamplingInterval: {node.OpcSamplingInterval.ToString() ?? "--"})");
+                                    nodeStatusCode = await opcSession.AddNodeForMonitoringAsync(nodeId, null,
+                                        node.OpcPublishingInterval, node.OpcSamplingInterval, node.DisplayName,
+                                        node.HeartbeatInterval, node.SkipFirst,
+                                        ShutdownTokenSource.Token).ConfigureAwait(false);
+                                }
+                                else
+                                {
+                                    // add the node info to the subscription with the default publishing interval, execute syncronously
+                                    Logger.Debug($"{logPrefix} Request to monitor item with ExpandedNodeId '{node.Id}' (PublishingInterval: {node.OpcPublishingInterval.ToString() ?? "--"}, SamplingInterval: {node.OpcSamplingInterval.ToString() ?? "--"})");
+                                    nodeStatusCode = await opcSession.AddNodeForMonitoringAsync(null, expandedNodeId,
+                                        node.OpcPublishingInterval, node.OpcSamplingInterval, node.DisplayName,
+                                        node.HeartbeatInterval, node.SkipFirst,
+                                        ShutdownTokenSource.Token).ConfigureAwait(false);
+                                }
 
                                 // check and store a result message in case of an error
                                 switch (nodeStatusCode)
@@ -451,7 +449,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                 }
                 catch (AggregateException e)
                 {
-                    foreach (var ex in e.InnerExceptions)
+                    foreach (Exception ex in e.InnerExceptions)
                     {
                         Logger.Error(ex, $"{logPrefix} Exception");
                     }
@@ -495,22 +493,20 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         public virtual async Task<MethodResponse> HandleUnpublishNodesMethodAsync(MethodRequest methodRequest, object userContext)
         {
             string logPrefix = "HandleUnpublishNodesMethodAsync:";
+            NodeId nodeId = null;
+            ExpandedNodeId expandedNodeId = null;
             Uri endpointUri = null;
+            bool isNodeIdFormat = true;
             UnpublishNodesMethodRequestModel unpublishNodesMethodData = null;
-            var statusCode = HttpStatusCode.OK;
-            var nodeStatusCode = HttpStatusCode.InternalServerError;
+            HttpStatusCode statusCode = HttpStatusCode.OK;
+            HttpStatusCode nodeStatusCode = HttpStatusCode.InternalServerError;
             List<string> statusResponse = new List<string>();
             string statusMessage = string.Empty;
             try
             {
                 Logger.Debug($"{logPrefix} called");
                 unpublishNodesMethodData = JsonConvert.DeserializeObject<UnpublishNodesMethodRequestModel>(methodRequest.DataAsJson);
-
-                if (unpublishNodesMethodData.EndpointId == null || unpublishNodesMethodData.EndpointUrl != null)
-                {
-                    // Validate url
-                    endpointUri = new Uri(unpublishNodesMethodData.EndpointUrl);
-                }
+                endpointUri = new Uri(unpublishNodesMethodData.EndpointUrl);
             }
             catch (UriFormatException e)
             {
@@ -545,17 +541,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                         IOpcSession opcSession = null;
                         try
                         {
-                            if (unpublishNodesMethodData.EndpointId != null)
-                            {
-                                opcSession = NodeConfiguration.OpcSessions
-                                    .FirstOrDefault(s => s.EndpointId == unpublishNodesMethodData.EndpointId);
-                            }
-
-                            if (opcSession == null && endpointUri != null)
-                            {
-                                opcSession = NodeConfiguration.OpcSessions
-                                    .FirstOrDefault(s => s.Endpointuri.Equals(endpointUri.OriginalString, StringComparison.OrdinalIgnoreCase));
-                            }
+                            opcSession = NodeConfiguration.OpcSessions.FirstOrDefault(s => s.EndpointUrl.Equals(endpointUri.OriginalString, StringComparison.OrdinalIgnoreCase));
                         }
                         catch
                         {
@@ -565,7 +551,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                         if (opcSession == null)
                         {
                             // do nothing if there is no session for this endpoint.
-                            statusMessage = $"Session for endpoint '{endpointUri?.OriginalString ?? unpublishNodesMethodData.EndpointId}' not found.";
+                            statusMessage = $"Session for endpoint '{endpointUri.OriginalString}' not found.";
                             Logger.Error($"{logPrefix} {statusMessage}");
                             statusResponse.Add(statusMessage);
                             statusCode = HttpStatusCode.Gone;
@@ -581,11 +567,18 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                                     // loop through all monitored items
                                     foreach (var monitoredItem in subscription.OpcMonitoredItems)
                                     {
-                                        await opcSession.RequestMonitorItemRemovalAsync(monitoredItem.ConfiguredNodeId, ShutdownTokenSource.Token, false).ConfigureAwait(false);
+                                        if (monitoredItem.ConfigType == OpcMonitoredItemConfigurationType.NodeId)
+                                        {
+                                            await opcSession.RequestMonitorItemRemovalAsync(monitoredItem.ConfigNodeId, null, ShutdownTokenSource.Token, false).ConfigureAwait(false);
+                                        }
+                                        else
+                                        {
+                                            await opcSession.RequestMonitorItemRemovalAsync(null, monitoredItem.ConfigExpandedNodeId, ShutdownTokenSource.Token, false).ConfigureAwait(false);
+                                        }
                                     }
                                 }
                                 // build response
-                                statusMessage = $"All monitored items on endpoint '{opcSession.Endpointuri}' tagged for removal";
+                                statusMessage = $"All monitored items{(endpointUri != null ? $" on endpoint '{endpointUri.OriginalString}'" : " ")} tagged for removal";
                                 statusResponse.Add(statusMessage);
                                 Logger.Information($"{logPrefix} {statusMessage}");
                             }
@@ -601,9 +594,40 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
 
                                     try
                                     {
-                                        // stop monitoring the node, execute synchronously
-                                        Logger.Information($"{logPrefix} Request to stop monitoring item with NodeId '{node.Id.ToString()}')");
-                                        nodeStatusCode = await opcSession.RequestMonitorItemRemovalAsync(node.Id, ShutdownTokenSource.Token).ConfigureAwait(false);
+                                        if (node.Id.Contains("nsu=", StringComparison.InvariantCulture))
+                                        {
+                                            expandedNodeId = ExpandedNodeId.Parse(node.Id);
+                                            isNodeIdFormat = false;
+                                        }
+                                        else
+                                        {
+                                            nodeId = NodeId.Parse(node.Id);
+                                            isNodeIdFormat = true;
+                                        }
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        statusMessage = $"Exception ({e.Message}) while formatting node '{node.Id}'!";
+                                        Logger.Error(e, $"{logPrefix} {statusMessage}");
+                                        statusResponse.Add(statusMessage);
+                                        statusCode = HttpStatusCode.NotAcceptable;
+                                        continue;
+                                    }
+
+                                    try
+                                    {
+                                        if (isNodeIdFormat)
+                                        {
+                                            // stop monitoring the node, execute synchronously
+                                            Logger.Information($"{logPrefix} Request to stop monitoring item with NodeId '{nodeId.ToString()}')");
+                                            nodeStatusCode = await opcSession.RequestMonitorItemRemovalAsync(nodeId, null, ShutdownTokenSource.Token).ConfigureAwait(false);
+                                        }
+                                        else
+                                        {
+                                            // stop monitoring the node, execute synchronously
+                                            Logger.Information($"{logPrefix} Request to stop monitoring item with ExpandedNodeId '{expandedNodeId.ToString()}')");
+                                            nodeStatusCode = await opcSession.RequestMonitorItemRemovalAsync(null, expandedNodeId, ShutdownTokenSource.Token).ConfigureAwait(false);
+                                        }
 
                                         // check and store a result message in case of an error
                                         switch (nodeStatusCode)
@@ -649,7 +673,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                 }
                 catch (AggregateException e)
                 {
-                    foreach (var ex in e.InnerExceptions)
+                    foreach (Exception ex in e.InnerExceptions)
                     {
                         Logger.Error(ex, $"{logPrefix} Exception");
                     }
@@ -695,7 +719,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
             string logPrefix = "HandleUnpublishAllNodesMethodAsync:";
             Uri endpointUri = null;
             UnpublishAllNodesMethodRequestModel unpublishAllNodesMethodData = null;
-            var statusCode = HttpStatusCode.OK;
+            HttpStatusCode statusCode = HttpStatusCode.OK;
             List<string> statusResponse = new List<string>();
             string statusMessage = string.Empty;
 
@@ -706,9 +730,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                 {
                     unpublishAllNodesMethodData = JsonConvert.DeserializeObject<UnpublishAllNodesMethodRequestModel>(methodRequest.DataAsJson);
                 }
-                if (unpublishAllNodesMethodData?.EndpointUrl != null)
+                if (unpublishAllNodesMethodData != null && unpublishAllNodesMethodData?.EndpointUrl != null)
                 {
-                    // Validate url
                     endpointUri = new Uri(unpublishAllNodesMethodData.EndpointUrl);
                 }
             }
@@ -749,14 +772,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                             try
                             {
                                 // is an endpoint was given, limit unpublish to this endpoint
-                                if (endpointUri != null &&
-                                    !endpointUri.OriginalString.Equals(session.Endpointuri, StringComparison.InvariantCulture))
-                                {
-                                    continue;
-                                }
-
-                                if (unpublishAllNodesMethodData.EndpointId != null &&
-                                    session.EndpointId != unpublishAllNodesMethodData.EndpointId)
+                                if (endpointUri != null && !endpointUri.OriginalString.Equals(session.EndpointUrl, StringComparison.InvariantCulture))
                                 {
                                     continue;
                                 }
@@ -773,7 +789,14 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                                     // loop through all monitored items
                                     foreach (var monitoredItem in subscription.OpcMonitoredItems)
                                     {
-                                        await session.RequestMonitorItemRemovalAsync(monitoredItem.ConfiguredNodeId, ShutdownTokenSource.Token, false).ConfigureAwait(false);
+                                        if (monitoredItem.ConfigType == OpcMonitoredItemConfigurationType.NodeId)
+                                        {
+                                            await session.RequestMonitorItemRemovalAsync(monitoredItem.ConfigNodeId, null, ShutdownTokenSource.Token, false).ConfigureAwait(false);
+                                        }
+                                        else
+                                        {
+                                            await session.RequestMonitorItemRemovalAsync(null, monitoredItem.ConfigExpandedNodeId, ShutdownTokenSource.Token, false).ConfigureAwait(false);
+                                        }
                                     }
                                 }
                             }
@@ -854,7 +877,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
             uint nodeConfigVersion = 0;
             uint startIndex = 0;
             List<string> endpointUrls = new List<string>();
-            var statusCode = HttpStatusCode.OK;
+            HttpStatusCode statusCode = HttpStatusCode.OK;
             List<string> statusResponse = new List<string>();
             string statusMessage = string.Empty;
 
@@ -877,10 +900,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
             if (statusCode == HttpStatusCode.OK)
             {
                 // get the list of all endpoints
-                endpointUrls = NodeConfiguration.GetPublisherConfigurationFileEntries(null, null, false, out nodeConfigVersion)
-                    .Select(e => e.EndpointUrl.OriginalString)
-                    .Distinct()
-                    .ToList();
+                endpointUrls = NodeConfiguration.GetPublisherConfigurationFileEntries(null, false, out nodeConfigVersion).Select(e => e.EndpointUrl.OriginalString).ToList();
                 uint endpointsCount = (uint)endpointUrls.Count;
 
                 // validate version
@@ -962,7 +982,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         {
             string logPrefix = "HandleGetConfiguredNodesOnEndpointMethodAsync:";
             Uri endpointUri = null;
-            string endpointId = null;
             GetConfiguredNodesOnEndpointMethodRequestModel getConfiguredNodesOnEndpointMethodRequest = null;
             uint nodeConfigVersion = 0;
             GetConfiguredNodesOnEndpointMethodResponseModel getConfiguredNodesOnEndpointMethodResponse = new GetConfiguredNodesOnEndpointMethodResponseModel();
@@ -971,7 +990,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
             uint requestedNodeCount = 0;
             List<OpcNodeOnEndpointModel> opcNodes = new List<OpcNodeOnEndpointModel>();
             uint startIndex = 0;
-            var statusCode = HttpStatusCode.OK;
+            HttpStatusCode statusCode = HttpStatusCode.OK;
             List<string> statusResponse = new List<string>();
             string statusMessage = string.Empty;
 
@@ -979,14 +998,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
             {
                 Logger.Debug($"{logPrefix} called");
                 getConfiguredNodesOnEndpointMethodRequest = JsonConvert.DeserializeObject<GetConfiguredNodesOnEndpointMethodRequestModel>(methodRequest.DataAsJson);
-
-                endpointId = getConfiguredNodesOnEndpointMethodRequest.EndpointId;
-                if (endpointId == null ||
-                    getConfiguredNodesOnEndpointMethodRequest.EndpointUrl != null)
-                {
-                    // Validate url
-                    endpointUri = new Uri(getConfiguredNodesOnEndpointMethodRequest.EndpointUrl);
-                }
+                endpointUri = new Uri(getConfiguredNodesOnEndpointMethodRequest.EndpointUrl);
             }
             catch (UriFormatException e)
             {
@@ -1006,13 +1018,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
             if (statusCode == HttpStatusCode.OK)
             {
                 // get the list of published nodes for the endpoint
-                var configFileEntries = NodeConfiguration.GetPublisherConfigurationFileEntries(
-                    endpointId, endpointUri?.OriginalString, false, out nodeConfigVersion);
+                List<PublisherConfigurationFileEntryModel> configFileEntries = NodeConfiguration.GetPublisherConfigurationFileEntries(endpointUri.OriginalString, false, out nodeConfigVersion);
 
                 // return if there are no nodes configured for this endpoint
                 if (configFileEntries.Count == 0)
                 {
-                    statusMessage = $"There are no nodes configured for endpoint '{endpointUri?.OriginalString ?? endpointId}'";
+                    statusMessage = $"There are no nodes configured for endpoint '{endpointUri.OriginalString}'";
                     Logger.Information($"{logPrefix} {statusMessage}");
                     statusResponse.Add(statusMessage);
                     statusCode = HttpStatusCode.OK;
@@ -1085,7 +1096,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                     DisplayName = n.DisplayName
                 }).ToList());
                 getConfiguredNodesOnEndpointMethodResponse.EndpointUrl = endpointUri.OriginalString;
-
                 resultString = JsonConvert.SerializeObject(getConfiguredNodesOnEndpointMethodResponse);
                 Logger.Information($"{logPrefix} Success returning {actualNodeCount} node(s) of {availableNodeCount} (start: {startIndex}) (node config version: {nodeConfigVersion:X8})!");
             }
@@ -1110,7 +1120,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         public virtual Task<MethodResponse> HandleGetDiagnosticInfoMethodAsync(MethodRequest methodRequest, object userContext)
         {
             string logPrefix = "HandleGetDiagnosticInfoMethodAsync:";
-            var statusCode = HttpStatusCode.OK;
+            HttpStatusCode statusCode = HttpStatusCode.OK;
             List<string> statusResponse = new List<string>();
             string statusMessage = string.Empty;
 
@@ -1156,7 +1166,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         public virtual async Task<MethodResponse> HandleGetDiagnosticLogMethodAsync(MethodRequest methodRequest, object userContext)
         {
             string logPrefix = "HandleGetDiagnosticLogMethodAsync:";
-            var statusCode = HttpStatusCode.OK;
+            HttpStatusCode statusCode = HttpStatusCode.OK;
             List<string> statusResponse = new List<string>();
             string statusMessage = string.Empty;
 
@@ -1202,7 +1212,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         public virtual async Task<MethodResponse> HandleGetDiagnosticStartupLogMethodAsync(MethodRequest methodRequest, object userContext)
         {
             string logPrefix = "HandleGetDiagnosticStartupLogMethodAsync:";
-            var statusCode = HttpStatusCode.OK;
+            HttpStatusCode statusCode = HttpStatusCode.OK;
             List<string> statusResponse = new List<string>();
             string statusMessage = string.Empty;
 
@@ -1248,7 +1258,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         public virtual Task<MethodResponse> HandleExitApplicationMethodAsync(MethodRequest methodRequest, object userContext)
         {
             string logPrefix = "HandleExitApplicationMethodAsync:";
-            var statusCode = HttpStatusCode.OK;
+            HttpStatusCode statusCode = HttpStatusCode.OK;
             List<string> statusResponse = new List<string>();
             string statusMessage = string.Empty;
 
@@ -1314,7 +1324,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         {
             string logPrefix = "HandleGetInfoMethodAsync:";
             GetInfoMethodResponseModel getInfoMethodResponseModel = new GetInfoMethodResponseModel();
-            var statusCode = HttpStatusCode.OK;
+            HttpStatusCode statusCode = HttpStatusCode.OK;
             List<string> statusResponse = new List<string>();
             string statusMessage = string.Empty;
 
@@ -1427,7 +1437,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
             try
             {
                 // get telemetry configration
-                var telemetryConfiguration = TelemetryConfiguration.GetEndpointTelemetryConfiguration(messageData.EndpointUrl);
+                EndpointTelemetryConfigurationModel telemetryConfiguration = TelemetryConfiguration.GetEndpointTelemetryConfiguration(messageData.EndpointUrl);
 
                 // currently the pattern processing is done in MonitoredItemNotificationHandler of OpcSession.cs. in case of perf issues
                 // it can be also done here, the risk is then to lose messages in the communication queue. if you enable it here, disable it in OpcSession.cs
@@ -1446,13 +1456,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                     {
                         await _jsonWriter.WritePropertyNameAsync(telemetryConfiguration.EndpointUrl.Name).ConfigureAwait(false);
                         await _jsonWriter.WriteValueAsync(messageData.EndpointUrl).ConfigureAwait(false);
-                    }
-
-                    // process EndpointId
-                    if ((bool)telemetryConfiguration.EndpointId.Publish && messageData.EndpointId != null)
-                    {
-                        await _jsonWriter.WritePropertyNameAsync(telemetryConfiguration.EndpointId.Name).ConfigureAwait(false);
-                        await _jsonWriter.WriteValueAsync(messageData.EndpointId).ConfigureAwait(false);
                     }
 
                     // process NodeId
@@ -1498,10 +1501,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                     }
 
                     // process Value object properties
-                    if (!string.IsNullOrEmpty(messageData.Value) ||
-                        !string.IsNullOrEmpty(messageData.SourceTimestamp) ||
-                        !string.IsNullOrEmpty(messageData.ServerTimestamp) ||
-                        messageData.StatusCode != null || !string.IsNullOrEmpty(messageData.Status))
+                    if (!string.IsNullOrEmpty(messageData.Value) || !string.IsNullOrEmpty(messageData.SourceTimestamp) ||
+                       messageData.StatusCode != null || !string.IsNullOrEmpty(messageData.Status))
                     {
                         if (!(bool)telemetryConfiguration.Value.Flat)
                         {
@@ -1528,13 +1529,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                         {
                             await _jsonWriter.WritePropertyNameAsync(telemetryConfiguration.Value.SourceTimestamp.Name).ConfigureAwait(false);
                             await _jsonWriter.WriteValueAsync(messageData.SourceTimestamp).ConfigureAwait(false);
-                        }
-
-                        // process ServerTimestamp
-                        if (!string.IsNullOrEmpty(messageData.ServerTimestamp))
-                        {
-                            await _jsonWriter.WritePropertyNameAsync(telemetryConfiguration.Value.ServerTimestamp.Name).ConfigureAwait(false);
-                            await _jsonWriter.WriteValueAsync(messageData.ServerTimestamp).ConfigureAwait(false);
                         }
 
                         // process StatusCode
@@ -1604,11 +1598,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
             Message tempMsg = new Message();
             // the system properties are MessageId (max 128 byte), Sequence number (ulong), ExpiryTime (DateTime) and more. ideally we get that from the client.
             int systemPropertyLength = 128 + sizeof(ulong) + tempMsg.ExpiryTimeUtc.ToString(CultureInfo.InvariantCulture).Length;
-            int applicationPropertyLength =
-                Encoding.UTF8.GetByteCount($"iothub-content-type={ContentMimeType.Json}") +
-                Encoding.UTF8.GetByteCount($"{CommonProperties.EventSchemaType}={MessageSchemaTypes.MonitoredItemMessageJson}") +
-                Encoding.UTF8.GetByteCount($"{CommonProperties.ContentEncoding}={ContentMimeType.UaJson}") +
-                Encoding.UTF8.GetByteCount($"iothub-content-encoding={CONTENT_ENCODING_UTF8}");
+            int applicationPropertyLength = Encoding.UTF8.GetByteCount($"iothub-content-type={CONTENT_TYPE_OPCUAJSON}") + Encoding.UTF8.GetByteCount($"iothub-content-encoding={CONTENT_ENCODING_UTF8}");
             // if batching is requested the buffer will have the requested size, otherwise we reserve the max size
             uint hubMessageBufferSize = (HubMessageSize > 0 ? HubMessageSize : HubMessageSizeMax) - (uint)systemPropertyLength - jsonSquareBracketLength - (uint)applicationPropertyLength;
             byte[] hubMessageBuffer = new byte[hubMessageBufferSize];
@@ -1726,7 +1716,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                         // the batching is completed or we reached the send interval or got a cancelation request
                         try
                         {
-                            Message encodedhubMessage = null;
+                            Microsoft.Azure.Devices.Client.Message encodedhubMessage = null;
 
                             // if we reached the send interval, but have nothing to send (only the opening square bracket is there), we continue
                             if (!gotItem && hubMessage.Position == 1)
@@ -1756,10 +1746,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                             }
                             if (_hubClient != null)
                             {
-                                encodedhubMessage.ContentType = ContentMimeType.Json;
+                                encodedhubMessage.ContentType = CONTENT_TYPE_OPCUAJSON;
                                 encodedhubMessage.ContentEncoding = CONTENT_ENCODING_UTF8;
-                                encodedhubMessage.Properties.Add(CommonProperties.EventSchemaType, MessageSchemaTypes.MonitoredItemMessageJson);
-                                encodedhubMessage.Properties.Add(CommonProperties.ContentEncoding, ContentMimeType.UaJson);
 
                                 nextSendTime += TimeSpan.FromSeconds(DefaultSendIntervalSeconds);
                                 try
@@ -1867,6 +1855,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
             }
         }
 
+        private const string CONTENT_TYPE_OPCUAJSON = "application/opcua+uajson";
         private const string CONTENT_ENCODING_UTF8 = "UTF-8";
 
         private static long _enqueueCount;

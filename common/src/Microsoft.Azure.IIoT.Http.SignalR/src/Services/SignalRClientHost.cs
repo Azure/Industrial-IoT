@@ -3,18 +3,21 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Messaging.SignalR.Clients {
+namespace Microsoft.Azure.IIoT.Http.SignalR.Services {
     using Microsoft.Azure.IIoT.Utils;
+    using Microsoft.Azure.IIoT.Messaging;
+    using Microsoft.Azure.IIoT.Messaging.SignalR;
     using Microsoft.AspNetCore.SignalR.Client;
     using Serilog;
     using System;
     using System.Threading.Tasks;
     using System.Threading;
+    using Autofac;
 
     /// <summary>
     /// Subscriber for signalr service
     /// </summary>
-    public class SignalRClientHost : ICallbackRegistration, IHost {
+    public class SignalRClientHost : ICallbackRegistration, IHost, IStartable {
 
         /// <inheritdoc/>
         public string UserId { get; }
@@ -120,6 +123,11 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Clients {
             finally {
                 _lock.Release();
             }
+        }
+
+        /// <inheritdoc/>
+        public void Start() {
+            StartAsync().Wait();
         }
 
         /// <inheritdoc/>

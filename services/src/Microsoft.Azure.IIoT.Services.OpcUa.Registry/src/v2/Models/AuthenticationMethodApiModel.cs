@@ -50,7 +50,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
         }
 
         /// <summary>
-        /// Method id
+        /// Authentication method id
         /// </summary>
         [JsonProperty(PropertyName = "id")]
         [Required]

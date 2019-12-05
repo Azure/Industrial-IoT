@@ -147,7 +147,7 @@ namespace Boiler {
         private double Adjust(double value, double target, double step, Opc.Ua.Range range) {
             // convert percentage step to an absolute step if range is specified.
             if (range != null) {
-                step = step * range.Magnitude;
+                step *= range.Magnitude;
             }
 
             var difference = target - value;

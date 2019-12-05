@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Xunit;
 
-namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
+namespace OpcPublisher
 {
     using Microsoft.Azure.Devices.Client;
     using Newtonsoft.Json;
@@ -103,7 +103,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                 await Task.Yield();
                 Assert.True(NodeConfiguration.OpcSessions.Count == 1);
                 Assert.True(NodeConfiguration.OpcSessions[0].OpcSubscriptions.Count == 1);
-                Assert.True(NodeConfiguration.OpcSessions[0].OpcSubscriptions[0].RequestedPublishingInterval == OpcPublishingInterval);
+                Assert.True(NodeConfiguration.OpcSessions[0].OpcSubscriptions[0].RequestedPublishingInterval == OpcApplicationConfiguration.OpcPublishingInterval);
                 await NodeConfiguration.UpdateNodeConfigurationFileAsync().ConfigureAwait(false);
                 _configurationFileEntries = new List<PublisherConfigurationFileEntryLegacyModel>();
                 _configurationFileEntries = JsonConvert.DeserializeObject<List<PublisherConfigurationFileEntryLegacyModel>>(File.ReadAllText(PublisherNodeConfiguration.PublisherNodeConfigurationFilename));
@@ -306,7 +306,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                 await Task.Yield();
                 Assert.True(NodeConfiguration.OpcSessions.Count == 1);
                 Assert.True(NodeConfiguration.OpcSessions[0].OpcSubscriptions.Count == 1);
-                Assert.True(NodeConfiguration.OpcSessions[0].OpcSubscriptions[0].OpcMonitoredItems[0].RequestedSamplingInterval == OpcSamplingInterval);
+                Assert.True(NodeConfiguration.OpcSessions[0].OpcSubscriptions[0].OpcMonitoredItems[0].RequestedSamplingInterval == OpcApplicationConfiguration.OpcSamplingInterval);
                 await NodeConfiguration.UpdateNodeConfigurationFileAsync().ConfigureAwait(false);
                 _configurationFileEntries = new List<PublisherConfigurationFileEntryLegacyModel>();
                 _configurationFileEntries = JsonConvert.DeserializeObject<List<PublisherConfigurationFileEntryLegacyModel>>(File.ReadAllText(PublisherNodeConfiguration.PublisherNodeConfigurationFilename));

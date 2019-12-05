@@ -1,24 +1,21 @@
-﻿// ------------------------------------------------------------
-//  Copyright (c) Microsoft Corporation.  All rights reserved.
-//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
-// ------------------------------------------------------------
+﻿using Newtonsoft.Json;
+using Opc.Ua;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
-namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
+namespace OpcPublisher
 {
-    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Crypto;
+    using OpcPublisher.Crypto;
     using System.Globalization;
     using System.IO;
     using System.Linq;
-    using Newtonsoft.Json;
-    using System;
-    using System.Collections.Generic;
-    using System.Threading.Tasks;
+    using System.Net;
     using System.Threading;
     using static OpcApplicationConfiguration;
     using static OpcMonitoredItem;
     using static OpcSession;
     using static Program;
-    using Opc.Ua.Extensions;
 
     public class PublisherNodeConfiguration : IPublisherNodeConfiguration, IDisposable
     {
@@ -30,7 +27,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         /// <summary>
         /// Name of the node configuration file.
         /// </summary>
-        public static string PublisherNodeConfigurationFilename { get; set; } = $"{Directory.GetCurrentDirectory()}{Path.DirectorySeparatorChar}publishednodes.json";
+        public static string PublisherNodeConfigurationFilename { get; set; } = $"{System.IO.Directory.GetCurrentDirectory()}{Path.DirectorySeparatorChar}publishednodes.json";
 
         /// <summary>
         /// Number of configured OPC UA sessions.
@@ -64,7 +61,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                 try
                 {
                     OpcSessionsListSemaphore.Wait();
-                    result = OpcSessions.Count(s => s.State == SessionState.Connected);
+                    result = OpcSessions.Count(s => s.State == OpcSession.SessionState.Connected);
                 }
                 finally
                 {
@@ -109,7 +106,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                 try
                 {
                     OpcSessionsListSemaphore.Wait();
-                    var opcSessions = OpcSessions.Where(s => s.State == SessionState.Connected);
+                    var opcSessions = OpcSessions.Where(s => s.State == OpcSession.SessionState.Connected);
                     foreach (var opcSession in opcSessions)
                     {
                         result += opcSession.GetNumberOfOpcSubscriptions();
@@ -158,7 +155,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                 try
                 {
                     OpcSessionsListSemaphore.Wait();
-                    var opcSessions = OpcSessions.Where(s => s.State == SessionState.Connected);
+                    var opcSessions = OpcSessions.Where(s => s.State == OpcSession.SessionState.Connected);
                     foreach (var opcSession in opcSessions)
                     {
                         result += opcSession.GetNumberOfOpcMonitoredItemsMonitored();
@@ -241,9 +238,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         /// </summary>
         public PublisherNodeConfiguration()
         {
-            OpcSessionsListSemaphore = new SemaphoreSlim(1, 1);
-            PublisherNodeConfigurationSemaphore = new SemaphoreSlim(1, 1);
-            PublisherNodeConfigurationFileSemaphore = new SemaphoreSlim(1, 1);
+            OpcSessionsListSemaphore = new SemaphoreSlim(1);
+            PublisherNodeConfigurationSemaphore = new SemaphoreSlim(1);
+            PublisherNodeConfigurationFileSemaphore = new SemaphoreSlim(1);
             OpcSessions.Clear();
             _nodePublishingConfiguration = new List<NodePublishingConfigurationModel>();
             _configurationFileEntries = new List<PublisherConfigurationFileEntryLegacyModel>();
@@ -343,14 +340,14 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                 }
                 Logger.Information($"The name of the configuration file for published nodes is: {PublisherNodeConfigurationFilename}");
 
-                // if the file exists, read it, if not just continue
+                // if the file exists, read it, if not just continue 
                 if (File.Exists(PublisherNodeConfigurationFilename))
                 {
                     Logger.Information($"Attemtping to load node configuration from: {PublisherNodeConfigurationFilename}");
                     try
                     {
                         await PublisherNodeConfigurationFileSemaphore.WaitAsync().ConfigureAwait(false);
-                        string json = File.ReadAllText(PublisherNodeConfigurationFilename);
+                        var json = File.ReadAllText(PublisherNodeConfigurationFilename);
                         _configurationFileEntries = JsonConvert.DeserializeObject<List<PublisherConfigurationFileEntryLegacyModel>>(json);
                     }
                     finally
@@ -368,23 +365,43 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                                 // new node configuration syntax.
                                 foreach (var opcNode in publisherConfigFileEntryLegacy.OpcNodes)
                                 {
-                                    _nodePublishingConfiguration.Add(new NodePublishingConfigurationModel(opcNode.ExpandedNodeId ?? opcNode.Id,
-                                        publisherConfigFileEntryLegacy.EndpointUrl.OriginalString, publisherConfigFileEntryLegacy.EndpointId,
-                                        publisherConfigFileEntryLegacy.UseSecurity,
-                                        publisherConfigFileEntryLegacy.SecurityProfileUri, publisherConfigFileEntryLegacy.SecurityMode,
-                                        opcNode.OpcPublishingInterval, opcNode.OpcSamplingInterval, opcNode.DisplayName,
-                                        opcNode.HeartbeatInterval, opcNode.SkipFirst, publisherConfigFileEntryLegacy.OpcAuthenticationMode, publisherConfigFileEntryLegacy.EncryptedAuthCredential));
+                                    if (opcNode.ExpandedNodeId != null)
+                                    {
+                                        ExpandedNodeId expandedNodeId = ExpandedNodeId.Parse(opcNode.ExpandedNodeId);
+                                        _nodePublishingConfiguration.Add(new NodePublishingConfigurationModel(expandedNodeId, opcNode.ExpandedNodeId,
+                                            publisherConfigFileEntryLegacy.EndpointUrl.OriginalString, publisherConfigFileEntryLegacy.UseSecurity,
+                                            opcNode.OpcPublishingInterval, opcNode.OpcSamplingInterval, opcNode.DisplayName,
+                                            opcNode.HeartbeatInterval, opcNode.SkipFirst, publisherConfigFileEntryLegacy.OpcAuthenticationMode, publisherConfigFileEntryLegacy.EncryptedAuthCredential));
+                                    }
+                                    else
+                                    {
+                                        // check Id string to check which format we have
+                                        if (opcNode.Id.StartsWith("nsu=", StringComparison.InvariantCulture))
+                                        {
+                                            // ExpandedNodeId format
+                                            ExpandedNodeId expandedNodeId = ExpandedNodeId.Parse(opcNode.Id);
+                                            _nodePublishingConfiguration.Add(new NodePublishingConfigurationModel(expandedNodeId, opcNode.Id,
+                                                publisherConfigFileEntryLegacy.EndpointUrl.OriginalString, publisherConfigFileEntryLegacy.UseSecurity,
+                                                opcNode.OpcPublishingInterval, opcNode.OpcSamplingInterval, opcNode.DisplayName,
+                                                opcNode.HeartbeatInterval, opcNode.SkipFirst, publisherConfigFileEntryLegacy.OpcAuthenticationMode, publisherConfigFileEntryLegacy.EncryptedAuthCredential));
+                                        }
+                                        else
+                                        {
+                                            // NodeId format
+                                            NodeId nodeId = NodeId.Parse(opcNode.Id);
+                                            _nodePublishingConfiguration.Add(new NodePublishingConfigurationModel(nodeId, opcNode.Id,
+                                                publisherConfigFileEntryLegacy.EndpointUrl.OriginalString, publisherConfigFileEntryLegacy.UseSecurity,
+                                                opcNode.OpcPublishingInterval, opcNode.OpcSamplingInterval, opcNode.DisplayName,
+                                                opcNode.HeartbeatInterval, opcNode.SkipFirst, publisherConfigFileEntryLegacy.OpcAuthenticationMode, publisherConfigFileEntryLegacy.EncryptedAuthCredential));
+                                        }
+                                    }
                                 }
                             }
                             else
                             {
-                                // Legacy
-
                                 // NodeId (ns=) format node configuration syntax using default sampling and publishing interval.
                                 _nodePublishingConfiguration.Add(new NodePublishingConfigurationModel(publisherConfigFileEntryLegacy.NodeId,
-                                    publisherConfigFileEntryLegacy.EndpointUrl.OriginalString, publisherConfigFileEntryLegacy.EndpointId,
-                                    publisherConfigFileEntryLegacy.UseSecurity,
-                                    publisherConfigFileEntryLegacy.SecurityProfileUri, publisherConfigFileEntryLegacy.SecurityMode,
+                                    publisherConfigFileEntryLegacy.NodeId.ToString(), publisherConfigFileEntryLegacy.EndpointUrl.OriginalString, publisherConfigFileEntryLegacy.UseSecurity,
                                     null, null, null,
                                     null, null, publisherConfigFileEntryLegacy.OpcAuthenticationMode, publisherConfigFileEntryLegacy.EncryptedAuthCredential));
                             }
@@ -409,6 +426,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
             return true;
         }
 
+        public virtual IOpcSession CreateOpcSession(string endpointUrl, bool useSecurity, uint sessionTimeout, OpcAuthenticationMode opcAuthenticationMode, EncryptedNetworkCredential encryptedAuthCredential)
+        {
+            return new OpcSession(endpointUrl, _nodePublishingConfiguration.First(n => n.EndpointUrl == endpointUrl).UseSecurity, OpcSessionCreationTimeout, opcAuthenticationMode, encryptedAuthCredential);
+        }
+
         /// <summary>
         /// Create the publisher data structures to manage OPC sessions, subscriptions and monitored items.
         /// </summary>
@@ -421,62 +443,52 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                 await PublisherNodeConfigurationSemaphore.WaitAsync().ConfigureAwait(false);
                 await OpcSessionsListSemaphore.WaitAsync().ConfigureAwait(false);
 
-                var uniqueEndpointIds = _nodePublishingConfiguration
-                    .Select(n => n.EndpointId)
-                    .Distinct();
-                foreach (string endpointId in uniqueEndpointIds)
+                var uniqueEndpointUrls = _nodePublishingConfiguration.Select(n => n.EndpointUrl).Distinct();
+                foreach (var endpointUrl in uniqueEndpointUrls)
                 {
-                    var currentNodePublishingConfiguration = _nodePublishingConfiguration
-                        .First(n => n.EndpointId == endpointId);
+                    var currentNodePublishingConfiguration = _nodePublishingConfiguration.First(n => n.EndpointUrl == endpointUrl);
 
                     EncryptedNetworkCredential encryptedAuthCredential = null;
 
-                    if (currentNodePublishingConfiguration.OpcAuthenticationMode ==
-                        OpcAuthenticationMode.UsernamePassword)
+                    if (currentNodePublishingConfiguration.OpcAuthenticationMode == OpcAuthenticationMode.UsernamePassword)
                     {
                         if (currentNodePublishingConfiguration.EncryptedAuthCredential == null)
                         {
-                            throw new NullReferenceException(
-                                "Could not retrieve credentials to authenticate to the server. " +
-                                "Please check if 'OpcAuthenticationUsername' and 'OpcAuthenticationPassword' " +
-                                "are set in configuration.");
+                            throw new NullReferenceException($"Could not retrieve credentials to authenticate to the server. Please check if 'OpcAuthenticationUsername' and 'OpcAuthenticationPassword' are set in configuration.");
                         }
 
                         encryptedAuthCredential = currentNodePublishingConfiguration.EncryptedAuthCredential;
                     }
 
                     // create new session info.
-                    IOpcSession opcSession = new OpcSession(currentNodePublishingConfiguration.EndpointUrl, endpointId,
-                        currentNodePublishingConfiguration.UseSecurity,
-                        currentNodePublishingConfiguration.SecurityMode, currentNodePublishingConfiguration.SecurityProfileUri,
-                        OpcSessionCreationTimeout,
-                        currentNodePublishingConfiguration.OpcAuthenticationMode, encryptedAuthCredential);
+                    IOpcSession opcSession = new OpcSession(endpointUrl, currentNodePublishingConfiguration.UseSecurity, OpcSessionCreationTimeout, currentNodePublishingConfiguration.OpcAuthenticationMode, encryptedAuthCredential);
 
                     // create a subscription for each distinct publishing inverval
-
-                    // TODO: Rather consider a subscription id for partitioning
-
-                    var nodesDistinctPublishingInterval = _nodePublishingConfiguration
-                        .Where(n => n.EndpointId == endpointId)
-                        .Select(c => c.OpcPublishingInterval).Distinct();
-                    foreach (int? nodeDistinctPublishingInterval in nodesDistinctPublishingInterval)
+                    var nodesDistinctPublishingInterval = _nodePublishingConfiguration.Where(n => n.EndpointUrl.Equals(endpointUrl, StringComparison.OrdinalIgnoreCase)).Select(c => c.OpcPublishingInterval).Distinct();
+                    foreach (var nodeDistinctPublishingInterval in nodesDistinctPublishingInterval)
                     {
                         // create a subscription for the publishing interval and add it to the session.
                         IOpcSubscription opcSubscription = new OpcSubscription(nodeDistinctPublishingInterval);
 
                         // add all nodes with this OPC publishing interval to this subscription.
-                        var nodesWithSamePublishingInterval = _nodePublishingConfiguration
-                            .Where(n => n.EndpointId == endpointId)
-                            .Where(n => n.OpcPublishingInterval == nodeDistinctPublishingInterval);
+                        var nodesWithSamePublishingInterval = _nodePublishingConfiguration.Where(n => n.EndpointUrl.Equals(endpointUrl, StringComparison.OrdinalIgnoreCase)).Where(n => n.OpcPublishingInterval == nodeDistinctPublishingInterval);
                         foreach (var nodeInfo in nodesWithSamePublishingInterval)
                         {
-                            if (NodeIdEx.IsValid(nodeInfo.OriginalId))
+                            // differentiate if NodeId or ExpandedNodeId format is used
+                            if (nodeInfo.ExpandedNodeId != null)
+                            {
+                                // create a monitored item for the node, we do not have the namespace index without a connected session. 
+                                // so request a namespace update.
+                                OpcMonitoredItem opcMonitoredItem = new OpcMonitoredItem(nodeInfo.ExpandedNodeId, opcSession.EndpointUrl,
+                                    nodeInfo.OpcSamplingInterval, nodeInfo.DisplayName, nodeInfo.HeartbeatInterval, nodeInfo.SkipFirst);
+                                opcSubscription.OpcMonitoredItems.Add(opcMonitoredItem);
+                                Interlocked.Increment(ref NodeConfigVersion);
+                            }
+                            else if (nodeInfo.NodeId != null)
                             {
                                 // create a monitored item for the node with the configured or default sampling interval
-                                OpcMonitoredItem opcMonitoredItem = new OpcMonitoredItem(
-                                    nodeInfo.OriginalId, opcSession.Endpointuri, opcSession.EndpointId,
-                                    nodeInfo.OpcSamplingInterval, nodeInfo.DisplayName,
-                                    nodeInfo.HeartbeatInterval, nodeInfo.SkipFirst);
+                                OpcMonitoredItem opcMonitoredItem = new OpcMonitoredItem(nodeInfo.NodeId, opcSession.EndpointUrl,
+                                    nodeInfo.OpcSamplingInterval, nodeInfo.DisplayName, nodeInfo.HeartbeatInterval, nodeInfo.SkipFirst);
                                 opcSubscription.OpcMonitoredItems.Add(opcMonitoredItem);
                                 Interlocked.Increment(ref NodeConfigVersion);
                             }
@@ -511,8 +523,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         /// Returns a list of all published nodes for a specific endpoint in config file format.
         /// </summary>
         /// <returns></returns>
-        public List<PublisherConfigurationFileEntryModel> GetPublisherConfigurationFileEntries(
-            string endpointId, string endpointUrl, bool getAll, out uint nodeConfigVersion)
+        public List<PublisherConfigurationFileEntryModel> GetPublisherConfigurationFileEntries(string endpointUrl, bool getAll, out uint nodeConfigVersion)
         {
             List<PublisherConfigurationFileEntryModel> publisherConfigurationFileEntries = new List<PublisherConfigurationFileEntryModel>();
             nodeConfigVersion = (uint)NodeConfigVersion;
@@ -531,52 +542,37 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                         try
                         {
                             sessionLocked = session.LockSessionAsync().Result;
-                            if (!sessionLocked)
+                            if (sessionLocked && (endpointUrl == null || session.EndpointUrl.Equals(endpointUrl, StringComparison.OrdinalIgnoreCase)))
                             {
-                                continue;
-                            }
+                                PublisherConfigurationFileEntryModel publisherConfigurationFileEntry = new PublisherConfigurationFileEntryModel();
 
-                            if (endpointUrl != null && !session.Endpointuri.Equals(endpointUrl, StringComparison.OrdinalIgnoreCase))
-                            {
-                                continue;
-                            }
+                                publisherConfigurationFileEntry.EndpointUrl = new Uri(session.EndpointUrl);
+                                publisherConfigurationFileEntry.OpcAuthenticationMode = session.OpcAuthenticationMode;
+                                publisherConfigurationFileEntry.EncryptedAuthCredential = session.EncryptedAuthCredential;
+                                publisherConfigurationFileEntry.UseSecurity = session.UseSecurity;
+                                publisherConfigurationFileEntry.OpcNodes = new List<OpcNodeOnEndpointModel>();
 
-                            if (endpointId != null && session.EndpointId != endpointId)
-                            {
-                                continue;
-                            }
-
-                            PublisherConfigurationFileEntryModel publisherConfigurationFileEntry = new PublisherConfigurationFileEntryModel {
-                                EndpointUrl = new Uri(session.Endpointuri),
-                                EndpointId = session.EndpointId,
-                                SecurityMode = session.SecurityMode,
-                                SecurityProfileUri = session.SecurityProfileUri,
-                                OpcAuthenticationMode = session.OpcAuthenticationMode,
-                                EncryptedAuthCredential = session.EncryptedAuthCredential,
-                                UseSecurity = session.UseSecurity,
-                                OpcNodes = new List<OpcNodeOnEndpointModel>()
-                            };
-
-                            foreach (var subscription in session.OpcSubscriptions)
-                            {
-                                foreach (var monitoredItem in subscription.OpcMonitoredItems)
+                                foreach (var subscription in session.OpcSubscriptions)
                                 {
-                                    // ignore items tagged to stop
-                                    if (monitoredItem.State != OpcMonitoredItemState.RemovalRequested || getAll == true)
+                                    foreach (var monitoredItem in subscription.OpcMonitoredItems)
                                     {
-                                        OpcNodeOnEndpointModel opcNodeOnEndpoint = new OpcNodeOnEndpointModel(monitoredItem.OriginalId) {
-                                            OpcPublishingInterval = subscription.RequestedPublishingIntervalFromConfiguration ? subscription.RequestedPublishingInterval : (int?)null,
-                                            OpcSamplingInterval = monitoredItem.RequestedSamplingIntervalFromConfiguration ? monitoredItem.RequestedSamplingInterval : (int?)null,
-                                            DisplayName = monitoredItem.DisplayNameFromConfiguration ? monitoredItem.DisplayName : null,
-                                            HeartbeatInterval = monitoredItem.HeartbeatIntervalFromConfiguration ? (int?)monitoredItem.HeartbeatInterval : null,
-                                            SkipFirst = monitoredItem.SkipFirstFromConfiguration ? (bool?)monitoredItem.SkipFirst : null
-                                        };
-                                        publisherConfigurationFileEntry.OpcNodes.Add(opcNodeOnEndpoint);
+                                        // ignore items tagged to stop
+                                        if (monitoredItem.State != OpcMonitoredItemState.RemovalRequested || getAll == true)
+                                        {
+                                            OpcNodeOnEndpointModel opcNodeOnEndpoint = new OpcNodeOnEndpointModel(monitoredItem.OriginalId)
+                                            {
+                                                OpcPublishingInterval = subscription.RequestedPublishingIntervalFromConfiguration ? subscription.RequestedPublishingInterval : (int?)null,
+                                                OpcSamplingInterval = monitoredItem.RequestedSamplingIntervalFromConfiguration ? monitoredItem.RequestedSamplingInterval : (int?)null,
+                                                DisplayName = monitoredItem.DisplayNameFromConfiguration ? monitoredItem.DisplayName : null,
+                                                HeartbeatInterval = monitoredItem.HeartbeatIntervalFromConfiguration ? (int?)monitoredItem.HeartbeatInterval : null,
+                                                SkipFirst = monitoredItem.SkipFirstFromConfiguration ? (bool?)monitoredItem.SkipFirst : null
+                                            };
+                                            publisherConfigurationFileEntry.OpcNodes.Add(opcNodeOnEndpoint);
+                                        }
                                     }
                                 }
+                                publisherConfigurationFileEntries.Add(publisherConfigurationFileEntry);
                             }
-                            publisherConfigurationFileEntries.Add(publisherConfigurationFileEntry);
-
                         }
                         finally
                         {
@@ -609,8 +605,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         /// Returns a list of all configured nodes in NodeId format.
         /// </summary>
         /// <returns></returns>
-        public async Task<List<PublisherConfigurationFileEntryLegacyModel>> GetPublisherConfigurationFileEntriesAsNodeIdsAsync(
-            string endpointId, string endpointUrl)
+        public async Task<List<PublisherConfigurationFileEntryLegacyModel>> GetPublisherConfigurationFileEntriesAsNodeIdsAsync(string endpointUrl)
         {
             List<PublisherConfigurationFileEntryLegacyModel> publisherConfigurationFileEntriesLegacy = new List<PublisherConfigurationFileEntryLegacyModel>();
             try
@@ -628,38 +623,40 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
                         try
                         {
                             sessionLocked = await session.LockSessionAsync().ConfigureAwait(false);
-
-                            if (!sessionLocked)
+                            if (sessionLocked && (endpointUrl == null || session.EndpointUrl.Equals(endpointUrl, StringComparison.OrdinalIgnoreCase)))
                             {
-                                continue;
-                            }
 
-
-                            if (endpointUrl != null &&
-                                !session.Endpointuri.Equals(endpointUrl, StringComparison.OrdinalIgnoreCase))
-                            {
-                                continue;
-                            }
-
-
-                            if (endpointId != null && session.EndpointId != endpointId)
-                            {
-                                continue;
-                            }
-
-                            foreach (var subscription in session.OpcSubscriptions)
-                            {
-                                foreach (var monitoredItem in subscription.OpcMonitoredItems)
+                                foreach (var subscription in session.OpcSubscriptions)
                                 {
-                                    // ignore items tagged to stop
-                                    if (monitoredItem.State != OpcMonitoredItemState.RemovalRequested)
+                                    foreach (var monitoredItem in subscription.OpcMonitoredItems)
                                     {
-                                        PublisherConfigurationFileEntryLegacyModel publisherConfigurationFileEntryLegacy = new PublisherConfigurationFileEntryLegacyModel {
-                                            // Rest null - result only cares about the endpoint url and node id configuration
-                                            EndpointUrl = new Uri(session.Endpointuri),
-                                            NodeId = monitoredItem.ConfiguredNodeId
-                                        };
-                                        publisherConfigurationFileEntriesLegacy.Add(publisherConfigurationFileEntryLegacy);
+                                        // ignore items tagged to stop
+                                        if (monitoredItem.State != OpcMonitoredItemState.RemovalRequested)
+                                        {
+                                            PublisherConfigurationFileEntryLegacyModel publisherConfigurationFileEntryLegacy = new PublisherConfigurationFileEntryLegacyModel();
+                                            publisherConfigurationFileEntryLegacy.EndpointUrl = new Uri(session.EndpointUrl);
+                                            publisherConfigurationFileEntryLegacy.NodeId = null;
+                                            publisherConfigurationFileEntryLegacy.OpcNodes = null;
+
+                                            if (monitoredItem.ConfigType == OpcMonitoredItemConfigurationType.ExpandedNodeId)
+                                            {
+                                                // for certain scenarios we support returning the NodeId format even so the
+                                                // actual configuration of the node was in ExpandedNodeId format
+                                                publisherConfigurationFileEntryLegacy.EndpointUrl = new Uri(session.EndpointUrl);
+                                                publisherConfigurationFileEntryLegacy.NodeId = new NodeId(monitoredItem.ConfigExpandedNodeId.Identifier, (ushort)session.GetNamespaceIndexUnlocked(monitoredItem.ConfigExpandedNodeId?.NamespaceUri));
+                                                publisherConfigurationFileEntriesLegacy.Add(publisherConfigurationFileEntryLegacy);
+                                            }
+                                            else
+                                            {
+                                                // we do not convert nodes with legacy configuration to the new format to keep backward
+                                                // compatibility with external configurations.
+                                                // the conversion would only be possible, if the session is connected, to have access to the
+                                                // server namespace array.
+                                                publisherConfigurationFileEntryLegacy.EndpointUrl = new Uri(session.EndpointUrl);
+                                                publisherConfigurationFileEntryLegacy.NodeId = monitoredItem.ConfigNodeId;
+                                                publisherConfigurationFileEntriesLegacy.Add(publisherConfigurationFileEntryLegacy);
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -696,14 +693,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         public async Task UpdateNodeConfigurationFileAsync()
         {
             if (NodeConfigVersion == _lastNodeConfigVersion)
-            {
                 return;
-            }
 
             try
             {
                 // iterate through all sessions, subscriptions and monitored items and create config file entries
-                var publisherNodeConfiguration = GetPublisherConfigurationFileEntries(null, null, true, out _lastNodeConfigVersion);
+                List<PublisherConfigurationFileEntryModel> publisherNodeConfiguration = GetPublisherConfigurationFileEntries(null, true, out _lastNodeConfigVersion);
 
                 Logger.Debug($"Update node configuration file, version: {_lastNodeConfigVersion:X8}");
 

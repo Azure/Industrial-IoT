@@ -1,6 +1,6 @@
 using System.Threading;
 
-namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
+namespace OpcPublisher
 {
     using static Program;
 
@@ -18,7 +18,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         {
             // wait till monitoring starts
             int iter = 0;
-            int startNum = NodeConfiguration.NumberOfOpcMonitoredItemsMonitored;
             while (NodeConfiguration.NumberOfOpcMonitoredItemsMonitored  == 0 && iter < _maxIterations)
             {
                 Thread.Sleep(_sleepMilliseconds);

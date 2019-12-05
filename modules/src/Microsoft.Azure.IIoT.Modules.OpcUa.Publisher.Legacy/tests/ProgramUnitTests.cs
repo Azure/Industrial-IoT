@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Xunit;
 
-namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
+namespace OpcPublisher
 {
     public class ProgramMethodTests
     {
@@ -17,8 +17,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
             resultOk.Add("d");
 
             List<string> result = new List<string>();
-            result = Program.ParseListOfStrings(testString);
-            Assert.Equal(resultOk, Program.ParseListOfStrings(testString));
+            result = OpcPublisher.Program.ParseListOfStrings(testString);
+            Assert.Equal(resultOk, OpcPublisher.Program.ParseListOfStrings(testString));
         }
 
 
@@ -27,7 +27,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         [MemberData(nameof(ParseListOfStringsSimplePass0))]
         public void ParseListOfStringsPass(string test, List<string> expected)
         {
-            Assert.Equal(expected, Program.ParseListOfStrings(test));
+            Assert.Equal(expected, OpcPublisher.Program.ParseListOfStrings(test));
         }
 
         public static IEnumerable<object[]> ParseListOfStringsSimplePass0 =>

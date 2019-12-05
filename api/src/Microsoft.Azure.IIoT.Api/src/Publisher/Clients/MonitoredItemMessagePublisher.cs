@@ -14,7 +14,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients {
     /// <summary>
     /// Monitored item sample message progress  publishing
     /// </summary>
-    public sealed class MonitoredItemMessagePublisher : IMonitoredItemMessageProcessor,
+    public sealed class MonitoredItemMessagePublisher : IMonitoredItemSampleProcessor,
         IDisposable {
 
         /// <summary>
@@ -26,7 +26,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task HandleMessageAsync(MonitoredItemMessageModel sample) {
+        public async Task HandleSampleAsync(MonitoredItemSampleModel sample) {
             var arguments = new object[] { sample.ToApiModel() };
             if (!string.IsNullOrEmpty(sample.EndpointId)) {
                 // Send to endpoint listeners

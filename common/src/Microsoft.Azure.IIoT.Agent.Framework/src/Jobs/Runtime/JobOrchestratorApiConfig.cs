@@ -7,6 +7,8 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs.Runtime {
     using Microsoft.Azure.IIoT.Agent.Framework.Jobs;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
+    using System.Net;
+    using System.Net.Sockets;
 
     /// <summary>
     /// Default endpoint configuration
@@ -37,11 +39,23 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs.Runtime {
         /// <param name="port"></param>
         /// <param name="path"></param>
         /// <returns></returns>
-        private string GetDefaultUrl(string port, string path) {
+        protected string GetDefaultUrl(string port, string path) {
             var cloudEndpoint = GetStringOrDefault("PCS_SERVICE_URL");
             if (string.IsNullOrEmpty(cloudEndpoint)) {
-                var host = GetStringOrDefault("_HOST", System.Net.Dns.GetHostName());
-                return $"http://{host}:{port}";
+                // Test port is open
+                if (!int.TryParse(port, out var nPort)) {
+                    return $"http://localhost:9080/{path}";
+                }
+                using (var socket = new Socket(AddressFamily.InterNetwork,
+                    SocketType.Stream, ProtocolType.Unspecified)) {
+                    try {
+                        socket.Connect(new IPEndPoint(IPAddress.Loopback, nPort));
+                        return $"http://localhost:{port}";
+                    }
+                    catch {
+                        return $"http://localhost:9080/{path}";
+                    }
+                }
             }
             return $"{cloudEndpoint}/{path}";
         }

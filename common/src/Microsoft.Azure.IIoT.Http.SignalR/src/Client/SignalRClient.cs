@@ -3,9 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Http.SignalR {
+namespace Microsoft.Azure.IIoT.Http.SignalR.Clients {
+    using Microsoft.Azure.IIoT.Http.SignalR.Services;
     using Microsoft.Azure.IIoT.Messaging.SignalR;
-    using Microsoft.Azure.IIoT.Messaging.SignalR.Clients;
     using Microsoft.Azure.IIoT.Messaging;
     using Serilog;
     using System;
@@ -14,7 +14,7 @@ namespace Microsoft.Azure.IIoT.Http.SignalR {
     /// <summary>
     /// Subscriber for signalr service
     /// </summary>
-    public sealed class SignalRClient : ICallbackRegistration, IDisposable {
+    public sealed class SignalRClient : ICallbackRegistration {
 
         /// <inheritdoc/>
         public string UserId => _client.UserId;

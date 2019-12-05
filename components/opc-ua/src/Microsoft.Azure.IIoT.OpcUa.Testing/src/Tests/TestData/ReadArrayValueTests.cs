@@ -451,7 +451,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 return;
             }
 
-            Assert.True(((JArray)result.Value)[0].IsFloatValue());
+            Assert.True(((JArray)result.Value)[0].IsFloatValue(), $"First is {result.Value}");
             Assert.Equal("Float", result.DataType);
         }
 
@@ -893,7 +893,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 return;
             }
             var type = ((JArray)result.Value)[0].Type;
-            Assert.True(type == JTokenType.Integer || type == JTokenType.Float);
+            Assert.True(type == JTokenType.Integer ||
+                ((JArray)result.Value)[0].IsFloatValue(), $"Got bad type {type}");
         }
 
 

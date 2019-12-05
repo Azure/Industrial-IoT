@@ -40,6 +40,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Identity {
                 .AddFromDotEnvFile()
                 .AddEnvironmentVariables(EnvironmentVariableTarget.User)
                 .AddCommandLine(args)
+                .AddFromKeyVault()
                 .Build();
 
             // Set up dependency injection for the event processor host

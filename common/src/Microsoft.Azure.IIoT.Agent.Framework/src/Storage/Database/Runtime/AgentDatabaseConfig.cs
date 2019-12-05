@@ -4,8 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
-    using Microsoft.Extensions.Configuration;
-
     /// <summary>
     /// Database registry configuration
     /// </summary>

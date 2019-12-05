@@ -1,12 +1,10 @@
-﻿// ------------------------------------------------------------
-//  Copyright (c) Microsoft Corporation.  All rights reserved.
-//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
-// ------------------------------------------------------------
-
-namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
+﻿namespace OpcPublisher
 {
+    using Microsoft.Azure.Devices;
+    using Microsoft.Azure.Devices.Client;
     using Opc.Ua;
     using System;
+    using static OpcApplicationConfiguration;
     using static Program;
 
     /// <summary>
@@ -41,6 +39,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         public static string DeviceConnectionString { get; set; } = null;
 
         /// <summary>
+        /// The IoTHub owner connection string to be used to connect to IoTHub.
+        /// </summary>
+        public static string IotHubOwnerConnectionString { get; set; } = null;
+
+        /// <summary>
         /// This property is only there to allow mocking of the device client.
         /// </summary>
         public static IHubClient IotHubClient { get; set; }
@@ -68,12 +71,80 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         /// </summary>
         private IotHubCommunication()
         {
+            // check if we got an IoTHub owner connection string
+            if (string.IsNullOrEmpty(IotHubOwnerConnectionString))
+            {
+                Logger.Information("IoT Hub owner connection string not passed as argument.");
+
+                // check if we have an environment variable to register ourselves with IoT Hub
+                if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("_HUB_CS")))
+                {
+                    IotHubOwnerConnectionString = Environment.GetEnvironmentVariable("_HUB_CS");
+                    Logger.Information("IoT Hub owner connection string read from environment.");
+                }
+            }
+
             Logger.Information($"IoTHub device cert store type is: {IotDeviceCertStoreType}");
             Logger.Information($"IoTHub device cert path is: {IotDeviceCertStorePath}");
+            if (string.IsNullOrEmpty(IotHubOwnerConnectionString))
+            {
+                Logger.Information("IoT Hub owner connection string not specified. Assume device connection string already in cert store or passed in via command line option.");
+            }
+            else
+            {
+                if (string.IsNullOrEmpty(DeviceConnectionString))
+                {
+                    Logger.Information($"Attempting to register ourselves with IoT Hub using owner connection string.");
+                    using (RegistryManager manager =
+                        RegistryManager.CreateFromConnectionString(IotHubOwnerConnectionString))
+                    {
+
+                        // remove any existing device
+                        Device existingDevice = manager.GetDeviceAsync(ApplicationName).Result;
+                        if (existingDevice != null)
+                        {
+                            Logger.Information($"Device '{ApplicationName}' found in IoTHub registry. Remove it.");
+                            manager.RemoveDeviceAsync(ApplicationName).Wait();
+                        }
+
+                        Logger.Information($"Adding device '{ApplicationName}' to IoTHub registry.");
+                        Device newDevice = manager.AddDeviceAsync(new Device(ApplicationName)).Result;
+                        if (newDevice != null)
+                        {
+                            Logger.Information($"Generate device connection string.");
+                            string hostname = IotHubOwnerConnectionString.Substring(0,
+                                IotHubOwnerConnectionString.IndexOf(";", StringComparison.InvariantCulture));
+                            DeviceConnectionString = hostname + ";DeviceId=" + ApplicationName + ";SharedAccessKey=" +
+                                                     newDevice.Authentication.SymmetricKey.PrimaryKey;
+                        }
+                        else
+                        {
+                            string errorMessage = $"Can not register ourselves with IoT Hub. Exiting...";
+                            Logger.Fatal(errorMessage);
+                            throw new Exception(errorMessage);
+                        }
+                    }
+                }
+                else
+                {
+                    Logger.Information($"There have been a device connectionstring specified on command line. Skipping device creation in IoTHub. Please ensure you created a device with name '{ApplicationName}' manually.");
+                }
+            }
+
+            // save the device connectionstring, if we have one
+            if (!string.IsNullOrEmpty(DeviceConnectionString))
+            {
+                Logger.Information($"Adding device connectionstring to secure store.");
+                SecureIoTHubToken.WriteAsync(ApplicationName, DeviceConnectionString, IotDeviceCertStoreType, IotDeviceCertStorePath).Wait();
+            }
+
+            // try to read connection string from secure store and open IoTHub client
+            Logger.Information($"Attempting to read device connection string from cert store using subject name: {ApplicationName}");
+            DeviceConnectionString = SecureIoTHubToken.ReadAsync(ApplicationName, IotDeviceCertStoreType, IotDeviceCertStorePath).Result;
 
             if (string.IsNullOrEmpty(DeviceConnectionString))
             {
-                string errorMessage = $"Device connection string not provided. Please pass it in at least once via command line option. Can not connect to IoTHub. Exiting...";
+                string errorMessage = $"Device connection string not found in secure store. Please pass it in at least once via command line option. Can not connect to IoTHub. Exiting...";
                 Logger.Fatal(errorMessage);
                 throw new ArgumentException(errorMessage);
             }

@@ -36,27 +36,27 @@
         @foreach (var endpoint in pagedendpointList.Results)
         {
             <tr>
-                @if (endpoint.endpointModel.ActivationState == EndpointActivationState.ActivatedAndConnected)
+                @if (endpoint.EndpointModel.ActivationState == EndpointActivationState.ActivatedAndConnected)
                 {
                     <td>
-                        <a href='browser/@SupervisorId/@endpoint.endpointModel.Registration.Id'>
-                            @endpoint.endpointModel.Registration.Endpoint.Url
+                        <a href='browser/@SupervisorId/@endpoint.EndpointModel.Registration.Id'>
+                            @endpoint.EndpointModel.Registration.Endpoint.Url
                         </a>
                     </td>
                 }
                 else
                 {
-                    <td>@endpoint.endpointModel.Registration.Endpoint.Url</td>
+                    <td>@endpoint.EndpointModel.Registration.Endpoint.Url</td>
                 }
-                <td>@endpoint.endpointModel.Registration.Endpoint.SecurityMode</td>
-                <td>@endpoint.endpointModel.Registration.Endpoint.SecurityPolicy</td>
-                <td>@endpoint.endpointModel.Registration.SecurityLevel</td>
+                <td>@endpoint.EndpointModel.Registration.Endpoint.SecurityMode</td>
+                <td>@endpoint.EndpointModel.Registration.Endpoint.SecurityPolicy</td>
+                <td>@endpoint.EndpointModel.Registration.SecurityLevel</td>
 
                 <td>
-                    <input type="checkbox" @bind="@endpoint.endpointState" 
-                        @onclick="@(() => SetActivation(endpoint.endpointModel.Registration.Id,
-                        endpoint.endpointModel.ActivationState))" />
-                        @endpoint.endpointModel.ActivationState.ToString()
+                    <input type="checkbox" @bind="@endpoint.EndpointState"
+                        @onclick="@(() => SetActivation(endpoint.EndpointModel.Registration.Id,
+                        endpoint.EndpointModel.ActivationState))" />
+                        @endpoint.EndpointModel.ActivationState.ToString()
                 </td>
                 <td></td>
             </tr>

@@ -55,13 +55,13 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.v2.Models {
         /// </summary>
         [JsonProperty(PropertyName = "publishingInterval",
             NullValueHandling = NullValueHandling.Ignore)]
-        public int? PublishingInterval { get; set; }
+        public TimeSpan? PublishingInterval { get; set; }
 
         /// <summary>
         /// Sampling interval to use
         /// </summary>
         [JsonProperty(PropertyName = "samplingInterval",
             NullValueHandling = NullValueHandling.Ignore)]
-        public int? SamplingInterval { get; set; }
+        public TimeSpan? SamplingInterval { get; set; }
     }
 }

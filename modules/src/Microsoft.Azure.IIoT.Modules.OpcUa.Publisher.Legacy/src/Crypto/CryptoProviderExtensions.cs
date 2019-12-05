@@ -2,7 +2,7 @@
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Crypto
+namespace OpcPublisher.Crypto
 {
     public static class CryptoProviderExtensions
     {

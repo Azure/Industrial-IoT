@@ -8,7 +8,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using Microsoft.Azure.IIoT.OpcUa.Publisher;
     using Microsoft.Azure.IIoT.Agent.Framework;
     using Microsoft.Azure.IIoT.Agent.Framework.Models;
-    using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.Exceptions;
     using Serilog;
     using System;
@@ -24,9 +23,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     public class DataFlowProcessingEngine : IProcessingEngine, IDisposable {
 
         /// <inheritdoc/>
-        public IMessageEncoder MessageEncoder { get; private set; }
-
-        /// <inheritdoc/>
         public bool IsRunning { get; private set; }
 
         /// <inheritdoc/>
@@ -37,15 +33,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// </summary>
         /// <param name="messageTrigger"></param>
         /// <param name="messageSink"></param>
+        /// <param name="encoder"></param>
         /// <param name="engineConfiguration"></param>
         /// <param name="logger"></param>
-        public DataFlowProcessingEngine(IMessageTrigger messageTrigger,
+        public DataFlowProcessingEngine(IMessageTrigger messageTrigger, IMessageEncoder encoder,
             IMessageSink messageSink, IEngineConfiguration engineConfiguration, ILogger logger) {
             _messageTrigger = messageTrigger;
             _messageSink = messageSink;
+            _messageEncoder = encoder;
             _logger = logger;
 
-            _messageTrigger.MessageReceived += MessageTriggerMessageReceived;
+            _messageTrigger.OnMessage += MessageTriggerMessageReceived;
 
             if (engineConfiguration.DiagnosticsInterval.HasValue &&
                 engineConfiguration.DiagnosticsInterval > TimeSpan.Zero) {
@@ -60,7 +58,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
         /// <inheritdoc/>
         public void Dispose() {
-            _messageTrigger.MessageReceived -= MessageTriggerMessageReceived;
+            _messageTrigger.OnMessage -= MessageTriggerMessageReceived;
             _diagnosticsOutputTimer?.Dispose();
         }
 
@@ -71,7 +69,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
         /// <inheritdoc/>
         public async Task RunAsync(ProcessMode processMode, CancellationToken cancellationToken) {
-            if (MessageEncoder == null) {
+            if (_messageEncoder == null) {
                 throw new NotInitializedException();
             }
 
@@ -82,18 +80,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                 IsRunning = true;
 
-                _encodingBlock = new TransformBlock<IMessageData, EncodedMessage>(
-                    input => MessageEncoder.Encode(input),
+                _encodingBlock = new TransformManyBlock<DataSetMessageModel, NetworkMessageModel>(
+                    input => _messageEncoder.EncodeAsync(input),
                     new ExecutionDataflowBlockOptions {
                         CancellationToken = cancellationToken
                     });
 
-                _batchBlock = new BatchBlock<EncodedMessage>(_bufferSize,
+                _batchBlock = new BatchBlock<NetworkMessageModel>(_bufferSize,
                     new GroupingDataflowBlockOptions {
                         CancellationToken = cancellationToken
                     });
 
-                _sinkBlock = new ActionBlock<EncodedMessage[]>(
+                _sinkBlock = new ActionBlock<NetworkMessageModel[]>(
                     input => _messageSink.SendAsync(input),
                     new ExecutionDataflowBlockOptions {
                         CancellationToken = cancellationToken
@@ -114,14 +112,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <inheritdoc/>
         public Task SwitchProcessMode(ProcessMode processMode, DateTime? timestamp) {
             return Task.CompletedTask;
-        }
-
-        /// <inheritdoc/>
-        public void Initialize(IMessageEncoder encoder) {
-            if (MessageEncoder != null) {
-                throw new AlreadyInitializedException();
-            }
-            MessageEncoder = encoder;
         }
 
         /// <summary>
@@ -145,18 +135,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="args"></param>
-        private void MessageTriggerMessageReceived(object sender, MessageReceivedEventArgs args) {
-            _encodingBlock.Post(args.Message);
+        private void MessageTriggerMessageReceived(object sender, DataSetMessageModel args) {
+            _encodingBlock.Post(args);
         }
 
         private readonly int _bufferSize = 1;
         private readonly Timer _diagnosticsOutputTimer;
-        private readonly ILogger _logger;
         private readonly IMessageSink _messageSink;
+        private readonly IMessageEncoder _messageEncoder;
         private readonly IMessageTrigger _messageTrigger;
+        private readonly ILogger _logger;
 
-        private BatchBlock<EncodedMessage> _batchBlock;
-        private TransformBlock<IMessageData, EncodedMessage> _encodingBlock;
-        private ActionBlock<EncodedMessage[]> _sinkBlock;
+        private BatchBlock<NetworkMessageModel> _batchBlock;
+        private TransformManyBlock<DataSetMessageModel, NetworkMessageModel> _encodingBlock;
+        private ActionBlock<NetworkMessageModel[]> _sinkBlock;
     }
 }

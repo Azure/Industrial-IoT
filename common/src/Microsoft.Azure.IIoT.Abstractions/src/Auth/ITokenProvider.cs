@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Auth {
-    using Microsoft.Azure.IIoT.Auth.Modelss;
+    using Microsoft.Azure.IIoT.Auth.Models;
     using System.Collections.Generic;
     using System.Threading.Tasks;
 

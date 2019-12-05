@@ -14,11 +14,26 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
     public class LoggerProviderModule : Module {
 
         /// <summary>
-        /// Create module
+        /// Create module - if provider should regarded as singleton use
+        /// singleton instance.   This is useful for situations where an
+        /// outer container has a root logger.
         /// </summary>
         /// <param name="provider"></param>
-        public LoggerProviderModule(ILoggerProvider provider) {
-            _provider = provider ?? throw new ArgumentNullException(nameof(provider));
+        /// <param name="singleton"></param>
+        public LoggerProviderModule(ILoggerProvider provider, bool singleton = true) {
+            if (provider == null) {
+                throw new ArgumentNullException(nameof(provider));
+            }
+            if (_instance == null) {
+                lock (kSingleton) {
+                    if (_instance == null) {
+                        _instance = provider;
+                    }
+                }
+            }
+            if (singleton) {
+                _provider = _instance;
+            }
         }
 
         /// <summary>
@@ -30,6 +45,8 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
             base.Load(builder);
         }
 
+        private static readonly object kSingleton = new object();
+        private static ILoggerProvider _instance;
         private readonly ILoggerProvider _provider;
     }
 }

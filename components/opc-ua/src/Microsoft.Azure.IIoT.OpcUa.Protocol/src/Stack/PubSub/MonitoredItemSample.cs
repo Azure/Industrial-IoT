@@ -51,12 +51,7 @@ namespace Opc.Ua.PubSub {
         /// <summary>
         /// Extra fields
         /// </summary>
-        public Dictionary<string, string> ExtraFields { get; set; }
-
-        /// <summary>
-        /// Service message context
-        /// </summary>
-        public ServiceMessageContext ServiceMessageContext { get; set; }
+        public Dictionary<string, string> ExtensionFields { get; set; }
 
         /// <inheritdoc/>
         public ExpandedNodeId TypeId => ExpandedNodeId.Null;
@@ -117,8 +112,8 @@ namespace Opc.Ua.PubSub {
             encoder.WriteVariant("Value", Value.WrappedValue);
 
             if ((MessageContentMask & (uint)MonitoredItemSampleContentMask.ExtraFields) != 0) {
-                if (ExtraFields != null) {
-                    foreach (var field in ExtraFields) {
+                if (ExtensionFields != null) {
+                    foreach (var field in ExtensionFields) {
                         encoder.WriteString(field.Key, field.Value);
                     }
                 }

@@ -43,15 +43,15 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge {
         /// <summary>
         /// Service info - Initialized in constructor
         /// </summary>
-        public ServiceInfo ServiceInfo { get; }
+        public ServiceInfo ServiceInfo { get; } = new ServiceInfo();
 
         /// <summary>
-        /// Hosting environment
+        /// Current hosting environment - Initialized in constructor
         /// </summary>
         public IHostingEnvironment Environment { get; }
 
         /// <summary>
-        /// Autofac container
+        /// Di container - Initialized in `ConfigureServices`
         /// </summary>
         public IContainer ApplicationContainer { get; private set; }
 
@@ -59,20 +59,23 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge {
         /// Create startup
         /// </summary>
         /// <param name="env"></param>
-        public Startup(IHostingEnvironment env) {
+        /// <param name="configuration"></param>
+        public Startup(IHostingEnvironment env, IConfiguration configuration) :
+            this(env, new Config(new ConfigurationBuilder()
+                .AddConfiguration(configuration)
+                .AddFromDotEnvFile()
+                .AddFromKeyVault()
+                .Build())) {
+        }
+
+        /// <summary>
+        /// Create startup
+        /// </summary>
+        /// <param name="env"></param>
+        /// <param name="configuration"></param>
+        public Startup(IHostingEnvironment env, Config configuration) {
             Environment = env;
-            ServiceInfo = new ServiceInfo();
-            Config = new Config(
-                new ConfigurationBuilder()
-                    .SetBasePath(env.ContentRootPath)
-                    .AddJsonFile(
-                        "appsettings.json", true, true)
-                    .AddJsonFile(
-                        $"appsettings.{env.EnvironmentName}.json", true, true)
-                    .AddEnvironmentVariables()
-                    .AddEnvironmentVariables(EnvironmentVariableTarget.User)
-                    .AddFromDotEnvFile()
-                    .Build());
+            Config = configuration;
         }
 
         /// <summary>

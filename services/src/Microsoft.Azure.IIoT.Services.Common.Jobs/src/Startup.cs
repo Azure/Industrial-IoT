@@ -8,12 +8,10 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs {
     using Microsoft.Azure.IIoT.Services.Common.Jobs.v2;
     using Microsoft.Azure.IIoT.Services;
     using Microsoft.Azure.IIoT.Services.Auth;
-    using Microsoft.Azure.IIoT.Services.Auth.Clients;
     using Microsoft.Azure.IIoT.Services.Cors;
     using Microsoft.Azure.IIoT.Agent.Framework.Jobs;
     using Microsoft.Azure.IIoT.Agent.Framework.Storage.Database;
     using Microsoft.Azure.IIoT.Http.Default;
-    using Microsoft.Azure.IIoT.Http.Auth;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Storage.CosmosDb.Services;
     using Microsoft.AspNetCore.Builder;
@@ -41,15 +39,15 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs {
         /// <summary>
         /// Service info - Initialized in constructor
         /// </summary>
-        public ServiceInfo ServiceInfo { get; }
+        public ServiceInfo ServiceInfo { get; } = new ServiceInfo();
 
         /// <summary>
-        /// Hosting environment
+        /// Current hosting environment - Initialized in constructor
         /// </summary>
         public IHostingEnvironment Environment { get; }
 
         /// <summary>
-        /// Autofac container
+        /// Di container - Initialized in `ConfigureServices`
         /// </summary>
         public IContainer ApplicationContainer { get; private set; }
 
@@ -57,17 +55,23 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs {
         /// Create startup
         /// </summary>
         /// <param name="env"></param>
-        public Startup(IHostingEnvironment env) {
-            Environment = env;
-            ServiceInfo = new ServiceInfo();
-            Config = new Config(new ConfigurationBuilder()
-                .SetBasePath(env.ContentRootPath)
-                .AddJsonFile("appsettings.json", true, true)
-                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", true, true)
-                .AddEnvironmentVariables()
+        /// <param name="configuration"></param>
+        public Startup(IHostingEnvironment env, IConfiguration configuration) :
+            this(env, new Config(new ConfigurationBuilder()
+                .AddConfiguration(configuration)
                 .AddFromDotEnvFile()
-                .AddEnvironmentVariables(EnvironmentVariableTarget.User)
-                .Build());
+                .AddFromKeyVault()
+                .Build())) {
+        }
+
+        /// <summary>
+        /// Create startup
+        /// </summary>
+        /// <param name="env"></param>
+        /// <param name="configuration"></param>
+        public Startup(IHostingEnvironment env, Config configuration) {
+            Environment = env;
+            Config = configuration;
         }
 
         /// <summary>

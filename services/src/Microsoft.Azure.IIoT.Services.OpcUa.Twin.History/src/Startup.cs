@@ -43,7 +43,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History {
         /// <summary>
         /// Service info - Initialized in constructor
         /// </summary>
-        public ServiceInfo ServiceInfo { get; }
+        public ServiceInfo ServiceInfo { get; } = new ServiceInfo();
 
         /// <summary>
         /// Current hosting environment - Initialized in constructor
@@ -56,22 +56,26 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History {
         public IContainer ApplicationContainer { get; private set; }
 
         /// <summary>
-        /// Created through builder
+        /// Create startup
         /// </summary>
         /// <param name="env"></param>
         /// <param name="configuration"></param>
-        public Startup(IHostingEnvironment env, IConfiguration configuration) {
+        public Startup(IHostingEnvironment env, IConfiguration configuration) :
+            this(env, new Config(new ConfigurationBuilder()
+                .AddConfiguration(configuration)
+                .AddFromDotEnvFile()
+                .AddFromKeyVault()
+                .Build())) {
+        }
+
+        /// <summary>
+        /// Create startup
+        /// </summary>
+        /// <param name="env"></param>
+        /// <param name="configuration"></param>
+        public Startup(IHostingEnvironment env, Config configuration) {
             Environment = env;
-            ServiceInfo = new ServiceInfo();
-            Config = new Config(
-                new ConfigurationBuilder()
-                    .AddConfiguration(configuration)
-                    .SetBasePath(env.ContentRootPath)
-                    .AddJsonFile(
-                        "appsettings.json", true, true)
-                    .AddJsonFile(
-                        $"appsettings.{env.EnvironmentName}.json", true, true)
-                    .Build());
+            Config = configuration;
         }
 
         /// <summary>

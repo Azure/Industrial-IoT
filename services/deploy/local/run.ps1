@@ -114,7 +114,6 @@ Function GetEnvironmentVariables() {
 
     $AUTH_AUDIENCE = $aadConfig.Audience
     $AUTH_AAD_APPID = $aadConfig.ClientId
-    $AUTH_AAD_APPSECRET = $aadConfig.ClientSecret
     $AUTH_AAD_TENANT = $aadConfig.TenantId
     $AUTH_AAD_AUTHORITY = $aadConfig.Instance
     $AUTH_AAD_SERVICEID = $aadConfig.ServiceId
@@ -130,13 +129,24 @@ Function GetEnvironmentVariables() {
     Write-Output `
         "PCS_AUTH_ISSUER=https://sts.windows.net/$AUTH_AAD_TENANT/"
     Write-Output `
-        "PCS_APPLICATION_SECRET=$AUTH_AAD_APPSECRET"
-    Write-Output `
         "PCS_WEBUI_AUTH_AAD_APPID=$AUTH_AAD_APPID"
     Write-Output `
         "PCS_WEBUI_AUTH_AAD_AUTHORITY=$AUTH_AAD_AUTHORITY"
     Write-Output `
         "PCS_WEBUI_AUTH_AAD_TENANT=$AUTH_AAD_TENANT"
+
+    Write-Output `
+        "REACT_APP_PCS_AUTH_REQUIRED=true"
+    Write-Output `
+        "REACT_APP_PCS_AUTH_AUDIENCE=$AUTH_AUDIENCE"
+    Write-Output `
+        "REACT_APP_PCS_AUTH_ISSUER=https://sts.windows.net/$AUTH_AAD_TENANT/"
+    Write-Output `
+        "REACT_APP_PCS_WEBUI_AUTH_AAD_APPID=$AUTH_AAD_APPID"
+    Write-Output `
+        "REACT_APP_PCS_WEBUI_AUTH_AAD_AUTHORITY=$AUTH_AAD_AUTHORITY"
+    Write-Output `
+        "REACT_APP_PCS_WEBUI_AUTH_AAD_TENANT=$AUTH_AAD_TENANT"
     Write-Output `
         "PCS_AUTH_AAD_SERVICEID=$AUTH_AAD_SERVICEID"
     Write-Output `
@@ -147,18 +157,28 @@ Function GetEnvironmentVariables() {
 }
 
 #******************************************************************************
-# find the top most folder with solution in it
+# find the top most folder with docker-compose.yml in it
 #******************************************************************************
 Function GetRootFolder() {
     param(
         $startDir
     ) 
     $cur = $startDir
-    while (![string]::IsNullOrEmpty($cur)) {
-        if (Test-Path -Path (Join-Path $cur "Industrial-IoT.sln") -PathType Leaf) {
-            return $cur
+    while ($True) {
+        if ([string]::IsNullOrEmpty($cur)) {
+            break
+        }
+        $test = Join-Path $cur "docker-compose.yml"
+        if (Test-Path $test) {
+            $found = $cur
+        }
+        elseif (![string]::IsNullOrEmpty($found)) {
+            break
         }
         $cur = Split-Path $cur
+    }
+    if (![string]::IsNullOrEmpty($found)) {
+        return $found
     }
     return $startDir
 }
@@ -172,8 +192,14 @@ $ScriptDir = Split-Path $script:MyInvocation.MyCommand.Path
 $templateParameters = @{}
 # Configure auth
 if ($aadConfig) {
+    if (![string]::IsNullOrEmpty($aadConfig.TenantId)) { 
+        $templateParameters.Add("aadTenantId", $aadConfig.TenantId)
+    }
     if (![string]::IsNullOrEmpty($aadConfig.ServicePrincipalId)) { 
-        $templateParameters.Add("servicePrincipalId", $aadConfig.ServicePrincipalId)
+        $templateParameters.Add("aadServicePrincipalId", $aadConfig.ServicePrincipalId)
+    }
+    if (![string]::IsNullOrEmpty($aadConfig.UserPrincipalId)) { 
+        $templateParameters.Add("aadUserPrincipalId", $aadConfig.UserPrincipalId)
     }
 }
 
@@ -183,7 +209,7 @@ if (![string]::IsNullOrEmpty($script:containerRegistryPrefix)) {
 
 
 # Start the deployment
-$templateFilePath = Join-Path $ScriptDir "azuredeploy.json"
+$templateFilePath = Join-Path $ScriptDir "template.json"
 Write-Host "Starting deployment..."
 $deployment = New-AzureRmResourceGroupDeployment -ResourceGroupName $resourceGroupName `
     -TemplateFile $templateFilePath -TemplateParameterObject $templateParameters
@@ -195,8 +221,6 @@ if ($aadConfig -and $aadConfig.ClientObjectId) {
     $replyUrls = New-Object System.Collections.Generic.List[System.String]
     $replyUrls.Add("http://localhost/oauth2-redirect.html")
     $replyUrls.Add("https://localhost/oauth2-redirect.html")
-    $replyUrls.Add("http://localhost:44314/signin-oidc")
-    $replyUrls.Add("https://localhost:44314/signin-oidc")
     $replyUrls.Add("urn:ietf:wg:oauth:2.0:oob")
     # still connected
     Set-AzureADApplication -ObjectId $aadConfig.ClientObjectId -ReplyUrls $replyUrls

@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.History.Models {
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using System.Collections.Generic;
 
     /// <summary>
@@ -15,7 +15,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.History.Models {
         /// <summary>
         /// The filter to use to select the events
         /// </summary>
-        public JToken Filter { get; set; }
+        public ContentFilterModel Filter { get; set; }
 
         /// <summary>
         /// The new events to replace

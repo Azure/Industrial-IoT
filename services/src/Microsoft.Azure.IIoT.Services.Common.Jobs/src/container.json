@@ -1,4 +1,4 @@
 {
     "name": "iot/industrial-iot-jobs-service",
-    "exposes": [ 9046 ]
+    "exposes": [9046]
 }

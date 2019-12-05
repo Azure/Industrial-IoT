@@ -14,6 +14,7 @@ namespace Microsoft.Azure.IIoT.Api.Jobs.Clients {
     using System.Net.Http.Headers;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Azure.IIoT.Exceptions;
 
     /// <summary>
     /// Job orchestrator client that connects to the cloud endpoint.
@@ -40,7 +41,10 @@ namespace Microsoft.Azure.IIoT.Api.Jobs.Clients {
                 throw new ArgumentNullException(nameof(workerId));
             }
             while (true) {
-                var uri = _config.Config.JobOrchestratorUrl.TrimEnd('/');
+                var uri = _config?.Config?.JobOrchestratorUrl?.TrimEnd('/');
+                if (uri == null) {
+                    throw new InvalidConfigurationException("Job orchestrator not configured");
+                }
                 var request = _httpClient.NewRequest($"{uri}/v2/workers/{workerId}");
                 request.Headers.Authorization = new AuthenticationHeaderValue("Basic",
                     _tokenProvider.IdentityToken.ToAuthorizationValue());
@@ -55,9 +59,6 @@ namespace Microsoft.Azure.IIoT.Api.Jobs.Clients {
                 catch (UnauthorizedAccessException) {
                     await _tokenProvider.ForceUpdate();
                 }
-                catch {
-                    throw;
-                }
             }
         }
 
@@ -68,7 +69,10 @@ namespace Microsoft.Azure.IIoT.Api.Jobs.Clients {
                 throw new ArgumentNullException(nameof(heartbeat));
             }
             while (true) {
-                var uri = _config.Config.JobOrchestratorUrl.TrimEnd('/');
+                var uri = _config?.Config?.JobOrchestratorUrl?.TrimEnd('/');
+                if (uri == null) {
+                    throw new InvalidConfigurationException("Job orchestrator not configured");
+                }
                 var request = _httpClient.NewRequest($"{uri}/v2/heartbeat");
                 request.Headers.Authorization = new AuthenticationHeaderValue("Basic",
                     _tokenProvider.IdentityToken.ToAuthorizationValue());
@@ -82,9 +86,6 @@ namespace Microsoft.Azure.IIoT.Api.Jobs.Clients {
                 }
                 catch (UnauthorizedAccessException) {
                     await _tokenProvider.ForceUpdate();
-                }
-                catch {
-                    throw;
                 }
             }
         }

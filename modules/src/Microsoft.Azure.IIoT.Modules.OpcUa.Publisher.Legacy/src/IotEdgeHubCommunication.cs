@@ -1,9 +1,4 @@
-﻿// ------------------------------------------------------------
-//  Copyright (c) Microsoft Corporation.  All rights reserved.
-//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
-// ------------------------------------------------------------
-
-namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
+﻿namespace OpcPublisher
 {
     using System;
     using static Program;
@@ -43,7 +38,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher
         {
             // connect to IoT Edge hub
             Logger.Information($"Create module client using '{HubProtocol}' for communication.");
-            var hubClient = string.IsNullOrEmpty(EdgeHubConnectionString) ?
+            IHubClient hubClient = string.IsNullOrEmpty(EdgeHubConnectionString) ?
                 HubClient.CreateModuleClientFromEnvironment(HubProtocol) :
                 HubClient.CreateModuleClientFromConnectionString(EdgeHubConnectionString, HubProtocol);
 

@@ -4,9 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
-    using Microsoft.Azure.IIoT.Http;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
-    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -22,12 +20,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// </summary>
         /// <param name="supervisors"></param>
         /// <param name="applications"></param>
-        /// <param name="client"></param>
-        /// <param name="logger"></param>
         public DiscoveryProcessor(ISupervisorRegistry supervisors,
-            IApplicationBulkProcessor applications, IHttpClient client, ILogger logger) {
-            _client = client ?? throw new ArgumentNullException(nameof(client));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            IApplicationBulkProcessor applications) {
             _supervisors = supervisors ?? throw new ArgumentNullException(nameof(supervisors));
             _applications = applications ?? throw new ArgumentNullException(nameof(applications));
         }
@@ -52,39 +46,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 throw new ArgumentException("Unexpected number of sites in discovery");
             }
             var siteId = sites.SingleOrDefault() ?? supervisorId;
-            try {
-                //
-                // Merge in global discovery configuration into the one sent
-                // by the supervisor.
-                //
-                var supervisor = await _supervisors.GetSupervisorAsync(supervisorId, false);
-                if (result.DiscoveryConfig == null) {
-                    // Use global discovery configuration
-                    result.DiscoveryConfig = supervisor.DiscoveryConfig;
-                }
-                else {
-                    if (result.DiscoveryConfig.ActivationFilter == null) {
-                        // Use global activation filter
-                        result.DiscoveryConfig.ActivationFilter =
-                            supervisor.DiscoveryConfig?.ActivationFilter;
-                    }
-                }
-
-                // Process discovery events
-                await _applications.ProcessDiscoveryEventsAsync(siteId, supervisorId, result, events);
-
-                // Notify callbacks
-                // await CallDiscoveryCallbacksAsync(siteId, supervisorId, result, null);
+            //
+            // Merge in global discovery configuration into the one sent
+            // by the supervisor.
+            //
+            var supervisor = await _supervisors.GetSupervisorAsync(supervisorId, false);
+            if (result.DiscoveryConfig == null) {
+                // Use global discovery configuration
+                result.DiscoveryConfig = supervisor.DiscoveryConfig;
             }
-            catch (Exception ex) {
-                // Notify callbacks
-                // await CallDiscoveryCallbacksAsync(siteId, supervisorId, result, ex);
-                throw ex;
+            else {
+                if (result.DiscoveryConfig.ActivationFilter == null) {
+                    // Use global activation filter
+                    result.DiscoveryConfig.ActivationFilter =
+                        supervisor.DiscoveryConfig?.ActivationFilter;
+                }
             }
+
+            // Process discovery events
+            await _applications.ProcessDiscoveryEventsAsync(siteId, supervisorId, result, events);
         }
 
-        private readonly IHttpClient _client;
-        private readonly ILogger _logger;
         private readonly ISupervisorRegistry _supervisors;
         private readonly IApplicationBulkProcessor _applications;
     }

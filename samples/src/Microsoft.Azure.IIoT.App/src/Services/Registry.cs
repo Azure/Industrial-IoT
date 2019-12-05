@@ -33,8 +33,8 @@ namespace Microsoft.Azure.IIoT.App.Services {
                         if (application.SupervisorId == supervisorId) {
                             foreach (var endpoint in endpoints) {
                                 var EndpointInfo = new EndpointInfo {
-                                    endpointModel = endpoint,
-                                    endpointState = endpoint.ActivationState == EndpointActivationState.Deactivated ? false : true
+                                    EndpointModel = endpoint,
+                                    EndpointState = endpoint.ActivationState == EndpointActivationState.Deactivated ? false : true
                                 };
                                 if (endpoint.ApplicationId == application.ApplicationId) {
                                     pageResult.Results.Add(EndpointInfo);

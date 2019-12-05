@@ -53,7 +53,9 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.v2.Models {
         /// Node to browse from.
         /// (default: RootFolder).
         /// </summary>
-        [JsonProperty(PropertyName = "nodeId")]
+        [JsonProperty(PropertyName = "nodeId",
+            NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public string NodeId { get; set; }
 
         /// <summary>

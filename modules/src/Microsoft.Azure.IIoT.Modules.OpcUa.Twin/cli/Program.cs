@@ -51,6 +51,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Cli {
             var configuration = new ConfigurationBuilder()
                 .AddFromDotEnvFile()
                 .AddEnvironmentVariables()
+                .AddFromKeyVault()
                 .Build();
             var cs = configuration.GetValue<string>("PCS_IOTHUB_CONNSTRING", null);
             if (string.IsNullOrEmpty(cs)) {

@@ -1,0 +1,378 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "servicePrincipalId": {
+            "type": "string",
+            "metadata": {
+                "description": "Specifies the object ID of the service principal in your Azure Active Directory tenant.  You can obtain it using Get-AzADServicePrincipal cmdlet."
+            }
+        },
+        "serviceAppId": {
+            "type": "string",
+            "metadata": {
+                "description": "Specifies the registered service application identifier (GUID) in your Azure Active Directory tenant."
+            }
+        },
+        "serviceAppSecret": {
+            "type": "securestring",
+            "metadata": {
+                "description": "The registered service application secret used to authenticate against KeyVault."
+            }
+        },
+        "clientAppId": {
+            "type": "string",
+            "metadata": {
+                "description": "Specifies a registered client application identifier (GUID) in your Azure Active Directory tenant."
+            }
+        },
+        "clientAppSecret": {
+            "type": "securestring",
+            "metadata": {
+                "description": "The registered client application secret."
+            }
+        },
+        "authorityUri": {
+            "type": "string",
+            "defaultValue": "https://login.microsoftonline.com",
+            "metadata": {
+                "description": "Url of the Authority (example: https://login.microsoftonline.com)"
+            }
+        },
+        "serviceAudience": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Audience value to validate the token audience field against."
+            }
+        },
+        "trustedTokenIssuer": {
+            "type": "string",
+            "defaultValue": "[concat('https://sts.windows.net/', subscription().tenantId)]",
+            "metadata": {
+                "description": "Optional Issuer value to validate received tokens against."
+            }
+        },
+        "siteName": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "The name of the application to create. Leave empty for local or services only development."
+            }
+        },
+        "serviceSiteName": {
+            "type": "string",
+            "defaultValue": "[if(not(empty(parameters('siteName'))), concat('svc', take(uniqueString(subscription().subscriptionId, resourceGroup().id), 5)), '')]",
+            "metadata": {
+                "description": "The name of the services endpoint. Leave empty for local development."
+            }
+        },
+        "branchName": {
+            "type": "string",
+            "defaultValue": "master",
+            "metadata": {
+                "description": "The branch from which to deploy deploy services and application.  Default to master."
+            }
+        },
+        "repoUrl": {
+            "type": "string",
+            "defaultValue": "https://github.com/Azure/Industrial-IoT",
+            "metadata": {
+                "description": "The repository url from which to deploy services and application.  Default is official repository."
+            }
+        },
+        "templateUrl": {
+            "type": "string",
+            "defaultValue": "https://raw.githubusercontent.com/Azure/Industrial-IoT",
+            "metadata": {
+                "description": "The artifacts url from which to pull all linked templates.  Default is official repository."
+            }
+        },
+        "managedIdentityName": {
+            "type": "string",
+            "defaultValue": "[if(not(empty(parameters('servicePrincipalId'))), '', concat('msi', take(uniqueString(subscription().subscriptionId, resourceGroup().id), 5)))]",
+            "metadata": {
+                "description": "The name of the managed identity to create.  If keyvault principal was omitted a default identity will be provisioned to access resources."
+            }
+        },
+        "numberOfLinuxGateways": {
+            "type": "int",
+            "defaultValue": 0,
+            "maxValue": 255,
+            "minValue": 0,
+            "metadata": {
+                "description": "Number of OPC UA Linux simulation gateways to deploy."
+            }
+        },
+        "numberOfWindowsGateways": {
+            "type": "int",
+            "defaultValue": 0,
+            "maxValue": 255,
+            "minValue": 0,
+            "metadata": {
+                "description": "Number of OPC UA Windows simulation gateways to deploy."
+            }
+        },
+        "numberOfServers": {
+            "type": "int",
+            "defaultValue": 1,
+            "maxValue": 255,
+            "minValue": 0,
+            "metadata": {
+                "description": "Number of OPC UA simulation servers to deploy into each simulation gateway networks."
+            }
+        },
+        "edgeUserName": {
+            "type": "secureString",
+            "defaultValue": "",
+            "metadata": {
+                "description": "A name for the simulation vm administrator user."
+            }
+        },
+        "edgePassword": {
+            "type": "secureString",
+            "defaultValue": "",
+            "metadata": {
+                "description": "The supplied password must be between 8-75 characters long and must satisfy at least 3 of password complexity requirements: 1) Contains an uppercase character 2) Contains a lowercase character 3) Contains a numeric digit 4) Contains a special character. Control characters are not allowed"
+            }
+        },
+        "dockerServer": {
+            "type": "string",
+            "defaultValue": "mcr.microsoft.com",
+            "metadata": {
+                "description": "Specifies the endpoint of the Container Registry to pull workloads from."
+            }
+        },
+        "dockerUser": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Specifies the user name to log into a private Container Registry."
+            }
+        },
+        "dockerPassword": {
+            "type": "secureString",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Specifies the password to use for a private Container Registry."
+            }
+        },
+        "imageNamespace": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Specifies the namespace prefix for all images in the Container Registry."
+            }
+        },
+        "imageVersion": {
+            "type": "string",
+            "defaultValue": "latest",
+            "metadata": {
+                "description": "Specifies the image version tag to use for all container images."
+            }
+        }
+    },
+    "variables": {
+        "infrastructureResourcName": "Infrastructure",
+        "infrastructureResourceId": "[resourceId('Microsoft.Resources/deployments', variables('infrastructureResourcName'))]",
+        "authConfigurationResourcName": "AuthConfiguration",
+        "platformDeployment": "[not(and(empty(parameters('siteName')), empty(parameters('serviceSiteName')), equals(0, parameters('numberOfLinuxGateways')), equals(0, parameters('numberOfWindowsGateways'))))]",
+        "platformResourcName": "Platform",
+        "platformResourceId": "[resourceId('Microsoft.Resources/deployments', variables('platformResourcName'))]",
+        "templateBaseUrl": "[if(empty(parameters('templateUrl')), deployment().properties.templateLink.uri, concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/templates/'))]"
+    },
+    "resources": [
+        {
+            "comments": "Deploy Azure Infrastructure required by the platform.",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2017-05-10",
+            "name": "[variables('infrastructureResourcName')]",
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "templateUrl": {
+                        "value": "[parameters('templateUrl')]"
+                    },
+                    "branchName": {
+                        "value": "[parameters('branchName')]"
+                    },
+                    "managedIdentityName": {
+                        "value": "[parameters('managedIdentityName')]"
+                    },
+                    "servicePrincipalId": {
+                        "value": "[parameters('servicePrincipalId')]"
+                    },
+                    "keyVaultPrincipalId": {
+                        "value": "[parameters('servicePrincipalId')]"
+                    }
+                },
+                "templateLink": {
+                    "contentVersion": "1.0.0.0",
+                    "uri": "[concat(variables('templateBaseUrl'), 'azuredeploy.infrastructure.json')]"
+                }
+            }
+        },
+        {
+            "comments": "Save auth configuration in keyVault.",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2017-05-10",
+            "name": "[variables('authConfigurationResourcName')]",
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "keyVaultName": {
+                        "value": "[reference(variables('infrastructureResourceId')).outputs.keyVaultName.value]"
+                    },
+                    "configuration": {
+                        "value": [
+                            {
+                                "key": "PCS_AUTH_REQUIRED",
+                                "value": "[not(empty(parameters('serviceAppId')))]"
+                            },
+                            {
+                                "key": "PCS_AUTH_TENANT",
+                                "value": "[subscription().tenantId]"
+                            },
+                            {
+                                "key": "PCS_AUTH_INSTANCE",
+                                "value": "[parameters('authorityUri')]"
+                            },
+                            {
+                                "key": "PCS_AUTH_CLIENT_APPID",
+                                "value": "[parameters('clientAppId')]"
+                            },
+                            {
+                                "key": "PCS_AUTH_CLIENT_SECRET",
+                                "value": "[parameters('clientAppSecret')]"
+                            },
+                            {
+                                "key": "PCS_AUTH_SERVICE_APPID",
+                                "value": "[parameters('serviceAppId')]"
+                            },
+                            {
+                                "key": "PCS_AUTH_SERVICE_SECRET",
+                                "value": "[parameters('serviceAppSecret')]"
+                            },
+                            {
+                                "key": "PCS_AUTH_AUDIENCE",
+                                "value": "[parameters('serviceAudience')]"
+                            },
+                            {
+                                "key": "PCS_AUTH_ISSUER",
+                                "value": "[parameters('trustedTokenIssuer')]"
+                            }
+                        ]
+                    }
+                },
+                "templateLink": {
+                    "contentVersion": "1.0.0.0",
+                    "uri": "[concat(variables('templateBaseUrl'), 'azuredeploy.configuration.json')]"
+                }
+            },
+            "dependsOn": [
+                "[variables('infrastructureResourceId')]"
+            ]
+        },
+        {
+            "comments": "Deploy platform.",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2017-05-10",
+            "name": "[variables('platformResourcName')]",
+            "condition": "[not(and(empty(parameters('siteName')), empty(parameters('serviceSiteName'))))]",
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "siteName": {
+                        "value": "[parameters('siteName')]"
+                    },
+                    "serviceSiteName": {
+                        "value": "[parameters('serviceSiteName')]"
+                    },
+                    "numberOfLinuxGateways": {
+                        "value": "[parameters('numberOfLinuxGateways')]"
+                    },
+                    "numberOfServers": {
+                        "value": "[parameters('numberOfServers')]"
+                    },
+                    "numberOfWindowsGateways": {
+                        "value": "[parameters('numberOfWindowsGateways')]"
+                    },
+                    "edgeUserName": {
+                        "value": "[parameters('edgeUserName')]"
+                    },
+                    "edgePassword": {
+                        "value": "[parameters('edgePassword')]"
+                    },
+                    "branchName": {
+                        "value": "[parameters('branchName')]"
+                    },
+                    "repoUrl": {
+                        "value": "[parameters('repoUrl')]"
+                    },
+                    "templateUrl": {
+                        "value": "[parameters('templateUrl')]"
+                    },
+                    "keyVaultAppId": {
+                        "value": "[parameters('serviceAppId')]"
+                    },
+                    "keyVaultAppSecret": {
+                        "value": "[parameters('serviceAppSecret')]"
+                    },
+                    "keyVaultName": {
+                        "value": "[reference(variables('infrastructureResourceId')).outputs.keyVaultName.value]"
+                    },
+                    "keyVaultUri": {
+                        "value": "[reference(variables('infrastructureResourceId')).outputs.keyVaultUri.value]"
+                    },
+                    "managedIdentityResourceId": {
+                        "value": "[reference(variables('infrastructureResourceId')).outputs.managedIdentityResourceId.value]"
+                    },
+                    "dockerServer": {
+                        "value": "[parameters('dockerServer')]"
+                    },
+                    "dockerUser": {
+                        "value": "[parameters('dockerUser')]"
+                    },
+                    "dockerPassword": {
+                        "value": "[parameters('dockerPassword')]"
+                    },
+                    "imageNamespace": {
+                        "value": "[parameters('imageNamespace')]"
+                    },
+                    "imageVersion": {
+                        "value": "[parameters('imageVersion')]"
+                    }
+                },
+                "templateLink": {
+                    "contentVersion": "1.0.0.0",
+                    "uri": "[concat(variables('templateBaseUrl'), 'azuredeploy.platform.json')]"
+                }
+            },
+            "dependsOn": [
+                "[variables('infrastructureResourceId')]"
+            ]
+        }
+    ],
+    "outputs": {
+        "keyVaultUri": {
+            "type": "string",
+            "value": "[reference(variables('infrastructureResourceId')).outputs.keyVaultUri.value]"
+        },
+        "tsiUrl": {
+            "type": "string",
+            "value": "[reference(variables('infrastructureResourceId')).outputs.tsiUrl.value]"
+        },
+        "tenantId": {
+            "type": "string",
+            "value": "[subscription().tenantId]"
+        },
+        "serviceUrl": {
+            "type": "string",
+            "value": "[if (variables('platformDeployment'), reference(variables('platformResourceId'), '2017-05-10').outputs.serviceUrl.value, '')]"
+        },
+        "appUrl": {
+            "type": "string",
+            "value": "[if (variables('platformDeployment'), reference(variables('platformResourceId'), '2017-05-10').outputs.azureWebsite.value, '')]"
+        }
+    }
+}
