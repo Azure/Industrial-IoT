@@ -4,10 +4,11 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Cdm.Runtime {
-    using Microsoft.Azure.IIoT.Cdm; 
-    using Microsoft.Azure.IIoT.Auth.Runtime;
+    using Microsoft.Azure.IIoT.Cdm;
+    using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Extensions.Configuration;
+    using System;
 
     /// <summary>
     /// CDM storage configuration
@@ -24,6 +25,7 @@ namespace Microsoft.Azure.IIoT.Cdm.Runtime {
         private const string kAuth_AppIdKey = "Auth:ServiceId";
         private const string kAuth_AppSecretKey = "Auth:ServiceSecret";
         private const string kAuth_TenantIdKey = "Auth:TenantId";
+        private const string kAuth_DomainKey = "Auth:TenantId";
         private const string kAuth_InstanceUrlKey = "Auth:InstanceUrl";
         private const string kAuth_AudienceKey = "Auth:Audience";
 
@@ -37,6 +39,11 @@ namespace Microsoft.Azure.IIoT.Cdm.Runtime {
         /// <summary>Optional tenant</summary>
         public string TenantId => GetStringOrDefault(kAuth_TenantIdKey,
             GetStringOrDefault("PCS_WEBUI_AUTH_AAD_TENANT", "common")).Trim();
+        /// <summary>Aad domain</summary>
+        public string Domain => GetStringOrDefault(kAuth_DomainKey,
+            GetStringOrDefault("PCS_AUTH_DOMAIN", Try.Op(() =>
+            new Uri(GetStringOrDefault("PCS_AUTH_AUDIENCE")).DnsSafeHost)))?.Trim();
+
         /// <summary>Aad instance url</summary>
         public string InstanceUrl => GetStringOrDefault(kAuth_InstanceUrlKey,
             GetStringOrDefault("PCS_WEBUI_AUTH_AAD_INSTANCE",

@@ -38,7 +38,7 @@
         },
         "storageGen2Name": {
             "type": "string",
-            "defaultValue": "[concat('storageg2', take(uniqueString(subscription().subscriptionId, resourceGroup().id, parameters('siteName')), 5))]",
+            "defaultValue": "[concat('storageg2', take(uniqueString(subscription().subscriptionId, resourceGroup().id, parameters('solutionName')), 5))]",
             "metadata": {
                 "description": "The name of the storage Gen2 account created as part of the deployment."
             }
@@ -47,11 +47,7 @@
             "type": "string",
             "defaultValue": "Standard_LRS",
             "allowedValues": [
-                "Standard_LRS",
-                "Standard_GRS",
-                "Standard_RAGRS",
-                "Standard_ZRS",
-                "Premium_LRS"
+                "Standard_LRS", "Standard_GRS", "Standard_RAGRS", "Standard_ZRS", "Premium_LRS"
             ],
             "metadata": {
                 "description": "The storage SKU name"
@@ -119,8 +115,7 @@
             "type": "string",
             "defaultValue": "Standard",
             "allowedValues": [
-                "Basic",
-                "Standard"
+                "Basic", "Standard"
             ],
             "metadata": {
                 "description": "The Azure Service Bus SKU Tier"
@@ -158,8 +153,7 @@
             "type": "string",
             "defaultValue": "Basic",
             "allowedValues": [
-                "Basic",
-                "Standard"
+                "Basic", "Standard"
             ],
             "metadata": {
                 "description": "The Azure Event Hub SKU Tier"
@@ -211,7 +205,8 @@
             "type": "string",
             "defaultValue": "Standard",
             "allowedValues": [
-                "Premium"            ],
+                "Free", "Standard", "Premium"
+            ],
             "metadata": {
                 "description": "The Azure SignalR Service SKU Tier"
             }
@@ -220,7 +215,7 @@
             "type": "int",
             "defaultValue": 1,
             "allowedValues": [
-               
+                1, 2, 5, 10, 20, 50, 100
             ],
             "metadata": {
                 "description": "The Azure SignalR SKU Capacity"
@@ -237,7 +232,6 @@
             "type": "string",
             "defaultValue": "S1",
             "allowedValues": [
-
                 "S1", "S2", "S3"
             ],
             "metadata": {
@@ -255,7 +249,6 @@
             "type": "string",
             "defaultValue": "Standard",
             "allowedValues": [
-
                 "Free", "Standard"
             ],
             "metadata": {
@@ -273,14 +266,15 @@
             "type": "string",
             "defaultValue": "Premium",
             "allowedValues": [
-                "Standard", "Premium"            ],
+                "Standard", "Premium"
+            ],
             "metadata": {
                 "description": "The KeyVault SKU to use."
             }
         },
         "workspaceName": {
             "type": "string",
-            "defaultValue": "[concat('workspace-', take(uniqueString(subscription().subscriptionId, resourceGroup().id, parameters('solutionName')), 5))]",
+            "defaultValue": "[concat('iiotws-', take(uniqueString(subscription().subscriptionId, resourceGroup().id, parameters('solutionName')), 5))]",
             "metadata": {
                 "description": "Specifies the name of the workspace."
             }
@@ -439,17 +433,17 @@
                                 "list", 
                                 "sign" 
                             ],
-                            "secrets": [
-                                "get",
-                                "list",
-                                "set",
-                                "delete"
+                            "secrets": [ 
+                                "get", 
+                                "list", 
+                                "set", 
+                                "delete" 
                             ],
-                            "certificates": [
-                                "get",
-                                "list",
-                                "update",
-                                "create",
+                            "certificates": [ 
+                                "get", 
+                                "list", 
+                                "update", 
+                                "create", 
                                 "import"
                             ]
                         }
@@ -612,7 +606,7 @@
             ],
             "properties": {
                 "roleDefinitionId": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')]",
-                "principalId": "[parameters('servicePrincipalId')]"
+                "principalId": "[parameters('aadServicePrincipalId')]"
             }
         },
         {
@@ -646,7 +640,7 @@
             "sku": {
                 "name": "[parameters('serviceBusSkuTier')]"
             },
-            "properties": {
+            "properties": { 
             },
             "dependsOn": []
         },
@@ -731,7 +725,7 @@
                     "searchVersion": 1
                 }
             }
-        },
+        }, 
         {
             "type": "microsoft.insights/components",
             "name": "[parameters('appInsightsName')]",
@@ -742,7 +736,7 @@
                 "ApplicationId": "[parameters('appInsightsName')]"
             },
             "dependsOn": []
-        },
+        }, 
         {
             "name": "[variables('appInsightsBillingPlan')]",
             "type": "microsoft.insights/components/CurrentBillingFeatures",

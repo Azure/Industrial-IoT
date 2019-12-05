@@ -115,6 +115,29 @@ app {
     float: left;
 }
 
+.dropdown {
+    padding: 10px 8px 10px 0px;
+    background: #fff;
+    overflow: hidden;
+    position: relative;
+}
+
+.dropdown .select {
+    background-position: 80% center;
+}
+
+.dropdown .select select {
+    background: transparent;
+    line-height: 0.5;
+    padding: 0;
+    border-radius: 2px;
+    width: 50%;
+    position: relative;
+    z-index: 10;
+    font-size: 1em;
+}
+
+
 @media (max-width: 767.98px) {
     .main .top-row {
         display: none;
@@ -134,7 +157,7 @@ app {
     }
 
     .main .top-row {
-        position: sticky;
+        /*position: sticky;*/
         top: 0;
     }
 

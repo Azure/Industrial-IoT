@@ -38,7 +38,6 @@ namespace Opc.Ua.PubSub.Tests {
             message.Payload.FieldContentMask = (uint)(DataSetFieldContentMask.StatusCode | DataSetFieldContentMask.SourceTimestamp);
 
             var networkMessage = new NetworkMessage();
-            networkMessage.SubscriptionId = "Test";
             networkMessage.MessageId = Guid.NewGuid().ToString(); // TODO
             networkMessage.MessageType = "ua-data";
             networkMessage.Messages = new List<DataSetMessage>();
