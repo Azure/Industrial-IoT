@@ -18,7 +18,7 @@ namespace Microsoft.Azure.IIoT.Messaging {
         /// <param name="subscriber"></param>
         /// <param name="method"></param>
         /// <param name="action"></param>
-        public static IDisposable Register<T0>(this ICallbackRegistration subscriber,
+        public static IDisposable Register<T0>(this ICallbackRegistrar subscriber,
             string method, Action<T0> action) {
             return subscriber.Register((args, _) => {
                 action.Invoke(
@@ -37,7 +37,7 @@ namespace Microsoft.Azure.IIoT.Messaging {
         /// <param name="subscriber"></param>
         /// <param name="method"></param>
         /// <param name="action"></param>
-        public static IDisposable Register<T0, T1>(this ICallbackRegistration subscriber,
+        public static IDisposable Register<T0, T1>(this ICallbackRegistrar subscriber,
             string method, Action<T0, T1> action) {
             return subscriber.Register((args, _) => {
                 action.Invoke(
@@ -58,7 +58,7 @@ namespace Microsoft.Azure.IIoT.Messaging {
         /// <param name="subscriber"></param>
         /// <param name="method"></param>
         /// <param name="action"></param>
-        public static IDisposable Register<T0, T1, T2>(this ICallbackRegistration subscriber,
+        public static IDisposable Register<T0, T1, T2>(this ICallbackRegistrar subscriber,
             string method, Action<T0, T1, T2> action) {
             return subscriber.Register((args, _) => {
                 action.Invoke(
@@ -81,7 +81,7 @@ namespace Microsoft.Azure.IIoT.Messaging {
         /// <param name="subscriber"></param>
         /// <param name="method"></param>
         /// <param name="action"></param>
-        public static IDisposable Register<T0, T1, T2, T3>(this ICallbackRegistration subscriber,
+        public static IDisposable Register<T0, T1, T2, T3>(this ICallbackRegistrar subscriber,
             string method, Action<T0, T1, T2, T3> action) {
             return subscriber.Register((args, _) => {
                 action.Invoke(
@@ -106,7 +106,7 @@ namespace Microsoft.Azure.IIoT.Messaging {
         /// <param name="subscriber"></param>
         /// <param name="method"></param>
         /// <param name="action"></param>
-        public static IDisposable Register<T0>(this ICallbackRegistration subscriber,
+        public static IDisposable Register<T0>(this ICallbackRegistrar subscriber,
             string method, Func<T0, Task> action) {
             return subscriber.Register((args, _) => {
                 return action.Invoke(
@@ -124,7 +124,7 @@ namespace Microsoft.Azure.IIoT.Messaging {
         /// <param name="subscriber"></param>
         /// <param name="method"></param>
         /// <param name="action"></param>
-        public static IDisposable Register<T0, T1>(this ICallbackRegistration subscriber,
+        public static IDisposable Register<T0, T1>(this ICallbackRegistrar subscriber,
             string method, Func<T0, T1, Task> action) {
             return subscriber.Register((args, _) => {
                 return action.Invoke(
@@ -144,7 +144,7 @@ namespace Microsoft.Azure.IIoT.Messaging {
         /// <param name="subscriber"></param>
         /// <param name="method"></param>
         /// <param name="action"></param>
-        public static IDisposable Register<T0, T1, T2>(this ICallbackRegistration subscriber,
+        public static IDisposable Register<T0, T1, T2>(this ICallbackRegistrar subscriber,
             string method, Func<T0, T1, T2, Task> action) {
             return subscriber.Register((args, _) => {
                 return action.Invoke(
@@ -166,7 +166,7 @@ namespace Microsoft.Azure.IIoT.Messaging {
         /// <param name="subscriber"></param>
         /// <param name="method"></param>
         /// <param name="action"></param>
-        public static IDisposable Register<T0, T1, T2, T3>(this ICallbackRegistration subscriber,
+        public static IDisposable Register<T0, T1, T2, T3>(this ICallbackRegistrar subscriber,
             string method, Func<T0, T1, T2, T3, Task> action) {
             return subscriber.Register((args, _) => {
                 return action.Invoke(

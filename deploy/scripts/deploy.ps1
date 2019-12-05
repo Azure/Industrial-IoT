@@ -38,7 +38,7 @@
 #>
 
 param(
-    [ValidateSet("local", "services", "app", "all")] [string] $type = "all",
+    [ValidateSet("local", "services", "app", "all")] [string] $type = "local",
     [string] $applicationName,
     [string] $resourceGroupName,
     [string] $resourceGroupLocation,
@@ -47,7 +47,7 @@ param(
     [string] $accountName,
     [string] $aadApplicationName,
     [string] $acrRegistryName,
-    [string] $acrSubscriptionName = "IOT_GERMANY",
+    [string] $acrSubscriptionName,
     $aadConfig,
     $context = $null,
     [ValidateSet("AzureCloud")] [string] $environmentName = "AzureCloud"

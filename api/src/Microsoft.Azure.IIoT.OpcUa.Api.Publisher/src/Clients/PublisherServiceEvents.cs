@@ -6,43 +6,53 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher {
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.Messaging;
-    using Microsoft.Azure.IIoT.Messaging.Default;
+    using Microsoft.Azure.IIoT.Utils;
     using System;
-    using System.Collections.Concurrent;
+    using System.Threading.Tasks;
 
     /// <summary>
-    /// Publisher service event client
+    /// Publisher service events
     /// </summary>
     public class PublisherServiceEvents : IPublisherServiceEvents {
-
-        /// <inheritdoc/>
-        public string UserId => _subscriber.UserId;
 
         /// <summary>
         /// Event client
         /// </summary>
         /// <param name="api"></param>
-        /// <param name="subscriber"></param>
-        public PublisherServiceEvents(IPublisherServiceApi api, ICallbackRegistration subscriber) {
+        /// <param name="client"></param>
+        public PublisherServiceEvents(IPublisherServiceApi api, ICallbackClient client) {
             _api = api ?? throw new ArgumentNullException(nameof(api));
-            _subscriber = subscriber ?? throw new ArgumentNullException(nameof(subscriber));
+            _client = client ?? throw new ArgumentNullException(nameof(client));
         }
 
         /// <inheritdoc/>
-        public IEventSource<MonitoredItemMessageApiModel> Endpoint(string endpointId) {
-            return _endpoints.GetOrAdd(endpointId, id =>
-                new EventSource<MonitoredItemMessageApiModel> {
-                    Subscriber = _subscriber,
-                    Method = EventTargets.PublisherSampleTarget,
-                    Add = () => _api.NodePublishSubscribeByEndpointAsync(id, UserId).Wait(),
-                    Remove = () => _api.NodePublishUnsubscribeByEndpointAsync(id, UserId).Wait(),
-                });
+        public async Task<IAsyncDisposable> NodePublishSubscribeByEndpointAsync(string endpointId,
+            string userId, Func<MonitoredItemMessageApiModel, Task> callback) {
+
+            if (callback == null) {
+                throw new ArgumentNullException(nameof(callback));
+            }
+            var registrar = await _client.GetRegistrarAsync(userId);
+            try {
+                var registration = registrar.Register(EventTargets.PublisherSampleTarget, callback);
+                try {
+                    await _api.NodePublishSubscribeByEndpointAsync(endpointId, registrar.UserId);
+                    return new AsyncDisposable(registration,
+                        () => _api.NodePublishUnsubscribeByEndpointAsync(endpointId,
+                            registrar.UserId));
+                }
+                catch {
+                    registration.Dispose();
+                    throw;
+                }
+            }
+            catch {
+                registrar.Dispose();
+                throw;
+            }
         }
 
         private readonly IPublisherServiceApi _api;
-        private readonly ICallbackRegistration _subscriber;
-        private readonly ConcurrentDictionary<string,
-            IEventSource<MonitoredItemMessageApiModel>> _endpoints =
-            new ConcurrentDictionary<string, IEventSource<MonitoredItemMessageApiModel>>();
+        private readonly ICallbackClient _client;
     }
 }

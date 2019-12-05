@@ -4,21 +4,18 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Messaging {
-    using System;
+    using System.Threading.Tasks;
 
     /// <summary>
-    /// Event source
+    /// Factory to get callback registrations
     /// </summary>
-    public interface IEventSource<T> {
+    public interface ICallbackClient {
 
         /// <summary>
-        /// Subscriber
+        /// Get callback registration interface for user
         /// </summary>
-        ICallbackRegistration Subscriber { get; }
-
-        /// <summary>
-        /// Event
-        /// </summary>
-        event Action<T> Events;
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        Task<ICallbackRegistrar> GetRegistrarAsync(string userId = null);
     }
 }

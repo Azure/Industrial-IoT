@@ -12,12 +12,11 @@ namespace Microsoft.Azure.IIoT.Http.SignalR.Services {
     using System;
     using System.Threading.Tasks;
     using System.Threading;
-    using Autofac;
 
     /// <summary>
     /// Subscriber for signalr service
     /// </summary>
-    public class SignalRClientHost : ICallbackRegistration, IHost, IStartable {
+    public class SignalRClientHost : ICallbackRegistrar, IHost {
 
         /// <inheritdoc/>
         public string UserId { get; }
@@ -113,7 +112,7 @@ namespace Microsoft.Azure.IIoT.Http.SignalR.Services {
                 }
                 _started = false;
                 _logger.Debug("Stopping SignalR client host...");
-                await CloseAsync(_connection);
+                await DisposeAsync(_connection);
                 _connection = null;
                 _logger.Information("SignalR client host stopped.");
             }
@@ -126,15 +125,19 @@ namespace Microsoft.Azure.IIoT.Http.SignalR.Services {
         }
 
         /// <inheritdoc/>
-        public void Start() {
-            StartAsync().Wait();
-        }
-
-        /// <inheritdoc/>
         public void Dispose() {
-            _started = false;
-            Try.Op(() => CloseAsync(_connection).Wait());
-            _connection = null;
+            _lock.Wait();
+            try {
+                if (_connection != null) {
+                    _logger.Verbose("SignalR client was not stopped before disposing.");
+                    Try.Op(() => DisposeAsync(_connection).Wait());
+                    _connection = null;
+                }
+                _started = false;
+            }
+            finally {
+                _lock.Release();
+            }
             _lock.Dispose();
         }
 
@@ -155,7 +158,7 @@ namespace Microsoft.Azure.IIoT.Http.SignalR.Services {
         /// Close connection
         /// </summary>
         /// <returns></returns>
-        private async Task CloseAsync(HubConnection connection) {
+        private async Task DisposeAsync(HubConnection connection) {
             if (connection == null) {
                 return;
             }
@@ -171,7 +174,7 @@ namespace Microsoft.Azure.IIoT.Http.SignalR.Services {
         /// <returns></returns>
         private async Task OnClosedAsync(HubConnection connection, Exception ex) {
             _logger.Error(ex, "Disconnected!");
-            await CloseAsync(connection);
+            await DisposeAsync(connection);
             if (_started) {
                 // Reconnect
                 _connection = await OpenAsync();

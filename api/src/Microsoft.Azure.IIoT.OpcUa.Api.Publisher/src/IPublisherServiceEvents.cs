@@ -5,7 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher {
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
-    using Microsoft.Azure.IIoT.Messaging;
+    using System;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Publisher service events
@@ -13,9 +14,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher {
     public interface IPublisherServiceEvents {
 
         /// <summary>
-        /// Publisher samples from endpoint
+        /// Subscribe to monitored item messages
         /// </summary>
-        IEventSource<MonitoredItemMessageApiModel> Endpoint(
-            string endpointId);
+        /// <param name="endpointId"></param>
+        /// <param name="userId"></param>
+        /// <param name="callback"></param>
+        /// <returns></returns>
+        Task<IAsyncDisposable> NodePublishSubscribeByEndpointAsync(string endpointId,
+            string userId, Func<MonitoredItemMessageApiModel, Task> callback);
     }
 }
