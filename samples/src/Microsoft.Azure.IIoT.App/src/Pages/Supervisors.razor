@@ -114,12 +114,22 @@
     public PagedResult<SupervisorInfo> supervisorList = new PagedResult<SupervisorInfo>();
     public PagedResult<SupervisorInfo> pagedSupervisorList = new PagedResult<SupervisorInfo>();
 
+
+    /// <summary>
+    /// PagerPageChanged
+    /// </summary>
+    /// <param name="page"></param>
+    /// <returns></returns>
     public void PagerPageChanged(int page)
     {
         pagedSupervisorList = supervisorList.GetPaged(page, 10);
         NavigationManager.NavigateTo("/supervisors/" + page);
     }
 
+    /// <summary>
+    /// OnInitializedAsync
+    /// </summary>
+    /// <returns></returns>
     protected override async Task OnInitializedAsync()
     {
         supervisorList = await RegistryHelper.GetSupervisorListAsync();
@@ -127,6 +137,14 @@
         pagedSupervisorList = supervisorList.GetPaged(Int32.Parse(Page), 10);
     }
 
+    /// <summary>
+    /// SetScan
+    /// </summary>
+    /// <param name="supervisor"></param>
+    /// /// <param name="forceScan"></param>
+    /// /// <param name="ipMask"></param>
+    /// /// <param name="portRange"></param>
+    /// <returns></returns>
     private async Task SetScan(SupervisorInfo supervisor, bool forceScan, string ipMask=null, string portRange=null)
     {
 
@@ -146,12 +164,21 @@
         }
     }
 
+    /// <summary>
+    /// OpenDrawer
+    /// </summary>
+    /// <param name="OpenDrawer"></param>
+    /// <returns></returns>
     private void OpenDrawer(SupervisorInfo supervisor)
     {
         IsOpened = true;
         SupervisorData = supervisor;
     }
 
+    /// <summary>
+    /// CloseDrawer
+    /// </summary>
+    /// <returns></returns>
     private void CloseDrawer()
     {
         IsOpened = false;

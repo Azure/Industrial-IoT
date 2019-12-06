@@ -11,7 +11,9 @@ namespace Microsoft.Azure.IIoT.App {
     using Microsoft.Azure.IIoT.Http.Auth;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Http.SignalR.Clients;
+	//using Microsoft.Azure.IIoT.OpcUa.Api.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
+    //using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Api.Vault.Clients;
@@ -203,6 +205,8 @@ namespace Microsoft.Azure.IIoT.App {
             builder.RegisterType<Registry>()
                 .AsImplementedInterfaces().AsSelf().SingleInstance();
             builder.RegisterType<Browser>()
+                .AsImplementedInterfaces().AsSelf().SingleInstance();
+            builder.RegisterType<Publisher>()
                 .AsImplementedInterfaces().AsSelf().SingleInstance();
         }
 
