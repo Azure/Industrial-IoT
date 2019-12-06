@@ -28,6 +28,15 @@
     <PackageReference Include="System.Net.Security" Version="4.3.2" />
     <PackageReference Include="System.Net.WebSockets.Client" Version="4.3.2" />
     <PackageReference Include="System.ServiceModel.Primitives" Version="4.7.0" />
+    <PackageReference Include="Antlr4" Version="4.6.6" />
+  </ItemGroup>
+  <ItemGroup>
+    <Antlr4 Update="**/*.g4">
+      <Generator>MSBuild:Compile</Generator>
+      <CustomToolNamespace>$(RootNamespace).Parser</CustomToolNamespace>
+      <Listener>False</Listener>
+      <Visitor>False</Visitor>
+    </Antlr4>
   </ItemGroup>
   <Choose>
     <When Condition="'$(Configuration)'=='Release'">

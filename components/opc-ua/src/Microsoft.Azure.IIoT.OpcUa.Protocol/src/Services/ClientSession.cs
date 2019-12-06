@@ -10,6 +10,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using Microsoft.Azure.IIoT.Utils;
     using Opc.Ua;
     using Opc.Ua.Client;
+    using Opc.Ua.Client.ComplexTypes;
     using Serilog;
     using System;
     using System.Collections.Concurrent;
@@ -18,7 +19,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Opc.Ua.Client.ComplexTypes;
 
     /// <summary>
     /// Wraps a session object to provide serialized access and connection and
