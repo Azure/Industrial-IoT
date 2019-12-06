@@ -765,7 +765,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10323";
 
-            var expected = JToken.Parse(
+            var val = JToken.Parse(
                 "[{\"TypeId\":\"http://test.org/UA/Data/#i=11437\",\"Body\":\"" +
                 "Adpudx/+2bGKSg8czglDBHYSsICXC1fz3LN1x1FoeRUjL24AAADgbpNLwCY" +
                 "AAADroIjrqqwg65S46riwXiDqs6DslpHsnbQpIO2MjOyduOyVoO2UjO9rQ8m" +
@@ -1066,15 +1066,508 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 "Ib3JzZSBNb25rZXk6IExpbWUnIFN0cmF3YmVycnkgTW9ua2V5AAAZABKCAAC" +
                 "CGjpVIgAAAGh0dHA6Ly9zYW1wbGVzLm9yZy9VQS9tZW1vcnlidWZmZXIAAAA" +
                 "AAAAACwAAAAAAAAAACAAAAAAAAAAACQAAAAAAAAAA\"}]");
+
+            var expected = JToken.Parse(@"
+[
+    {
+        ""TypeId"": ""http://test.org/UA/Data/#i=11437"",
+        ""Encoding"": ""Json"",
+        ""Body"": {
+            ""BooleanValue"": true,
+            ""SByteValue"": -38,
+            ""ByteValue"": 110,
+            ""Int16Value"": 8055,
+            ""UInt16Value"": 55806,
+            ""Int32Value"": 256543409,
+            ""UInt32Value"": 1124716060,
+            ""Int64Value"": 6272273485009155588,
+            ""UInt64Value"": 8748332193282252019,
+            ""FloatValue"": 1.35505721E+28,
+            ""DoubleValue"": -55.151821136474609,
+            ""StringValue"": ""레몬 딸기^ 고양이) 파인애플"",
+            ""DateTimeValue"": ""2071-08-08T14:25:16.7814639Z"",
+            ""GuidValue"": ""2f1b64e2-9b6c-9ff9-9bcb-681a5030910b"",
+            ""ByteStringValue"": [ 78, 26, 144, 111, 40, 225, 81, 183, 165, 4, 6, 209 ],
+            ""XmlElementValue"": {
+                ""n0:緑犬ドラゴン"": {
+                    ""@ブルーベリー"": ""암소말"",
+                    ""@青い"": ""황색개"",
+                    ""@馬馬"": ""암소"",
+                    ""@バナナ"": ""들쭉"",
+                    ""@パイナップル"": ""딸기코끼리"",
+                    ""@象"": ""뱀"",
+                    ""@xmlns:n0"": ""http://猫"",
+                    ""n0:ラット"": ""원숭이) 검정+ 황색= 망고 레몬* 자주색$ 레몬+"",
+                    ""n0:ブルーベリー"": ""바나나 원숭이; 뱀= 양( 양 석회 황색! 파란? 쥐# 뱀 망고@ 바나나 복숭아` 복숭아 양]"",
+                    ""n0:いちご"": ""복숭아 녹색 빨간> 쥐_ 고양이 돼지 녹색' 녹색? 녹색[ 바나나 레몬! 개_ 녹색` 검정 쥐 용> 빨간 뱀& 망고? 포도 레몬 레몬 검정* 망고""
+                }
+            },
+            ""NodeIdValue"": ""http://samples.org/UA/memorybuffer#b=672G6bOkm2X9OQ4V"",
+            ""ExpandedNodeIdValue"": ""http://opcfoundation.org/UA/#g=b869d987-396a-5018-7e4d-556d5e591587"",
+            ""QualifiedNameValue"": ""http://opcfoundation.org/UA/Diagnostics#Dragon"",
+            ""LocalizedTextValue"": {
+                ""Text"": ""母牛@ 蛇 马- 蓝莓 猴子< 绿色 蛇{ 白色$ 绵羊 绵羊 紫色 紫色 猴子[ 猴子! 蓝莓("",
+                ""Locale"": ""zh-CN""
+            },
+            ""StatusCodeValue"": 6356992,
+            ""VariantValue"": {
+                ""Type"": ""ExtensionObject"",
+                ""Body"": {
+                    ""TypeId"": ""http://test.org/UA/Data//Instance#g=a2a62a11-ee81-11e2-c797-f015f0dcc7bf"",
+                    ""Body"": ""+ejk7JrPhOKfaxAk3LnqVYIbn5/Oh111kBH5HcAc46atRudt/iWP1h6eT3cBow==""
+                }
+            },
+            ""EnumerationValue"": 0,
+            ""StructureValue"": { ""TypeId"": null },
+            ""Number"": {
+                ""Type"": ""Double"",
+                ""Body"": 0.0
+            },
+            ""Integer"": {
+                ""Type"": ""Int64"",
+                ""Body"": 0
+            },
+            ""UInteger"": {
+                ""Type"": ""UInt64"",
+                ""Body"": 0
+            }
+        }
+    },
+    {
+        ""TypeId"": ""http://test.org/UA/Data/#i=11437"",
+        ""Encoding"": ""Json"",
+        ""Body"": {
+            ""BooleanValue"": true,
+            ""SByteValue"": -71,
+            ""ByteValue"": 165,
+            ""Int16Value"": -31474,
+            ""UInt16Value"": 60031,
+            ""Int32Value"": 1002303007,
+            ""UInt32Value"": 2322690949,
+            ""Int64Value"": -8682057831558849682,
+            ""UInt64Value"": 10042278942021613161,
+            ""FloatValue"": 4.18431919E-05,
+            ""DoubleValue"": 32635254472704.0,
+            ""StringValue"": ""Голубика> Дракон@"",
+            ""DateTimeValue"": ""2014-01-20T12:32:21.1556352Z"",
+            ""GuidValue"": ""252c98f0-ad64-fd43-2056-044339a3fb6e"",
+            ""ByteStringValue"": [ 19, 115, 252, 193, 79, 226, 78, 195, 92, 154, 199, 148, 133, 200, 199, 179, 108, 246, 219, 192, 47, 93, 69, 226, 196, 23, 48, 35, 142, 60, 63, 148, 90, 210, 236, 69, 128, 10, 160, 182, 222, 98, 8, 19, 123, 104, 154, 141, 60, 144, 204, 173, 32, 174, 4, 182, 45, 25, 253, 56, 177, 42, 52, 31, 91, 51, 58, 178, 219, 130, 51, 97, 85, 36, 225, 205, 85, 50, 103, 91, 124, 162 ],
+            ""XmlElementValue"": {
+                ""n0:복숭아"": {
+                    ""@검정황색"": ""Кот"",
+                    ""@말양"": ""Обезьяна"",
+                    ""@망고들쭉"": ""Овцы"",
+                    ""@석회"": ""Лошадь"",
+                    ""@포도"": ""Зеленыйцвет"",
+                    ""@xmlns:n0"": ""http://돼지말"",
+                    ""n0:암소"": ""Змейка; Собака Корова Свинья) Известка Голубика*"",
+                    ""n0:들쭉"": ""Желтыйцвет` Дракон@ Кот! Зеленыйцвет Виноградина@ Корова Змейка Кот"",
+                    ""n0:백색"": ""Крыса Кот Виноградина Слон. Лимон> Персик Обезьяна: яблоко Свинья- Чернота Виноградина Ананас^ яблоко!"",
+                    ""n0:백색들쭉"": ""Лимон Пурпурово Ананас& Змейка Персик: Дракон Слон Известка% Манго# Дракон)"",
+                    ""n0:검정"": ""Голубика. Крыса Лимон} Желтыйцвет} Банан Кот Корова- Овцы Банан. Виноградина Обезьяна~ Банан~""
+                }
+            },
+            ""NodeIdValue"": ""http://samples.org/UA/memorybuffer/Instance#i=4010681507"",
+            ""ExpandedNodeIdValue"": ""http://samples.org/UA/memorybuffer#g=979bd1d7-6e82-4d4e-813c-715d76a51cc9"",
+            ""QualifiedNameValue"": ""http://samples.org/UA/memorybuffer#%e8%8a%92%e6%9e%9c"",
+            ""LocalizedTextValue"": {
+                ""Text"": ""黄色 猿, ヒツジ@ 黒 ドラゴン 猿< ラット% ラット* 猿 パイナップル< 白い 黄色 赤い 黄色< 赤い ブタ マンゴ 猫= 象 緑 ブタ"",
+                ""Locale"": ""jp""
+            },
+            ""StatusCodeValue"": 1441792,
+            ""VariantValue"": {
+                ""Type"": ""UInt16"",
+                ""Body"": 36671
+            },
+            ""EnumerationValue"": 0,
+            ""StructureValue"": { ""TypeId"": null },
+            ""Number"": {
+                ""Type"": ""Double"",
+                ""Body"": 0.0
+            },
+            ""Integer"": {
+                ""Type"": ""Int64"",
+                ""Body"": 0
+            },
+            ""UInteger"": {
+                ""Type"": ""UInt64"",
+                ""Body"": 0
+            }
+        }
+    },
+    {
+        ""TypeId"": ""http://test.org/UA/Data/#i=11437"",
+        ""Encoding"": ""Json"",
+        ""Body"": {
+            ""BooleanValue"": false,
+            ""SByteValue"": -113,
+            ""ByteValue"": 42,
+            ""Int16Value"": -14982,
+            ""UInt16Value"": 59442,
+            ""Int32Value"": 85049805,
+            ""UInt32Value"": 2602718263,
+            ""Int64Value"": 3649290182186472621,
+            ""UInt64Value"": 4161862115548090842,
+            ""FloatValue"": -5.763605E-32,
+            ""DoubleValue"": 3.4576486746766018E-34,
+            ""StringValue"": ""Виноградина Слон:"",
+            ""DateTimeValue"": ""1923-03-18T00:11:38.731972Z"",
+            ""GuidValue"": ""82622490-4f77-4562-6290-1295bf97c2e1"",
+            ""ByteStringValue"": [ 131, 164, 135, 52, 83, 197, 40, 76, 13, 242, 127, 238, 45, 144, 113, 127, 143, 250, 179, 105, 99, 144, 11, 43, 104 ],
+            ""XmlElementValue"": {
+                ""n0:石灰"": {
+                    ""@xmlns:n0"": ""http://狗绵羊"",
+                    ""n0:龙绵羊"": ""猫* ラット< 牛 白い^ ラット 黒' 牛[ 黒~ いちご レモン@ 馬 レモン) マンゴ 石灰[ ブタ[ 石灰) 馬 緑 石灰 ブルーベリー ヘビ マンゴ 紫色/"",
+                    ""n0:桃子"": ""ブドウ マンゴ> 黄色( 猿 パイナップル ドラゴン ドラゴン* ドラゴン@ ドラゴン ヒツジ パイナップル ドラゴン 紫色] パイナップル> パイナップル"",
+                    ""n0:香蕉"": [ ""象? 緑 象) ドラゴン 象 ドラゴン# 牛* レモン ヘビ 馬, 黒( パイナップル 猫% 白い["", ""赤い ブタ ブタ 猫, 牛] ブタ 黒. バナナ' 馬< ヒツジ ヘビ 馬 モモ マンゴ[ 紫色 ブルーベリー^ 犬 パイナップル_"" ],
+                    ""n0:草莓"": ""石灰 猫 猿] 犬 黒 黒 ヘビ[ 黄色~ 黒/ 黄色 ラット( パイナップル 猿] 猫` 石灰 黄色@ ブルーベリー[ ヒツジ 馬: 猫) 牛 黒 レモン("",
+                    ""n0:蓝莓"": ""白い 緑_ ヘビ> 黄色 いちご 猿 牛 猫 ブドウ 犬{ 白い{"",
+                    ""n0:黄色"": ""赤い% 白い\"" 犬 ヘビ> ドラゴン# 紫色 牛 ブルーベリー ヘビ 石灰 バナナ` 犬% ヘビ~ ブドウ 黄色- バナナ@ 石灰{ ブルーベリー ヒツジ ドラゴン 象"",
+                    ""n0:菠萝大象"": ""馬 黄色 ブタ モモ? バナナ;"",
+                    ""n0:红色"": ""青い モモ: ブドウ ヘビ 石灰@ ヒツジ ヘビ] 馬 ラット ブタ 猫 ヒツジ 犬- 黒' モモ_ ヒツジ 青い 紫色%""
+                }
+            },
+            ""NodeIdValue"": ""s=%d0%93%d0%be%d0%bb%d1%83%d0%b1%d0%b8%d0%ba%d0%b0"",
+            ""ExpandedNodeIdValue"": ""http://test.org/UA/Data/#s=%e9%a9%ac%e7%b4%ab%e8%89%b2"",
+            ""QualifiedNameValue"": ""http://opcfoundation.org/UA/Diagnostics#Elephant"",
+            ""LocalizedTextValue"": {
+                ""Text"": ""猪 猴子~ 红色\"" 黄色 红色 葡萄 芒果 香蕉 蓝莓 香蕉 芒果? 葡萄 马& 菠萝 白色< 白色 绿色 绿色= 鼠 白色 猪 蓝莓 草莓 猪 狗"",
+                ""Locale"": ""zh-CN""
+            },
+            ""StatusCodeValue"": {
+                ""Symbol"": ""GoodShutdownEvent"",
+                ""Code"": 11010048
+            },
+            ""VariantValue"": {
+                ""Type"": ""Int64"",
+                ""Body"": 3678050018011977630
+            },
+            ""EnumerationValue"": 0,
+            ""StructureValue"": { ""TypeId"": null },
+            ""Number"": {
+                ""Type"": ""Double"",
+                ""Body"": 0.0
+            },
+            ""Integer"": {
+                ""Type"": ""Int64"",
+                ""Body"": 0
+            },
+            ""UInteger"": {
+                ""Type"": ""UInt64"",
+                ""Body"": 0
+            }
+        }
+    },
+    {
+        ""TypeId"": ""http://test.org/UA/Data/#i=11437"",
+        ""Encoding"": ""Json"",
+        ""Body"": {
+            ""BooleanValue"": false,
+            ""SByteValue"": 82,
+            ""ByteValue"": 198,
+            ""Int16Value"": 9215,
+            ""UInt16Value"": 44960,
+            ""Int32Value"": 1970614820,
+            ""UInt32Value"": 4087763535,
+            ""Int64Value"": 3156392098576755738,
+            ""UInt64Value"": 11790719998462990154,
+            ""FloatValue"": -1.27968963E-06,
+            ""DoubleValue"": -2.4084619380135754E-35,
+            ""StringValue"": ""ヘビ~ 猫* 緑) マンゴ< レモン ブタ\"" 石灰 石灰{ 黒! ブタ 猿 馬 ブタ@ 牛 ヘビ' 犬 犬\"" 牛$"",
+            ""DateTimeValue"": ""1949-12-22T18:46:59.3619463Z"",
+            ""GuidValue"": ""bfa4b0cc-483b-8dcf-f31c-be1ab6a22373"",
+            ""ByteStringValue"": [ 230, 77, 255, 50, 44, 50, 177, 162, 80, 111, 68, 190, 135, 246, 90, 118, 33, 196, 15, 169, 10, 92, 225, 21, 231, 78, 108, 231, 209, 160, 223, 65, 218, 145, 33, 192, 68, 73, 160, 126, 242, 28, 234, 217, 139, 206, 108, 38, 99, 164, 148, 221, 20 ],
+            ""XmlElementValue"": {
+                ""n0:香蕉芒果"": {
+                    ""@芒果"": ""Dog"",
+                    ""@黄色"": ""Cat"",
+                    ""@蛇芒果"": ""Peach"",
+                    ""@菠萝红色"": ""Snake"",
+                    ""@香蕉"": ""Mango"",
+                    ""@草莓紫色"": ""Dog"",
+                    ""@母牛桃子"": ""Horse"",
+                    ""@白色芒果"": ""Sheep"",
+                    ""@xmlns:n0"": ""http://马黑色"",
+                    ""n0:狗石灰"": ""Dog Purple~ Monkey_ Dog) Yellow Lemon/ Cow; Cat Lime?"",
+                    ""n0:马紫色"": ""Blueberry+ Peach~ Purple Banana Blueberry Grape Green, Mango Banana Sheep. Monkey- Yellow'"",
+                    ""n0:芒果"": ""Cow Cow Pineapple` Dog< Horse Cat<""
+                }
+            },
+            ""NodeIdValue"": ""http://opcfoundation.org/UA/Diagnostics#i=407765665"",
+            ""ExpandedNodeIdValue"": ""http://opcfoundation.org/UA/Boiler/#g=f16b1f33-7701-a037-4b9b-c936ae51bc40"",
+            ""QualifiedNameValue"": ""http://opcfoundation.org/UA/Boiler//Instance#%ec%bd%94%eb%81%bc%eb%a6%ac"",
+            ""LocalizedTextValue"": {
+                ""Text"": ""Персик Пурпурово\"" Змейка` Овцы Крыса Пурпурово* Голубо< Бело& Крыса Змейка"",
+                ""Locale"": ""ru""
+            },
+            ""StatusCodeValue"": 4980736,
+            ""VariantValue"": {
+                ""Type"": ""SByte"",
+                ""Body"": -114
+            },
+            ""EnumerationValue"": 0,
+            ""StructureValue"": { ""TypeId"": null },
+            ""Number"": {
+                ""Type"": ""Double"",
+                ""Body"": 0.0
+            },
+            ""Integer"": {
+                ""Type"": ""Int64"",
+                ""Body"": 0
+            },
+            ""UInteger"": {
+                ""Type"": ""UInt64"",
+                ""Body"": 0
+            }
+        }
+    },
+    {
+        ""TypeId"": ""http://test.org/UA/Data/#i=11437"",
+        ""Encoding"": ""Json"",
+        ""Body"": {
+            ""BooleanValue"": false,
+            ""SByteValue"": -97,
+            ""ByteValue"": 121,
+            ""Int16Value"": -29579,
+            ""UInt16Value"": 52214,
+            ""Int32Value"": 150448275,
+            ""UInt32Value"": 2074081332,
+            ""Int64Value"": -1011618571483371166,
+            ""UInt64Value"": 8946747598058890327,
+            ""FloatValue"": 7.858336E+35,
+            ""DoubleValue"": 10017916.0,
+            ""StringValue"": ""яблоко Ананас~ Овцы Корова Пурпурово_ Банан Крыса Собака Кот Бело( Корова'"",
+            ""DateTimeValue"": ""2034-12-05T15:52:28.675232Z"",
+            ""GuidValue"": ""0500899c-1c30-8180-cbc7-333928152ed2"",
+            ""ByteStringValue"": [ 231, 20, 90, 216, 130, 131, 90, 67, 79, 157, 9, 52, 206, 116, 148, 59, 17 ],
+            ""XmlElementValue"": {
+                ""n0:Корова"": {
+                    ""@Желтыйцвет"": ""Strawberry"",
+                    ""@Голубика"": ""Pig"",
+                    ""@Чернота"": ""Yellow"",
+                    ""@Корова"": ""Sheep"",
+                    ""@Овцы"": ""Green"",
+                    ""@яблоко"": ""Blue"",
+                    ""@xmlns:n0"": ""http://Манго"",
+                    ""n0:Красно"": ""Blue Yellow~ Mango Rat Rat Dog Lime; Horse Dog*"",
+                    ""n0:Банан"": ""Black' Cat! Elephant Pineapple~ Snake Pineapple? Blue$ Sheep* Elephant\"" Rat"",
+                    ""n0:Лимон"": ""Pineapple^ Rat Banana> Grape Cow Black# Snake"",
+                    ""n0:Пурпурово"": ""Purple Horse Monkey Strawberry< Elephant{ Strawberry[ White{ Rat^ White` Strawberry?"",
+                    ""n0:Крыса"": ""Mango? Blue; Cow> Lemon Horse# Blue Dragon~ Purple Snake< Purple Yellow^ Lime Rat Grape~"",
+                    ""n0:Кот"": ""Sheep] Horse[ Black' Cat; Strawberry Lime_ Monkey> Sheep Pineapple: Sheep Pig= Red Red% Sheep$"",
+                    ""n0:Голубика"": ""Green~""
+                }
+            },
+            ""NodeIdValue"": ""http://opcfoundation.org/UA/Boiler//Instance#s=%e3%83%98%e3%83%93"",
+            ""ExpandedNodeIdValue"": ""http://opcfoundation.org/UA/Boiler/#i=3489247698"",
+            ""QualifiedNameValue"": ""DataAccess#%e9%a9%ac"",
+            ""LocalizedTextValue"": {
+                ""Text"": ""ブタ モモ 緑 いちご ドラゴン 犬; 青い~ モモ 黒; 緑 レモン} 猿% 馬 白い% 馬 牛 象 白い+ 象# いちご< 紫色: レモン~ モモ~ ブタ# マンゴ モモ"",
+                ""Locale"": ""jp""
+            },
+            ""StatusCodeValue"": 1245184,
+            ""VariantValue"": {
+                ""Type"": ""ExpandedNodeId"",
+                ""Body"": ""http://opcfoundation.org/UA/Boiler//Instance#b=4Ncr5uADYkU88S45mg%3d%3d""
+            },
+            ""EnumerationValue"": 0,
+            ""StructureValue"": { ""TypeId"": null },
+            ""Number"": {
+                ""Type"": ""Double"",
+                ""Body"": 0.0
+            },
+            ""Integer"": {
+                ""Type"": ""Int64"",
+                ""Body"": 0
+            },
+            ""UInteger"": {
+                ""Type"": ""UInt64"",
+                ""Body"": 0
+            }
+        }
+    },
+    {
+        ""TypeId"": ""http://test.org/UA/Data/#i=11438"",
+        ""Encoding"": ""Json"",
+        ""Body"": {
+            ""BooleanValue"": [ false, false, false, false, true ],
+            ""SByteValue"": [ 120, 27, 27, 57, 117, 61, -42, 106 ],
+            ""ByteValue"": [ 105, 241, 196, 82 ],
+            ""Int16Value"": [ 22001, -1270, 27022, -11160 ],
+            ""UInt16Value"": [ 31406, 22379, 11459, 18140 ],
+            ""Int32Value"": [ 1147924132, 937096171, 293419963, 1355723363, 1682226035, 921241048, 946417831, 483648971, 1150550410 ],
+            ""UInt32Value"": [ 405022290, 3763626854, 2219565007, 635093313, 1150728258 ],
+            ""Int64Value"": [ -1689618757610414770, -1598013270992443575, -6068487195887049228, 3886489167998855712 ],
+            ""UInt64Value"": [ 14348387007481775183, 579235881671951863, 10801679293459156539, 13309432137704145439 ],
+            ""FloatValue"": [ 4.31136247E-33, 6.620173E-35, -8.877828E-29, -1.27605766E+29, -1.64668731E-22, 1.80246614E-21 ],
+            ""DoubleValue"": [ -6011373486080.0, 108132739055616.0, 8.3547184787473483E-36, 5.2422583022226784E+27, 1.0392232580248937E-32, 1.0094077198242765E+33, -8.35414627813762E-39 ],
+            ""StringValue"": [ ""녹색 들쭉 들쭉 돼지 녹색% 녹색 암소 원숭이 딸기+ 들쭉 암소~ 망고 망고 딸기 녹색 녹색 돼지 들쭉) 석회 개} 검정 쥐~ 쥐 코끼리= 들쭉"", ""Обезьяна Красно Зеленыйцвет Крыса"", ""Красно, Желтыйцвет Манго= Ананас Бело&"", ""Голубика Желтыйцвет"", ""蓝莓 大象~ 绵羊 柠檬 母牛 母牛 红色"", ""狗\"" 马 紫色` 葡萄@ 柠檬 芒果 猪 菠萝 龙^ 黑色* 马 绿色 绵羊 大象 红色) 蓝莓 蛇# 狗 香蕉 草莓 黑色@ 红色 鼠~ 蓝色 香蕉 猫 红色% 黑色"", ""Чернота- Собака Пурпурово# Голубика Чернота Голубо: Дракон яблоко Бело Зеленыйцвет"" ],
+            ""DateTimeValue"": [ ""1916-05-09T17:48:30.6223191Z"" ],
+            ""GuidValue"": [ ""842d41a6-6123-30ce-5970-6c26b28dd4de"", ""9aa488f4-bf70-5b49-848a-9197639e0990"", ""63306802-aacd-cf0e-20eb-70b1d72bdbe2"", ""5763cae3-358e-e7ef-f7d1-0098d037cdbb"", ""4924dc67-715c-4910-79d4-7a844f978358"", ""99b3afae-b13b-cc01-7949-6bfbaa75ffe9"", ""fb4ab41e-9107-7285-b919-deb9bb6a975f"", ""20eaa74e-3383-b67f-da57-d01305159e03"" ],
+            ""ByteStringValue"": [ ""ZppNiFEdKUHgItJIEQ+yC6wDi99l6zWUIa/Bcm2jetrkKQP9EsZVzPdCU1zjkUbBYPlpm3j1LHtkuGaiXLfUPQ=="", ""+GToC7X45q6+5yOY2bGPaf8RczrfYe79iJhaX7JwP20VteotXbarAYLtuQ0I44s="", ""1jk="", ""pWEDx5Z16oIcnof7Tqe1giTGYgtJZXK38qjg9KUNU4g="", ""FJoMEu1Tt3Mzj2L78Q=="", ""ZVNgZ0B0LhI/7kvV7pX23A9L/oI5DahvNnOqmBbWD7wAPHqgRKUT"", ""SgFaHcYXZSJ8Vn8X/G8xWKvwMMzKlvxp34/UsRpVmGk36zc3soqpHg2HG79W98CRCyL1U3VGSbQF8T43Q7MIJ74="", ""3xA3+aUgRxG/Q3o8EufOQqb4YETz8aKCMsFMcdtZfvQAQBivWhE="", ""1AxjhwY5yd9WaQANEMd6Iu1utMfj1NY1ZcSGO9HPH+iUe4s3kGqbSGni9QjbTG4thh4qQKVKmAA2LSFBs40Nh0kXeZQ7QpKD0mteAd/NWhlVWbWz"", ""3kJK4osBYkhaldvUbb7D0tnxQ4unbTnrlyBo0wjsWQ=="" ],
+            ""XmlElementValue"": [
+                {
+                    ""n0:Elephant"": {
+                        ""@Monkey"": ""원숭이"",
+                        ""@Horse"": ""석회"",
+                        ""@Mango"": ""레몬"",
+                        ""@Black"": ""고양이"",
+                        ""@Grape"": ""들쭉쥐"",
+                        ""@xmlns:n0"": ""http://Black"",
+                        ""n0:Blue"": [ ""쥐 녹색$ 황색~ 코끼리, 개> 원숭이* 코끼리# 원숭이: 망고( 뱀 들쭉- 돼지, 복숭아 뱀 파인애플} 파인애플 쥐. 레몬 뱀 황색- 들쭉 쥐! 용} 말% 복숭아 코끼리} 돼지"", ""개 검정# 들쭉 망고 복숭아 망고$ 녹색 포도> 쥐 석회"" ],
+                        ""n0:Sheep"": ""자주색/ 코끼리 코끼리 돼지 뱀 원숭이 황색{ 녹색& 복숭아 뱀 암소 고양이) 고양이 빨간 말] 복숭아< 고양이 돼지_ 코끼리( 용 코끼리 들쭉 말} 돼지 석회 원숭이'"",
+                        ""n0:Pineapple"": ""암소 돼지} 쥐$ 들쭉- 황색 뱀 고양이 녹색. 바나나# 코끼리? 고양이 말 코끼리* 파란 파인애플"",
+                        ""n0:Dog"": ""파인애플\"" 코끼리 암소 복숭아 포도 석회\"" 말 포도 자주색^ 파인애플` 포도? 고양이 검정* 빨간@ 바나나) 딸기& 들쭉)""
+                    }
+                },
+                {
+                    ""n0:石灰葡萄"": {
+                        ""@蓝色"": ""葡萄马"",
+                        ""@猪龙绿色"": ""母牛"",
+                        ""@猴子"": ""桃子猫"",
+                        ""@马狗"": ""蛇芒果"",
+                        ""@蓝莓"": ""菠萝"",
+                        ""@猪"": ""紫色桃子"",
+                        ""@xmlns:n0"": ""http://菠萝葡萄"",
+                        ""n0:猪芒果"": ""菠萝 蛇* 猪! 香蕉/"",
+                        ""n0:猫"": ""绿色 黄色' 马 鼠 紫色/ 芒果< 绿色% 黑色 黑色? 石灰 柠檬 大象 狗 香蕉 菠萝 香蕉> 大象' 红色*"",
+                        ""n0:芒果红色"": ""石灰,"",
+                        ""n0:紫色绿色"": ""绵羊 桃子{ 桃子""
+                    }
+                }
+            ],
+            ""NodeIdValue"": [ ""http://samples.org/UA/memorybuffer#g=8c9312a3-b893-ea53-91d1-2382907eca95"", ""http://test.org/UA/Data//Instance#b=mZWnGBQiqm%2fQtuce1kejQM%2bdwkrCBDsAWl6ZeX3GfNZshJIz%2fPp%2fauhIgjOqs0w6"", ""nsu=DataAccess;s=파인애플"", ""http://test.org/UA/Data//Instance#s=%e8%9b%87%e7%8c%ab%e9%a6%99%e8%95%89"", ""http://opcfoundation.org/UA/Boiler//Instance#i=272173553"", ""nsu=DataAccess;b=b0PVHldheYEHVqYSX40/y4R9IYv92lU7yuG4V3n6mgH5hHz6JtoB6X4TUlAXoiijsj61kpDGuJXumVN2qSIIDbul"" ],
+            ""ExpandedNodeIdValue"": [ ""http://samples.org/UA/memorybuffer/Instance#g=7ca9a545-0c37-87ea-0423-27b914a43b44"", ""http://opcfoundation.org/UA/#i=2349590220"", ""urn:manipc1:OPCFoundation:CoreSampleServer#g=94450a5c-8972-934d-6c99-0c1659b9ce0e"", ""http://test.org/UA/Data//Instance#s=%e6%a1%83%e5%ad%90"", ""http://opcfoundation.org/UA/Diagnostics#g=290ee634-1839-f122-f6b0-df426fb19e6b"", ""urn:manipc1:OPCFoundation:CoreSampleServer#i=2014900536"", ""http://opcfoundation.org/UA/Boiler//Instance#s=%ec%84%9d%ed%9a%8c"", ""http://test.org/UA/Data//Instance#b=4D2jPmkygekkYgnuy3rDjlEURSuQwxxtEVEYAMgjS9Cjxg%3d%3d"", ""http://opcfoundation.org/UA/Diagnostics#g=2005172c-cc4e-6fb5-0e0c-a653cb7c979a"", ""http://opcfoundation.org/UA/#i=405616161"" ],
+            ""QualifiedNameValue"": [ ""urn:manipc1:OPCFoundation:CoreSampleServer#%d0%97%d0%bc%d0%b5%d0%b9%d0%ba%d0%b0"", ""DataAccess#%eb%b0%94%eb%82%98%eb%82%98"", ""http://samples.org/UA/memorybuffer#%d0%9a%d0%be%d1%80%d0%be%d0%b2%d0%b0"", ""%eb%b0%b1%ec%83%89"", ""http://samples.org/UA/memorybuffer/Instance#%e3%83%90%e3%83%8a%e3%83%8a"", ""DataAccess#%e3%83%91%e3%82%a4%e3%83%8a%e3%83%83%e3%83%97%e3%83%ab"", ""http://opcfoundation.org/UA/Boiler//Instance#Mango"" ],
+            ""LocalizedTextValue"": [
+                {
+                    ""Text"": ""Black~ Pig' Red Black' Lime! Black} Purple Blue Cat Strawberry:"",
+                    ""Locale"": ""en-US""
+                },
+                {
+                    ""Text"": ""蓝色 芒果 猫 紫色. 鼠; 紫色 紫色 蛇 芒果 葡萄 狗' 母牛"",
+                    ""Locale"": ""zh-CN""
+                },
+                {
+                    ""Text"": ""草莓, 绵羊 龙 白色{ 白色} 大象, 绿色% 葡萄 菠萝) 蛇 香蕉} 蓝色' 猪 大象' 大象` 芒果^ 猫= 黄色 母牛("",
+                    ""Locale"": ""zh-CN""
+                },
+                {
+                    ""Text"": ""绵羊< 石灰/ 母牛: 大象"",
+                    ""Locale"": ""zh-CN""
+                },
+                {
+                    ""Text"": ""Овцы яблоко# Желтыйцвет Лимон( Змейка Собака Корова? Крыса Змейка> Лошадь Лошадь"",
+                    ""Locale"": ""ru""
+                },
+                {
+                    ""Text"": ""菠萝' 草莓. 狗 红色: 蛇, 菠萝 龙 猴子/ 菠萝$ 柠檬# 草莓. 蓝莓= 猫 菠萝< 柠檬: 狗 大象 石灰 马= 葡萄( 芒果/ 鼠;"",
+                    ""Locale"": ""zh-CN""
+                },
+                {
+                    ""Text"": ""Dog) Cat( Strawberry` Cat Monkey Elephant Horse! Grape- Peach Monkey} Blueberry! Red"",
+                    ""Locale"": ""en-US""
+                },
+                {
+                    ""Text"": ""Snake Grape Mango"",
+                    ""Locale"": ""en-US""
+                },
+                {
+                    ""Text"": ""蛇, 大象@ 红色 桃子+ 鼠 红色 紫色 草莓 菠萝"",
+                    ""Locale"": ""zh-CN""
+                },
+                {
+                    ""Text"": ""Кот Крыса Слон Свинья' Голубика Пурпурово@ Дракон- Обезьяна? Бело("",
+                    ""Locale"": ""ru""
+                }
+            ],
+            ""StatusCodeValue"": [ 6225920, 7995392, 5832704, 6553600, 3997696, 1900544, 8519680 ],
+            ""VariantValue"": [
+                {
+                    ""Type"": ""Byte"",
+                    ""Body"": 82
+                }
+            ],
+            ""EnumerationValue"": [],
+            ""StructureValue"": [],
+            ""Number"": [],
+            ""Integer"": [],
+            ""UInteger"": []
+        }
+    },
+    {
+        ""TypeId"": ""http://test.org/UA/Data/#i=11437"",
+        ""Encoding"": ""Json"",
+        ""Body"": {
+            ""BooleanValue"": true,
+            ""SByteValue"": -56,
+            ""ByteValue"": 104,
+            ""Int16Value"": 3814,
+            ""UInt16Value"": 38042,
+            ""Int32Value"": 535350820,
+            ""UInt32Value"": 3693060540,
+            ""Int64Value"": -2577172637598593213,
+            ""UInt64Value"": 11187487780701632783,
+            ""FloatValue"": 1.93125867E+17,
+            ""DoubleValue"": -0.00033564501791261137,
+            ""StringValue"": ""ラット} 馬` いちご 青い 白い 象 レモン. パイナップル"",
+            ""DateTimeValue"": ""1985-11-03T22:42:37.1296614Z"",
+            ""GuidValue"": ""5b9f4a59-1a25-042a-e156-e9e08f8eed3d"",
+            ""ByteStringValue"": [ 192, 70, 43, 233, 29, 173, 191, 102, 6, 234, 173, 153 ],
+            ""XmlElementValue"": {
+                ""n0:绵羊"": {
+                    ""@猫菠萝"": ""馬"",
+                    ""@黑色"": ""猿"",
+                    ""@蓝色"": ""馬緑マンゴ"",
+                    ""@龙大象"": ""バナナ"",
+                    ""@菠萝白色"": ""青い"",
+                    ""@xmlns:n0"": ""http://蓝色"",
+                    ""n0:蛇紫色"": ""いちご\"" 猿 黒< マンゴ 馬 猫: ヘビ? 黒 猫) モモ% ブドウ 象 黄色{ レモン 紫色 ヒツジ; ブドウ 猫( 赤い/ マンゴ' バナナ ブルーベリー"",
+                    ""n0:绿色"": ""石灰 黄色. ドラゴン! ヘビ ブルーベリー ラット< 馬 黒 緑) 馬 ラット 猫 モモ"",
+                    ""n0:柠檬"": ""ブタ: 赤い 石灰# モモ"",
+                    ""n0:马"": ""ラット$ 犬[ 牛 黒{ 青い 黒 緑}""
+                }
+            },
+            ""NodeIdValue"": ""http://test.org/UA/Data//Instance#i=2103396786"",
+            ""ExpandedNodeIdValue"": ""http://test.org/UA/Data//Instance#i=577318642"",
+            ""QualifiedNameValue"": ""DataAccess#%e7%8a%ac%e3%83%96%e3%82%bf"",
+            ""LocalizedTextValue"": {
+                ""Text"": ""Red Green Lemon# Elephant Dog Horse Monkey: Lime' Strawberry Monkey"",
+                ""Locale"": ""en-US""
+            },
+            ""StatusCodeValue"": 1638400,
+            ""VariantValue"": {
+                ""Type"": ""ExpandedNodeId"",
+                ""Body"": ""http://samples.org/UA/memorybuffer#i=1429871234""
+            },
+            ""EnumerationValue"": 0,
+            ""StructureValue"": { ""TypeId"": null },
+            ""Number"": {
+                ""Type"": ""Double"",
+                ""Body"": 0.0
+            },
+            ""Integer"": {
+                ""Type"": ""Int64"",
+                ""Body"": 0
+            },
+            ""UInteger"": {
+                ""Type"": ""UInt64"",
+                ""Body"": 0
+            }
+        }
+    }
+]
+");
             // Act
             var result = await browser.NodeValueWriteAsync(_endpoint,
                 new ValueWriteRequestModel {
                     NodeId = node,
-                    Value = expected,
+                    Value = val, // TODO: expected,
                     DataType = "ExtensionObject"
                 });
 
             // Assert
+
             await AssertResultAsync(node, expected, result);
         }
 
