@@ -46,7 +46,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             Guid tenantIdGuid,
             IResourceGroup resourceGroup,
             ServicePrincipal serviceApplicationSP,
-            User user,
+            DirectoryObject owner,
             IDictionary<string, string> tags = null
         ) {
             tags ??= new Dictionary<string, string>();
@@ -67,7 +67,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                     },
                     new AccessPolicyEntry {
                         TenantId = tenantIdGuid,
-                        ObjectId = user.Id,
+                        ObjectId = owner.Id,
                         Permissions = new Permissions {
                             Keys = new List<KeyPermissions> {
                                 KeyPermissions.Get,
