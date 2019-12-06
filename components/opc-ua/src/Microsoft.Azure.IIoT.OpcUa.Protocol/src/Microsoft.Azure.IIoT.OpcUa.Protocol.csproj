@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Description>Azure Industrial IoT OPC UA Protocol and Stack services</Description>
   </PropertyGroup>
@@ -33,11 +33,13 @@
     <When Condition="'$(Configuration)'=='Release'">
       <ItemGroup>
         <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua" Version="1.4.358.30" />
+        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Client.ComplexTypes" Version="1.4.358.30" />
       </ItemGroup>
     </When>
     <Otherwise>
       <ItemGroup>
         <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Symbols" Version="1.4.358.30" />
+        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Client.ComplexTypes.Symbols" Version="1.4.358.30" />
       </ItemGroup>
     </Otherwise>
   </Choose>

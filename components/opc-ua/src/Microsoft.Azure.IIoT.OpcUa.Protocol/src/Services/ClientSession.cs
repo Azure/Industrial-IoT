@@ -18,6 +18,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using Opc.Ua.Client.ComplexTypes;
 
     /// <summary>
     /// Wraps a session object to provide serialized access and connection and
@@ -562,7 +563,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 _logger.Warning("{session}: Establishing unecrypted connection to {url}.",
                     _sessionId, _endpoint.Url);
             }
-
             if (_urlQueue.TryDequeue(out var next)) {
                 if (_endpointUrl != null && _endpointUrl != next) {
                     _urlQueue.Enqueue(_endpointUrl);
@@ -571,7 +571,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 _logger.Information("{session}: Creating session to {url} via {endpoint}.",
                     _sessionId, _endpoint.Url, _endpointUrl);
             }
-
             var selectedEndpoint = await DiscoverEndpointsAsync(_config,
                 _endpoint, new Uri(_endpointUrl), (server, endpoints, channel) =>
                     SelectServerEndpoint(server, endpoints, channel, true));
@@ -593,6 +592,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             session.KeepAlive += (_, e) => e.CancelKeepAlive = true;
             session.KeepAliveInterval = -1; // No keep alives - we handle those ourselves.
             session.RenewUserIdentity += (_, user) => identity; // Reset back to default.
+
+            try {
+                var complexTypeSystem = new ComplexTypeSystem(session);
+                await complexTypeSystem.Load();
+            }
+            catch (Exception ex){
+                _logger.Error(ex, "Failed to load complext type system");
+            }
             return session;
         }
 
