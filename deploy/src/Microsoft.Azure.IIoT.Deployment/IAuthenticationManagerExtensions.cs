@@ -21,7 +21,8 @@ namespace Microsoft.Azure.IIoT.Deployment {
             var microsoftGraphAuthenticatoinResult = await authenticationManager
                 .AcquireMicrosoftGraphAuthenticationResultAsync(cancellationToken);
 
-            var microsoftGraphTokenCredentials = GenerateTokenCredentials(microsoftGraphAuthenticatoinResult);
+            var microsoftGraphTokenCredentials = authenticationManager
+                .GenerateTokenCredentials(microsoftGraphAuthenticatoinResult);
             return microsoftGraphTokenCredentials;
         }
 
@@ -42,7 +43,8 @@ namespace Microsoft.Azure.IIoT.Deployment {
             var azureManagementAuthenticatoinResult = await authenticationManager
                 .AcquireAzureManagementAuthenticationResultAsync(cancellationToken);
             
-            var azureManagementTokenCredentials = GenerateTokenCredentials(azureManagementAuthenticatoinResult);
+            var azureManagementTokenCredentials = authenticationManager
+                .GenerateTokenCredentials(azureManagementAuthenticatoinResult);
             return azureManagementTokenCredentials;
         }
 
@@ -63,7 +65,8 @@ namespace Microsoft.Azure.IIoT.Deployment {
             var keyVaultAuthenticatoinResult = await authenticationManager
                 .AcquireKeyVaultAuthenticationResultAsync(cancellationToken);
             
-            var keyVaultTokenCredentials = GenerateTokenCredentials(keyVaultAuthenticatoinResult);
+            var keyVaultTokenCredentials = authenticationManager
+                .GenerateTokenCredentials(keyVaultAuthenticatoinResult);
             return keyVaultTokenCredentials;
         }
 
@@ -121,15 +124,27 @@ namespace Microsoft.Azure.IIoT.Deployment {
         }
 
         public static TokenCredentials GenerateTokenCredentials(
+            this IAuthenticationManager authenticationManager,
             AuthenticationResult authenticationResult
         ) {
             ITokenProvider tokenProvider = new StringTokenProvider(authenticationResult.AccessToken, "Bearer");
 
-            var tokenCredentials = new TokenCredentials(
-                tokenProvider,
-                authenticationResult.TenantId,
-                authenticationResult.Account.Username
-            );
+            var tenantId = authenticationManager.GetTenantId();
+            var account = authenticationManager.GetAccount();
+
+            TokenCredentials tokenCredentials;
+
+            // Some authentication flows result in null account.
+            if (null != tenantId && null != account?.Username) {
+                tokenCredentials = new TokenCredentials(
+                    tokenProvider,
+                    tenantId.ToString(),
+                    account.Username
+                );
+            }
+            else {
+                tokenCredentials = new TokenCredentials(tokenProvider);
+            }
 
             return tokenCredentials;
         }
@@ -157,11 +172,18 @@ namespace Microsoft.Azure.IIoT.Deployment {
             var tenantId = authenticationManager.GetTenantId();
             var account = authenticationManager.GetAccount();
 
-            var tokenCredentials = new TokenCredentials(
-                tokenProvider,
-                tenantId.ToString(),
-                account.Username
-            );
+            TokenCredentials tokenCredentials;
+
+            // Some authentication flows result in null account.
+            if (null != tenantId && null != account?.Username) {
+                tokenCredentials = new TokenCredentials(
+                    tokenProvider,
+                    tenantId.ToString(),
+                    account.Username
+                );
+            } else {
+                tokenCredentials = new TokenCredentials(tokenProvider);
+            }
 
             return tokenCredentials;
         }
