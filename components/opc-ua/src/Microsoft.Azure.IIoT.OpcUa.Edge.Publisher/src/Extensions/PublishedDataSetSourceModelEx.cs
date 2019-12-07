@@ -48,7 +48,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                         .Select(d => d.ToMonitoredItem()));
             }
             if (dataSetSource.PublishedEvents?.SelectedFields != null) {
-                // TODO
+                monitoredItems = monitoredItems
+                    .Append(dataSetSource.PublishedEvents.ToMonitoredItem());
             }
             return monitoredItems.ToList();
         }
