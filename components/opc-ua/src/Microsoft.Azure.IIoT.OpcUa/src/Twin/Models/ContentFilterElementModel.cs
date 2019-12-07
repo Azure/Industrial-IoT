@@ -7,13 +7,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
     using System.Collections.Generic;
 
     /// <summary>
-    /// Content filter
+    /// An expression element in the filter ast
     /// </summary>
-    public class ContentFilterModel {
+    public class ContentFilterElementModel {
 
         /// <summary>
-        /// The flat list of elements in the filter AST
+        /// The operator to use on the operands
         /// </summary>
-        public List<ContentFilterElementModel> Elements { get; set; }
+        public FilterOperatorType FilterOperator { get; set; }
+
+        /// <summary>
+        /// The operands in the element for the operator
+        /// </summary>
+        public List<FilterOperandModel> FilterOperands { get; set; }
+
     }
 }

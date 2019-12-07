@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
-    using Newtonsoft.Json.Linq;
+    using System.Linq;
 
     /// <summary>
     /// Content filter extensions
@@ -20,7 +20,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
             if (model == null) {
                 return null;
             }
-            return new ContentFilterModel((JObject)model.DeepClone());
+            return new ContentFilterModel {
+                Elements = model.Elements?.Select(e => e.Clone())
+            };
         }
     }
 }

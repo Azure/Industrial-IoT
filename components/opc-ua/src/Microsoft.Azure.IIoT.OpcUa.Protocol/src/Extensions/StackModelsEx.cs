@@ -130,6 +130,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         }
 
         /// <summary>
+        /// Convert to stack model
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        public static EventFilter ToEventFilter(this ContentFilterModel model) {
+            //   return null;
+        }
+
+        /// <summary>
+        /// Convert to stack model
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        public static ContentFilter ToStackModel(this ContentFilterModel model) {
+            //   return null;
+        }
+
+        /// <summary>
         /// Convert user token policies to service model
         /// </summary>
         /// <param name="policies"></param>

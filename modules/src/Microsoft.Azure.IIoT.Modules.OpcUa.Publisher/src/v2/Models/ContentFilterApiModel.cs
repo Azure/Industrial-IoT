@@ -28,7 +28,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.v2.Models {
         /// Create service model from api model
         /// </summary>
         public ContentFilterModel ToServiceModel() {
-            return new ContentFilterModel (this);
+            return ToObject<ContentFilterModel>();
         }
     }
 }
