@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
-    using Newtonsoft.Json.Linq;
 
     /// <summary>
     /// Attribute operand extensions
@@ -20,7 +19,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
             if (model == null) {
                 return null;
             }
-            return new SimpleAttributeOperandModel((JObject)model.DeepClone());
+            return new SimpleAttributeOperandModel {
+                AttributeId = model.AttributeId,
+                BrowsePath = model.BrowsePath,
+                IndexRange = model.IndexRange,
+                NodeId = model.NodeId
+            };
         }
     }
 }

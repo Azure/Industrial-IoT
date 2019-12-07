@@ -20,6 +20,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// <summary>
         /// Where clause.
         /// </summary>
-        public ContentFilterModel WhereClause { get; set; }
+        public EventFilterModel WhereClause { get; set; }
     }
 }

@@ -32,7 +32,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Models {
                 throw new ArgumentNullException(nameof(model));
             }
             Filter = model.Filter == null ? null :
-                new ContentFilterApiModel(model.Filter);
+                new EventFilterApiModel(model.Filter);
             Events = model.Events?
                 .Select(v => v == null ? null : new HistoricEventApiModel(v))
                 .ToList();
@@ -53,7 +53,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Models {
         /// </summary>
         [JsonProperty(PropertyName = "filter",
             NullValueHandling = NullValueHandling.Ignore)]
-        public ContentFilterApiModel Filter { get; set; }
+        public EventFilterApiModel Filter { get; set; }
 
         /// <summary>
         /// The events to replace

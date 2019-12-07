@@ -15,7 +15,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.History.Models {
         /// <summary>
         /// The filter to use to select the events
         /// </summary>
-        public ContentFilterModel Filter { get; set; }
+        public EventFilterModel Filter { get; set; }
 
         /// <summary>
         /// The new events to insert

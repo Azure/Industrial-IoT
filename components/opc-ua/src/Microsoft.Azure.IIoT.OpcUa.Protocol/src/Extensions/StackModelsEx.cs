@@ -13,6 +13,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     using System.Collections.Generic;
     using System.Security.Cryptography.X509Certificates;
     using System.Linq;
+    using Newtonsoft.Json;
+    using Opc.Ua.Encoders;
 
     /// <summary>
     /// Stack models extensions
@@ -133,18 +135,227 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// Convert to stack model
         /// </summary>
         /// <param name="model"></param>
+        /// <param name="codec"></param>
         /// <returns></returns>
-        public static EventFilter ToEventFilter(this ContentFilterModel model) {
-            //   return null;
+        public static EventFilter ToStackModel(this EventFilterModel model,
+            IVariantEncoder codec) {
+            if (model == null) {
+                return null;
+            }
+            return new EventFilter {
+                SelectClauses = new SimpleAttributeOperandCollection(
+                    model.SelectClauses == null ? Enumerable.Empty<SimpleAttributeOperand>() :
+                    model.SelectClauses.Select(c => c.ToStackModel(codec.Context))),
+                WhereClause = model.WhereClause.ToStackModel(codec)
+            };
         }
 
         /// <summary>
         /// Convert to stack model
         /// </summary>
         /// <param name="model"></param>
+        /// <param name="codec"></param>
         /// <returns></returns>
-        public static ContentFilter ToStackModel(this ContentFilterModel model) {
-            //   return null;
+        public static EventFilterModel ToServiceModel(this EventFilter model,
+            IVariantEncoder codec) {
+            if (model == null) {
+                return null;
+            }
+            return new EventFilterModel {
+                SelectClauses = model.SelectClauses?
+                    .Select(c => c.ToServiceModel(codec.Context))
+                    .ToList(),
+                WhereClause = model.WhereClause.ToServiceModel(codec)
+            };
+        }
+
+        /// <summary>
+        /// Convert to stack model
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="codec"></param>
+        /// <returns></returns>
+        public static ContentFilter ToStackModel(this ContentFilterModel model,
+            IVariantEncoder codec) {
+            if (model == null) {
+                return null;
+            }
+            return new ContentFilter {
+                Elements = new ContentFilterElementCollection(model.Elements == null ?
+                    Enumerable.Empty<ContentFilterElement>() :
+                        model.Elements.Select(e => e.ToStackModel(codec)))
+            };
+        }
+
+        /// <summary>
+        /// Convert to service model
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="codec"></param>
+        /// <returns></returns>
+        public static ContentFilterModel ToServiceModel(this ContentFilter model,
+            IVariantEncoder codec) {
+            if (model == null) {
+                return null;
+            }
+            return new ContentFilterModel {
+                Elements = model.Elements?
+                    .Select(e => e.ToServiceModel(codec))
+                    .ToList()
+            };
+        }
+
+        /// <summary>
+        /// Convert to stack model
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="codec"></param>
+        /// <returns></returns>
+        public static ContentFilterElement ToStackModel(this ContentFilterElementModel model,
+            IVariantEncoder codec) {
+            if (model == null) {
+                return null;
+            }
+            return new ContentFilterElement {
+                FilterOperands = new ExtensionObjectCollection(model?.FilterOperands == null ?
+                    Enumerable.Empty<ExtensionObject>() : model.FilterOperands
+                        .Select(e => new ExtensionObject(e.ToStackModel(codec)))),
+                FilterOperator = model.FilterOperator.ToStackType()
+            };
+        }
+
+        /// <summary>
+        /// Convert to service model
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="codec"></param>
+        /// <returns></returns>
+        public static ContentFilterElementModel ToServiceModel(this ContentFilterElement model,
+            IVariantEncoder codec) {
+            if (model == null) {
+                return null;
+            }
+            return new ContentFilterElementModel {
+                FilterOperands = model.FilterOperands
+                    .Select(e => e.Body)
+                    .Cast<FilterOperand>()
+                    .Select(o => o.ToServiceModel(codec))
+                    .ToList(),
+                FilterOperator = model.FilterOperator.ToServiceType()
+            };
+        }
+
+        /// <summary>
+        /// Convert to stack model
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="codec"></param>
+        /// <returns></returns>
+        public static FilterOperand ToStackModel(this FilterOperandModel model,
+            IVariantEncoder codec) {
+            if (model == null) {
+                return null;
+            }
+            if (model.Index != null) {
+                return new ElementOperand {
+                    Index = model.Index.Value
+                };
+            }
+            if (model.Value != null) {
+                return new LiteralOperand {
+                    Value = codec.Decode(model.Value)
+                };
+            }
+            if (model.Alias != null) {
+                return new AttributeOperand {
+                    Alias = model.Alias,
+                    NodeId = model.NodeId.ToNodeId(codec.Context),
+                    AttributeId = (uint)(model.AttributeId ?? NodeAttribute.Value),
+                    BrowsePath = model.BrowsePath.ToRelativePath(codec.Context),
+                    IndexRange = model.IndexRange
+                };
+            }
+            return ((SimpleAttributeOperandModel)model).ToStackModel(codec.Context);
+        }
+
+        /// <summary>
+        /// Convert to service model
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="codec"></param>
+        /// <returns></returns>
+        public static FilterOperandModel ToServiceModel(this FilterOperand model,
+            IVariantEncoder codec) {
+            if (model == null) {
+                return null;
+            }
+            switch (model) {
+                case ElementOperand elem:
+                    return new FilterOperandModel {
+                        Index = elem.Index
+                    };
+                case LiteralOperand lit:
+                    return new FilterOperandModel {
+                        Value = codec.Encode(lit.Value)
+                    };
+                case AttributeOperand attr:
+                    return new FilterOperandModel {
+                        NodeId = attr.NodeId.AsString(codec.Context),
+                        AttributeId = (NodeAttribute)attr.AttributeId,
+                        BrowsePath = attr.BrowsePath.AsString(codec.Context),
+                        IndexRange = attr.IndexRange,
+                        Alias = attr.Alias
+                    };
+                case SimpleAttributeOperand sattr:
+                    return new FilterOperandModel {
+                        NodeId = sattr.TypeDefinitionId.AsString(codec.Context),
+                        AttributeId = (NodeAttribute)sattr.AttributeId,
+                        BrowsePath = sattr.BrowsePath?.Select(p => p.AsString(codec.Context)).ToArray(),
+                        IndexRange = sattr.IndexRange
+                    };
+                default:
+                    throw new NotSupportedException("Operand not supported");
+            }
+        }
+
+        /// <summary>
+        /// Convert to stack model
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public static SimpleAttributeOperand ToStackModel(this SimpleAttributeOperandModel model,
+            ServiceMessageContext context) {
+            if (model == null) {
+                return null;
+            }
+            return new SimpleAttributeOperand {
+                TypeDefinitionId = model.NodeId.ToNodeId(context),
+                AttributeId = (uint)(model.AttributeId ?? NodeAttribute.Value),
+                BrowsePath = new QualifiedNameCollection(model.BrowsePath == null ?
+                    Enumerable.Empty<QualifiedName>() :
+                    model.BrowsePath?.Select(n => n.ToQualifiedName(context))),
+                IndexRange = model.IndexRange
+            };
+        }
+
+        /// <summary>
+        /// Convert to service model
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public static SimpleAttributeOperandModel ToServiceModel(this SimpleAttributeOperand model,
+            ServiceMessageContext context) {
+            if (model == null) {
+                return null;
+            }
+            return new FilterOperandModel {
+                NodeId = model.TypeDefinitionId.AsString(context),
+                AttributeId = (NodeAttribute)model.AttributeId,
+                BrowsePath = model.BrowsePath?.Select(p => p.AsString(context)).ToArray(),
+                IndexRange = model.IndexRange
+            };
         }
 
         /// <summary>

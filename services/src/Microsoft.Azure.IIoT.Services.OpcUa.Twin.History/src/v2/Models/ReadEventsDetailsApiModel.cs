@@ -30,7 +30,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Models {
             EndTime = model.EndTime;
             NumEvents = model.NumEvents;
             Filter = model.Filter == null ? null :
-                new ContentFilterApiModel(model.Filter);
+                new EventFilterApiModel(model.Filter);
         }
 
         /// <summary>
@@ -71,6 +71,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Models {
         /// </summary>
         [JsonProperty(PropertyName = "filter",
             NullValueHandling = NullValueHandling.Ignore)]
-        public ContentFilterApiModel Filter { get; set; }
+        public EventFilterApiModel Filter { get; set; }
     }
 }

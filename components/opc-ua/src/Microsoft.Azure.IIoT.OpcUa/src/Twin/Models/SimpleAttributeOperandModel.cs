@@ -9,14 +9,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
     /// <summary>
     /// Simple attribute operand model
     /// </summary>
-    public class SimpleAttributeOperandModel : JObject {
+    public class SimpleAttributeOperandModel {
 
-        /// <inheritdoc/>
-        public SimpleAttributeOperandModel() {
-        }
+        /// <summary>
+        /// Type definition node id if operand is
+        /// simple or full attribute operand.
+        /// </summary>
+        public string NodeId { get; set; }
 
-        /// <inheritdoc/>
-        public SimpleAttributeOperandModel(JObject other) : base(other) {
-        }
+        /// <summary>
+        /// Browse path of attribute operand
+        /// </summary>
+        public string[] BrowsePath { get; set; }
+
+        /// <summary>
+        /// Attribute id
+        /// </summary>
+        public NodeAttribute? AttributeId { get; set; }
+
+        /// <summary>
+        /// Index range of attribute operand
+        /// </summary>
+        public string IndexRange { get; set; }
     }
 }

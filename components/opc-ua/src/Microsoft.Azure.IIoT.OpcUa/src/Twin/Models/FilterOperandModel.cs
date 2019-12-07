@@ -9,7 +9,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
     /// <summary>
     /// Filter operand
     /// </summary>
-    public class FilterOperandModel {
+    public class FilterOperandModel : SimpleAttributeOperandModel {
 
         /// <summary>
         /// Element reference in the outer list if
@@ -23,30 +23,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
         public JToken Value { get; set; }
 
         /// <summary>
-        /// Type definition node id if operand is
-        /// simple or full attribute operand.
-        /// </summary>
-        public string NodeId { get; set; }
-
-        /// <summary>
         /// Optional alias to refer to it makeing it a
         /// full blown attribute operand
         /// </summary>
         public string Alias { get; set; }
-
-        /// <summary>
-        /// Browse path of attribute operand
-        /// </summary>
-        public string[] BrowsePath { get; set; }
-
-        /// <summary>
-        /// Attribute id
-        /// </summary>
-        public NodeAttribute AttributeId { get; set; }
-
-        /// <summary>
-        /// Index range of attribute operand
-        /// </summary>
-        public string IndexRange { get; set; }
     }
 }

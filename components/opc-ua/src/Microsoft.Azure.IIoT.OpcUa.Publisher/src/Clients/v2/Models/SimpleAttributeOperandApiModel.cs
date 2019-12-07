@@ -28,7 +28,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2.Models {
         /// Create service model from api model
         /// </summary>
         public SimpleAttributeOperandModel ToServiceModel() {
-            return new SimpleAttributeOperandModel(this);
+            return ToObject<SimpleAttributeOperandModel>();
         }
     }
 }

@@ -30,6 +30,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.History.Models {
         /// <summary>
         /// The filter to use to select the event fields
         /// </summary>
-        public ContentFilterModel Filter { get; set; }
+        public EventFilterModel Filter { get; set; }
     }
 }

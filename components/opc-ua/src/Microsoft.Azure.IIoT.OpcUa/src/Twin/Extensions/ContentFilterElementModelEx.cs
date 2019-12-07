@@ -7,23 +7,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
     using System.Linq;
 
     /// <summary>
-    /// Content filter extensions
+    /// Content filter element extensions
     /// </summary>
-    public static class ContentFilterModelEx {
+    public static class ContentFilterElementModelEx {
 
         /// <summary>
         /// Clone
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static ContentFilterModel Clone(this ContentFilterModel model) {
+        public static ContentFilterElementModel Clone(this ContentFilterElementModel model) {
             if (model == null) {
                 return null;
             }
-            return new ContentFilterModel {
-                Elements = model.Elements?
-                    .Select(e => e.Clone())
-                    .ToList()
+            return new ContentFilterElementModel {
+                FilterOperands = model.FilterOperands?
+                    .Select(f => f.Clone())
+                    .ToList(),
+                FilterOperator = model.FilterOperator
             };
         }
     }

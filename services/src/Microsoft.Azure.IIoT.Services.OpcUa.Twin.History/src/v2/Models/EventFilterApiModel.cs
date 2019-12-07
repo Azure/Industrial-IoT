@@ -8,27 +8,27 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Models {
     using Newtonsoft.Json.Linq;
 
     /// <summary>
-    /// Content filter
+    /// Event filter
     /// </summary>
-    public class ContentFilterApiModel : JObject {
+    public class EventFilterApiModel : JObject {
 
         /// <inheritdoc/>
-        public ContentFilterApiModel() {
+        public EventFilterApiModel() {
         }
 
         /// <summary>
         /// Create api model from service model
         /// </summary>
         /// <param name="model"></param>
-        public ContentFilterApiModel(ContentFilterModel model) :
+        public EventFilterApiModel(EventFilterModel model) :
             base(model) {
         }
 
         /// <summary>
         /// Create service model from api model
         /// </summary>
-        public ContentFilterModel ToServiceModel() {
-            return ToObject<ContentFilterModel>();
+        public EventFilterModel ToServiceModel() {
+            return ToObject<EventFilterModel>();
         }
     }
 }

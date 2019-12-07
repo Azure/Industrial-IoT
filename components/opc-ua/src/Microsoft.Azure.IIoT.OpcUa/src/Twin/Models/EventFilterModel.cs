@@ -7,14 +7,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
     using System.Collections.Generic;
 
     /// <summary>
-    /// Content filter
+    /// Event filter
     /// </summary>
-    public class ContentFilterModel {
+    public class EventFilterModel {
 
         /// <summary>
-        /// The flat list of elements in the filter AST
+        /// Where clause
         /// </summary>
-        public List<ContentFilterElementModel> Elements { get; set; }
-    }
+        public List<SimpleAttributeOperandModel> SelectClauses { get; set; }
 
+        /// <summary>
+        /// Where clause
+        /// </summary>
+        public ContentFilterModel WhereClause { get; set; }
+    }
 }
