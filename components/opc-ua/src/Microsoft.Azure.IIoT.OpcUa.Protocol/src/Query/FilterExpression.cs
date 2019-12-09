@@ -7,8 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Parser {
     using Antlr4.Runtime;
     using System;
     using Opc.Ua;
-    using Opc.Ua.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using System.Linq;
     using System.Collections.Generic;
     using Antlr4.Runtime.Tree;

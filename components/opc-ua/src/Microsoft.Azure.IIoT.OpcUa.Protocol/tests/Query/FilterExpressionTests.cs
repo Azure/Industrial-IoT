@@ -4,9 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Parser {
-    using Opc.Ua;
-    using Xunit;
-
     public class FilterExpressionTests {
 #if FALSE
         [Fact]

@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Opc.Ua;
     using Opc.Ua.Extensions;
     using Newtonsoft.Json.Linq;
@@ -13,8 +13,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     using System.Collections.Generic;
     using System.Security.Cryptography.X509Certificates;
     using System.Linq;
-    using Newtonsoft.Json;
-    using Opc.Ua.Encoders;
 
     /// <summary>
     /// Stack models extensions
@@ -35,7 +33,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
             return new RequestHeader {
                 AuditEntryId = diagnostics?.AuditId ?? Guid.NewGuid().ToString(),
                 ReturnDiagnostics =
-                    (uint)(diagnostics?.Level ?? Twin.Models.DiagnosticsLevel.None)
+                    (uint)(diagnostics?.Level ?? Core.Models.DiagnosticsLevel.None)
                      .ToStackType(),
                 Timestamp = diagnostics?.TimeStamp ?? DateTime.UtcNow,
                 TimeoutHint = timeoutHint,

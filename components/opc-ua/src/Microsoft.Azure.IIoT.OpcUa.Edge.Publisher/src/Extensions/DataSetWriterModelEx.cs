@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using System;
-    using System.Collections.Generic;
     using System.Linq;
 
     /// <summary>

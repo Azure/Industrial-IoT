@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.History.Models {
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using System;
 
     /// <summary>

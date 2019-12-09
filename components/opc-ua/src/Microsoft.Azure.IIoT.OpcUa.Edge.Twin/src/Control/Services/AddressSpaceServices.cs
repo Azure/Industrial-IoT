@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Microsoft.Azure.IIoT.OpcUa.History.Models;
@@ -66,7 +66,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
                 var result = new BrowseResultModel();
                 var diagnostics = new List<OperationResultModel>();
                 if (!excludeReferences) {
-                    var direction = (request.Direction ?? OpcUa.Twin.Models.BrowseDirection.Forward)
+                    var direction = (request.Direction ?? OpcUa.Core.Models.BrowseDirection.Forward)
                         .ToStackType();
                     // Browse and read children
                     result.References = new List<NodeReferenceModel>();
@@ -889,8 +889,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
                         ReferenceTypeId = reference.ReferenceTypeId.AsString(
                             session.MessageContext),
                         Direction = reference.IsForward ?
-                            OpcUa.Twin.Models.BrowseDirection.Forward :
-                            OpcUa.Twin.Models.BrowseDirection.Backward,
+                            OpcUa.Core.Models.BrowseDirection.Forward :
+                            OpcUa.Core.Models.BrowseDirection.Backward,
                         Target = model
                     });
                 }

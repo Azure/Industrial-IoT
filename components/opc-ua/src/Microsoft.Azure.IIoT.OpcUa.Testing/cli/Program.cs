@@ -14,8 +14,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cli {
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Transport.Probe;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2;
     using Microsoft.Azure.IIoT.Exceptions;
@@ -868,7 +869,7 @@ Operations (Mutually exclusive):
                                         continue; // We have read this one already
                                     }
                                     if (!r.Target.NodeClass.HasValue ||
-                                        r.Target.NodeClass.Value != Twin.Models.NodeClass.Variable) {
+                                        r.Target.NodeClass.Value != Core.Models.NodeClass.Variable) {
                                         continue;
                                     }
                                     if (!silent) {

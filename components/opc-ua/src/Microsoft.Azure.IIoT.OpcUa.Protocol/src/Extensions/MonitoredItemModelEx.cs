@@ -4,10 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
-    using System;
-    using System.Linq;
-    using System.Text;
-
     /// <summary>
     /// Monitored item model extensions
     /// </summary>

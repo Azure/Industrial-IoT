@@ -4,9 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
-    using MemoryBuffer;
-    using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
     using Opc.Ua.Extensions;
@@ -16,6 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
     using System.Threading.Tasks;
     using System.Xml;
     using Xunit;
+    using MemoryBuffer;
     using Formatting = Newtonsoft.Json.Formatting;
 
     public class CallScalarMethodTests<T> {
