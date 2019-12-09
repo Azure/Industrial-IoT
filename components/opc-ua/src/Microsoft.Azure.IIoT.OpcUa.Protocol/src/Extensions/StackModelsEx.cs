@@ -144,7 +144,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 SelectClauses = new SimpleAttributeOperandCollection(
                     model.SelectClauses == null ? Enumerable.Empty<SimpleAttributeOperand>() :
                     model.SelectClauses.Select(c => c.ToStackModel(codec.Context))),
-                WhereClause = model.WhereClause.ToStackModel(codec)
+                //
+                // Per Part 4 only allow simple attribute operands in where clause
+                // elements of event filters.
+                //
+                WhereClause = model.WhereClause.ToStackModel(codec, true)
+
             };
         }
 
@@ -172,16 +177,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// </summary>
         /// <param name="model"></param>
         /// <param name="codec"></param>
+        /// <param name="onlySimpleAttributeOperands"></param>
         /// <returns></returns>
         public static ContentFilter ToStackModel(this ContentFilterModel model,
-            IVariantEncoder codec) {
+            IVariantEncoder codec, bool onlySimpleAttributeOperands = false) {
             if (model == null) {
                 return null;
             }
             return new ContentFilter {
                 Elements = new ContentFilterElementCollection(model.Elements == null ?
-                    Enumerable.Empty<ContentFilterElement>() :
-                        model.Elements.Select(e => e.ToStackModel(codec)))
+                    Enumerable.Empty<ContentFilterElement>() : model.Elements
+                        .Select(e => e.ToStackModel(codec, onlySimpleAttributeOperands)))
             };
         }
 
@@ -208,16 +214,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// </summary>
         /// <param name="model"></param>
         /// <param name="codec"></param>
+        /// <param name="onlySimpleAttributeOperands"></param>
         /// <returns></returns>
         public static ContentFilterElement ToStackModel(this ContentFilterElementModel model,
-            IVariantEncoder codec) {
+            IVariantEncoder codec, bool onlySimpleAttributeOperands = false) {
             if (model == null) {
                 return null;
             }
             return new ContentFilterElement {
                 FilterOperands = new ExtensionObjectCollection(model?.FilterOperands == null ?
                     Enumerable.Empty<ExtensionObject>() : model.FilterOperands
-                        .Select(e => new ExtensionObject(e.ToStackModel(codec)))),
+                        .Select(e => new ExtensionObject(e.ToStackModel(codec, onlySimpleAttributeOperands)))),
                 FilterOperator = model.FilterOperator.ToStackType()
             };
         }
@@ -248,9 +255,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// </summary>
         /// <param name="model"></param>
         /// <param name="codec"></param>
+        /// <param name="onlySimpleAttributeOperands"></param>
         /// <returns></returns>
         public static FilterOperand ToStackModel(this FilterOperandModel model,
-            IVariantEncoder codec) {
+            IVariantEncoder codec, bool onlySimpleAttributeOperands = false) {
             if (model == null) {
                 return null;
             }
@@ -264,7 +272,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                     Value = codec.Decode(model.Value)
                 };
             }
-            if (model.Alias != null) {
+            if (model.Alias != null && !onlySimpleAttributeOperands) {
                 return new AttributeOperand {
                     Alias = model.Alias,
                     NodeId = model.NodeId.ToNodeId(codec.Context),

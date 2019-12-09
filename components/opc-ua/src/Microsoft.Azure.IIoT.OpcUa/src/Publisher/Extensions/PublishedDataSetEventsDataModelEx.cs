@@ -29,6 +29,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                 EventNotifier = model.EventNotifier,
                 Filter = model.Filter.Clone(),
                 QueueSize = model.QueueSize,
+                BrowsePath = model.BrowsePath,
                 SelectedFields = model.SelectedFields?
                     .Select(f => f.Clone())
                     .ToList()

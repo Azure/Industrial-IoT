@@ -30,7 +30,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                 NodeClass = NodeClass.Object,
                 DisplayName = displayName,
                 EventFilter = new EventFilterModel {
-                    SelectClauses = publishedEvents.SelectedFields.Select(s => s.Clone()).ToList(),
+                    SelectClauses = publishedEvents.SelectedFields?
+                        .Select(s => s.Clone())
+                        .ToList(),
                     WhereClause = publishedEvents.Filter.Clone(),
                 },
                 AggregateFilter = null,
@@ -38,7 +40,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                 QueueSize = publishedEvents.QueueSize,
                 TriggerId = publishedEvents.TriggerId,
                 MonitoringMode = publishedEvents.MonitoringMode,
-                StartNodeId = publishedEvents.EventNotifier
+                StartNodeId = publishedEvents.EventNotifier,
+                RelativePath = publishedEvents.BrowsePath,
+                AttributeId = null,
+                DataChangeFilter = null,
+                IndexRange = null,
+                SamplingInterval = null
             };
         }
     }
