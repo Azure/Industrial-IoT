@@ -18,7 +18,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
 
         private readonly Guid _tenantGuid;
         private readonly GraphServiceClient _graphServiceClient;
-        private User _me;
 
         public MicrosoftGraphServiceClient(
             Guid tenantGuid,
@@ -28,33 +27,59 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             _tenantGuid = tenantGuid;
 
             var delegateAuthenticationProvider = new DelegateAuthenticationProvider(
-                async (requestMessage) => {
+                async (httpRequestMessage) => {
                     var authenticationHeaderValue = await microsoftGraphTokenProvider
                         .GetAuthenticationHeaderAsync(cancellationToken);
 
-                    requestMessage.Headers.Authorization = authenticationHeaderValue;
+                    httpRequestMessage.Headers.Authorization = authenticationHeaderValue;
                 }
             );
 
             _graphServiceClient = new GraphServiceClient(delegateAuthenticationProvider);
         }
 
-        public User Me(
+        public MicrosoftGraphServiceClient(
+            Guid tenantGuid,
+            TokenCredentials microsoftGraphTokenCredentials,
             CancellationToken cancellationToken = default
         ) {
-            if (null == _me) {
-                _me = _graphServiceClient
-                    .Me
-                    .Request()
-                    .GetAsync(cancellationToken)
-                    .Result;
-            }
+            _tenantGuid = tenantGuid;
 
-            return _me;
+            var delegateAuthenticationProvider = new DelegateAuthenticationProvider(
+                async (httpRequestMessage) => {
+                    await microsoftGraphTokenCredentials
+                        .ProcessHttpRequestAsync(
+                            httpRequestMessage,
+                            cancellationToken
+                        );
+                }
+            );
+
+            _graphServiceClient = new GraphServiceClient(delegateAuthenticationProvider);
+        }
+
+        public async Task<User> GetMeAsync(
+            CancellationToken cancellationToken = default
+        ) {
+            return await _graphServiceClient
+                .Me
+                .Request()
+                .GetAsync(cancellationToken);
+        }
+
+        public async Task<ServicePrincipal> GetServicePrincipalByIdAsync(
+            Guid servicePrincipalId,
+            CancellationToken cancellationToken = default
+        ) {
+            return await _graphServiceClient
+                .ServicePrincipals[servicePrincipalId.ToString()]
+                .Request()
+                .GetAsync(cancellationToken);
         }
 
         public async Task<Application> RegisterServiceApplicationAsync(
             string servicesApplicationName,
+            DirectoryObject owner,
             IEnumerable<string> tags = null,
             CancellationToken cancellationToken = default
         ) {
@@ -68,7 +93,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                 DisplayName = "Approver",
                 Value = "Sign",
                 Description = "Approvers have the ability to issue certificates.",
-                AllowedMemberTypes = new List<string> { "User" },
+                AllowedMemberTypes = new List<string> { "User", "Application" },
                 Id = serviceApplicationApproverRoleIdGuid
             });
 
@@ -77,7 +102,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                 DisplayName = "Writer",
                 Value = "Write",
                 Description = "Writers Have the ability to change entities.",
-                AllowedMemberTypes = new List<string> { "User" },
+                AllowedMemberTypes = new List<string> { "User", "Application" },
                 Id = serviceApplicationWriterRoleIdGuid
             });
 
@@ -86,7 +111,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                 DisplayName = "Administrator",
                 Value = "Admin",
                 Description = "Admins can access advanced features.",
-                AllowedMemberTypes = new List<string> { "User" },
+                AllowedMemberTypes = new List<string> { "User", "Application" },
                 Id = serviceApplicationAdministratorRoleIdGuid
             });
 
@@ -200,13 +225,23 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                 cancellationToken
             );
 
-            // Add app role assignment to me as Approver, Writer and Administrator.
-            var me = Me(cancellationToken);
+            // Add app role assignment to owner as Approver, Writer and Administrator.
+            string PrincipalType;
+
+            if (owner is User) {
+                PrincipalType = "User";
+            } else if (owner is ServicePrincipal) {
+                PrincipalType = "ServicePrincipal";
+            } else if (owner is Group) {
+                PrincipalType = "Group";
+            } else {
+                throw new ArgumentException($"Owner is of unknown type: {owner.GetType()}");
+            }
 
             var approverAppRoleAssignmentRequest = new AppRoleAssignment {
                 //PrincipalDisplayName = "",
-                PrincipalType = "User",
-                PrincipalId = new Guid(me.Id),
+                PrincipalType = PrincipalType,
+                PrincipalId = new Guid(owner.Id),
                 ResourceId = new Guid(serviceApplicationSP.Id),
                 ResourceDisplayName = "Approver",
                 Id = serviceApplicationApproverRoleIdGuid.ToString(),
@@ -215,8 +250,8 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
 
             var writerAppRoleAssignmentRequest = new AppRoleAssignment {
                 //PrincipalDisplayName = "",
-                PrincipalType = "User",
-                PrincipalId = new Guid(me.Id),
+                PrincipalType = PrincipalType,
+                PrincipalId = new Guid(owner.Id),
                 ResourceId = new Guid(serviceApplicationSP.Id),
                 ResourceDisplayName = "Writer",
                 Id = serviceApplicationWriterRoleIdGuid.ToString(),
@@ -225,8 +260,8 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
 
             var administratorAppRoleAssignmentRequest = new AppRoleAssignment {
                 //PrincipalDisplayName = "",
-                PrincipalType = "User",
-                PrincipalId = new Guid(me.Id),
+                PrincipalType = PrincipalType,
+                PrincipalId = new Guid(owner.Id),
                 ResourceId = new Guid(serviceApplicationSP.Id),
                 ResourceDisplayName = "Administrator",
                 Id = serviceApplicationAdministratorRoleIdGuid.ToString(),
@@ -661,13 +696,19 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             }
         }
 
-        public async Task AddMeAsApplicationOwnerAsync(
+        /// <summary>
+        /// Add DirectoryObject as owner of the application.
+        /// </summary>
+        /// <param name="application"></param>
+        /// <param name="owner"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public async Task AddAsApplicationOwnerAsync(
             Application application,
+            DirectoryObject owner,
             CancellationToken cancellationToken = default
         ) {
-            // Add current user (_me) as owner of the application, if it is not already.
-            var me = Me(cancellationToken);
-            var idFilterClause = $"Id eq '{me.Id}'";
+            var idFilterClause = $"Id eq '{owner.Id}'";
 
             var applicationOwners = await _graphServiceClient
                 .Applications[application.Id]
@@ -682,7 +723,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                     .Owners
                     .References
                     .Request()
-                    .AddAsync(me, cancellationToken);
+                    .AddAsync(owner, cancellationToken);
             }
         }
 

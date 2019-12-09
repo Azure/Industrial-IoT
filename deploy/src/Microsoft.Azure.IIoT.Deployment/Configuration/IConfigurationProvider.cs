@@ -18,7 +18,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
             IEnumerable<AzureEnvironment> azureEnvironments
         );
 
-        string GetTenant();
+        Guid GetTenantId();
 
         ISubscription SelectSubscription(
             IEnumerable<ISubscription> subscriptionsList

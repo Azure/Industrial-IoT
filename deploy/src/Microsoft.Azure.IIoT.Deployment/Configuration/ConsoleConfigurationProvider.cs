@@ -36,11 +36,19 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
             return azureEnvironments.ElementAt(selection);
         }
 
-        public string GetTenant() {
-            // Note: Providing tenant as opcwalls.onmicrosoft.com will also work.
+        public Guid GetTenantId() {
             Console.WriteLine("Please provide your TenantId:");
-            var tenant = ReadNonEmptyString();
-            return tenant;
+
+            while (true) {
+                try {
+                    var tenantStr = ReadNonEmptyString();
+                    var tenantId = Guid.Parse(tenantStr);
+                    return tenantId;
+                }
+                catch (FormatException) {
+                    Console.WriteLine("Provided value is not a valid Guid. Please provide your TenantId again:");
+                }
+            }
         }
 
         public ISubscription SelectSubscription(

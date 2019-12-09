@@ -34,21 +34,23 @@ namespace Microsoft.Azure.IIoT.Deployment {
 
 
         private readonly AzureEnvironment _azureEnvironment;
+        private readonly Guid _tenantId;
         private readonly IPublicClientApplication _publicClientApplication;
 
         private IAccount _account;
-        private Guid _tenantId;
 
         public AuthenticationManager(
             AzureEnvironment azureEnvironment,
-            string tenant
+            Guid tenantId
         ) {
             _azureEnvironment = azureEnvironment;
             var azureCloudInstance = azureEnvironment.ToAzureCloudInstance();
 
+            _tenantId = tenantId;
+
             _publicClientApplication = PublicClientApplicationBuilder
                 .Create(AzureIndustrialIoTDeploymentClientID)
-                .WithAuthority(azureCloudInstance, tenant)
+                .WithAuthority(azureCloudInstance, tenantId)
                 //.WithAuthority(azureCloudInstance, AadAuthorityAudience.AzureAdMultipleOrgs)
                 .WithDefaultRedirectUri()
                 .Build();
@@ -98,9 +100,8 @@ namespace Microsoft.Azure.IIoT.Deployment {
                     .ExecuteAsync();
             }
 
-            // Extract account and tenant ID from microsoftGraphAuthenticatoinResult
+            // Extract account from microsoftGraphAuthenticatoinResult
             _account = microsoftGraphAuthenticatoinResult.Account;
-            _tenantId = new Guid(microsoftGraphAuthenticatoinResult.TenantId);
 
             // Validate that we have received Tokens.
             await AcquireMicrosoftGraphAuthenticationResultAsync(cancellationToken);

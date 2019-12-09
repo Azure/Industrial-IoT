@@ -16,14 +16,12 @@ namespace Microsoft.Azure.IIoT.Deployment {
     using Infrastructure;
 
     using Microsoft.Azure.Management.ResourceManager.Fluent;
-    using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
     using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
     using Microsoft.Azure.Management.KeyVault.Fluent.Models;
     using Microsoft.Azure.Management.Storage.Fluent.Models;
     using Microsoft.Azure.Management.IotHub.Models;
     using Microsoft.Azure.Management.EventHub.Fluent.Models;
     using Microsoft.Azure.Management.Network.Fluent.Models;
-    using Microsoft.Identity.Client;
     using Microsoft.Graph;
 
     class DeploymentExecutor : IDisposable {
@@ -36,11 +34,8 @@ namespace Microsoft.Azure.IIoT.Deployment {
         private readonly Configuration.IConfigurationProvider _configurationProvider;
 
         private AzureEnvironment _azureEnvironment;
-        private IAccount _account;
-        private string _tenantName;
         private Guid _tenantId;
         private ISubscription _subscription;
-        private AzureCredentials _azureCredentials;
         private string _applicationName;
         private IResourceGroup _resourceGroup;
 
@@ -91,6 +86,8 @@ namespace Microsoft.Azure.IIoT.Deployment {
         private string _signalRName;
 
         // Resources
+        private DirectoryObject _owner;
+
         private Application _serviceApplication;
         private ServicePrincipal _serviceApplicationSP;
 
@@ -122,41 +119,38 @@ namespace Microsoft.Azure.IIoT.Deployment {
             _azureEnvironment = _configurationProvider.SelectEnvironment(AzureEnvironment.KnownEnvironments);
 
             // ToDo: Figure out how to sign-in without tenantId.
-            _tenantName = _configurationProvider.GetTenant();
+            _tenantId = _configurationProvider.GetTenantId();
 
-            _authenticationManager = new AuthenticationManager(_azureEnvironment, _tenantName);
+            _authenticationManager = new AuthenticationManager(_azureEnvironment, _tenantId);
             await _authenticationManager
                 .AuthenticateAsync(cancellationToken);
 
-            _account = _authenticationManager.GetAccount();
-            _tenantId = _authenticationManager.GetTenantId();
-            //_azureCredentials = _authenticationManager
-            //    .GetAzureCredentialsAsync(cancellationToken)
-            //    .Result;
-            _azureCredentials = _authenticationManager.GetDelegatingAzureCredentials();
-
-            InitializeDefaultTags(_account.Username);
+            var account = _authenticationManager.GetAccount();
+            InitializeDefaultTags(account?.Username);
         }
 
         /// <summary>
         /// Initialize default tags (list and dictionary) that will be added to
         /// resources created by the application.
         /// </summary>
-        /// <param name="username"></param>
-        private void InitializeDefaultTags(string username) {
+        /// <param name="owner"></param>
+        private void InitializeDefaultTags(string owner = null) {
             _defaultTagsList = new List<string> {
-                username,
                 Resources.IIoTDeploymentTags.VALUE_APPLICATION_IIOT,
                 Resources.IIoTDeploymentTags.VALUE_VERSION_IIOT,
                 Resources.IIoTDeploymentTags.VALUE_MANAGED_BY_IIOT
             };
 
             _defaultTagsDict = new Dictionary<string, string> {
-                { Resources.IIoTDeploymentTags.KEY_OWNER, username },
                 { Resources.IIoTDeploymentTags.KEY_APPLICATION, Resources.IIoTDeploymentTags.VALUE_APPLICATION_IIOT },
                 { Resources.IIoTDeploymentTags.KEY_VERSION, Resources.IIoTDeploymentTags.VALUE_VERSION_IIOT},
                 { Resources.IIoTDeploymentTags.KEY_MANAGED_BY, Resources.IIoTDeploymentTags.VALUE_MANAGED_BY_IIOT}
             };
+
+            if (null != owner) {
+                _defaultTagsList.Add(owner);
+                _defaultTagsDict.Add(Resources.IIoTDeploymentTags.KEY_OWNER, owner);
+            }
         }
 
         public void GetApplicationName() {
@@ -167,7 +161,12 @@ namespace Microsoft.Azure.IIoT.Deployment {
         public async Task InitializeResourceGroupSelectionAsync(
             CancellationToken cancellationToken = default
         ) {
-            _azureResourceManager = new AzureResourceManager(_azureCredentials);
+            //var azureCredentials = await _authenticationManager
+            //    .GetAzureCredentialsAsync(cancellationToken);
+            var azureCredentials = _authenticationManager
+                .GetDelegatingAzureCredentials();
+
+            _azureResourceManager = new AzureResourceManager(azureCredentials);
 
             // Select subscription to use.
             var subscriptionsList = _azureResourceManager.GetSubscriptions();
@@ -242,15 +241,18 @@ namespace Microsoft.Azure.IIoT.Deployment {
         public void InitializeResourceManagementClients(
             CancellationToken cancellationToken = default
         ) {
-            // Microsoft Graph 
-            var microsoftGraphTokenProvider = _authenticationManager
-                .GenerateDelegatingTokenProvider(
-                    _authenticationManager.AcquireMicrosoftGraphAuthenticationResultAsync
-                );
+            //var azureCredentials = await _authenticationManager
+            //    .GetAzureCredentialsAsync(cancellationToken);
+            var azureCredentials = _authenticationManager
+                .GetDelegatingAzureCredentials();
+
+            // Microsoft Graph
+            var microsoftGraphTokenCredentials = _authenticationManager
+                .GetMicrosoftGraphDelegatingTokenCredentials();
 
             _msGraphServiceClient = new MicrosoftGraphServiceClient(
                 _tenantId,
-                microsoftGraphTokenProvider,
+                microsoftGraphTokenCredentials,
                 cancellationToken
             );
 
@@ -258,7 +260,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
             _restClient = RestClient
                 .Configure()
                 .WithEnvironment(_azureEnvironment)
-                .WithCredentials(_azureCredentials)
+                .WithCredentials(azureCredentials)
                 //.WithLogLevel(HttpLoggingDelegatingHandler.Level.BodyAndHeaders)
                 .Build();
 
@@ -396,6 +398,9 @@ namespace Microsoft.Azure.IIoT.Deployment {
         public async Task RegisterApplicationsAsync(
             CancellationToken cancellationToken = default
         ) {
+            _owner = await _msGraphServiceClient
+                .GetMeAsync(cancellationToken);
+
             // Service Application /////////////////////////////////////////////
             // Register service application
 
@@ -404,6 +409,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
             _serviceApplication = await _msGraphServiceClient
                 .RegisterServiceApplicationAsync(
                     _servicesApplicationName,
+                    _owner,
                     _defaultTagsList,
                     cancellationToken
                 );
@@ -412,9 +418,14 @@ namespace Microsoft.Azure.IIoT.Deployment {
             _serviceApplicationSP = await _msGraphServiceClient
                 .GetServicePrincipalAsync(_serviceApplication, cancellationToken);
 
-            // Try to add current user as app owner for service application, if it is not owner already
+            // Add current user or service principal as app owner for service
+            // application, if it is not owner already.
             await _msGraphServiceClient
-                .AddMeAsApplicationOwnerAsync(_serviceApplication, cancellationToken);
+                .AddAsApplicationOwnerAsync(
+                    _serviceApplication,
+                    _owner,
+                    cancellationToken
+                );
 
             // Client Application //////////////////////////////////////////////
             // Register client application
@@ -433,9 +444,14 @@ namespace Microsoft.Azure.IIoT.Deployment {
             _clientApplicationSP = await _msGraphServiceClient
                 .GetServicePrincipalAsync(_clientApplication, cancellationToken);
 
-            // Try to add current user as app owner for client application, if it is not owner already
+            // Add current user or service principal as app owner for client
+            // application, if it is not owner already.
             await _msGraphServiceClient
-                .AddMeAsApplicationOwnerAsync(_clientApplication, cancellationToken);
+                .AddAsApplicationOwnerAsync(
+                    _clientApplication,
+                    _owner,
+                    cancellationToken
+                );
 
             // Update service application to include client applicatoin as knownClientApplications
             _serviceApplication = await _msGraphServiceClient
@@ -473,9 +489,14 @@ namespace Microsoft.Azure.IIoT.Deployment {
             _aksApplicationSP = await _msGraphServiceClient
                 .GetServicePrincipalAsync(_aksApplication, cancellationToken);
 
-            // Try to add current user as app owner for aks application, if it is not owner already
+            // Add current user or service principal as app owner for aks
+            // application, if it is not owner already.
             await _msGraphServiceClient
-                .AddMeAsApplicationOwnerAsync(_aksApplication, cancellationToken);
+                .AddAsApplicationOwnerAsync(
+                    _aksApplication,
+                    _owner,
+                    cancellationToken
+                );
         }
 
         public async Task DeleteApplicationsAsync(
@@ -663,14 +684,12 @@ namespace Microsoft.Azure.IIoT.Deployment {
             // Create Azure KeyVault
             VaultInner keyVault;
 
-            var me = _msGraphServiceClient.Me(cancellationToken);
-
             var keyVaultParameters = _keyVaultManagementClient
                 .GetCreationParameters(
                     _tenantId,
                     _resourceGroup,
                     _serviceApplicationSP,
-                    me
+                    _owner
                 );
 
             keyVault = await _keyVaultManagementClient
