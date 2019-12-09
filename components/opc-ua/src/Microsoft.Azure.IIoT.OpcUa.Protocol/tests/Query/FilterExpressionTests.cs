@@ -8,7 +8,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Parser {
     using Xunit;
 
     public class FilterExpressionTests {
-
+#if FALSE
         [Fact]
         public void ParseWhereStatement1() {
             var parser = new FilterExpression(
@@ -41,5 +41,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Parser {
             Assert.NotNull(parser.WhereClause);
             Assert.NotNull(parser.SelectClause);
         }
+#endif
     }
 }
