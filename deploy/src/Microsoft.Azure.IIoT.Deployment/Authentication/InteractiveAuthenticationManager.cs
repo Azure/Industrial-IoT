@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Deployment {
+namespace Microsoft.Azure.IIoT.Deployment.Authentication {
 
     using System;
     using System.Runtime.InteropServices;
@@ -15,9 +15,9 @@ namespace Microsoft.Azure.IIoT.Deployment {
 
     using Microsoft.Azure.IIoT.Deployment.Infrastructure.Extensions;
 
-    class AuthenticationManager : IAuthenticationManager {
+    class InteractiveAuthenticationManager : IAuthenticationManager {
 
-        // ClientId of AzureIndustrialIoTIAI Application
+        // ClientId (or AppId) of AzureIndustrialIoTDeployment Application
         public const string AzureIndustrialIoTDeploymentClientID = "fb2ca262-60d8-4167-ac33-1998d6d5c50b";
 
         public static readonly string[] MicrosoftGraphIAIScopes = new string[] {
@@ -39,9 +39,10 @@ namespace Microsoft.Azure.IIoT.Deployment {
 
         private IAccount _account;
 
-        public AuthenticationManager(
+        public InteractiveAuthenticationManager(
             AzureEnvironment azureEnvironment,
-            Guid tenantId
+            Guid tenantId,
+            Guid applicationClientId
         ) {
             _azureEnvironment = azureEnvironment;
             var azureCloudInstance = azureEnvironment.ToAzureCloudInstance();
@@ -49,7 +50,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
             _tenantId = tenantId;
 
             _publicClientApplication = PublicClientApplicationBuilder
-                .Create(AzureIndustrialIoTDeploymentClientID)
+                .Create(applicationClientId.ToString())
                 .WithAuthority(azureCloudInstance, tenantId)
                 //.WithAuthority(azureCloudInstance, AadAuthorityAudience.AzureAdMultipleOrgs)
                 .WithDefaultRedirectUri()
@@ -59,46 +60,16 @@ namespace Microsoft.Azure.IIoT.Deployment {
         public async Task AuthenticateAsync(
             CancellationToken cancellationToken = default
         ) {
-            AuthenticationResult microsoftGraphAuthenticatoinResult;
+            // We will use interactive authentication flow for Windows.
+            // https://github.com/AzureAD/microsoft-authentication-library-for-dotnet/wiki/Acquiring-tokens-interactively
 
-            var isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
-
-            if (isWindows) {
-                // We will use interactive authentication flow for Windows.
-                // https://github.com/AzureAD/microsoft-authentication-library-for-dotnet/wiki/Acquiring-tokens-interactively
-
-                // ToDo: Add timeout.
-                microsoftGraphAuthenticatoinResult = await _publicClientApplication
-                    .AcquireTokenInteractive(MicrosoftGraphIAIScopes)
-                    .WithExtraScopesToConsent(AzureManagementIAIScopes)
-                    .WithExtraScopesToConsent(KeyVaultIAIScopes)
-                    //.WithPrompt(Prompt.SelectAccount)
-                    .ExecuteAsync(cancellationToken);
-            }
-            else {
-                // We will use device code flow authentication for Unix systems.
-                // https://github.com/AzureAD/microsoft-authentication-library-for-dotnet/wiki/Device-Code-Flow
-
-                // ToDo: Add timeout.
-                microsoftGraphAuthenticatoinResult = await _publicClientApplication
-                    .AcquireTokenWithDeviceCode(
-                        MicrosoftGraphIAIScopes,
-                        deviceCodeResult => {
-                            // This will print the message on the console which tells the user where to go sign-in using 
-                            // a separate browser and the code to enter once they sign in.
-                            // The AcquireTokenWithDeviceCode() method will poll the server after firing this
-                            // device code callback to look for the successful login of the user via that browser.
-                            // This background polling (whose interval and timeout data is also provided as fields in the 
-                            // deviceCodeCallback class) will occur until:
-                            // * The user has successfully logged in via browser and entered the proper code
-                            // * The timeout specified by the server for the lifetime of this code (typically ~15 minutes) has been reached
-                            // * The developing application calls the Cancel() method on a CancellationToken sent into the method.
-                            //   If this occurs, an OperationCanceledException will be thrown (see catch below for more details).
-                            Console.WriteLine(deviceCodeResult.Message);
-                            return Task.FromResult(0);
-                        })
-                    .ExecuteAsync();
-            }
+            // ToDo: Add timeout.
+            var microsoftGraphAuthenticatoinResult = await _publicClientApplication
+                .AcquireTokenInteractive(MicrosoftGraphIAIScopes)
+                .WithExtraScopesToConsent(AzureManagementIAIScopes)
+                .WithExtraScopesToConsent(KeyVaultIAIScopes)
+                //.WithPrompt(Prompt.SelectAccount)
+                .ExecuteAsync(cancellationToken);
 
             // Extract account from microsoftGraphAuthenticatoinResult
             _account = microsoftGraphAuthenticatoinResult.Account;

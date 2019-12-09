@@ -13,6 +13,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
     using System.Threading;
     using System.Threading.Tasks;
 
+    using Authentication;
     using Infrastructure;
 
     using Microsoft.Azure.Management.ResourceManager.Fluent;
@@ -38,6 +39,9 @@ namespace Microsoft.Azure.IIoT.Deployment {
         private ISubscription _subscription;
         private string _applicationName;
         private IResourceGroup _resourceGroup;
+
+        private Guid _applicationClientId;
+        private string _applicationClientSecret = null;
 
         private IAuthenticationManager _authenticationManager;
         private AzureResourceManager _azureResourceManager;
@@ -121,12 +125,19 @@ namespace Microsoft.Azure.IIoT.Deployment {
             // ToDo: Figure out how to sign-in without tenantId.
             _tenantId = _configurationProvider.GetTenantId();
 
-            _authenticationManager = new AuthenticationManager(_azureEnvironment, _tenantId);
+            _applicationClientId = new Guid(InteractiveAuthenticationManager.AzureIndustrialIoTDeploymentClientID);
+            _applicationClientSecret = null;
+
+            _authenticationManager = AuthenticationManagerFactory
+                .GetAuthenticationManager(
+                    _azureEnvironment,
+                    _tenantId,
+                    _applicationClientId,
+                    _applicationClientSecret
+                );
+
             await _authenticationManager
                 .AuthenticateAsync(cancellationToken);
-
-            var account = _authenticationManager.GetAccount();
-            InitializeDefaultTags(account?.Username);
         }
 
         /// <summary>
@@ -161,8 +172,46 @@ namespace Microsoft.Azure.IIoT.Deployment {
         public async Task InitializeResourceGroupSelectionAsync(
             CancellationToken cancellationToken = default
         ) {
-            //var azureCredentials = await _authenticationManager
-            //    .GetAzureCredentialsAsync(cancellationToken);
+            // Initialization of MicrosoftGraphServiceClient
+            var microsoftGraphTokenCredentials = _authenticationManager
+                .GetMicrosoftGraphDelegatingTokenCredentials();
+
+            _msGraphServiceClient = new MicrosoftGraphServiceClient(
+                _tenantId,
+                microsoftGraphTokenCredentials,
+                cancellationToken
+            );
+
+            // ToDo: Change this to be defined by configuration.
+            bool useInteractiveAuthenticationFlow = !(_authenticationManager is ClientCredentialsAuthenticationManager);
+
+            if (useInteractiveAuthenticationFlow) {
+                var me = await _msGraphServiceClient
+                    .GetMeAsync(cancellationToken);
+
+                _owner = me;
+
+                if (null != me.Mail) {
+                    InitializeDefaultTags(me.Mail);
+                }
+                else {
+                    var account = _authenticationManager.GetAccount();
+                    InitializeDefaultTags(account?.Username);
+                }
+            }
+            else {
+                var ownerSP = await _msGraphServiceClient
+                    .GetServicePrincipalByAppIdAsync(
+                        _applicationClientId.ToString(),
+                        cancellationToken
+                    );
+
+                _owner = ownerSP;
+
+                InitializeDefaultTags(ownerSP.DisplayName);
+            }
+
+            // Initialization of AzureResourceManager
             var azureCredentials = _authenticationManager
                 .GetDelegatingAzureCredentials();
 
@@ -245,16 +294,6 @@ namespace Microsoft.Azure.IIoT.Deployment {
             //    .GetAzureCredentialsAsync(cancellationToken);
             var azureCredentials = _authenticationManager
                 .GetDelegatingAzureCredentials();
-
-            // Microsoft Graph
-            var microsoftGraphTokenCredentials = _authenticationManager
-                .GetMicrosoftGraphDelegatingTokenCredentials();
-
-            _msGraphServiceClient = new MicrosoftGraphServiceClient(
-                _tenantId,
-                microsoftGraphTokenCredentials,
-                cancellationToken
-            );
 
             // Create generic RestClient for services
             _restClient = RestClient
@@ -398,9 +437,6 @@ namespace Microsoft.Azure.IIoT.Deployment {
         public async Task RegisterApplicationsAsync(
             CancellationToken cancellationToken = default
         ) {
-            _owner = await _msGraphServiceClient
-                .GetMeAsync(cancellationToken);
-
             // Service Application /////////////////////////////////////////////
             // Register service application
 
