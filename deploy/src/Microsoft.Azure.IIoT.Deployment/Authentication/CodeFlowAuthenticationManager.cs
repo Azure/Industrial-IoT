@@ -138,5 +138,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Authentication {
 
             return authenticationResult;
         }
+
+        public bool IsUserAuthenticationFlow() {
+            return true;
+        }
     }
 }

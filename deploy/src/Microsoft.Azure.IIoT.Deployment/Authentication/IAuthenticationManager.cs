@@ -35,5 +35,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Authentication {
         public Task<AuthenticationResult> AcquireKeyVaultAuthenticationResultAsync(
             CancellationToken cancellationToken = default
         );
+
+        public bool IsUserAuthenticationFlow();
     }
 }

@@ -182,10 +182,9 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 cancellationToken
             );
 
-            // ToDo: Change this to be defined by configuration.
-            bool useInteractiveAuthenticationFlow = !(_authenticationManager is ClientCredentialsAuthenticationManager);
-
-            if (useInteractiveAuthenticationFlow) {
+            if (_authenticationManager.IsUserAuthenticationFlow()) {
+                // If this is user authentication flow then authenticated user
+                // will be used as owner of the deployment.
                 var me = await _msGraphServiceClient
                     .GetMeAsync(cancellationToken);
 
@@ -200,6 +199,8 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 }
             }
             else {
+                // If this is not user authentication flow then service principal
+                // of the application will be used as owner of the deployment.
                 var ownerSP = await _msGraphServiceClient
                     .GetServicePrincipalByAppIdAsync(
                         _applicationClientId.ToString(),
