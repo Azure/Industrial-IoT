@@ -634,42 +634,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10239";
 
-            var val = JToken.Parse(
-                "{\"TypeId\":\"http://test.org/UA/Data/#i=11437\",\"Body\":\"" +
-                "AGUQXsNmdlUwInNr0otvwr+yCEpoQ/kkwUqSIrVQBk7lzusAAADA8Jc+P18A" +
-                "AADpu4ToibIpIOm7hOiJsl0g5qGD5a2QeyDpu5HoibIg54uXWyDntKvoibIg" +
-                "5qGD5a2QXSDni5cg57qi6ImyIOiRoeiQhCUg5qGD5a2QPyDnjKsg54y05a2Q" +
-                "IOe7tee+ipPWICpktd0BwVWgZGAeoWfoAfmW/s4+7BAAAABeYho5zNYZ6t29" +
-                "Pj5jUE65awQAADxuMDpNYW5nbyBNb25rZXk9Ik1vbmtleSIgU25ha2U9IkNv" +
-                "dyIgUmVkPSJXaGl0ZSIgR3JhcGU9IkxlbW9uIiBCYW5hbmE9IkdyZWVuIiBM" +
-                "aW1lPSJTaGVlcCIgU3RyYXdiZXJyeT0iTWFuZ28iIEVsZXBoYW50PSJTdHJh" +
-                "d2JlcnJ5IiBQdXJwbGU9IkdyZWVuIiBTaGVlcD0iTGVtb24iIHhtbG5zOm4w" +
-                "PSJodHRwOi8vUGVhY2giPjxuMDpHcmFwZT5ZZWxsb3crIEVsZXBoYW50IEVs" +
-                "ZXBoYW50JSBEcmFnb257IFBpbmVhcHBsZSggUmVkKiBQaW5lYXBwbGUnIFdo" +
-                "aXRlIEJsYWNrPyBQaWcgV2hpdGU8L24wOkdyYXBlPjxuMDpXaGl0ZT5QaW5l" +
-                "YXBwbGUgQmx1ZXsgRG9nIExlbW9uIENhdCBMaW1lIFBpbmVhcHBsZTsgQmxh" +
-                "Y2ssIFJhdCBNYW5nbzwvbjA6V2hpdGU+PG4wOlJlZD5QaW5lYXBwbGUgU2hl" +
-                "ZXAgQmFuYW5hIE1hbmdvfiBQZWFjaF0gR3JlZW4mbHQ7IEJsYWNrLiBHcmVl" +
-                "biBCbGFjay4gTWFuZ28gUGluZWFwcGxlIENvdzsgUGluZWFwcGxlIFJlZD08" +
-                "L24wOlJlZD48bjA6UmVkPldoaXRlJmd0OyBCYW5hbmEgQmxhY2smZ3Q7IFB1" +
-                "cnBsZSBTbmFrZTogUmVkYCBHcmVlbiBCbHVlXiBFbGVwaGFudCBXaGl0ZSBC" +
-                "bHVlYmVycnkgQ2F0IFNoZWVwPC9uMDpSZWQ+PG4wOlBpbmVhcHBsZT5HcmVl" +
-                "biBZZWxsb3cgQ2F0IEJsYWNrIFB1cnBsZSwgTW9ua2V5IENvdyogTGltZSBQ" +
-                "dXJwbGV7IFB1cnBsZSogUGlnKCBMZW1vbicgQmFuYW5hLSBTaGVlcCM8L24w" +
-                "OlBpbmVhcHBsZT48bjA6R3JhcGU+TW9ua2V5IEdyYXBlIE1hbmdvKyBQaW5l" +
-                "YXBwbGUgU25ha2UgRG9nIFJlZCBNYW5nb30gUGluZWFwcGxlJyBQaW5lYXBw" +
-                "bGUgUGlnXSBFbGVwaGFudDwvbjA6R3JhcGU+PG4wOlNuYWtlPkhvcnNlIEJs" +
-                "dWViZXJyeSZndDsgQmxhY2sgV2hpdGUlIEhvcnNlIFJlZEAgR3JhcGUkIFdo" +
-                "aXRlIFB1cnBsZTwvbjA6U25ha2U+PG4wOkdyYXBlPlJhdCBQdXJwbGU6IFN0" +
-                "cmF3YmVycnktIFBlYWNoIEJsYWNrIiBZZWxsb3ddIFN0cmF3YmVycnkgQmxh" +
-                "Y2sgQmFuYW5hIyBIb3JzZSggUGVhY2g/PC9uMDpHcmFwZT48bjA6TWFuZ28+" +
-                "TGltZSEgQmFuYW5hJmd0OyBTdHJhd2JlcnJ5IFNoZWVwfiBCbHVlYmVycnkl" +
-                "IE1vbmtleSIgR3JlZW4vIFNoZWVwIEhvcnNlXiBTbmFrZSBSZWRAPC9uMDpN" +
-                "YW5nbz48L24wOk1hbmdvPgMFAAkAAADni5fnu7XnvoqFAAABAAAApSEAAABo" +
-                "dHRwOi8vdGVzdC5vcmcvVUEvRGF0YS8vSW5zdGFuY2UCAAYAAADjg5jjg5MD" +
-                "BQAAAHpoLUNOHAAAAOiTneiJsiDntKvoibIg6JOd6ImyIOe6ouiJsiQAABwA" +
-                "BifC2W0AAAAAAAAACwAAAAAAAAAACAAAAAAAAAAACQAAAAAAAAAA\"}");
-
             var expected = JToken.Parse(@"
 {
     ""TypeId"": ""http://test.org/UA/Data/#i=11437"",
@@ -698,10 +662,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 ""@Grape"": ""Lemon"",
                 ""@Banana"": ""Green"",
                 ""@Lime"": ""Sheep"",
-                ""@Strawberry"": ""Mango"",
+                ""@Strawberry"": ""Mangod"",
                 ""@Elephant"": ""Strawberry"",
-                ""@Purple"": ""Green"",
-                ""@Sheep"": ""Lemon"",
+                ""@Purple"": ""Greend"",
+                ""@Sheep"": ""Lemond"",
                 ""@xmlns:n0"": ""http://Peach"",
                 ""n0:Grape"": [ ""Yellow+ Elephant Elephant% Dragon{ Pineapple( Red* Pineapple' White Black? Pig White"", ""Monkey Grape Mango+ Pineapple Snake Dog Red Mango} Pineapple' Pineapple Pig] Elephant"", ""Rat Purple: Strawberry- Peach Black\"" Yellow] Strawberry Black Banana# Horse( Peach?"" ],
                 ""n0:White"": ""Pineapple Blue{ Dog Lemon Cat Lime Pineapple; Black, Rat Mango"",
@@ -721,7 +685,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         ""StatusCodeValue"": 1835008,
         ""VariantValue"": {
             ""Type"": ""Int32"",
-            ""Body"": 1842987559
+            ""Body"": 184297559
         },
         ""EnumerationValue"": 0,
         ""StructureValue"": { ""TypeId"": null },
@@ -731,7 +695,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         },
         ""Integer"": {
             ""Type"": ""Int64"",
-            ""Body"": 0
+            ""Body"": 5
         },
         ""UInteger"": {
             ""Type"": ""UInt64"",
@@ -745,9 +709,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var result = await browser.NodeValueWriteAsync(_endpoint,
                 new ValueWriteRequestModel {
                     NodeId = node,
-                    Value = val, // TODO: expected,
+                    Value = expected,
                     DataType = "ExtensionObject"
-                    // TODO: Assert.Equal("Structure", result.DataType);
                 });
 
             // Assert

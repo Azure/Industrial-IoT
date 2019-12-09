@@ -183,6 +183,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
         public async Task NodeWriteStaticScalarUIntegerValueVariableTestAsync() {
             await GetTests().NodeWriteStaticScalarUIntegerValueVariableTestAsync();
         }
-
     }
 }
