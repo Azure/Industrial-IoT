@@ -12,7 +12,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
     public class EventFilterModel {
 
         /// <summary>
-        /// Where clause
+        /// Select statement
         /// </summary>
         public List<SimpleAttributeOperandModel> SelectClauses { get; set; }
 

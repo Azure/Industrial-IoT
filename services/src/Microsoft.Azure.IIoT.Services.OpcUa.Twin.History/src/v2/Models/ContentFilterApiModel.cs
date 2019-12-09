@@ -12,53 +12,44 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Models {
     using System.Linq;
 
     /// <summary>
-    /// Event filter
+    /// Content filter
     /// </summary>
-    public class EventFilterApiModel : JObject {
+    public class ContentFilterApiModel : JObject {
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        public EventFilterApiModel() {
+        public ContentFilterApiModel() {
         }
 
         /// <summary>
         /// Create api model from service model
         /// </summary>
         /// <param name="model"></param>
-        public EventFilterApiModel(EventFilterModel model) {
+        public ContentFilterApiModel(ContentFilterModel model) {
             if (model == null) {
                 throw new ArgumentNullException(nameof(model));
             }
-            SelectClauses = model.SelectClauses?
-                .Select(f => new SimpleAttributeOperandApiModel(f))
+            Elements = model.Elements?
+                .Select(f => new ContentFilterElementApiModel(f))
                 .ToList();
-            WhereClause = model.WhereClause == null ? null :
-                new ContentFilterApiModel(model.WhereClause);
         }
 
         /// <summary>
         /// Create service model from api model
         /// </summary>
-        public EventFilterModel ToServiceModel() {
-            return new EventFilterModel {
-                SelectClauses = SelectClauses?
+        public ContentFilterModel ToServiceModel() {
+            return new ContentFilterModel {
+                Elements = Elements?
                     .Select(e => e.ToServiceModel())
-                    .ToList(),
-                WhereClause = WhereClause?.ToServiceModel()
+                    .ToList()
             };
         }
 
         /// <summary>
-        /// Select statements
+        /// The flat list of elements in the filter AST
         /// </summary>
-        [JsonProperty(PropertyName = "selectClauses")]
-        public List<SimpleAttributeOperandApiModel> SelectClauses { get; set; }
-
-        /// <summary>
-        /// Where clause
-        /// </summary>
-        [JsonProperty(PropertyName = "whereClause")]
-        public ContentFilterApiModel WhereClause { get; set; }
+        [JsonProperty(PropertyName = "elements")]
+        public List<ContentFilterElementApiModel> Elements { get; set; }
     }
 }

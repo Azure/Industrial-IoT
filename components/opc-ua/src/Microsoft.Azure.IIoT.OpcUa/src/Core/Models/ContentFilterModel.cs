@@ -16,5 +16,4 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
         /// </summary>
         public List<ContentFilterElementModel> Elements { get; set; }
     }
-
 }

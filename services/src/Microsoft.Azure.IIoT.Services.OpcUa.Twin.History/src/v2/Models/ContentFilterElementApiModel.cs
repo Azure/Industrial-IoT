@@ -6,59 +6,58 @@
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Models {
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
     using System.Linq;
 
     /// <summary>
-    /// Event filter
+    /// An expression element in the filter ast
     /// </summary>
-    public class EventFilterApiModel : JObject {
+    public class ContentFilterElementApiModel {
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        public EventFilterApiModel() {
-        }
+        public ContentFilterElementApiModel() { }
 
         /// <summary>
         /// Create api model from service model
         /// </summary>
         /// <param name="model"></param>
-        public EventFilterApiModel(EventFilterModel model) {
+        public ContentFilterElementApiModel(ContentFilterElementModel model) {
             if (model == null) {
                 throw new ArgumentNullException(nameof(model));
             }
-            SelectClauses = model.SelectClauses?
-                .Select(f => new SimpleAttributeOperandApiModel(f))
+            FilterOperands = model.FilterOperands?
+                .Select(f => new FilterOperandApiModel(f))
                 .ToList();
-            WhereClause = model.WhereClause == null ? null :
-                new ContentFilterApiModel(model.WhereClause);
+            FilterOperator = model.FilterOperator;
         }
 
         /// <summary>
         /// Create service model from api model
         /// </summary>
-        public EventFilterModel ToServiceModel() {
-            return new EventFilterModel {
-                SelectClauses = SelectClauses?
-                    .Select(e => e.ToServiceModel())
+        public ContentFilterElementModel ToServiceModel() {
+            return new ContentFilterElementModel {
+                FilterOperands = FilterOperands?
+                    .Select(f => f.ToServiceModel())
                     .ToList(),
-                WhereClause = WhereClause?.ToServiceModel()
+                FilterOperator = FilterOperator
             };
         }
 
         /// <summary>
-        /// Select statements
+        /// The operator to use on the operands
         /// </summary>
-        [JsonProperty(PropertyName = "selectClauses")]
-        public List<SimpleAttributeOperandApiModel> SelectClauses { get; set; }
+        [JsonProperty(PropertyName = "filterOperator",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public FilterOperatorType FilterOperator { get; set; }
 
         /// <summary>
-        /// Where clause
+        /// The operands in the element for the operator
         /// </summary>
-        [JsonProperty(PropertyName = "whereClause")]
-        public ContentFilterApiModel WhereClause { get; set; }
+        [JsonProperty(PropertyName = "filterOperands",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public List<FilterOperandApiModel> FilterOperands { get; set; }
     }
 }

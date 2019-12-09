@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.v2.Models {
+namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Models {
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Newtonsoft.Json;
     using System;

@@ -11,18 +11,18 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Models {
     /// <summary>
     /// Aggregate configuration
     /// </summary>
-    public class AggregateConfigApiModel {
+    public class AggregateConfigurationApiModel {
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        public AggregateConfigApiModel() { }
+        public AggregateConfigurationApiModel() { }
 
         /// <summary>
         /// Create from service model
         /// </summary>
         /// <param name="model"></param>
-        public AggregateConfigApiModel(AggregateConfigurationModel model) {
+        public AggregateConfigurationApiModel(AggregateConfigurationModel model) {
             if (model == null) {
                 throw new ArgumentNullException(nameof(model));
             }
