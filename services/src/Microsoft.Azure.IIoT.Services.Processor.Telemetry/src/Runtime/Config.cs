@@ -12,6 +12,8 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Runtime {
     using Microsoft.Azure.IIoT.Messaging.EventHub;
     using Microsoft.Azure.IIoT.Messaging.SignalR;
     using Microsoft.Azure.IIoT.Messaging.SignalR.Runtime;
+    using Microsoft.Azure.IIoT.Cdm;
+    using Microsoft.Azure.IIoT.Cdm.Runtime;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Extensions.Configuration;
     using System;
@@ -20,7 +22,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Runtime {
     /// Telemetry processor service configuration
     /// </summary>
     public class Config : DiagnosticsConfig, IEventProcessorConfig, IEventHubConsumerConfig,
-        IOnboardingConfig, ISignalRServiceConfig {
+        IOnboardingConfig, ISignalRServiceConfig, ICdmClientConfig {
 
         /// <inheritdoc/>
         public string OpcUaOnboardingServiceUrl => _ia.OpcUaOnboardingServiceUrl;
@@ -47,6 +49,25 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Runtime {
         /// <inheritdoc/>
         public string SignalRConnString => _sr.SignalRConnString;
 
+        /// <inheritdoc/>
+        public string ADLSg2HostName => _cdm.ADLSg2HostName;
+        /// <inheritdoc/>
+        public string ADLSg2BlobName => _cdm.ADLSg2BlobName;
+        /// <inheritdoc/>
+        public string RootFolder => _cdm.RootFolder;
+        /// <inheritdoc/>
+        public string TenantId => _cdm.TenantId;
+        /// <inheritdoc/>
+        public string Domain => _cdm.Domain;
+        /// <inheritdoc/>
+        public string AppId => _cdm.AppId;
+        /// <inheritdoc/>
+        public string AppSecret => _cdm.AppSecret;
+        /// <inheritdoc/>
+        public string InstanceUrl => _cdm.InstanceUrl;
+        /// <inheritdoc/>
+        public string Audience => _cdm.Audience;
+
         /// <summary>
         /// Configuration constructor
         /// </summary>
@@ -56,11 +77,13 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Runtime {
             _eh = new IoTHubEventConfig(configuration);
             _ia = new InternalApiConfig(configuration);
             _sr = new SignalRServiceConfig(configuration);
+            _cdm = new CdmClientConfig(configuration);
         }
 
         private readonly EventProcessorConfig _ep;
         private readonly IoTHubEventConfig _eh;
         private readonly InternalApiConfig _ia;
         private readonly SignalRServiceConfig _sr;
+        private readonly CdmClientConfig _cdm;
     }
 }

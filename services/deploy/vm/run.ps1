@@ -54,6 +54,7 @@ Function GetEnvironmentVariables() {
     $WORKSPACE_NAME = $deployment.Outputs["workspace-name"].Value
     $APPINSIGHTS_NAME = $deployment.Outputs["appinsights-name"].Value
     $APPINSIGHTS_INSTRUMENTATIONKEY = $deployment.Outputs["appinsights-instrumentationkey"].Value
+    $ADLSG2_ACCOUNT = $deployment.Outputs["adlsg2-account"].Value
 
     Write-Output `
         "_HUB_CS=$IOTHUB_CONNSTRING"
@@ -118,6 +119,9 @@ Function GetEnvironmentVariables() {
     $AUTH_AAD_APPID = $aadConfig.ClientId
     $AUTH_AAD_TENANT = $aadConfig.TenantId
     $AUTH_AAD_AUTHORITY = $aadConfig.Instance
+    $AUTH_AAD_SERVICEID = $aadConfig.ServiceId
+    $AUTH_AAD_SERVICESECRET = $aadConfig.ServiceSecret
+
 
     Write-Output `
         "PCS_AUTH_HTTPSREDIRECTPORT=0"
@@ -146,6 +150,12 @@ Function GetEnvironmentVariables() {
         "REACT_APP_PCS_WEBUI_AUTH_AAD_AUTHORITY=$AUTH_AAD_AUTHORITY"
     Write-Output `
         "REACT_APP_PCS_WEBUI_AUTH_AAD_TENANT=$AUTH_AAD_TENANT"
+   Write-Output `
+        "PCS_AUTH_AAD_SERVICEID=$AUTH_AAD_SERVICEID"
+    Write-Output `
+        "PCS_AUTH_AAD_SERVICESECRET=$AUTH_AAD_SERVICESECRET"
+   Write-Output `
+        "PCS_ADLSG2_ACCOUNT=$ADLSG2_ACCOUNT"	
 }
 
 #******************************************************************************

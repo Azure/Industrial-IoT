@@ -84,6 +84,13 @@
                 "description": "The name of the storageAccount"
             }
         },
+        "storageGen2Name": {
+            "type": "string",
+            "defaultValue": "[concat('storageg2', take(uniqueString(subscription().subscriptionId, resourceGroup().id, parameters('solutionName')), 5))]",
+            "metadata": {
+                "description": "The name of the storage Gen2 account created as part of the deployment."
+            }
+        },
         "storageSkuName": {
             "type": "string",
             "defaultValue": "Standard_LRS",
@@ -521,7 +528,9 @@
         "deviceNotificationRouteName": "DeviceNotifications",
         "onboardingConsumerGroupName": "onboarding",
         "storageApiVersion": "2017-06-01",
+        "storageGen2ApiVersion": "2018-02-01",
         "storageResourceId": "[resourceId('Microsoft.Storage/storageAccounts/',  parameters('storageName'))]",
+        "storageGen2ResourceId": "[resourceId('Microsoft.Storage/storageAccounts/',  parameters('storageGen2Name'))]",
         "computeApiVersion": "2017-03-30",
         "vmFQDN": "[concat(parameters('vmName'), '.', variables('location'), '.', parameters('vmFQDNSuffix'))]",
         "imagePublisher": "Canonical",
@@ -740,6 +749,51 @@
                 }
             },
             "dependsOn": []
+        },
+        {
+            "comments": "Storage Gen2 account",
+            "type": "Microsoft.Storage/storageAccounts",
+            "name": "[parameters('storageGen2Name')]",
+            "apiVersion": "[variables('storageGen2ApiVersion')]",
+            "location": "[variables('location')]",
+            "kind": "StorageV2",
+            "sku": {
+                "name": "[parameters('storageSkuName')]"
+            },
+            "properties": {
+                "isHnsEnabled": true,
+                "networkAcls": {
+                    "bypass": "AzureServices",
+                    "virtualNetworkRules": [],
+                    "ipRules": [],
+                    "defaultAction": "Allow"
+                },
+                "supportsHttpsTrafficOnly": true,
+                "encryption": {
+                    "services": {
+                        "file": {
+                            "enabled": true
+                        },
+                        "blob": {
+                            "enabled": true
+                        }
+                    },
+                    "keySource": "Microsoft.Storage"
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/providers/roleAssignments",
+            "apiVersion": "2018-09-01-preview",
+            "name": "[concat(parameters('storageGen2Name'), '/Microsoft.Authorization/', guid(uniqueString(parameters('storageGen2Name'))))]",
+            "dependsOn": [
+                "[parameters('storageGen2Name')]"
+            ],
+            "properties": {
+                "roleDefinitionId": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')]",
+                "principalId": "[parameters('aadServicePrincipalId')]"
+            }
         },
         {
             "comments": "Azure CosmosDb",
@@ -1449,6 +1503,10 @@
         "appinsights-instrumentationkey": {
             "type": "string",
             "value": "[reference(resourceId('Microsoft.Insights/components', parameters('appInsightsName')), variables('appInsightsVersion')).InstrumentationKey]"
+        },
+        "adlsg2-account": {
+            "type": "string",
+            "value": "[parameters('storageGen2Name')]"
         },
         "simVirtualMachineUsername": {
             "type": "string",
