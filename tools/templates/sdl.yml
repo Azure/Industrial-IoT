@@ -18,8 +18,9 @@ jobs:
   - task: DotNetCoreCLI@2
     displayName: Restore
     inputs:
-      command: restore
+      command: restore 
       projects: 'Industrial-IoT.sln'
+      arguments: '-s https://www.myget.org/F/azureiiot/api/v3/index.json'
   - task: MSBuild@1
     displayName: Build
     inputs:
