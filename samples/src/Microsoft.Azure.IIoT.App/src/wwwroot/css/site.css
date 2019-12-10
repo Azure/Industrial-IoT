@@ -137,6 +137,18 @@ app {
     font-size: 1em;
 }
 
+.margin {
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.visible {
+    visibility: visible;
+}
+
+.hidden {
+    visibility: hidden;
+}
 
 @media (max-width: 767.98px) {
     .main .top-row {

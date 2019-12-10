@@ -23,6 +23,8 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// Current path
         /// </summary>
         public string Path { get; set; }
+        public MethodMetadataResponseApiModel Parameter { get; set; }
+        public MethodCallResponseApiModel MethodCallResponse { get; set; }
 
         /// <summary>
         /// Create browser
@@ -40,7 +42,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <param name="parentId"></param>
         /// <param name="supervisorId"></param>
         /// <param name="direction"></param>
-        /// <returns></returns>
+        /// <returns>ListNode</returns>
         public async Task<PagedResult<ListNode>> GetTreeAsync(string endpointId,
             string id, List<string> parentId, string supervisorId, BrowseDirection direction) {
             var pageResult = new PagedResult<ListNode>();
@@ -88,9 +90,9 @@ namespace Microsoft.Azure.IIoT.App.Services {
                                 AccessLevel = nodeReference.Target.AccessLevel ?? 0,
                                 ParentName = browseData.Node.DisplayName,
                                 DataType = nodeReference.Target.DataType,
-                                Value = nodeReference.Target.NodeClass.ToString() == "Variable" ? 
-                                        await ReadValueAsync(endpointId, nodeReference.Target.NodeId.ToString()) :
-                                        string.Empty
+                                Value = string.Empty,
+                                Publishing = false,
+                                PublishedNode = null
                             });
                         }
                     }
@@ -174,11 +176,99 @@ namespace Microsoft.Azure.IIoT.App.Services {
                     return string.Format("value successfully written to node '{0}'", nodeId);
                 }
                 else {
-                    return response.ErrorInfo.ToString();
+                    if (response.ErrorInfo.Diagnostics != null) {
+                        return response.ErrorInfo.Diagnostics.ToString();
+                    }
+                    else {
+                        return response.ErrorInfo.ToString();
+                    }
                 }
             }
             catch (Exception e) {
                 Trace.TraceError("Can not write value of node '{0}'", nodeId);
+                var errorMessage = string.Format(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
+                Trace.TraceError(errorMessage);
+                return errorMessage;
+            }
+        }
+
+        /// <summary>
+        /// GetParameterAsync
+        /// </summary>
+        /// <param name="endpointId"></param>
+        /// <param name="nodeId"></param>
+        /// <returns>Status</returns>
+        public async Task<string> GetParameterAsync(string endpointId, string nodeId) {
+            Parameter = new MethodMetadataResponseApiModel();
+            var model = new MethodMetadataRequestApiModel() {
+                MethodId = nodeId
+            };
+
+            try {
+                Parameter = await _twinService.NodeMethodGetMetadataAsync(endpointId, model);
+
+                if (Parameter.ErrorInfo == null) {
+                    return null;
+                }
+                else {
+                    if (Parameter.ErrorInfo.Diagnostics != null) {
+                        return Parameter.ErrorInfo.Diagnostics.ToString();
+                    }
+                    else {
+                        return Parameter.ErrorInfo.ToString();
+                    }
+                }
+            }
+            catch (Exception e) {
+                Trace.TraceError("Can not get method parameter from node '{0}'", nodeId);
+                var errorMessage = string.Format(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
+                Trace.TraceError(errorMessage);
+                return errorMessage;
+            }
+        }
+
+        /// <summary>
+        /// MethodCallAsync
+        /// </summary>
+        /// <param name="parameterValues"></param>
+        /// <param name="nodeId"></param>
+        /// <returns>Status</returns>
+        public async Task<string> MethodCallAsync(MethodMetadataResponseApiModel parameters, string[] parameterValues, string endpointId, string nodeId) {
+
+            var argumentsList = new List<MethodCallArgumentApiModel>();
+            var model = new MethodCallRequestApiModel() {
+                MethodId = nodeId,
+                ObjectId = parameters.ObjectId
+            };
+
+            try {
+
+                int count = 0;
+                foreach (var item in parameters.InputArguments) {
+                    var argument = new MethodCallArgumentApiModel();
+                    argument.Value = parameterValues[count] != null ? parameterValues[count] : string.Empty;
+                    argument.DataType = item.Type.DataType;
+                    argumentsList.Add(argument);
+                    count++;
+                }
+                model.Arguments = argumentsList;
+
+                MethodCallResponse = await _twinService.NodeMethodCallAsync(endpointId, model);
+
+                if (MethodCallResponse.ErrorInfo == null) {
+                    return null;
+                }
+                else {
+                    if (MethodCallResponse.ErrorInfo.Diagnostics != null) {
+                        return MethodCallResponse.ErrorInfo.Diagnostics.ToString();
+                    }
+                    else {
+                        return MethodCallResponse.ErrorInfo.ToString();
+                    }    
+                }
+            }
+            catch (Exception e) {
+                Trace.TraceError("Can not get method parameter from node '{0}'", nodeId);
                 var errorMessage = string.Format(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
                 Trace.TraceError(errorMessage);
                 return errorMessage;
