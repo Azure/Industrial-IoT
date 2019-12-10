@@ -7,7 +7,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
     using System.Collections.Generic;
     public class PublishedNode {
         public string NodeId { get; set; }
-        public int? SampligInterval { get; set; }
+        public int? SamplingInterval { get; set; }
         public int? PublishingInterval { get; set; }
     }
 }

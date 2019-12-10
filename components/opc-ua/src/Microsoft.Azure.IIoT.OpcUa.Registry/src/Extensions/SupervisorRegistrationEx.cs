@@ -72,7 +72,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
 
             if (update?.SecurityModeFilter != existing?.SecurityModeFilter) {
                 twin.Tags.Add(nameof(SupervisorRegistration.SecurityModeFilter),
-                    JToken.FromObject(update?.SecurityModeFilter));
+                    update?.SecurityModeFilter == null ?
+                    null : JToken.FromObject(update?.SecurityModeFilter));
             }
 
             // Settings

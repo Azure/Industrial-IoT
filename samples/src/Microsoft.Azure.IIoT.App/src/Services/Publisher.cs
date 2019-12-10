@@ -19,7 +19,6 @@ namespace Microsoft.Azure.IIoT.App.Services {
     /// </summary>
     public class Publisher {
 
-
         /// <summary>
         /// Create browser
         /// </summary>
@@ -29,14 +28,10 @@ namespace Microsoft.Azure.IIoT.App.Services {
         }
 
         /// <summary>
-        /// Get tree
+        /// PublishedAsync
         /// </summary>
         /// <param name="endpointId"></param>
-        /// <param name="id"></param>
-        /// <param name="parentId"></param>
-        /// <param name="supervisorId"></param>
-        /// <param name="direction"></param>
-        /// <returns></returns>
+        /// <returns>PublishedNode</returns>
         public async Task<PagedResult<PublishedNode>> PublishedAsync(string endpointId) {
             var pageResult = new PagedResult<PublishedNode>();
             try {
@@ -50,7 +45,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                             pageResult.Results.Add(new PublishedNode {
                                 NodeId = item.NodeId,
                                 PublishingInterval = item.PublishingInterval,
-                                SampligInterval = item.SamplingInterval,
+                                SamplingInterval = item.SamplingInterval,
                             });
                         }
                     }
@@ -68,6 +63,14 @@ namespace Microsoft.Azure.IIoT.App.Services {
             return pageResult;
         }
 
+        /// <summary>
+        /// StartPublishing
+        /// </summary>
+        /// <param name="endpointId"></param>
+        /// <param name="nodeId"></param>
+        /// <param name="samplingInterval"></param>
+        /// <param name="publishingInterval"></param>
+        /// <returns>ErrorStatus</returns>
         public async Task<bool> StartPublishing(string endpointId, string nodeId, 
             int samplingInterval, int publishingInterval) {
             var requestApiModel = new PublishStartRequestApiModel() {
@@ -82,6 +85,12 @@ namespace Microsoft.Azure.IIoT.App.Services {
             return (resultApiModel.ErrorInfo == null);
         }
 
+        /// <summary>
+        /// StopPublishing
+        /// </summary>
+        /// <param name="endpointId"></param>
+        /// <param name="nodeId"></param>
+        /// <returns>ErrorStatus</returns>
         public async Task<bool> StopPublishing(string endpointId, string nodeId) {
             var requestApiModel = new PublishStopRequestApiModel() {
                     NodeId = nodeId,

@@ -3,13 +3,16 @@
 @using System
 @using Microsoft.AspNetCore.Components;
 
-<div class="@_divClass">
-    <div class="top-row px-4">
-        <div class="header ">@HeaderText</div>
+@if (IsOpened) {
+    OpenPanel();
+    <div class="@_divClass">
+        <div class="top-row drawer-top px-4">
+            <div class="header ">@HeaderText</div>
+        </div>
+        <a aria-label="closePanel" href="javascript: void(0)" @onclick="@(() => ClosePanel())" class="@_closeIcon"></a>
+        @ChildContent
     </div>
-    <a aria-label="closePanel" href="javascript: void(0)" @onclick="@(() => closeContextPanel())" class="@_closeIcon"></a>
-    @ChildContent
-</div>
+}
 
 @code {
 
@@ -25,17 +28,23 @@
     [Parameter]
     public Action CloseDrawer { get; set; }
 
+    [Parameter]
+    public bool IsOpened { get; set; }
+
     private string _divClass { get; set; } = "drawer";
     private string _closeIcon { get; set; } = "oi oi-x closebtn";
 
-    protected override void OnInitialized() {
+    private void OpenPanel()
+    {
         _divClass = "drawer drawer-right-open";
         _closeIcon = "oi oi-x closebtn";
     }
 
-    public void closeContextPanel() {
+    private void ClosePanel()
+    {
         _divClass = "drawer drawer-close";
         _closeIcon = string.Empty;
+        IsOpened = false;
         CloseDrawer.Invoke();
     }
 }
