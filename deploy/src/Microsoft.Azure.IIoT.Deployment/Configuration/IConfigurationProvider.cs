@@ -24,10 +24,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
             IEnumerable<ISubscription> subscriptionsList
         );
 
-        IAccount SelectAccount(
-            IEnumerable<IAccount> accounts
-        );
-
         string GetApplicationName();
 
         bool CheckIfUseExistingResourceGroup();
@@ -40,7 +36,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
             IEnumerable<Region> regions
         );
 
-        string SelectResourceGroupName(
+        string SelectNewResourceGroupName(
             Func<string, bool> checkIfResourceGroupExists,
             string resourceGroupDefaultName = null
         );

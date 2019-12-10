@@ -169,19 +169,9 @@ namespace Microsoft.Azure.IIoT.Deployment {
             _applicationName = _configurationProvider.GetApplicationName();
         }
 
-        public async Task InitializeResourceGroupSelectionAsync(
+        public async Task SetOwnerAsync(
             CancellationToken cancellationToken = default
         ) {
-            // Initialization of MicrosoftGraphServiceClient
-            var microsoftGraphTokenCredentials = _authenticationManager
-                .GetMicrosoftGraphDelegatingTokenCredentials();
-
-            _msGraphServiceClient = new MicrosoftGraphServiceClient(
-                _tenantId,
-                microsoftGraphTokenCredentials,
-                cancellationToken
-            );
-
             if (_authenticationManager.IsUserAuthenticationFlow()) {
                 // If this is user authentication flow then authenticated user
                 // will be used as owner of the deployment.
@@ -211,6 +201,22 @@ namespace Microsoft.Azure.IIoT.Deployment {
 
                 InitializeDefaultTags(ownerSP.DisplayName);
             }
+        }
+
+        public async Task InitializeResourceGroupSelectionAsync(
+            CancellationToken cancellationToken = default
+        ) {
+            // Initialization of MicrosoftGraphServiceClient
+            var microsoftGraphTokenCredentials = _authenticationManager
+                .GetMicrosoftGraphDelegatingTokenCredentials();
+
+            _msGraphServiceClient = new MicrosoftGraphServiceClient(
+                _tenantId,
+                microsoftGraphTokenCredentials,
+                cancellationToken
+            );
+
+            await SetOwnerAsync(cancellationToken);
 
             // Initialization of AzureResourceManager
             var azureCredentials = _authenticationManager
@@ -255,7 +261,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 }
 
                 var newResourceGroupName = _configurationProvider
-                    .SelectResourceGroupName(
+                    .SelectNewResourceGroupName(
                         checkIfResourceGroupExists,
                         defaultResourceGroupName
                     );

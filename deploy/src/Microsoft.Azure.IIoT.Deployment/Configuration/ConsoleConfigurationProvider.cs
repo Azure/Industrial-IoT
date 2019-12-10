@@ -8,16 +8,17 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
     using System;
     using System.Collections.Generic;
     using System.Linq;
-
+    using Microsoft.Azure.IIoT.Deployment.Cli;
     using Microsoft.Azure.Management.ResourceManager.Fluent;
     using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
-    using Microsoft.Identity.Client;
 
-    class ConsoleConfigurationProvider : IConfigurationProvider {
+    class ConsoleConfigurationProvider : ConfigurationProviderWithSettings {
 
-        public ConsoleConfigurationProvider() { }
+        public ConsoleConfigurationProvider(
+            AppSettings appSettings = null
+        ) : base(appSettings) {}
 
-        public AzureEnvironment SelectEnvironment(
+        protected override AzureEnvironment SelectEnvironmentImp(
             IEnumerable<AzureEnvironment> azureEnvironments
         ) {
             Console.WriteLine("Please select Azure environment to use:");
@@ -27,7 +28,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
 
             var index = 0;
             foreach (var environment in azureEnvironments) {
-                Console.WriteLine("{0}: {1}", index, environment.Name);
+                Console.WriteLine($"{index}: {ToString(environment)}");
                 ++index;
             }
 
@@ -36,7 +37,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
             return azureEnvironments.ElementAt(selection);
         }
 
-        public Guid GetTenantId() {
+        protected override Guid GetTenantIdImp() {
             Console.WriteLine("Please provide your TenantId:");
 
             while (true) {
@@ -51,7 +52,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
             }
         }
 
-        public ISubscription SelectSubscription(
+        protected override ISubscription SelectSubscriptionImp(
             IEnumerable<ISubscription> subscriptionsList
         ) {
             var subscriptionsCount = subscriptionsList.Count();
@@ -64,16 +65,14 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
             else if (subscriptionsCount == 1) {
                 subscription = subscriptionsList.First();
 
-                Console.WriteLine("The following subscription will be used:\nSubscriptionId: {0}, DisplayName: {1}",
-                    subscription.SubscriptionId, subscription.DisplayName);
+                Console.WriteLine($"The following subscription will be used:\n{ToString(subscription)}");
             }
             else {
                 Console.WriteLine("The following subscriptions are available:");
 
                 var index = 0;
                 foreach (var curSubscription in subscriptionsList) {
-                    Console.WriteLine("{0}: SubscriptionId: {1}, DisplayName: {2}",
-                        index, curSubscription.SubscriptionId, curSubscription.DisplayName);
+                    Console.WriteLine($"{index}: {ToString(curSubscription)}");
 
                     ++index;
                 }
@@ -87,47 +86,13 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
             return subscription;
         }
 
-        public IAccount SelectAccount(
-            IEnumerable<IAccount> accounts
-        ) {
-            IAccount account;
-
-            var accountsCount = accounts.Count();
-
-            if (accountsCount == 0) {
-                throw new System.SystemException("The program was not able to find account for current user.");
-            }
-            else if (accountsCount == 1) {
-                account = accounts.FirstOrDefault();
-
-                Console.WriteLine("The following account will be used:\n{0}.", account.HomeAccountId.ObjectId);
-            }
-            else {
-                Console.WriteLine("The following accounts are available:");
-
-                var index = 0;
-                foreach (var curAccount in accounts) {
-                    Console.WriteLine("{0}: {1} {2}",
-                        index, curAccount.HomeAccountId.ObjectId, curAccount.Username);
-                    ++index;
-                }
-
-                var selection = ReadIndex(accountsCount, "Please choose which account to use: ");
-                account = accounts.ElementAt(selection);
-            }
-
-            Console.WriteLine();
-
-            return account;
-        }
-
-        public string GetApplicationName() {
+        protected override string GetApplicationNameImp() {
             Console.WriteLine("Please provide a name for the AAD application to register:");
             var applicationName = ReadNonEmptyString();
             return applicationName;
         }
 
-        public bool CheckIfUseExistingResourceGroup() {
+        protected override bool CheckIfUseExistingResourceGroupImp() {
             Console.WriteLine("Do you want to create a new ResourceGroup or use an existing one ? " +
                 "Please select N[new] or E[existing]");
 
@@ -144,14 +109,14 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
             return ConsoleKey.E.Equals(response);
         }
 
-        public IResourceGroup SelectExistingResourceGroup(
+        protected override IResourceGroup SelectExistingResourceGroupImp(
             IEnumerable<IResourceGroup> resourceGroups
         ) {
             Console.WriteLine("Available resource groups:");
 
             var index = 0;
-            foreach (var resourceGroup in resourceGroups) {
-                Console.WriteLine("{0}: {1} {2}", index, resourceGroup.Id, resourceGroup.Name);
+            foreach (var rg in resourceGroups) {
+                Console.WriteLine($"{index}: {ToString(rg)}");
                 ++index;
             }
 
@@ -159,7 +124,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
             return resourceGroups.ElementAt(selection);
         }
 
-        public Region SelectResourceGroupRegion(
+        protected override Region SelectResourceGroupRegionImp(
             IEnumerable<Region> regions
         ) {
             Console.WriteLine("Please select region where resource group will be created.");
@@ -168,8 +133,8 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
             Console.WriteLine("Available regions:");
 
             var index = 0;
-            foreach (var _region in regions) {
-                Console.WriteLine("{0}: {1}", index, _region.Name);
+            foreach (var curRegion in regions) {
+                Console.WriteLine($"{index}: {ToString(curRegion)}");
                 ++index;
             }
 
@@ -179,7 +144,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
             return region;
         }
 
-        public string SelectResourceGroupName(
+        protected override string SelectNewResourceGroupNameImp(
             Func<string, bool> checkIfResourceGroupExists,
             string resourceGroupDefaultName = null
         ) {
@@ -210,6 +175,40 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
             } while (null == resourceGroupName);
 
             return resourceGroupName;
+        }
+
+        protected override bool CheckIfSaveEnvFileImp() {
+            Console.WriteLine("Do you want to save connection details of deployed resources to '.env' file ? " +
+                "Please select Y[yes] or N[no]");
+
+            var response = ConsoleKey.Escape;
+
+            while (!ConsoleKey.Y.Equals(response) && !ConsoleKey.N.Equals(response)) {
+                response = Console.ReadKey(false).Key;
+
+                if (response != ConsoleKey.Enter) {
+                    Console.WriteLine();
+                }
+            }
+
+            return ConsoleKey.Y.Equals(response);
+        }
+
+        protected override bool CheckIfPerformCleanupImp() {
+            Console.WriteLine("Do you want to delete registered Applications and the Resource Group ? " +
+                "Please select Y[yes] or N[no]");
+
+            var response = ConsoleKey.Escape;
+
+            while (!ConsoleKey.Y.Equals(response) && !ConsoleKey.N.Equals(response)) {
+                response = Console.ReadKey(false).Key;
+
+                if (response != ConsoleKey.Enter) {
+                    Console.WriteLine();
+                }
+            }
+
+            return ConsoleKey.Y.Equals(response);
         }
 
         private string ReadNonEmptyString() {
@@ -251,40 +250,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
             }
 
             return selection.Value;
-        }
-
-        public bool CheckIfSaveEnvFile() {
-            Console.WriteLine("Do you want to save connection details of deployed resources to '.env' file ? " +
-                "Please select Y[yes] or N[no]");
-
-            var response = ConsoleKey.Escape;
-
-            while (!ConsoleKey.Y.Equals(response) && !ConsoleKey.N.Equals(response)) {
-                response = Console.ReadKey(false).Key;
-
-                if (response != ConsoleKey.Enter) {
-                    Console.WriteLine();
-                }
-            }
-
-            return ConsoleKey.Y.Equals(response);
-        }
-
-        public bool CheckIfPerformCleanup() {
-            Console.WriteLine("Do you want to delete registered Applications and the Resource Group ? " +
-                "Please select Y[yes] or N[no]");
-
-            var response = ConsoleKey.Escape;
-
-            while (!ConsoleKey.Y.Equals(response) && !ConsoleKey.N.Equals(response)) {
-                response = Console.ReadKey(false).Key;
-
-                if (response != ConsoleKey.Enter) {
-                    Console.WriteLine();
-                }
-            }
-
-            return ConsoleKey.Y.Equals(response);
         }
     }
 }

@@ -1,15 +1,17 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Deployment {
 
-    using CommandLine;
     using Serilog;
-
     using System;
     using System.Threading;
+    using System.IO;
+    using Microsoft.Extensions.Configuration;
+    using Microsoft.Azure.IIoT.Deployment.Cli;
+    using Microsoft.Azure.IIoT.Deployment.Configuration;
 
     class Program {
 
@@ -18,12 +20,16 @@ namespace Microsoft.Azure.IIoT.Deployment {
 
         static int Main(string[] args) {
 
-            return Parser.Default.ParseArguments<Cli.InitOptions, Cli.DeployOptions>(args)
-                .MapResult(
-                    (Cli.InitOptions options) => Init(options),
-                    (Cli.DeployOptions options) => Run(options),
-                    errors => ERROR
-                );
+            var builder = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                .AddEnvironmentVariables("AZURE_IIOT_");
+
+            var configuration = builder.Build();
+            var appSettings = configuration.Get<AppSettings>();
+
+            var exitcCode = Run(appSettings);
+            return exitcCode;
         }
 
         static void SetupLogger() {
@@ -35,21 +41,14 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 .CreateLogger();
         }
 
-        static int Init(Cli.InitOptions commandLineOptions) {
-            //SetupLogger();
-            return SUCCESS;
-        }
-
-        static int Run(Cli.DeployOptions commandLineOptions) {
-            //return SUCCESS;
-
+        static int Run(AppSettings appSettings) {
             var returnError = false;
 
             try {
                 SetupLogger();
 
                 Configuration.IConfigurationProvider configurationProvider =
-                    new Configuration.ConsoleConfigurationProvider();
+                    new ConsoleConfigurationProvider(appSettings);
 
                 using var cts = new CancellationTokenSource();
                 using var deploymentExecutor = new DeploymentExecutor(configurationProvider);
