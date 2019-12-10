@@ -10,7 +10,6 @@ namespace Microsoft.Azure.IIoT.Deployment {
     using System.Threading;
     using System.IO;
     using Microsoft.Extensions.Configuration;
-    using Microsoft.Azure.IIoT.Deployment.Cli;
     using Microsoft.Azure.IIoT.Deployment.Configuration;
 
     class Program {

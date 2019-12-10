@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Deployment.Cli {
+namespace Microsoft.Azure.IIoT.Deployment.Configuration {
 
     using System;
     using Microsoft.Azure.Management.ResourceManager.Fluent;
