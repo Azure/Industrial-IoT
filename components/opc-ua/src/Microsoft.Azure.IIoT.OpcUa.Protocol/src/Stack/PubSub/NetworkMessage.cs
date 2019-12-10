@@ -86,9 +86,44 @@ namespace Opc.Ua.PubSub {
             }
         }
 
+
+        /// <inheritdoc/>
+        public override bool Equals(Object value) {
+            return IsEqual(value as IEncodeable);
+        }
+
+        /// <inheritdoc/>
+        public override int GetHashCode() {
+            return base.GetHashCode();
+        }
+
         /// <inheritdoc/>
         public bool IsEqual(IEncodeable encodeable) {
-            return Utils.IsEqual(this, encodeable);
+            if (ReferenceEquals(this, encodeable)) {
+                return true;
+            }
+
+            if (!(encodeable is NetworkMessage wrapper)) {
+                return false;
+            }
+
+            if (!Utils.IsEqual(wrapper.MessageContentMask, MessageContentMask) ||
+                !Utils.IsEqual(wrapper.MessageId, MessageId) ||
+                !Utils.IsEqual(wrapper.DataSetClassId, DataSetClassId) ||
+                !Utils.IsEqual(wrapper.BinaryEncodingId, BinaryEncodingId) ||
+                !Utils.IsEqual(wrapper.MessageType, MessageType) ||
+                !Utils.IsEqual(wrapper.PublisherId, PublisherId) ||
+                !Utils.IsEqual(wrapper.TypeId, TypeId) ||
+                !Utils.IsEqual(wrapper.XmlEncodingId, XmlEncodingId) ||
+                !Utils.IsEqual(wrapper.Messages, Messages)) {
+                return false;
+            }
+
+            if (Messages.Count != wrapper.Messages.Count) {
+                return false;
+            }
+
+            return true;
         }
 
 #pragma warning disable IDE0060 // Remove unused parameter
@@ -119,8 +154,8 @@ namespace Opc.Ua.PubSub {
             if (PublisherId != null) {
                 MessageContentMask |= (uint)JsonNetworkMessageContentMask.PublisherId;
             }
-            
-            DataSetClassId = decoder.ReadString("DataSetClassId");            
+
+            DataSetClassId = decoder.ReadString("DataSetClassId");
             if(DataSetClassId != null){
                 MessageContentMask |= (uint)JsonNetworkMessageContentMask.DataSetClassId;
             }

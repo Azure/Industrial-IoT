@@ -45,7 +45,7 @@ namespace Opc.Ua.PubSub.Tests {
 
             networkMessage.Messages.Add(message);
             networkMessage.MessageContentMask = (uint)(
-                JsonNetworkMessageContentMask.PublisherId |                
+                JsonNetworkMessageContentMask.PublisherId |
                 JsonNetworkMessageContentMask.NetworkMessageHeader |
                 JsonNetworkMessageContentMask.SingleDataSetMessage);
 
