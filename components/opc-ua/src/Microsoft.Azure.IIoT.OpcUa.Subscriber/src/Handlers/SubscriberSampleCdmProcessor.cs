@@ -28,6 +28,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
             _client = client;
             client.OpenAsync().Wait();
         }
+		
         /// <inheritdoc/>
         public Task OnSubscriberSampleAsync(SubscriberSampleModel sample) {
             var cdmModel = new SubscriberCdmSampleModel() {

@@ -608,7 +608,6 @@ Function GetAzureADApplicationConfig() {
             -requiredDelegatedPermissions "user_impersonation" 
         $requiredResourcesAccess.Add($requiredPermissions)
 
-
         Set-AzureADApplication -ObjectId $serviceAadApplication.ObjectId `
             -KnownClientApplications $knownApplications `
             -AppRoles $appRoles `

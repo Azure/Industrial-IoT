@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App.Services {
-    using Microsoft.AspNetCore.Mvc.ModelBinding;
     using Microsoft.Azure.IIoT.App.Data;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models;
@@ -80,17 +79,12 @@ namespace Microsoft.Azure.IIoT.App.Services {
                         foreach (var nodeReference in references) {
                             pageResult.Results.Add(new ListNode {
                                 Id = nodeReference.Target.NodeId.ToString(),
-                                NodeClass = nodeReference.Target.NodeClass ?? 0,
-                                NodeName = nodeReference.Target.DisplayName.ToString(),
-                                Children = (bool)nodeReference.Target.Children,
+                                NodeClass = nodeReference.Target.NodeClass.ToString(),
+                                nodeName = nodeReference.Target.DisplayName.ToString(),
+                                children = (bool)nodeReference.Target.Children,
                                 ParentIdList = parentId,
-                                SupervisorId = supervisorId,
-                                AccessLevel = nodeReference.Target.AccessLevel ?? 0,
-                                ParentName = browseData.Node.DisplayName,
-                                DataType = nodeReference.Target.DataType,
-                                Value = string.Empty,
-                                Publishing = false,
-                                PublishedNode = null
+                                supervisorId = supervisorId,
+                                parentName = browseData.Node.DisplayName
                             });
                         }
                     }
@@ -121,68 +115,6 @@ namespace Microsoft.Azure.IIoT.App.Services {
             pageResult.RowCount = pageResult.Results.Count;
             pageResult.PageCount = (int)Math.Ceiling((decimal)pageResult.RowCount / 10);
             return pageResult;
-        }
-
-        /// <summary>
-        /// ReadValueAsync
-        /// </summary>
-        /// <param name="endpointId"></param>
-        /// <param name="nodeId"></param>
-        /// <returns>Read value</returns>
-        public async Task<string> ReadValueAsync(string endpointId, string nodeId) {
-
-            var model = new ValueReadRequestApiModel() {
-                NodeId = nodeId
-            };
-            
-            try {
-                var value = await _twinService.NodeValueReadAsync(endpointId, model);
-                
-                if (value.ErrorInfo == null) {
-                    return value.Value?.ToString();
-                }
-                else {
-                    return value.ErrorInfo.ToString();
-                }
-            }
-            catch (Exception e) {
-                Trace.TraceError("Can not read value of node '{0}'", nodeId);
-                var errorMessage = string.Format(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
-                Trace.TraceError(errorMessage);
-                return errorMessage;
-            }
-        }
-
-        /// <summary>
-        /// WriteValueAsync
-        /// </summary>
-        /// <param name="endpointId"></param>
-        /// <param name="nodeId"></param>
-        /// <param name="value"></param>
-        /// <returns>Status</returns>
-        public async Task<string> WriteValueAsync(string endpointId, string nodeId, string value) {
-
-            var model = new ValueWriteRequestApiModel() {
-                NodeId = nodeId, 
-                Value = value
-            };
-
-            try {
-                var response = await _twinService.NodeValueWriteAsync(endpointId, model);
-
-                if (response.ErrorInfo == null) {
-                    return string.Format("value successfully written to node '{0}'", nodeId);
-                }
-                else {
-                    return response.ErrorInfo.ToString();
-                }
-            }
-            catch (Exception e) {
-                Trace.TraceError("Can not write value of node '{0}'", nodeId);
-                var errorMessage = string.Format(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
-                Trace.TraceError(errorMessage);
-                return errorMessage;
-            }
         }
 
         private readonly ITwinServiceApi _twinService;

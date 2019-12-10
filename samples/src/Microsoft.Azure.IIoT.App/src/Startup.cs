@@ -204,8 +204,6 @@ namespace Microsoft.Azure.IIoT.App {
                 .AsImplementedInterfaces().AsSelf().SingleInstance();
             builder.RegisterType<Browser>()
                 .AsImplementedInterfaces().AsSelf().SingleInstance();
-            builder.RegisterType<Publisher>()
-                .AsImplementedInterfaces().AsSelf().SingleInstance();
         }
 
 

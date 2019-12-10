@@ -22,5 +22,4 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Models {
         public const string LegacySubscriberSample =
             "application/opcua+uajson";
     }
-
 }

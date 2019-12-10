@@ -418,7 +418,7 @@
         },
         "workspaceName": {
             "type": "string",
-            "defaultValue": "[concat('iiotws-', take(uniqueString(subscription().subscriptionId, resourceGroup().id, parameters('solutionName')), 5))]",
+            "defaultValue": "[concat('workspace-', take(uniqueString(subscription().subscriptionId, resourceGroup().id, parameters('solutionName')), 5))]",
             "metadata": {
                 "description": "Specifies the name of the workspace."
             }

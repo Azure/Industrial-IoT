@@ -15,18 +15,11 @@
 
 .header {
     font-size: 1.5rem;
-    /*margin-right: auto;*/
-    position: fixed;
-    /*right: 240px;*/
-    justify-content: flex-start;
-}
-
-.drawer-top {
-    justify-content: flex-start !important;
+    margin-right: auto;
 }
 
 .drawer.drawer-right-open {
-    width: 480px;
+    width: 400px;
     background-color: white;
     right: 0;
     left: auto;
@@ -100,11 +93,6 @@
     top: 55px;
     right: 85px;
     font-size: 30px;
-}
-
-.text-left {
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 
 /* When the height of the screen is less than @screen-sm-min pixels, 

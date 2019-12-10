@@ -28,7 +28,7 @@ namespace Microsoft.Azure.IIoT.Http {
         HttpResponseHeaders Headers { get; }
 
         /// <summary>
-        /// the response content headers
+        /// Response content headers
         /// </summary>
         HttpContentHeaders ContentHeaders { get; }
 

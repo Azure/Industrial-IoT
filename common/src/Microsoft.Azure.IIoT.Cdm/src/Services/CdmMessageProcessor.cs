@@ -154,7 +154,6 @@ namespace Microsoft.Azure.IIoT.Cdm.Services {
             var csvTrait = partition.ExhibitsTraits.Item("is.partition.format.CSV");
             var partitionLocation = _cdmCorpus.Storage.CorpusPathToAdapterPath(partition.Location);
 
-            //var partitionLocation = _adapter.CreateAdapterPath(partition.Location);
             await _storage.WriteInCsvPartition<SubscriberCdmSampleModel>(
                 partitionLocation,
                 new List<SubscriberCdmSampleModel>() { payload },

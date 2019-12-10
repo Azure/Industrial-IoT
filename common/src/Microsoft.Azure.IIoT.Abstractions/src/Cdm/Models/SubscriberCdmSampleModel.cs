@@ -41,14 +41,20 @@ namespace Microsoft.Azure.IIoT.Cdm.Models {
         /// Source time stamp
         /// </summary>
         public DateTime? SourceTimestamp { get; set; }
-
-        //public ushort? SourcePicoseconds { get; set; }
+		
+        /// <summary>
+        /// Source time stamp picoseconds
+        /// </summary>		
+        public ushort? SourcePicoseconds { get; set; }
 
         /// <summary>
         /// Server time stamp
         /// </summary>
         public DateTime? ServerTimestamp { get; set; }
 
-        //public ushort? ServerPicoseconds { get; set; }
+        /// <summary>
+        /// Server timestamp picoseconds
+        /// </summary>		
+        public ushort? ServerPicoseconds { get; set; }
     }
 }

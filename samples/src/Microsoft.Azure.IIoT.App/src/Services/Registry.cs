@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.App.Services {
     using Microsoft.Azure.IIoT.App.Data;
+    using Microsoft.Azure.IIoT.App.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
     using System;
@@ -17,11 +18,11 @@ namespace Microsoft.Azure.IIoT.App.Services {
             _registryService = registryService;
         }
 
-        public async Task<PagedResult<EndpointInfoApiModel>> GetEndpointListAsync(
+        public async Task<PagedResult<EndpointInfo>> GetEndpointListAsync(
             string supervisorId) {
 
             // TODO Use query
-            var pageResult = new PagedResult<EndpointInfoApiModel>();
+            var pageResult = new PagedResult<EndpointInfo>();
 
             try {
                 var endpoints = await _registryService.ListAllEndpointsAsync();
@@ -31,8 +32,12 @@ namespace Microsoft.Azure.IIoT.App.Services {
                     foreach (var application in allApplications) {
                         if (application.SupervisorId == supervisorId) {
                             foreach (var endpoint in endpoints) {
+                                var EndpointInfo = new EndpointInfo {
+                                    EndpointModel = endpoint,
+                                    EndpointState = endpoint.ActivationState == EndpointActivationState.Deactivated ? false : true
+                                };
                                 if (endpoint.ApplicationId == application.ApplicationId) {
-                                    pageResult.Results.Add(endpoint);
+                                    pageResult.Results.Add(EndpointInfo);
                                 }
                             }
                         }
@@ -54,6 +59,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
 
         public async Task<PagedResult<SupervisorInfo>> GetSupervisorListAsync() {
             var pageResult = new PagedResult<SupervisorInfo>();
+
 
             try {
                 var supervisors = await _registryService.ListAllSupervisorsAsync();
@@ -113,50 +119,35 @@ namespace Microsoft.Azure.IIoT.App.Services {
         }
 
 
-        public async Task SetScanAsync(SupervisorInfo supervisor, string ipMask, string portRange, bool forceScan) {
-            //var model = new SupervisorUpdateApiModel {
-            //    DiscoveryConfig = new DiscoveryConfigApiModel()
-            //};
-            var model = new DiscoveryConfigApiModel();
-
-            DiscoveryMode discoveryMode; 
+        public async void SetScanAsync(SupervisorInfo supervisor, string ipMask, string portRange, bool forceScan) {
+            var model = new SupervisorUpdateApiModel {
+                DiscoveryConfig = new DiscoveryConfigApiModel()
+            };
 
             if (forceScan == true) {
-                model.AddressRangesToScan = string.Empty;
-                model.PortRangesToScan = string.Empty;
+                model.DiscoveryConfig.AddressRangesToScan = string.Empty;
+                model.DiscoveryConfig.PortRangesToScan = string.Empty;
             }
             else {
-                if (supervisor.SupervisorModel.DiscoveryConfig != null) {
-                    model = supervisor.SupervisorModel.DiscoveryConfig;
-                }
+                model.DiscoveryConfig = supervisor.SupervisorModel.DiscoveryConfig;
             }
 
-            if (supervisor.ScanStatus == true && forceScan == true) {
-                //model.Discovery = DiscoveryMode.Fast;
-                discoveryMode = DiscoveryMode.Fast;
+            if (supervisor.ScanStatus == false || forceScan == true) {
+                model.Discovery = DiscoveryMode.Fast;
 
                 if (ipMask != null) {
-                    model.AddressRangesToScan = ipMask;
+                    model.DiscoveryConfig.AddressRangesToScan = ipMask;
                 }
                 if (portRange != null) {
-                    model.PortRangesToScan = portRange;
+                    model.DiscoveryConfig.PortRangesToScan = portRange;
                 }
-                model.IdleTimeBetweenScansSec = _5MINUTES;
             }
             else {
-                //model.Discovery = DiscoveryMode.Off;
-                discoveryMode = DiscoveryMode.Off;
+                model.Discovery = DiscoveryMode.Off;
             }
 
             try {
-                //await _registryService.UpdateSupervisorAsync(supervisor.SupervisorModel.Id, model);
-                if (discoveryMode == DiscoveryMode.Off) {
-                    await _registryService.SetDiscoveryModeAsync(supervisor.SupervisorModel.Id, discoveryMode, new DiscoveryConfigApiModel());
-                }
-                else {
-                    await _registryService.SetDiscoveryModeAsync(supervisor.SupervisorModel.Id, discoveryMode, model);
-                }
-                
+                await _registryService.UpdateSupervisorAsync(supervisor.SupervisorModel.Id, model);
             }
             catch (Exception exception) {
                 var errorMessageTrace = string.Format(exception.Message, exception.InnerException?.Message ?? "--", exception?.StackTrace ?? "--");
@@ -165,6 +156,5 @@ namespace Microsoft.Azure.IIoT.App.Services {
         }
 
         private readonly IRegistryServiceApi _registryService;
-        private const int _5MINUTES = 300;
     }
 }

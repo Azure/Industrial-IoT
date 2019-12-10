@@ -21,14 +21,12 @@ namespace Microsoft.Azure.IIoT.Cdm.Runtime {
         private const string kCdmAdDLS2HostName = "Cdm:ADLSg2HostName";
         private const string kCdmADLSg2BlobName = "Cdm:ADLSg2BlobName";
         private const string kCdmRootFolder = "Cdm:RootFolder";
-
         private const string kAuth_AppIdKey = "Auth:ServiceId";
         private const string kAuth_AppSecretKey = "Auth:ServiceSecret";
         private const string kAuth_TenantIdKey = "Auth:TenantId";
         private const string kAuth_DomainKey = "Auth:TenantId";
         private const string kAuth_InstanceUrlKey = "Auth:InstanceUrl";
         private const string kAuth_AudienceKey = "Auth:Audience";
-
 
         /// <summary>Application id</summary>
         public string AppId => GetStringOrDefault(kAuth_AppIdKey,
@@ -43,7 +41,6 @@ namespace Microsoft.Azure.IIoT.Cdm.Runtime {
         public string Domain => GetStringOrDefault(kAuth_DomainKey,
             GetStringOrDefault("PCS_AUTH_DOMAIN", Try.Op(() =>
             new Uri(GetStringOrDefault("PCS_AUTH_AUDIENCE")).DnsSafeHost)))?.Trim();
-
         /// <summary>Aad instance url</summary>
         public string InstanceUrl => GetStringOrDefault(kAuth_InstanceUrlKey,
             GetStringOrDefault("PCS_WEBUI_AUTH_AAD_INSTANCE",
@@ -51,7 +48,6 @@ namespace Microsoft.Azure.IIoT.Cdm.Runtime {
         /// <summary>Audience</summary>
         public string Audience => GetStringOrDefault(kAuth_AudienceKey,
             GetStringOrDefault("PCS_AUTH_AUDIENCE", null));
-
         /// <summary>ADLSg2 host's name </summary>
         public string ADLSg2HostName => GetStringOrDefault(kCdmAdDLS2HostName,
                 (GetStringOrDefault("PCS_ADLSG2_ACCOUNT") + ".dfs.core.windows.net"));
