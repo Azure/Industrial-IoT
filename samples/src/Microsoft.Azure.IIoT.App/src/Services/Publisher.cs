@@ -45,7 +45,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                             pageResult.Results.Add(new PublishedNode {
                                 NodeId = item.NodeId,
                                 PublishingInterval = item.PublishingInterval,
-                                SampligInterval = item.SamplingInterval,
+                                SamplingInterval = item.SamplingInterval,
                             });
                         }
                     }

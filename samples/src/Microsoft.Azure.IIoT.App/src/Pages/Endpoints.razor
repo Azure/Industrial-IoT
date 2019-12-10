@@ -88,12 +88,14 @@
     [Parameter]
     public string SupervisorId { get; set; } = string.Empty;
 
+    public const int PageLength = 10;
+
     /// <summary>
     /// Notify page change
     /// </summary>
     /// <param name="page"></param>
     public void PagerPageChanged(int page) {
-        pagedendpointList = endpointList.GetPaged(page, 10);
+        pagedendpointList = endpointList.GetPaged(page, PageLength);
         NavigationManager.NavigateTo("/endpoints/" + SupervisorId + "/" + page);
     }
 
@@ -101,11 +103,11 @@
     protected override async Task OnInitializedAsync() {
         endpointList = await RegistryHelper.GetEndpointListAsync(SupervisorId);
         Page = "1";
-        pagedendpointList = endpointList.GetPaged(Int32.Parse(Page), 10);
+        pagedendpointList = endpointList.GetPaged(Int32.Parse(Page), PageLength);
     }
 
     /// <summary>
-    /// Activate or deactivate
+    /// Activate or deactivate an endpoint
     /// </summary>
     /// <param name="endpointId"></param>
     /// <param name="checkedValue"></param>
@@ -121,7 +123,7 @@
         }
 
         endpointList = await RegistryHelper.GetEndpointListAsync(SupervisorId);
-        pagedendpointList = endpointList.GetPaged(Int32.Parse(Page), 10);
+        pagedendpointList = endpointList.GetPaged(Int32.Parse(Page), PageLength);
         await Task.CompletedTask;
         this.StateHasChanged();
     }

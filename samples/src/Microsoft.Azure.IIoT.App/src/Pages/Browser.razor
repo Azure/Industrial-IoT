@@ -56,7 +56,7 @@
             <tr>
                 <td>@node.NodeName</td>
                 <td>@node.Id</td>
-                @if ((node.Children == true) && (node.NodeClass != NodeClass.Method))
+                @if (node.Children && (node.NodeClass != NodeClass.Method))
                 {
                     <td>
                         <a href="javascript: void(0)" @onclick="@(() => GetTreeAsync(node.Id, node.ParentIdList))">
@@ -96,7 +96,7 @@
 	                <td>
 	                    <input type="checkbox" @bind="@node.Publishing" @onclick="@(() => SetPublishing(endpointId, node) )" />
 	                    <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node))">
-	                        @{string output = (node.Publishing == true && node.PublishedNode != null) ? $"On, sampling {node.PublishedNode.SampligInterval} ms" : "Off";}
+	                        @{string output = (node.Publishing == true && node.PublishedNode != null) ? $"On, sampling {node.PublishedNode.SamplingInterval} ms" : "Off";}
 	                        @output
 	                    </a>
 	                </td>
@@ -132,16 +132,16 @@
     public PagedResult<ListNode> PagedNodeList = new PagedResult<ListNode>();
     public bool IsOpened { get; set; } = false;
     public ListNode NodeData { get; set; }
+    public const int PageLength = 10;
     
 
     /// <summary>
-    /// PagerPageChanged
+    /// Notify page change
     /// </summary>
     /// <param name="page"></param>
-    /// <returns></returns>
     public async void PagerPageChanged(int page)
     {
-        PagedNodeList = NodeList.GetPaged(page, 10);
+        PagedNodeList = NodeList.GetPaged(page, PageLength);
         foreach (var node in PagedNodeList.Results)
         {
             // fetch the actual value
@@ -156,29 +156,26 @@
     /// <summary>
     /// OnInitializedAsync
     /// </summary>
-    /// <returns></returns>
     protected override async Task OnInitializedAsync()
     {
         await BrowseTreeAsync(string.Empty, new List<string>(), BrowseDirection.Forward);
     }
 
     /// <summary>
-    /// GetTreeAsync
+    /// Browse forward the tree nodes
     /// </summary>
     /// <param name="id"></param>
     /// <param name="parentId"></param>
-    /// <returns></returns>
     private async Task GetTreeAsync(string id, List<string> parentId)
     {
         await BrowseTreeAsync(id, parentId, BrowseDirection.Forward);
     }
 
     /// <summary>
-    /// GetTreeBackAsync
+    /// Browse backward the tree nodes
     /// </summary>
     /// <param name="id"></param>
     /// <param name="parentId"></param>
-    /// <returns></returns>
     private async Task GetTreeBackAsync(string id, List<string> parentId)
     {
         await BrowseTreeAsync(id, parentId, BrowseDirection.Backward);
@@ -186,12 +183,11 @@
     }
 
     /// <summary>
-    /// BrowseTreeAsync
+    /// Browse the tree nodes
     /// </summary>
     /// <param name="id"></param>
     /// <param name="parentId"></param>
     /// <param name="direction"></param>
-    /// <returns></returns>
     private async Task BrowseTreeAsync(String id, List<string> parentId, BrowseDirection direction)
     {
         NodeList = await BrowseManager.GetTreeAsync(endpointId, id, parentId, supervisorId, direction);
@@ -199,7 +195,6 @@
 
         foreach (var node in NodeList.Results)
         {
-            // fetch the actual value
             if (node.NodeClass == NodeClass.Variable)
             {
                 // check if publishing enabled
@@ -216,7 +211,7 @@
         }
 
         Page = "1";
-        PagedNodeList = NodeList.GetPaged(Int32.Parse(Page), 10);
+        PagedNodeList = NodeList.GetPaged(Int32.Parse(Page), PageLength);
         foreach (var node in PagedNodeList.Results)
         {
             // fetch the actual value
@@ -228,11 +223,10 @@
     }
 
     /// <summary>
-    /// SetPublishing
+    /// Publish a node
     /// </summary>
     /// <param name="endpointId"></param>
     /// <param name="node"></param>
-    /// <returns></returns>
     private async Task SetPublishing(string endpointId, ListNode node)
     {
         if (!node.Publishing)
@@ -240,7 +234,7 @@
             var result = await Publisher.StartPublishing(endpointId, node.Id, 1000, 1000);
             if (result)
             {
-                node.PublishedNode = new PublishedNode() { NodeId = node.Id, PublishingInterval = 1000, SampligInterval = 1000};
+                node.PublishedNode = new PublishedNode() { NodeId = node.Id, PublishingInterval = 1000, SamplingInterval = 1000};
                 node.Publishing = true;
             }
             else
@@ -261,10 +255,9 @@
     }
 
     /// <summary>
-    /// OpenDrawer
+    /// Open the Drawer
     /// </summary>
     /// <param name="node"></param>
-    /// <returns></returns>
     private void OpenDrawer(ListNode node)
     {
         IsOpened = true;
@@ -272,9 +265,8 @@
     }
 
     /// <summary>
-    /// CloseDrawer
+    /// Close the Drawer
     /// </summary>
-    /// <returns></returns>
     private void CloseDrawer()
     {
         IsOpened = false;

@@ -113,38 +113,37 @@
     public string PortRange { get; set; }
     public PagedResult<SupervisorInfo> supervisorList = new PagedResult<SupervisorInfo>();
     public PagedResult<SupervisorInfo> pagedSupervisorList = new PagedResult<SupervisorInfo>();
+    public const int PageLength = 10;
 
 
     /// <summary>
-    /// PagerPageChanged
+    /// Notify page change
     /// </summary>
     /// <param name="page"></param>
     /// <returns></returns>
     public void PagerPageChanged(int page)
     {
-        pagedSupervisorList = supervisorList.GetPaged(page, 10);
+        pagedSupervisorList = supervisorList.GetPaged(page, PageLength);
         NavigationManager.NavigateTo("/supervisors/" + page);
     }
 
     /// <summary>
     /// OnInitializedAsync
     /// </summary>
-    /// <returns></returns>
     protected override async Task OnInitializedAsync()
     {
         supervisorList = await RegistryHelper.GetSupervisorListAsync();
         Page = "1";
-        pagedSupervisorList = supervisorList.GetPaged(Int32.Parse(Page), 10);
+        pagedSupervisorList = supervisorList.GetPaged(Int32.Parse(Page), PageLength);
     }
 
     /// <summary>
-    /// SetScan
+    /// Enable supervisor scan 
     /// </summary>
     /// <param name="supervisor"></param>
     /// /// <param name="forceScan"></param>
     /// /// <param name="ipMask"></param>
     /// /// <param name="portRange"></param>
-    /// <returns></returns>
     private async Task SetScan(SupervisorInfo supervisor, bool forceScan, string ipMask=null, string portRange=null)
     {
 
@@ -156,7 +155,7 @@
 
             await Task.Delay(10000);
             supervisorList = await RegistryHelper.GetSupervisorListAsync();
-            pagedSupervisorList = supervisorList.GetPaged(Int32.Parse(Page), 10);
+            pagedSupervisorList = supervisorList.GetPaged(Int32.Parse(Page), PageLength);
 
             supervisor.IsSearching = false;
             await Task.CompletedTask;
@@ -165,10 +164,9 @@
     }
 
     /// <summary>
-    /// OpenDrawer
+    /// Open then Drawer
     /// </summary>
     /// <param name="OpenDrawer"></param>
-    /// <returns></returns>
     private void OpenDrawer(SupervisorInfo supervisor)
     {
         IsOpened = true;
@@ -176,9 +174,8 @@
     }
 
     /// <summary>
-    /// CloseDrawer
+    /// Close the Drawer
     /// </summary>
-    /// <returns></returns>
     private void CloseDrawer()
     {
         IsOpened = false;
