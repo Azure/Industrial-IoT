@@ -196,6 +196,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
 
             public HttpResponseHeaders Headers => throw new NotImplementedException();
 
+            public HttpContentHeaders ContentHeaders => throw new NotImplementedException();
+
             public byte[] Content => System.Text.Encoding.UTF8.GetBytes(_response);
 
             public Uri Uri { get; private set; }
