@@ -17,6 +17,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
     using System.Threading.Tasks;
     using Serilog;
     using System.Diagnostics;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
 
     /// <summary>
     /// Published nodes
@@ -41,7 +42,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// </summary>
         /// <param name="publishedNodesFile"></param>
         /// <returns></returns>
-        public IEnumerable<WriterGroupJobModel> Read(TextReader publishedNodesFile) {
+        public IEnumerable<WriterGroupJobModel> Read(TextReader publishedNodesFile, LegacyCliModel legacyCliModel) {
             var jsonSerializer = JsonSerializer.CreateDefault();
             var sw = Stopwatch.StartNew();
             using (var reader = new JsonTextReader(publishedNodesFile)) {
@@ -51,7 +52,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                     "Read {count} items from published nodes file in {elapsed}",
                     items.Count, sw.Elapsed);
                 sw.Restart();
-                var jobs = ToWriterGroupJobs(items);
+                var jobs = ToWriterGroupJobs(items, legacyCliModel);
                 _logger.Information("Converted items to jobs in {elapsed}", sw.Elapsed);
                 return jobs;
             }
@@ -63,7 +64,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// <param name="items"></param>
         /// <returns></returns>
         private IEnumerable<WriterGroupJobModel> ToWriterGroupJobs(
-            IEnumerable<PublishedNodesEntryModel> items) {
+            IEnumerable<PublishedNodesEntryModel> items, LegacyCliModel legacyCliModel) {
             if (items == null) {
                 return Enumerable.Empty<WriterGroupJobModel>();
             }

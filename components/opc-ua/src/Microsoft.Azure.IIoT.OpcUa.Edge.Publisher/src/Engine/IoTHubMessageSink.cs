@@ -27,16 +27,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// </summary>
         /// <param name="clientFactory"></param>
         /// <param name="logger"></param>
-        public IoTHubMessageSink(IClientFactory clientFactory, ILogger logger) {
-            _client = clientFactory.CreateAsync().Result;
+        public IoTHubMessageSink(IClientAccessor clientAccessor, ILogger logger) {
+            _client = clientAccessor.Client;
             // TODO : Use higher level abstraction in module framework to send
             _logger = logger;
         }
 
         /// <inheritdoc/>
         public void Dispose() {
-            // TODO : Use higher level abstraction in module framework to send
-            _client.Dispose();
         }
 
         /// <inheritdoc/>

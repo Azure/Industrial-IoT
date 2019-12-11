@@ -25,6 +25,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
     using System.Runtime.Loader;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Azure.IIoT.Agent.Framework.Jobs.Runtime;
+    using Microsoft.Azure.IIoT.Agent.Framework.Agent;
 
     /// <summary>
     /// Publisher module
@@ -114,9 +116,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
         /// <param name="configuration"></param>
         /// <returns></returns>
         private IContainer ConfigureContainer(IConfiguration configuration) {
-
             var config = new Config(configuration);
             var builder = new ContainerBuilder();
+            var legacyCliOptions = new LegacyCliOptions(configuration);
 
             // Register configuration interfaces
             builder.RegisterInstance(config)
@@ -126,25 +128,36 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
             builder.RegisterInstance(this)
                 .AsImplementedInterfaces().SingleInstance();
 
-            // register logger
-            builder.AddDiagnostics(config);
+            builder.RegisterModule<PublisherJobsConfiguration>();
 
             // Register module and agent framework ...
             builder.RegisterModule<AgentFramework>();
             builder.RegisterModule<ModuleFramework>();
 
-            // ... plus controllers
-            builder.RegisterType<ConfigurationSettingsController>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<IdentityTokenSettingsController>()
-                .AsImplementedInterfaces().SingleInstance();
+            LoggerConfiguration loggerConfiguration = null;
+
+            if (legacyCliOptions.RunInLegacyMode) {
+                loggerConfiguration = legacyCliOptions.ToLoggerConfiguration();
+
+                builder.RegisterInstance(legacyCliOptions).AsImplementedInterfaces();
+                builder.RegisterType<PublishedNodesJobConverter>().SingleInstance();
+                builder.RegisterType<LegacyJobOrchestrator>().AsImplementedInterfaces().SingleInstance();
+            }
+            else {
+                // Use cloud job manager
+                builder.RegisterType<JobOrchestratorClient>()
+                    .AsImplementedInterfaces().SingleInstance();
+                // ... plus controllers
+                builder.RegisterType<ConfigurationSettingsController>()
+                    .AsImplementedInterfaces().SingleInstance();
+                builder.RegisterType<IdentityTokenSettingsController>()
+                    .AsImplementedInterfaces().SingleInstance();
+            }
+
+            builder.AddDiagnostics(config, loggerConfiguration);
 
             // Register job types...
             builder.RegisterModule<PublisherJobsConfiguration>();
-
-            // Use cloud job manager
-            builder.RegisterType<JobOrchestratorClient>()
-                .AsImplementedInterfaces().SingleInstance();
 
             // Opc specific parts
             builder.RegisterType<DefaultSessionManager>()
