@@ -12,11 +12,11 @@ You should have already successfully deployed all Microservices and at least one
 
 2. [Deploy Industrial IoT Edge Modules](../howto-deploy-modules.md)
 
-To run the demo OPC UA server and the OPC Device Management Console Client you will also need Docker installed on your development PC.  If you have not, please follow the instructions for [Linux](https://docs.docker.com/install/linux/docker-ce/ubuntu/), [Mac](https://docs.docker.com/docker-for-mac/install/), or on [Windows](https://docs.docker.com/docker-for-windows/install/).
+To run the demo OPC UA server you will also need Docker installed on your development PC.  If you have not, please follow the instructions for [Linux](https://docs.docker.com/install/linux/docker-ce/ubuntu/), [Mac](https://docs.docker.com/docker-for-mac/install/), or on [Windows](https://docs.docker.com/docker-for-windows/install/).
 
 Also, make sure you have Git installed.  Otherwise follow the instructions for [Linux or Mac](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git), or [Windows](https://gitforwindows.org/) to install it.
 
-3. Have Postman installed or download from [here](https://www.getpostman.com/).
+3. [Have Postman installed](https://www.getpostman.com/).
 
 
 ## Start the demo OPC UA server
@@ -65,19 +65,12 @@ Note: the Postman requests will use an Authorization Code flow to authenticate t
 
 
 ## Download a sample set of API calls (Postman collection)
-1. Download from ...
-2. 
-
-
-## Configure Postman environment
-
-1. From within Postman at the top right, choose the 'OPC Twin' environment.
-1. Click the Settings button.
-1. Configure your own values for the properties:
+1. Download the collection [here](../media/OPCTwin.postman_collection.json)
+1. Create a new Environment named OPC Twin: within Postman at the top right click Manage Environments.
+1. Click Add.
+1. Add a new variable:
     - OPC-SERVICEURL: typically this will be something like ''
-1. Update and close the screen.
-
-2. TODO (add image and full list of fields)
+1. Click Add and close the screen. ![Environment](../media/2-postmanenv.png)
 
 ### Request a new OAuth 2.0 Token
 
@@ -106,64 +99,38 @@ Note: the Postman requests will use an Authorization Code flow to authenticate t
 
 ### Register the demo OPC UA server manually using its discovery URL
 
-1. Execute the 'GET endpoints' request. The result should be empty.
-
-### BELOW HERE STILL TODO
-
-2. Add an application
-
-   ```bash
-   > apps add --url opc.tcp://<hostname>:50000 -a
-   ```
-
-   * `–a` auto-activates all discovered twins automatically, a convenience shortcut. Normally an operator would manually activate/enable newly registered twins based on some form of security audit.
-
-3. Run
-
-   ```bash
-   > apps list
-   ```
-
-   a couple of times until the application is discovered and registered, which should happen within seconds.
+1. Execute the 'GET Applications' request. The result should be empty.
+1. Locate the 'POST Registry Add application' request. Edit the request body to point to your hostname:
+    ```
+    {
+      "request":
+      {
+        "discoveryUrl": "opc.tcp://[yourserver]:50000",
+        "activationFilter": 
+        {
+          "securityMode": "None"
+        }
+      }
+    }
+    ```
+1. Execute the 'GET Applications' request a few times until you get the result and have the application discovered and registered.
+TODO
 
    ```bash
-   ==================
-   {
-     "items": [
-       {
-         "applicationId": "uas0f2c131113668eb4c743dc7c46bcaaeb31902595",
-         "applicationName": "OpcPlc",
-         "locale": "en-US",
-         "supervisorId": "myhostname_module_opctwin",
-         "applicationUri": "urn:OpcPlc:plcdemo",
-         "hostAddresses": [
-           "[fe80::24ea:a4cd:bdf6:8fab%20]:50000",
-           "192.168.0.161:51213"
-         ],
-         "productUri": "https://github.com/azure-samples/iot-edge-opc-plc",
-         "applicationType": "Server",
-         "discoveryUrls": [
-           "opc.tcp://plcdemo:50000/"
-         ],
-         "certificate": "..."
-       }
-     ]
-   }
-   ==================
-   >
+   
+   
+   
    ```
 
    Note all the information about the application that the IoT Edge added during the registration, including public certificate, product URI and more. Copy the `applicationId`.
 
 ### Browse all root nodes of the activated endpoint
 
-1. Run
+### BELOW HERE STILL TODO
 
-   ```bash
-   > apps get –i <applicationId>
-   ```
+1. Execute the request 'Registry - Get Nodes for Application' to see the application and its endpoints. Select one of the id under `endpoints` (endpointId). Before executing, make sure you update the applicationId copied above.
 
-   to see the application and its endpoints. Select one of the id under `endpoints` (endpointId).
+   
 
 2. Run
 

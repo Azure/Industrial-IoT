@@ -1,0 +1,186 @@
+{
+	"info": {
+		"_postman_id": "1018e8eb-586e-48b4-83f2-1df89633f736",
+		"name": "OPC Twin",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "GET Applications",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://{{OPC-SERVICEURL}}/registry/v2/applications",
+					"protocol": "https",
+					"host": [
+						"{{OPC-SERVICEURL}}"
+					],
+					"path": [
+						"registry",
+						"v2",
+						"applications"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GET endpoints",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://{{OPC-SERVICEURL}}/registry/v2/endpoints",
+					"protocol": "https",
+					"host": [
+						"{{OPC-SERVICEURL}}"
+					],
+					"path": [
+						"registry",
+						"v2",
+						"endpoints"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Registry: discover applications",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"discovery\": \"Network\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://{{OPC-SERVICEURL}}/registry/v2/applications/discover",
+					"protocol": "https",
+					"host": [
+						"{{OPC-SERVICEURL}}"
+					],
+					"path": [
+						"registry",
+						"v2",
+						"applications",
+						"discover"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Registry: browse endpoints",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://{{OPC-SERVICEURL}}/registry/v2/endpoints",
+					"protocol": "https",
+					"host": [
+						"{{OPC-SERVICEURL}}"
+					],
+					"path": [
+						"registry",
+						"v2",
+						"endpoints"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Twin: browse endpoint for ID x",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"request\":\n\t{\n\t\t\n\t}\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://{{OPC-SERVICEURL}}/twin/v2/browse/uat275dbc433766b27475b758d48f720963a83a0ba5",
+					"protocol": "https",
+					"host": [
+						"{{OPC-SERVICEURL}}"
+					],
+					"path": [
+						"twin",
+						"v2",
+						"browse",
+						"uat275dbc433766b27475b758d48f720963a83a0ba5"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "oauth2",
+		"oauth2": [
+			{
+				"key": "accessToken",
+				"value": "",
+				"type": "string"
+			},
+			{
+				"key": "tokenType",
+				"value": "Bearer",
+				"type": "string"
+			},
+			{
+				"key": "addTokenTo",
+				"value": "header",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "1dde2951-de0c-452d-a11c-071e796134db",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "5aa2e5c7-53ad-4f15-8bc6-3ae4fdd0d337",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"protocolProfileBehavior": {}
+}
