@@ -580,12 +580,12 @@
             ]
         },
         {
-            "comments": "Storage account",
+            "comments": "Datelake account",
             "type": "Microsoft.Storage/storageAccounts",
             "name": "[parameters('storageName')]",
             "apiVersion": "2019-04-01",
             "location": "[resourceGroup().location]",
-            "kind": "StorageV2",
+            "kind": "Storage",
             "sku": {
                 "name": "[parameters('storageSkuName')]"
             },
@@ -612,6 +612,20 @@
                 }
             },
             "dependsOn": [
+            ]
+        },
+        {
+            "comments": "Datalake service identity role assignment",
+            "type": "Microsoft.Storage/storageAccounts/providers/roleAssignments",
+            "apiVersion": "2018-09-01-preview",
+            "name": "[concat(parameters('storageName'), '/Microsoft.Authorization/', guid(uniqueString(parameters('storageName'))))]",
+            "properties": {
+                "roleDefinitionId": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')]",
+                "principalId": "[if(not(empty(parameters('managedIdentityName'))), reference(variables('identityResourceId'), '2018-11-30').principalId, parameters('servicePrincipalId'))]"
+            },
+            "dependsOn": [
+                "[variables('storageResourceId')]",
+                "[variables('identityResourceId')]"
             ]
         },
         {
@@ -838,6 +852,10 @@
                             {
                                 "key": "PCS_IOTHUB_EVENTHUBCONSUMERGROUP",
                                 "value": "[variables('iothubConsumerGroup1')]"
+                            },
+                            {
+                                "key": "PCS_ADLSG2_ACCOUNT",
+                                "value": "[parameters('storageName')]"
                             },
                             {
                                 "key": "PCS_STORAGE_CONNSTRING",

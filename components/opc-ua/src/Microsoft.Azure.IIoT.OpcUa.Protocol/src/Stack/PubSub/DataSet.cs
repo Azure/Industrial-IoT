@@ -7,6 +7,7 @@ namespace Opc.Ua.PubSub {
     using System;
     using System.Collections.Generic;
     using Opc.Ua;
+    using Opc.Ua.Encoders;
 
     /// <summary>
     /// Encodable dataset message payload
@@ -46,8 +47,18 @@ namespace Opc.Ua.PubSub {
 
         /// <inheritdoc/>
         public void Decode(IDecoder decoder) {
-            // TODO
-            throw new NotImplementedException();
+            switch (decoder.EncodingType) {
+                case EncodingType.Binary:
+                    DecodeBinary(decoder);
+                    break;
+                case EncodingType.Json:
+                    DecodeJson(decoder);
+                    break;
+                case EncodingType.Xml:
+                    throw new NotImplementedException("XML decoding is not implemented.");
+                default:
+                    throw new NotImplementedException($"Unknown encoding: {decoder.EncodingType}");
+            }
         }
 
         /// <inheritdoc/>
@@ -67,9 +78,35 @@ namespace Opc.Ua.PubSub {
         }
 
         /// <inheritdoc/>
+        public override bool Equals(Object value) {
+            return IsEqual(value as IEncodeable);
+        }
+
+        /// <inheritdoc/>
+        public override int GetHashCode() {
+            return base.GetHashCode();
+        }
+
+        /// <inheritdoc/>
         public bool IsEqual(IEncodeable encodeable) {
-            // TODO
-            throw new NotImplementedException();
+            if (ReferenceEquals(this, encodeable)) {
+                return true;
+            }
+
+            if (!(encodeable is DataSet wrapper)) {
+                return false;
+            }
+            if (wrapper.Count != Count) {
+                return false;
+            }
+
+            foreach (var value in wrapper) {
+                if (!Utils.IsEqual(wrapper[value.Key], this[value.Key])) {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -125,6 +162,57 @@ namespace Opc.Ua.PubSub {
                     encoder.WriteDataValue(fieldName, dv);
                 }
             }
+        }
+
+        /// <summary>
+        /// Decode as json
+        /// </summary>
+        /// <param name="decoder"></param>
+        private void DecodeJson(IDecoder decoder) {
+
+            var jsonDecoder = decoder as JsonDecoderEx;
+            if (jsonDecoder == null) {
+                // report failure
+                return;
+            }
+
+            var payload = jsonDecoder.ReadDataValueDictionary("Payload");
+
+            if (payload == null) {
+                return;
+            }
+            
+            foreach (var value in payload) {
+                
+                this.Add(value.Key, value.Value);
+                if (value.Value != null) {
+                    if (value.Value.StatusCode != null) {
+                        FieldContentMask |= (uint)DataSetFieldContentMask.StatusCode;
+                    }
+                    if (value.Value.SourceTimestamp != null) {
+                        FieldContentMask |= (uint)DataSetFieldContentMask.SourceTimestamp;
+                    }
+                    if (value.Value.SourcePicoseconds != 0) {
+                        FieldContentMask |= (uint)DataSetFieldContentMask.SourcePicoSeconds;
+                    }
+                    if (value.Value.ServerTimestamp != null) {
+                        FieldContentMask |= (uint)DataSetFieldContentMask.ServerTimestamp;
+                    }
+                    if (value.Value.ServerPicoseconds != 0) {
+                        FieldContentMask |= (uint)DataSetFieldContentMask.ServerPicoSeconds;
+                    }
+                }
+            }
+        }
+        
+#pragma warning disable IDE0060 // Remove unused parameter
+        /// <summary>
+        /// Decode as binary
+        /// </summary>
+        /// <param name="decoder"></param>
+        private void DecodeBinary(IDecoder decoder) {
+#pragma warning restore IDE0060 // Remove unused parameter
+            throw new NotImplementedException("Binary decoding is not implemented.");
         }
     }
 }

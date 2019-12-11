@@ -34,6 +34,11 @@ namespace Opc.Ua.PubSub {
         public string DataSetClassId { get; set; }
 
         /// <summary>
+        /// Message type 
+        /// </summary>
+        public string MessageType { get; set; } = "ua-data";
+
+        /// <summary>
         /// Dataset Messages
         /// </summary>
         public List<DataSetMessage> Messages { get; set; }
@@ -81,9 +86,44 @@ namespace Opc.Ua.PubSub {
             }
         }
 
+
+        /// <inheritdoc/>
+        public override bool Equals(Object value) {
+            return IsEqual(value as IEncodeable);
+        }
+
+        /// <inheritdoc/>
+        public override int GetHashCode() {
+            return base.GetHashCode();
+        }
+
         /// <inheritdoc/>
         public bool IsEqual(IEncodeable encodeable) {
-            return Utils.IsEqual(this, encodeable);
+            if (ReferenceEquals(this, encodeable)) {
+                return true;
+            }
+
+            if (!(encodeable is NetworkMessage wrapper)) {
+                return false;
+            }
+
+            if (!Utils.IsEqual(wrapper.MessageContentMask, MessageContentMask) ||
+                !Utils.IsEqual(wrapper.MessageId, MessageId) ||
+                !Utils.IsEqual(wrapper.DataSetClassId, DataSetClassId) ||
+                !Utils.IsEqual(wrapper.BinaryEncodingId, BinaryEncodingId) ||
+                !Utils.IsEqual(wrapper.MessageType, MessageType) ||
+                !Utils.IsEqual(wrapper.PublisherId, PublisherId) ||
+                !Utils.IsEqual(wrapper.TypeId, TypeId) ||
+                !Utils.IsEqual(wrapper.XmlEncodingId, XmlEncodingId) ||
+                !Utils.IsEqual(wrapper.Messages, Messages)) {
+                return false;
+            }
+
+            if (Messages.Count != wrapper.Messages.Count) {
+                return false;
+            }
+
+            return true;
         }
 
 #pragma warning disable IDE0060 // Remove unused parameter
@@ -97,15 +137,37 @@ namespace Opc.Ua.PubSub {
             throw new NotImplementedException();
         }
 
-#pragma warning disable IDE0060 // Remove unused parameter
-        /// <summary>
-        /// Decode from json
-        /// </summary>
-        /// <param name="decoder"></param>
+        /// <inheritdoc/>
         private void DecodeJson(IDecoder decoder) {
-#pragma warning restore IDE0060 // Remove unused parameter
-            // TODO
-            throw new NotImplementedException();
+            MessageId = decoder.ReadString("MessageId");
+            MessageContentMask = 0;
+            if (MessageId != null) {
+                MessageContentMask |= (uint)JsonNetworkMessageContentMask.NetworkMessageHeader;
+            }
+            
+            MessageType = decoder.ReadString("MessageType");
+            if (MessageType != "ua-data"){
+                // todo throw incorrect message format
+            }
+
+            PublisherId = decoder.ReadString("PublisherId");
+            if (PublisherId != null) {
+                MessageContentMask |= (uint)JsonNetworkMessageContentMask.PublisherId;
+            }
+
+            DataSetClassId = decoder.ReadString("DataSetClassId");
+            if(DataSetClassId != null){
+                MessageContentMask |= (uint)JsonNetworkMessageContentMask.DataSetClassId;
+            }
+
+            Array messagesArray = decoder.ReadEncodeableArray("Messages", typeof(DataSetMessage));
+            Messages = new List<DataSetMessage>();
+            foreach (var value in messagesArray) {
+                Messages.Add(value as DataSetMessage);
+            }
+            if (Messages.Count == 1) {
+                MessageContentMask |= (uint)JsonNetworkMessageContentMask.SingleDataSetMessage;
+            }
         }
 
 #pragma warning disable IDE0060 // Remove unused parameter

@@ -619,6 +619,28 @@ namespace Opc.Ua.Encoders {
         }
 
         /// <inheritdoc/>
+        public Dictionary<string, DataValue> ReadDataValueDictionary(string property) {
+            
+            if (!TryGetToken(property, out var token)) {
+                return null;
+            }
+
+            if (token is JObject o){
+                var dictionary = new Dictionary<string, DataValue>();                
+                foreach (JProperty innerProperty in o.Properties()) {
+                    _stack.Push(o); ;                                                            
+                    var innerValue = ReadDataValue(innerProperty.Name);
+                    _stack.Pop();
+                    if (innerValue != null) {
+                        dictionary[innerProperty.Name] = innerValue;
+                    }
+                }
+                return dictionary;
+            }
+            return null;
+        }
+
+        /// <inheritdoc/>
         public ExtensionObjectCollection ReadExtensionObjectArray(string property) {
             return ReadArray(property, () => ReadExtensionObject(null));
         }

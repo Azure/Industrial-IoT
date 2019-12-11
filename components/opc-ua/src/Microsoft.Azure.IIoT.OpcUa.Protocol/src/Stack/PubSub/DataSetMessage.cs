@@ -58,9 +58,18 @@ namespace Opc.Ua.PubSub {
 
         /// <inheritdoc/>
         public void Decode(IDecoder decoder) {
-
-            // TODO:
-            throw new NotImplementedException();
+            switch (decoder.EncodingType) {
+                case EncodingType.Binary:
+                    DecodeBinary(decoder);
+                    break;
+                case EncodingType.Json:
+                    DecodeJson(decoder);
+                    break;
+                case EncodingType.Xml:
+                    throw new NotImplementedException("XML encoding is not implemented.");
+                default:
+                    throw new NotImplementedException($"Unknown encoding: {decoder.EncodingType}");
+            }
         }
 
         /// <inheritdoc/>
@@ -80,12 +89,36 @@ namespace Opc.Ua.PubSub {
         }
 
         /// <inheritdoc/>
+        public override bool Equals(Object value) {
+            return IsEqual(value as IEncodeable);
+        }
+
+        /// <inheritdoc/>
+        public override int GetHashCode() {
+            return base.GetHashCode();
+        }
+
+        /// <inheritdoc/>
         public bool IsEqual(IEncodeable encodeable) {
             if (ReferenceEquals(this, encodeable)) {
                 return true;
             }
+            
+            if (!(encodeable is DataSetMessage wrapper)) {
+                return false;
+            }
+            
+            if (!Utils.IsEqual(wrapper.MessageContentMask, MessageContentMask) ||
+                !Utils.IsEqual(wrapper.DataSetWriterId, DataSetWriterId) ||
+                !Utils.IsEqual(wrapper.MetaDataVersion, MetaDataVersion) ||
+                !Utils.IsEqual(wrapper.SequenceNumber, SequenceNumber) ||
+                !Utils.IsEqual(wrapper.Status, Status) ||
+                !Utils.IsEqual(wrapper.Timestamp, Timestamp) ||
+                !Utils.IsEqual(wrapper.Payload, Payload)) {
+                return false;
+            }
 
-            return false;
+            return true;
         }
 
 #pragma warning disable IDE0060 // Remove unused parameter
@@ -123,6 +156,48 @@ namespace Opc.Ua.PubSub {
             if (Payload != null) {
                 encoder.WriteEncodeable(nameof(Payload), Payload, null);
             }
+        }
+
+        /// <summary>
+        /// Encode as binary
+        /// </summary>
+        /// <param name="decoder"></param>
+        private void DecodeBinary(IDecoder decoder) {
+            throw new NotImplementedException("Binary decoding is not implemented.");
+        }
+
+        /// <summary>
+        /// Decode as json
+        /// </summary>
+        /// <param name="decoder"></param>
+        private void DecodeJson(IDecoder decoder) {            
+            DataSetWriterId = decoder.ReadString(nameof(JsonDataSetMessageContentMask.DataSetWriterId));
+            if (DataSetWriterId != null) {
+                MessageContentMask |= (uint)JsonDataSetMessageContentMask.DataSetWriterId;
+            }
+            
+            SequenceNumber = decoder.ReadUInt32(nameof(JsonDataSetMessageContentMask.SequenceNumber));
+            if (SequenceNumber != 0) {
+                MessageContentMask |= (uint)JsonDataSetMessageContentMask.SequenceNumber;
+            }
+            
+            MetaDataVersion = decoder.ReadEncodeable(nameof(JsonDataSetMessageContentMask.MetaDataVersion), typeof(ConfigurationVersionDataType)) as ConfigurationVersionDataType;
+            if (MetaDataVersion != null) {
+                MessageContentMask|= (uint)JsonDataSetMessageContentMask.MetaDataVersion;
+            }
+            
+            Timestamp = decoder.ReadDateTime(nameof(JsonDataSetMessageContentMask.Timestamp));
+            if (Timestamp != null) {
+                MessageContentMask |= (uint)JsonDataSetMessageContentMask.Timestamp;
+            }
+
+            Status = decoder.ReadStatusCode(nameof(JsonDataSetMessageContentMask.Status));
+            if (Status != null) {
+                MessageContentMask |= (uint)JsonDataSetMessageContentMask.Status;                
+            }
+
+            Payload = new DataSet();
+            Payload.Decode(decoder);
         }
     }
 }

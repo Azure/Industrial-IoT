@@ -11,15 +11,20 @@
     box-shadow: 0px 0px 0px 1px rgba(0,0,0,0.2);
     -webkit-box-shadow: 0px 0px 0px 1px rgba(0,0,0,0.2);
     transition: 0.2s; /* drawer transition speed */
+    overflow-y: scroll;
 }
 
 .header {
     font-size: 1.5rem;
-    margin-right: auto;
+    justify-content: flex-start;
+}
+
+.drawer-top {
+    justify-content: flex-start !important;
 }
 
 .drawer.drawer-right-open {
-    width: 400px;
+    width: 480px;
     background-color: white;
     right: 0;
     left: auto;
@@ -93,6 +98,11 @@
     top: 55px;
     right: 85px;
     font-size: 30px;
+}
+
+.text-left {
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* When the height of the screen is less than @screen-sm-min pixels, 
