@@ -21,13 +21,13 @@ namespace Microsoft.Azure.IIoT.Cdm {
         Task OpenAsync();
 
         /// <summary>
-        /// Process the payload 
+        /// Process the payload
         /// </summary>
         /// <param name="payload"></param>
         /// <param name="properties"></param>
         /// <param name="partitionKey"></param>
         /// <returns></returns>
-        Task ProcessAsync(SubscriberCdmSampleModel payload, 
+        Task ProcessAsync(SubscriberCdmSampleModel payload,
             IDictionary<string, string> properties = null, string partitionKey = null);
 
         /// <summary>

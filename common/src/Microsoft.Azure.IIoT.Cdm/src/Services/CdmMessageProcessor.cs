@@ -16,12 +16,7 @@ namespace Microsoft.Azure.IIoT.Cdm.Services {
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Process messages by reading the stream and passing it to a handler.
-    /// The processor can be registered with an event hub processor or
-    /// with the IoT Hub blob upload host.  The latter is a simple setup,
-    /// the former allows fan out of processing through event hub or
-    /// service bus.  No matter what the processor simply processes the
-    /// stream it is handed.
+    /// Process messages and write them to Datalake.
     /// </summary>
     public class CdmMessageProcessor : ICdmClient {
 
@@ -46,8 +41,11 @@ namespace Microsoft.Azure.IIoT.Cdm.Services {
                         case CdmStatusLevel.Warning:
                             _logger.Warning("CDM message: {0}", msg);
                             break;
-                        default:
-                            _logger.Information("CDM message: {0}", msg);
+                        case CdmStatusLevel.Progress:
+                            _logger.Verbose("CDM message: {0}", msg);
+                            break;
+                        case CdmStatusLevel.Info:
+                            _logger.Debug("CDM message: {0}", msg);
                             break;
                     }
                 }
@@ -168,7 +166,7 @@ namespace Microsoft.Azure.IIoT.Cdm.Services {
                 }
             }
 
-            // add a new entity for the PublisherSample
+            // add a new entity for the Message
             var publisherSampleEntity = _cdmCorpus.MakeObject<CdmEntityDefinition>(
                 CdmObjectType.EntityDef, kPublisherSampleEntityName, false);
 

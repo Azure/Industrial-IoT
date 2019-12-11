@@ -65,8 +65,6 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Runtime {
         public string AppSecret => _cdm.AppSecret;
         /// <inheritdoc/>
         public string InstanceUrl => _cdm.InstanceUrl;
-        /// <inheritdoc/>
-        public string Audience => _cdm.Audience;
 
         /// <summary>
         /// Configuration constructor
