@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -58,7 +58,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             IEnumerable<string> tags = null,
             CancellationToken cancellationToken = default
         ) {
-            tags = tags ?? new List<string>();
+            tags ??= new List<string>();
 
             // Setup AppRoles for service application
             var serviceApplicationAppRoles = new List<AppRole>();
@@ -269,7 +269,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             IEnumerable<string> tags = null,
             CancellationToken cancellationToken = default
         ) {
-            tags = tags ?? new List<string>();
+            tags ??= new List<string>();
 
             // Extract id of Oauth2PermissionScope for user impersonation
             var saApiOauth2PermissionScopeUserImpersonationList = serviceApplication
@@ -378,7 +378,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             IEnumerable<string> tags = null,
             CancellationToken cancellationToken = default
         ) {
-            tags = tags ?? new List<string>();
+            tags ??= new List<string>();
 
             // Add OAuth2Permissions for user impersonation
             var aksOauth2Permissions = new List<PermissionScope> {
@@ -623,7 +623,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             IEnumerable<string> tags = null,
             CancellationToken cancellationToken = default
         ) {
-            tags = tags ?? new List<string>();
+            tags ??= new List<string>();
 
             var servicePrincipalDefinition = new ServicePrincipal {
                 Tags = tags, // Add WindowsAzureActiveDirectoryIntegratedApp

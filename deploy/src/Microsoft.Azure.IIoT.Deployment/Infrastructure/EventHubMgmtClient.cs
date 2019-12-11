@@ -23,7 +23,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
         public const string DEFAULT_EVENT_HUB_NAME_PREFIX = "eventhub-";
         public const int NUM_OF_MAX_NAME_AVAILABILITY_CHECKS = 5;
 
-        private const string EVENT_HUB_NAMESPACE_AUTHORIZATION_RULE = "RootManageSharedAccessKey";
+        private const string kEVENT_HUB_NAMESPACE_AUTHORIZATION_RULE = "RootManageSharedAccessKey";
 
         private readonly EventHubManagementClient _eventHubManagementClient;
 
@@ -135,7 +135,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             CancellationToken cancellationToken = default
         ) {
             try {
-                tags = tags ?? new Dictionary<string, string>();
+                tags ??= new Dictionary<string, string>();
 
                 Log.Information($"Creating Azure Event Hub Namespace: {eventHubNamespaceName} ...");
 
@@ -186,7 +186,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                     .ListKeysAsync(
                         resourceGroup.Name,
                         eventHubNamespace.Name,
-                        EVENT_HUB_NAMESPACE_AUTHORIZATION_RULE,
+                        kEVENT_HUB_NAMESPACE_AUTHORIZATION_RULE,
                         cancellationToken
                     );
 
@@ -209,7 +209,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
 
         ) {
             try {
-                tags = tags ?? new Dictionary<string, string>();
+                tags ??= new Dictionary<string, string>();
 
                 Log.Information($"Creating Azure Event Hub: {eventHubName} ...");
 
