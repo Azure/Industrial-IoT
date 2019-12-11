@@ -3,8 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Handlers {
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
+namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
+    using Microsoft.Azure.IIoT.OpcUa.Subscriber.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Core;
     using Microsoft.Azure.IIoT.Hub;
     using Serilog;
     using System;

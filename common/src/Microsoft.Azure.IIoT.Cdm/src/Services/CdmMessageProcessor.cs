@@ -4,9 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Cdm.Services {
-    using System;
-    using System.Collections.Generic;
-    using System.Threading.Tasks;
     using Microsoft.Azure.IIoT.Cdm;
     using Microsoft.Azure.IIoT.Cdm.Models;
     using Microsoft.CommonDataModel.ObjectModel.Cdm;
@@ -14,6 +11,9 @@ namespace Microsoft.Azure.IIoT.Cdm.Services {
     using Microsoft.CommonDataModel.ObjectModel.Storage;
     using Microsoft.CommonDataModel.ObjectModel.Utilities;
     using Serilog;
+    using System;
+    using System.Collections.Generic;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Process messages by reading the stream and passing it to a handler.
@@ -105,7 +105,7 @@ namespace Microsoft.Azure.IIoT.Cdm.Services {
 
                 var persist = AddPublisherSampleModelEntityToModel();
 
-                for (int i = 0; i < _cdmCorpus.Documents.Count; i++) {
+                for (var i = 0; i < _cdmCorpus.Documents.Count; i++) {
                     var item = _cdmCorpus.Documents[i];
                     var resOpt = new ResolveOptions() {
                         WrtDoc = item,
@@ -139,7 +139,7 @@ namespace Microsoft.Azure.IIoT.Cdm.Services {
 
             if (Manifest == null) {
                 _logger.Warning("Manifest is not assigned yet. Retry ... ");
-                await this.OpenAsync();
+                await OpenAsync();
             }
 
             var entityDeclaration = Manifest.Entities.Item(kPublisherSampleEntityName);
@@ -157,7 +157,7 @@ namespace Microsoft.Azure.IIoT.Cdm.Services {
                 partitionLocation,
                 new List<SubscriberCdmSampleModel>() { payload },
                 csvTrait?.Arguments?.FetchValue("delimiter") ?? kCsvPartitionsDelimiter);
-       }
+        }
 
         private bool AddPublisherSampleModelEntityToModel() {
 

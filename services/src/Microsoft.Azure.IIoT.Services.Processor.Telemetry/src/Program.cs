@@ -14,7 +14,6 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry {
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Handlers;
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Handlers;
     using Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
@@ -164,8 +163,6 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry {
                 .AsImplementedInterfaces().SingleInstance();
             // ... forward samples to the tsi eventhub
             builder.RegisterType<MonitoredItemSampleForwarder>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<MonitoredItemSampleCdmProcessor>()
                 .AsImplementedInterfaces().SingleInstance();
 
             // Handle the CDM handler

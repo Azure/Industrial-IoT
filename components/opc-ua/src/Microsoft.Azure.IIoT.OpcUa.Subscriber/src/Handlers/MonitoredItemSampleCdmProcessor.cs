@@ -3,16 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Handlers {
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Publisher;
+namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
+    using Microsoft.Azure.IIoT.OpcUa.Subscriber.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Subscriber;
     using Microsoft.Azure.IIoT.Cdm;
     using Microsoft.Azure.IIoT.Cdm.Models;
     using System;
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Forwards samples to another event hub
+    /// Cdm processor for monitored item messages
     /// </summary>
     public sealed class MonitoredItemSampleCdmProcessor : IMonitoredItemSampleProcessor,
         IDisposable {
@@ -31,17 +31,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Handlers {
 
         /// <inheritdoc/>
         public Task HandleSampleAsync(MonitoredItemSampleModel sample) {
-            sample = sample.Clone();
-            // Set timestamp as source timestamp
-            // TODO: Make configurable
-            sample.Timestamp = sample.SourceTimestamp;
             var cdmModel = new SubscriberCdmSampleModel() {
                 SubscriptionId = sample.SubscriptionId,
                 EndpointId = sample.EndpointId,
                 DataSetId = sample.DataSetId,
                 NodeId = sample.NodeId,
                 Value = sample.Value.ToString(),
-                Timestamp = sample.Timestamp,
+                // Set timestamp as source timestamp - todo make configurable
+                Timestamp = sample.SourceTimestamp,
                 ServerTimestamp = sample.ServerTimestamp,
                 SourceTimestamp = sample.SourceTimestamp
             };

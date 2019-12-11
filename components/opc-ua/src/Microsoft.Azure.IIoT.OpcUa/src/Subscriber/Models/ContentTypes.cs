@@ -15,10 +15,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Models {
         /// </summary>
         public const string SubscriberSample =
             "application/x-publisher-sample-v2-json";
-    
+
         /// <summary>
         /// message contains a single legacy publisher message
-        /// </summary>        
+        /// </summary>
         public const string LegacySubscriberSample =
             "application/opcua+uajson";
     }
