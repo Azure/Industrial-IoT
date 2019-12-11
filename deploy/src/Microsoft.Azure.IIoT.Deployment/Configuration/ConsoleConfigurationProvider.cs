@@ -92,20 +92,8 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
         }
 
         protected override bool CheckIfUseExistingResourceGroupImp() {
-            Console.WriteLine("Do you want to create a new ResourceGroup or use an existing one ? " +
-                "Please select N[new] or E[existing]");
-
-            var response = ConsoleKey.Escape;
-
-            while (!ConsoleKey.N.Equals(response) && !ConsoleKey.E.Equals(response)) {
-                response = Console.ReadKey(false).Key;
-
-                if (response != ConsoleKey.Enter) {
-                    Console.WriteLine();
-                }
-            }
-
-            return ConsoleKey.E.Equals(response);
+            Console.WriteLine("Do you want to use existing Resource Group or create a new one ? ");
+            return ChoisePrompt('E', "existing", 'N', "new");
         }
 
         protected override IResourceGroup SelectExistingResourceGroupImp(
@@ -177,40 +165,16 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
         }
 
         protected override bool CheckIfSaveEnvFileImp() {
-            Console.WriteLine("Do you want to save connection details of deployed resources to '.env' file ? " +
-                "Please select Y[yes] or N[no]");
-
-            var response = ConsoleKey.Escape;
-
-            while (!ConsoleKey.Y.Equals(response) && !ConsoleKey.N.Equals(response)) {
-                response = Console.ReadKey(false).Key;
-
-                if (response != ConsoleKey.Enter) {
-                    Console.WriteLine();
-                }
-            }
-
-            return ConsoleKey.Y.Equals(response);
+            Console.Write("Do you want to save connection details of deployed resources to '.env' file ? ");
+            return ChoisePrompt('Y', "yes", 'N', "no");
         }
 
         protected override bool CheckIfPerformCleanupImp() {
-            Console.WriteLine("Do you want to delete registered Applications and the Resource Group ? " +
-                "Please select Y[yes] or N[no]");
-
-            var response = ConsoleKey.Escape;
-
-            while (!ConsoleKey.Y.Equals(response) && !ConsoleKey.N.Equals(response)) {
-                response = Console.ReadKey(false).Key;
-
-                if (response != ConsoleKey.Enter) {
-                    Console.WriteLine();
-                }
-            }
-
-            return ConsoleKey.Y.Equals(response);
+            Console.Write("Do you want to delete registered Applications and the Resource Group ? ");
+            return ChoisePrompt('Y', "yes", 'N', "no");
         }
 
-        private string ReadNonEmptyString() {
+        protected string ReadNonEmptyString() {
             string inputStr;
 
             do {
@@ -220,7 +184,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
             return inputStr;
         }
 
-        private int ReadIndex(
+        protected int ReadIndex(
             int indexMaxValue,
             string selectionPrefix
         ) {
@@ -249,6 +213,32 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
             }
 
             return selection.Value;
+        }
+
+        /// <summary>
+        /// Prompt user to select between two choices. Input not matching (case-insensitive)
+        /// either of provided choices (short or long) will be discarded.
+        /// </summary>
+        /// <param name="firstCh">First choice character, e.g. 'Y'.</param>
+        /// <param name="firstDesc">One word description of first choice, e.g. 'yes'.</param>
+        /// <param name="secondCh">Second choice character, e.g. 'N'.</param>
+        /// <param name="secondDesc">One word description of second choice, e.g. 'no'.</param>
+        /// <returns>Returns true if first choise has been selected, and false for second one.</returns>
+        protected bool ChoisePrompt(
+            char firstCh, string firstDesc,
+            char secondCh, string secondDesc
+        ) {
+            while (true) {
+                Console.WriteLine($"Please select {firstCh}[{firstDesc}] or {secondCh}[{secondDesc}]");
+
+                var inputLower = ReadNonEmptyString().ToLower();
+                if (firstCh.ToString().ToLower() == inputLower || firstDesc.ToLower() == inputLower) {
+                    return true;
+                }
+                if (secondCh.ToString().ToLower() == inputLower || secondDesc.ToLower() == inputLower) {
+                    return false;
+                }
+            }
         }
     }
 }
