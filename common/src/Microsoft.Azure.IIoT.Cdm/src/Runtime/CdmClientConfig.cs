@@ -5,8 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.Cdm.Runtime {
     using Microsoft.Azure.IIoT.Cdm;
-    using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Diagnostics;
+    using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
     using System;
 
@@ -50,14 +50,14 @@ namespace Microsoft.Azure.IIoT.Cdm.Runtime {
             GetStringOrDefault("PCS_AUTH_AUDIENCE", null));
         /// <summary>ADLSg2 host's name </summary>
         public string ADLSg2HostName => GetStringOrDefault(kCdmAdDLS2HostName,
-                (GetStringOrDefault("PCS_ADLSG2_ACCOUNT") + ".dfs.core.windows.net"));
+                GetStringOrDefault("PCS_ADLSG2_ACCOUNT") + ".dfs.core.windows.net");
         /// <summary>Blob name to store data in the ADLSg2</summary>
         public string ADLSg2BlobName => GetStringOrDefault(kCdmADLSg2BlobName,
             GetStringOrDefault("PCS_CDM_ADLSG2_BLOBNAME", "powerbi"));
         /// <summary>Root Folder within the blob</summary>
         public string RootFolder => GetStringOrDefault(kCdmRootFolder,
             GetStringOrDefault("PCS_CDM_ROOTFOLDER", "IIoTDataFlow"));
-        
+
         /// <summary>
         /// Configuration constructor
         /// </summary>

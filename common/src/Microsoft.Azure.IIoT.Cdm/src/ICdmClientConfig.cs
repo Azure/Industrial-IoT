@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Cdm {
-    using Microsoft.Azure.IIoT.Auth.Clients;    
+    using Microsoft.Azure.IIoT.Auth.Clients;
 
     /// <summary>
     /// configuration for the CDM storage handler
@@ -13,15 +13,15 @@ namespace Microsoft.Azure.IIoT.Cdm {
 
         /// <summary>
         /// ADLSg2 connection Host name
-        /// #identrifier#.dfs.core.windows.net
+        /// #identifier#.dfs.core.windows.net
         /// </summary>
         string ADLSg2HostName { get; }
-        
+
         /// <summary>
         /// the blob name used by thge CDM storage - E.g. pwerbi
         /// </summary>
         string ADLSg2BlobName { get; }
-        
+
         /// <summary>
         /// the cdm storage's root folder
         /// </summary>

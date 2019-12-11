@@ -4,9 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Models {
+    using Newtonsoft.Json.Linq;
     using System;
     using System.Linq;
-    using Newtonsoft.Json.Linq;
 
     /// <summary>
     /// Publisher sample model extensions
@@ -56,9 +56,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Models {
             };
 
             // check if value comes from the legacy publisher:
-            var applicationUri = sampleRoot.GetValueOrDefault<string>("ApplicationUri", 
-                StringComparison.InvariantCultureIgnoreCase);                
-            if (applicationUri == null || applicationUri == string.Empty) {                
+            var applicationUri = sampleRoot.GetValueOrDefault<string>("ApplicationUri",
+                StringComparison.InvariantCultureIgnoreCase);
+            if (applicationUri == null || applicationUri == string.Empty) {
                 result.EndpointId = sampleRoot.GetValueOrDefault<string>("EndpointId",
                     StringComparison.InvariantCultureIgnoreCase);
                 result.SubscriptionId = sampleRoot.GetValueOrDefault<string>("SubscriptionId",
