@@ -168,19 +168,14 @@ namespace Opc.Ua.Extensions {
                 return ExpandedNodeId.Parse(value);
             }
             var identifier = ParseNodeIdUri(value, out var nsUri, out var srvUri);
+
+            // Allocate entry in context if does not exist
+            var nsIndex = context.NamespaceUris.GetIndexOrAppend(nsUri);
             if (!string.IsNullOrEmpty(srvUri)) {
-                // References a node id on a server
-                if (nsUri == Namespaces.OpcUa) {
-                    return new ExpandedNodeId(identifier, 0, null,
-                        context.ServerUris.GetIndexOrAppend(srvUri));
-                }
-                return new ExpandedNodeId(identifier, context.NamespaceUris.GetIndexOrAppend(nsUri),
-                    nsUri, context.ServerUris.GetIndexOrAppend(srvUri));
+                return new ExpandedNodeId(identifier, 0, nsUri == Namespaces.OpcUa ? null : nsUri,
+                    context.ServerUris.GetIndexOrAppend(srvUri));
             }
-            if (nsUri == Namespaces.OpcUa) {
-                return new ExpandedNodeId(identifier, 0, null, 0);
-            }
-            return new ExpandedNodeId(identifier, context.NamespaceUris.GetIndexOrAppend(nsUri), nsUri, 0);
+            return new ExpandedNodeId(identifier, 0, nsUri == Namespaces.OpcUa ? null : nsUri, 0);
         }
 
         /// <summary>

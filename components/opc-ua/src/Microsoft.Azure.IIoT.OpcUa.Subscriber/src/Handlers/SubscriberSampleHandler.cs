@@ -6,13 +6,13 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
     using Microsoft.Azure.IIoT.OpcUa.Subscriber.Models;
     using Microsoft.Azure.IIoT.Hub;
+    using Newtonsoft.Json.Linq;
     using Serilog;
     using System;
-    using System.Text;
-    using System.Threading.Tasks;
     using System.Collections.Generic;
     using System.Linq;
-    using Newtonsoft.Json.Linq;
+    using System.Text;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Publisher message handling

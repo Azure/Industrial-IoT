@@ -7,7 +7,6 @@ namespace Microsoft.Azure.IIoT.Storage.Blob.Runtime {
     using Microsoft.Azure.IIoT.Storage.Blob;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
-    using System;
 
     /// <summary>
     /// Blob storage configuration
@@ -37,21 +36,17 @@ namespace Microsoft.Azure.IIoT.Storage.Blob.Runtime {
                 if (string.IsNullOrEmpty(account) || string.IsNullOrEmpty(key)) {
                     return null;
                 }
-                return "DefaultEndpointsProtocol=https;" +
-                    $"EndpointSuffix={suffix};AccountName={account};AccountKey={key}";
+                return ConnectionString.CreateStorageConnectionString(
+                    account, suffix, key, "https").ToString();
             }
         }
 
         /// <summary>
         /// Configuration constructor
         /// </summary>
-        /// <param name="serviceId"></param>
         /// <param name="configuration"></param>
-        public StorageConfig(IConfiguration configuration, string serviceId = "") :
+        public StorageConfig(IConfiguration configuration) :
             base(configuration) {
-            _serviceId = serviceId ?? throw new ArgumentNullException(nameof(serviceId));
         }
-
-        private readonly string _serviceId;
     }
 }

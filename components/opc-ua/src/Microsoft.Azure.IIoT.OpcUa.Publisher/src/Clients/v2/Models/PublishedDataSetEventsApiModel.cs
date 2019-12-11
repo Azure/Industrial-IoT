@@ -33,6 +33,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2.Models {
                 new ContentFilterApiModel(model.Filter);
             DiscardNew = model.DiscardNew;
             EventNotifier = model.EventNotifier;
+            BrowsePath = model.BrowsePath;
             QueueSize = model.QueueSize;
             SelectedFields = model.SelectedFields?
                 .Select(f => new SimpleAttributeOperandApiModel(f))
@@ -49,6 +50,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2.Models {
                 Id = Id,
                 DiscardNew = DiscardNew,
                 EventNotifier = EventNotifier,
+                BrowsePath = BrowsePath,
                 Filter = Filter?.ToServiceModel(),
                 QueueSize = QueueSize,
                 MonitoringMode = MonitoringMode,
@@ -71,6 +73,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2.Models {
         /// </summary>
         [JsonProperty(PropertyName = "eventNotifier")]
         public string EventNotifier { get; set; }
+
+        /// <summary>
+        /// Browse path to event notifier node (Publisher extension)
+        /// </summary>
+        [JsonProperty(PropertyName = "browsePath",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public string[] BrowsePath { get; set; }
 
         /// <summary>
         /// Event fields to select

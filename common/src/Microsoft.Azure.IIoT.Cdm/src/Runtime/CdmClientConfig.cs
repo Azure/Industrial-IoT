@@ -4,16 +4,17 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Cdm.Runtime {
+    using Microsoft.Azure.IIoT.Auth.Clients;
+    using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Cdm;
-    using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Diagnostics;
+    using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
-    using System;
 
     /// <summary>
     /// CDM storage configuration
     /// </summary>
-    public class CdmClientConfig : DiagnosticsConfig, ICdmClientConfig {
+    public class CdmClientConfig : DiagnosticsConfig, ICdmClientConfig, IClientConfig {
 
         /// <summary>
         /// CDM's ADLSg2 configuration
@@ -21,49 +22,51 @@ namespace Microsoft.Azure.IIoT.Cdm.Runtime {
         private const string kCdmAdDLS2HostName = "Cdm:ADLSg2HostName";
         private const string kCdmADLSg2BlobName = "Cdm:ADLSg2BlobName";
         private const string kCdmRootFolder = "Cdm:RootFolder";
-        private const string kAuth_AppIdKey = "Auth:ServiceId";
-        private const string kAuth_AppSecretKey = "Auth:ServiceSecret";
-        private const string kAuth_TenantIdKey = "Auth:TenantId";
-        private const string kAuth_DomainKey = "Auth:TenantId";
-        private const string kAuth_InstanceUrlKey = "Auth:InstanceUrl";
-        private const string kAuth_AudienceKey = "Auth:Audience";
 
-        /// <summary>Application id</summary>
-        public string AppId => GetStringOrDefault(kAuth_AppIdKey,
-            GetStringOrDefault("PCS_AUTH_AAD_SERVICEID"))?.Trim();
-        /// <summary>App secret</summary>
-        public string AppSecret => GetStringOrDefault(kAuth_AppSecretKey,
-            GetStringOrDefault("PCS_AUTH_AAD_SERVICESECRET"))?.Trim();
-        /// <summary>Optional tenant</summary>
-        public string TenantId => GetStringOrDefault(kAuth_TenantIdKey,
-            GetStringOrDefault("PCS_WEBUI_AUTH_AAD_TENANT", "common")).Trim();
-        /// <summary>Aad domain</summary>
-        public string Domain => GetStringOrDefault(kAuth_DomainKey,
-            GetStringOrDefault("PCS_AUTH_DOMAIN", Try.Op(() =>
-            new Uri(GetStringOrDefault("PCS_AUTH_AUDIENCE")).DnsSafeHost)))?.Trim();
-        /// <summary>Aad instance url</summary>
-        public string InstanceUrl => GetStringOrDefault(kAuth_InstanceUrlKey,
-            GetStringOrDefault("PCS_WEBUI_AUTH_AAD_INSTANCE",
-                "https://login.microsoftonline.com")).Trim();
-        /// <summary>Audience</summary>
-        public string Audience => GetStringOrDefault(kAuth_AudienceKey,
-            GetStringOrDefault("PCS_AUTH_AUDIENCE", null));
         /// <summary>ADLSg2 host's name </summary>
         public string ADLSg2HostName => GetStringOrDefault(kCdmAdDLS2HostName,
-                (GetStringOrDefault("PCS_ADLSG2_ACCOUNT") + ".dfs.core.windows.net"));
+            GetStringOrDefault("PCS_ADLSG2_ACCOUNT",
+            GetStringOrDefault("PCS_ASA_DATA_AZUREBLOB_ACCOUNT",
+            GetAccountNameFromConnectionString("PCS_STORAGE_CONNSTRING"))) +
+                ".dfs.core.windows.net");
         /// <summary>Blob name to store data in the ADLSg2</summary>
         public string ADLSg2BlobName => GetStringOrDefault(kCdmADLSg2BlobName,
             GetStringOrDefault("PCS_CDM_ADLSG2_BLOBNAME", "powerbi"));
         /// <summary>Root Folder within the blob</summary>
         public string RootFolder => GetStringOrDefault(kCdmRootFolder,
             GetStringOrDefault("PCS_CDM_ROOTFOLDER", "IIoTDataFlow"));
-        
+
+        /// <inheritdoc/>
+        public string AppId => _client.AppId;
+        /// <inheritdoc/>
+        public string AppSecret => _client.AppSecret;
+        /// <inheritdoc/>
+        public string TenantId => _client.TenantId;
+        /// <inheritdoc/>
+        public string Domain => _client.Domain;
+        /// <inheritdoc/>
+        public string InstanceUrl => _client.InstanceUrl;
+
         /// <summary>
         /// Configuration constructor
         /// </summary>
         /// <param name="configuration"></param>
         public CdmClientConfig(IConfiguration configuration) :
             base(configuration) {
+            _client = new ClientConfig(configuration);
         }
+
+        /// <summary>
+        /// Helper to get account name from connection string
+        /// </summary>
+        /// <param name="variable"></param>
+        /// <returns></returns>
+        private string GetAccountNameFromConnectionString(string variable) {
+            var cs = GetStringOrDefault(variable, null);
+            return cs == null ? null : ConnectionString.Parse(cs).Endpoint;
+        }
+
+
+        private readonly ClientConfig _client;
     }
 }

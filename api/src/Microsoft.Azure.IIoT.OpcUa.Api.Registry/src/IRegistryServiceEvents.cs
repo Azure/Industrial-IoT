@@ -5,7 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
-    using Microsoft.Azure.IIoT.Messaging;
+    using System.Threading.Tasks;
+    using System;
 
     /// <summary>
     /// Registry service events
@@ -13,35 +14,59 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
     public interface IRegistryServiceEvents {
 
         /// <summary>
-        /// Application events
+        /// Subscribe to application events
         /// </summary>
-        IEventSource<ApplicationEventApiModel> Applications { get; }
+        /// <param name="userId"></param>
+        /// <param name="callback"></param>
+        /// <returns></returns>
+        Task<IAsyncDisposable> SubscribeApplicationEventsAsync(
+            string userId, Func<ApplicationEventApiModel, Task> callback);
 
         /// <summary>
-        /// Endpoint events
+        /// Subscribe to endpoint events
         /// </summary>
-        IEventSource<EndpointEventApiModel> Endpoints { get; }
+        /// <param name="userId"></param>
+        /// <param name="callback"></param>
+        /// <returns></returns>
+        Task<IAsyncDisposable> SubscribeEndpointEventsAsync(
+            string userId, Func<EndpointEventApiModel, Task> callback);
 
         /// <summary>
-        /// Supervisor events
+        /// Subscribe to supervisor events
         /// </summary>
-        IEventSource<SupervisorEventApiModel> Supervisors { get; }
+        /// <param name="userId"></param>
+        /// <param name="callback"></param>
+        /// <returns></returns>
+        Task<IAsyncDisposable> SubscribeSupervisorEventsAsync(
+            string userId, Func<SupervisorEventApiModel, Task> callback);
 
         /// <summary>
-        /// Publisher events
+        /// Subscribe to publisher events
         /// </summary>
-        IEventSource<PublisherEventApiModel> Publishers { get; }
+        /// <param name="userId"></param>
+        /// <param name="callback"></param>
+        /// <returns></returns>
+        Task<IAsyncDisposable> SubscribePublisherEventsAsync(
+            string userId, Func<PublisherEventApiModel, Task> callback);
 
         /// <summary>
-        /// Discovery events
+        /// Subscribe to supervisor discovery events
         /// </summary>
-        IEventSource<DiscoveryProgressApiModel> Supervisor(
-            string supervisorId);
+        /// <param name="supervisorId"></param>
+        /// <param name="userId"></param>
+        /// <param name="callback"></param>
+        /// <returns></returns>
+        Task<IAsyncDisposable> SubscribeDiscoveryProgressBySupervisorsIdAsync(
+            string supervisorId, string userId, Func<DiscoveryProgressApiModel, Task> callback);
 
         /// <summary>
-        /// Discovery events
+        /// Subscribe to discovery events for a particular request
         /// </summary>
-        IEventSource<DiscoveryProgressApiModel> Discovery(
-            string requestId);
+        /// <param name="requestId"></param>
+        /// <param name="userId"></param>
+        /// <param name="callback"></param>
+        /// <returns></returns>
+        Task<IAsyncDisposable> SubscribeDiscoveryProgressByRequestIdAsync(
+            string requestId, string userId, Func<DiscoveryProgressApiModel, Task> callback);
     }
 }

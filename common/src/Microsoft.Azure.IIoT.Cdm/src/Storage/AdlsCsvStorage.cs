@@ -4,16 +4,16 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Cdm.Storage {
+    using Microsoft.Azure.IIoT.Http;
+    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Azure.IIoT.Http;
-    using Serilog;
 
     /// <inheritdoc/>
-    public class AdlsCsvStorage :IAdlsStorage {
+    public class AdlsCsvStorage : IAdlsStorage {
         /// <summary>
         /// CDM Azure Data lake storage handler
         /// </summary>
@@ -25,7 +25,7 @@ namespace Microsoft.Azure.IIoT.Cdm.Storage {
         }
 
         /// <summary>
-        /// prepare a csv formated block 
+        /// prepare a csv formated block
         /// </summary>
         /// <param name="data"></param>
         /// <param name="separator"></param>
@@ -46,15 +46,16 @@ namespace Microsoft.Azure.IIoT.Cdm.Storage {
                 sb.AppendLine();
                 foreach (var prop in info) {
                     var str = prop.GetValue(obj, null)?.ToString();
-                    if (str != null && 
+                    if (str != null &&
                         (str.Contains(separator) ||
                         str.Contains("\"") || str.Contains("\r") ||
                         str.Contains("\n"))) {
                         sb.Append('\"');
-                        foreach (char nextChar in str) {
+                        foreach (var nextChar in str) {
                             sb.Append(nextChar);
-                            if (nextChar == '"')
+                            if (nextChar == '"') {
                                 sb.Append('\"');
+                            }
                         }
                         sb.Append('\"');
                     }
@@ -69,14 +70,14 @@ namespace Microsoft.Azure.IIoT.Cdm.Storage {
         }
 
         /// <summary>
-        /// performs 
+        /// performs
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="partitionUrl"></param>
         /// <param name="data"></param>
         /// <param name="separator"></param>
         /// <returns></returns>
-        public async Task WriteInCsvPartition<T>(string partitionUrl, 
+        public async Task WriteInCsvPartition<T>(string partitionUrl,
             List<T> data, string separator) {
             try {
                 await _lock.WaitAsync();
@@ -120,7 +121,7 @@ namespace Microsoft.Azure.IIoT.Cdm.Storage {
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="hostName"></param>
         /// <param name="blobName"></param>
@@ -162,7 +163,7 @@ namespace Microsoft.Azure.IIoT.Cdm.Storage {
         public void Dispose() {
             _lock.Dispose();
         }
- 
+
         private readonly IHttpClient _httpClient;
         private readonly ILogger _logger;
         private readonly string kResource = "https://storage.azure.com";

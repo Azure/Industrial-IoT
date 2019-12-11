@@ -1,7 +1,0 @@
-{
-  "profiles": {
-    "Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Legacy.Cli": {
-      "commandName": "Project"
-    }
-  }
-}

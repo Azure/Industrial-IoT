@@ -7,7 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.Utils;
     using Opc.Ua;
     using Opc.Ua.Client;
@@ -565,7 +565,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
                     DisplayName = Template.DisplayName,
                     AttributeId = ((uint?)Template.AttributeId) ?? Attributes.Value,
-                    NodeClass = (Template.NodeClass ?? Twin.Models.NodeClass.Variable)
+                    NodeClass = (Template.NodeClass ?? Core.Models.NodeClass.Variable)
                                 .ToStackType(),
                     IndexRange = Template.IndexRange,
                     RelativePath = Template.RelativePath?

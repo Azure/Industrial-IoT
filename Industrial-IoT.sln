@@ -57,10 +57,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Modules.OpcUa.Twin", "modules\src\Microsoft.Azure.IIoT.Modules.OpcUa.Twin\src\Microsoft.Azure.IIoT.Modules.OpcUa.Twin.csproj", "{5709535C-A93D-4D03-8748-5F202C2A05EF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Legacy", "modules\src\Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Legacy\src\Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Legacy.csproj", "{63BF7A67-E422-4EB5-B2B1-77E23F46F63B}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Legacy.Tests", "modules\src\Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Legacy\tests\Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Legacy.Tests.csproj", "{BD9D39DA-81EC-4377-B9FB-036ADA544E7E}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests", "modules\src\Microsoft.Azure.IIoT.Modules.OpcUa.Twin\tests\Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests.csproj", "{B829F5E5-E906-4EFC-86D5-CB74C34194B2}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa", "components\opc-ua\src\Microsoft.Azure.IIoT.OpcUa\src\Microsoft.Azure.IIoT.OpcUa.csproj", "{8F49F047-9BA6-44EF-84BF-2C2C140818E3}"
@@ -191,8 +187,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Modules.Discovery", "modules\src\Microsoft.Azure.IIoT.Modules.Discovery\src\Microsoft.Azure.IIoT.Modules.Discovery.csproj", "{EB0E6E11-3C34-4BDE-8020-5324BCEB2C06}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Modules.Discovery.Cli", "modules\src\Microsoft.Azure.IIoT.Modules.Discovery\cli\Microsoft.Azure.IIoT.Modules.Discovery.Cli.csproj", "{9CDDE537-2D55-4A7E-947D-7FA3EC87B72A}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Legacy.Cli", "modules\src\Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Legacy\cli\Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Legacy.Cli.csproj", "{277079D0-B557-4280-A698-37EDADA10066}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Services.Processor.Telemetry", "services\src\Microsoft.Azure.IIoT.Services.Processor.Telemetry\src\Microsoft.Azure.IIoT.Services.Processor.Telemetry.csproj", "{5A2F6804-8AC6-49FE-82FA-9DD8F4CE38A3}"
 EndProject
@@ -376,14 +370,6 @@ Global
 		{5709535C-A93D-4D03-8748-5F202C2A05EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5709535C-A93D-4D03-8748-5F202C2A05EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5709535C-A93D-4D03-8748-5F202C2A05EF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{63BF7A67-E422-4EB5-B2B1-77E23F46F63B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{63BF7A67-E422-4EB5-B2B1-77E23F46F63B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{63BF7A67-E422-4EB5-B2B1-77E23F46F63B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{63BF7A67-E422-4EB5-B2B1-77E23F46F63B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BD9D39DA-81EC-4377-B9FB-036ADA544E7E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BD9D39DA-81EC-4377-B9FB-036ADA544E7E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BD9D39DA-81EC-4377-B9FB-036ADA544E7E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BD9D39DA-81EC-4377-B9FB-036ADA544E7E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B829F5E5-E906-4EFC-86D5-CB74C34194B2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B829F5E5-E906-4EFC-86D5-CB74C34194B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B829F5E5-E906-4EFC-86D5-CB74C34194B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -560,10 +546,6 @@ Global
 		{9CDDE537-2D55-4A7E-947D-7FA3EC87B72A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9CDDE537-2D55-4A7E-947D-7FA3EC87B72A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9CDDE537-2D55-4A7E-947D-7FA3EC87B72A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{277079D0-B557-4280-A698-37EDADA10066}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{277079D0-B557-4280-A698-37EDADA10066}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{277079D0-B557-4280-A698-37EDADA10066}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{277079D0-B557-4280-A698-37EDADA10066}.Release|Any CPU.Build.0 = Release|Any CPU
 		{5A2F6804-8AC6-49FE-82FA-9DD8F4CE38A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{5A2F6804-8AC6-49FE-82FA-9DD8F4CE38A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5A2F6804-8AC6-49FE-82FA-9DD8F4CE38A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -720,8 +702,6 @@ Global
 		{D059B44D-8C53-4B03-BE3D-5E50BA51A93A} = {AFBD4A17-2EB1-421C-BB0C-407C875F3F50}
 		{8C90549C-BB32-4A32-A50C-62C7118B5AE7} = {AFBD4A17-2EB1-421C-BB0C-407C875F3F50}
 		{5709535C-A93D-4D03-8748-5F202C2A05EF} = {3A2DB744-69F3-488E-8CD5-45B921385B76}
-		{63BF7A67-E422-4EB5-B2B1-77E23F46F63B} = {3A2DB744-69F3-488E-8CD5-45B921385B76}
-		{BD9D39DA-81EC-4377-B9FB-036ADA544E7E} = {43E69B85-2743-48EE-8FAE-A59F070E21D2}
 		{B829F5E5-E906-4EFC-86D5-CB74C34194B2} = {43E69B85-2743-48EE-8FAE-A59F070E21D2}
 		{8F49F047-9BA6-44EF-84BF-2C2C140818E3} = {A6028EDB-3331-48D2-8C7D-8D681172A61A}
 		{C2F3B451-2971-4D8F-AAA2-8481A251AA3F} = {A6028EDB-3331-48D2-8C7D-8D681172A61A}
@@ -784,7 +764,6 @@ Global
 		{D3100DBF-D198-4E4E-BE66-1B29C6A99FD4} = {C8D79D8A-D92E-4AE3-BA54-0C927BEBCEBF}
 		{EB0E6E11-3C34-4BDE-8020-5324BCEB2C06} = {3A2DB744-69F3-488E-8CD5-45B921385B76}
 		{9CDDE537-2D55-4A7E-947D-7FA3EC87B72A} = {C8D79D8A-D92E-4AE3-BA54-0C927BEBCEBF}
-		{277079D0-B557-4280-A698-37EDADA10066} = {C8D79D8A-D92E-4AE3-BA54-0C927BEBCEBF}
 		{5A2F6804-8AC6-49FE-82FA-9DD8F4CE38A3} = {ADB416A3-C375-4362-B2C0-3A35DA4CB5F8}
 		{FF26EE94-D75B-43AB-9FAD-A47FCF1B97CF} = {3E7A79D5-045F-49D0-BD29-46D4F2D62E52}
 		{C304DF8A-756F-4EAC-B7C5-967C3152EDFF} = {ADB416A3-C375-4362-B2C0-3A35DA4CB5F8}

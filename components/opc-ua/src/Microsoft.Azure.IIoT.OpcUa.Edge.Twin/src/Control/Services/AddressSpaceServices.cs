@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Microsoft.Azure.IIoT.OpcUa.History.Models;
@@ -66,7 +66,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
                 var result = new BrowseResultModel();
                 var diagnostics = new List<OperationResultModel>();
                 if (!excludeReferences) {
-                    var direction = (request.Direction ?? OpcUa.Twin.Models.BrowseDirection.Forward)
+                    var direction = (request.Direction ?? OpcUa.Core.Models.BrowseDirection.Forward)
                         .ToStackType();
                     // Browse and read children
                     result.References = new List<NodeReferenceModel>();
@@ -333,9 +333,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
                         continue;
                     }
                     var node = nodeReference.NodeId.ToNodeId(session.NamespaceUris);
-                    if ((session.ReadNode(node) is VariableNode argumentsNode)) {
+                    if (session.ReadNode(node) is VariableNode argumentsNode) {
                         var value = session.ReadValue(argumentsNode.NodeId);
-                        if ((value.Value is ExtensionObject[] argumentsList)) {
+                        if (value.Value is ExtensionObject[] argumentsList) {
                             foreach (var argument in argumentsList.Select(a => (Argument)a.Body)) {
                                 var builtInType = TypeInfo.GetBuiltInType(argument.DataType);
                                 args.Add(Tuple.Create(new TypeInfo(builtInType,
@@ -889,8 +889,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
                         ReferenceTypeId = reference.ReferenceTypeId.AsString(
                             session.MessageContext),
                         Direction = reference.IsForward ?
-                            OpcUa.Twin.Models.BrowseDirection.Forward :
-                            OpcUa.Twin.Models.BrowseDirection.Backward,
+                            OpcUa.Core.Models.BrowseDirection.Forward :
+                            OpcUa.Core.Models.BrowseDirection.Backward,
                         Target = model
                     });
                 }

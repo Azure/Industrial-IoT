@@ -7,10 +7,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.Utils;
     using Opc.Ua;
     using Opc.Ua.Client;
+    using Opc.Ua.Client.ComplexTypes;
     using Serilog;
     using System;
     using System.Collections.Generic;
@@ -53,26 +54,32 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     var configuredEndpoint = new ConfiguredEndpoint(
                         null, endpointDescription, endpointConfiguration);
 
-                    _logger.Information("Trying to create session with name {sessionName}...", sessionName);
-                    var userIdentity = connection.User.ToStackModel() ??
-                        new UserIdentity(new AnonymousIdentityToken());
-                    var session = await Session.Create(
-                        applicationConfiguration, configuredEndpoint,
-                        true, sessionName, _clientConfig.DefaultSessionTimeout,
-                        userIdentity, null);
+                    _logger.Information("Trying to create session {sessionName}...",
+                        sessionName);
+                    using (new PerfMarker(_logger, sessionName)) {
+                        var userIdentity = connection.User.ToStackModel() ??
+                            new UserIdentity(new AnonymousIdentityToken());
+                        var session = await Session.Create(
+                            applicationConfiguration, configuredEndpoint,
+                            true, sessionName, _clientConfig.DefaultSessionTimeout,
+                            userIdentity, null);
 
-                    _logger.Information($"Session '{sessionName}' created.");
+                        _logger.Information($"Session '{sessionName}' created.");
 
-                    if (_clientConfig.KeepAliveInterval > 0) {
-                        session.KeepAliveInterval = _clientConfig.KeepAliveInterval;
-                        session.KeepAlive += Session_KeepAlive;
+                        var complexTypeSystem = new ComplexTypeSystem(session);
+                        await complexTypeSystem.Load();
+
+                        if (_clientConfig.KeepAliveInterval > 0) {
+                            session.KeepAliveInterval = _clientConfig.KeepAliveInterval;
+                            session.KeepAlive += Session_KeepAlive;
+                        }
+                        wrapper = new SessionWrapper {
+                            MissedKeepAlives = 0,
+                            MaxKeepAlives = _clientConfig.MaxKeepAliveCount,
+                            Session = session
+                        };
+                        _sessions.Add(id, wrapper);
                     }
-                    wrapper = new SessionWrapper {
-                        MissedKeepAlives = 0,
-                        MaxKeepAlives = _clientConfig.MaxKeepAliveCount,
-                        Session = session
-                    };
-                    _sessions.Add(id, wrapper);
                 }
                 return wrapper?.Session;
             }

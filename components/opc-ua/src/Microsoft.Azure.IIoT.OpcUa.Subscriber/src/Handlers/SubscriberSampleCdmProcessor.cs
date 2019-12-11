@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
-    using Microsoft.Azure.IIoT.OpcUa.Subscriber.Models;
     using Microsoft.Azure.IIoT.OpcUa.Subscriber;
+    using Microsoft.Azure.IIoT.OpcUa.Subscriber.Models;
     using Microsoft.Azure.IIoT.Cdm;
     using Microsoft.Azure.IIoT.Cdm.Models;
     using System;
@@ -22,13 +22,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
         /// </summary>
         /// <param name="client"></param>
         public SubscriberSampleCdmProcessor(ICdmClient client) {
-            if (client == null) {
-                throw new ArgumentNullException(nameof(client));
-            }
-            _client = client;
+            _client = client ?? throw new ArgumentNullException(nameof(client));
             client.OpenAsync().Wait();
         }
-		
+
         /// <inheritdoc/>
         public Task OnSubscriberSampleAsync(SubscriberSampleModel sample) {
             var cdmModel = new SubscriberCdmSampleModel() {

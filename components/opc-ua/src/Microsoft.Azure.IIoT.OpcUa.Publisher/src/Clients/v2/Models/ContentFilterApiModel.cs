@@ -4,8 +4,12 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
+    using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
 
     /// <summary>
     /// Content filter
@@ -20,15 +24,30 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2.Models {
         /// Create api model from service model
         /// </summary>
         /// <param name="model"></param>
-        public ContentFilterApiModel(ContentFilterModel model) :
-            base(model) {
+        public ContentFilterApiModel(ContentFilterModel model) {
+            if (model == null) {
+                throw new ArgumentNullException(nameof(model));
+            }
+            Elements = model.Elements?
+                .Select(f => new ContentFilterElementApiModel(f))
+                .ToList();
         }
 
         /// <summary>
         /// Create service model from api model
         /// </summary>
         public ContentFilterModel ToServiceModel() {
-            return new ContentFilterModel (this);
+            return new ContentFilterModel {
+                Elements = Elements?
+                    .Select(e => e.ToServiceModel())
+                    .ToList()
+            };
         }
+
+        /// <summary>
+        /// The flat list of elements in the filter AST
+        /// </summary>
+        [JsonProperty(PropertyName = "elements")]
+        public List<ContentFilterElementApiModel> Elements { get; set; }
     }
 }

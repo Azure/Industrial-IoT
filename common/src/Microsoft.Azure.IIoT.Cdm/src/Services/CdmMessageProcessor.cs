@@ -4,9 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Cdm.Services {
-    using System;
-    using System.Collections.Generic;
-    using System.Threading.Tasks;
     using Microsoft.Azure.IIoT.Cdm;
     using Microsoft.Azure.IIoT.Cdm.Models;
     using Microsoft.CommonDataModel.ObjectModel.Cdm;
@@ -14,14 +11,12 @@ namespace Microsoft.Azure.IIoT.Cdm.Services {
     using Microsoft.CommonDataModel.ObjectModel.Storage;
     using Microsoft.CommonDataModel.ObjectModel.Utilities;
     using Serilog;
+    using System;
+    using System.Collections.Generic;
+    using System.Threading.Tasks;
 
     /// <summary>
-    /// Process messages by reading the stream and passing it to a handler.
-    /// The processor can be registered with an event hub processor or
-    /// with the IoT Hub blob upload host.  The latter is a simple setup,
-    /// the former allows fan out of processing through event hub or
-    /// service bus.  No matter what the processor simply processes the
-    /// stream it is handed.
+    /// Process messages and write them to Datalake.
     /// </summary>
     public class CdmMessageProcessor : ICdmClient {
 
@@ -46,41 +41,43 @@ namespace Microsoft.Azure.IIoT.Cdm.Services {
                         case CdmStatusLevel.Warning:
                             _logger.Warning("CDM message: {0}", msg);
                             break;
-                        default:
-                            _logger.Information("CDM message: {0}", msg);
+                        case CdmStatusLevel.Progress:
+                            _logger.Verbose("CDM message: {0}", msg);
+                            break;
+                        case CdmStatusLevel.Info:
+                            _logger.Debug("CDM message: {0}", msg);
                             break;
                     }
                 }
             });
 
-            _adapter = new ADLSAdapter($"{config.ADLSg2HostName}/{config.ADLSg2BlobName}", 
+            _adapter = new ADLSAdapter($"{config.ADLSg2HostName}/{config.ADLSg2BlobName}",
                 $"/{config.RootFolder}", config.TenantId, config.AppId, config.AppSecret);
             _cdmCorpus.Storage.Mount("adls", _adapter);
             var gitAdapter = new GithubAdapter();
             _cdmCorpus.Storage.Mount("cdm", gitAdapter);
             _cdmCorpus.Storage.DefaultNamespace = "adls";
-            
         }
 
         /// <summary>
-        /// Processes the payload message from the IoTHub for storage 
+        /// Processes the payload message from the IoTHub for storage
         /// </summary>
         /// <param name="payload"></param>
         /// <param name="properties"></param>
         /// <param name="partitionKey"></param>
         /// <returns></returns>
         public async Task ProcessAsync(SubscriberCdmSampleModel payload,
-            IDictionary<string, string> properties = null, 
+            IDictionary<string, string> properties = null,
             string partitionKey = null) {
             await ProcessCdmSampleAsync(payload);
         }
 
         /// <summary>
-        /// Open and load the cdm repository 
+        /// Open and load the cdm repository
         /// </summary>
         /// <returns></returns>
         public async Task OpenAsync() {
-            
+
             // Load the model.json file from file system
             Manifest = await _cdmCorpus.FetchObjectAsync<CdmManifestDefinition>(
                 "adls:/model.json");
@@ -94,7 +91,7 @@ namespace Microsoft.Azure.IIoT.Cdm.Services {
                 }
 
                 // validate if the root already exist
-                await _storage.CreateBlobRoot(_config.ADLSg2HostName, 
+                await _storage.CreateBlobRoot(_config.ADLSg2HostName,
                     _config.ADLSg2BlobName, _config.RootFolder);
 
                 // create a new Manifest definition
@@ -106,9 +103,9 @@ namespace Microsoft.Azure.IIoT.Cdm.Services {
 
                 var persist = AddPublisherSampleModelEntityToModel();
 
-                for (int i = 0; i < _cdmCorpus.Documents.Count; i++) {
+                for (var i = 0; i < _cdmCorpus.Documents.Count; i++) {
                     var item = _cdmCorpus.Documents[i];
-                    var resOpt = new ResolveOptions() { 
+                    var resOpt = new ResolveOptions() {
                         WrtDoc = item,
                         Directives = kDirectives
                     };
@@ -140,7 +137,7 @@ namespace Microsoft.Azure.IIoT.Cdm.Services {
 
             if (Manifest == null) {
                 _logger.Warning("Manifest is not assigned yet. Retry ... ");
-                await this.OpenAsync();
+                await OpenAsync();
             }
 
             var entityDeclaration = Manifest.Entities.Item(kPublisherSampleEntityName);
@@ -158,7 +155,7 @@ namespace Microsoft.Azure.IIoT.Cdm.Services {
                 partitionLocation,
                 new List<SubscriberCdmSampleModel>() { payload },
                 csvTrait?.Arguments?.FetchValue("delimiter") ?? kCsvPartitionsDelimiter);
-       }
+        }
 
         private bool AddPublisherSampleModelEntityToModel() {
 
@@ -169,7 +166,7 @@ namespace Microsoft.Azure.IIoT.Cdm.Services {
                 }
             }
 
-            // add a new entity for the PublisherSample
+            // add a new entity for the Message
             var publisherSampleEntity = _cdmCorpus.MakeObject<CdmEntityDefinition>(
                 CdmObjectType.EntityDef, kPublisherSampleEntityName, false);
 
@@ -264,7 +261,7 @@ namespace Microsoft.Azure.IIoT.Cdm.Services {
             var publisherSampleEntityPartition = _cdmCorpus.MakeObject<CdmDataPartitionDefinition>(
                 CdmObjectType.DataPartitionDef, $"{kPublisherSampleEntityName}-data");
             publisherSampleEntityDef.DataPartitions.Add(publisherSampleEntityPartition);
-            publisherSampleEntityPartition.Location = 
+            publisherSampleEntityPartition.Location =
                 $"adls:/{publisherSampleEntity.EntityName}/partition-data.csv";
             publisherSampleEntityPartition.Explanation = "OpcUaPublisher sample messages storage";
             var csvTrait = publisherSampleEntityPartition.ExhibitsTraits.Add(
@@ -276,7 +273,7 @@ namespace Microsoft.Azure.IIoT.Cdm.Services {
         }
 
         /// <summary>
-        /// Cdm Manifest handler 
+        /// Cdm Manifest handler
         /// </summary>
         private CdmManifestDefinition Manifest { get; set; }
 

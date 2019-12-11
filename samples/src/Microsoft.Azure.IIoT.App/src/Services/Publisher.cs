@@ -82,7 +82,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
             };
 
             var resultApiModel = await _publisherService.NodePublishStartAsync(endpointId, requestApiModel);
-            return (resultApiModel.ErrorInfo == null);
+            return resultApiModel.ErrorInfo == null;
         }
 
         /// <summary>
@@ -96,7 +96,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                     NodeId = nodeId,
             };
             var resultApiModel = await _publisherService.NodePublishStopAsync(endpointId, requestApiModel);
-            return (resultApiModel.ErrorInfo == null);
+            return resultApiModel.ErrorInfo == null;
         }
 
         private readonly IPublisherServiceApi _publisherService;

@@ -15,7 +15,6 @@ namespace Microsoft.Extensions.Configuration {
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using System.Runtime.CompilerServices;
 
     /// <summary>
     /// Extension methods
@@ -33,7 +32,6 @@ namespace Microsoft.Extensions.Configuration {
         public static IConfigurationBuilder AddFromKeyVault(
             this IConfigurationBuilder builder, bool singleton = true,
             bool allowDeveloperAccess = false, string keyVaultUrlVarName = null) {
-
 
             var provider = KeyVaultConfigurationProvider.CreateInstanceAsync(
                 singleton, builder.Build(), keyVaultUrlVarName, allowDeveloperAccess)
@@ -114,9 +112,11 @@ namespace Microsoft.Extensions.Configuration {
                 }
                 try {
                     value = _cache.GetOrAdd(key, async k => {
-                        var bundle = await _keyVault.GetSecretAsync(_keyVaultUri,
-                            GetSecretNameForKey(k));
-                        return bundle.Value;
+                        using (new PerfMarker(Log.Logger, key)) {
+                            var bundle = await _keyVault.GetSecretAsync(_keyVaultUri,
+                                GetSecretNameForKey(k));
+                            return bundle.Value;
+                        }
                     }).Result;
                     return true;
                 }

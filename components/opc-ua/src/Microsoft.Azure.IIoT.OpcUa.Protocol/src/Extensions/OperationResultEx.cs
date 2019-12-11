@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Opc.Ua;
     using Opc.Ua.Extensions;
     using Opc.Ua.Encoders;
@@ -34,9 +34,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                 return null;
             }
             var root = kDiagnosticsProperty;
-            switch (config?.Level ?? Twin.Models.DiagnosticsLevel.Status) {
-                case Twin.Models.DiagnosticsLevel.Diagnostics:
-                case Twin.Models.DiagnosticsLevel.Verbose:
+            switch (config?.Level ?? Core.Models.DiagnosticsLevel.Status) {
+                case Core.Models.DiagnosticsLevel.Diagnostics:
+                case Core.Models.DiagnosticsLevel.Verbose:
                     using (var decoder = new JsonDecoderEx(result.Diagnostics.CreateReader(), context)) {
                         var results = decoder.ReadEncodeableArray<OperationResultModel>(root).ToList();
                         if (results.Count == 0) {
@@ -44,10 +44,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                         }
                         return results;
                     }
-                case Twin.Models.DiagnosticsLevel.Status:
+                case Core.Models.DiagnosticsLevel.Status:
                     // TODO
                     break;
-                case Twin.Models.DiagnosticsLevel.Operations:
+                case Core.Models.DiagnosticsLevel.Operations:
                     // TODO
                     break;
                 default:
@@ -144,8 +144,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// <returns></returns>
         private static JToken ToJson(this List<OperationResultModel> results, DiagnosticsModel config,
             ServiceMessageContext context) {
-            var level = config?.Level ?? Twin.Models.DiagnosticsLevel.Status;
-            if (level == Twin.Models.DiagnosticsLevel.None) {
+            var level = config?.Level ?? Core.Models.DiagnosticsLevel.Status;
+            if (level == Core.Models.DiagnosticsLevel.None) {
                 return null;
             }
             using (var stream = new MemoryStream()) {
@@ -155,11 +155,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                     IgnoreDefaultValues = true
                 }) {
                     switch (level) {
-                        case Twin.Models.DiagnosticsLevel.Diagnostics:
-                        case Twin.Models.DiagnosticsLevel.Verbose:
+                        case Core.Models.DiagnosticsLevel.Diagnostics:
+                        case Core.Models.DiagnosticsLevel.Verbose:
                             encoder.WriteEncodeableArray(root, results);
                             break;
-                        case Twin.Models.DiagnosticsLevel.Operations:
+                        case Core.Models.DiagnosticsLevel.Operations:
                             var codes = results
                                 .GroupBy(d => d.StatusCode.CodeBits);
                             root = null;
@@ -168,7 +168,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                                     code.Select(c => c.Operation).ToArray());
                             }
                             break;
-                        case Twin.Models.DiagnosticsLevel.Status:
+                        case Core.Models.DiagnosticsLevel.Status:
                             var statusCodes = results
                                 .Select(d => StatusCode.LookupSymbolicId(d.StatusCode.CodeBits))
                                 .Where(s => !string.IsNullOrEmpty(s))
