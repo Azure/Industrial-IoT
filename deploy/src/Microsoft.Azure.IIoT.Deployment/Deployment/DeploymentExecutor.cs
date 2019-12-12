@@ -45,7 +45,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
         // Resource management clients
         private RestClient _restClient;
 
-        private MicrosoftGraphServiceClient _msGraphServiceClient;
+        private ApplicationsManager _applicationsManager;
         private ResourceMgmtClient _resourceMgmtClient;
         private KeyVaultMgmtClient _keyVaultManagementClient;
         private StorageMgmtClient _storageManagementClient;
@@ -62,9 +62,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
         private SignalRMgmtClient _signalRManagementClient;
 
         // Resource names
-        private string _servicesApplicationName;
-        private string _clientsApplicationName;
-        private string _aksApplicationName;
         private string _keyVaultName;
         private string _storageAccountName;
         private string _iotHubName;
@@ -87,16 +84,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
 
         // Resources
         private DirectoryObject _owner;
-
-        private Application _serviceApplication;
-        private ServicePrincipal _serviceApplicationSP;
-
-        private Application _clientApplication;
-        private ServicePrincipal _clientApplicationSP;
-
-        private Application _aksApplication;
-        private ServicePrincipal _aksApplicationSP;
-        private string _aksApplicationPasswordCredentialRbacSecret;
 
         private const string kWEB_APP_CN = "webapp.services.net"; // ToDo: Assign meaningfull value.
         private X509Certificate2 _webAppX509Certificate;
@@ -140,11 +127,18 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
 
                 await AuthenticateAsync(cancellationToken);
                 GetApplicationName();
+                await GetSubscriptionAsync(cancellationToken);
                 await InitializeResourceGroupSelectionAsync(cancellationToken);
-                InitializeResourceManagementClients(cancellationToken);
+                InitializeResourceManagementClients();
                 await RegisterResourceProvidersAsync(cancellationToken);
-                await GenerateResourceNamesAsync(cancellationToken);
-                await RegisterApplicationsAsync(cancellationToken);
+                await GenerateAzureResourceNamesAsync(cancellationToken);
+                await _applicationsManager
+                    .RegisterApplicationsAsync(
+                        _applicationName,
+                        _owner,
+                        _defaultTagsList,
+                        cancellationToken
+                    );
                 await CreateAzureResourcesAsync(cancellationToken);
 
                 Log.Information("Done.");
@@ -221,10 +215,20 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
         public async Task SetOwnerAsync(
             CancellationToken cancellationToken = default
         ) {
+            // Initialization of MicrosoftGraphServiceClient
+            var microsoftGraphTokenCredentials = _authenticationManager
+                .GetMicrosoftGraphDelegatingTokenCredentials();
+
+            var msGraphServiceClient = new MicrosoftGraphServiceClient(
+                _authConf.TenantId,
+                microsoftGraphTokenCredentials,
+                cancellationToken
+            );
+
             if (_authenticationManager.IsUserAuthenticationFlow()) {
                 // If this is user authentication flow then authenticated user
                 // will be used as owner of the deployment.
-                var me = await _msGraphServiceClient
+                var me = await msGraphServiceClient
                     .GetMeAsync(cancellationToken);
 
                 _owner = me;
@@ -240,7 +244,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             else {
                 // If this is not user authentication flow then service principal
                 // of the application will be used as owner of the deployment.
-                var ownerSP = await _msGraphServiceClient
+                var ownerSP = await msGraphServiceClient
                     .GetServicePrincipalByAppIdAsync(
                         _authConf.ClientId.ToString(),
                         cancellationToken
@@ -252,14 +256,14 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             }
         }
 
-        public async Task InitializeResourceGroupSelectionAsync(
+        public async Task GetSubscriptionAsync(
             CancellationToken cancellationToken = default
         ) {
             // Initialization of MicrosoftGraphServiceClient
             var microsoftGraphTokenCredentials = _authenticationManager
                 .GetMicrosoftGraphDelegatingTokenCredentials();
 
-            _msGraphServiceClient = new MicrosoftGraphServiceClient(
+            _applicationsManager = new ApplicationsManager(
                 _authConf.TenantId,
                 microsoftGraphTokenCredentials,
                 cancellationToken
@@ -277,7 +281,11 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             var subscriptionsList = _azureResourceManager.GetSubscriptions();
             _subscription = _configurationProvider.GetSubscription(subscriptionsList);
             _azureResourceManager.Init(_subscription);
+        }
 
+        public async Task InitializeResourceGroupSelectionAsync(
+            CancellationToken cancellationToken = default
+        ) {
             // Select existing ResourceGroup or create a new one.
             if (_configurationProvider.IfUseExistingResourceGroup()) {
                 var resourceGroups = _azureResourceManager.GetResourceGroups();
@@ -332,9 +340,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
 
         }
 
-        public void InitializeResourceManagementClients(
-            CancellationToken cancellationToken = default
-        ) {
+        public void InitializeResourceManagementClients() {
             //var azureCredentials = await _authenticationManager
             //    .GetAzureCredentialsAsync(cancellationToken);
             var azureCredentials = _authenticationManager
@@ -372,13 +378,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             await _resourceMgmtClient.RegisterRequiredResourceProvidersAsync(cancellationToken);
         }
 
-        public async Task GenerateResourceNamesAsync(
+        public async Task GenerateAzureResourceNamesAsync(
             CancellationToken cancellationToken = default
         ) {
-            _servicesApplicationName = _applicationName + "-services";
-            _clientsApplicationName = _applicationName + "-clients";
-            _aksApplicationName = _applicationName + "-aks";
-
             // It might happen that there is no registered resource provider
             // found for specified location and/or api version to perform name
             // availability check. In these cases, we will silently ignore
@@ -479,209 +481,12 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             }
         }
 
-        public async Task RegisterApplicationsAsync(
-            CancellationToken cancellationToken = default
-        ) {
-            // Service Application /////////////////////////////////////////////
-            // Register service application
-
-            Log.Information("Creating service application registration...");
-
-            _serviceApplication = await _msGraphServiceClient
-                .RegisterServiceApplicationAsync(
-                    _servicesApplicationName,
-                    _owner,
-                    _defaultTagsList,
-                    cancellationToken
-                );
-
-            // Find service principal for service application
-            _serviceApplicationSP = await _msGraphServiceClient
-                .GetServicePrincipalAsync(_serviceApplication, cancellationToken);
-
-            // Add current user or service principal as app owner for service
-            // application, if it is not owner already.
-            await _msGraphServiceClient
-                .AddAsApplicationOwnerAsync(
-                    _serviceApplication,
-                    _owner,
-                    cancellationToken
-                );
-
-            // Client Application //////////////////////////////////////////////
-            // Register client application
-
-            Log.Information("Creating client application registration...");
-
-            _clientApplication = await _msGraphServiceClient
-                .RegisterClientApplicationAsync(
-                    _serviceApplication,
-                    _clientsApplicationName,
-                    _defaultTagsList,
-                    cancellationToken
-                );
-
-            // Find service principal for client application
-            _clientApplicationSP = await _msGraphServiceClient
-                .GetServicePrincipalAsync(_clientApplication, cancellationToken);
-
-            // Add current user or service principal as app owner for client
-            // application, if it is not owner already.
-            await _msGraphServiceClient
-                .AddAsApplicationOwnerAsync(
-                    _clientApplication,
-                    _owner,
-                    cancellationToken
-                );
-
-            // Update service application to include client applicatoin as knownClientApplications
-            _serviceApplication = await _msGraphServiceClient
-                .AddAsKnownClientApplicationAsync(
-                    _serviceApplication,
-                    _clientApplication,
-                    cancellationToken
-                );
-
-            // Grant admin consent for service application "user_impersonation" API permissions of client applicatoin
-            // Grant admin consent for Microsoft Graph "User.Read" API permissions of client applicatoin
-            await _msGraphServiceClient
-                .GrantAdminConsentToClientApplicationAsync(
-                    _serviceApplicationSP,
-                    _clientApplicationSP,
-                    cancellationToken
-                );
-
-            // App Registration for AKS ////////////////////////////////////////
-            // Register aks application
-
-            Log.Information("Creating AKS application registration...");
-
-            var registrationResult = await _msGraphServiceClient
-                .RegisterAKSApplicationAsync(
-                    _aksApplicationName,
-                    _defaultTagsList,
-                    cancellationToken
-                );
-
-            _aksApplication = registrationResult.Item1;
-            _aksApplicationPasswordCredentialRbacSecret = registrationResult.Item2;
-
-            // Find service principal for aks application
-            _aksApplicationSP = await _msGraphServiceClient
-                .GetServicePrincipalAsync(_aksApplication, cancellationToken);
-
-            // Add current user or service principal as app owner for aks
-            // application, if it is not owner already.
-            await _msGraphServiceClient
-                .AddAsApplicationOwnerAsync(
-                    _aksApplication,
-                    _owner,
-                    cancellationToken
-                );
-        }
-
-        public async Task DeleteApplicationsAsync(
-            CancellationToken cancellationToken = default
-        ) {
-            // Service Application
-            if (null != _serviceApplicationSP) {
-                try {
-                    await _msGraphServiceClient
-                        .DeleteServicePrincipalAsync(
-                            _serviceApplicationSP,
-                            cancellationToken
-                        );
-                }
-                catch (Exception) {
-                    Log.Warning("Ignoring failure to delete ServicePrincipal of Service Application");
-                }
-            }
-
-            if (null != _serviceApplication) {
-                try {
-                    await _msGraphServiceClient
-                        .DeleteApplicationAsync(
-                            _serviceApplication,
-                            cancellationToken
-                        );
-                } catch (Exception) {
-                    Log.Warning("Ignoring failure to delete Service Application");
-                }
-            }
-
-            // Client Application
-            if (null != _clientApplicationSP) {
-                try {
-                    await _msGraphServiceClient
-                        .DeleteServicePrincipalAsync(
-                            _clientApplicationSP,
-                            cancellationToken
-                        );
-                }
-                catch (Exception) {
-                    Log.Warning("Ignoring failure to delete ServicePrincipal of Client Application");
-                }
-            }
-
-            if (null != _clientApplication) {
-                try {
-                    await _msGraphServiceClient
-                        .DeleteApplicationAsync(
-                            _clientApplication,
-                            cancellationToken
-                        );
-                }
-                catch (Exception) {
-                    Log.Warning("Ignoring failure to delete Client Application");
-                }
-            }
-
-            // AKS Application
-            if (null != _aksApplicationSP) {
-                try {
-                    await _msGraphServiceClient
-                        .DeleteServicePrincipalAsync(
-                            _aksApplicationSP,
-                            cancellationToken
-                        );
-                }
-                catch (Exception) {
-                    Log.Warning("Ignoring failure to delete ServicePrincipal of AKS Application");
-                }
-            }
-
-            if (null != _aksApplication) {
-                try {
-                    await _msGraphServiceClient
-                        .DeleteApplicationAsync(
-                            _aksApplication,
-                            cancellationToken
-                        );
-                }
-                catch (Exception) {
-                    Log.Warning("Ignoring failure to delete AKS Application");
-                }
-            }
-        }
-
         public async Task CleanupIfAskedAsync(
             CancellationToken cancellationToken = default
         ) {
-            if (null == _resourceGroup
-                && null == _serviceApplicationSP
-                && null == _serviceApplication
-                && null == _clientApplicationSP
-                && null == _clientApplication
-                && null == _aksApplicationSP
-                && null == _aksApplication
-            ) {
-                Log.Information("Nothing to cleanup");
-                return;
-            }
-
             if (_configurationProvider.IfPerformCleanup()) {
                 await BeginDeleteResourceGroupAsync(cancellationToken);
-                await DeleteApplicationsAsync(cancellationToken);
+                await _applicationsManager.DeleteApplicationsAsync(cancellationToken);
             }
         }
 
@@ -750,13 +555,13 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             // Assign Service Principal of AKS Application "Network Contributor" IAM role for Virtual Network and its Subnet.
             await _authorizationManagementClient
                 .AssignNetworkContributorRoleForResourceAsync(
-                    _aksApplicationSP,
+                    _applicationsManager.GetAKSApplicationSP(),
                     virtualNetwork.Id
                 );
 
             await _authorizationManagementClient
                 .AssignNetworkContributorRoleForResourceAsync(
-                    _aksApplicationSP,
+                    _applicationsManager.GetAKSApplicationSP(),
                     virtualNetworkAksSubnet.Id
                 );
 
@@ -767,7 +572,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 .GetCreationParameters(
                     _authConf.TenantId,
                     _resourceGroup,
-                    _serviceApplicationSP,
+                    _applicationsManager.GetServiceApplicationSP(),
                     _owner
                 );
 
@@ -839,8 +644,8 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
 
             var clusterDefinition = _aksManagementClient.GetClusterDefinition(
                 _resourceGroup,
-                _aksApplication,
-                _aksApplicationPasswordCredentialRbacSecret,
+                _applicationsManager.GetAKSApplication(),
+                _applicationsManager.GetAKSApplicationRbacSecret(),
                 _aksClusterName,
                 _aksClusterX509Certificate,
                 virtualNetworkAksSubnet,
@@ -1049,8 +854,8 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 operationalInsightsWorkspace,
                 applicationInsightsComponent,
                 webSite,
-                _serviceApplication,
-                _clientApplication
+                _applicationsManager.GetServiceApplication(),
+                _applicationsManager.GetClientApplication()
             );
 
             // Deploy IIoT services to AKS cluster
@@ -1123,19 +928,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
 
             // After we have proxy deployed to App Service, we will update 
             // client application to have redirect URIs for App Service.
-            var redirectUris = new List<string> {
-                $"https://{webSite.DefaultHostName}/",
-                $"https://{webSite.DefaultHostName}/registry/",
-                $"https://{webSite.DefaultHostName}/twin/",
-                $"https://{webSite.DefaultHostName}/history/",
-                $"https://{webSite.DefaultHostName}/ua/",
-                $"https://{webSite.DefaultHostName}/vault/"
-            };
-
-            _clientApplication = await _msGraphServiceClient
-                .UpdateRedirectUrisAsync(
-                    _clientApplication,
-                    redirectUris,
+            await _applicationsManager
+                .UpdateClientApplicationRedirectUrisAsync(
+                    webSite.DefaultHostName,
                     cancellationToken
                 );
 
