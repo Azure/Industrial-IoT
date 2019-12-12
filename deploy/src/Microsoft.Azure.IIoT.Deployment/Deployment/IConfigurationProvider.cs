@@ -3,46 +3,42 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Deployment.Configuration {
+namespace Microsoft.Azure.IIoT.Deployment.Deployment {
 
     using System;
     using System.Collections.Generic;
 
     using Microsoft.Azure.Management.ResourceManager.Fluent;
     using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
-    using Microsoft.Identity.Client;
 
     interface IConfigurationProvider {
 
-        AzureEnvironment SelectEnvironment(
+        public RunMode GetRunMode();
+
+        public AuthenticationConfiguration GetAuthenticationConfiguration(
             IEnumerable<AzureEnvironment> azureEnvironments
         );
 
-        Guid GetTenantId();
-
-        ISubscription SelectSubscription(
+        ISubscription GetSubscription(
             IEnumerable<ISubscription> subscriptionsList
         );
 
         string GetApplicationName();
 
-        bool CheckIfUseExistingResourceGroup();
+        bool IfUseExistingResourceGroup();
 
-        IResourceGroup SelectExistingResourceGroup(
+        IResourceGroup GetExistingResourceGroup(
             IEnumerable<IResourceGroup> resourceGroups
         );
 
-        Region SelectResourceGroupRegion(
-            IEnumerable<Region> regions
-        );
-
-        string SelectNewResourceGroupName(
-            Func<string, bool> checkIfResourceGroupExists,
+        Tuple<Region, string> GetNewResourceGroup(
+            IEnumerable<Region> regions,
+            Func<string, bool> ifResourceGroupExists,
             string resourceGroupDefaultName = null
         );
 
-        bool CheckIfSaveEnvFile();
+        bool IfSaveEnvFile();
 
-        bool CheckIfPerformCleanup();
+        bool IfPerformCleanup();
     }
 }

@@ -11,6 +11,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
     using System.IO;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Azure.IIoT.Deployment.Configuration;
+    using Microsoft.Azure.IIoT.Deployment.Deployment;
 
     class Program {
 
@@ -22,7 +23,8 @@ namespace Microsoft.Azure.IIoT.Deployment {
             var builder = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-                .AddEnvironmentVariables("AZURE_IIOT_");
+                .AddEnvironmentVariables("AZURE_IIOT_")
+                .AddCommandLine(args);
 
             var configuration = builder.Build();
             var appSettings = configuration.Get<AppSettings>();
@@ -41,48 +43,23 @@ namespace Microsoft.Azure.IIoT.Deployment {
         }
 
         static int Run(AppSettings appSettings) {
-            var returnError = false;
-
             try {
                 SetupLogger();
 
-                Configuration.IConfigurationProvider configurationProvider =
-                    new ConsoleConfigurationProvider(appSettings);
+                var configurationProvider = new ConsoleConfigurationProvider(appSettings);
 
                 using var cts = new CancellationTokenSource();
                 using var deploymentExecutor = new DeploymentExecutor(configurationProvider);
+                deploymentExecutor
+                    .RunAsync(cts.Token)
+                    .Wait();
 
-                try {
-                    Log.Information("Starting Industrial Asset Integration Installer.");
-
-                    deploymentExecutor.InitializeAuthenticationAsync(cts.Token).Wait();
-                    deploymentExecutor.GetApplicationName();
-                    deploymentExecutor.InitializeResourceGroupSelectionAsync(cts.Token).Wait();
-                    deploymentExecutor.InitializeResourceManagementClients(cts.Token);
-                    deploymentExecutor.RegisterResourceProvidersAsync(cts.Token).Wait();
-                    deploymentExecutor.GenerateResourceNamesAsync(cts.Token).Wait();
-                    deploymentExecutor.RegisterApplicationsAsync(cts.Token).Wait();
-                    deploymentExecutor.CreateAzureResourcesAsync(cts.Token).Wait();
-
-                    Log.Information("Done.");
-                }
-                catch (Exception ex) {
-                    Log.Error(ex, "Failed to deploy Industrial IoT solution.");
-
-                    deploymentExecutor.CleanupIfAskedAsync(cts.Token).Wait();
-                    returnError = true;
-                }
+                return SUCCESS;
             }
             catch (Exception ex) {
                 Log.Error(ex, "Unhandled exception");
                 return ERROR;
             }
-
-            if (returnError) {
-                return ERROR;
-            }
-
-            return SUCCESS;
         }
     }
 }

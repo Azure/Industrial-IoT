@@ -8,8 +8,10 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using Microsoft.Azure.IIoT.Deployment.Deployment;
     using Microsoft.Azure.Management.ResourceManager.Fluent;
     using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
+    using Serilog;
 
     class ConsoleConfigurationProvider : ConfigurationProviderWithSettings {
 
@@ -17,7 +19,65 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
             AppSettings appSettings = null
         ) : base(appSettings) {}
 
-        protected override AzureEnvironment SelectEnvironmentImp(
+        public override RunMode GetRunMode() {
+            if (null != _appSettings?.DeploymentMode && _appSettings.DeploymentMode.HasValue) {
+                return _appSettings.DeploymentMode.Value;
+            }
+
+            // Default mode would be full deployment.
+            return RunMode.Full;
+        }
+
+        public override AuthenticationConfiguration GetAuthenticationConfiguration(
+            IEnumerable<AzureEnvironment> azureEnvironments
+        ) {
+            var authConf = new AuthenticationConfiguration();
+
+            var authSettings = _appSettings?.Auth;
+
+            // Set authConf.AzureEnvironment
+            if (null != authSettings?.AzureEnvironment && authSettings.AzureEnvironment.HasValue) {
+                var azureEnvironment = authSettings.AzureEnvironment.Value.ToAzureEnvironment();
+
+                if (azureEnvironments.Contains(azureEnvironment)) {
+                    Log.Information($"Configured Azure environment will be used: {ToString(azureEnvironment)}");
+                    authConf.AzureEnvironment = azureEnvironment;
+                }
+                else {
+                    throw new ArgumentException($"Configured '{ToString(azureEnvironment)}' Azure environment not found.");
+                }
+            } else {
+                authConf.AzureEnvironment = GetAzureEnvironmentFromConsole(azureEnvironments);
+            }
+
+            // Set authConf.TenantId
+            if (null != authSettings?.TenantId && authSettings.TenantId.HasValue) {
+                Log.Information($"Configured TenantId will be used: {authSettings.TenantId.Value}");
+                authConf.TenantId = authSettings.TenantId.Value;
+            } else {
+                authConf.TenantId = GetTenantIdFromConsole();
+            }
+
+            // Set authConf.ClientId
+            if (null != authSettings?.ClientId && authSettings.ClientId.HasValue) {
+                Log.Information($"Configured ClientId will be used: {authSettings.ClientId.Value}");
+                authConf.ClientId = authSettings.ClientId.Value;
+            }
+            else {
+                // We will use AzureIndustrialIoTDeploymentClientID by default.
+                authConf.ClientId = new Guid(Authentication.InteractiveAuthenticationManager.AzureIndustrialIoTDeploymentClientID);
+            }
+
+            // Set authConf.ClientSecret only if it is present in _appSettings.
+            if (!string.IsNullOrEmpty(authSettings?.ClientSecret)) {
+                Log.Information($"Configured ClientSecret will be used.");
+                authConf.ClientSecret = authSettings.ClientSecret;
+            }
+
+            return authConf;
+        }
+
+        protected AzureEnvironment GetAzureEnvironmentFromConsole(
             IEnumerable<AzureEnvironment> azureEnvironments
         ) {
             Console.WriteLine("Please select Azure environment to use:");
@@ -36,7 +96,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
             return azureEnvironments.ElementAt(selection);
         }
 
-        protected override Guid GetTenantIdImp() {
+        protected Guid GetTenantIdFromConsole() {
             Console.WriteLine("Please provide your TenantId:");
 
             while (true) {
@@ -51,7 +111,27 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
             }
         }
 
-        protected override ISubscription SelectSubscriptionImp(
+        public override ISubscription GetSubscription(
+            IEnumerable<ISubscription> subscriptionsList
+        ) {
+            if (null != _appSettings?.SubscriptionId && _appSettings.SubscriptionId.HasValue) {
+                var results = subscriptionsList
+                    .Where(subscriptions => subscriptions.SubscriptionId == _appSettings.SubscriptionId.Value.ToString())
+                    .ToList();
+
+                if (results.Count > 0) {
+                    Log.Information($"Configured subscription will be used: {ToString(results.First())}");
+                    return results.First();
+                }
+                else {
+                    throw new ArgumentException($"Configured '{_appSettings.SubscriptionId.Value}' subscription not found.");
+                }
+            }
+
+            return GetSubscriptionFromConsole(subscriptionsList);
+        }
+
+        protected ISubscription GetSubscriptionFromConsole(
             IEnumerable<ISubscription> subscriptionsList
         ) {
             var subscriptionsCount = subscriptionsList.Count();
@@ -85,18 +165,56 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
             return subscription;
         }
 
-        protected override string GetApplicationNameImp() {
+        public override string GetApplicationName() {
+            if (!string.IsNullOrEmpty(_appSettings?.ApplicationName)) {
+                Log.Information($"Configured application name will be used: {_appSettings.ApplicationName}");
+                return _appSettings.ApplicationName;
+            }
+
+            return GetApplicationNameFromConsole();
+        }
+
+        protected string GetApplicationNameFromConsole() {
             Console.WriteLine("Please provide a name for the AAD application to register:");
             var applicationName = ReadNonEmptyString();
             return applicationName;
         }
 
-        protected override bool CheckIfUseExistingResourceGroupImp() {
+        public override bool IfUseExistingResourceGroup() {
+            if (null != _appSettings?.ResourceGroup?.UseExisting && _appSettings.ResourceGroup.UseExisting.HasValue) {
+                Log.Information($"Configured to use existing resource group: {_appSettings.ResourceGroup.UseExisting.Value}");
+                return _appSettings.ResourceGroup.UseExisting.Value;
+            }
+
+            return IfUseExistingResourceGroupFromConsole();
+        }
+
+        protected bool IfUseExistingResourceGroupFromConsole() {
             Console.WriteLine("Do you want to use existing Resource Group or create a new one ? ");
             return ChoisePrompt('E', "existing", 'N', "new");
         }
 
-        protected override IResourceGroup SelectExistingResourceGroupImp(
+        public override IResourceGroup GetExistingResourceGroup(
+            IEnumerable<IResourceGroup> resourceGroups
+        ) {
+            if (!string.IsNullOrEmpty(_appSettings?.ResourceGroup?.Name)) {
+                var results = resourceGroups
+                    .Where(rg => rg.Name == _appSettings.ResourceGroup.Name)
+                    .ToList();
+
+                if (results.Count > 0) {
+                    Log.Information($"Configured resource group will be used: {ToString(results.First())}");
+                    return results.First();
+                }
+                else {
+                    throw new ArgumentException($"Configured '{_appSettings.ResourceGroup.Name}' resource group not found.");
+                }
+            }
+
+            return GetExistingResourceGroupFromConsole(resourceGroups);
+        }
+
+        protected IResourceGroup GetExistingResourceGroupFromConsole(
             IEnumerable<IResourceGroup> resourceGroups
         ) {
             Console.WriteLine("Available resource groups:");
@@ -111,7 +229,53 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
             return resourceGroups.ElementAt(selection);
         }
 
-        protected override Region SelectResourceGroupRegionImp(
+        public override Tuple<Region, string> GetNewResourceGroup(
+            IEnumerable<Region> regions,
+            Func<string, bool> ifResourceGroupExists,
+            string resourceGroupDefaultName = null
+        ) {
+            Region resourceGroupRegion;
+            string resourceGroupName = null;
+
+            var resourceGroupSettings = _appSettings?.ResourceGroup;
+
+            // Get resourceGroupRegion
+            if (null != resourceGroupSettings?.Region && resourceGroupSettings.Region.HasValue) {
+                resourceGroupRegion = resourceGroupSettings.Region.Value.ToRegion();
+
+                if (regions.Contains(resourceGroupRegion)) {
+                    Log.Information($"Configured region will be used: {ToString(resourceGroupRegion)}");
+                }
+                else {
+                    throw new ArgumentException($"Configured '{ToString(resourceGroupRegion)}' region not found.");
+                }
+            }
+            else {
+                resourceGroupRegion = GetNewResourceGroupRegionFromConsole(regions);
+            }
+
+            // Get resourceGroupName
+            if (!string.IsNullOrEmpty(resourceGroupSettings?.Name)) {
+                resourceGroupName = resourceGroupSettings.Name;
+
+                if (!ifResourceGroupExists(resourceGroupName)) {
+                    Log.Information($"Configured resource group name will be used: {resourceGroupName}");
+                }
+                else {
+                    throw new ArgumentException($"Configured '{resourceGroupName}' resource group already exists.");
+                }
+            }
+            else {
+                resourceGroupName = GetNewResourceGroupNameFromConsole(
+                    ifResourceGroupExists,
+                    resourceGroupDefaultName
+                );
+            }
+
+            return new Tuple<Region, string>(resourceGroupRegion, resourceGroupName);
+        }
+
+        protected Region GetNewResourceGroupRegionFromConsole(
             IEnumerable<Region> regions
         ) {
             Console.WriteLine("Please select region where resource group will be created.");
@@ -131,7 +295,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
             return region;
         }
 
-        protected override string SelectNewResourceGroupNameImp(
+        protected string GetNewResourceGroupNameFromConsole(
             Func<string, bool> checkIfResourceGroupExists,
             string resourceGroupDefaultName = null
         ) {
@@ -164,12 +328,23 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
             return resourceGroupName;
         }
 
-        protected override bool CheckIfSaveEnvFileImp() {
+        public override bool IfSaveEnvFile() {
+            if (null != _appSettings?.SaveEnvFile && _appSettings.SaveEnvFile.HasValue) {
+                Log.Information($"Configured to save .env file: {_appSettings.SaveEnvFile.Value}");
+                return _appSettings.SaveEnvFile.Value;
+            }
+
             Console.Write("Do you want to save connection details of deployed resources to '.env' file ? ");
             return ChoisePrompt('Y', "yes", 'N', "no");
         }
 
-        protected override bool CheckIfPerformCleanupImp() {
+        public override bool IfPerformCleanup() {
+            if (null != _appSettings?.NoCleanup && _appSettings.NoCleanup.HasValue) {
+                var performCleanup = !_appSettings.NoCleanup.Value;
+                Log.Information($"Configured to perform cleanup: {performCleanup}");
+                return performCleanup;
+            }
+
             Console.Write("Do you want to delete registered Applications and the Resource Group ? ");
             return ChoisePrompt('Y', "yes", 'N', "no");
         }
@@ -239,6 +414,22 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
                     return false;
                 }
             }
+        }
+
+        protected string ToString(AzureEnvironment azureEnvironment) {
+            return $"{azureEnvironment.Name}";
+        }
+
+        protected string ToString(ISubscription subscription) {
+            return $"DisplayName: '{subscription.DisplayName}', SubscriptionId: '{subscription.SubscriptionId}'";
+        }
+
+        protected string ToString(IResourceGroup resourceGroup) {
+            return $"Name: '{resourceGroup.Name}', Id: '{resourceGroup.Id}'";
+        }
+
+        protected string ToString(Region region) {
+            return $"{region.Name}";
         }
     }
 }

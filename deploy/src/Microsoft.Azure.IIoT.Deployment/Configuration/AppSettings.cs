@@ -6,12 +6,12 @@
 namespace Microsoft.Azure.IIoT.Deployment.Configuration {
 
     using System;
+    using Microsoft.Azure.IIoT.Deployment.Deployment;
 
     class AppSettings {
+        public RunMode? DeploymentMode { get; set; }
         public AuthenticationSettings Auth { get; set; }
         public Guid? SubscriptionId { get; set; }
-        public bool? ApplicationRegistrationOnly { get; set; }
-        public bool? DeploymentOnly { get; set; }
         public string ApplicationName { get; set; }
         public string ApplicationURL { get; set; }
         public ResourceGroupSettings ResourceGroup { get; set; }

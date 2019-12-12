@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Deployment {
+namespace Microsoft.Azure.IIoT.Deployment.Deployment {
 
     using Serilog;
     using System;
@@ -32,16 +32,12 @@ namespace Microsoft.Azure.IIoT.Deployment {
         private List<string> _defaultTagsList;
         private Dictionary<string, string> _defaultTagsDict;
 
-        private readonly Configuration.IConfigurationProvider _configurationProvider;
+        private readonly IConfigurationProvider _configurationProvider;
 
-        private AzureEnvironment _azureEnvironment;
-        private Guid _tenantId;
+        private AuthenticationConfiguration _authConf;
         private ISubscription _subscription;
         private string _applicationName;
         private IResourceGroup _resourceGroup;
-
-        private Guid _applicationClientId;
-        private string _applicationClientSecret = null;
 
         private IAuthenticationManager _authenticationManager;
         private AzureResourceManager _azureResourceManager;
@@ -111,29 +107,83 @@ namespace Microsoft.Azure.IIoT.Deployment {
         private string _aksKubeConfig;
 
         public DeploymentExecutor(
-            Configuration.IConfigurationProvider configurationProvider
+            IConfigurationProvider configurationProvider
         ) {
             _configurationProvider = configurationProvider;
         }
 
-        public async Task InitializeAuthenticationAsync(
+        public async Task RunAsync(
             CancellationToken cancellationToken = default
         ) {
-            // Select Azure environment
-            _azureEnvironment = _configurationProvider.SelectEnvironment(AzureEnvironment.KnownEnvironments);
+            var runMode = _configurationProvider.GetRunMode();
 
-            // ToDo: Figure out how to sign-in without tenantId.
-            _tenantId = _configurationProvider.GetTenantId();
+            switch (runMode) {
+                case RunMode.Full:
+                    await RunFullDeploymentAsync(cancellationToken);
+                    break;
+                case RunMode.ApplicationRegistration:
+                    await RunApplicatoinRegistrationOnlyAsync(cancellationToken);
+                    break;
+                case RunMode.ResourceDeployment:
+                    await RunResourceDeploymentOnlyAsync(cancellationToken);
+                    break;
+                default:
+                    throw new ArgumentException($"Unknown RunMode: {runMode}");
+            }
+        }
 
-            _applicationClientId = new Guid(InteractiveAuthenticationManager.AzureIndustrialIoTDeploymentClientID);
-            _applicationClientSecret = null;
+        public async Task RunFullDeploymentAsync(
+            CancellationToken cancellationToken = default
+        ) {
+            try {
+                Log.Information("Starting Industrial IoT solution deployment.");
+
+                await AuthenticateAsync(cancellationToken);
+                GetApplicationName();
+                await InitializeResourceGroupSelectionAsync(cancellationToken);
+                InitializeResourceManagementClients(cancellationToken);
+                await RegisterResourceProvidersAsync(cancellationToken);
+                await GenerateResourceNamesAsync(cancellationToken);
+                await RegisterApplicationsAsync(cancellationToken);
+                await CreateAzureResourcesAsync(cancellationToken);
+
+                Log.Information("Done.");
+            }
+            catch (Exception ex) {
+                Log.Error(ex, "Failed to deploy Industrial IoT solution.");
+
+                await CleanupIfAskedAsync(cancellationToken);
+                throw;
+            }
+        }
+
+        public Task RunApplicatoinRegistrationOnlyAsync(
+            CancellationToken cancellationToken = default
+        ) {
+            throw new NotImplementedException("ApplicationRegistration flow is not implemented.");
+        }
+
+        public Task RunResourceDeploymentOnlyAsync(
+            CancellationToken cancellationToken = default
+        ) {
+            throw new NotImplementedException("ResourceDeployment flow is not implemented.");
+        }
+
+        public async Task AuthenticateAsync(
+            CancellationToken cancellationToken = default
+        ) {
+            // ToDo: Figure out how to sign-in without TenantId.
+            _authConf = _configurationProvider
+                .GetAuthenticationConfiguration(
+                    AzureEnvironment.KnownEnvironments
+                );
 
             _authenticationManager = AuthenticationManagerFactory
                 .GetAuthenticationManager(
-                    _azureEnvironment,
-                    _tenantId,
-                    _applicationClientId,
-                    _applicationClientSecret
+                    _authConf.AzureEnvironment,
+                    _authConf.TenantId,
+                    _authConf.ClientId,
+                    _authConf.ClientSecret
                 );
 
             await _authenticationManager
@@ -165,7 +215,6 @@ namespace Microsoft.Azure.IIoT.Deployment {
         }
 
         public void GetApplicationName() {
-            // Select application name.
             _applicationName = _configurationProvider.GetApplicationName();
         }
 
@@ -193,7 +242,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 // of the application will be used as owner of the deployment.
                 var ownerSP = await _msGraphServiceClient
                     .GetServicePrincipalByAppIdAsync(
-                        _applicationClientId.ToString(),
+                        _authConf.ClientId.ToString(),
                         cancellationToken
                     );
 
@@ -211,7 +260,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 .GetMicrosoftGraphDelegatingTokenCredentials();
 
             _msGraphServiceClient = new MicrosoftGraphServiceClient(
-                _tenantId,
+                _authConf.TenantId,
                 microsoftGraphTokenCredentials,
                 cancellationToken
             );
@@ -226,24 +275,16 @@ namespace Microsoft.Azure.IIoT.Deployment {
 
             // Select subscription to use.
             var subscriptionsList = _azureResourceManager.GetSubscriptions();
-            _subscription = _configurationProvider.SelectSubscription(subscriptionsList);
-
+            _subscription = _configurationProvider.GetSubscription(subscriptionsList);
             _azureResourceManager.Init(_subscription);
 
             // Select existing ResourceGroup or create a new one.
-            var useExisting = _configurationProvider.CheckIfUseExistingResourceGroup();
-
-            if (useExisting) {
+            if (_configurationProvider.IfUseExistingResourceGroup()) {
                 var resourceGroups = _azureResourceManager.GetResourceGroups();
-                _resourceGroup = _configurationProvider.SelectExistingResourceGroup(resourceGroups);
+                _resourceGroup = _configurationProvider.GetExistingResourceGroup(resourceGroups);
             }
             else {
-                var region = _configurationProvider
-                    .SelectResourceGroupRegion(
-                        AzureResourceManager.FunctionalRegions
-                    );
-
-                bool checkIfResourceGroupExists(string _resourceGroupName) {
+                bool ifResourceGroupExists(string _resourceGroupName) {
                     var _resourceGroupExists = _azureResourceManager
                         .CheckIfResourceGroupExistsAsync(
                             _resourceGroupName,
@@ -254,22 +295,19 @@ namespace Microsoft.Azure.IIoT.Deployment {
                     return _resourceGroupExists;
                 }
 
-                string defaultResourceGroupName = null;
+                var defaultResourceGroupName =
+                    ifResourceGroupExists(_applicationName) ? null : _applicationName;
 
-                if (!checkIfResourceGroupExists(_applicationName)) {
-                    defaultResourceGroupName = _applicationName;
-                }
-
-                var newResourceGroupName = _configurationProvider
-                    .SelectNewResourceGroupName(
-                        checkIfResourceGroupExists,
+                var newRGParams = _configurationProvider.GetNewResourceGroup(
+                        AzureResourceManager.FunctionalRegions,
+                        ifResourceGroupExists,
                         defaultResourceGroupName
                     );
 
                 _resourceGroup = await _azureResourceManager
                     .CreateResourceGroupAsync(
-                        region,
-                        newResourceGroupName,
+                        newRGParams.Item1,
+                        newRGParams.Item2,
                         _defaultTagsDict,
                         cancellationToken
                     );
@@ -305,7 +343,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
             // Create generic RestClient for services
             _restClient = RestClient
                 .Configure()
-                .WithEnvironment(_azureEnvironment)
+                .WithEnvironment(_authConf.AzureEnvironment)
                 .WithCredentials(azureCredentials)
                 //.WithLogLevel(HttpLoggingDelegatingHandler.Level.BodyAndHeaders)
                 .Build();
@@ -641,9 +679,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 return;
             }
 
-            var performCleanup = _configurationProvider.CheckIfPerformCleanup();
-
-            if (performCleanup) {
+            if (_configurationProvider.IfPerformCleanup()) {
                 await BeginDeleteResourceGroupAsync(cancellationToken);
                 await DeleteApplicationsAsync(cancellationToken);
             }
@@ -729,7 +765,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
 
             var keyVaultParameters = _keyVaultManagementClient
                 .GetCreationParameters(
-                    _tenantId,
+                    _authConf.TenantId,
                     _resourceGroup,
                     _serviceApplicationSP,
                     _owner
@@ -996,8 +1032,8 @@ namespace Microsoft.Azure.IIoT.Deployment {
             var webSite = webSiteCreationTask.Result;
 
             var iiotEnvironment = new IIoTEnvironment(
-                _azureEnvironment,
-                _tenantId,
+                _authConf.AzureEnvironment,
+                _authConf.TenantId,
                 iotHub,
                 iotHubOwnerConnectionString,
                 IotHubMgmtClient.IOT_HUB_EVENT_HUB_ONBOARDING_CONSUMER_GROUP_NAME,
@@ -1104,10 +1140,8 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 );
 
             // Check if we want to save environment to .env file
-            var saveEnvFile = _configurationProvider.CheckIfSaveEnvFile();
-
             try {
-                if (saveEnvFile) {
+                if (_configurationProvider.IfSaveEnvFile()) {
                     iiotEnvironment.WriteToFile(ENV_FILE_PATH);
                 }
             }
