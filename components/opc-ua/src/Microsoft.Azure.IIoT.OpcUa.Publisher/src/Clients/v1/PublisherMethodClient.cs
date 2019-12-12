@@ -8,7 +8,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v1 {
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.Hub;
     using Newtonsoft.Json.Linq;
     using Newtonsoft.Json;

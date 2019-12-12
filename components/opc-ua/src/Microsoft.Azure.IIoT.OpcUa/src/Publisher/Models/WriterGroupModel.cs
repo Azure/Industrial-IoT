@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using System;
     using System.Collections.Generic;
 
@@ -37,10 +37,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// Priority of the writer group
         /// </summary>
         public byte? Priority { get; set; }
-
-
-
-        // ...
 
         /// <summary>
         /// Name of the writer group

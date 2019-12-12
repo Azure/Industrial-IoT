@@ -23,7 +23,7 @@ namespace Microsoft.Azure.IIoT.Utils {
             _name = name ?? throw new ArgumentNullException(name);
             _sw = new Stopwatch();
             _sw.Start();
-            _logger.Information("Start {name} ...", _name);
+            _logger.Verbose("Start {name} ...", _name);
         }
 
         /// <summary>
@@ -31,14 +31,14 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// </summary>
         /// <param name="step"></param>
         public void StepCompleted(string step) {
-            _logger.Information("    {name}: {step} took {elapsed}", _name, step, _sw.Elapsed);
+            _logger.Information("{name}: {step} took {elapsed}", _name, step, _sw.Elapsed);
             _sw.Restart();
         }
 
         /// <inheritdoc/>
         public void Dispose() {
             _sw.Stop();
-            _logger.Information("... {name} completed.", _name);
+            _logger.Information("{name} took {elapsed}.", _name, _sw.Elapsed);
         }
 
         private readonly ILogger _logger;

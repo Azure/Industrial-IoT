@@ -1,0 +1,178 @@
+﻿
+@using Microsoft.Azure.IIoT.App.Services
+@using Microsoft.Azure.IIoT.App.Pages
+@using Microsoft.Azure.IIoT.App.Components.Pager
+@using Microsoft.Azure.IIoT.App.Components.Drawer
+@using Microsoft.Azure.IIoT.App.Data
+@using Microsoft.AspNetCore.Components;
+@using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models;
+@using System.Collections.Generic;
+
+
+@inject NavigationManager NavigationManager
+@inject Services.Browser BrowseManager
+
+<div class="drawer-content list-group">
+    <div class="list-group-item text-justify list-group-item-heading">
+        <b>Select an action.</b>
+        <br>
+        <div class="dropdown">
+            <div class="select">
+                <select name="dropdown" @onchange="((eventArgs) => SelectActionAsync(nodeData.Id, eventArgs))">
+                    <option value="@ActionType.Nothing">Select an action</option>
+                    @if (nodeData.NodeClass == NodeClass.Variable)
+                    {
+                        if (nodeData.AccessLevel == NodeAccessLevel.CurrentRead)
+                        {
+                            <option value="@ActionType.Read">@ActionType.Read.ToString()</option>
+                        }
+                        if (nodeData.AccessLevel == NodeAccessLevel.CurrentWrite)
+                        {
+                            <option value="@ActionType.Write">@ActionType.Write.ToString()</option>
+                        }
+                        if (nodeData.AccessLevel == (NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite))
+                        {
+                            <option value="@ActionType.Read">@ActionType.Read.ToString()</option>
+                            <option value="@ActionType.Write">@ActionType.Write.ToString()</option>
+                        }
+                    }
+                    else if (nodeData.NodeClass == NodeClass.Method)
+                    {
+                        <option value="@ActionType.Call">@ActionType.Call.ToString()</option>
+                    }
+                </select>
+            </div>
+        </div>
+    </div>
+    <hr />
+    <div class="list-group-item text-left">
+        @if (_typeOfAction == ActionType.Read)
+        {
+            <div class="@_responseClass">
+                <span>value = </span>
+                <span>@_response</span>
+            </div>
+        }
+        else if (_typeOfAction == ActionType.Write)
+        {
+            <form>
+                <div class="form-group">
+                    <label>Enter value</label>
+                    <input @bind="@_value" aria-label="value" type="text" class="form-control" placeholder="value" />
+                </div>
+                <hr />
+                <div>
+                    <button @onclick="@(() => WriteAsync(nodeData.Id, _value))" type="button" class="btn btn-primary">Apply</button>
+                </div>
+            </form>
+            <div class="@_responseClass">@_response</div>
+        }
+        else if (_typeOfAction == ActionType.Call)
+        {
+            @if (_parameters != null)
+            {
+                <form>
+                    @{int index = 0;}
+                    @foreach (var parameter in _parameters.InputArguments)
+                    {
+                        //I need the local variable otherwise the bind ValueArray[index] has always the value at the end of the loop
+                        int i = index;
+                        <div class="form-group">
+                            <label>@parameter.Type.DisplayName</label>
+                            <input @bind="@_valueArray[i]" aria-label="value" type="text" class="form-control" placeholder="@parameter.Type.Description" />
+                        </div>
+                        index++;
+                    }
+                </form>
+                <hr />
+                <div>
+                    <button @onclick="@(async() => await CallAsync(nodeData.Id, _valueArray))" type="button" class="btn btn-primary">Apply</button>
+                </div>
+                <div class="@_responseClass">
+                    @if (BrowseManager.MethodCallResponse != null)
+                    {
+                        <div>response = </div>
+                        foreach (var response in BrowseManager.MethodCallResponse.Results)
+                        {
+                            <div>@response.Value (@response.DataType)</div>
+                        }
+                        <div>@_response</div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div>@_response</div>
+            }
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public ListNode nodeData { get; set; }
+
+    [Parameter]
+    public string endpointId { get; set; } = "uat2a0ca049f2a8cfd99f2b0b972281b40baf6bb378";
+
+    [Parameter]
+    public PagedResult<ListNode> pagedNodeList { get; set; }  = new PagedResult<ListNode>();
+    
+    public enum ActionType { Nothing, Read, Write, Call, Publish };
+
+    private string _response { get; set; } = string.Empty;
+    private string _value { get; set; } = string.Empty;
+    private string[] _valueArray { get; set; }
+    private ActionType _typeOfAction { get; set; } = ActionType.Nothing;
+    private MethodMetadataResponseApiModel _parameters;
+    private string _responseClass = "list-group-item text-left margin hidden";
+
+    private async Task SelectActionAsync(string nodeId, ChangeEventArgs action)
+    {
+        switch (action.Value)
+        {
+            case "Read":
+                _typeOfAction = ActionType.Read;
+                await ReadAsync(nodeId);
+                break;
+            case "Write":
+                _typeOfAction = ActionType.Write;
+                break;
+            case "Call":
+                _typeOfAction = ActionType.Call;
+                await ParameterAsync();
+                break;
+            default:
+                break;
+        }
+    }
+
+    private async Task ReadAsync(string nodeId)
+    {
+        _response = await BrowseManager.ReadValueAsync(endpointId, nodeId);
+        _responseClass = "list-group-item text-left margin visible";
+    }
+
+    private async Task WriteAsync(string nodeId, string value)
+    {
+        _response = await BrowseManager.WriteValueAsync(endpointId, nodeId, value);
+
+        var newValue = await BrowseManager.ReadValueAsync(endpointId, nodeId);
+        var index = pagedNodeList.Results.IndexOf(pagedNodeList.Results.SingleOrDefault(x => x.Id == nodeId));
+        pagedNodeList.Results[index].Value = newValue;
+        _responseClass = "list-group-item margin visible";
+    }
+
+    private async Task ParameterAsync()
+    {
+        _response = await BrowseManager.GetParameterAsync(endpointId, nodeData.Id);
+        _parameters = BrowseManager.Parameter;
+        _valueArray = new string[_parameters.InputArguments.Count];
+    }
+
+    private async Task CallAsync(string nodeId, string[] values)
+    {
+        _response = await BrowseManager.MethodCallAsync(_parameters, values, endpointId, nodeData.Id);
+         _responseClass = "list-group-item margin visible";
+    }
+}

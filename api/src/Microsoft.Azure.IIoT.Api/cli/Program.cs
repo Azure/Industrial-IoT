@@ -23,7 +23,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
     using Microsoft.Azure.IIoT.Auth.Clients.Default;
     using Microsoft.Azure.IIoT.Http.Auth;
     using Microsoft.Azure.IIoT.Http.Default;
-    using Microsoft.Azure.IIoT.Http.SignalR.Clients;
+    using Microsoft.Azure.IIoT.Http.SignalR;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Extensions.Configuration;
@@ -790,14 +790,19 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         /// <summary>
         /// Monitor samples from endpoint
         /// </summary>
-        private Task MonitorSamplesAsync(CliOptions options) {
+        private async Task MonitorSamplesAsync(CliOptions options) {
             var endpointId = GetEndpointId(options);
             var events = _scope.Resolve<IPublisherServiceEvents>();
             Console.WriteLine("Press any key to stop.");
-            events.Endpoint(endpointId).Events += PrintSample;
-            Console.ReadKey();
-            events.Endpoint(endpointId).Events -= PrintSample;
-            return Task.CompletedTask;
+
+            var finish = await events.NodePublishSubscribeByEndpointAsync(
+                endpointId, null, PrintSample);
+            try {
+                Console.ReadKey();
+            }
+            finally {
+                await finish.DisposeAsync();
+            }
         }
 
         /// <summary>
@@ -945,13 +950,16 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         /// <summary>
         /// Monitor publishers
         /// </summary>
-        private Task MonitorPublishersAsync() {
+        private async Task MonitorPublishersAsync() {
             var events = _scope.Resolve<IRegistryServiceEvents>();
             Console.WriteLine("Press any key to stop.");
-            events.Publishers.Events += PrintEvent;
-            Console.ReadKey();
-            events.Publishers.Events -= PrintEvent;
-            return Task.CompletedTask;
+            var complete = await events.SubscribePublisherEventsAsync(null, PrintEvent);
+            try {
+                Console.ReadKey();
+            }
+            finally {
+                await complete.DisposeAsync();
+            }
         }
 
         private string _groupId;
@@ -1336,13 +1344,16 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         /// <summary>
         /// Monitor supervisors
         /// </summary>
-        private Task MonitorSupervisorsAsync() {
+        private async Task MonitorSupervisorsAsync() {
             var events = _scope.Resolve<IRegistryServiceEvents>();
             Console.WriteLine("Press any key to stop.");
-            events.Supervisors.Events += PrintEvent;
-            Console.ReadKey();
-            events.Supervisors.Events -= PrintEvent;
-            return Task.CompletedTask;
+            var complete = await events.SubscribeSupervisorEventsAsync(null, PrintEvent);
+            try {
+                Console.ReadKey();
+            }
+            finally {
+                await complete.DisposeAsync();
+            }
         }
 
         /// <summary>
@@ -1364,23 +1375,28 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         /// <summary>
         /// Start and monitor discovery
         /// </summary>
-        private Task SupervisorScanAsync(CliOptions options) {
+        private async Task SupervisorScanAsync(CliOptions options) {
             var supervisorId = GetSupervisorId(options);
             var events = _scope.Resolve<IRegistryServiceEvents>();
             Console.WriteLine("Press any key to stop.");
-            events.Supervisor(supervisorId).Events += PrintProgress;
-            var config = BuildDiscoveryConfig(options);
-            var mode = options.GetValueOrDefault("-d", "--discovery",
-                 config == null ? DiscoveryMode.Fast : DiscoveryMode.Scan);
-            if (mode == DiscoveryMode.Off) {
-                throw new ArgumentException("-d/--discovery Off is not supported");
+
+            var discovery = await events.SubscribeDiscoveryProgressBySupervisorsIdAsync(
+                supervisorId, null, PrintProgress);
+            try {
+                var config = BuildDiscoveryConfig(options);
+                var mode = options.GetValueOrDefault("-d", "--discovery",
+                     config == null ? DiscoveryMode.Fast : DiscoveryMode.Scan);
+                if (mode == DiscoveryMode.Off) {
+                    throw new ArgumentException("-d/--discovery Off is not supported");
+                }
+                await _registry.SetDiscoveryModeAsync(supervisorId, mode, config);
+                Console.ReadKey();
+                await _registry.SetDiscoveryModeAsync(supervisorId, DiscoveryMode.Off,
+                    new DiscoveryConfigApiModel());
             }
-            _registry.SetDiscoveryModeAsync(supervisorId, mode, config);
-            Console.ReadKey();
-            _registry.SetDiscoveryModeAsync(supervisorId, DiscoveryMode.Off,
-                new DiscoveryConfigApiModel());
-            events.Supervisor(supervisorId).Events -= PrintProgress;
-            return Task.CompletedTask;
+            catch {
+                await discovery.DisposeAsync();
+            }
         }
 
         private string _applicationId;
@@ -1461,20 +1477,25 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
             if (options.IsSet("-m", "--monitor")) {
                 events = _scope.Resolve<IRegistryServiceEvents>();
                 var tcs = new TaskCompletionSource<bool>();
-                void cb(DiscoveryProgressApiModel ev) {
-                    PrintProgress(ev);
-                    switch (ev.EventType) {
-                        case DiscoveryProgressType.Error:
-                        case DiscoveryProgressType.Cancelled:
-                        case DiscoveryProgressType.Finished:
-                            tcs.TrySetResult(true);
-                            break;
-                    }
+
+                var discovery = await events.SubscribeDiscoveryProgressByRequestIdAsync(
+                    id, null, async ev => {
+                        await PrintProgress(ev);
+                        switch (ev.EventType) {
+                            case DiscoveryProgressType.Error:
+                            case DiscoveryProgressType.Cancelled:
+                            case DiscoveryProgressType.Finished:
+                                tcs.TrySetResult(true);
+                                break;
+                        }
+                    });
+                try {
+                    await RegisterServerAsync(options, id);
+                    await tcs.Task; // For completion
                 }
-                events.Discovery(id).Events += cb;
-                await RegisterServerAsync(options, id);
-                await tcs.Task; // For completion
-                events.Discovery(id).Events -= cb;
+                finally {
+                    await discovery.DisposeAsync();
+                }
             }
             else {
                 await RegisterServerAsync(options, id);
@@ -1505,20 +1526,25 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
             if (options.IsSet("-m", "--monitor")) {
                 events = _scope.Resolve<IRegistryServiceEvents>();
                 var tcs = new TaskCompletionSource<bool>();
-                void cb(DiscoveryProgressApiModel ev) {
-                    PrintProgress(ev);
-                    switch (ev.EventType) {
-                        case DiscoveryProgressType.Error:
-                        case DiscoveryProgressType.Cancelled:
-                        case DiscoveryProgressType.Finished:
-                            tcs.TrySetResult(true);
-                            break;
-                    }
+                var discovery = await events.SubscribeDiscoveryProgressByRequestIdAsync(
+                    id, null, async ev => {
+                        await PrintProgress(ev);
+                        switch (ev.EventType) {
+                            case DiscoveryProgressType.Error:
+                            case DiscoveryProgressType.Cancelled:
+                            case DiscoveryProgressType.Finished:
+                                tcs.TrySetResult(true);
+                                break;
+                        }
+                    });
+                try {
+                    await DiscoverServersAsync(options, id);
+                    await tcs.Task; // For completion
                 }
-                events.Discovery(id).Events += cb;
-                await DiscoverServersAsync(options, id);
-                await tcs.Task; // For completion
-                events.Discovery(id).Events -= cb;
+                finally {
+                    await discovery.DisposeAsync();
+                }
+
             }
             else {
                 await DiscoverServersAsync(options, id);
@@ -1687,13 +1713,16 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         /// <summary>
         /// Monitor applications
         /// </summary>
-        private Task MonitorApplicationsAsync() {
+        private async Task MonitorApplicationsAsync() {
             var events = _scope.Resolve<IRegistryServiceEvents>();
             Console.WriteLine("Press any key to stop.");
-            events.Applications.Events += PrintEvent;
-            Console.ReadKey();
-            events.Applications.Events -= PrintEvent;
-            return Task.CompletedTask;
+            var complete = await events.SubscribeApplicationEventsAsync(null, PrintEvent);
+            try {
+                Console.ReadKey();
+            }
+            finally {
+                await complete.DisposeAsync();
+            }
         }
 
         /// <summary>
@@ -1701,24 +1730,43 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         /// </summary>
         private async Task MonitorAllAsync() {
             var events = _scope.Resolve<IRegistryServiceEvents>();
-            var supervisors = await _registry.ListAllSupervisorsAsync();
-            var ids = supervisors.Select(s => s.Id).ToList();
             Console.WriteLine("Press any key to stop.");
-            events.Applications.Events += PrintEvent;
-            events.Endpoints.Events += PrintEvent;
-            events.Supervisors.Events += PrintEvent;
-            // TODO: Add event when supervisor is added and remove when removed.
-            foreach (var id in ids) {
-                events.Supervisor(id).Events += PrintProgress;
+            var apps = await events.SubscribeApplicationEventsAsync(null, PrintEvent);
+            try {
+                var endpoint = await events.SubscribeEndpointEventsAsync(null, PrintEvent);
+                try {
+                    var supervisor = await events.SubscribeSupervisorEventsAsync(null, PrintEvent);
+                    try {
+                        var publisher = await events.SubscribePublisherEventsAsync(null, PrintEvent);
+                        try {
+                            var supervisors = await _registry.ListAllSupervisorsAsync();
+                            var discovery = await supervisors
+                                .Select(s => events.SubscribeDiscoveryProgressBySupervisorsIdAsync(
+                                    s.Id, null, PrintProgress)).AsAsyncDisposable();
+                            try {
+                                Console.ReadKey();
+                            }
+                            finally {
+                                await discovery.DisposeAsync();
+                            }
+                        }
+                        finally {
+                            await publisher.DisposeAsync();
+                        }
+                    }
+                    finally {
+                        await supervisor.DisposeAsync();
+                    }
+                }
+                finally {
+                    await endpoint.DisposeAsync();
+                }
             }
-            Console.ReadKey();
-            foreach (var id in ids) {
-                events.Supervisor(id).Events -= PrintProgress;
+            finally {
+                await apps.DisposeAsync();
             }
-            events.Supervisors.Events -= PrintEvent;
-            events.Endpoints.Events -= PrintEvent;
-            events.Applications.Events -= PrintEvent;
         }
+
 
         private string _endpointId;
 
@@ -1881,13 +1929,16 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         /// <summary>
         /// Monitor endpoints
         /// </summary>
-        private Task MonitorEndpointsAsync() {
+        private async Task MonitorEndpointsAsync() {
             var events = _scope.Resolve<IRegistryServiceEvents>();
             Console.WriteLine("Press any key to stop.");
-            events.Endpoints.Events += PrintEvent;
-            Console.ReadKey();
-            events.Endpoints.Events -= PrintEvent;
-            return Task.CompletedTask;
+            var complete = await events.SubscribeEndpointEventsAsync(null, PrintEvent);
+            try {
+                Console.ReadKey();
+            }
+            finally {
+                await complete.DisposeAsync();
+            }
         }
 
         private string _requestId;
@@ -2133,7 +2184,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         /// <summary>
         /// Print progress
         /// </summary>
-        private static void PrintProgress(DiscoveryProgressApiModel ev) {
+        private static Task PrintProgress(DiscoveryProgressApiModel ev) {
             switch (ev.EventType) {
                 case DiscoveryProgressType.Pending:
                     Console.WriteLine($"{ev.SupervisorId}: {ev.Total} waiting...");
@@ -2206,41 +2257,47 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                     Console.WriteLine("==========================================");
                     break;
             }
+            return Task.CompletedTask;
         }
 
         /// <summary>
         /// Print event
         /// </summary>
-        private static void PrintEvent(EndpointEventApiModel ev) {
+        private static Task PrintEvent(EndpointEventApiModel ev) {
             Console.WriteLine(JsonConvertEx.SerializeObjectPretty(ev));
+            return Task.CompletedTask;
         }
 
         /// <summary>
         /// Print event
         /// </summary>
-        private static void PrintEvent(ApplicationEventApiModel ev) {
+        private static Task PrintEvent(ApplicationEventApiModel ev) {
             Console.WriteLine(JsonConvertEx.SerializeObjectPretty(ev));
+            return Task.CompletedTask;
         }
 
         /// <summary>
         /// Print event
         /// </summary>
-        private static void PrintEvent(SupervisorEventApiModel ev) {
+        private static Task PrintEvent(SupervisorEventApiModel ev) {
             Console.WriteLine(JsonConvertEx.SerializeObjectPretty(ev));
+            return Task.CompletedTask;
         }
 
         /// <summary>
         /// Print event
         /// </summary>
-        private static void PrintEvent(PublisherEventApiModel ev) {
+        private static Task PrintEvent(PublisherEventApiModel ev) {
             Console.WriteLine(JsonConvertEx.SerializeObjectPretty(ev));
+            return Task.CompletedTask;
         }
 
         /// <summary>
         /// Print sample
         /// </summary>
-        private static void PrintSample(MonitoredItemMessageApiModel samples) {
+        private static Task PrintSample(MonitoredItemMessageApiModel samples) {
             Console.WriteLine(JsonConvertEx.SerializeObject(samples));
+            return Task.CompletedTask;
         }
 
         /// <summary>

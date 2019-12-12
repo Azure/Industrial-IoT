@@ -166,7 +166,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
             return codec.Encode(new ExtensionObject(new UpdateEventDetails {
                 NodeId = NodeId.Null,
                 PerformInsertReplace = PerformUpdateType.Replace,
-                Filter = details.Filter?.ToObject<EventFilter>() ?? new EventFilter(),
+                Filter = details.Filter.ToStackModel(codec),
                 EventData = new HistoryEventFieldListCollection(details.Events
                     .Select(d => new HistoryEventFieldList {
                         EventFields = new VariantCollection(d.EventFields
@@ -191,7 +191,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
             return codec.Encode(new ExtensionObject(new UpdateEventDetails {
                 NodeId = NodeId.Null,
                 PerformInsertReplace = PerformUpdateType.Insert,
-                Filter = details.Filter?.ToObject<EventFilter>() ?? new EventFilter(),
+                Filter = details.Filter.ToStackModel(codec),
                 EventData = new HistoryEventFieldListCollection(details.Events
                     .Select(d => new HistoryEventFieldList {
                         EventFields = new VariantCollection(d.EventFields
@@ -238,7 +238,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
             return codec.Encode(new ExtensionObject(new ReadEventDetails {
                 EndTime = details.EndTime ?? DateTime.MinValue,
                 StartTime = details.StartTime ?? DateTime.MinValue,
-                Filter = details.Filter?.ToObject<EventFilter>() ?? new EventFilter(),
+                Filter = details.Filter.ToStackModel(codec),
                 NumValuesPerNode = details.NumEvents ?? 0
             }));
         }

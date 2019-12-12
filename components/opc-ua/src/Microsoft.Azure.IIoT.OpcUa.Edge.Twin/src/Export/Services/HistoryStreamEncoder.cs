@@ -6,7 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Export.Services {
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Serilog;
     using Opc.Ua;
     using Opc.Ua.Encoders;

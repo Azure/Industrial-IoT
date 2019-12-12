@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using System.Collections.Generic;
 
     /// <summary>
@@ -18,9 +18,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         public string Id { get; set; }
 
         /// <summary>
-        /// Event notifier to subscribe to
+        /// Event notifier to subscribe to (or start node)
         /// </summary>
         public string EventNotifier { get; set; }
+
+        /// <summary>
+        /// Browse path to event notifier node (Publisher extension)
+        /// </summary>
+        public string[] BrowsePath { get; set; }
 
         /// <summary>
         /// Fields to select

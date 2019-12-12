@@ -44,8 +44,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         public static Variant Decode(this IVariantEncoder encoder, JToken value,
             string type, ServiceMessageContext context) {
             return encoder.Decode(value,
-string.IsNullOrEmpty(type) || context == null ? BuiltInType.Null :
-TypeInfo.GetBuiltInType(type.ToNodeId(context)), context);
+                string.IsNullOrEmpty(type) || context == null ? BuiltInType.Null :
+                TypeInfo.GetBuiltInType(type.ToNodeId(context)), context);
         }
     }
 }

@@ -5,6 +5,7 @@
 
 namespace Opc.Ua.PubSub {
     using System;
+    using System.IO;
     using Opc.Ua;
 
     /// <summary>
@@ -68,6 +69,24 @@ namespace Opc.Ua.PubSub {
         public bool IsEqual(IEncodeable encodeable) {
             // TODO
             throw new NotImplementedException();
+        }
+
+        /// <inheritdoc/>
+        public static DataSetMetadata Decode(ServiceMessageContext context, StreamReader reader) {
+            var json = reader.ReadToEnd();
+
+            var output = new DataSetMetadata();
+
+            using (var decoder = new JsonDecoder(json, context)) {
+                output.MessageId = decoder.ReadString("MessageId");
+                output.MessageType = decoder.ReadString("MessageType");
+                output.PublisherId = decoder.ReadString("PublisherId");
+                output.DataSetClassId = decoder.ReadString("DataSetClassId");
+                output.MetaData = (DataSetMetaDataType)decoder.ReadEncodeable("MetaData", typeof(DataSetMetaDataType));
+                decoder.Close();
+            }
+
+            return output;
         }
     }
 }

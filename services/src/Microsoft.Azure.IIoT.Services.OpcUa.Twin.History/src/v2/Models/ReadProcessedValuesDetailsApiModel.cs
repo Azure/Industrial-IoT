@@ -31,7 +31,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Models {
             ProcessingInterval = model.ProcessingInterval;
             AggregateTypeId = model.AggregateTypeId;
             AggregateConfiguration = model.AggregateConfiguration == null ? null :
-                new AggregateConfigApiModel(model.AggregateConfiguration);
+                new AggregateConfigurationApiModel(model.AggregateConfiguration);
         }
 
         /// <summary>
@@ -80,6 +80,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Models {
         /// </summary>
         [JsonProperty(PropertyName = "aggregateConfiguration",
             NullValueHandling = NullValueHandling.Ignore)]
-        public AggregateConfigApiModel AggregateConfiguration { get; set; }
+        public AggregateConfigurationApiModel AggregateConfiguration { get; set; }
     }
 }

@@ -37,11 +37,17 @@ namespace Microsoft.Azure.IIoT.Utils {
             /// <summary>Account endpoint</summary>
             AccountEndpoint,
             /// <summary>Account key</summary>
+            AccountName,
+            /// <summary>Account name</summary>
             AccountKey,
             /// <summary>Access key</summary>
             AccessKey,
             /// <summary>Expires</summary>
             Expires,
+            /// <summary>default endpoint suffix</summary>
+            EndpointSuffix,
+            /// <summary>default protocol</summary>
+            DefaultEndpointsProtocol,
         }
 
         /// <summary>
@@ -90,7 +96,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <summary>
         /// Get account endpoint
         /// </summary>
-        public string Endpoint => this[Id.AccountEndpoint] ?? this[Id.Endpoint];
+        public string Endpoint => this[Id.AccountName] ?? this[Id.AccountEndpoint] ?? this[Id.Endpoint];
 
         /// <summary>
         /// Parse connection string
@@ -184,6 +190,23 @@ namespace Microsoft.Azure.IIoT.Utils {
             var connectionString = new ConnectionString();
             connectionString._items[Id.AccountEndpoint] = endpoint.ToString();
             connectionString._items[Id.AccountKey] = key;
+            return connectionString;
+        }
+
+        /// <summary>
+        /// Create cosmos db connection string
+        /// </summary>
+        /// <param name="accountName"></param>
+        /// <param name="endpointSuffix"></param>
+        /// <param name="key"></param>
+        /// <param name="protocol"></param>
+        public static ConnectionString CreateStorageConnectionString(
+            string accountName, string endpointSuffix, string key, string protocol) {
+            var connectionString = new ConnectionString();
+            connectionString._items[Id.AccountKey] = key;
+            connectionString._items[Id.AccountName] = accountName;
+            connectionString._items[Id.DefaultEndpointsProtocol] = protocol;
+            connectionString._items[Id.EndpointSuffix] = endpointSuffix;
             return connectionString;
         }
 

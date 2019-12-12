@@ -9,6 +9,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2 {
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Subscriber.Models;
     using System;
     using System.Collections.Generic;
     using System.Linq;

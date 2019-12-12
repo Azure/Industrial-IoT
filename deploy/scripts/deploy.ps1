@@ -38,7 +38,7 @@
 #>
 
 param(
-    [ValidateSet("local", "services", "app", "all")] [string] $type = "all",
+    [ValidateSet("local", "services", "app", "all")] [string] $type = "app",
     [string] $applicationName,
     [string] $resourceGroupName,
     [string] $resourceGroupLocation,
@@ -190,7 +190,7 @@ Function Select-ResourceGroupLocation() {
 Function Select-ResourceGroup() {
     
     while ([string]::IsNullOrEmpty($script:resourceGroupName) `
-            -or ($script:resourceGroupName -notmatch "^[a-z0-9-]*$")) {
+            -or ($script:resourceGroupName -notmatch "^[a-z0-9-_]*$")) {
         if (!$script:interactive) { 
             throw "Invalid resource group name specified which is mandatory for non-interactive script use."
         }

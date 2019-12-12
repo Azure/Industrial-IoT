@@ -443,9 +443,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
                 foreach (var address in entry.AddressList) {
                     var reply = await new Ping().SendPingAsync(address);
                     if (reply.Status == IPStatus.Success) {
-                        var port = discoveryUrl.Port;
-                        return (new IPEndPoint(address,
-                            port == 0 ? 4840 : port), discoveryUrl);
+                        var ep = new IPEndPoint(address,
+                            discoveryUrl.IsDefaultPort ? 4840 : discoveryUrl.Port);
+                        return (ep, discoveryUrl);
                     }
                 }
                 return (null, null);

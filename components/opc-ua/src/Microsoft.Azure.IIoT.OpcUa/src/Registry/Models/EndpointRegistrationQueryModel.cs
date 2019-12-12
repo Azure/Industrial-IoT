@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
 
     /// <summary>
     /// Endpoint query

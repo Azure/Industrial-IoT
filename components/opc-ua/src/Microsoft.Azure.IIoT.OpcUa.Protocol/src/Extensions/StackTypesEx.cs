@@ -5,13 +5,13 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using UaApplicationType = Opc.Ua.ApplicationType;
     using UaSecurityMode = Opc.Ua.MessageSecurityMode;
     using UaBrowseDirection = Opc.Ua.BrowseDirection;
     using UaTokenType = Opc.Ua.UserTokenType;
     using UaNodeClass = Opc.Ua.NodeClass;
+    using UaFilterOperator = Opc.Ua.FilterOperator;
     using UaMonitoringMode = Opc.Ua.MonitoringMode;
     using UaPermissionType = Opc.Ua.PermissionType;
     using UaDiagnosticsLevel = Opc.Ua.DiagnosticsMasks;
@@ -22,6 +22,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     using UadpNetworkMessageContentMask = Opc.Ua.UadpNetworkMessageContentMask;
     using UaDataSetFieldContentMask = Opc.Ua.DataSetFieldContentMask;
     using System.Collections.Generic;
+    using System;
 
     /// <summary>
     /// Stack types conversions
@@ -356,6 +357,102 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                     return UaMonitoringMode.Reporting;
                 default:
                     return UaMonitoringMode.Reporting;
+            }
+        }
+
+        /// <summary>
+        /// Convert to stack type
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public static UaFilterOperator ToStackType(this FilterOperatorType type) {
+            switch (type) {
+                case FilterOperatorType.Equals:
+                    return UaFilterOperator.Equals;
+                case FilterOperatorType.IsNull:
+                    return UaFilterOperator.IsNull;
+                case FilterOperatorType.GreaterThan:
+                    return UaFilterOperator.GreaterThan;
+                case FilterOperatorType.LessThan:
+                    return UaFilterOperator.LessThan;
+                case FilterOperatorType.GreaterThanOrEqual:
+                    return UaFilterOperator.GreaterThanOrEqual;
+                case FilterOperatorType.LessThanOrEqual:
+                    return UaFilterOperator.LessThanOrEqual;
+                case FilterOperatorType.Like:
+                    return UaFilterOperator.Like;
+                case FilterOperatorType.Not:
+                    return UaFilterOperator.Not;
+                case FilterOperatorType.Between:
+                    return UaFilterOperator.Between;
+                case FilterOperatorType.InList:
+                    return UaFilterOperator.InList;
+                case FilterOperatorType.And:
+                    return UaFilterOperator.And;
+                case FilterOperatorType.Or:
+                    return UaFilterOperator.Or;
+                case FilterOperatorType.Cast:
+                    return UaFilterOperator.Cast;
+                case FilterOperatorType.InView:
+                    return UaFilterOperator.InView;
+                case FilterOperatorType.OfType:
+                    return UaFilterOperator.OfType;
+                case FilterOperatorType.RelatedTo:
+                    return UaFilterOperator.RelatedTo;
+                case FilterOperatorType.BitwiseAnd:
+                    return UaFilterOperator.BitwiseAnd;
+                case FilterOperatorType.BitwiseOr:
+                    return UaFilterOperator.BitwiseOr;
+                default:
+                    throw new NotSupportedException($"{type} not supported");
+            }
+        }
+
+        /// <summary>
+        /// Convert to stack type
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public static FilterOperatorType ToServiceType(this UaFilterOperator type) {
+            switch (type) {
+                case UaFilterOperator.Equals:
+                    return FilterOperatorType.Equals;
+                case UaFilterOperator.IsNull:
+                    return FilterOperatorType.IsNull;
+                case UaFilterOperator.GreaterThan:
+                    return FilterOperatorType.GreaterThan;
+                case UaFilterOperator.LessThan:
+                    return FilterOperatorType.LessThan;
+                case UaFilterOperator.GreaterThanOrEqual:
+                    return FilterOperatorType.GreaterThanOrEqual;
+                case UaFilterOperator.LessThanOrEqual:
+                    return FilterOperatorType.LessThanOrEqual;
+                case UaFilterOperator.Like:
+                    return FilterOperatorType.Like;
+                case UaFilterOperator.Not:
+                    return FilterOperatorType.Not;
+                case UaFilterOperator.Between:
+                    return FilterOperatorType.Between;
+                case UaFilterOperator.InList:
+                    return FilterOperatorType.InList;
+                case UaFilterOperator.And:
+                    return FilterOperatorType.And;
+                case UaFilterOperator.Or:
+                    return FilterOperatorType.Or;
+                case UaFilterOperator.Cast:
+                    return FilterOperatorType.Cast;
+                case UaFilterOperator.InView:
+                    return FilterOperatorType.InView;
+                case UaFilterOperator.OfType:
+                    return FilterOperatorType.OfType;
+                case UaFilterOperator.RelatedTo:
+                    return FilterOperatorType.RelatedTo;
+                case UaFilterOperator.BitwiseAnd:
+                    return FilterOperatorType.BitwiseAnd;
+                case UaFilterOperator.BitwiseOr:
+                    return FilterOperatorType.BitwiseOr;
+                default:
+                    throw new NotSupportedException($"{type} not supported");
             }
         }
 

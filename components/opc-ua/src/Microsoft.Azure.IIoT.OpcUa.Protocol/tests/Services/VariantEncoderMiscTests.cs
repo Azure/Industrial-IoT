@@ -205,7 +205,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         public void EncodeDecodeExpandedNodeId1() {
             var codec = new JsonVariantEncoder();
 
-            var expected = new Variant(new ExpandedNodeId(2354u, 1, "http://test.org/test", 0));
+            var expected = new Variant(new ExpandedNodeId(2354u, 0, "http://test.org/test", 0));
 
             var encoded = codec.Encode(expected);
             var variant = codec.Decode(encoded, BuiltInType.ExpandedNodeId, null);
@@ -216,7 +216,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         public void EncodeDecodeExpandedNodeId2() {
             var codec = new JsonVariantEncoder();
 
-            var expected = new Variant(new ExpandedNodeId(2354u, 1, "http://test/", 0));
+            var expected = new Variant(new ExpandedNodeId(2354u, 0, "http://test/", 0));
 
             var encoded = codec.Encode(expected);
             var variant = codec.Decode(encoded, BuiltInType.ExpandedNodeId, null);
@@ -227,9 +227,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         public void EncodeDecodeExpandedNodeId3() {
             var codec = new JsonVariantEncoder();
 
-            var expected1 = new Variant(new ExpandedNodeId(2354u, 1, "http://test/", 0));
-            var expected2 = new Variant(new ExpandedNodeId(2354u, 2, "http://test/UA", 0));
-            var expected3 = new Variant(new ExpandedNodeId(2355u, 1, "http://test/", 0));
+            var expected1 = new Variant(new ExpandedNodeId(2354u, 0, "http://test/", 0));
+            var expected2 = new Variant(new ExpandedNodeId(2354u, 0, "http://test/UA", 0));
+            var expected3 = new Variant(new ExpandedNodeId(2355u, 0, "http://test/", 0));
 
             var encoded1 = codec.Encode(expected1);
             var encoded2 = codec.Encode(expected2);

@@ -38,5 +38,4 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// </summary>
         public string JobOrchestratorUrl { get; set; }
     }
-
 }

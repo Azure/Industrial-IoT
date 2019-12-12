@@ -5,9 +5,9 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
     using Microsoft.Azure.IIoT.OpcUa.Edge.Tests;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Tests;
     using System.Net;
@@ -183,6 +183,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
         public async Task NodeWriteStaticScalarUIntegerValueVariableTestAsync() {
             await GetTests().NodeWriteStaticScalarUIntegerValueVariableTestAsync();
         }
-
     }
 }

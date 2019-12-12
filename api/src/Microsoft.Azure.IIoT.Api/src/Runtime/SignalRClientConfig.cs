@@ -8,25 +8,17 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Runtime {
     using Microsoft.Azure.IIoT.Api.Configuration.Runtime;
     using Microsoft.Azure.IIoT.Api.Runtime;
     using Microsoft.Extensions.Configuration;
-    using System;
 
     /// <summary>
     /// Configuration - wraps a configuration root
     /// </summary>
     public class SignalRClientConfig : ApiConfigBase, ISignalRClientConfig {
 
-        /// <summary>
-        /// SignalR configuration
-        /// </summary>
-        private const string kUserIdKey = "UserId";
-
         /// <summary>Management configuration endpoint</summary>
         public string SignalREndpointUrl => _config.ConfigurationServiceUrl;
 
-        /// <summary>Management client id</summary>
-        public string SignalRUserId => GetStringOrDefault(
-            kUserIdKey, GetStringOrDefault(
-                "PCS_USER_ID", Guid.NewGuid().ToString()));
+        /// <summary>Dedicated Management client id</summary>
+        public string SignalRUserId => null;
 
         /// <summary>SignalR Hubname</summary>
         public string SignalRHubName => null;

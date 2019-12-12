@@ -10,8 +10,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Transport;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Twin;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Microsoft.Azure.IIoT.OpcUa.History.Models;
     using Microsoft.Azure.IIoT.OpcUa.History;
     using Microsoft.Azure.IIoT.Auth.Server;
@@ -812,7 +813,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                             BrowseName = r.Target.BrowseName
                                 .ToQualifiedName(context.Session.MessageContext),
                             DisplayName = r.Target.DisplayName.ToLocalizedText(),
-                            IsForward = r.Direction == Twin.Models.BrowseDirection.Forward,
+                            IsForward = r.Direction == Core.Models.BrowseDirection.Forward,
                             ReferenceTypeId = r.ReferenceTypeId
                                 .ToNodeId(context.Session.MessageContext),
                             TypeDefinition = r.Target.TypeDefinitionId
@@ -882,7 +883,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                             BrowseName = r.Target.BrowseName
                                 .ToQualifiedName(context.Session.MessageContext),
                             DisplayName = r.Target.DisplayName.ToLocalizedText(),
-                            IsForward = r.Direction == Twin.Models.BrowseDirection.Forward,
+                            IsForward = r.Direction == Core.Models.BrowseDirection.Forward,
                             ReferenceTypeId = r.ReferenceTypeId
                                 .ToNodeId(context.Session.MessageContext),
                             TypeDefinition = r.Target.TypeDefinitionId

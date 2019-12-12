@@ -5,8 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
-    using System.Collections.Generic;
-    using System.Linq;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
 
     /// <summary>
     /// Variable extensions
@@ -27,7 +26,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
             }
             return new MonitoredItemModel {
                 Id = publishedVariable.Id,
-                NodeClass = Twin.Models.NodeClass.Variable,
+                NodeClass = NodeClass.Variable,
                 DisplayName = displayName,
                 DataChangeFilter = ToDataChangeFilter(publishedVariable),
                 EventFilter = null,
@@ -49,7 +48,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// </summary>
         /// <param name="publishedVariable"></param>
         /// <returns></returns>
-        private static DataChangeFilterModel ToDataChangeFilter(PublishedDataSetVariableModel publishedVariable) {
+        private static DataChangeFilterModel ToDataChangeFilter(
+            this PublishedDataSetVariableModel publishedVariable) {
             if (publishedVariable?.DataChangeFilter == null &&
                 publishedVariable?.DeadbandType == null &&
                 publishedVariable?.DeadbandValue == null) {

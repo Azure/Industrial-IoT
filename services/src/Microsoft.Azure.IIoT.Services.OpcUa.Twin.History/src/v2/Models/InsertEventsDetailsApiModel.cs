@@ -5,9 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Models {
     using Microsoft.Azure.IIoT.OpcUa.History.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
@@ -31,7 +29,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Models {
             if (model == null) {
                 throw new ArgumentNullException(nameof(model));
             }
-            Filter = model.Filter;
+            Filter = model.Filter == null ? null :
+                new EventFilterApiModel(model.Filter);
             Events = model.Events?
                 .Select(v => v == null ? null : new HistoricEventApiModel(v))
                 .ToList();
@@ -42,7 +41,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Models {
         /// </summary>
         public InsertEventsDetailsModel ToServiceModel() {
             return new InsertEventsDetailsModel {
-                Filter = Filter == null ? null : new ContentFilterModel(Filter),
+                Filter = Filter?.ToServiceModel(),
                 Events = Events?.Select(v => v?.ToServiceModel()).ToList()
             };
         }
@@ -52,7 +51,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Models {
         /// </summary>
         [JsonProperty(PropertyName = "filter",
             NullValueHandling = NullValueHandling.Ignore)]
-        public JObject Filter { get; set; }
+        public EventFilterApiModel Filter { get; set; }
 
         /// <summary>
         /// The new events to insert

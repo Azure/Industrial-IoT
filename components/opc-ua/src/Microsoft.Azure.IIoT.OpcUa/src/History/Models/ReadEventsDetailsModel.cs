@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.History.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using System;
 
     /// <summary>
@@ -30,6 +30,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.History.Models {
         /// <summary>
         /// The filter to use to select the event fields
         /// </summary>
-        public ContentFilterModel Filter { get; set; }
+        public EventFilterModel Filter { get; set; }
     }
 }
