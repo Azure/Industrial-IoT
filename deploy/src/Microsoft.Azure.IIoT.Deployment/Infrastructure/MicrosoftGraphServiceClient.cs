@@ -67,6 +67,16 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                 .GetAsync(cancellationToken);
         }
 
+        public async Task<Application> GetApplicationAsync(
+            Guid applicationId,
+            CancellationToken cancellationToken = default
+        ) {
+            return await _graphServiceClient
+                .Applications[applicationId.ToString()]
+                .Request()
+                .GetAsync(cancellationToken);
+        }
+
         public async Task<ServicePrincipal> GetServicePrincipalByIdAsync(
             Guid servicePrincipalId,
             CancellationToken cancellationToken = default
@@ -117,14 +127,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
 
             // Setup RequiredResourceAccess for service application
 
-            //// This flow is not supported yet.
-            //var keyVaultUserImpersonationRequiredResourceAccess = 
-            //    await GetRequiredResourceAccessByDisplayNameAsync(
-            //        "Azure Key Vault",
-            //        new List<string> { "user_impersonation" },
-            //        cancellationToken
-            //    );
-
             var keyVaultUserImpersonationRequiredResourceAccess = new RequiredResourceAccess {
                 ResourceAppId = AzureAppsConstants.AzureKeyVault.AppId,
                 ResourceAccess = new List<ResourceAccess> {
@@ -134,14 +136,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                     }
                 }
             };
-
-            //// This flow is not supported yet.
-            //var microsoftGraphUserReadRequiredResourceAccess =
-            //    await GetRequiredResourceAccessByDisplayNameAsync(
-            //        "Microsoft Graph",
-            //        new List<string> { "User.Read" },
-            //        cancellationToken
-            //    );
 
             var microsoftGraphUserReadRequiredResourceAccess = new RequiredResourceAccess {
                 ResourceAppId = AzureAppsConstants.MicrosoftGraph.AppId,
@@ -184,7 +178,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
 
             var serviceApplicationIdentifierUri = $"https://{_tenantGuid.ToString()}/{servicesApplicationName}";
 
-            var serviceApplicationRequest = new Application {
+            var serviceApplicationDefinition = new Application {
                 DisplayName = servicesApplicationName,
                 IsFallbackPublicClient = false,
                 IdentifierUris = new List<string> { serviceApplicationIdentifierUri },
@@ -200,7 +194,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             var serviceApplication = await _graphServiceClient
                 .Applications
                 .Request()
-                .AddAsync(serviceApplicationRequest, cancellationToken);
+                .AddAsync(serviceApplicationDefinition, cancellationToken);
 
             // Add Service Key PasswordCredential
             var serviceKeyName = "Service Key";
@@ -238,7 +232,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                 throw new ArgumentException($"Owner is of unknown type: {owner.GetType()}");
             }
 
-            var approverAppRoleAssignmentRequest = new AppRoleAssignment {
+            var approverAppRoleAssignmentDefinition = new AppRoleAssignment {
                 //PrincipalDisplayName = "",
                 PrincipalType = PrincipalType,
                 PrincipalId = new Guid(owner.Id),
@@ -248,7 +242,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                 AppRoleId = serviceApplicationApproverRoleIdGuid
             };
 
-            var writerAppRoleAssignmentRequest = new AppRoleAssignment {
+            var writerAppRoleAssignmentDefinition = new AppRoleAssignment {
                 //PrincipalDisplayName = "",
                 PrincipalType = PrincipalType,
                 PrincipalId = new Guid(owner.Id),
@@ -258,7 +252,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                 AppRoleId = serviceApplicationWriterRoleIdGuid
             };
 
-            var administratorAppRoleAssignmentRequest = new AppRoleAssignment {
+            var administratorAppRoleAssignmentDefinition = new AppRoleAssignment {
                 //PrincipalDisplayName = "",
                 PrincipalType = PrincipalType,
                 PrincipalId = new Guid(owner.Id),
@@ -273,7 +267,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                 .AppRoleAssignments
                 .Request()
                 .AddAsync(
-                    approverAppRoleAssignmentRequest,
+                    approverAppRoleAssignmentDefinition,
                     cancellationToken
                 );
 
@@ -282,7 +276,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                 .AppRoleAssignments
                 .Request()
                 .AddAsync(
-                    writerAppRoleAssignmentRequest,
+                    writerAppRoleAssignmentDefinition,
                     cancellationToken
                 );
 
@@ -291,7 +285,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                 .AppRoleAssignments
                 .Request()
                 .AddAsync(
-                    administratorAppRoleAssignmentRequest,
+                    administratorAppRoleAssignmentDefinition,
                     cancellationToken
                 );
 
@@ -366,7 +360,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                 }
             };
 
-            var clientApplicationRequest = new Application {
+            var clientApplicationDefinition = new Application {
                 DisplayName = clientsApplicationName,
                 IsFallbackPublicClient = true,
                 Tags = tags,
@@ -380,7 +374,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             var clientApplication = await _graphServiceClient
                 .Applications
                 .Request()
-                .AddAsync(clientApplicationRequest, cancellationToken);
+                .AddAsync(clientApplicationDefinition, cancellationToken);
 
             // Add Client Key PasswordCredential
             var clientKeyName = "Client Key";
@@ -733,7 +727,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             CancellationToken cancellationToken = default
         ) {
             // Grant admin consent for service application "user_impersonation" API permissions of client applicatoin
-            var clientApplicationOAuth2PermissionGrantUserImpersonationRequest = new OAuth2PermissionGrant {
+            var clientApplicationOAuth2PermissionGrantUserImpersonationDefinition = new OAuth2PermissionGrant {
                 ConsentType = "AllPrincipals",
                 ClientId = clientApplicationSP.Id,
                 ResourceId = serviceApplicationSP.Id,
@@ -746,7 +740,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                 .Oauth2PermissionGrants
                 .Request()
                 .AddAsync(
-                    clientApplicationOAuth2PermissionGrantUserImpersonationRequest,
+                    clientApplicationOAuth2PermissionGrantUserImpersonationDefinition,
                     cancellationToken
                 );
 
@@ -756,7 +750,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                 cancellationToken
             );
 
-            var clientApplicationOAuth2PermissionGrantUserReadRequest = new OAuth2PermissionGrant {
+            var clientApplicationOAuth2PermissionGrantUserReadDefinition = new OAuth2PermissionGrant {
                 ConsentType = "AllPrincipals",
                 ClientId = clientApplicationSP.Id,
                 ResourceId = microsoftGraphApplicationSP.Id,
@@ -769,64 +763,13 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                 .Oauth2PermissionGrants
                 .Request()
                 .AddAsync(
-                    clientApplicationOAuth2PermissionGrantUserReadRequest,
+                    clientApplicationOAuth2PermissionGrantUserReadDefinition,
                     cancellationToken
                 );
         }
 
         private static byte[] ToBase64Bytes(string message) {
             return System.Text.Encoding.UTF8.GetBytes(message);
-        }
-
-        private async Task<RequiredResourceAccess> GetRequiredResourceAccessByDisplayNameAsync(
-            string displayName,
-            IEnumerable<string> requiredDelegatedPermissions,
-            CancellationToken cancellationToken = default
-        ) {
-            var displayNameFilterClause = $"DisplayName eq '{displayName}'";
-
-            var servicePrincipals = await _graphServiceClient
-                .ServicePrincipals
-                .Request()
-                .Filter(displayNameFilterClause)
-                .GetAsync(cancellationToken);
-
-            if (servicePrincipals.Count != 1) {
-                var msg = $"Could not find ServicePrincipal with '{displayName}' DisplayName";
-                throw new SystemException(msg);
-            }
-
-            var servicePrincipal = servicePrincipals.First();
-
-            var resourceAccesses = new List<ResourceAccess>();
-
-            foreach (var requiredDelegatedPermission in requiredDelegatedPermissions) {
-                var oauth2Permissions = servicePrincipal
-                    .Oauth2Permissions
-                    .Where(permission => permission.Value == requiredDelegatedPermission)
-                    .ToList();
-
-                if (oauth2Permissions.Count != 1) {
-                    var msg = $"Could not  find Oauth2Permission with '{requiredDelegatedPermission}' Value";
-                    throw new System.Exception(msg);
-                }
-
-                var oauth2Permission = oauth2Permissions.First();
-
-                var resourceAccess = new ResourceAccess {
-                    Type = "Scope",
-                    Id = oauth2Permission.Id
-                };
-
-                resourceAccesses.Add(resourceAccess);
-            }
-
-            var requiredResourceAccess = new RequiredResourceAccess {
-                ResourceAppId = servicePrincipal.AppId,
-                ResourceAccess = resourceAccesses
-            };
-
-            return requiredResourceAccess;
         }
     }
 }
