@@ -65,7 +65,8 @@ Note: the Postman requests will use an Authorization Code flow to authenticate t
 
 
 ## Download a sample set of API calls (Postman collection)
-1. Download the collection [here](../media/OPCTwin.postman_collection.json)
+1. Download the collection [here](../media/OPCTwin.postman_collection1.0.json)
+1. Import the collection by choosing 'Import' button at the top left of Postman.
 1. Create a new Environment named OPC Twin: within Postman at the top right click Manage Environments.
 1. Click Add.
 1. Add a new variable:
@@ -99,104 +100,71 @@ Note: the Postman requests will use an Authorization Code flow to authenticate t
 
 ### Register the demo OPC UA server manually using its discovery URL
 
-1. Execute the 'GET Applications' request. The result should be empty.
-1. Locate the 'POST Registry Add application' request. Edit the request body to point to your hostname:
+1. Execute the 'Registry: Get Applications' request. The result should be empty.
+1. Locate the 'Registry: Add application' request. Edit the request body to point to your hostname:
     ```
     {
-      "request":
-      {
-        "discoveryUrl": "opc.tcp://[yourserver]:50000",
-        "activationFilter": 
-        {
-          "securityMode": "None"
-        }
-      }
+      "discoveryUrl": "opc.tcp://[yourhostname]:50000"
     }
     ```
-1. Execute the 'GET Applications' request a few times until you get the result and have the application discovered and registered.
-TODO
+1. Execute the 'Registry: Get Applications' request a few times until you get the result and have the application discovered and registered.
 
-   ```bash
-   
-   
-   
-   ```
+   Note all the information about the application that the IoT Edge added during the registration, including public certificate, product URI and more. Copy the `applicationId` for the entry that has `productUri` set to `https://github.com/azure-samples/iot-edge-opc-plc`.
 
-   Note all the information about the application that the IoT Edge added during the registration, including public certificate, product URI and more. Copy the `applicationId`.
+### Browse all root nodes of endpoint
 
-### Browse all root nodes of the activated endpoint
+1. Execute the request 'Registry: browse endpoints' to see the application and its endpoints. Select one of the id under `endpoints` (`endpointId`). Before executing, make sure you update the applicationId copied above.
 
-### BELOW HERE STILL TODO
+2. Activate endpoint: run the request 'Registry: Activate endpoint' and replace the endpointId in the URL with your above `endpointId`.
 
-1. Execute the request 'Registry - Get Nodes for Application' to see the application and its endpoints. Select one of the id under `endpoints` (endpointId). Before executing, make sure you update the applicationId copied above.
+3. Run 'Registry: browse endpoints' again and you should see your endpoint as acvite and ready.
+    ```
+     [ommitted]...
+      "applicationId": "uas1c8e48c668911e7eeb831e69555a426b5053d0f7",
+      "activationState": "ActivatedAndConnected",
+      "endpointState": "Ready"
+      ...
+    ```
 
-   
-
-2. Run
-
-   ```bash
-   > nodes browse –i <endpointId>
-   ```
-
-   to browse the root node of the endpoint.
+4. Execute the request 'Twin: browse endpoint for ID x' and replace the `endpointId` to browse the root node of the endpoint.
 
    > If you fail to browse a real OPC UA server, it is because the server does not trust the module client certificate.  For now, please follow the server manual to move the rejected certificate into the trust list and try again.   We are working on it.
 
-### Clean up
-
-Note the `applicationId` in `apps list` and remove the application and related twins by running:
-
-```bash
-apps unregister -i <applicationId>
-```
-
 ## Exercise 2
 
-### Automatically discover all OPC UA servers running in the IoT Edge network
+### Browse nodes and read telemetry value
 
-1. On the console prompt, run `apps list` and `endpoints list`, the result should be empty lists, meaning that there are no applications registered. If you see applications or endpoints, follow the cleanup steps below.
+1. Once you have application and endpoints, execute the 'Registry - get endpoints' Postmann request to get your base endpoint ID for the OPC PLC. This will be one where the `endpointUrl` is on port 50000. Copy `id` (endpoint id).
+1. Execute the request 'Twin: browse endpoint for ID x', using the `id` copied in the URL.
+![img](../media/ex3-twinbrowsebyid.png)
+1. Copy the `nodeId` of the Objects (displayName: Objects) node. In our case this was `i=85`.
+1. Execute the request 'Twin: browse target node', replace the ID in the URL with your `id` from above, and add the node ID to the query parameter. You should URL Encode the parameter by right-clicking the selection and choosing the Postman option 'EncodeUriComponent1.
+![img](../media/ex3-uriencode.png)
+1. From the result, copy `nodeId` of the OpcPlc target node.
+1. Execute the same request, but now use the above `nodeId` value in the request parameter. Remember to URI encode.
+1. From the result copy the `nodeId` for Telemetry target node. Repeat above with this `nodeId`.  This should give you a set of target nodes with variables and their data and values.
 
-1. Run
+### Read a node value
 
-   ```bash
-   > supervisors list
-   ```
+1. From the above last step, copy the `nodeId` of the variable `SpikeData`.
+1. Execute the request 'Twin: read value'. Replace the ID in the URI with the `endpoint id`. 
+1. You should now read the current value of the variable.
 
-   and note down the `supervisorId`.
+### Publish a node (OPC Publisher)
 
-1. Enable scanning in the supervisor by running
+1. The last step in this exercise is looking at the published nodes, and add a variable to be published. The step of publishing something applies to the configuration of the OPC Publisher module. So in essence this step is about remotely configuring the OPC Publisher.
+1. Execute the request 'Twin: Get currently published nodes', replace the endpointId in the URL with your `applicationId`.
+1. This will show an empty list if you have not yet published any nodes.
+1. Now execute the request 'Twin: publish node', make sure the URI has your `applicationId`, and update the request's Body to reflect the node you wish to publish.
+1. Re-execute the request 'Twin: Get currently published nodes'.
 
-   ```bash
-   > supervisors update –d Fast -i <supervisorId> –a
-   ```
 
-   `–a` is a shortcut that auto-activates all discovered twins. Normally an operator would manually activate/enable registered twins based on an enterprise workflow or audit.
+## Clean up
 
-   You can change the configuration to your needs. For more information, see the console help.
+Note the `applicationId` by executing the request `Registry: get applications. 
+Execute the request 'Registry: remove applicaton', make sure to change the applicaitonId in the Uri.
 
-1. The discovery takes about a minute. Run
-
-   ```bash
-   > apps list
-   ```
-
-   a couple of times until the demo OPC UA server application is discovered and registered.
-
-You can now [browse one of the discovered endpoints](#Browse-all-root-nodes-of-the-activated-endpoint).
-
-### Clean up
-
-1. Note each applicationId in `apps list` and remove them by running
-
-   ```bash
-   > apps unregister -i <applicationId>
-   ```
-
-   Disable scanning on the supervisor by running
-
-   ```bash
-   > supervisor update -d Off -i <supervisorId>
-   ```
+Note this step does not remove any configuration for published nodes in OPC Publisher.
 
 ## Next steps
 
