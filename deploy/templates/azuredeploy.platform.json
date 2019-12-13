@@ -394,11 +394,11 @@
     "outputs": {
         "azureWebsite": {
             "type": "string",
-            "value": "[if(empty(parameters('siteName')), '', concat('https://', reference(variables('appSiteResourceId'), '2018-11-01').hostNames[0]))]"
+            "value": ""
         },
         "serviceUrl": {
             "type": "string",
-            "value": "[if(empty(parameters('serviceSiteName')), '', concat('https://', reference(variables('serviceSiteResourceId'), '2018-11-01').hostNames[0]))]"
+            "value": ""
         }
     }
 }
