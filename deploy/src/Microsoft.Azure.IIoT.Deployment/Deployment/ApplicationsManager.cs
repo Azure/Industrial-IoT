@@ -82,7 +82,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             // Service Application /////////////////////////////////////////////
             // Register service application
 
-            Log.Information("Creating service application registration...");
+            Log.Information("Creating service application registration ...");
 
             _serviceApplication = await _msGraphServiceClient
                 .RegisterServiceApplicationAsync(
@@ -108,7 +108,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             // Client Application //////////////////////////////////////////////
             // Register client application
 
-            Log.Information("Creating client application registration...");
+            Log.Information("Creating client application registration ...");
 
             _clientApplication = await _msGraphServiceClient
                 .RegisterClientApplicationAsync(
@@ -151,7 +151,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             // App Registration for AKS ////////////////////////////////////////
             // Register aks application
 
-            Log.Information("Creating AKS application registration...");
+            Log.Information("Creating AKS application registration ...");
 
             var registrationResult = await _msGraphServiceClient
                 .RegisterAKSApplicationAsync(
@@ -184,21 +184,21 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             string aksApplicatoinRbacSecret,
             CancellationToken cancellationToken = default
         ) {
-            Log.Information("Retrieving service application registration...");
+            Log.Information("Retrieving service application registration ...");
             _serviceApplication = await _msGraphServiceClient
                 .GetApplicationAsync(serviceApplicationId, cancellationToken);
 
             _serviceApplicationSP = await _msGraphServiceClient
                 .GetServicePrincipalAsync(_serviceApplication, cancellationToken);
 
-            Log.Information("Retrieving client application registration...");
+            Log.Information("Retrieving client application registration ...");
             _clientApplication = await _msGraphServiceClient
                 .GetApplicationAsync(clientApplicationId, cancellationToken);
 
             _clientApplicationSP = await _msGraphServiceClient
                 .GetServicePrincipalAsync(_clientApplication, cancellationToken);
 
-            Log.Information("Retrieving AKS application registration...");
+            Log.Information("Retrieving AKS application registration ...");
             _aksApplication = await _msGraphServiceClient
                 .GetApplicationAsync(aksApplicationId, cancellationToken);
 
@@ -312,6 +312,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             if (!applicationURL.EndsWith("/")) {
                 applicationURL += "/";
             }
+
+            Log.Information($"Updating RedirectUris of client " +
+                $"application to point to '{applicationURL}'");
 
             var redirectUris = new List<string> {
                 $"{applicationURL}",
