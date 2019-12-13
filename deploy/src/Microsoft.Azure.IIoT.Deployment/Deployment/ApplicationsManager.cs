@@ -184,18 +184,21 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             string aksApplicatoinRbacSecret,
             CancellationToken cancellationToken = default
         ) {
+            Log.Information("Retrieving service application registration...");
             _serviceApplication = await _msGraphServiceClient
                 .GetApplicationAsync(serviceApplicationId, cancellationToken);
 
             _serviceApplicationSP = await _msGraphServiceClient
                 .GetServicePrincipalAsync(_serviceApplication, cancellationToken);
 
+            Log.Information("Retrieving client application registration...");
             _clientApplication = await _msGraphServiceClient
                 .GetApplicationAsync(clientApplicationId, cancellationToken);
 
             _clientApplicationSP = await _msGraphServiceClient
                 .GetServicePrincipalAsync(_clientApplication, cancellationToken);
 
+            Log.Information("Retrieving AKS application registration...");
             _aksApplication = await _msGraphServiceClient
                 .GetApplicationAsync(aksApplicationId, cancellationToken);
 
@@ -294,26 +297,29 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             string applicationURL,
             CancellationToken cancellationToken = default
         ) {
-            string baseURL;
-
-            if (applicationURL.StartsWith("https://") || applicationURL.StartsWith("http://")) {
-                baseURL = applicationURL;
-            }
-            else {
-                baseURL = $"https://{applicationURL}";
+            if (null == applicationURL) {
+                throw new ArgumentNullException("applicationURL");
             }
 
-            if (!baseURL.EndsWith("/")) {
-                baseURL += "/";
+            if (applicationURL.Trim() == string.Empty) {
+                throw new ArgumentException("Input cannot be empty", "applicationURL");
+            }
+
+            if (!applicationURL.StartsWith("https://") && !applicationURL.StartsWith("http://")) {
+                applicationURL = $"https://{applicationURL}";
+            }
+
+            if (!applicationURL.EndsWith("/")) {
+                applicationURL += "/";
             }
 
             var redirectUris = new List<string> {
-                $"{baseURL}",
-                $"{baseURL}registry/",
-                $"{baseURL}twin/",
-                $"{baseURL}history/",
-                $"{baseURL}ua/",
-                $"{baseURL}vault/"
+                $"{applicationURL}",
+                $"{applicationURL}registry/",
+                $"{applicationURL}twin/",
+                $"{applicationURL}history/",
+                $"{applicationURL}ua/",
+                $"{applicationURL}vault/"
             };
 
             _clientApplication = await _msGraphServiceClient

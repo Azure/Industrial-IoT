@@ -27,9 +27,8 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 .AddCommandLine(args);
 
             var configuration = builder.Build();
-            var appSettings = configuration.Get<AppSettings>();
 
-            var exitcCode = Run(appSettings);
+            var exitcCode = Run(configuration);
             return exitcCode;
         }
 
@@ -42,10 +41,11 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 .CreateLogger();
         }
 
-        static int Run(AppSettings appSettings) {
+        static int Run(IConfigurationRoot configuration) {
             try {
                 SetupLogger();
 
+                var appSettings = configuration.Get<AppSettings>();
                 var configurationProvider = new ConsoleConfigurationProvider(appSettings);
 
                 using var cts = new CancellationTokenSource();

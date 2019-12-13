@@ -9,7 +9,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
     using Microsoft.Azure.IIoT.Deployment.Deployment;
 
     class AppSettings {
-        public RunMode? DeploymentMode { get; set; }
+        public RunMode? RunMode { get; set; }
         public AuthenticationSettings Auth { get; set; }
         public Guid? SubscriptionId { get; set; }
         public string ApplicationName { get; set; }

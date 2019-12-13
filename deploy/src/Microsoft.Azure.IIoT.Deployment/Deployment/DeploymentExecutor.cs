@@ -13,6 +13,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
     using System.Threading;
     using System.Threading.Tasks;
 
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Converters;
+
     using Authentication;
     using Infrastructure;
 
@@ -37,6 +40,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
         private AuthenticationConfiguration _authConf;
         private ISubscription _subscription;
         private string _applicationName;
+        private string _applicationURL;
         private IResourceGroup _resourceGroup;
 
         private IAuthenticationManager _authenticationManager;
@@ -46,7 +50,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
         private RestClient _restClient;
 
         private ApplicationsManager _applicationsManager;
-        private ResourceMgmtClient _resourceMgmtClient;
         private KeyVaultMgmtClient _keyVaultManagementClient;
         private StorageMgmtClient _storageManagementClient;
         private IotHubMgmtClient _iotHubManagementClient;
@@ -91,8 +94,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
         private const string kAKS_CLUSTER_CN = "aks.cluster.net"; // ToDo: Assign meaningfull value.
         private X509Certificate2 _aksClusterX509Certificate;
 
-        private string _aksKubeConfig;
-
         public DeploymentExecutor(
             IConfigurationProvider configurationProvider
         ) {
@@ -119,51 +120,96 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             }
         }
 
-        public async Task RunFullDeploymentAsync(
+        protected async Task RunFullDeploymentAsync(
             CancellationToken cancellationToken = default
         ) {
             try {
-                Log.Information("Starting Industrial IoT solution deployment.");
+                Log.Information("Starting full deployment of Industrial IoT solution.");
 
                 await AuthenticateAsync(cancellationToken);
-                GetApplicationName();
                 await GetSubscriptionAsync(cancellationToken);
+                GetApplicationName();
+
                 await InitializeResourceGroupSelectionAsync(cancellationToken);
                 InitializeResourceManagementClients();
                 await RegisterResourceProvidersAsync(cancellationToken);
+                await SetupApplicationsAsync(cancellationToken);
                 await GenerateAzureResourceNamesAsync(cancellationToken);
-                await _applicationsManager
-                    .RegisterApplicationsAsync(
-                        _applicationName,
-                        _owner,
-                        _defaultTagsList,
-                        cancellationToken
-                    );
                 await CreateAzureResourcesAsync(cancellationToken);
+                await UpdateClientApplicationRedirectUrisAsync(cancellationToken);
 
                 Log.Information("Done.");
             }
             catch (Exception ex) {
                 Log.Error(ex, "Failed to deploy Industrial IoT solution.");
 
-                await CleanupIfAskedAsync(cancellationToken);
+                if (_configurationProvider.IfPerformCleanup()) {
+                    await BeginDeleteResourceGroupAsync(cancellationToken);
+                    await DeleteApplicationsAsync(cancellationToken);
+                }
+
                 throw;
             }
         }
 
-        public Task RunApplicatoinRegistrationOnlyAsync(
+        protected async Task RunApplicatoinRegistrationOnlyAsync(
             CancellationToken cancellationToken = default
         ) {
-            throw new NotImplementedException("ApplicationRegistration flow is not implemented.");
+            try {
+                Log.Information("Starting application registration for Industrial IoT solution.");
+
+                await AuthenticateAsync(cancellationToken);
+                await GetSubscriptionAsync(cancellationToken);
+                GetApplicationName();
+
+                await SetupApplicationsAsync(cancellationToken);
+                await UpdateClientApplicationRedirectUrisAsync(cancellationToken);
+                OutputApplicationRegistrationConfiguration();
+
+                Log.Information("Done.");
+            }
+            catch (Exception ex) {
+                Log.Error(ex, "Failed to register applications for Industrial IoT solution.");
+
+                if (_configurationProvider.IfPerformCleanup()) {
+                    await DeleteApplicationsAsync(cancellationToken);
+                }
+
+                throw;
+            }
         }
 
-        public Task RunResourceDeploymentOnlyAsync(
+        protected async Task RunResourceDeploymentOnlyAsync(
             CancellationToken cancellationToken = default
         ) {
-            throw new NotImplementedException("ResourceDeployment flow is not implemented.");
+            try {
+                Log.Information("Starting resource deployment of Industrial IoT solution.");
+
+                await AuthenticateAsync(cancellationToken);
+                await GetSubscriptionAsync(cancellationToken);
+                GetApplicationName();
+
+                await InitializeResourceGroupSelectionAsync(cancellationToken);
+                InitializeResourceManagementClients();
+                await RegisterResourceProvidersAsync(cancellationToken);
+                await SetupApplicationsAsync(cancellationToken);
+                await GenerateAzureResourceNamesAsync(cancellationToken);
+                await CreateAzureResourcesAsync(cancellationToken);
+
+                Log.Information("Done.");
+            }
+            catch (Exception ex) {
+                Log.Error(ex, "Failed to deploy resources of Industrial IoT solution.");
+
+                if (_configurationProvider.IfPerformCleanup()) {
+                    await BeginDeleteResourceGroupAsync(cancellationToken);
+                }
+
+                throw;
+            }
         }
 
-        public async Task AuthenticateAsync(
+        protected async Task AuthenticateAsync(
             CancellationToken cancellationToken = default
         ) {
             // ToDo: Figure out how to sign-in without TenantId.
@@ -189,7 +235,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
         /// resources created by the application.
         /// </summary>
         /// <param name="owner"></param>
-        private void InitializeDefaultTags(string owner = null) {
+        protected void InitializeDefaultTags(string owner = null) {
             _defaultTagsList = new List<string> {
                 Resources.IIoTDeploymentTags.VALUE_APPLICATION_IIOT,
                 Resources.IIoTDeploymentTags.VALUE_VERSION_IIOT,
@@ -208,11 +254,11 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             }
         }
 
-        public void GetApplicationName() {
+        protected void GetApplicationName() {
             _applicationName = _configurationProvider.GetApplicationName();
         }
 
-        public async Task SetOwnerAsync(
+        protected async Task SetOwnerAsync(
             CancellationToken cancellationToken = default
         ) {
             // Initialization of MicrosoftGraphServiceClient
@@ -256,7 +302,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             }
         }
 
-        public async Task GetSubscriptionAsync(
+        protected async Task GetSubscriptionAsync(
             CancellationToken cancellationToken = default
         ) {
             // Initialization of MicrosoftGraphServiceClient
@@ -283,7 +329,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             _azureResourceManager.Init(_subscription);
         }
 
-        public async Task InitializeResourceGroupSelectionAsync(
+        protected async Task InitializeResourceGroupSelectionAsync(
             CancellationToken cancellationToken = default
         ) {
             // Select existing ResourceGroup or create a new one.
@@ -322,7 +368,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             }
         }
 
-        public async Task BeginDeleteResourceGroupAsync(
+        protected async Task BeginDeleteResourceGroupAsync(
             CancellationToken cancellationToken = default
         ) {
             if (null != _resourceGroup) {
@@ -340,9 +386,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
 
         }
 
-        public void InitializeResourceManagementClients() {
-            //var azureCredentials = await _authenticationManager
-            //    .GetAzureCredentialsAsync(cancellationToken);
+        protected void InitializeResourceManagementClients() {
             var azureCredentials = _authenticationManager
                 .GetDelegatingAzureCredentials();
 
@@ -356,7 +400,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
 
             var subscriptionId = _subscription.SubscriptionId;
 
-            _resourceMgmtClient = new ResourceMgmtClient(subscriptionId, _restClient);
             _keyVaultManagementClient = new KeyVaultMgmtClient(subscriptionId, _restClient);
             _storageManagementClient = new StorageMgmtClient(subscriptionId, _restClient);
             _iotHubManagementClient = new IotHubMgmtClient(subscriptionId, _restClient);
@@ -372,13 +415,110 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             _signalRManagementClient = new SignalRMgmtClient(subscriptionId, _restClient);
         }
 
-        public async Task RegisterResourceProvidersAsync(
+        protected async Task RegisterResourceProvidersAsync(
             CancellationToken cancellationToken = default
         ) {
-            await _resourceMgmtClient.RegisterRequiredResourceProvidersAsync(cancellationToken);
+            using var resourceMgmtClient = new ResourceMgmtClient(_subscription.SubscriptionId, _restClient);
+            await resourceMgmtClient.RegisterRequiredResourceProvidersAsync(cancellationToken);
         }
 
-        public async Task GenerateAzureResourceNamesAsync(
+        protected async Task SetupApplicationsAsync(
+            CancellationToken cancellationToken = default
+        ) {
+            var runMode = _configurationProvider.GetRunMode();
+            var applicationRegistrationConfiguration = _configurationProvider
+                .GetApplicationRegistrationConfiguration();
+
+            if (null == applicationRegistrationConfiguration) {
+                if (RunMode.ResourceDeployment == runMode) {
+                    // In ResourceDeployment mode ApplicationRegistration should be configured.
+                    throw new ArgumentException("ApplicationRegistration is not configured.");
+                }
+
+                // Create new applications.
+                await _applicationsManager
+                    .RegisterApplicationsAsync(
+                        _applicationName,
+                        _owner,
+                        _defaultTagsList,
+                        cancellationToken
+                    );
+
+            } else {
+                // Load definitions for existing applications.
+                await _applicationsManager
+                    .LoadAsync(
+                        applicationRegistrationConfiguration.ServicesApplicationId,
+                        applicationRegistrationConfiguration.ClientsApplicationId,
+                        applicationRegistrationConfiguration.AksApplicatoinId,
+                        applicationRegistrationConfiguration.AksApplicatoinRbacSecret,
+                        cancellationToken
+                    );
+            }
+        }
+
+        protected async Task UpdateClientApplicationRedirectUrisAsync(
+            CancellationToken cancellationToken = default
+        ) {
+            var runMode = _configurationProvider.GetRunMode();
+
+            if (RunMode.ApplicationRegistration == runMode) {
+                _applicationURL = _configurationProvider.GetApplicationURL();
+
+                if (!string.IsNullOrEmpty(_applicationURL)) {
+                    await _applicationsManager
+                        .UpdateClientApplicationRedirectUrisAsync(
+                            _applicationURL,
+                            cancellationToken
+                        );
+                }
+                else {
+                    Log.Information("Client application redirectUris will not " +
+                        "be configured since ApplicationURL is not provided.");
+                }
+            }
+            else if (RunMode.Full == runMode) {
+                // _applicationURL will be set up by CreateAzureResourcesAsync() call;
+                await _applicationsManager
+                    .UpdateClientApplicationRedirectUrisAsync(
+                        _applicationURL,
+                        cancellationToken
+                    );
+            } else {
+                // RunMode.ResourceDeployment == runMode
+                // In this mode we assum that the deployment application does not have
+                // enough permissions to change redirectUris of registered application.
+                throw new Exception($"UpdateClientApplicationRedirectUrisAsync() method " +
+                    $"cannot be called in {RunMode.ResourceDeployment} run mode.");
+            }
+        }
+
+        protected async Task DeleteApplicationsAsync(
+            CancellationToken cancellationToken = default
+        ) {
+            await _applicationsManager.DeleteApplicationsAsync(cancellationToken);
+        }
+
+        protected void OutputApplicationRegistrationConfiguration() {
+            var appRegConf = new ApplicationRegistrationConfiguration(
+                new Guid(_applicationsManager.GetServiceApplication().Id),
+                new Guid(_applicationsManager.GetClientApplication().Id),
+                new Guid(_applicationsManager.GetAKSApplication().Id),
+                _applicationsManager.GetAKSApplicationRbacSecret()
+            );
+
+            var jsonString = JsonConvert
+                .SerializeObject(
+                    appRegConf,
+                    Formatting.Indented,
+                    new JsonConverter[] { new StringEnumConverter() }
+                );
+
+            Log.Information("Use details bellow for resource deployment of Industrial IoT solution.");
+            Console.WriteLine(jsonString);
+        }
+
+        protected async Task GenerateAzureResourceNamesAsync(
             CancellationToken cancellationToken = default
         ) {
             // It might happen that there is no registered resource provider
@@ -481,16 +621,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             }
         }
 
-        public async Task CleanupIfAskedAsync(
-            CancellationToken cancellationToken = default
-        ) {
-            if (_configurationProvider.IfPerformCleanup()) {
-                await BeginDeleteResourceGroupAsync(cancellationToken);
-                await _applicationsManager.DeleteApplicationsAsync(cancellationToken);
-            }
-        }
-
-        public async Task CreateAzureResourcesAsync(
+        protected async Task CreateAzureResourcesAsync(
             CancellationToken cancellationToken = default
         ) {
             // Create Virtual Network
@@ -867,14 +998,14 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
 
             // Get KubeConfig
             var aksCluster = aksClusterCreationTask.Result;
-            _aksKubeConfig = await _aksManagementClient
+            var aksKubeConfig = await _aksManagementClient
                 .GetClusterAdminCredentialsAsync(
                     _resourceGroup,
                     aksCluster.Name,
                     cancellationToken
                 );
 
-            var iiotK8SClient = new IIoTK8SClient(_aksKubeConfig);
+            var iiotK8SClient = new IIoTK8SClient(aksKubeConfig);
 
             // industrial-iot namespace
             iiotK8SClient.CreateIIoTNamespaceAsync(cancellationToken).Wait();
@@ -926,13 +1057,10 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     cancellationToken
                 );
 
-            // After we have proxy deployed to App Service, we will update 
+            // After we have deployed proxy to App Service, we will update 
             // client application to have redirect URIs for App Service.
-            await _applicationsManager
-                .UpdateClientApplicationRedirectUrisAsync(
-                    webSite.DefaultHostName,
-                    cancellationToken
-                );
+            // This will be performed in UpdateClientApplicationRedirectUrisAsync() call.
+            _applicationURL = webSite.DefaultHostName;
 
             // Check if we want to save environment to .env file
             try {
@@ -957,7 +1085,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             disposeIfNotNull(_aksClusterX509Certificate);
 
             // Resource management classes
-            disposeIfNotNull(_resourceMgmtClient);
             disposeIfNotNull(_keyVaultManagementClient);
             disposeIfNotNull(_storageManagementClient);
             disposeIfNotNull(_iotHubManagementClient);

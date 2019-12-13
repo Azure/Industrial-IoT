@@ -4,18 +4,16 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Deployment.Deployment {
-    using Microsoft.Azure.Management.ResourceManager.Fluent;
+
     using System;
-    using System.Collections.Generic;
-    using System.Text;
+    using Microsoft.Azure.Management.ResourceManager.Fluent;
 
     class AuthenticationConfiguration {
-        public AzureEnvironment AzureEnvironment { get; set; }
-        public Guid TenantId { get; set; }
-        public Guid ClientId { get; set; }
-        public string ClientSecret { get; set; }
 
-        public AuthenticationConfiguration() { }
+        public AzureEnvironment AzureEnvironment { get; }
+        public Guid TenantId { get; }
+        public Guid ClientId { get; }
+        public string ClientSecret { get; }
 
         public AuthenticationConfiguration(
             AzureEnvironment azureEnvironment,

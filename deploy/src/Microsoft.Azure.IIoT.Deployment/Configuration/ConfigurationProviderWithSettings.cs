@@ -45,6 +45,10 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
             string resourceGroupDefaultName = null
         );
 
+        public abstract ApplicationRegistrationConfiguration GetApplicationRegistrationConfiguration();
+
+        public abstract string GetApplicationURL();
+
         public abstract bool IfSaveEnvFile();
 
         public abstract bool IfPerformCleanup();

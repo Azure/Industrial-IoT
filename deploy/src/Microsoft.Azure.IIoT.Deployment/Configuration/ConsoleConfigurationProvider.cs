@@ -15,64 +15,89 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
 
     class ConsoleConfigurationProvider : ConfigurationProviderWithSettings {
 
+        // ClientId (or AppId) of AzureIndustrialIoTDeployment Application
+        public const string AzureIndustrialIoTDeploymentClientID = "fb2ca262-60d8-4167-ac33-1998d6d5c50b";
+
+        private RunMode? _runMode;
+
         public ConsoleConfigurationProvider(
             AppSettings appSettings = null
         ) : base(appSettings) {}
 
         public override RunMode GetRunMode() {
-            if (null != _appSettings?.DeploymentMode && _appSettings.DeploymentMode.HasValue) {
-                return _appSettings.DeploymentMode.Value;
+            if (_runMode.HasValue) {
+                return _runMode.Value;
             }
 
-            // Default mode would be full deployment.
-            return RunMode.Full;
+            if (null != _appSettings?.RunMode && _appSettings.RunMode.HasValue) {
+                _runMode = _appSettings.RunMode.Value;
+            } else {
+                Log.Information($"Application RunMode is not configured, default will be used: {RunMode.Full}");
+                _runMode = RunMode.Full;
+            }
+
+            return _runMode.Value;
         }
 
         public override AuthenticationConfiguration GetAuthenticationConfiguration(
             IEnumerable<AzureEnvironment> azureEnvironments
         ) {
-            var authConf = new AuthenticationConfiguration();
-
             var authSettings = _appSettings?.Auth;
 
-            // Set authConf.AzureEnvironment
+            // Set azureEnvironment
+            AzureEnvironment azureEnvironment;
+
             if (null != authSettings?.AzureEnvironment && authSettings.AzureEnvironment.HasValue) {
-                var azureEnvironment = authSettings.AzureEnvironment.Value.ToAzureEnvironment();
+                azureEnvironment = authSettings.AzureEnvironment.Value.ToAzureEnvironment();
 
                 if (azureEnvironments.Contains(azureEnvironment)) {
                     Log.Information($"Configured Azure environment will be used: {ToString(azureEnvironment)}");
-                    authConf.AzureEnvironment = azureEnvironment;
                 }
                 else {
                     throw new ArgumentException($"Configured '{ToString(azureEnvironment)}' Azure environment not found.");
                 }
             } else {
-                authConf.AzureEnvironment = GetAzureEnvironmentFromConsole(azureEnvironments);
+                azureEnvironment = GetAzureEnvironmentFromConsole(azureEnvironments);
             }
 
-            // Set authConf.TenantId
+            // Set tenantId
+            Guid? tenantId;
+
             if (null != authSettings?.TenantId && authSettings.TenantId.HasValue) {
                 Log.Information($"Configured TenantId will be used: {authSettings.TenantId.Value}");
-                authConf.TenantId = authSettings.TenantId.Value;
+                tenantId = authSettings.TenantId.Value;
             } else {
-                authConf.TenantId = GetTenantIdFromConsole();
+                tenantId = GetTenantIdFromConsole();
             }
 
-            // Set authConf.ClientId
+            // Set clientId
+            Guid? clientId;
+
             if (null != authSettings?.ClientId && authSettings.ClientId.HasValue) {
                 Log.Information($"Configured ClientId will be used: {authSettings.ClientId.Value}");
-                authConf.ClientId = authSettings.ClientId.Value;
+                clientId = authSettings.ClientId.Value;
             }
             else {
-                // We will use AzureIndustrialIoTDeploymentClientID by default.
-                authConf.ClientId = new Guid(Authentication.InteractiveAuthenticationManager.AzureIndustrialIoTDeploymentClientID);
+                // We will use ClientId of AzureIndustrialIoTDeployment application by default.
+                clientId = new Guid(AzureIndustrialIoTDeploymentClientID);
             }
 
-            // Set authConf.ClientSecret only if it is present in _appSettings.
+            // Set clientSecret
+            string clientSecret;
+
             if (!string.IsNullOrEmpty(authSettings?.ClientSecret)) {
                 Log.Information($"Configured ClientSecret will be used.");
-                authConf.ClientSecret = authSettings.ClientSecret;
+                clientSecret = authSettings.ClientSecret;
+            } else {
+                clientSecret = null;
             }
+
+            var authConf = new AuthenticationConfiguration(
+                azureEnvironment,
+                tenantId.Value,
+                clientId.Value,
+                clientSecret
+            );
 
             return authConf;
         }
@@ -326,6 +351,48 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
             } while (null == resourceGroupName);
 
             return resourceGroupName;
+        }
+
+        public override ApplicationRegistrationConfiguration GetApplicationRegistrationConfiguration() {
+            if (null == _appSettings?.ApplicationRegistration) {
+                return null;
+            }
+
+            // If one of ApplicationRegistration properties is provided, then we will require that all are provided.
+            var applicationRegistrationSettings = _appSettings.ApplicationRegistration;
+
+            if (null == applicationRegistrationSettings.ServicesApplicationId) {
+                throw new ArgumentException("ApplicationRegistration.ServicesApplicationId property is missing.");
+            }
+
+            if (null == applicationRegistrationSettings.ClientsApplicationId) {
+                throw new ArgumentException("ApplicationRegistration.ClientsApplicationId property is missing.");
+            }
+
+            if (null == applicationRegistrationSettings.AksApplicatoinId) {
+                throw new ArgumentException("ApplicationRegistration.AksApplicatoinId property is missing.");
+            }
+
+            if (string.IsNullOrEmpty(applicationRegistrationSettings.AksApplicatoinRbacSecret)) {
+                throw new ArgumentException("ApplicationRegistration.AksApplicatoinRbacSecret property is missing or empty.");
+            }
+
+            var applicationRegistrationConfiguration = new ApplicationRegistrationConfiguration(
+                applicationRegistrationSettings.ServicesApplicationId.Value,
+                applicationRegistrationSettings.ClientsApplicationId.Value,
+                applicationRegistrationSettings.AksApplicatoinId.Value,
+                applicationRegistrationSettings.AksApplicatoinRbacSecret
+            );
+
+            return applicationRegistrationConfiguration;
+        }
+
+        public override string GetApplicationURL() {
+            if (!string.IsNullOrEmpty(_appSettings?.ApplicationURL)) {
+                return _appSettings.ApplicationURL;
+            }
+
+            return null;
         }
 
         public override bool IfSaveEnvFile() {

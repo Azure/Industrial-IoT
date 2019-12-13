@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.Deployment.Authentication {
 
     using System;
-    using System.Runtime.InteropServices;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -16,9 +15,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Authentication {
     using Microsoft.Azure.IIoT.Deployment.Infrastructure.Extensions;
 
     class InteractiveAuthenticationManager : IAuthenticationManager {
-
-        // ClientId (or AppId) of AzureIndustrialIoTDeployment Application
-        public const string AzureIndustrialIoTDeploymentClientID = "fb2ca262-60d8-4167-ac33-1998d6d5c50b";
 
         public static readonly string[] MicrosoftGraphIAIScopes = new string[] {
             "https://graph.microsoft.com/Directory.AccessAsUser.All"

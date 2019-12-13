@@ -16,9 +16,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Authentication {
 
     class ClientCredentialsAuthenticationManager : IAuthenticationManager {
 
-        // ClientId (or AppId) of AzureIndustrialIoTDeployment Application
-        public const string AzureIndustrialIoTDeploymentClientID = "fb2ca262-60d8-4167-ac33-1998d6d5c50b";
-
         public static readonly string[] MicrosoftGraphIAIScopes = new string[] {
             "https://graph.microsoft.com/.default"
         };
