@@ -8,6 +8,7 @@ namespace Microsoft.Extensions.Configuration {
     using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.KeyVault;
+    using Microsoft.Azure.KeyVault.Models;
     using Microsoft.Azure.Services.AppAuthentication;
     using Serilog;
     using System;
@@ -77,11 +78,7 @@ namespace Microsoft.Extensions.Configuration {
         }
 
         /// <summary>
-        /// Lazy Keyvault configuration provider. This is more efficient than
-        /// reading all secrets and filtering out.  Instead the provider will
-        /// load on demand and cache the result for further lookup.  There is
-        /// no overhead if a previous provider can provide the configuration.
-        /// This is at the expense of providing nested configuration.
+        /// Keyvault configuration provider.
         /// </summary>
         internal sealed class KeyVaultConfigurationProvider : IConfigurationSource,
             IConfigurationProvider {
@@ -95,7 +92,7 @@ namespace Microsoft.Extensions.Configuration {
                 string keyVaultUri) {
                 _keyVault = keyVault;
                 _keyVaultUri = keyVaultUri;
-                _cache = new ConcurrentDictionary<string, Task<string>>();
+                _cache = new ConcurrentDictionary<string, Task<SecretBundle>>();
                 _reloadToken = new ConfigurationReloadToken();
             }
 
@@ -111,39 +108,38 @@ namespace Microsoft.Extensions.Configuration {
                     return false;
                 }
                 try {
-                    value = _cache.GetOrAdd(key, k => {
-                        using (new PerfMarker(Log.Logger, key)) {
-                            var bundle = _keyVault.GetSecretAsync(_keyVaultUri,
-                                GetSecretNameForKey(k)).Result;
-                            return Task.FromResult(bundle.Value);
-                        }
-                    }).Result;
+                    if (_allSecretsLoaded && !_cache.ContainsKey(key)) {
+                        // Prevents non existant keys to be looked up
+                        return false;
+                    }
+                    var resultTask = _cache.GetOrAdd(key, k => {
+                        return _keyVault.GetSecretAsync(_keyVaultUri,
+                            GetSecretNameForKey(k));
+                    });
+                    if (resultTask.IsFaulted || resultTask.IsCanceled) {
+                        return false;
+                    }
+                    value = resultTask.Result.Value;
                     return true;
                 }
                 catch {
-                    _cache.AddOrUpdate(key, Task.FromResult(value),
-                        (k, v) => Task.FromResult(string.Empty));
                     return false;
                 }
             }
 
             /// <inheritdoc/>
             public void Set(string key, string value) {
-                if (!key.StartsWith("PCS_", StringComparison.InvariantCultureIgnoreCase)) {
-                    return;
-                }
-                _cache.AddOrUpdate(key, Task.FromResult(value),
-                    (k, v) => Task.FromResult(value));
+                // No op
+            }
+
+            /// <inheritdoc/>
+            public void Load() {
+                // No op
             }
 
             /// <inheritdoc/>
             public IChangeToken GetReloadToken() {
                 return _reloadToken;
-            }
-
-            /// <inheritdoc/>
-            public void Load() {
-                // _cache.Clear();
             }
 
             public IEnumerable<string> GetChildKeys(IEnumerable<string> earlierKeys,
@@ -169,11 +165,11 @@ namespace Microsoft.Extensions.Configuration {
                 if (singleton) {
                     // Save singleton creation
                     if (_singleton == null) {
-                        lock (_lock) {
+                        lock (kLock) {
                             if (_singleton == null) {
                                 // Create instance
                                 _singleton = CreateInstanceAsync(configuration,
-                                    keyVaultUrlVarName, allowDeveloperAccess);
+                                    keyVaultUrlVarName, false, allowDeveloperAccess);
                             }
                         }
                     }
@@ -181,7 +177,7 @@ namespace Microsoft.Extensions.Configuration {
                 }
                 // Create new instance
                 return await CreateInstanceAsync(configuration, keyVaultUrlVarName,
-                    allowDeveloperAccess);
+                    true, allowDeveloperAccess);
             }
 
             /// <summary>
@@ -189,11 +185,12 @@ namespace Microsoft.Extensions.Configuration {
             /// </summary>
             /// <param name="configuration"></param>
             /// <param name="keyVaultUrlVarName"></param>
+            /// <param name="lazyLoad"></param>
             /// <param name="allowDeveloperAccess"></param>
             /// <returns></returns>
             private static async Task<KeyVaultConfigurationProvider> CreateInstanceAsync(
                 IConfigurationRoot configuration, string keyVaultUrlVarName,
-                bool allowDeveloperAccess) {
+                bool lazyLoad, bool allowDeveloperAccess) {
                 var vaultUri = configuration.GetValue<string>(keyVaultUrlVarName, null);
                 if (string.IsNullOrEmpty(vaultUri)) {
                     return null;
@@ -203,7 +200,11 @@ namespace Microsoft.Extensions.Configuration {
                 if (keyVault == null) {
                     return null;
                 }
-                return new KeyVaultConfigurationProvider(keyVault, vaultUri);
+                var provider = new KeyVaultConfigurationProvider(keyVault, vaultUri);
+                if (!lazyLoad) {
+                    await provider.LoadAllSecretsAsync();
+                }
+                return provider;
             }
 
             /// <summary>
@@ -279,6 +280,38 @@ namespace Microsoft.Extensions.Configuration {
             }
 
             /// <summary>
+            /// Preload cache
+            /// </summary>
+            /// <returns></returns>
+            private async Task LoadAllSecretsAsync() {
+                // Read all secrets
+                var secretPage = await _keyVault.GetSecretsAsync(_keyVaultUri)
+                    .ConfigureAwait(false);
+                var allSecrets = new List<SecretItem>(secretPage.ToList());
+                while (true) {
+                    if (secretPage.NextPageLink == null) {
+                        break;
+                    }
+                    secretPage =  await _keyVault.GetSecretsNextAsync(
+                        secretPage.NextPageLink).ConfigureAwait(false);
+                    allSecrets.AddRange(secretPage.ToList());
+                }
+                foreach (var secret in allSecrets) {
+                    if (secret.Attributes?.Enabled != true) {
+                        continue;
+                    }
+                    var key = GetKeyForSecretName(secret.Identifier.Name);
+                    if (key == null) {
+                        continue;
+                    }
+                    _cache.TryAdd(key, _keyVault.GetSecretAsync(
+                        secret.Identifier.Identifier));
+                }
+                _allSecretsLoaded = true;
+                await Task.WhenAll(_cache.Values).ConfigureAwait(false);
+            }
+
+            /// <summary>
             /// Get secret key for key value. Replace any upper case
             /// letters with lower case and _ with -.
             /// </summary>
@@ -288,12 +321,26 @@ namespace Microsoft.Extensions.Configuration {
                 return key.Replace("_", "-").ToLowerInvariant();
             }
 
-            private static readonly object _lock = new object();
+            /// <summary>
+            /// Get secret key for key value. Replace any upper case
+            /// letters with lower case and _ with -.
+            /// </summary>
+            /// <param name="secretId"></param>
+            /// <returns></returns>
+            private static string GetKeyForSecretName(string secretId) {
+                if (!secretId.StartsWith("pcs-")) {
+                    return null;
+                }
+                return secretId.Replace("-", "_").ToUpperInvariant();
+            }
+
+            private static readonly object kLock = new object();
             private static Task<KeyVaultConfigurationProvider> _singleton;
             private readonly KeyVaultClient _keyVault;
             private readonly string _keyVaultUri;
-            private readonly ConcurrentDictionary<string, Task<string>> _cache;
+            private readonly ConcurrentDictionary<string, Task<SecretBundle>> _cache;
             private readonly ConfigurationReloadToken _reloadToken;
+            private bool _allSecretsLoaded;
         }
     }
 }
