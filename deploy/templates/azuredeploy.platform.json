@@ -262,7 +262,6 @@
                 "httpsOnly": true,
                 "siteConfig": {
                     "numberOfWorkers": 1,
-                    "linuxFxVersion": "[if(not(parameters('deployFromSource')), concat('DOCKER|', parameters('dockerServer'), '/', variables('serviceContainerImageName')), json('null'))]",
                     "managedPipelineMode": "Integrated",
                     "requestTracingEnabled": true,
                     "httpLoggingEnabled": true,
@@ -375,7 +374,7 @@
             "comments": "Deploy application container.",
             "condition": "[not(empty(parameters('siteName')))]",
             "type": "Microsoft.Web/sites",
-            "kind": "[if(parameters('deployFromSource'), 'app', 'app,linux,container')]",
+            "kind": "[if(parameters('deployFromSource'), json('null'), 'app,linux,container')]",
             "name": "[variables('appSiteResourceName')]",
             "apiVersion": "2018-11-01",
             "location": "[resourceGroup().location]",
