@@ -580,16 +580,17 @@
             ]
         },
         {
-            "comments": "Datelake account",
+            "comments": "Datalake account",
             "type": "Microsoft.Storage/storageAccounts",
             "name": "[parameters('storageName')]",
             "apiVersion": "2019-04-01",
             "location": "[resourceGroup().location]",
-            "kind": "Storage",
+            "kind": "StorageV2",
             "sku": {
                 "name": "[parameters('storageSkuName')]"
             },
             "properties": {
+                "isHnsEnabled": true,
                 "networkAcls": {
                     "bypass": "AzureServices",
                     "virtualNetworkRules": [

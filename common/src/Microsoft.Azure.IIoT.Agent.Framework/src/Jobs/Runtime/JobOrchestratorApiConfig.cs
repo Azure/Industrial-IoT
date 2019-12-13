@@ -49,7 +49,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs.Runtime {
                 using (var socket = new Socket(AddressFamily.InterNetwork,
                     SocketType.Stream, ProtocolType.Unspecified)) {
                     try {
-                        socket.Connect(new IPEndPoint(IPAddress.Loopback, nPort));
+                        socket.Connect(IPAddress.Loopback, nPort);
                         return $"http://localhost:{port}";
                     }
                     catch {

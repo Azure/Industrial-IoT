@@ -73,16 +73,25 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <returns>ErrorStatus</returns>
         public async Task<bool> StartPublishing(string endpointId, string nodeId, 
             int samplingInterval, int publishingInterval) {
-            var requestApiModel = new PublishStartRequestApiModel() {
-                Item = new PublishedItemApiModel() {
-                    NodeId = nodeId,
-                    SamplingInterval = samplingInterval,
-                    PublishingInterval = publishingInterval
-                }
-            };
 
-            var resultApiModel = await _publisherService.NodePublishStartAsync(endpointId, requestApiModel);
-            return resultApiModel.ErrorInfo == null;
+            try {
+                var requestApiModel = new PublishStartRequestApiModel() {
+                    Item = new PublishedItemApiModel() {
+                        NodeId = nodeId,
+                        SamplingInterval = samplingInterval,
+                        PublishingInterval = publishingInterval
+                    }
+
+                };
+
+                var resultApiModel = await _publisherService.NodePublishStartAsync(endpointId, requestApiModel);
+                return resultApiModel.ErrorInfo == null;
+            }
+            catch(Exception e) {
+                var errorMessage = string.Format(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
+                Trace.TraceError(errorMessage);
+            }
+            return false;
         }
 
         /// <summary>
@@ -92,11 +101,18 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <param name="nodeId"></param>
         /// <returns>ErrorStatus</returns>
         public async Task<bool> StopPublishing(string endpointId, string nodeId) {
-            var requestApiModel = new PublishStopRequestApiModel() {
-                    NodeId = nodeId,
-            };
-            var resultApiModel = await _publisherService.NodePublishStopAsync(endpointId, requestApiModel);
-            return resultApiModel.ErrorInfo == null;
+            try { 
+                var requestApiModel = new PublishStopRequestApiModel() {
+                        NodeId = nodeId,
+                };
+                var resultApiModel = await _publisherService.NodePublishStopAsync(endpointId, requestApiModel);
+                return resultApiModel.ErrorInfo == null;
+            }
+            catch (Exception e) {
+                var errorMessage = string.Format(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
+                Trace.TraceError(errorMessage);
+            }
+            return false;
         }
 
         private readonly IPublisherServiceApi _publisherService;

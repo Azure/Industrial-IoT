@@ -29,7 +29,8 @@ namespace Microsoft.Azure.IIoT.App {
                 .UseServiceProviderFactory(new AutofacServiceProviderFactory())
                 .ConfigureWebHostDefaults(webHostBuilder => webHostBuilder
                     .UseContentRoot(Directory.GetCurrentDirectory())
-                    .UseStartup<Startup>());
+                    .UseStartup<Startup>()
+                    .UseKestrel());
         }
     }
 }

@@ -111,16 +111,18 @@ namespace Microsoft.Extensions.Configuration {
                     return false;
                 }
                 try {
-                    value = _cache.GetOrAdd(key, async k => {
+                    value = _cache.GetOrAdd(key, k => {
                         using (new PerfMarker(Log.Logger, key)) {
-                            var bundle = await _keyVault.GetSecretAsync(_keyVaultUri,
-                                GetSecretNameForKey(k));
-                            return bundle.Value;
+                            var bundle = _keyVault.GetSecretAsync(_keyVaultUri,
+                                GetSecretNameForKey(k)).Result;
+                            return Task.FromResult(bundle.Value);
                         }
                     }).Result;
                     return true;
                 }
                 catch {
+                    _cache.AddOrUpdate(key, Task.FromResult(value),
+                        (k, v) => Task.FromResult(string.Empty));
                     return false;
                 }
             }
