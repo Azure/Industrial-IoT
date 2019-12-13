@@ -233,7 +233,7 @@
             "comments": "Hosting plan to host platform services and application.",
             "type": "Microsoft.Web/serverfarms",
             "apiVersion": "2018-02-01",
-            "kind": "[if(parameters('deployFromSource'), 'app', 'linux2')]",
+            "kind": "[if(parameters('deployFromSource'), 'app', 'app')]",
             "name": "[parameters('hostingPlanName')]",
             "location": "[resourceGroup().location]",
             "sku": {
@@ -251,7 +251,7 @@
         {
             "comments": "Deploy all in one services.",
             "type": "Microsoft.Web/sites",
-            "kind": "[if(parameters('deployFromSource'), 'app', 'app,linux,container2')]",
+            "kind": "[if(parameters('deployFromSource'), 'app', 'app')]",
             "name": "[variables('serviceSiteResourceName')]",
             "apiVersion": "2018-11-01",
             "location": "[resourceGroup().location]",
