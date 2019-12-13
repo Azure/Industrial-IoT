@@ -1,8 +1,8 @@
-# Discover and register servers and browse their address space via REST API in Postman
+# Discover and register servers and browse their address space, read and publish nodes via REST API in Postman
 
 [Home](../readme.md)
 
-This article will walk you through the steps to discover and register OPC UA servers using the REST API, through Postman.  
+This article will walk you through the steps to discover and register OPC UA servers, browse through the endpoints, read node values and publish these using the [REST API](https://azure.github.io/Industrial-IoT/api/), through Postman.  
 
 ## Prerequisites
 
@@ -75,7 +75,8 @@ Note: the Postman requests will use an Authorization Code flow to authenticate t
 
 ### Request a new OAuth 2.0 Token
 
-1. On the left you will see your collections, click the '...' (three dots) next to the OPC Twin collection and choose 'Edit'. 
+1. In Postman, on the left you will see your collections, click the '...' (three dots) next to the OPC Twin collection and choose 'Edit'. 
+![edit](../media/postman-edit-collection.png)
 2. Choose Authorization. ![auth](../media/3-auth-edit.png)
 3. Choose Get New Access Token.
 4. Fill in the following fields:
@@ -95,6 +96,8 @@ Note: the Postman requests will use an Authorization Code flow to authenticate t
 
 5. Test your connectivity with the Microservices by running the request named 'GET Applications'.
     - This should fire a GET request with the inherited auth token. It should return a 200 OK with the list of applications.
+
+  > Note your token will expire regularly. If you get an authentication error during any of the calls, just repeat the process to refresh your token. All of the requests in the Postman collection inherit the same Auth. 
 
 ## Exercise 1
 
