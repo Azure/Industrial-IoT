@@ -70,12 +70,12 @@ Note: the Postman requests will use an Authorization Code flow to authenticate t
 3. Create a new Environment named OPC Twin: within Postman at the top right click Manage Environments.
 4. Click Add.
 5. Add a new variable:
-    - OPC-SERVICEURL: typically this will be something like 'https://[yourprefix].azurewebsites.net'
+    - OPC-SERVICEURL: typically this will be something like '[yourprefix].azurewebsites.net'
 6. Click Add and close the screen. ![Environment](../media/2-postmanenv.png)
 
 ### Request a new OAuth 2.0 Token
 
-1. On the right you will see your collections, click the '...' (three dots) next to the OPC Twin collection and choose 'Edit'. (Comment from Basim :I find this step confusing, I don't see the tree dots but there is an eye like icon saying "environment quick look" then I can edit it!!!!!!!!!!!!!!!!!!!!!!!!!!!!)
+1. On the left you will see your collections, click the '...' (three dots) next to the OPC Twin collection and choose 'Edit'. 
 2. Choose Authorization. ![auth](../media/3-auth-edit.png)
 3. Choose Get New Access Token.
 4. Fill in the following fields:
