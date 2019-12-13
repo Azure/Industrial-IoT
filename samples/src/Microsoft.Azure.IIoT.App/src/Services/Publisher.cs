@@ -32,8 +32,8 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// </summary>
         /// <param name="endpointId"></param>
         /// <returns>PublishedNode</returns>
-        public async Task<PagedResult<PublishedNode>> PublishedAsync(string endpointId) {
-            var pageResult = new PagedResult<PublishedNode>();
+        public async Task<PagedResult<PublishedItemApiModel>> PublishedAsync(string endpointId) {
+            var pageResult = new PagedResult<PublishedItemApiModel>();
             try {
                 string continuationToken = string.Empty;
                 do {
@@ -42,11 +42,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
 
                     if (result.Items != null) {
                         foreach (var item in result.Items) {
-                            pageResult.Results.Add(new PublishedNode {
-                                NodeId = item.NodeId,
-                                PublishingInterval = item.PublishingInterval,
-                                SamplingInterval = item.SamplingInterval,
-                            });
+                            pageResult.Results.Add(item);
                         }
                     }
                 } while (!string.IsNullOrEmpty(continuationToken));
@@ -78,10 +74,9 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 var requestApiModel = new PublishStartRequestApiModel() {
                     Item = new PublishedItemApiModel() {
                         NodeId = nodeId,
-                        SamplingInterval = samplingInterval,
-                        PublishingInterval = publishingInterval
+                        SamplingInterval = TimeSpan.FromMilliseconds(samplingInterval),
+                        PublishingInterval = TimeSpan.FromMilliseconds(publishingInterval)
                     }
-
                 };
 
                 var resultApiModel = await _publisherService.NodePublishStartAsync(endpointId, requestApiModel);

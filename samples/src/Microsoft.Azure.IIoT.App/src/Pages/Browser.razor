@@ -96,7 +96,7 @@
 	                <td>
 	                    <input type="checkbox" @bind="@node.Publishing" @onclick="@(() => SetPublishing(endpointId, node) )" />
 	                    <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node))">
-	                        @{string output = (node.Publishing == true && node.PublishedNode != null) ? $"On, sampling {node.PublishedNode.SamplingInterval} ms" : "Off";}
+	                        @{string output = (node.Publishing == true && node.PublishedItem != null) ? $"On, sampling {node.PublishedItem?.SamplingInterval.Value.TotalMilliseconds} ms" : "Off";}
 	                        @output
 	                    </a>
 	                </td>
@@ -198,11 +198,11 @@
             if (node.NodeClass == NodeClass.Variable)
             {
                 // check if publishing enabled
-                foreach (var publishedNode in publishedNodes.Results)
+                foreach (var publishedItem in publishedNodes.Results)
                 {
-                    if (node.Id == publishedNode.NodeId)
+                    if (node.Id == publishedItem.NodeId)
                     {
-                        node.PublishedNode = publishedNode;
+                        node.PublishedItem = publishedItem;
                         node.Publishing = true;
                         break;
                     }
@@ -234,12 +234,16 @@
             var result = await Publisher.StartPublishing(endpointId, node.Id, 1000, 1000);
             if (result)
             {
-                node.PublishedNode = new PublishedNode() { NodeId = node.Id, PublishingInterval = 1000, SamplingInterval = 1000};
+                node.PublishedItem = new OpcUa.Api.Publisher.Models.PublishedItemApiModel() { 
+                    NodeId = node.Id, 
+                    PublishingInterval = TimeSpan.FromMilliseconds(1000), 
+                    SamplingInterval = TimeSpan.FromMilliseconds(1000)
+                };
                 node.Publishing = true;
             }
             else
             {
-                node.PublishedNode = null;
+                node.PublishedItem = null;
                 node.Publishing = false;
             }
         }
@@ -248,7 +252,7 @@
             var result = await Publisher.StopPublishing(endpointId, node.Id);
             if (result)
             {
-                node.PublishedNode = null;
+                node.PublishedItem = null;
                 node.Publishing = false;
             }
         }

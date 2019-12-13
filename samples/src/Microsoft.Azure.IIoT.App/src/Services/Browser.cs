@@ -92,7 +92,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                                 DataType = nodeReference.Target.DataType,
                                 Value = string.Empty,
                                 Publishing = false,
-                                PublishedNode = null
+                                PublishedItem = null
                             });
                         }
                     }

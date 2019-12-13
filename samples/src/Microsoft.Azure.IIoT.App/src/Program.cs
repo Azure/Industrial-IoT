@@ -30,7 +30,7 @@ namespace Microsoft.Azure.IIoT.App {
                 .ConfigureWebHostDefaults(webHostBuilder => webHostBuilder
                     .UseContentRoot(Directory.GetCurrentDirectory())
                     .UseStartup<Startup>()
-                    .UseKestrel());
+                    .UseKestrel(o => o.AddServerHeader = false));
         }
     }
 }

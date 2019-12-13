@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.App.Services {
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using System.Collections.Generic;
     public class ListNode {
         public string Id { get; set; }
@@ -26,8 +27,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
         public ListNode() {
             ParentIdList = new List<string>();
         }
-
-        public PublishedNode PublishedNode { get; set; }
+        public PublishedItemApiModel PublishedItem { get; set; }
 
         public bool Publishing { get; set; }
     }
