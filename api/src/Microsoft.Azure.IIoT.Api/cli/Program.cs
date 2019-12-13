@@ -779,7 +779,9 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                 GetEndpointId(options),
                 new PublishStartRequestApiModel {
                     Item = new PublishedItemApiModel {
-                        NodeId = GetNodeId(options)
+                        NodeId = GetNodeId(options),
+                        SamplingInterval = TimeSpan.FromMilliseconds(1000),
+                        PublishingInterval = TimeSpan.FromMilliseconds(1000)
                     }
                 });
             if (result.ErrorInfo != null) {
