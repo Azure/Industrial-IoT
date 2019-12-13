@@ -276,7 +276,7 @@
                     "webSocketsEnabled": true,
                     "appSettings":[ {
                         "name": "PROJECT",
-                        "value": "[if(not(parameters('deployFromSource')), '', 'services/src/Microsoft.Azure.IIoT.Services.All/src/Microsoft.Azure.IIoT.Services.All.csproj')]"
+                        "value": "[if(not(parameters('deployFromSource')), '', 'services/src/Microsoft.Azure.IIoT.Services.All/src')]"
                     }]
                 }
             },
@@ -288,7 +288,7 @@
                     "name": "appsettings",
                     "apiVersion": "2018-11-01",
                     "properties": {
-                        "PROJECT": "[if(not(parameters('deployFromSource')), '', 'services/src/Microsoft.Azure.IIoT.Services.All/src/Microsoft.Azure.IIoT.Services.All.csproj')]",
+                        "PROJECT": "[if(not(parameters('deployFromSource')), '', 'services/src/Microsoft.Azure.IIoT.Services.All/src')]",
                         "PCS_SERVICE_URL": "[if(empty(parameters('serviceSiteName')), '', concat('https://', reference(variables('serviceSiteResourceId'), '2018-11-01').hostNames[0]))]",
                         "PCS_KEYVAULT_URL": "[parameters('keyVaultUri')]",
                         "PCS_KEYVAULT_APPID": "[if(empty(parameters('managedIdentityResourceId')), parameters('keyVaultAppId'), '')]",
