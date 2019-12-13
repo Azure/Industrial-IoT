@@ -29,7 +29,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
 
         public const string IOT_HUB_OWNER_KEY_NAME = "iothubowner";
 
-        private const string IOT_HUB_CONNECTION_STRING_FORMAT = "HostName={0};SharedAccessKeyName={1};SharedAccessKey={2}";
+        private const string kIOT_HUB_CONNECTION_STRING_FORMAT = "HostName={0};SharedAccessKeyName={1};SharedAccessKey={2}";
 
         private readonly IotHubClient _iotHubClient;
 
@@ -154,7 +154,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             CancellationToken cancellationToken = default
         ) {
             try {
-                tags = tags ?? new Dictionary<string, string>();
+                tags ??= new Dictionary<string, string>();
 
                 Log.Information($"Creating Azure IoT Hub: {iotHubName} ...");
 
@@ -302,7 +302,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                 );
 
             var iotHubConnectionString = string.Format(
-                IOT_HUB_CONNECTION_STRING_FORMAT,
+                kIOT_HUB_CONNECTION_STRING_FORMAT,
                 iotHub.Properties.HostName,
                 iotHubKey.KeyName,
                 iotHubKey.PrimaryKey,

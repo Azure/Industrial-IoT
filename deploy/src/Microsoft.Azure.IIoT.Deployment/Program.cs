@@ -30,29 +30,28 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 Configuration.IConfigurationProvider configurationProvider = 
                     new Configuration.ConsoleConfigurationProvider();
 
-                using (var cts = new CancellationTokenSource()) {
-                    using (var deploymentExecutor = new DeploymentExecutor(configurationProvider)) {
-                        try {
-                            Log.Information("Starting Industrial Asset Integration Installer.");
+                using var cts = new CancellationTokenSource();
+                using var deploymentExecutor = new DeploymentExecutor(configurationProvider);
 
-                            deploymentExecutor.InitializeAuthenticationAsync(cts.Token).Wait();
-                            deploymentExecutor.GetApplicationName();
-                            deploymentExecutor.InitializeResourceGroupSelectionAsync(cts.Token).Wait();
-                            deploymentExecutor.InitializeResourceManagementClients(cts.Token);
-                            deploymentExecutor.RegisterResourceProvidersAsync(cts.Token).Wait();
-                            deploymentExecutor.GenerateResourceNamesAsync(cts.Token).Wait();
-                            deploymentExecutor.RegisterApplicationsAsync(cts.Token).Wait();
-                            deploymentExecutor.CreateAzureResourcesAsync(cts.Token).Wait();
+                try {
+                    Log.Information("Starting Industrial Asset Integration Installer.");
 
-                            Log.Information("Done.");
-                        }
-                        catch (Exception ex) {
-                            Log.Error(ex, "Failed to deploy Industrial IoT solution.");
+                    deploymentExecutor.InitializeAuthenticationAsync(cts.Token).Wait();
+                    deploymentExecutor.GetApplicationName();
+                    deploymentExecutor.InitializeResourceGroupSelectionAsync(cts.Token).Wait();
+                    deploymentExecutor.InitializeResourceManagementClients(cts.Token);
+                    deploymentExecutor.RegisterResourceProvidersAsync(cts.Token).Wait();
+                    deploymentExecutor.GenerateResourceNamesAsync(cts.Token).Wait();
+                    deploymentExecutor.RegisterApplicationsAsync(cts.Token).Wait();
+                    deploymentExecutor.CreateAzureResourcesAsync(cts.Token).Wait();
 
-                            deploymentExecutor.CleanupIfAskedAsync(cts.Token).Wait();
-                            returnError = true;
-                        }
-                    }
+                    Log.Information("Done.");
+                }
+                catch (Exception ex) {
+                    Log.Error(ex, "Failed to deploy Industrial IoT solution.");
+
+                    deploymentExecutor.CleanupIfAskedAsync(cts.Token).Wait();
+                    returnError = true;
                 }
             }
             catch (Exception ex) {
