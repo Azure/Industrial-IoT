@@ -8,6 +8,9 @@
  .PARAMETER type
     The type of deployment (local, services, app, all)
 
+ .PARAMETER applicationName
+    The name of the application if not local deployment. 
+
  .PARAMETER resourceGroupName
     Can be the name of an existing or a new resource group
 
@@ -32,13 +35,10 @@
  .PARAMETER aadApplicationName
     The application name to use when registering aad application.  If not set, uses applicationName
 
- .PARAMETER applicationName
-    The name of the application if not local deployment. 
-
 #>
 
 param(
-    [ValidateSet("local", "services", "app", "all")] [string] $type = "app",
+    [ValidateSet("local", "services", "app", "all")] [string] $type = "services",
     [string] $applicationName,
     [string] $resourceGroupName,
     [string] $resourceGroupLocation,
@@ -47,7 +47,7 @@ param(
     [string] $accountName,
     [string] $aadApplicationName,
     [string] $acrRegistryName,
-    [string] $acrSubscriptionName = "IOT_GERMANY",
+    [string] $acrSubscriptionName,
     $aadConfig,
     $context = $null,
     [ValidateSet("AzureCloud")] [string] $environmentName = "AzureCloud"

@@ -57,6 +57,27 @@
                 "description": "The storage SKU to use."
             }
         },
+        "datalakeName": {
+            "type": "string",
+            "defaultValue": "[concat('datalake', take(uniqueString(subscription().subscriptionId, resourceGroup().id), 6))]",
+            "metadata": {
+                "description": "The name of the Azure datalake account created as part of the deployment."
+            }
+        },
+        "datalakeSkuName": {
+            "type": "string",
+            "defaultValue": "Standard_LRS",
+            "allowedValues": [
+                "Standard_LRS",
+                "Standard_GRS",
+                "Standard_RAGRS",
+                "Standard_ZRS",
+                "Premium_LRS"
+            ],
+            "metadata": {
+                "description": "The datalake SKU to use."
+            }
+        },
         "cosmosDbName": {
             "type": "string",
             "defaultValue": "[concat('documentdb-', take(uniqueString(subscription().subscriptionId, resourceGroup().id), 6))]",
@@ -387,6 +408,7 @@
         "identityResourceName": "[if(empty(parameters('managedIdentityName')), concat('msi', take(uniqueString(subscription().subscriptionId, resourceGroup().id), 5)), parameters('managedIdentityName'))]",
         "identityResourceId": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('identityResourceName'))]",
         "storageResourceId": "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageName'))]",
+        "datalakeResourceId": "[resourceId('Microsoft.Storage/storageAccounts', parameters('datalakeName'))]",
         "appinsightsResourceId": "[resourceId('Microsoft.Insights/components', parameters('appInsightsName'))]",
         "signalRResourceId": "[resourceId('Microsoft.SignalRService/SignalR', parameters('signalRName'))]",
         "keyVaultResourceId": "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]",
@@ -580,14 +602,49 @@
             ]
         },
         {
-            "comments": "Datalake account",
+            "comments": "Blob storage account",
             "type": "Microsoft.Storage/storageAccounts",
             "name": "[parameters('storageName')]",
             "apiVersion": "2019-04-01",
             "location": "[resourceGroup().location]",
-            "kind": "StorageV2",
+            "kind": "Storage",
             "sku": {
                 "name": "[parameters('storageSkuName')]"
+            },
+            "properties": {
+                "networkAcls": {
+                    "bypass": "AzureServices",
+                    "virtualNetworkRules": [
+                    ],
+                    "ipRules": [
+                    ],
+                    "defaultAction": "Allow"
+                },
+                "supportsHttpsTrafficOnly": true,
+                "encryption": {
+                    "services": {
+                        "file": {
+                            "enabled": true
+                        },
+                        "blob": {
+                            "enabled": true
+                        }
+                    },
+                    "keySource": "Microsoft.Storage"
+                }
+            },
+            "dependsOn": [
+            ]
+        },
+        {
+            "comments": "Datalake storage account",
+            "type": "Microsoft.Storage/storageAccounts",
+            "name": "[parameters('datalakeName')]",
+            "apiVersion": "2019-04-01",
+            "location": "[resourceGroup().location]",
+            "kind": "StorageV2",
+            "sku": {
+                "name": "[parameters('datalakeSkuName')]"
             },
             "properties": {
                 "isHnsEnabled": true,
@@ -619,13 +676,13 @@
             "comments": "Datalake service identity role assignment",
             "type": "Microsoft.Storage/storageAccounts/providers/roleAssignments",
             "apiVersion": "2018-09-01-preview",
-            "name": "[concat(parameters('storageName'), '/Microsoft.Authorization/', guid(uniqueString(parameters('storageName'))))]",
+            "name": "[concat(parameters('datalakeName'), '/Microsoft.Authorization/', guid(uniqueString(parameters('datalakeName'))))]",
             "properties": {
                 "roleDefinitionId": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')]",
                 "principalId": "[if(not(empty(parameters('managedIdentityName'))), reference(variables('identityResourceId'), '2018-11-30').principalId, parameters('servicePrincipalId'))]"
             },
             "dependsOn": [
-                "[variables('storageResourceId')]",
+                "[variables('datalakeResourceId')]",
                 "[variables('identityResourceId')]"
             ]
         },
@@ -856,7 +913,7 @@
                             },
                             {
                                 "key": "PCS_ADLSG2_ACCOUNT",
-                                "value": "[parameters('storageName')]"
+                                "value": "[parameters('datalakeName')]"
                             },
                             {
                                 "key": "PCS_STORAGE_CONNSTRING",
@@ -913,6 +970,7 @@
                 "[variables('iotHubResourceId')]",
                 "[variables('cosmosDbResourceId')]",
                 "[variables('storageResourceId')]",
+                "[variables('datalakeResourceId')]",
                 "[variables('signalRResourceId')]",
                 "[variables('keyVaultResourceId')]",
                 "[variables('tsiEnvironmentResourceId')]"

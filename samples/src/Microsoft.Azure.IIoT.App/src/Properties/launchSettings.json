@@ -1,5 +1,4 @@
 {
-  
   "profiles": {
     "Microsoft.Azure.IIoT.App": {
       "commandName": "Project",
