@@ -1,17 +1,6 @@
 {
-  "iisSettings": {
-    "windowsAuthentication": false,
-    "anonymousAuthentication": true,
-    "iisExpress": {
-      "applicationUrl": "http://localhost:2998",
-      "sslPort": 44314
-    }
-  },
+  
   "profiles": {
-    "IIS Express": {
-      "commandName": "IISExpress",
-      "launchBrowser": true
-    },
     "Microsoft.Azure.IIoT.App": {
       "commandName": "Project",
       "launchBrowser": true,
