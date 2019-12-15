@@ -51,6 +51,7 @@ if ($projFile -ne $null) {
         if (![string]::IsNullOrEmpty($runtimeId)) {
             $argumentList += "-r"
             $argumentList += $runtimeId
+            $argumentList += "/p:TargetLatestRuntimePatch=true"
         }
         else {
             $runtimeId = "portable"

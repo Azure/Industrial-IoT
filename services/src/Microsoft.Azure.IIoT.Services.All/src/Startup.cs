@@ -87,7 +87,7 @@ namespace Microsoft.Azure.IIoT.Services.All {
             app.AddStartupBranch<OpcUa.Registry.Onboarding.Startup>("/onboarding");
             app.AddStartupBranch<OpcUa.Vault.Startup>("/vault");
             app.AddStartupBranch<OpcUa.Twin.Startup>("/twin");
-            app.AddStartupBranch<OpcUa.Twin.Gateway.Startup>("/ua");
+//            app.AddStartupBranch<OpcUa.Twin.Gateway.Startup>("/ua");
             app.AddStartupBranch<OpcUa.Twin.History.Startup>("/history");
             app.AddStartupBranch<OpcUa.Publisher.Startup>("/publisher");
             app.AddStartupBranch<Common.Jobs.Startup>("/jobs");
