@@ -266,7 +266,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 .GetMicrosoftGraphDelegatingTokenCredentials();
 
             var msGraphServiceClient = new MicrosoftGraphServiceClient(
-                _authConf.TenantId,
                 microsoftGraphTokenCredentials,
                 cancellationToken
             );
