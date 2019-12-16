@@ -84,9 +84,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
 
             // Service Application /////////////////////////////////////////////
             // Register service application
-
-            Log.Information("Creating service application registration ...");
-
             _serviceApplication = await RegisterServiceApplicationAsync(
                     serviceApplicationName,
                     owner,
@@ -109,9 +106,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
 
             // Client Application //////////////////////////////////////////////
             // Register client application
-
-            Log.Information("Creating client application registration ...");
-
             _clientApplication = await RegisterClientApplicationAsync(
                     _serviceApplication,
                     clientApplicationName,
@@ -151,9 +145,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
 
             // App Registration for AKS ////////////////////////////////////////
             // Register aks application
-
-            Log.Information("Creating AKS application registration ...");
-
             var registrationResult = await RegisterAKSApplicationAsync(
                     aksApplicationName,
                     tags,
@@ -339,192 +330,202 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             IEnumerable<string> tags = null,
             CancellationToken cancellationToken = default
         ) {
-            tags ??= new List<string>();
+            try {
+                tags ??= new List<string>();
 
-            // Setup AppRoles for service application
-            var serviceApplicationAppRoles = new List<AppRole>();
+                Log.Information("Creating service application registration ...");
 
-            var serviceApplicationApproverRoleIdGuid = Guid.NewGuid();
-            serviceApplicationAppRoles.Add(new AppRole {
-                DisplayName = "Approver",
-                Value = "Sign",
-                Description = "Approvers have the ability to issue certificates.",
-                AllowedMemberTypes = new List<string> { "User", "Application" },
-                Id = serviceApplicationApproverRoleIdGuid
-            });
+                // Setup AppRoles for service application
+                var serviceApplicationAppRoles = new List<AppRole>();
 
-            var serviceApplicationWriterRoleIdGuid = Guid.NewGuid();
-            serviceApplicationAppRoles.Add(new AppRole {
-                DisplayName = "Writer",
-                Value = "Write",
-                Description = "Writers Have the ability to change entities.",
-                AllowedMemberTypes = new List<string> { "User", "Application" },
-                Id = serviceApplicationWriterRoleIdGuid
-            });
+                var serviceApplicationApproverRoleId = Guid.NewGuid();
+                serviceApplicationAppRoles.Add(new AppRole {
+                    DisplayName = "Approver",
+                    Value = "Sign",
+                    Description = "Approvers have the ability to issue certificates.",
+                    AllowedMemberTypes = new List<string> { "User", "Application" },
+                    Id = serviceApplicationApproverRoleId
+                });
 
-            var serviceApplicationAdministratorRoleIdGuid = Guid.NewGuid();
-            serviceApplicationAppRoles.Add(new AppRole {
-                DisplayName = "Administrator",
-                Value = "Admin",
-                Description = "Admins can access advanced features.",
-                AllowedMemberTypes = new List<string> { "User", "Application" },
-                Id = serviceApplicationAdministratorRoleIdGuid
-            });
+                var serviceApplicationWriterRoleId = Guid.NewGuid();
+                serviceApplicationAppRoles.Add(new AppRole {
+                    DisplayName = "Writer",
+                    Value = "Write",
+                    Description = "Writers Have the ability to change entities.",
+                    AllowedMemberTypes = new List<string> { "User", "Application" },
+                    Id = serviceApplicationWriterRoleId
+                });
 
-            // Setup RequiredResourceAccess for service application
+                var serviceApplicationAdministratorRoleId = Guid.NewGuid();
+                serviceApplicationAppRoles.Add(new AppRole {
+                    DisplayName = "Administrator",
+                    Value = "Admin",
+                    Description = "Admins can access advanced features.",
+                    AllowedMemberTypes = new List<string> { "User", "Application" },
+                    Id = serviceApplicationAdministratorRoleId
+                });
 
-            var keyVaultUserImpersonationRequiredResourceAccess = new RequiredResourceAccess {
-                ResourceAppId = AzureAppsConstants.AzureKeyVault.AppId,
-                ResourceAccess = new List<ResourceAccess> {
-                    new ResourceAccess {
-                        Id = AzureAppsConstants.AzureKeyVault.ResourceAccess["user_impersonation"],
-                        Type = "Scope"
+                // Setup RequiredResourceAccess for service application
+
+                var keyVaultUserImpersonationRequiredResourceAccess = new RequiredResourceAccess {
+                    ResourceAppId = AzureAppsConstants.AzureKeyVault.AppId,
+                    ResourceAccess = new List<ResourceAccess> {
+                        new ResourceAccess {
+                            Id = AzureAppsConstants.AzureKeyVault.ResourceAccess["user_impersonation"],
+                            Type = "Scope"
+                        }
                     }
-                }
-            };
+                };
 
-            var microsoftGraphUserReadRequiredResourceAccess = new RequiredResourceAccess {
-                ResourceAppId = AzureAppsConstants.MicrosoftGraph.AppId,
-                ResourceAccess = new List<ResourceAccess> {
-                    new ResourceAccess {
-                        Id = AzureAppsConstants.MicrosoftGraph.ResourceAccess["User.Read"],
-                        Type = "Scope"
+                var microsoftGraphUserReadRequiredResourceAccess = new RequiredResourceAccess {
+                    ResourceAppId = AzureAppsConstants.MicrosoftGraph.AppId,
+                    ResourceAccess = new List<ResourceAccess> {
+                        new ResourceAccess {
+                            Id = AzureAppsConstants.MicrosoftGraph.ResourceAccess["User.Read"],
+                            Type = "Scope"
+                        }
                     }
+                };
+
+                var serviceApplicationRequiredResourceAccess = new List<RequiredResourceAccess>() {
+                    keyVaultUserImpersonationRequiredResourceAccess,
+                    microsoftGraphUserReadRequiredResourceAccess
+                };
+
+                // Add OAuth2Permissions
+                var oauth2Permissions = new List<PermissionScope> {
+                    new PermissionScope {
+                        AdminConsentDescription = $"Allow the app to access {servicesApplicationName} on behalf of the signed-in user.",
+                        AdminConsentDisplayName = $"Access {servicesApplicationName}",
+                        Id = Guid.NewGuid(),
+                        IsEnabled = true,
+                        Type = "User",
+                        UserConsentDescription = $"Allow the application to access {servicesApplicationName} on your behalf.",
+                        UserConsentDisplayName = $"Access {servicesApplicationName}",
+                        Value = "user_impersonation"
+                    }
+                };
+
+                var serviceApplicationApiApplication = new ApiApplication {
+                    Oauth2PermissionScopes = oauth2Permissions
+                };
+
+                var serviceApplicationWebApplication = new WebApplication {
+                    ImplicitGrantSettings = new ImplicitGrantSettings {
+                        EnableIdTokenIssuance = true
+                    }
+                };
+
+                var serviceApplicationDefinition = new Application {
+                    DisplayName = servicesApplicationName,
+                    IsFallbackPublicClient = false,
+                    IdentifierUris = new List<string> {
+                        $"https://{_tenantId.ToString()}/{servicesApplicationName}"
+                    },
+                    Tags = tags,
+                    SignInAudience = "AzureADMyOrg",
+                    AppRoles = serviceApplicationAppRoles,
+                    RequiredResourceAccess = serviceApplicationRequiredResourceAccess,
+                    Api = serviceApplicationApiApplication,
+                    Web = serviceApplicationWebApplication,
+                    PasswordCredentials = new List<PasswordCredential> { }
+                };
+
+                var serviceApplication = await _msGraphServiceClient
+                    .CreateApplicationAsync(
+                        serviceApplicationDefinition,
+                        cancellationToken
+                    );
+
+                // Add Service Key PasswordCredential
+                var serviceKeyName = "Service Key";
+                await _msGraphServiceClient
+                    .AddApplication2YPasswordCredentialAsync(
+                        serviceApplication,
+                        serviceKeyName,
+                        cancellationToken
+                    );
+
+                // We need to create ServicePrincipal for this application.
+                var serviceApplicationSP = await _msGraphServiceClient
+                    .CreateApplicationServicePrincipalAsync(
+                        serviceApplication,
+                        tags,
+                        cancellationToken
+                    );
+
+                // Add app role assignment to owner as Approver, Writer and Administrator.
+                string PrincipalType;
+
+                if (owner is User) {
+                    PrincipalType = "User";
                 }
-            };
-
-            var serviceApplicationRequiredResourceAccess = new List<RequiredResourceAccess>() {
-                keyVaultUserImpersonationRequiredResourceAccess,
-                microsoftGraphUserReadRequiredResourceAccess
-            };
-
-            // Add OAuth2Permissions
-            var oauth2Permissions = new List<PermissionScope> {
-                new PermissionScope {
-                    AdminConsentDescription = $"Allow the app to access {servicesApplicationName} on behalf of the signed-in user.",
-                    AdminConsentDisplayName = $"Access {servicesApplicationName}",
-                    Id = Guid.NewGuid(),
-                    IsEnabled = true,
-                    Type = "User",
-                    UserConsentDescription = $"Allow the application to access {servicesApplicationName} on your behalf.",
-                    UserConsentDisplayName = $"Access {servicesApplicationName}",
-                    Value = "user_impersonation"
+                else if (owner is ServicePrincipal) {
+                    PrincipalType = "ServicePrincipal";
                 }
-            };
-
-            var serviceApplicationApiApplication = new ApiApplication {
-                Oauth2PermissionScopes = oauth2Permissions
-            };
-
-            var serviceApplicationWebApplication = new WebApplication {
-                ImplicitGrantSettings = new ImplicitGrantSettings {
-                    EnableIdTokenIssuance = true
+                else if (owner is Group) {
+                    PrincipalType = "Group";
                 }
-            };
+                else {
+                    throw new ArgumentException($"Owner is of unknown type: {owner.GetType()}");
+                }
 
-            var serviceApplicationDefinition = new Application {
-                DisplayName = servicesApplicationName,
-                IsFallbackPublicClient = false,
-                IdentifierUris = new List<string> {
-                    $"https://{_tenantId.ToString()}/{servicesApplicationName}"
-                },
-                Tags = tags,
-                SignInAudience = "AzureADMyOrg",
-                AppRoles = serviceApplicationAppRoles,
-                RequiredResourceAccess = serviceApplicationRequiredResourceAccess,
-                Api = serviceApplicationApiApplication,
-                Web = serviceApplicationWebApplication,
-                PasswordCredentials = new List<PasswordCredential> { }
-            };
+                var approverAppRoleAssignmentDefinition = new AppRoleAssignment {
+                    PrincipalType = PrincipalType,
+                    PrincipalId = new Guid(owner.Id),
+                    ResourceId = new Guid(serviceApplicationSP.Id),
+                    ResourceDisplayName = "Approver",
+                    Id = serviceApplicationApproverRoleId.ToString(),
+                    AppRoleId = serviceApplicationApproverRoleId
+                };
 
-            var serviceApplication = await _msGraphServiceClient
-                .CreateApplicationAsync(
-                    serviceApplicationDefinition,
-                    cancellationToken
-                );
+                var writerAppRoleAssignmentDefinition = new AppRoleAssignment {
+                    PrincipalType = PrincipalType,
+                    PrincipalId = new Guid(owner.Id),
+                    ResourceId = new Guid(serviceApplicationSP.Id),
+                    ResourceDisplayName = "Writer",
+                    Id = serviceApplicationWriterRoleId.ToString(),
+                    AppRoleId = serviceApplicationWriterRoleId
+                };
 
-            // Add Service Key PasswordCredential
-            var serviceKeyName = "Service Key";
-            await _msGraphServiceClient
-                .AddApplication2YPasswordCredentialAsync(
-                    serviceApplication,
-                    serviceKeyName,
-                    cancellationToken
-                );
+                var administratorAppRoleAssignmentDefinition = new AppRoleAssignment {
+                    PrincipalType = PrincipalType,
+                    PrincipalId = new Guid(owner.Id),
+                    ResourceId = new Guid(serviceApplicationSP.Id),
+                    ResourceDisplayName = "Administrator",
+                    Id = serviceApplicationAdministratorRoleId.ToString(),
+                    AppRoleId = serviceApplicationAdministratorRoleId
+                };
 
-            // We need to create ServicePrincipal for this application.
-            var serviceApplicationSP = await _msGraphServiceClient
-                .CreateApplicationServicePrincipalAsync(
-                    serviceApplication,
-                    tags,
-                    cancellationToken
-                );
+                await _msGraphServiceClient
+                    .AddServicePrincipalAppRoleAssignmentAsync(
+                        serviceApplicationSP,
+                        approverAppRoleAssignmentDefinition,
+                        cancellationToken
+                    );
 
-            // Add app role assignment to owner as Approver, Writer and Administrator.
-            string PrincipalType;
+                await _msGraphServiceClient
+                    .AddServicePrincipalAppRoleAssignmentAsync(
+                        serviceApplicationSP,
+                        writerAppRoleAssignmentDefinition,
+                        cancellationToken
+                    );
 
-            if (owner is User) {
-                PrincipalType = "User";
+                await _msGraphServiceClient
+                    .AddServicePrincipalAppRoleAssignmentAsync(
+                        serviceApplicationSP,
+                        administratorAppRoleAssignmentDefinition,
+                        cancellationToken
+                    );
+
+                Log.Information("Created service application registration.");
+
+                return serviceApplication;
             }
-            else if (owner is ServicePrincipal) {
-                PrincipalType = "ServicePrincipal";
+            catch (Exception) {
+                Log.Error("Failed to create service application registration.");
+                throw;
             }
-            else if (owner is Group) {
-                PrincipalType = "Group";
-            }
-            else {
-                throw new ArgumentException($"Owner is of unknown type: {owner.GetType()}");
-            }
-
-            var approverAppRoleAssignmentDefinition = new AppRoleAssignment {
-                PrincipalType = PrincipalType,
-                PrincipalId = new Guid(owner.Id),
-                ResourceId = new Guid(serviceApplicationSP.Id),
-                ResourceDisplayName = "Approver",
-                Id = serviceApplicationApproverRoleIdGuid.ToString(),
-                AppRoleId = serviceApplicationApproverRoleIdGuid
-            };
-
-            var writerAppRoleAssignmentDefinition = new AppRoleAssignment {
-                PrincipalType = PrincipalType,
-                PrincipalId = new Guid(owner.Id),
-                ResourceId = new Guid(serviceApplicationSP.Id),
-                ResourceDisplayName = "Writer",
-                Id = serviceApplicationWriterRoleIdGuid.ToString(),
-                AppRoleId = serviceApplicationWriterRoleIdGuid
-            };
-
-            var administratorAppRoleAssignmentDefinition = new AppRoleAssignment {
-                PrincipalType = PrincipalType,
-                PrincipalId = new Guid(owner.Id),
-                ResourceId = new Guid(serviceApplicationSP.Id),
-                ResourceDisplayName = "Administrator",
-                Id = serviceApplicationAdministratorRoleIdGuid.ToString(),
-                AppRoleId = serviceApplicationAdministratorRoleIdGuid
-            };
-
-            await _msGraphServiceClient
-                .AddServicePrincipalAppRoleAssignmentAsync(
-                    serviceApplicationSP,
-                    approverAppRoleAssignmentDefinition,
-                    cancellationToken
-                );
-
-            await _msGraphServiceClient
-                .AddServicePrincipalAppRoleAssignmentAsync(
-                    serviceApplicationSP,
-                    writerAppRoleAssignmentDefinition,
-                    cancellationToken
-                );
-
-            await _msGraphServiceClient
-                .AddServicePrincipalAppRoleAssignmentAsync(
-                    serviceApplicationSP,
-                    administratorAppRoleAssignmentDefinition,
-                    cancellationToken
-                );
-
-            return serviceApplication;
         }
 
         public async Task<Application> RegisterClientApplicationAsync(
@@ -533,106 +534,116 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             IEnumerable<string> tags = null,
             CancellationToken cancellationToken = default
         ) {
-            tags ??= new List<string>();
+            try {
+                tags ??= new List<string>();
 
-            // Extract id of Oauth2PermissionScope for user impersonation
-            var saApiOauth2PermissionScopeUserImpersonationList = serviceApplication
-                .Api
-                .Oauth2PermissionScopes
-                .Where(scope => "User" == scope.Type
-                    && "user_impersonation" == scope.Value
-                    && scope.IsEnabled.GetValueOrDefault(false)
-                )
-                .ToList();
+                Log.Information("Creating client application registration ...");
 
-            if (saApiOauth2PermissionScopeUserImpersonationList.Count != 1
-                || !saApiOauth2PermissionScopeUserImpersonationList.First().Id.HasValue) {
-                throw new Exception("Service appplication does not expose Oauth2PermissionScope for user impersonation.");
+                // Extract id of Oauth2PermissionScope for user impersonation
+                var saApiOauth2PermissionScopeUserImpersonationList = serviceApplication
+                    .Api
+                    .Oauth2PermissionScopes
+                    .Where(scope => "User" == scope.Type
+                        && "user_impersonation" == scope.Value
+                        && scope.IsEnabled.GetValueOrDefault(false)
+                    )
+                    .ToList();
+
+                if (saApiOauth2PermissionScopeUserImpersonationList.Count != 1
+                    || !saApiOauth2PermissionScopeUserImpersonationList.First().Id.HasValue) {
+                    throw new Exception("Service appplication does not expose Oauth2PermissionScope for user impersonation.");
+                }
+
+                var saApiOauth2PermissionScopeUserImpersonationId =
+                    saApiOauth2PermissionScopeUserImpersonationList.First().Id.Value;
+
+                var serviceApplicationUserImpersonationRequiredResourceAccess = new RequiredResourceAccess {
+                    ResourceAppId = serviceApplication.AppId,  // service application
+                    ResourceAccess = new List<ResourceAccess> {
+                        new ResourceAccess {
+                            Id = saApiOauth2PermissionScopeUserImpersonationId,  // "user_impersonation"
+                            Type = "Scope"
+                        }
+                    }
+                };
+
+                var microsoftGraphUserReadRequiredResourceAccess = new RequiredResourceAccess {
+                    ResourceAppId = AzureAppsConstants.MicrosoftGraph.AppId,
+                    ResourceAccess = new List<ResourceAccess> {
+                        new ResourceAccess {
+                            Id = AzureAppsConstants.MicrosoftGraph.ResourceAccess["User.Read"],
+                            Type = "Scope"
+                        }
+                    }
+                };
+
+                var clientApplicationRequiredResourceAccess = new List<RequiredResourceAccess>() {
+                    serviceApplicationUserImpersonationRequiredResourceAccess,
+                    microsoftGraphUserReadRequiredResourceAccess
+                };
+
+                var clientApplicationPublicClientApplication = new Microsoft.Graph.PublicClientApplication {
+                    RedirectUris = new List<string> {
+                        "urn:ietf:wg:oauth:2.0:oob"
+                    }
+                };
+
+                // Note: Oauth2AllowImplicitFlow will be enabled automatically since both
+                // EnableIdTokenIssuance and EnableAccessTokenIssuance are set to true.
+
+                var clientApplicationWebApplicatoin = new WebApplication {
+                    //Oauth2AllowImplicitFlow = true,
+                    ImplicitGrantSettings = new ImplicitGrantSettings {
+                        EnableIdTokenIssuance = true,
+                        EnableAccessTokenIssuance = true
+                    }
+                };
+
+                var clientApplicationDefinition = new Application {
+                    DisplayName = clientsApplicationName,
+                    IsFallbackPublicClient = true,
+                    IdentifierUris = new List<string> {
+                        $"https://{_tenantId.ToString()}/{clientsApplicationName}"
+                    },
+                    Tags = tags,
+                    SignInAudience = "AzureADMyOrg",
+                    RequiredResourceAccess = clientApplicationRequiredResourceAccess,
+                    PublicClient = clientApplicationPublicClientApplication,
+                    Web = clientApplicationWebApplicatoin,
+                    PasswordCredentials = new List<PasswordCredential> { }
+                };
+
+                var clientApplication = await _msGraphServiceClient
+                    .CreateApplicationAsync(
+                        clientApplicationDefinition,
+                        cancellationToken
+                    );
+
+                // Add Client Key PasswordCredential
+                var clientKeyName = "Client Key";
+                await _msGraphServiceClient
+                    .AddApplication2YPasswordCredentialAsync(
+                        clientApplication,
+                        clientKeyName,
+                        cancellationToken
+                    );
+
+                // We need to create ServicePrincipal for this application.
+                await _msGraphServiceClient
+                    .CreateApplicationServicePrincipalAsync(
+                        clientApplication,
+                        tags,
+                        cancellationToken
+                    );
+
+                Log.Information("Created client application registration.");
+
+                return clientApplication;
             }
-
-            var saApiOauth2PermissionScopeUserImpersonationId =
-                saApiOauth2PermissionScopeUserImpersonationList.First().Id.Value;
-
-            var serviceApplicationUserImpersonationRequiredResourceAccess = new RequiredResourceAccess {
-                ResourceAppId = serviceApplication.AppId,  // service application
-                ResourceAccess = new List<ResourceAccess> {
-                    new ResourceAccess {
-                        Id = saApiOauth2PermissionScopeUserImpersonationId,  // "user_impersonation"
-                        Type = "Scope"
-                    }
-                }
-            };
-
-            var microsoftGraphUserReadRequiredResourceAccess = new RequiredResourceAccess {
-                ResourceAppId = AzureAppsConstants.MicrosoftGraph.AppId,
-                ResourceAccess = new List<ResourceAccess> {
-                    new ResourceAccess {
-                        Id = AzureAppsConstants.MicrosoftGraph.ResourceAccess["User.Read"],
-                        Type = "Scope"
-                    }
-                }
-            };
-
-            var clientApplicationRequiredResourceAccess = new List<RequiredResourceAccess>() {
-                serviceApplicationUserImpersonationRequiredResourceAccess,
-                microsoftGraphUserReadRequiredResourceAccess
-            };
-
-            var clientApplicationPublicClientApplication = new Microsoft.Graph.PublicClientApplication {
-                RedirectUris = new List<string> {
-                    "urn:ietf:wg:oauth:2.0:oob"
-                }
-            };
-
-            // Note: Oauth2AllowImplicitFlow will be enabled automatically since both
-            // EnableIdTokenIssuance and EnableAccessTokenIssuance are set to true.
-
-            var clientApplicationWebApplicatoin = new WebApplication {
-                //Oauth2AllowImplicitFlow = true,
-                ImplicitGrantSettings = new ImplicitGrantSettings {
-                    EnableIdTokenIssuance = true,
-                    EnableAccessTokenIssuance = true
-                }
-            };
-
-            var clientApplicationDefinition = new Application {
-                DisplayName = clientsApplicationName,
-                IsFallbackPublicClient = true,
-                IdentifierUris = new List<string> {
-                    $"https://{_tenantId.ToString()}/{clientsApplicationName}"
-                },
-                Tags = tags,
-                SignInAudience = "AzureADMyOrg",
-                RequiredResourceAccess = clientApplicationRequiredResourceAccess,
-                PublicClient = clientApplicationPublicClientApplication,
-                Web = clientApplicationWebApplicatoin,
-                PasswordCredentials = new List<PasswordCredential> { }
-            };
-
-            var clientApplication = await _msGraphServiceClient
-                .CreateApplicationAsync(
-                    clientApplicationDefinition,
-                    cancellationToken
-                );
-
-            // Add Client Key PasswordCredential
-            var clientKeyName = "Client Key";
-            await _msGraphServiceClient
-                .AddApplication2YPasswordCredentialAsync(
-                    clientApplication,
-                    clientKeyName,
-                    cancellationToken
-                );
-
-            // We need to create ServicePrincipal for this application.
-            await _msGraphServiceClient
-                .CreateApplicationServicePrincipalAsync(
-                    clientApplication,
-                    tags,
-                    cancellationToken
-                );
-
-            return clientApplication;
+            catch (Exception) {
+                Log.Error("Failed to created client application registration.");
+                throw;
+            }
         }
 
         public async Task<Tuple<Application, string>> RegisterAKSApplicationAsync(
@@ -640,82 +651,92 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             IEnumerable<string> tags = null,
             CancellationToken cancellationToken = default
         ) {
-            tags ??= new List<string>();
+            try {
+                tags ??= new List<string>();
 
-            // Add OAuth2Permissions for user impersonation
-            var aksOauth2Permissions = new List<PermissionScope> {
-                new PermissionScope {
-                    AdminConsentDescription = $"Allow the app to access {aksApplicationName} on behalf of the signed-in user.",
-                    AdminConsentDisplayName = $"Access {aksApplicationName}",
-                    Id = Guid.NewGuid(),
-                    IsEnabled = true,
-                    Type = "User",
-                    UserConsentDescription = $"Allow the application to access {aksApplicationName} on your behalf.",
-                    UserConsentDisplayName = $"Access {aksApplicationName}",
-                    Value = "user_impersonation"
+                Log.Information("Creating AKS application registration ...");
+
+                // Add OAuth2Permissions for user impersonation
+                var aksOauth2Permissions = new List<PermissionScope> {
+                    new PermissionScope {
+                        AdminConsentDescription = $"Allow the app to access {aksApplicationName} on behalf of the signed-in user.",
+                        AdminConsentDisplayName = $"Access {aksApplicationName}",
+                        Id = Guid.NewGuid(),
+                        IsEnabled = true,
+                        Type = "User",
+                        UserConsentDescription = $"Allow the application to access {aksApplicationName} on your behalf.",
+                        UserConsentDisplayName = $"Access {aksApplicationName}",
+                        Value = "user_impersonation"
+                    }
+                };
+
+                var aksApplicationApiApplication = new ApiApplication {
+                    Oauth2PermissionScopes = aksOauth2Permissions
+                };
+
+                var aksApplicationWebApplication = new WebApplication {
+                    ImplicitGrantSettings = new ImplicitGrantSettings {
+                        EnableIdTokenIssuance = true
+                    }
+                };
+
+                var aksApplicationDefinition = new Application {
+                    DisplayName = aksApplicationName,
+                    IsFallbackPublicClient = false,
+                    IdentifierUris = new List<string> {
+                        $"https://{_tenantId.ToString()}/{aksApplicationName}"
+                    },
+                    Tags = tags,
+                    SignInAudience = "AzureADMyOrg",
+                    AppRoles = new List<AppRole>(),
+                    RequiredResourceAccess = new List<RequiredResourceAccess>(),
+                    Api = aksApplicationApiApplication,
+                    Web = aksApplicationWebApplication,
+                    PasswordCredentials = new List<PasswordCredential> { }
+                };
+
+                var aksApplication = await _msGraphServiceClient
+                    .CreateApplicationAsync(
+                        aksApplicationDefinition,
+                        cancellationToken
+                    );
+
+                // Add RBAC Key PasswordCredential
+                var rbacKeyName = "rbac";
+                var aksApplicationRBACPasswordCredential = await _msGraphServiceClient
+                    .AddApplication2YPasswordCredentialAsync(
+                        aksApplication,
+                        rbacKeyName,
+                        cancellationToken
+                    );
+
+                if (string.IsNullOrEmpty(aksApplicationRBACPasswordCredential.SecretText)) {
+                    throw new Exception($"Failed to retrieve password credentials for AKS Application: {rbacKeyName}");
                 }
-            };
 
-            var aksApplicationApiApplication = new ApiApplication {
-                Oauth2PermissionScopes = aksOauth2Permissions
-            };
+                var aksApplicationRBACPasswordCredentialSecret = aksApplicationRBACPasswordCredential.SecretText;
 
-            var aksApplicationWebApplication = new WebApplication {
-                ImplicitGrantSettings = new ImplicitGrantSettings {
-                    EnableIdTokenIssuance = true
-                }
-            };
+                // We need to create ServicePrincipal for this application.
+                await _msGraphServiceClient
+                    .CreateApplicationServicePrincipalAsync(
+                        aksApplication,
+                        tags,
+                        cancellationToken
+                    );
 
-            var aksApplicationDefinition = new Application {
-                DisplayName = aksApplicationName,
-                IsFallbackPublicClient = false,
-                IdentifierUris = new List<string> {
-                    $"https://{_tenantId.ToString()}/{aksApplicationName}"
-                },
-                Tags = tags,
-                SignInAudience = "AzureADMyOrg",
-                AppRoles = new List<AppRole>(),
-                RequiredResourceAccess = new List<RequiredResourceAccess>(),
-                Api = aksApplicationApiApplication,
-                Web = aksApplicationWebApplication,
-                PasswordCredentials = new List<PasswordCredential> { }
-            };
-
-            var aksApplication = await _msGraphServiceClient
-                .CreateApplicationAsync(
-                    aksApplicationDefinition,
-                    cancellationToken
-                );
-
-            // Add RBAC Key PasswordCredential
-            var rbacKeyName = "rbac";
-            var aksApplicationRBACPasswordCredential = await _msGraphServiceClient
-                .AddApplication2YPasswordCredentialAsync(
+                var result = new Tuple<Application, string>(
                     aksApplication,
-                    rbacKeyName,
-                    cancellationToken
+                    aksApplicationRBACPasswordCredentialSecret
                 );
 
-            if (string.IsNullOrEmpty(aksApplicationRBACPasswordCredential.SecretText)) {
-                throw new Exception($"Failed to retrieve password credentials for AKS Application: {rbacKeyName}");
+                Log.Information("Created AKS application registration.");
+
+                return result;
             }
-
-            var aksApplicationRBACPasswordCredentialSecret = aksApplicationRBACPasswordCredential.SecretText;
-
-            // We need to create ServicePrincipal for this application.
-            await _msGraphServiceClient
-                .CreateApplicationServicePrincipalAsync(
-                    aksApplication,
-                    tags,
-                    cancellationToken
-                );
-
-            var result = new Tuple<Application, string>(
-                aksApplication,
-                aksApplicationRBACPasswordCredentialSecret
-            );
-
-            return result;
+            catch (Exception) {
+                Log.Error("Failed to create AKS application registration.");
+                throw;
+            }
         }
     }
 }

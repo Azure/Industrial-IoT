@@ -43,7 +43,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
         }
 
         public VaultCreateOrUpdateParameters GetCreationParameters(
-            Guid tenantIdGuid,
+            Guid tenantId,
             IResourceGroup resourceGroup,
             ServicePrincipal serviceApplicationSP,
             DirectoryObject owner,
@@ -53,7 +53,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
 
             var keyVaultAccessPolicies = new List<AccessPolicyEntry> {
                     new AccessPolicyEntry {
-                        TenantId = tenantIdGuid,
+                        TenantId = tenantId,
                         ObjectId = serviceApplicationSP.Id,
                         Permissions = new Permissions {
                             Secrets = new List<SecretPermissions> {
@@ -66,7 +66,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                         }
                     },
                     new AccessPolicyEntry {
-                        TenantId = tenantIdGuid,
+                        TenantId = tenantId,
                         ObjectId = owner.Id,
                         Permissions = new Permissions {
                             Keys = new List<KeyPermissions> {
@@ -102,7 +102,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                     EnabledForDeployment = false,
                     EnabledForTemplateDeployment = false,
                     EnabledForDiskEncryption = false,
-                    TenantId = tenantIdGuid,
+                    TenantId = tenantId,
                     Sku = new Sku {
                         Name = SkuName.Premium,
                         //Family = "A"
