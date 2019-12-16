@@ -37,7 +37,6 @@
 
 .pos-right {
     display: inline-flex;
-    //left: -20px;
 }
 
 @keyframes spin {
