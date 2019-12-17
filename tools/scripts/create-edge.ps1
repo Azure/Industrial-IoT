@@ -124,4 +124,3 @@ Write-Host
 $keyname = "Output_edgeKey"
 $edgeDeviceCombinedString = $edgeDeviceConnectionString -join "|"
 Write-Output "##vso[task.setvariable variable=$keyname]$edgeDeviceCombinedString"
-Write-Output "Added Azure pipeline variable '$keyname' with value '$edgeDeviceCombinedString'"

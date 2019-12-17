@@ -17,7 +17,6 @@ param (
     $armOutputString = ''
 )
 
-Write-Output "Retrieved input: $armOutputString"
 $armOutputObj = $armOutputString | convertfrom-json
 
 $armOutputObj.PSObject.Properties | ForEach-Object {
