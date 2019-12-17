@@ -11,23 +11,23 @@ using Serilog;
 using Serilog.Events;
 using System;
 using System.Collections.Generic;
-using System.Text;
+using System.ComponentModel;
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
-    public interface ILegacyCliModelProvider {
-        LegacyCliModel LegacyCliModel { get; }
-    }
 
+    /// <summary>
+    /// Class that represents a dictionary with all command line arguments from the legacy version of the OPC Publisher
+    /// </summary>
     public class LegacyCliOptions : Dictionary<string, string>, IAgentConfigProvider, IEngineConfiguration, ILegacyCliModelProvider {
         /// <summary>
-        /// 
+        /// Empty constructor.
         /// </summary>
         public LegacyCliOptions() {
 
         }
 
         /// <summary>
-        /// 
+        /// Creates a new instance of the the legacy CLI options based on existing configuration values.
         /// </summary>
         /// <param name="config"></param>
         public LegacyCliOptions(IConfiguration config) {
@@ -35,6 +35,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 this[item.Key] = item.Value;
             }
 
+            Config = this.ToAgentConfigModel();
             LegacyCliModel = this.ToLegacyCliModel();
         }
 
@@ -43,8 +44,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// <summary>
         /// Parse arguments and set values in the environment the way the new configuration expects it.
         /// </summary>
-        /// <param name="args"></param>
-        /// <returns></returns>
+        /// <param name="args">The specified command line arguments.</param>
         public LegacyCliOptions(string[] args) {
 
             // command line options
@@ -57,11 +57,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
 
                     { "di|diagnosticsinterval=", "Shows publisher diagnostic info at the specified interval " +
                         "in seconds (need log level info).\n-1 disables remote diagnostic log and diagnostic output",
-                        (TimeSpan s) => this[LegacyCliConfigKeys.DiagnosticsInterval] = s.ToString() },
+                        (int i) => this[LegacyCliConfigKeys.DiagnosticsInterval] = TimeSpan.FromSeconds(i).ToString() },
                     { "lf|logfile=", "the filename of the logfile to use.",
                         s => this[LegacyCliConfigKeys.LogFileName] = s },
                     { "lt|logflushtimespan=", "the timespan in seconds when the logfile should be flushed.",
-                        (TimeSpan s) => this[LegacyCliConfigKeys.LogFileFlushTimeSpanSec] = s.ToString() },
+                        (int i) => this[LegacyCliConfigKeys.LogFileFlushTimeSpanSec] = TimeSpan.FromSeconds(i).ToString() },
                     { "ll|loglevel=", "the loglevel to use (allowed: fatal, error, warn, info, debug, verbose).",
                         (LogEventLevel l) => LogControl.Level.MinimumLevel = l },
 
@@ -168,6 +168,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             options.Parse(args);
 
             Config = this.ToAgentConfigModel();
+            LegacyCliModel = this.ToLegacyCliModel();
         }
 
         /// <summary>
@@ -175,19 +176,38 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// </summary>
         public bool RunInLegacyMode => System.IO.File.Exists(GetValueOrDefault(LegacyCliConfigKeys.PublisherNodeConfigurationFilename, LegacyCliConfigKeys.DefaultPublishedNodesFilename));
 
+        /// <summary>
+        /// The AgentConfigModel instance that is based on specified legacy command line arguments.
+        /// </summary>
         public AgentConfigModel Config { get; }
 
+        /// <summary>
+        /// The batch size, hardcoded to 1.
+        /// </summary>
         public int? BatchSize => 1;
 
+        /// <summary>
+        /// The interval to show diagnostic information in the log.
+        /// </summary>
         public TimeSpan? DiagnosticsInterval => LegacyCliModel.DiagnosticsInterval;
 
+        /// <summary>
+        /// The model of the CLI arguments.
+        /// </summary>
         public LegacyCliModel LegacyCliModel { get; }
 
+        /// <summary>
+        /// OnConfigUpdated-Event - never called as command line arguments don't change while runtime.
+        /// </summary>
         public event ConfigUpdatedEventHandler OnConfigUpdated;
 
+        /// <summary>
+        /// Gets the additiona loggerConfiguration that represents the command line arguments.
+        /// </summary>
+        /// <returns></returns>
         public LoggerConfiguration ToLoggerConfiguration() {
             LoggerConfiguration loggerConfiguration = null;
-            
+
             if (!string.IsNullOrWhiteSpace(LegacyCliModel.LogFilename)) {
                 loggerConfiguration = loggerConfiguration.WriteTo.File(LegacyCliModel.LogFilename, flushToDiskInterval: LegacyCliModel.LogFileFlushTimeSpan ?? TimeSpan.FromSeconds(30));
             }
@@ -241,7 +261,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 return defaultValue;
             }
 
-            return (T)Convert.ChangeType(this[key], typeof(T));
+            var converter = TypeDescriptor.GetConverter(typeof(T));
+            return (T)converter.ConvertFrom(this[key]);
         }
     }
 }

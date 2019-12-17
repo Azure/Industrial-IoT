@@ -1,9 +1,9 @@
 ﻿using Microsoft.Extensions.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
+    /// <summary>
+    /// Extensions for the Legacy Command Line 
+    /// </summary>
     public static class LegacyCliEx {
         /// <summary>
         ///     Add options

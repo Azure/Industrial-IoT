@@ -6,31 +6,96 @@ using Serilog;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Security.Cryptography;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
+    /// <summary>
+    /// Job orchestrator the represents the legacy publishednodes.json with legacy command line arguments as job.
+    /// </summary>
     public class LegacyJobOrchestrator : IJobOrchestrator {
-        private readonly PublishedNodesJobConverter _publishedNodesJobConverter;
-        private readonly LegacyCliModel _legacyCliModel;
-        private readonly IJobSerializer _jobSerializer;
-        private readonly ILogger _logger;
-        private readonly FileSystemWatcher _fileSystemWatcher;
-        private string _lastKnownFileHash;
 
-        private JobProcessingInstructionModel _jobProcessingInstructionModel;
-        private bool _updated = false;
-
+        /// <summary>
+        /// Creates a new class of the LegacyJobOrchestrator.
+        /// </summary>
+        /// <param name="publishedNodesJobConverter">The converter to read the job from the specified file.</param>
+        /// <param name="legacyCliModelProvider">The provider that provides the legacy command line arguments.</param>
+        /// <param name="jobSerializer">The serializer to (de)serialize job information.</param>
+        /// <param name="logger">Logger to write log messages.</param>
         public LegacyJobOrchestrator(PublishedNodesJobConverter publishedNodesJobConverter, ILegacyCliModelProvider legacyCliModelProvider, IJobSerializer jobSerializer, ILogger logger) {
             _publishedNodesJobConverter = publishedNodesJobConverter;
             _legacyCliModel = legacyCliModelProvider.LegacyCliModel;
             _jobSerializer = jobSerializer;
             _logger = logger;
-            _fileSystemWatcher = new FileSystemWatcher(Path.GetDirectoryName(_legacyCliModel.PublishedNodesFile), Path.GetFileName(_legacyCliModel.PublishedNodesFile));
+
+            var directory = Path.GetDirectoryName(_legacyCliModel.PublishedNodesFile);
+
+            if (string.IsNullOrWhiteSpace(directory)) {
+                directory = Environment.CurrentDirectory;
+            }
+
+            var file = Path.GetFileName(_legacyCliModel.PublishedNodesFile);
+
+            _fileSystemWatcher = new FileSystemWatcher(directory, file);
             _fileSystemWatcher.Changed += _fileSystemWatcher_Changed;
             _fileSystemWatcher.EnableRaisingEvents = true;
+            LoadJobFromFile();
+        }
+
+
+
+        /// <summary>
+        /// Gets the next available job - this will always return the job representation of the legacy publishednodes.json along with legacy command line arguments.
+        /// </summary>
+        /// <param name="workerId"></param>
+        /// <param name="request"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        public Task<JobProcessingInstructionModel> GetAvailableJobAsync(string workerId, JobRequestModel request, CancellationToken ct = default) {
+            _updated = false;
+            return Task.FromResult(_jobProcessingInstructionModel);
+        }
+
+        /// <summary>
+        /// Receives the heartbeat from the agent. Lifetime information is not persisted in this implementation. This method is only used if the
+        /// publishednodes.json file has changed. Is that the case, the worker is informed to cancel (and restart) processing.
+        /// </summary>
+        /// <param name="heartbeat"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        public Task<HeartbeatResultModel> SendHeartbeatAsync(HeartbeatModel heartbeat, CancellationToken ct = default) {
+            HeartbeatResultModel heartbeatResultModel;
+
+            if (_updated && heartbeat.Job != null) {
+                _updated = false;
+
+                heartbeatResultModel = new HeartbeatResultModel() {
+                    HeartbeatInstruction = HeartbeatInstruction.CancelProcessing,
+                    LastActiveHeartbeat = DateTime.UtcNow,
+                    UpdatedJob = _jobProcessingInstructionModel
+                };
+            }
+            else {
+                heartbeatResultModel = new HeartbeatResultModel() {
+                    HeartbeatInstruction = HeartbeatInstruction.Keep,
+                    LastActiveHeartbeat = DateTime.UtcNow,
+                    UpdatedJob = null
+                };
+            }
+
+            return Task.FromResult(heartbeatResultModel);
+        }
+
+        private WriterGroupJobModel Flatten(IEnumerable<WriterGroupJobModel> writerGroupJobModels) {
+            if (writerGroupJobModels.Count() == 1) {
+                return writerGroupJobModels.Single();
+            }
+            else throw new NotImplementedException();
+        }
+
+        private void _fileSystemWatcher_Changed(object sender, FileSystemEventArgs e) {
             LoadJobFromFile();
         }
 
@@ -48,7 +113,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             if (currentFileHash != _lastKnownFileHash) {
                 _lastKnownFileHash = currentFileHash;
 
-                using (var reader = new StringReader(_legacyCliModel.PublishedNodesFile)) {
+                using (var reader = new StreamReader(_legacyCliModel.PublishedNodesFile)) {
                     var jobs = _publishedNodesJobConverter.Read(reader, _legacyCliModel);
                     var flattened = Flatten(jobs);
 
@@ -72,40 +137,13 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             }
         }
 
-        private void _fileSystemWatcher_Changed(object sender, FileSystemEventArgs e) {
-            LoadJobFromFile();
-        }
-
-        public Task<JobProcessingInstructionModel> GetAvailableJobAsync(string workerId, JobRequestModel request, CancellationToken ct = default) {
-            _updated = false;
-            return Task.FromResult(_jobProcessingInstructionModel);
-        }
-
-        public Task<HeartbeatResultModel> SendHeartbeatAsync(HeartbeatModel heartbeat, CancellationToken ct = default) {
-            HeartbeatResultModel heartbeatResultModel;
-            
-            if (_updated && heartbeat.Job != null) {
-                _updated = false;
-
-                heartbeatResultModel = new HeartbeatResultModel() {
-                    HeartbeatInstruction = HeartbeatInstruction.CancelProcessing,
-                    LastActiveHeartbeat = DateTime.UtcNow,
-                    UpdatedJob = _jobProcessingInstructionModel
-                };
-            }
-            else {
-                heartbeatResultModel = new HeartbeatResultModel() {
-                    HeartbeatInstruction = HeartbeatInstruction.Keep,
-                    LastActiveHeartbeat = DateTime.UtcNow,
-                    UpdatedJob = null
-                };
-            }
-
-            return Task.FromResult(heartbeatResultModel);
-        }
-
-        private WriterGroupJobModel Flatten(IEnumerable<WriterGroupJobModel> writerGroupJobModels) {
-            throw new NotImplementedException();
-        }
+        private readonly PublishedNodesJobConverter _publishedNodesJobConverter;
+        private readonly LegacyCliModel _legacyCliModel;
+        private readonly IJobSerializer _jobSerializer;
+        private readonly ILogger _logger;
+        private readonly FileSystemWatcher _fileSystemWatcher;
+        private string _lastKnownFileHash;
+        private JobProcessingInstructionModel _jobProcessingInstructionModel;
+        private bool _updated = false;
     }
 }

@@ -5,10 +5,10 @@
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.v2.Controller {
     using Microsoft.Azure.IIoT.Agent.Framework.Models;
+    using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using Newtonsoft.Json;
 
     /// <summary>
     /// Default publisher configuration

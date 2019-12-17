@@ -27,7 +27,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         public string Id => _writerGroup.WriterGroupId;
 
         /// <inheritdoc/>
-        public long NumberOfConnectionRetries => _subscriptions
+        public long NumberOfConnectionRetries => _subscriptions.Where(sc => sc.Subscription != null)
             .Select(sc => sc.Subscription).Sum(sc => sc.NumberOfConnectionRetries);
 
         /// <inheritdoc/>

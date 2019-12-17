@@ -25,7 +25,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <summary>
         /// Create IoT hub message sink
         /// </summary>
-        /// <param name="clientFactory"></param>
+        /// <param name="clientAccessor"></param>
         /// <param name="logger"></param>
         public IoTHubMessageSink(IClientAccessor clientAccessor, ILogger logger) {
             _client = clientAccessor.Client;
