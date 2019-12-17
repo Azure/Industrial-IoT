@@ -22,6 +22,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
     class KeyVaultMgmtClient : IDisposable {
 
         public const string DEFAULT_NAME_PREFIX = "keyvault-";
+        public const int NUM_OF_MAX_NAME_AVAILABILITY_CHECKS = 5;
 
         private readonly KeyVaultManagementClient _keyVaultManagementClient;
 
@@ -48,9 +49,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             User user,
             IDictionary<string, string> tags = null
         ) {
-            if (null == tags) {
-                tags = new Dictionary<string, string> { };
-            }
+            tags ??= new Dictionary<string, string>();
 
             var keyVaultAccessPolicies = new List<AccessPolicyEntry> {
                     new AccessPolicyEntry {
@@ -159,18 +158,81 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                 );
         }
 
+        /// <summary>
+        /// Checks whether given KeyVault name is available.
+        /// </summary>
+        /// <param name="keyVaultName"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns>True if name is available, False otherwise.</returns>
         public async Task<bool> CheckNameAvailabilityAsync(
             string keyVaultName,
             CancellationToken cancellationToken = default
         ) {
-            var result = await _keyVaultManagementClient
-                .Vaults
-                .CheckNameAvailabilityAsync(
-                    keyVaultName,
-                    cancellationToken
-                );
+            try {
+                var result = await _keyVaultManagementClient
+                    .Vaults
+                    .CheckNameAvailabilityAsync(
+                        keyVaultName,
+                        cancellationToken
+                    );
 
-            return result.NameAvailable.Value;
+                if (result.NameAvailable.HasValue) {
+                    return result.NameAvailable.Value;
+                }
+            }
+            catch (Microsoft.Rest.Azure.CloudException) {
+                // Will be thrown if there is no registered resource provider
+                // found for specified location and/or api version to perform
+                // name availability check.
+                throw;
+            }
+            catch (Exception ex) {
+                Log.Error(ex, $"Failed to check KeyVault Service name availability for {keyVaultName}");
+                throw;
+            }
+
+            // !result.NameAvailable.HasValue
+            throw new Exception($"Failed to check KeyVault Service name availability for {keyVaultName}");
+        }
+
+        /// <summary>
+        /// Tries to generate KeyVault name that is available.
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns>An available name for KeyVault.</returns>
+        /// <exception cref="Microsoft.Rest.Azure.CloudException"></exception>
+        public async Task<string> GenerateAvailableNameAsync(
+            CancellationToken cancellationToken = default
+        ) {
+            try {
+                for (var numOfChecks = 0; numOfChecks < NUM_OF_MAX_NAME_AVAILABILITY_CHECKS; ++numOfChecks) {
+                    var keyVaultName = GenerateName();
+                    var nameAvailable = await CheckNameAvailabilityAsync(
+                        keyVaultName,
+                        cancellationToken
+                    );
+
+                    if (nameAvailable) {
+                        return keyVaultName;
+                    }
+                }
+            }
+            catch (Microsoft.Rest.Azure.CloudException) {
+                // Will be thrown if there is no registered resource provider
+                // found for specified location and/or api version to perform
+                // name availability check.
+                throw;
+            }
+            catch (Exception ex) {
+                Log.Error(ex, "Failed to generate unique KeyVault service name");
+                throw;
+            }
+
+            var errorMessage = $"Failed to generate unique KeyVault service name " +
+                $"after {NUM_OF_MAX_NAME_AVAILABILITY_CHECKS} retries";
+
+            Log.Error(errorMessage);
+            throw new Exception(errorMessage);
         }
 
         public void Dispose() {

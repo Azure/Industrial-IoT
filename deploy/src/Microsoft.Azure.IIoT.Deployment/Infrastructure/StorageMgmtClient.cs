@@ -19,10 +19,11 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
     class StorageMgmtClient : IDisposable {
 
         public const string DEFAULT_STORAGE_ACCOUNT_NAME_PREFIX = "storage";
+        public const int NUM_OF_MAX_NAME_AVAILABILITY_CHECKS = 5;
 
         public const string STORAGE_ACCOUNT_IOT_HUB_CONTAINER_NAME = "iothub-default";
 
-        private const string STORAGE_ACCOUNT_CONECTION_STRING_FORMAT = 
+        private const string kSTORAGE_ACCOUNT_CONECTION_STRING_FORMAT = 
             "DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1};EndpointSuffix={2}";
 
         private readonly StorageManagementClient _storageManagementClient;
@@ -46,18 +47,81 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             return SdkContext.RandomResourceName(prefix, suffixLen);
         }
 
+        /// <summary>
+        /// Checks whether given Storage account name is available.
+        /// </summary>
+        /// <param name="storageAccountName"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns>True if name is available, False otherwise.</returns>
         public async Task<bool> CheckNameAvailabilityAsync(
             string storageAccountName,
             CancellationToken cancellationToken = default
         ) {
-            var storageAccountNameCheck = await _storageManagementClient
-                .StorageAccounts
-                .CheckNameAvailabilityAsync(
-                    storageAccountName,
-                    cancellationToken
-                );
+            try {
+                var storageAccountNameCheck = await _storageManagementClient
+                    .StorageAccounts
+                    .CheckNameAvailabilityAsync(
+                        storageAccountName,
+                        cancellationToken
+                    );
 
-            return storageAccountNameCheck.NameAvailable.Value;
+                if (storageAccountNameCheck.NameAvailable.HasValue) {
+                    return storageAccountNameCheck.NameAvailable.Value;
+                }
+            }
+            catch (Microsoft.Rest.Azure.CloudException) {
+                // Will be thrown if there is no registered resource provider
+                // found for specified location and/or api version to perform
+                // name availability check.
+                throw;
+            }
+            catch (Exception ex) {
+                Log.Error(ex, $"Failed to check Storage Account name availability for {storageAccountName}");
+                throw;
+            }
+
+            // !storageAccountNameCheck.NameAvailable.HasValue
+            throw new Exception($"Failed to check Storage Account name availability for {storageAccountName}");
+        }
+
+        /// <summary>
+        /// Tries to generate Storage account name that is available.
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns>An available name for Storage account.</returns>
+        /// <exception cref="Microsoft.Rest.Azure.CloudException"></exception>
+        public async Task<string> GenerateAvailableNameAsync(
+            CancellationToken cancellationToken = default
+        ) {
+            try {
+                for (var numOfChecks = 0; numOfChecks < NUM_OF_MAX_NAME_AVAILABILITY_CHECKS; ++numOfChecks) {
+                    var storageAccountName = GenerateStorageAccountName();
+                    var nameAvailable = await CheckNameAvailabilityAsync(
+                        storageAccountName,
+                        cancellationToken
+                    );
+
+                    if (nameAvailable) {
+                        return storageAccountName;
+                    }
+                }
+            }
+            catch (Microsoft.Rest.Azure.CloudException) {
+                // Will be thrown if there is no registered resource provider
+                // found for specified location and/or api version to perform
+                // name availability check.
+                throw;
+            }
+            catch (Exception ex) {
+                Log.Error(ex, "Failed to generate unique Storage Account name");
+                throw;
+            }
+
+            var errorMessage = $"Failed to generate unique Storage Account name " +
+                $"after {NUM_OF_MAX_NAME_AVAILABILITY_CHECKS} retries";
+
+            Log.Error(errorMessage);
+            throw new Exception(errorMessage);
         }
 
         public async Task<StorageAccountInner> CreateStorageAccountAsync(
@@ -67,9 +131,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             CancellationToken cancellationToken = default
         ) {
             try {
-                if (null == tags) {
-                    tags = new Dictionary<string, string> { };
-                }
+                tags ??= new Dictionary<string, string>();
 
                 Log.Information($"Creating Azure Storage Account: {storageAccountName} ...");
 
@@ -122,7 +184,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             }
         }
 
-
         public async Task<StorageAccountInner> GetStorageAccountAsync(
             IResourceGroup resourceGroup,
             string storageAccountName,
@@ -139,7 +200,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
 
             return storageAccount;
         }
-
 
         public async Task<StorageAccountKey> GetStorageAccountKeyAsync(
             IResourceGroup resourceGroup,
@@ -167,7 +227,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             var storageAccountKey = await GetStorageAccountKeyAsync(resourceGroup, storageAccount, cancellationToken);
 
             var storageAccountConectionString = string.Format(
-                STORAGE_ACCOUNT_CONECTION_STRING_FORMAT,
+                kSTORAGE_ACCOUNT_CONECTION_STRING_FORMAT,
                 storageAccount.Name,
                 storageAccountKey.Value,
                 _azureEnvironment.StorageEndpointSuffix
@@ -185,9 +245,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             CancellationToken cancellationToken = default
         ) {
             try {
-                if (null == tags) {
-                    tags = new Dictionary<string, string> { };
-                }
+                tags ??= new Dictionary<string, string>();
 
                 Log.Information($"Creating Blob Container: {containerName} ...");
 

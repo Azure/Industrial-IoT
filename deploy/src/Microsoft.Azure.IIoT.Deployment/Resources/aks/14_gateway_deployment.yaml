@@ -1,23 +1,31 @@
-﻿apiVersion: extensions/v1beta1
+﻿apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: history-deployment
+  name: gateway-deployment
   namespace: industrial-iot
   labels:
-    app: historyservice
+    app.kubernetes.io/name: gateway-service
+    app.kubernetes.io/part-of: industrial-iot
+    app.kubernetes.io/version: 2.5.1
+    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: historyservice
+      app.kubernetes.io/name: gateway-service
+      app.kubernetes.io/part-of: industrial-iot
   template:
     metadata:
       labels:
-        app: historyservice
+        app.kubernetes.io/name: gateway-service
+        app.kubernetes.io/part-of: industrial-iot
+        app.kubernetes.io/version: 2.5.1
+        app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
     spec:
+      serviceAccountName: industrial-iot-serviceaccount
       containers:
-      - name: historyservice
-        image: mcr.microsoft.com/iot/opc-history-service:2.5.1
+      - name: gateway-service-container
+        image: mcr.microsoft.com/iot/opc-gateway-service:2.5.1
         resources:
           requests:
             memory: "64Mi"
@@ -27,7 +35,8 @@ spec:
             cpu: "250m"
         ports:
         - containerPort: 443
-        - containerPort: 9043
+        - containerPort: 9040
+        - containerPort: 51111
         env:
         - name: PCS_KEYVAULT_URL
           valueFrom:
@@ -39,6 +48,11 @@ spec:
             secretKeyRef:
               name: industrial-iot-env
               key: PCS_IOTHUB_CONNSTRING
+        - name: PCS_SERVICEBUS_CONNSTRING
+          valueFrom:
+            secretKeyRef:
+              name: industrial-iot-env
+              key: PCS_SERVICEBUS_CONNSTRING
         - name: PCS_TELEMETRY_DOCUMENTDB_CONNSTRING
           valueFrom:
             secretKeyRef:

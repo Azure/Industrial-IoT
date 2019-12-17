@@ -107,7 +107,6 @@ namespace Microsoft.Azure.IIoT.Deployment {
             return stringBuilder.ToString();
         }
 
-
         public static string GetPemPrivateKey(X509Certificate2 cert) {
             var rsaPrivateKey = cert.GetRSAPrivateKey();
 

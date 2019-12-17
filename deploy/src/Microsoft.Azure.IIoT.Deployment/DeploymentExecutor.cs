@@ -8,9 +8,12 @@ namespace Microsoft.Azure.IIoT.Deployment {
     using Serilog;
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using System.Threading.Tasks;
+
+    using Infrastructure;
 
     using Microsoft.Azure.Management.ResourceManager.Fluent;
     using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
@@ -25,16 +28,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
 
     class DeploymentExecutor : IDisposable {
 
-        public static readonly string OWNER_KEY = "owner";
-        public static readonly string APPLICATION_KEY = "application";
-        public static readonly string APPLICATION_IIOT = "industrial-iot";
-        public static readonly string VERSION_KEY = "version";
-        public static readonly string VERSION_IIOT = "2.5.1";
-
         public static readonly string ENV_FILE_PATH = @".env";
-
-
-        private const int NUM_OF_MAX_NAME_AVAILABILITY_CHECKS = 5;
 
         private List<string> _defaultTagsList;
         private Dictionary<string, string> _defaultTagsDict;
@@ -50,28 +44,27 @@ namespace Microsoft.Azure.IIoT.Deployment {
         private string _applicationName;
         private IResourceGroup _resourceGroup;
 
-
-
         private AuthenticationManager _authenticationManager;
-        private Infrastructure.AzureResourceManager _azureResourceManager;
+        private AzureResourceManager _azureResourceManager;
 
         // Resource management clients
         private RestClient _restClient;
 
-        private Infrastructure.MicrosoftGraphServiceClient _msGraphServiceClient;
-        private Infrastructure.ResourceMgmtClient _resourceMgmtClient;
-        private Infrastructure.KeyVaultMgmtClient _keyVaultManagementClient;
-        private Infrastructure.StorageMgmtClient _storageManagementClient;
-        private Infrastructure.IotHubMgmtClient _iotHubManagementClient;
-        private Infrastructure.CosmosDBMgmtClient _cosmosDBManagementClient;
-        private Infrastructure.ServiceBusMgmtClient _serviceBusManagementClient;
-        private Infrastructure.EventHubMgmtClient _eventHubManagementClient;
-        private Infrastructure.OperationalInsightsMgmtClient _operationalInsightsManagementClient;
-        private Infrastructure.ApplicationInsightsMgmtClient _applicationInsightsManagementClient;
-        private Infrastructure.WebSiteMgmtClient _webSiteManagementClient;
-        private Infrastructure.NetworkMgmtClient _networkManagementClient;
-        private Infrastructure.AuthorizationMgmtClient _authorizationManagementClient;
-        private Infrastructure.AksMgmtClient _aksManagementClient;
+        private MicrosoftGraphServiceClient _msGraphServiceClient;
+        private ResourceMgmtClient _resourceMgmtClient;
+        private KeyVaultMgmtClient _keyVaultManagementClient;
+        private StorageMgmtClient _storageManagementClient;
+        private IotHubMgmtClient _iotHubManagementClient;
+        private CosmosDBMgmtClient _cosmosDBManagementClient;
+        private ServiceBusMgmtClient _serviceBusManagementClient;
+        private EventHubMgmtClient _eventHubManagementClient;
+        private OperationalInsightsMgmtClient _operationalInsightsManagementClient;
+        private ApplicationInsightsMgmtClient _applicationInsightsManagementClient;
+        private WebSiteMgmtClient _webSiteManagementClient;
+        private NetworkMgmtClient _networkManagementClient;
+        private AuthorizationMgmtClient _authorizationManagementClient;
+        private AksMgmtClient _aksManagementClient;
+        private SignalRMgmtClient _signalRManagementClient;
 
         // Resource names
         private string _servicesApplicationName;
@@ -95,6 +88,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
         //private string _publicIPAddressName;
         //private string _domainNameLabel;
         private string _aksClusterName;
+        private string _signalRName;
 
         // Resources
         private Application _serviceApplication;
@@ -107,16 +101,13 @@ namespace Microsoft.Azure.IIoT.Deployment {
         private ServicePrincipal _aksApplicationSP;
         private string _aksApplicationPasswordCredentialRbacSecret;
 
-
-
-        private const string WEB_APP_CN = "webapp.services.net"; // ToDo: Assign meaningfull value.
+        private const string kWEB_APP_CN = "webapp.services.net"; // ToDo: Assign meaningfull value.
         private X509Certificate2 _webAppX509Certificate;
 
-        private const string AKS_CLUSTER_CN = "aks.cluster.net"; // ToDo: Assign meaningfull value.
+        private const string kAKS_CLUSTER_CN = "aks.cluster.net"; // ToDo: Assign meaningfull value.
         private X509Certificate2 _aksClusterX509Certificate;
 
         private string _aksKubeConfig;
-
 
         public DeploymentExecutor(
             Configuration.IConfigurationProvider configurationProvider
@@ -133,7 +124,6 @@ namespace Microsoft.Azure.IIoT.Deployment {
             // ToDo: Figure out how to sign-in without tenantId.
             _tenantName = _configurationProvider.GetTenant();
 
-
             _authenticationManager = new AuthenticationManager(_azureEnvironment, _tenantName);
             await _authenticationManager
                 .AuthenticateAsync(cancellationToken);
@@ -145,17 +135,27 @@ namespace Microsoft.Azure.IIoT.Deployment {
             //    .Result;
             _azureCredentials = _authenticationManager.GetDelegatingAzureCredentials();
 
+            InitializeDefaultTags(_account.Username);
+        }
 
+        /// <summary>
+        /// Initialize default tags (list and dictionary) that will be added to
+        /// resources created by the application.
+        /// </summary>
+        /// <param name="username"></param>
+        private void InitializeDefaultTags(string username) {
             _defaultTagsList = new List<string> {
-                _account.Username,
-                APPLICATION_IIOT,
-                VERSION_IIOT
+                username,
+                Resources.IIoTDeploymentTags.VALUE_APPLICATION_IIOT,
+                Resources.IIoTDeploymentTags.VALUE_VERSION_IIOT,
+                Resources.IIoTDeploymentTags.VALUE_MANAGED_BY_IIOT
             };
 
             _defaultTagsDict = new Dictionary<string, string> {
-                { OWNER_KEY, _account.Username },
-                { APPLICATION_KEY, APPLICATION_IIOT },
-                { VERSION_KEY, VERSION_IIOT }
+                { Resources.IIoTDeploymentTags.KEY_OWNER, username },
+                { Resources.IIoTDeploymentTags.KEY_APPLICATION, Resources.IIoTDeploymentTags.VALUE_APPLICATION_IIOT },
+                { Resources.IIoTDeploymentTags.KEY_VERSION, Resources.IIoTDeploymentTags.VALUE_VERSION_IIOT},
+                { Resources.IIoTDeploymentTags.KEY_MANAGED_BY, Resources.IIoTDeploymentTags.VALUE_MANAGED_BY_IIOT}
             };
         }
 
@@ -167,7 +167,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
         public async Task InitializeResourceGroupSelectionAsync(
             CancellationToken cancellationToken = default
         ) {
-            _azureResourceManager = new Infrastructure.AzureResourceManager(_azureCredentials);
+            _azureResourceManager = new AzureResourceManager(_azureCredentials);
 
             // Select subscription to use.
             var subscriptionsList = _azureResourceManager.GetSubscriptions();
@@ -175,12 +175,8 @@ namespace Microsoft.Azure.IIoT.Deployment {
 
             _azureResourceManager.Init(_subscription);
 
-
             // Select existing ResourceGroup or create a new one.
-            var defaultResourceGroupName = _applicationName;
-
             var useExisting = _configurationProvider.CheckIfUseExistingResourceGroup();
-
 
             if (useExisting) {
                 var resourceGroups = _azureResourceManager.GetResourceGroups();
@@ -189,7 +185,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
             else {
                 var region = _configurationProvider
                     .SelectResourceGroupRegion(
-                        Infrastructure.AzureResourceManager.FunctionalRegions
+                        AzureResourceManager.FunctionalRegions
                     );
 
                 bool checkIfResourceGroupExists(string _resourceGroupName) {
@@ -203,8 +199,10 @@ namespace Microsoft.Azure.IIoT.Deployment {
                     return _resourceGroupExists;
                 }
 
-                if (checkIfResourceGroupExists(defaultResourceGroupName)) {
-                    defaultResourceGroupName = null;
+                string defaultResourceGroupName = null;
+
+                if (!checkIfResourceGroupExists(_applicationName)) {
+                    defaultResourceGroupName = _applicationName;
                 }
 
                 var newResourceGroupName = _configurationProvider
@@ -250,12 +248,11 @@ namespace Microsoft.Azure.IIoT.Deployment {
                     _authenticationManager.AcquireMicrosoftGraphTokenAsync
                 );
 
-            _msGraphServiceClient = new Infrastructure.MicrosoftGraphServiceClient(
+            _msGraphServiceClient = new MicrosoftGraphServiceClient(
                 _tenantId,
                 microsoftGraphTokenProvider,
                 cancellationToken
             );
-
 
             // Create generic RestClient for services
             _restClient = RestClient
@@ -265,22 +262,22 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 //.WithLogLevel(HttpLoggingDelegatingHandler.Level.BodyAndHeaders)
                 .Build();
 
-
             var subscriptionId = _subscription.SubscriptionId;
 
-            _resourceMgmtClient = new Infrastructure.ResourceMgmtClient(subscriptionId, _restClient);
-            _keyVaultManagementClient = new Infrastructure.KeyVaultMgmtClient(subscriptionId, _restClient);
-            _storageManagementClient = new Infrastructure.StorageMgmtClient(subscriptionId, _restClient);
-            _iotHubManagementClient = new Infrastructure.IotHubMgmtClient(subscriptionId, _restClient);
-            _cosmosDBManagementClient = new Infrastructure.CosmosDBMgmtClient(subscriptionId, _restClient);
-            _serviceBusManagementClient = new Infrastructure.ServiceBusMgmtClient(subscriptionId, _restClient);
-            _eventHubManagementClient = new Infrastructure.EventHubMgmtClient(subscriptionId, _restClient);
-            _operationalInsightsManagementClient = new Infrastructure.OperationalInsightsMgmtClient(subscriptionId, _restClient);
-            _applicationInsightsManagementClient = new Infrastructure.ApplicationInsightsMgmtClient(subscriptionId, _restClient);
-            _webSiteManagementClient = new Infrastructure.WebSiteMgmtClient(subscriptionId, _restClient);
-            _networkManagementClient = new Infrastructure.NetworkMgmtClient(subscriptionId, _restClient);
-            _authorizationManagementClient = new Infrastructure.AuthorizationMgmtClient(subscriptionId, _restClient);
-            _aksManagementClient = new Infrastructure.AksMgmtClient(subscriptionId, _restClient);
+            _resourceMgmtClient = new ResourceMgmtClient(subscriptionId, _restClient);
+            _keyVaultManagementClient = new KeyVaultMgmtClient(subscriptionId, _restClient);
+            _storageManagementClient = new StorageMgmtClient(subscriptionId, _restClient);
+            _iotHubManagementClient = new IotHubMgmtClient(subscriptionId, _restClient);
+            _cosmosDBManagementClient = new CosmosDBMgmtClient(subscriptionId, _restClient);
+            _serviceBusManagementClient = new ServiceBusMgmtClient(subscriptionId, _restClient);
+            _eventHubManagementClient = new EventHubMgmtClient(subscriptionId, _restClient);
+            _operationalInsightsManagementClient = new OperationalInsightsMgmtClient(subscriptionId, _restClient);
+            _applicationInsightsManagementClient = new ApplicationInsightsMgmtClient(subscriptionId, _restClient);
+            _webSiteManagementClient = new WebSiteMgmtClient(subscriptionId, _restClient);
+            _networkManagementClient = new NetworkMgmtClient(subscriptionId, _restClient);
+            _authorizationManagementClient = new AuthorizationMgmtClient(subscriptionId, _restClient);
+            _aksManagementClient = new AksMgmtClient(subscriptionId, _restClient);
+            _signalRManagementClient = new SignalRMgmtClient(subscriptionId, _restClient);
         }
 
         public async Task RegisterResourceProvidersAsync(
@@ -296,80 +293,104 @@ namespace Microsoft.Azure.IIoT.Deployment {
             _clientsApplicationName = _applicationName + "-clients";
             _aksApplicationName = _applicationName + "-aks";
 
+            // It might happen that there is no registered resource provider
+            // found for specified location and/or api version to perform name
+            // availability check. In these cases, we will silently ignore
+            // errors and just use generated random names.
+            const string notAvailableApiFormat = "Name availability APIs are not available for '{0}'";
 
             // KeyVault names
-            _keyVaultName = Infrastructure.KeyVaultMgmtClient.GenerateName();
-
-            var keyVaultNameAvailable = await _keyVaultManagementClient
-                .CheckNameAvailabilityAsync(_keyVaultName, cancellationToken);
-
-            for (var numOfChecks = 0; numOfChecks < NUM_OF_MAX_NAME_AVAILABILITY_CHECKS
-                && !keyVaultNameAvailable; ++numOfChecks) {
-                _keyVaultName = Infrastructure.KeyVaultMgmtClient.GenerateName();
-
-                keyVaultNameAvailable = await _keyVaultManagementClient
-                    .CheckNameAvailabilityAsync(_keyVaultName, cancellationToken);
+            try {
+                _keyVaultName = await _keyVaultManagementClient
+                    .GenerateAvailableNameAsync(cancellationToken);
             }
-
-            if (!keyVaultNameAvailable) {
-                Log.Error("Error: keyVaultName name is not available: {0}", _keyVaultName);
-                throw new Exception("Failed to generate unique keyVaultName name");
+            catch (Microsoft.Rest.Azure.CloudException) {
+                Log.Warning(notAvailableApiFormat, "KeyVault");
+                _keyVaultName = KeyVaultMgmtClient.GenerateName();
             }
-
 
             // Storage Account names
-            _storageAccountName = Infrastructure.StorageMgmtClient.GenerateStorageAccountName();
-
-            var storageAccountNameAvailable = await _storageManagementClient
-                .CheckNameAvailabilityAsync(_storageAccountName, cancellationToken);
-
-            for (var numOfChecks = 0; numOfChecks < NUM_OF_MAX_NAME_AVAILABILITY_CHECKS && 
-                !storageAccountNameAvailable; ++numOfChecks) {
-                _storageAccountName = Infrastructure.StorageMgmtClient.GenerateStorageAccountName();
-
-                storageAccountNameAvailable = await _storageManagementClient
-                    .CheckNameAvailabilityAsync(_storageAccountName, cancellationToken);
+            try {
+                _storageAccountName = await _storageManagementClient
+                    .GenerateAvailableNameAsync(cancellationToken);
             }
-
-            if (!storageAccountNameAvailable) {
-                Log.Error("Error: Storage Account name is not available: {0}", _storageAccountName);
-                throw new Exception("Failed to generate unique Storage Account name");
+            catch (Microsoft.Rest.Azure.CloudException) {
+                Log.Warning(notAvailableApiFormat, "Storage Account");
+                _storageAccountName = StorageMgmtClient.GenerateStorageAccountName();
             }
-
 
             // IoT hub names
-            _iotHubName = Infrastructure.IotHubMgmtClient.GenerateIotHubName();
+            try {
+                _iotHubName = await _iotHubManagementClient
+                    .GenerateAvailableNameAsync(cancellationToken);
+            }
+            catch (Microsoft.Rest.Azure.CloudException) {
+                Log.Warning(notAvailableApiFormat, "IoT Hub");
+                _iotHubName = IotHubMgmtClient.GenerateIotHubName();
+            }
 
             // CosmosDB names
-            _cosmosDBAccountName = Infrastructure.CosmosDBMgmtClient.GenerateCosmosDBAccountName();
+            try {
+                _cosmosDBAccountName = await _cosmosDBManagementClient
+                    .GenerateAvailableNameAsync(cancellationToken);
+            }
+            catch (Microsoft.Rest.Azure.CloudException) {
+                Log.Warning(notAvailableApiFormat, "CosmosDB Account");
+                _cosmosDBAccountName = CosmosDBMgmtClient.GenerateCosmosDBAccountName();
+            }
 
             // Service Bus Namespace names
-            _serviceBusNamespaceName = Infrastructure.ServiceBusMgmtClient.GenerateServiceBusNamespaceName();
+            try {
+                _serviceBusNamespaceName = await _serviceBusManagementClient
+                    .GenerateAvailableNamespaceNameAsync(cancellationToken);
+            }
+            catch (Microsoft.Rest.Azure.CloudException) {
+                Log.Warning(notAvailableApiFormat, "ServiceBus Namespace");
+                _serviceBusNamespaceName = ServiceBusMgmtClient.GenerateNamespaceName();
+            }
 
             // Event Hub Namespace names
-            _eventHubNamespaceName = Infrastructure.EventHubMgmtClient.GenerateEventHubNamespaceName();
-            _eventHubName = Infrastructure.EventHubMgmtClient.GenerateEventHubName();
+            try {
+                _eventHubNamespaceName = await _eventHubManagementClient
+                    .GenerateAvailableNamespaceNameAsync(cancellationToken);
+            }
+            catch (Microsoft.Rest.Azure.CloudException) {
+                Log.Warning(notAvailableApiFormat, "EventHub Namespace");
+                _eventHubNamespaceName = EventHubMgmtClient.GenerateEventHubNamespaceName();
+            }
+
+            _eventHubName = EventHubMgmtClient.GenerateEventHubName();
 
             // Operational Insights workspace name.
-            _operationalInsightsWorkspaceName = Infrastructure.OperationalInsightsMgmtClient.GenerateWorkspaceName();
+            _operationalInsightsWorkspaceName = OperationalInsightsMgmtClient.GenerateWorkspaceName();
 
             // Application Insights name.
-            _applicationInsightsName = Infrastructure.ApplicationInsightsMgmtClient.GenerateName();
+            _applicationInsightsName = ApplicationInsightsMgmtClient.GenerateName();
 
             // AppService Plan name
-            _appServicePlanName = Infrastructure.WebSiteMgmtClient.GenerateAppServicePlanName(_applicationName);
+            _appServicePlanName = WebSiteMgmtClient.GenerateAppServicePlanName(_applicationName);
             _azureWebsiteName = _applicationName;
 
             // Networking names
-            _networkSecurityGroupName = Infrastructure.NetworkMgmtClient.GenerateNetworkSecurityGroupName();
-            //_routTableName = Infrastructure.NetworkMgmtClient.GenerateRoutTableName();
-            _virtualNetworkName = Infrastructure.NetworkMgmtClient.GenerateVirtualNetworkName();
-            //_networkInterfaceName = Infrastructure.NetworkMgmtClient.GenerateNetworkInterfaceName();
-            //_publicIPAddressName = Infrastructure.NetworkMgmtClient.GeneratePublicIPAddressName();
+            _networkSecurityGroupName = NetworkMgmtClient.GenerateNetworkSecurityGroupName();
+            //_routTableName = NetworkMgmtClient.GenerateRoutTableName();
+            _virtualNetworkName = NetworkMgmtClient.GenerateVirtualNetworkName();
+            //_networkInterfaceName = NetworkMgmtClient.GenerateNetworkInterfaceName();
+            //_publicIPAddressName = NetworkMgmtClient.GeneratePublicIPAddressName();
             //_domainNameLabel = SdkContext.RandomResourceName(_applicationName + "-", 5);
 
             // AKS cluster name
-            _aksClusterName = Infrastructure.AksMgmtClient.GenerateName();
+            _aksClusterName = AksMgmtClient.GenerateName();
+
+            // SignalR name
+            try {
+                _signalRName = await _signalRManagementClient
+                    .GenerateAvailableNameAsync(_resourceGroup, cancellationToken);
+            }
+            catch (Microsoft.Rest.Azure.CloudException) {
+                Log.Warning(notAvailableApiFormat, "SignalR");
+                _signalRName = SignalRMgmtClient.GenerateName();
+            }
         }
 
         public async Task RegisterApplicationsAsync(
@@ -395,7 +416,6 @@ namespace Microsoft.Azure.IIoT.Deployment {
             await _msGraphServiceClient
                 .AddMeAsApplicationOwnerAsync(_serviceApplication, cancellationToken);
 
-
             // Client Application //////////////////////////////////////////////
             // Register client application
 
@@ -405,7 +425,6 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 .RegisterClientApplicationAsync(
                     _serviceApplication,
                     _clientsApplicationName,
-                    _azureWebsiteName,
                     _defaultTagsList,
                     cancellationToken
                 );
@@ -419,7 +438,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 .AddMeAsApplicationOwnerAsync(_clientApplication, cancellationToken);
 
             // Update service application to include client applicatoin as knownClientApplications
-            await _msGraphServiceClient
+            _serviceApplication = await _msGraphServiceClient
                 .AddAsKnownClientApplicationAsync(
                     _serviceApplication,
                     _clientApplication,
@@ -434,7 +453,6 @@ namespace Microsoft.Azure.IIoT.Deployment {
                     _clientApplicationSP,
                     cancellationToken
                 );
-
 
             // App Registration for AKS ////////////////////////////////////////
             // Register aks application
@@ -629,9 +647,6 @@ namespace Microsoft.Azure.IIoT.Deployment {
             //    )
             //    .Result;
 
-
-
-
             // Assign Service Principal of AKS Application "Network Contributor" IAM role for Virtual Network and its Subnet.
             await _authorizationManagementClient
                 .AssignNetworkContributorRoleForResourceAsync(
@@ -644,9 +659,6 @@ namespace Microsoft.Azure.IIoT.Deployment {
                     _aksApplicationSP,
                     virtualNetworkAksSubnet.Id
                 );
-
-
-
 
             // Create Azure KeyVault
             VaultInner keyVault;
@@ -670,7 +682,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 );
 
             // Add certificates to KeyVault
-            var keyVaultAuthenticationCallback = new Infrastructure.IIoTKeyVaultClient.AuthenticationCallback(
+            var keyVaultAuthenticationCallback = new IIoTKeyVaultClient.AuthenticationCallback(
                 async (authority, resource, scope) => {
                     // Fetch AccessToken from cache.
                     var authenticationResult = await _authenticationManager
@@ -680,34 +692,31 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 }
             );
 
-            using (var iiotKeyVaultClient = new Infrastructure.IIoTKeyVaultClient(keyVaultAuthenticationCallback, keyVault)) {
+            using (var iiotKeyVaultClient = new IIoTKeyVaultClient(keyVaultAuthenticationCallback, keyVault)) {
                 await iiotKeyVaultClient.CreateCertificateAsync(
-                    Infrastructure.IIoTKeyVaultClient.WEB_APP_CERT_NAME,
-                    WEB_APP_CN,
+                    IIoTKeyVaultClient.WEB_APP_CERT_NAME,
+                    kWEB_APP_CN,
                     _defaultTagsDict,
                     cancellationToken
                 );
 
                 _webAppX509Certificate = await iiotKeyVaultClient.GetSecretAsync(
-                    Infrastructure.IIoTKeyVaultClient.WEB_APP_CERT_NAME,
+                    IIoTKeyVaultClient.WEB_APP_CERT_NAME,
                     cancellationToken
                 );
 
                 await iiotKeyVaultClient.CreateCertificateAsync(
-                    Infrastructure.IIoTKeyVaultClient.AKS_CLUSTER_CERT_NAME,
-                    AKS_CLUSTER_CN,
+                    IIoTKeyVaultClient.AKS_CLUSTER_CERT_NAME,
+                    kAKS_CLUSTER_CN,
                     _defaultTagsDict,
                     cancellationToken
                 );
 
                 _aksClusterX509Certificate = await iiotKeyVaultClient.GetCertificateAsync(
-                    Infrastructure.IIoTKeyVaultClient.AKS_CLUSTER_CERT_NAME,
+                    IIoTKeyVaultClient.AKS_CLUSTER_CERT_NAME,
                     cancellationToken
                 );
             }
-
-
-
 
             // Create Operational Insights workspace.
             var operationalInsightsWorkspaceCreationTask = _operationalInsightsManagementClient
@@ -718,9 +727,6 @@ namespace Microsoft.Azure.IIoT.Deployment {
                     cancellationToken
                 );
 
-
-
-
             // Create Application Insights components.
             var applicationInsightsComponentCreationTask = _applicationInsightsManagementClient
                 .CreateApplicationInsightsComponentAsync(
@@ -729,9 +735,6 @@ namespace Microsoft.Azure.IIoT.Deployment {
                     _defaultTagsDict,
                     cancellationToken
                 );
-
-
-
 
             // Create AKS cluster
             var operationalInsightsWorkspace = operationalInsightsWorkspaceCreationTask.Result;
@@ -754,9 +757,6 @@ namespace Microsoft.Azure.IIoT.Deployment {
                     clusterDefinition,
                     cancellationToken
                 );
-
-
-
 
             // Create Storage Account
             StorageAccountInner storageAccount;
@@ -781,14 +781,11 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 .CreateBlobContainerAsync(
                     _resourceGroup,
                     storageAccount,
-                    Infrastructure.StorageMgmtClient.STORAGE_ACCOUNT_IOT_HUB_CONTAINER_NAME,
+                    StorageMgmtClient.STORAGE_ACCOUNT_IOT_HUB_CONTAINER_NAME,
                     PublicAccess.None,
                     _defaultTagsDict,
                     cancellationToken
                 );
-
-
-
 
             // Create IoT Hub
             IotHubDescription iotHub;
@@ -797,9 +794,9 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 .CreateIotHubAsync(
                     _resourceGroup,
                     _iotHubName,
-                    Infrastructure.IotHubMgmtClient.IOT_HUB_EVENT_HUB_PARTITIONS_COUNT,
+                    IotHubMgmtClient.IOT_HUB_EVENT_HUB_PARTITIONS_COUNT,
                     storageAccountConectionString,
-                    Infrastructure.StorageMgmtClient.STORAGE_ACCOUNT_IOT_HUB_CONTAINER_NAME,
+                    StorageMgmtClient.STORAGE_ACCOUNT_IOT_HUB_CONTAINER_NAME,
                     _defaultTagsDict,
                     cancellationToken
                 );
@@ -808,13 +805,10 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 .CreateEventHubConsumerGroupAsync(
                     _resourceGroup,
                     iotHub,
-                    Infrastructure.IotHubMgmtClient.IOT_HUB_EVENT_HUB_ONBOARDING_ENDPOINT_NAME,
-                    Infrastructure.IotHubMgmtClient.IOT_HUB_EVENT_HUB_ONBOARDING_CONSUMER_GROUP_NAME,
+                    IotHubMgmtClient.IOT_HUB_EVENT_HUB_ONBOARDING_ENDPOINT_NAME,
+                    IotHubMgmtClient.IOT_HUB_EVENT_HUB_ONBOARDING_CONSUMER_GROUP_NAME,
                     cancellationToken
                 );
-
-
-
 
             // Create CosmosDB account
             var cosmosDBAccountCreationTask = _cosmosDBManagementClient
@@ -825,9 +819,6 @@ namespace Microsoft.Azure.IIoT.Deployment {
                     cancellationToken
                 );
 
-
-
-
             // Create Service Bus Namespace
             var serviceBusNamespaceCreationTask = _serviceBusManagementClient
                 .CreateServiceBusNamespaceAsync(
@@ -836,9 +827,6 @@ namespace Microsoft.Azure.IIoT.Deployment {
                     _defaultTagsDict,
                     cancellationToken
                 );
-
-
-
 
             // Create Azure Event Hub Namespace and Azure Event Hub
             EHNamespaceInner eventHubNamespace;
@@ -863,8 +851,6 @@ namespace Microsoft.Azure.IIoT.Deployment {
                     cancellationToken
                 );
 
-
-
             // Create AppService Plan to host the Application Gateway Web App
             var appServicePlan = await _webSiteManagementClient
                 .CreateAppServicePlanAsync(
@@ -875,28 +861,34 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 );
 
             // This will point to PublicIP address of Ingress.
-            var remoteEndpoint = "";
+            var emptyRemoteEndpoint = "";
 
             var webSiteCreationTask = _webSiteManagementClient
                 .CreateSiteAsync(
                     _resourceGroup,
                     appServicePlan,
                     _azureWebsiteName,
-                    remoteEndpoint,
+                    emptyRemoteEndpoint,
                     _webAppX509Certificate,
                     _defaultTagsDict,
                     cancellationToken
                 );
 
-
-
+            // SignalR
+            var signalRCreationTask = _signalRManagementClient
+                .CreateAsync(
+                    _resourceGroup,
+                    _signalRName,
+                    _defaultTagsDict,
+                    cancellationToken
+                );
 
             // Collect all necessary environment variables for IIoT services.
             var iotHubOwnerConnectionString = await _iotHubManagementClient
                 .GetIotHubConnectionStringAsync(
                     _resourceGroup,
                     iotHub,
-                    Infrastructure.IotHubMgmtClient.IOT_HUB_OWNER_KEY_NAME,
+                    IotHubMgmtClient.IOT_HUB_OWNER_KEY_NAME,
                     cancellationToken
                 );
 
@@ -930,6 +922,14 @@ namespace Microsoft.Azure.IIoT.Deployment {
                     cancellationToken
                 );
 
+            var signalR = signalRCreationTask.Result;
+            var signalRConnectionString = await _signalRManagementClient
+                .GetConnectionStringAsync(
+                    _resourceGroup,
+                    signalR,
+                    cancellationToken
+                );
+
             var applicationInsightsComponent = applicationInsightsComponentCreationTask.Result;
             var webSite = webSiteCreationTask.Result;
 
@@ -938,14 +938,15 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 _tenantId,
                 iotHub,
                 iotHubOwnerConnectionString,
-                Infrastructure.IotHubMgmtClient.IOT_HUB_EVENT_HUB_ONBOARDING_CONSUMER_GROUP_NAME,
-                Infrastructure.IotHubMgmtClient.IOT_HUB_EVENT_HUB_PARTITIONS_COUNT,
+                IotHubMgmtClient.IOT_HUB_EVENT_HUB_ONBOARDING_CONSUMER_GROUP_NAME,
+                IotHubMgmtClient.IOT_HUB_EVENT_HUB_PARTITIONS_COUNT,
                 cosmosDBAccountConnectionString,
                 storageAccount,
                 storageAccountKey,
                 eventHub,
                 eventHubNamespaceConnectionString,
                 serviceBusNamespaceConnectionString,
+                signalRConnectionString,
                 keyVault,
                 operationalInsightsWorkspace,
                 applicationInsightsComponent,
@@ -953,9 +954,6 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 _serviceApplication,
                 _clientApplication
             );
-
-
-
 
             // Deploy IIoT services to AKS cluster
 
@@ -975,18 +973,73 @@ namespace Microsoft.Azure.IIoT.Deployment {
 
             var iiotK8SClient = new IIoTK8SClient(_aksKubeConfig);
 
-            iiotK8SClient.CreateIIoTNamespaceAsync().Wait();
-            iiotK8SClient.CreateIIoTEnvSecretAsync(iiotEnvironment.Dict).Wait();
-            iiotK8SClient.DeployIIoTServicesAsync().Wait();
+            // industrial-iot namespace
+            iiotK8SClient.CreateIIoTNamespaceAsync(cancellationToken).Wait();
+            iiotK8SClient.SetupIIoTServiceAccountAsync(cancellationToken).Wait();
+            iiotK8SClient.CreateIIoTEnvSecretAsync(iiotEnvironment.Dict, cancellationToken).Wait();
+            iiotK8SClient.DeployIIoTServicesAsync(cancellationToken).Wait();
+
+            // We will add default SSL certificate for Ingress
+            // NGINX controler to industrial-iot namespace
             iiotK8SClient
                 .CreateNGINXDefaultSSLCertificateSecretAsync(
                     webAppPemCertificate,
-                    webAppPemPrivateKey
+                    webAppPemPrivateKey,
+                    cancellationToken
                 )
                 .Wait();
 
+            // ingress-nginx namespace
+            iiotK8SClient.CreateNGINXNamespaceAsync(cancellationToken).Wait();
+            iiotK8SClient.SetupNGINXServiceAccountAsync(cancellationToken).Wait();
+            iiotK8SClient.DeployNGINXIngressControllerAsync(cancellationToken).Wait();
 
+            // After we have NGINX Ingress controller we can create Ingress
+            // for our Industrial IoT services and wait for IP address of
+            // its LoadBalancer.
+            var iiotIngress = await iiotK8SClient.CreateIIoTIngressAsync(cancellationToken);
+            var iiotIngressIPAddresses = await iiotK8SClient.WaitForIngressIPAsync(iiotIngress, cancellationToken);
+            var iiotIngressIPAdress = iiotIngressIPAddresses.FirstOrDefault().Ip;
 
+            // Update remote endpoint and certificate thumbprint application settings
+            // of App Servise.
+            var iiotIngressRemoteEndpoint = $"https://{iiotIngressIPAdress}";
+            await _webSiteManagementClient
+                .UpdateSiteApplicationSettingsAsync(
+                    _resourceGroup,
+                    webSite,
+                    iiotIngressRemoteEndpoint,
+                    _webAppX509Certificate,
+                    cancellationToken
+                );
+
+            // Deploy reverse proxy to App Service. It will consume values of remote
+            // endpoint and certificate thumbprint application settings of App Service.
+            var proxySiteSourceControl = await _webSiteManagementClient
+                .DeployProxyAsync(
+                    _resourceGroup,
+                    webSite,
+                    _defaultTagsDict,
+                    cancellationToken
+                );
+
+            // After we have proxy deployed to App Service, we will update 
+            // client application to have redirect URIs for App Service.
+            var redirectUris = new List<string> {
+                $"https://{webSite.DefaultHostName}/",
+                $"https://{webSite.DefaultHostName}/registry/",
+                $"https://{webSite.DefaultHostName}/twin/",
+                $"https://{webSite.DefaultHostName}/history/",
+                $"https://{webSite.DefaultHostName}/ua/",
+                $"https://{webSite.DefaultHostName}/vault/"
+            };
+
+            _clientApplication = await _msGraphServiceClient
+                .UpdateRedirectUrisAsync(
+                    _clientApplication,
+                    redirectUris,
+                    cancellationToken
+                );
 
             // Check if we want to save environment to .env file
             var saveEnvFile = _configurationProvider.CheckIfSaveEnvFile();
@@ -1002,7 +1055,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
         }
 
         public void Dispose() {
-            void disposeIfNotNull(IDisposable disposable) {
+            static void disposeIfNotNull(IDisposable disposable) {
                 if (null != disposable) {
                     disposable.Dispose();
                 }
@@ -1026,6 +1079,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
             disposeIfNotNull(_networkManagementClient);
             disposeIfNotNull(_authorizationManagementClient);
             disposeIfNotNull(_aksManagementClient);
+            disposeIfNotNull(_signalRManagementClient);
         }
     }
 }

@@ -4,11 +4,15 @@ metadata:
   name: gateway-service
   namespace: industrial-iot
   labels:
-    app: gatewayservice
+    app.kubernetes.io/name: gateway-service
+    app.kubernetes.io/part-of: industrial-iot
+    app.kubernetes.io/version: 2.5.1
+    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
 spec:
   type: ClusterIP
   selector:
-    app: gatewayservice
+    app.kubernetes.io/name: gateway-service
+    app.kubernetes.io/part-of: industrial-iot
   ports:
   - port: 443
     protocol: TCP

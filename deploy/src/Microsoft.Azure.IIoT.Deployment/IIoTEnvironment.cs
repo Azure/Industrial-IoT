@@ -51,6 +51,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
         public readonly string PCS_APPINSIGHTS_NAME;
         public readonly string PCS_APPINSIGHTS_INSTRUMENTATIONKEY;
         public readonly string PCS_SERVICE_URL;
+        public readonly string PCS_SIGNALR_CONNSTRING;
 
         public readonly string PCS_AUTH_HTTPSREDIRECTPORT;
         public readonly string PCS_AUTH_REQUIRED;
@@ -85,6 +86,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
             EventhubInner eventHub,
             string eventHubConnectionString,
             string serviceBusConnectionString,
+            string signalRConnectionString,
             VaultInner keyVault,
             Workspace operationalInsightsWorkspace,
             ApplicationInsightsComponent applicationInsightsComponent,
@@ -121,6 +123,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
             PCS_APPINSIGHTS_NAME = applicationInsightsComponent.Name;
             PCS_APPINSIGHTS_INSTRUMENTATIONKEY = applicationInsightsComponent.InstrumentationKey;
             PCS_SERVICE_URL = $"https://{webSite.HostNames[0]}";
+            PCS_SIGNALR_CONNSTRING = signalRConnectionString;
 
             PCS_AUTH_HTTPSREDIRECTPORT = "0";
             PCS_AUTH_REQUIRED = "true";
@@ -165,6 +168,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 { "PCS_APPINSIGHTS_NAME", PCS_APPINSIGHTS_NAME },
                 { "PCS_APPINSIGHTS_INSTRUMENTATIONKEY", PCS_APPINSIGHTS_INSTRUMENTATIONKEY },
                 { "PCS_SERVICE_URL", PCS_SERVICE_URL },
+                { "PCS_SIGNALR_CONNSTRING", PCS_SIGNALR_CONNSTRING },
                 { "PCS_AUTH_HTTPSREDIRECTPORT", PCS_AUTH_HTTPSREDIRECTPORT },
                 { "PCS_AUTH_REQUIRED", PCS_AUTH_REQUIRED },
                 { "PCS_AUTH_AUDIENCE", PCS_AUTH_AUDIENCE },

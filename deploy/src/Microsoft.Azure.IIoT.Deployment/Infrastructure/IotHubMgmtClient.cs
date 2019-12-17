@@ -20,6 +20,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
     class IotHubMgmtClient : IDisposable {
 
         public const string DEFAULT_IOT_HUB_NAME_PREFIX = "iothub-";
+        public const int NUM_OF_MAX_NAME_AVAILABILITY_CHECKS = 5;
 
         public const int IOT_HUB_EVENT_HUB_PARTITIONS_COUNT = 4;
 
@@ -28,7 +29,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
 
         public const string IOT_HUB_OWNER_KEY_NAME = "iothubowner";
 
-        private const string IOT_HUB_CONNECTION_STRING_FORMAT = "HostName={0};SharedAccessKeyName={1};SharedAccessKey={2}";
+        private const string kIOT_HUB_CONNECTION_STRING_FORMAT = "HostName={0};SharedAccessKeyName={1};SharedAccessKey={2}";
 
         private readonly IotHubClient _iotHubClient;
 
@@ -61,6 +62,88 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             return SdkContext.RandomResourceName(prefix, suffixLen);
         }
 
+        /// <summary>
+        /// Checks whether given IoTHub name is available.
+        /// </summary>
+        /// <param name="iotHubName"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns>True if name is available, False otherwise.</returns>
+        /// <exception cref="Microsoft.Rest.Azure.CloudException"></exception>
+        public async Task<bool> CheckNameAvailabilityAsync(
+            string iotHubName,
+            CancellationToken cancellationToken = default
+        ) {
+            try {
+                var operationInputs = new OperationInputs {
+                    Name = iotHubName
+                };
+
+                var nameAvailabilityInfo = await _iotHubClient
+                    .IotHubResource
+                    .CheckNameAvailabilityAsync(
+                        operationInputs,
+                        cancellationToken
+                    );
+
+                if (nameAvailabilityInfo.NameAvailable.HasValue) {
+                    return nameAvailabilityInfo.NameAvailable.Value;
+                }
+            }
+            catch (Microsoft.Rest.Azure.CloudException) {
+                // Will be thrown if there is no registered resource provider
+                // found for specified location and/or api version to perform
+                // name availability check.
+                throw;
+            }
+            catch (Exception ex) {
+                Log.Error(ex, $"Failed to check IoTHub Service name availability for {iotHubName}");
+                throw;
+            }
+
+            // !nameAvailabilityInfo.NameAvailable.HasValue
+            throw new Exception($"Failed to check IoTHub Service name availability for {iotHubName}");
+        }
+
+        /// <summary>
+        /// Tries to generate IoTHub name that is available.
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns>An available name for IoTHub.</returns>
+        /// <exception cref="Microsoft.Rest.Azure.CloudException"></exception>
+        public async Task<string> GenerateAvailableNameAsync(
+            CancellationToken cancellationToken = default
+        ) {
+            try {
+                for (var numOfChecks = 0; numOfChecks < NUM_OF_MAX_NAME_AVAILABILITY_CHECKS; ++numOfChecks) {
+                    var iotHubName = GenerateIotHubName();
+                    var nameAvailable = await CheckNameAvailabilityAsync(
+                            iotHubName,
+                            cancellationToken
+                        );
+
+                    if (nameAvailable) {
+                        return iotHubName;
+                    }
+                }
+            }
+            catch (Microsoft.Rest.Azure.CloudException) {
+                // Will be thrown if there is no registered resource provider
+                // found for specified location and/or api version to perform
+                // name availability check.
+                throw;
+            }
+            catch (Exception ex) {
+                Log.Error(ex, "Failed to generate unique IoTHub service name");
+                throw;
+            }
+
+            var errorMessage = $"Failed to generate unique IoTHub service name " +
+                $"after {NUM_OF_MAX_NAME_AVAILABILITY_CHECKS} retries";
+
+            Log.Error(errorMessage);
+            throw new Exception(errorMessage);
+        }
+
         public async Task<IotHubDescription> CreateIotHubAsync(
             IResourceGroup resourceGroup,
             string iotHubName,
@@ -71,9 +154,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             CancellationToken cancellationToken = default
         ) {
             try {
-                if (null == tags) {
-                    tags = new Dictionary<string, string> { };
-                }
+                tags ??= new Dictionary<string, string>();
 
                 Log.Information($"Creating Azure IoT Hub: {iotHubName} ...");
 
@@ -221,7 +302,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                 );
 
             var iotHubConnectionString = string.Format(
-                IOT_HUB_CONNECTION_STRING_FORMAT,
+                kIOT_HUB_CONNECTION_STRING_FORMAT,
                 iotHub.Properties.HostName,
                 iotHubKey.KeyName,
                 iotHubKey.PrimaryKey,

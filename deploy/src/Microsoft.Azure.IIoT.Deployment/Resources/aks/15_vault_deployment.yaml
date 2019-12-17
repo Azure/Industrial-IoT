@@ -1,23 +1,31 @@
-﻿apiVersion: extensions/v1beta1
+﻿apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: modelprocessor-deployment
+  name: vault-deployment
   namespace: industrial-iot
   labels:
-    app: modelprocessor
+    app.kubernetes.io/name: vault-service
+    app.kubernetes.io/part-of: industrial-iot
+    app.kubernetes.io/version: 2.5.1
+    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: modelprocessor
+      app.kubernetes.io/name: vault-service
+      app.kubernetes.io/part-of: industrial-iot
   template:
     metadata:
       labels:
-        app: modelprocessor
+        app.kubernetes.io/name: vault-service
+        app.kubernetes.io/part-of: industrial-iot
+        app.kubernetes.io/version: 2.5.1
+        app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
     spec:
+      serviceAccountName: industrial-iot-serviceaccount
       containers:
-      - name: modelprocessor
-        image: mcr.microsoft.com/iot/opc-processor-service:2.5.1
+      - name: vault-service-container
+        image: mcr.microsoft.com/iot/opc-vault-service:2.5.1
         resources:
           requests:
             memory: "64Mi"
@@ -25,6 +33,9 @@ spec:
           limits:
             memory: "512Mi"
             cpu: "250m"
+        ports:
+        - containerPort: 443
+        - containerPort: 9044
         env:
         - name: PCS_KEYVAULT_URL
           valueFrom:
@@ -46,41 +57,46 @@ spec:
             secretKeyRef:
               name: industrial-iot-env
               key: PCS_TELEMETRY_DOCUMENTDB_CONNSTRING
-        - name: PCS_IOTHUBREACT_HUB_ENDPOINT
+        - name: PCS_AUTH_HTTPSREDIRECTPORT
           valueFrom:
             secretKeyRef:
               name: industrial-iot-env
-              key: PCS_IOTHUBREACT_HUB_ENDPOINT
-        - name: PCS_IOTHUBREACT_HUB_PARTITIONS
+              key: PCS_AUTH_HTTPSREDIRECTPORT
+        - name: PCS_AUTH_REQUIRED
           valueFrom:
             secretKeyRef:
               name: industrial-iot-env
-              key: PCS_IOTHUBREACT_HUB_PARTITIONS
-        - name: PCS_IOTHUBREACT_HUB_NAME
+              key: PCS_AUTH_REQUIRED
+        - name: PCS_AUTH_ISSUER
           valueFrom:
             secretKeyRef:
               name: industrial-iot-env
-              key: PCS_IOTHUBREACT_HUB_NAME
-        - name: PCS_IOTHUBREACT_HUB_CONSUMERGROUP
+              key: PCS_AUTH_ISSUER
+        - name: PCS_AUTH_AUDIENCE
           valueFrom:
             secretKeyRef:
               name: industrial-iot-env
-              key: PCS_IOTHUBREACT_HUB_CONSUMERGROUP
-        - name: PCS_IOTHUBREACT_AZUREBLOB_ACCOUNT
+              key: PCS_AUTH_AUDIENCE
+        - name: PCS_WEBUI_AUTH_AAD_APPID
           valueFrom:
             secretKeyRef:
               name: industrial-iot-env
-              key: PCS_IOTHUBREACT_AZUREBLOB_ACCOUNT
-        - name: PCS_IOTHUBREACT_AZUREBLOB_KEY
+              key: PCS_WEBUI_AUTH_AAD_APPID
+        - name: PCS_WEBUI_AUTH_AAD_AUTHORITY
           valueFrom:
             secretKeyRef:
               name: industrial-iot-env
-              key: PCS_IOTHUBREACT_AZUREBLOB_KEY
-        - name: PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX
+              key: PCS_WEBUI_AUTH_AAD_AUTHORITY
+        - name: PCS_WEBUI_AUTH_AAD_TENANT
           valueFrom:
             secretKeyRef:
               name: industrial-iot-env
-              key: PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX
+              key: PCS_WEBUI_AUTH_AAD_TENANT
+        - name: PCS_CORS_WHITELIST
+          valueFrom:
+            secretKeyRef:
+              name: industrial-iot-env
+              key: PCS_CORS_WHITELIST
         - name: PCS_APPINSIGHTS_NAME
           valueFrom:
             secretKeyRef:
