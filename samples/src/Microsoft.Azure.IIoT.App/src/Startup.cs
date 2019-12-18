@@ -15,6 +15,8 @@ namespace Microsoft.Azure.IIoT.App {
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Api.Vault.Clients;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher;
     using Microsoft.AspNetCore.Authentication;
     using Microsoft.AspNetCore.Authentication.AzureAD.UI;
     using Microsoft.AspNetCore.Authentication.OpenIdConnect;
@@ -179,7 +181,7 @@ namespace Microsoft.Azure.IIoT.App {
             // Register http client module (needed for api)...
             builder.RegisterModule<HttpClientModule>();
             builder.RegisterType<SignalRClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces().AsSelf().SingleInstance();
 
             // Use bearer authentication
             builder.RegisterType<HttpBearerAuthentication>()
@@ -198,6 +200,12 @@ namespace Microsoft.Azure.IIoT.App {
             builder.RegisterType<VaultServiceClient>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<PublisherServiceClient>()
+                .AsImplementedInterfaces().SingleInstance();
+
+            // ... with client event callbacks
+            builder.RegisterType<RegistryServiceEvents>()
+                .AsImplementedInterfaces().AsSelf().SingleInstance();
+            builder.RegisterType<PublisherServiceEvents>()
                 .AsImplementedInterfaces().SingleInstance();
 
             builder.RegisterType<Registry>()

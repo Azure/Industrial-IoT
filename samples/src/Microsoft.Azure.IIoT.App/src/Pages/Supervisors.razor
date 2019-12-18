@@ -5,11 +5,16 @@
 @using Microsoft.Azure.IIoT.App.Components.Pager
 @using Microsoft.Azure.IIoT.App.Components.Drawer
 @using Microsoft.Azure.IIoT.App.Data
-@using Microsoft.AspNetCore.Components;
+@using Microsoft.AspNetCore.Components
+@using Microsoft.Azure.IIoT.Http.SignalR
+@using Microsoft.Azure.IIoT.OpcUa.Api.Registry
+@using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models
 
 
 @inject NavigationManager NavigationManager
 @inject Registry RegistryHelper
+@inject RegistryServiceEvents RegistryServiceEvents
+@inject SignalRClient SignalRClientHelper
 
 <h1>Supervisor</h1>
 
@@ -54,6 +59,10 @@
                     {
                         <div class=" pos-right loader"></div>
                     }
+                    else
+                    {
+                        <div class=" pos-right"></div>
+                    }
                 </td>
                 <td>
                     @{string portOutput = supervisor.SupervisorModel.DiscoveryConfig?.AddressRangesToScan == null ? "Default" : supervisor.SupervisorModel.DiscoveryConfig.AddressRangesToScan;}
@@ -71,6 +80,11 @@
         }
     </tbody>
 </table>
+<div class="results @_scanResult"> Scan Results:
+    <div class="events">
+        @_eventResult
+    </div>
+</div>
 
 <Drawer HeaderText="Scan IP address range" ObjectData="@SupervisorData" IsOpened="@IsOpened" CloseDrawer="@(() => CloseDrawer())">
     <div class="drawer-content list-group">
@@ -114,6 +128,8 @@
     public PagedResult<SupervisorInfo> supervisorList = new PagedResult<SupervisorInfo>();
     public PagedResult<SupervisorInfo> pagedSupervisorList = new PagedResult<SupervisorInfo>();
     public const int PageLength = 10;
+    private string _eventResult { get; set; }
+    private string _scanResult { get; set; } = "hidden";
 
 
     /// <summary>
@@ -144,22 +160,31 @@
     /// /// <param name="forceScan"></param>
     /// /// <param name="ipMask"></param>
     /// /// <param name="portRange"></param>
-    private async Task SetScan(SupervisorInfo supervisor, bool forceScan, string ipMask=null, string portRange=null)
+    private async Task SetScan(SupervisorInfo supervisor, bool forceScan, string ipMask = null, string portRange = null)
     {
+        var discovery = await RegistryServiceEvents.SubscribeDiscoveryProgressBySupervisorsIdAsync(
+                supervisor.SupervisorModel.Id, null, ScanProgress);
 
-        await RegistryHelper.SetScanAsync(supervisor, ipMask, portRange, forceScan);
+        try
+        {
+            _eventResult = string.Empty;
+            await RegistryHelper.SetScanAsync(supervisor, ipMask, portRange, forceScan);
+        }
+        catch
+        {
+            await discovery.DisposeAsync();
+        }
 
-        if (supervisor.ScanStatus == false || forceScan == true)
+        if (supervisor.ScanStatus == true)
         {
             supervisor.IsSearching = true;
-
-            await Task.Delay(10000);
-            supervisorList = await RegistryHelper.GetSupervisorListAsync();
-            pagedSupervisorList = supervisorList.GetPaged(Int32.Parse(Page), PageLength);
-
-            supervisor.IsSearching = false;
-            await Task.CompletedTask;
-            this.StateHasChanged();
+            _scanResult = "visible";
+            SupervisorData = supervisor;
+        }
+        else
+        {
+            await discovery.DisposeAsync();
+            _scanResult = "hidden";
         }
     }
 
@@ -180,5 +205,75 @@
     {
         IsOpened = false;
         this.StateHasChanged();
+    }
+
+    /// <summary>
+    /// display supervisors scan events  
+    /// </summary>
+    /// <param name="ev"></param>
+    private Task ScanProgress(DiscoveryProgressApiModel ev)
+    {
+        switch (ev.EventType) {
+            case DiscoveryProgressType.Pending:
+                _eventResult += string.Format("{0}: {1} waiting...", ev.SupervisorId, ev.Total) + System.Environment.NewLine;
+                break;
+            case DiscoveryProgressType.Started:
+                _eventResult += string.Format("{0}: Started.", ev.SupervisorId) + System.Environment.NewLine;
+                break;
+            case DiscoveryProgressType.NetworkScanStarted:
+                _eventResult += string.Format("{0}: Scanning network...", ev.SupervisorId) + System.Environment.NewLine;
+                break;
+            case DiscoveryProgressType.NetworkScanResult:
+                _eventResult += string.Format("{0}: {1}/{2}: {3} addresses found - NEW: {4}...", ev.SupervisorId, ev.Progress, ev.Total, ev.Discovered, ev.Result) + System.Environment.NewLine;
+                break;
+            case DiscoveryProgressType.NetworkScanProgress:
+                _eventResult += string.Format("{0}: {1}/{2}: {3} addresses found", ev.SupervisorId, ev.Progress, ev.Total, ev.Discovered) + System.Environment.NewLine;
+                break;
+            case DiscoveryProgressType.NetworkScanFinished:
+                _eventResult += string.Format("{0}: {1}/{2}: {3} addresses found - complete!", ev.SupervisorId, ev.Progress, ev.Total, ev.Discovered) + System.Environment.NewLine;
+                break;
+            case DiscoveryProgressType.PortScanStarted:
+                _eventResult += string.Format("{0}: Scanning ports...", ev.SupervisorId) + System.Environment.NewLine;
+                break;
+            case DiscoveryProgressType.PortScanResult:
+                _eventResult += string.Format("{0}: {1}/{2}: {3} ports found - NEW: {4}", ev.SupervisorId, ev.Progress, ev.Total, ev.Discovered, ev.Result) + System.Environment.NewLine;
+                break;
+            case DiscoveryProgressType.PortScanProgress:
+                _eventResult += string.Format("{0}: {1}/{2}: {3} ports found", ev.SupervisorId, ev.Progress, ev.Total, ev.Discovered) + System.Environment.NewLine;
+                break;
+            case DiscoveryProgressType.PortScanFinished:
+                _eventResult += string.Format("{0}: {1}/{2}: {3} ports found - complete!", ev.SupervisorId, ev.Progress, ev.Total, ev.Discovered) + System.Environment.NewLine;
+                break;
+            case DiscoveryProgressType.ServerDiscoveryStarted:
+                _eventResult += "==========================================" + System.Environment.NewLine;
+                _eventResult += string.Format("{0}: {1}/{2}: Finding servers...", ev.SupervisorId, ev.Progress, ev.Total) + System.Environment.NewLine;
+                break;
+            case DiscoveryProgressType.EndpointsDiscoveryStarted:
+                _eventResult += string.Format("{0}: {1}/{2}: ... {3} servers found - find endpoints on {4}...", ev.SupervisorId, ev.Progress, ev.Total, ev.Discovered, ((dynamic)ev.RequestDetails).url) + System.Environment.NewLine;
+                break;
+            case DiscoveryProgressType.EndpointsDiscoveryFinished:
+                _eventResult += string.Format("{0}: {1}/{2}: ... {3} servers found - {4} endpoints found on {5}...", ev.SupervisorId, ev.Progress, ev.Total, ev.Discovered, ev.Result, ((dynamic)ev.RequestDetails).url) + System.Environment.NewLine;
+                break;
+            case DiscoveryProgressType.ServerDiscoveryFinished:
+                _eventResult += string.Format("{0}: {1}/{2}: ... {3} servers found.", ev.SupervisorId, ev.Progress, ev.Total, ev.Discovered) + System.Environment.NewLine;
+                break;
+            case DiscoveryProgressType.Cancelled:
+                _eventResult += "==========================================" + System.Environment.NewLine;
+                _eventResult += string.Format("{0}: Cancelled.", ev.SupervisorId) + System.Environment.NewLine;
+                SupervisorData.IsSearching = false;
+                break;
+            case DiscoveryProgressType.Error:
+                _eventResult += "==========================================" + System.Environment.NewLine;
+                _eventResult += string.Format("{0}: Failure.", ev.SupervisorId) + System.Environment.NewLine;
+                SupervisorData.IsSearching = false;
+                break;
+            case DiscoveryProgressType.Finished:
+                _eventResult += "==========================================" + System.Environment.NewLine;
+                _eventResult += string.Format("{0}: Completed.", ev.SupervisorId) + System.Environment.NewLine;
+                SupervisorData.IsSearching = false;
+                break;
+        }
+        StateHasChanged();
+        return Task.CompletedTask;
     }
 }
