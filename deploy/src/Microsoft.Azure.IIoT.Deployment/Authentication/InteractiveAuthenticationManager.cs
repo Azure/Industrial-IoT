@@ -60,15 +60,15 @@ namespace Microsoft.Azure.IIoT.Deployment.Authentication {
             // https://github.com/AzureAD/microsoft-authentication-library-for-dotnet/wiki/Acquiring-tokens-interactively
 
             // ToDo: Add timeout.
-            var microsoftGraphAuthenticatoinResult = await _publicClientApplication
+            var microsoftGraphAuthenticationResult = await _publicClientApplication
                 .AcquireTokenInteractive(MicrosoftGraphIAIScopes)
                 .WithExtraScopesToConsent(AzureManagementIAIScopes)
                 .WithExtraScopesToConsent(KeyVaultIAIScopes)
                 //.WithPrompt(Prompt.SelectAccount)
                 .ExecuteAsync(cancellationToken);
 
-            // Extract account from microsoftGraphAuthenticatoinResult
-            _account = microsoftGraphAuthenticatoinResult.Account;
+            // Extract account from microsoftGraphAuthenticationResult
+            _account = microsoftGraphAuthenticationResult.Account;
 
             // Validate that we have received Tokens.
             await AcquireMicrosoftGraphAuthenticationResultAsync(cancellationToken);

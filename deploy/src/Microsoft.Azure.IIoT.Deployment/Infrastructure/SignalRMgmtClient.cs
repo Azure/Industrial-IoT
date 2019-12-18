@@ -265,7 +265,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                 return keys.PrimaryConnectionString;
             }
             catch (Exception ex) {
-                Log.Error(ex, $"Failed to retrieve connection string for SignalR Service: {signalR.Name}");
+                Log.Error(ex, $"Failed to get connection string for SignalR Service: {signalR.Name}");
                 throw;
             }
         }

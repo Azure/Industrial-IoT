@@ -39,6 +39,8 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
 
         ApplicationRegistrationConfiguration GetApplicationRegistrationConfiguration();
 
+        ApplicationRegistrationDefinition GetApplicationRegistrationDefinition();
+
         string GetApplicationURL();
 
         bool IfSaveEnvFile();

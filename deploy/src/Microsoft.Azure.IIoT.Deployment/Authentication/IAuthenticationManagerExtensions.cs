@@ -18,11 +18,11 @@ namespace Microsoft.Azure.IIoT.Deployment.Authentication {
             this IAuthenticationManager authenticationManager,
             CancellationToken cancellationToken = default
         ) {
-            var microsoftGraphAuthenticatoinResult = await authenticationManager
+            var microsoftGraphAuthenticationResult = await authenticationManager
                 .AcquireMicrosoftGraphAuthenticationResultAsync(cancellationToken);
 
             var microsoftGraphTokenCredentials = authenticationManager
-                .GenerateTokenCredentials(microsoftGraphAuthenticatoinResult);
+                .GenerateTokenCredentials(microsoftGraphAuthenticationResult);
             return microsoftGraphTokenCredentials;
         }
 
@@ -40,11 +40,11 @@ namespace Microsoft.Azure.IIoT.Deployment.Authentication {
             this IAuthenticationManager authenticationManager,
             CancellationToken cancellationToken = default
         ) {
-            var azureManagementAuthenticatoinResult = await authenticationManager
+            var azureManagementAuthenticationResult = await authenticationManager
                 .AcquireAzureManagementAuthenticationResultAsync(cancellationToken);
             
             var azureManagementTokenCredentials = authenticationManager
-                .GenerateTokenCredentials(azureManagementAuthenticatoinResult);
+                .GenerateTokenCredentials(azureManagementAuthenticationResult);
             return azureManagementTokenCredentials;
         }
 
@@ -62,11 +62,11 @@ namespace Microsoft.Azure.IIoT.Deployment.Authentication {
             this IAuthenticationManager authenticationManager,
             CancellationToken cancellationToken = default
         ) {
-            var keyVaultAuthenticatoinResult = await authenticationManager
+            var keyVaultAuthenticationResult = await authenticationManager
                 .AcquireKeyVaultAuthenticationResultAsync(cancellationToken);
             
             var keyVaultTokenCredentials = authenticationManager
-                .GenerateTokenCredentials(keyVaultAuthenticatoinResult);
+                .GenerateTokenCredentials(keyVaultAuthenticationResult);
             return keyVaultTokenCredentials;
         }
 

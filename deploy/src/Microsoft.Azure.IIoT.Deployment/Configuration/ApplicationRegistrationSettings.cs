@@ -10,7 +10,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
     class ApplicationRegistrationSettings {
         public Guid? ClientsApplicationId { get; set; }
         public Guid? ServicesApplicationId { get; set; }
-        public Guid? AksApplicatoinId { get; set; }
-        public string AksApplicatoinRbacSecret { get; set; }
+        public Guid? AksApplicationId { get; set; }
+        public string AksApplicationRbacSecret { get; set; }
     }
 }

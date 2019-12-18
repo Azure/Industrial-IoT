@@ -397,7 +397,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             ServicePrincipal clientApplicationSP,
             CancellationToken cancellationToken = default
         ) {
-            // Grant admin consent for service application "user_impersonation" API permissions of client applicatoin
+            // Grant admin consent for service application "user_impersonation" API permissions of client application
             var clientApplicationOAuth2PermissionGrantUserImpersonationDefinition = new OAuth2PermissionGrant {
                 ConsentType = "AllPrincipals",
                 ClientId = clientApplicationSP.Id,
@@ -415,7 +415,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                     cancellationToken
                 );
 
-            // Grant admin consent for Microsoft Graph "User.Read" API permissions of client applicatoin
+            // Grant admin consent for Microsoft Graph "User.Read" API permissions of client application
             var microsoftGraphApplicationSP = await GetServicePrincipalByAppIdAsync(
                 AzureAppsConstants.MicrosoftGraph.AppId,
                 cancellationToken

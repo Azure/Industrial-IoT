@@ -369,22 +369,26 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
                 throw new ArgumentException("ApplicationRegistration.ClientsApplicationId property is missing.");
             }
 
-            if (null == applicationRegistrationSettings.AksApplicatoinId) {
-                throw new ArgumentException("ApplicationRegistration.AksApplicatoinId property is missing.");
+            if (null == applicationRegistrationSettings.AksApplicationId) {
+                throw new ArgumentException("ApplicationRegistration.AksApplicationId property is missing.");
             }
 
-            if (string.IsNullOrEmpty(applicationRegistrationSettings.AksApplicatoinRbacSecret)) {
-                throw new ArgumentException("ApplicationRegistration.AksApplicatoinRbacSecret property is missing or empty.");
+            if (string.IsNullOrEmpty(applicationRegistrationSettings.AksApplicationRbacSecret)) {
+                throw new ArgumentException("ApplicationRegistration.AksApplicationRbacSecret property is missing or empty.");
             }
 
             var applicationRegistrationConfiguration = new ApplicationRegistrationConfiguration(
                 applicationRegistrationSettings.ServicesApplicationId.Value,
                 applicationRegistrationSettings.ClientsApplicationId.Value,
-                applicationRegistrationSettings.AksApplicatoinId.Value,
-                applicationRegistrationSettings.AksApplicatoinRbacSecret
+                applicationRegistrationSettings.AksApplicationId.Value,
+                applicationRegistrationSettings.AksApplicationRbacSecret
             );
 
             return applicationRegistrationConfiguration;
+        }
+
+        public override ApplicationRegistrationDefinition GetApplicationRegistrationDefinition() {
+            return _appSettings?.ApplicationRegistrationDefinition?.ToApplicationRegistrationDefinition();
         }
 
         public override string GetApplicationURL() {

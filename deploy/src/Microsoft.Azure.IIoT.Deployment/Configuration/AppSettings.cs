@@ -16,6 +16,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
         public string ApplicationURL { get; set; }
         public ResourceGroupSettings ResourceGroup { get; set; }
         public ApplicationRegistrationSettings ApplicationRegistration { get; set; }
+        public ApplicationRegistrationDefinitionSettings ApplicationRegistrationDefinition { get; set; }
         public bool? SaveEnvFile { get; set; }
         public bool? NoCleanup { get; set; }
     }

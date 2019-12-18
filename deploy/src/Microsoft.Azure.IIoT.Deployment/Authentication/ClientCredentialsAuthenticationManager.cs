@@ -59,11 +59,11 @@ namespace Microsoft.Azure.IIoT.Deployment.Authentication {
             // We will use client credential authentication flow.
             // https://github.com/AzureAD/microsoft-authentication-library-for-dotnet/wiki/Client-credential-flows
 
-            var microsoftGraphAuthenticatoinResult = 
+            var microsoftGraphAuthenticationResult = 
                 await AcquireMicrosoftGraphAuthenticationResultAsync(cancellationToken);
 
-            // Extract account from microsoftGraphAuthenticatoinResult
-            _account = microsoftGraphAuthenticatoinResult.Account;
+            // Extract account from microsoftGraphAuthenticationResult
+            _account = microsoftGraphAuthenticationResult.Account;
 
             // Validate that we have received Tokens.
             await AcquireMicrosoftGraphAuthenticationResultAsync(cancellationToken);

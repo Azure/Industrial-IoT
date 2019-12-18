@@ -18,6 +18,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
 
     using Authentication;
     using Infrastructure;
+    using Configuration;
 
     using Microsoft.Azure.Management.ResourceManager.Fluent;
     using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
@@ -110,7 +111,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     await RunFullDeploymentAsync(cancellationToken);
                     break;
                 case RunMode.ApplicationRegistration:
-                    await RunApplicatoinRegistrationOnlyAsync(cancellationToken);
+                    await RunApplicationRegistrationOnlyAsync(cancellationToken);
                     break;
                 case RunMode.ResourceDeployment:
                     await RunResourceDeploymentOnlyAsync(cancellationToken);
@@ -130,8 +131,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 await GetSubscriptionAsync(cancellationToken);
                 GetApplicationName();
 
-                await InitializeResourceGroupSelectionAsync(cancellationToken);
                 InitializeResourceManagementClients();
+
+                await InitializeResourceGroupSelectionAsync(cancellationToken);
                 await RegisterResourceProvidersAsync(cancellationToken);
                 await SetupApplicationsAsync(cancellationToken);
                 await GenerateAzureResourceNamesAsync(cancellationToken);
@@ -152,7 +154,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             }
         }
 
-        protected async Task RunApplicatoinRegistrationOnlyAsync(
+        protected async Task RunApplicationRegistrationOnlyAsync(
             CancellationToken cancellationToken = default
         ) {
             try {
@@ -162,9 +164,12 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 await GetSubscriptionAsync(cancellationToken);
                 GetApplicationName();
 
+                InitializeResourceManagementClients();
+
                 await SetupApplicationsAsync(cancellationToken);
                 await UpdateClientApplicationRedirectUrisAsync(cancellationToken);
-                OutputApplicationRegistrationConfiguration();
+                //OutputApplicationRegistrationConfiguration();
+                OutputApplicationRegistrationDefinition();
 
                 Log.Information("Done.");
             }
@@ -189,8 +194,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 await GetSubscriptionAsync(cancellationToken);
                 GetApplicationName();
 
-                await InitializeResourceGroupSelectionAsync(cancellationToken);
                 InitializeResourceManagementClients();
+
+                await InitializeResourceGroupSelectionAsync(cancellationToken);
                 await RegisterResourceProvidersAsync(cancellationToken);
                 await SetupApplicationsAsync(cancellationToken);
                 await GenerateAzureResourceNamesAsync(cancellationToken);
@@ -425,34 +431,67 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             CancellationToken cancellationToken = default
         ) {
             var runMode = _configurationProvider.GetRunMode();
+
             var applicationRegistrationConfiguration = _configurationProvider
                 .GetApplicationRegistrationConfiguration();
+            var applicationRegistrationDefinition = _configurationProvider
+                .GetApplicationRegistrationDefinition();
 
-            if (null == applicationRegistrationConfiguration) {
-                if (RunMode.ResourceDeployment == runMode) {
-                    // In ResourceDeployment mode ApplicationRegistration should be configured.
-                    throw new ArgumentException("ApplicationRegistration is not configured.");
+            if (RunMode.Full == runMode
+                || RunMode.ApplicationRegistration == runMode
+            ) {
+                if (null != applicationRegistrationDefinition) {
+                    // Load definitions of existing applications.
+                    _applicationsManager.Load(applicationRegistrationDefinition);
                 }
+                else if (null != applicationRegistrationConfiguration) {
+                    // Load definitions of existing applications from Microsoft Graph.
+                    await _applicationsManager
+                        .GetDefinitionsFromMicrosoftGraphAsync(
+                            applicationRegistrationConfiguration,
+                            cancellationToken
+                        );
+                }
+                else {
+                    // Create new applications.
+                    await _applicationsManager
+                        .RegisterApplicationsAsync(
+                            _applicationName,
+                            _owner,
+                            _defaultTagsList,
+                            cancellationToken
+                        );
 
-                // Create new applications.
-                await _applicationsManager
-                    .RegisterApplicationsAsync(
-                        _applicationName,
-                        _owner,
-                        _defaultTagsList,
-                        cancellationToken
-                    );
-
-            } else {
-                // Load definitions for existing applications.
-                await _applicationsManager
-                    .LoadAsync(
-                        applicationRegistrationConfiguration.ServicesApplicationId,
-                        applicationRegistrationConfiguration.ClientsApplicationId,
-                        applicationRegistrationConfiguration.AksApplicatoinId,
-                        applicationRegistrationConfiguration.AksApplicatoinRbacSecret,
-                        cancellationToken
-                    );
+                    // Assign Service Principal of AKS Application
+                    // "Network Contributor" IAM role for Subscription.
+                    await _authorizationManagementClient
+                        .AssignNetworkContributorRoleForSubscriptionAsync(
+                            _applicationsManager.GetAKSApplicationSP(),
+                            cancellationToken
+                        );
+                }
+            }
+            else if (RunMode.ResourceDeployment == runMode) {
+                if (null != applicationRegistrationDefinition) {
+                    // Load definitions of existing applications.
+                    _applicationsManager.Load(applicationRegistrationDefinition);
+                }
+                else if (null != applicationRegistrationConfiguration) {
+                    // Load definitions of existing applications from Microsoft Graph.
+                    await _applicationsManager
+                        .GetDefinitionsFromMicrosoftGraphAsync(
+                            applicationRegistrationConfiguration,
+                            cancellationToken
+                        );
+                }
+                else {
+                    // In ResourceDeployment mode, we assume that the application
+                    // does not have enouh permissions to create new Applications
+                    // and Service Principals. So either ApplicationRegistration
+                    // or ApplicationRegistrationDefinition must be configured.
+                    throw new ArgumentException("ApplicationRegistration or " +
+                        "ApplicationRegistrationDefinition must be configured.");
+                }
             }
         }
 
@@ -513,7 +552,31 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     new JsonConverter[] { new StringEnumConverter() }
                 );
 
-            Log.Information("Use details bellow for resource deployment of Industrial IoT solution.");
+            Log.Information("Use details bellow as ApplicationRegistration " +
+                "for resource deployment of Industrial IoT solution.");
+            Console.WriteLine(jsonString);
+        }
+
+        protected void OutputApplicationRegistrationDefinition() {
+            var appRegDef = new ApplicationRegistrationDefinitionSettings(
+                new ApplicationSettings(_applicationsManager.GetServiceApplication()),
+                new ServicePrincipalSettings(_applicationsManager.GetServiceApplicationSP()),
+                new ApplicationSettings(_applicationsManager.GetClientApplication()),
+                new ServicePrincipalSettings(_applicationsManager.GetClientApplicationSP()),
+                new ApplicationSettings(_applicationsManager.GetAKSApplication()),
+                new ServicePrincipalSettings(_applicationsManager.GetAKSApplicationSP()),
+                _applicationsManager.GetAKSApplicationRbacSecret()
+            );
+
+            var jsonString = JsonConvert
+                .SerializeObject(
+                    appRegDef,
+                    Formatting.Indented,
+                    new JsonConverter[] { new StringEnumConverter() }
+                );
+
+            Log.Information("Use details bellow as ApplicationRegistrationDefinition " +
+                "for resource deployment of Industrial IoT solution.");
             Console.WriteLine(jsonString);
         }
 
@@ -681,19 +744,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             //        cancellationToken
             //    )
             //    .Result;
-
-            // Assign Service Principal of AKS Application "Network Contributor" IAM role for Virtual Network and its Subnet.
-            await _authorizationManagementClient
-                .AssignNetworkContributorRoleForResourceAsync(
-                    _applicationsManager.GetAKSApplicationSP(),
-                    virtualNetwork.Id
-                );
-
-            await _authorizationManagementClient
-                .AssignNetworkContributorRoleForResourceAsync(
-                    _applicationsManager.GetAKSApplicationSP(),
-                    virtualNetworkAksSubnet.Id
-                );
 
             // Create Azure KeyVault
             VaultInner keyVault;

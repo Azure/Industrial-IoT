@@ -11,19 +11,19 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
 
         public Guid ServicesApplicationId { get; }
         public Guid ClientsApplicationId { get; }
-        public Guid AksApplicatoinId { get; }
-        public string AksApplicatoinRbacSecret { get; }
+        public Guid AksApplicationId { get; }
+        public string AksApplicationRbacSecret { get; }
 
         public ApplicationRegistrationConfiguration(
             Guid servicesApplicationId,
             Guid clientsApplicationId,
-            Guid aksApplicatoinId,
-            string aksApplicatoinRbacSecret
+            Guid aksApplicationId,
+            string aksApplicationRbacSecret
         ) {
             ServicesApplicationId = servicesApplicationId;
             ClientsApplicationId = clientsApplicationId;
-            AksApplicatoinId = aksApplicatoinId;
-            AksApplicatoinRbacSecret = aksApplicatoinRbacSecret;
+            AksApplicationId = aksApplicationId;
+            AksApplicationRbacSecret = aksApplicationRbacSecret;
         }
     }
 }

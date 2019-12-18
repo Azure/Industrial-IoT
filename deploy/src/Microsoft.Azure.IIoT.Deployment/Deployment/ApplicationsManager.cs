@@ -126,7 +126,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     cancellationToken
                 );
 
-            // Update service application to include client applicatoin as knownClientApplications
+            // Update service application to include client application as knownClientApplications
             _serviceApplication = await _msGraphServiceClient
                 .AddAsKnownClientApplicationAsync(
                     _serviceApplication,
@@ -134,8 +134,8 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     cancellationToken
                 );
 
-            // Grant admin consent for service application "user_impersonation" API permissions of client applicatoin
-            // Grant admin consent for Microsoft Graph "User.Read" API permissions of client applicatoin
+            // Grant admin consent for service application "user_impersonation" API permissions of client application
+            // Grant admin consent for Microsoft Graph "User.Read" API permissions of client application
             await _msGraphServiceClient
                 .GrantAdminConsentToClientApplicationAsync(
                     _serviceApplicationSP,
@@ -168,35 +168,76 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 );
         }
 
-        public async Task LoadAsync(
-            Guid serviceApplicationId,
-            Guid clientApplicationId,
-            Guid aksApplicationId,
-            string aksApplicatoinRbacSecret,
+        /// <summary>
+        /// Retrieve Application and Service Principal definitions from
+        /// Microsoft Graph.
+        /// </summary>
+        /// <param name="applicationRegistrationConfiguration"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public async Task GetDefinitionsFromMicrosoftGraphAsync(
+            ApplicationRegistrationConfiguration applicationRegistrationConfiguration,
             CancellationToken cancellationToken = default
         ) {
-            Log.Information("Retrieving service application registration ...");
+            Log.Information("Application and Service Principal definitions will be retrieved from Microsoft Graph.");
+
+            Log.Information("Getting service application registration ...");
             _serviceApplication = await _msGraphServiceClient
-                .GetApplicationAsync(serviceApplicationId, cancellationToken);
+                .GetApplicationAsync(
+                    applicationRegistrationConfiguration.ServicesApplicationId,
+                    cancellationToken
+                );
 
             _serviceApplicationSP = await _msGraphServiceClient
-                .GetApplicationServicePrincipalAsync(_serviceApplication, cancellationToken);
+                .GetApplicationServicePrincipalAsync(
+                    _serviceApplication,
+                    cancellationToken
+                );
 
-            Log.Information("Retrieving client application registration ...");
+            Log.Information("Getting client application registration ...");
             _clientApplication = await _msGraphServiceClient
-                .GetApplicationAsync(clientApplicationId, cancellationToken);
+                .GetApplicationAsync(
+                    applicationRegistrationConfiguration.ClientsApplicationId,
+                    cancellationToken
+                );
 
             _clientApplicationSP = await _msGraphServiceClient
-                .GetApplicationServicePrincipalAsync(_clientApplication, cancellationToken);
+                .GetApplicationServicePrincipalAsync(
+                    _clientApplication,
+                    cancellationToken
+                );
 
-            Log.Information("Retrieving AKS application registration ...");
+            Log.Information("Getting AKS application registration ...");
             _aksApplication = await _msGraphServiceClient
-                .GetApplicationAsync(aksApplicationId, cancellationToken);
+                .GetApplicationAsync(
+                    applicationRegistrationConfiguration.AksApplicationId,
+                    cancellationToken
+                );
 
             _aksApplicationSP = await _msGraphServiceClient
-                .GetApplicationServicePrincipalAsync(_aksApplication, cancellationToken);
+                .GetApplicationServicePrincipalAsync(
+                    _aksApplication,
+                    cancellationToken
+                );
 
-            _aksApplicationPasswordCredentialRbacSecret = aksApplicatoinRbacSecret;
+            _aksApplicationPasswordCredentialRbacSecret = applicationRegistrationConfiguration.AksApplicationRbacSecret;
+        }
+
+        /// <summary>
+        /// Load Application and Service Principal definitions from provided
+        /// ApplicationRegistrationDefinition object.
+        /// </summary>
+        /// <param name="applicationRegistrationDefinition"></param>
+        public void Load(ApplicationRegistrationDefinition applicationRegistrationDefinition) {
+            _serviceApplication = applicationRegistrationDefinition.ServicesApplication;
+            _serviceApplicationSP = applicationRegistrationDefinition.ServicesApplicationSP;
+
+            _clientApplication = applicationRegistrationDefinition.ClientsApplication;
+            _clientApplicationSP = applicationRegistrationDefinition.ClientsApplicationSP;
+
+            _aksApplication = applicationRegistrationDefinition.AksApplication;
+            _aksApplicationSP = applicationRegistrationDefinition.AksApplicationSP;
+            _aksApplicationPasswordCredentialRbacSecret = applicationRegistrationDefinition.AksApplicationRbacSecret;
         }
 
         public async Task DeleteApplicationsAsync(
@@ -518,6 +559,13 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                         cancellationToken
                     );
 
+                // Get updated definition
+                serviceApplication = await _msGraphServiceClient
+                    .GetApplicationAsync(
+                        new Guid(serviceApplication.Id),
+                        cancellationToken
+                    );
+
                 Log.Information("Created service application registration.");
 
                 return serviceApplication;
@@ -591,7 +639,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 // Note: Oauth2AllowImplicitFlow will be enabled automatically since both
                 // EnableIdTokenIssuance and EnableAccessTokenIssuance are set to true.
 
-                var clientApplicationWebApplicatoin = new WebApplication {
+                var clientApplicationWebApplication = new WebApplication {
                     //Oauth2AllowImplicitFlow = true,
                     ImplicitGrantSettings = new ImplicitGrantSettings {
                         EnableIdTokenIssuance = true,
@@ -609,7 +657,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     SignInAudience = "AzureADMyOrg",
                     RequiredResourceAccess = clientApplicationRequiredResourceAccess,
                     PublicClient = clientApplicationPublicClientApplication,
-                    Web = clientApplicationWebApplicatoin,
+                    Web = clientApplicationWebApplication,
                     PasswordCredentials = new List<PasswordCredential> { }
                 };
 
@@ -633,6 +681,13 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     .CreateApplicationServicePrincipalAsync(
                         clientApplication,
                         tags,
+                        cancellationToken
+                    );
+
+                // Get updated definition
+                clientApplication = await _msGraphServiceClient
+                    .GetApplicationAsync(
+                        new Guid(clientApplication.Id),
                         cancellationToken
                     );
 
@@ -711,7 +766,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     );
 
                 if (string.IsNullOrEmpty(aksApplicationRBACPasswordCredential.SecretText)) {
-                    throw new Exception($"Failed to retrieve password credentials for AKS Application: {rbacKeyName}");
+                    throw new Exception($"Failed to get password credentials for AKS Application: {rbacKeyName}");
                 }
 
                 var aksApplicationRBACPasswordCredentialSecret = aksApplicationRBACPasswordCredential.SecretText;
@@ -721,6 +776,13 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     .CreateApplicationServicePrincipalAsync(
                         aksApplication,
                         tags,
+                        cancellationToken
+                    );
+
+                // Get updated definition
+                aksApplication = await _msGraphServiceClient
+                    .GetApplicationAsync(
+                        new Guid(aksApplication.Id),
                         cancellationToken
                     );
 
