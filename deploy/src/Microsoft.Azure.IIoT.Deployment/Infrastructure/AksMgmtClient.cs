@@ -68,6 +68,8 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             Workspace operationalInsightsWorkspace,
             IDictionary<string, string> tags = null
         ) {
+            tags ??= new Dictionary<string, string>();
+
             var aksDnsPrefix = aksClusterName + "-dns";
             var aksClusterX509CertificateOpenSshPublicKey = X509CertificateHelper.GetOpenSSHPublicKey(sshCertificate);
 

@@ -23,7 +23,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
 
         public const string STORAGE_ACCOUNT_IOT_HUB_CONTAINER_NAME = "iothub-default";
 
-        private const string STORAGE_ACCOUNT_CONECTION_STRING_FORMAT = 
+        private const string kSTORAGE_ACCOUNT_CONECTION_STRING_FORMAT = 
             "DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1};EndpointSuffix={2}";
 
         private readonly StorageManagementClient _storageManagementClient;
@@ -57,14 +57,31 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             string storageAccountName,
             CancellationToken cancellationToken = default
         ) {
-            var storageAccountNameCheck = await _storageManagementClient
-                .StorageAccounts
-                .CheckNameAvailabilityAsync(
-                    storageAccountName,
-                    cancellationToken
-                );
+            try {
+                var storageAccountNameCheck = await _storageManagementClient
+                    .StorageAccounts
+                    .CheckNameAvailabilityAsync(
+                        storageAccountName,
+                        cancellationToken
+                    );
 
-            return storageAccountNameCheck.NameAvailable.Value;
+                if (storageAccountNameCheck.NameAvailable.HasValue) {
+                    return storageAccountNameCheck.NameAvailable.Value;
+                }
+            }
+            catch (Microsoft.Rest.Azure.CloudException) {
+                // Will be thrown if there is no registered resource provider
+                // found for specified location and/or api version to perform
+                // name availability check.
+                throw;
+            }
+            catch (Exception ex) {
+                Log.Error(ex, $"Failed to check Storage Account name availability for {storageAccountName}");
+                throw;
+            }
+
+            // !storageAccountNameCheck.NameAvailable.HasValue
+            throw new Exception($"Failed to check Storage Account name availability for {storageAccountName}");
         }
 
         /// <summary>
@@ -114,7 +131,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             CancellationToken cancellationToken = default
         ) {
             try {
-                tags = tags ?? new Dictionary<string, string>();
+                tags ??= new Dictionary<string, string>();
 
                 Log.Information($"Creating Azure Storage Account: {storageAccountName} ...");
 
@@ -210,7 +227,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             var storageAccountKey = await GetStorageAccountKeyAsync(resourceGroup, storageAccount, cancellationToken);
 
             var storageAccountConectionString = string.Format(
-                STORAGE_ACCOUNT_CONECTION_STRING_FORMAT,
+                kSTORAGE_ACCOUNT_CONECTION_STRING_FORMAT,
                 storageAccount.Name,
                 storageAccountKey.Value,
                 _azureEnvironment.StorageEndpointSuffix
@@ -228,7 +245,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             CancellationToken cancellationToken = default
         ) {
             try {
-                tags = tags ?? new Dictionary<string, string>();
+                tags ??= new Dictionary<string, string>();
 
                 Log.Information($"Creating Blob Container: {containerName} ...");
 

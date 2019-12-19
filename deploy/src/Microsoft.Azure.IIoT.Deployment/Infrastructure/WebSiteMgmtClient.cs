@@ -51,7 +51,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             CancellationToken cancellationToken = default
         ) {
             try {
-                tags = tags ?? new Dictionary<string, string>();
+                tags ??= new Dictionary<string, string>();
 
                 Log.Information($"Creating Azure AppService Plan: {appServicePlanName} ...");
 
@@ -96,7 +96,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             CancellationToken cancellationToken = default
         ) {
             try {
-                tags = tags ?? new Dictionary<string, string>();
+                tags ??= new Dictionary<string, string>();
 
                 Log.Information($"Creating Azure AppService: {azureWebsiteName} ...");
 
@@ -197,7 +197,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             CancellationToken cancellationToken = default
         ) {
             try {
-                tags = tags ?? new Dictionary<string, string>();
+                tags ??= new Dictionary<string, string>();
 
                 Log.Information($"Deploying proxy service to AppService: {webSite.Name} ...");
 

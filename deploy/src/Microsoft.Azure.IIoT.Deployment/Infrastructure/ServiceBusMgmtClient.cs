@@ -126,7 +126,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             CancellationToken cancellationToken = default
         ) {
             try {
-                tags = tags ?? new Dictionary<string, string>();
+                tags ??= new Dictionary<string, string>();
 
                 Log.Information($"Creating Azure Service Bus Namespace: {serviceBusNamespaceName} ...");
 
