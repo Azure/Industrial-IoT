@@ -88,6 +88,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
 
         // Resources
         private DirectoryObject _owner;
+        private bool _ownedApplications = false;
 
         private const string kWEB_APP_CN = "webapp.services.net"; // ToDo: Assign meaningfull value.
         private X509Certificate2 _webAppX509Certificate;
@@ -462,6 +463,10 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                             cancellationToken
                         );
 
+                    // Remeber that we have registered applications.
+                    // Required for UpdateClientApplicationRedirectUrisAsync().
+                    _ownedApplications = true;
+
                     // Assign Service Principal of AKS Application
                     // "Network Contributor" IAM role for Subscription.
                     await _authorizationManagementClient
@@ -498,6 +503,13 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
         protected async Task UpdateClientApplicationRedirectUrisAsync(
             CancellationToken cancellationToken = default
         ) {
+            // Check whether applications have been created or loaded.
+            if (!_ownedApplications) {
+                Log.Information("Client application definition has been loaded through " +
+                    "configuration, so update of RedirectUris will not be performed.");
+                return;
+            }
+
             var runMode = _configurationProvider.GetRunMode();
 
             if (RunMode.ApplicationRegistration == runMode) {
