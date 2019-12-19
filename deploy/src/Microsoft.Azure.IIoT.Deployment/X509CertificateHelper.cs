@@ -111,7 +111,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
             var rsaPrivateKey = cert.GetRSAPrivateKey();
 
             if (null == rsaPrivateKey) {
-                throw new ArgumentException("Certificate does not contain RSA Private key.");
+                throw new ArgumentException("Certificate does not contain RSA Private key.", "cert");
             }
 
             var rsaParameters = rsaPrivateKey.ExportParameters(true);
@@ -133,7 +133,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
             var rsaPublicKey = cert.GetRSAPublicKey();
 
             if (null == rsaPublicKey) {
-                throw new ArgumentException("Certificate does not contain RSA Public key.");
+                throw new ArgumentException("Certificate does not contain RSA Public key.", "cert");
             }
 
             var rsaParameters = rsaPublicKey.ExportParameters(false);

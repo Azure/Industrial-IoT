@@ -14,6 +14,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
     using Microsoft.Azure.Management.Graph.RBAC.Fluent.Models;
     using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
     using Microsoft.Graph;
+
     using Serilog;
 
     class AuthorizationMgmtClient : IDisposable {
@@ -23,7 +24,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
         public const string NETWORK_CONTRIBUTOR_ROLE_ID = "4d97b98b-1d4f-4787-a291-c67834d212e7";
 
         private readonly AuthorizationManagementClient _authorizationManagementClient;
-        private readonly string _networkContributorRoleDefinitionId;
+        private readonly string _subscriptionId;
 
         public AuthorizationMgmtClient(
             string subscriptionId,
@@ -33,7 +34,17 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                 SubscriptionId = subscriptionId
             };
 
-            _networkContributorRoleDefinitionId = $"/subscriptions/{subscriptionId}/providers/Microsoft.Authorization/roleDefinitions/{NETWORK_CONTRIBUTOR_ROLE_ID}";
+            _subscriptionId = subscriptionId;
+        }
+
+        protected string GetRoleDefinitionId(
+            string roleId
+        ) {
+            var networkContributorRoleDefinitionId = 
+                $"/subscriptions/{_subscriptionId}/providers" +
+                $"/Microsoft.Authorization/roleDefinitions/{roleId}";
+
+            return networkContributorRoleDefinitionId;
         }
 
         public async Task<RoleAssignmentInner> AssignNetworkContributorRoleForResourceAsync(
@@ -41,63 +52,102 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             string resourceId,
             CancellationToken cancellationToken = default
         ) {
-            const int retrySeconds = 180;
+            var networkContributorRoleDefinitionId = GetRoleDefinitionId(
+                NETWORK_CONTRIBUTOR_ROLE_ID
+            );
+
+            var roleAssignmentDefinition = new RoleAssignmentCreateParameters {
+                PrincipalId = servicePrincipal.Id,
+                RoleDefinitionId = networkContributorRoleDefinitionId
+            };
+
+            var scope = resourceId;
+
+            return await CreateRoleAssignmentWithRetryAsync(
+                servicePrincipal,
+                scope,
+                roleAssignmentDefinition,
+                "NetworkContributor",
+                cancellationToken
+            );
+        }
+
+        public async Task<RoleAssignmentInner> AssignNetworkContributorRoleForSubscriptionAsync(
+            ServicePrincipal servicePrincipal,
+            CancellationToken cancellationToken = default
+        ) {
+            var networkContributorRoleDefinitionId = GetRoleDefinitionId(
+                NETWORK_CONTRIBUTOR_ROLE_ID
+            );
+
+            var roleAssignmentDefinition = new RoleAssignmentCreateParameters {
+                PrincipalId = servicePrincipal.Id,
+                RoleDefinitionId = networkContributorRoleDefinitionId
+            };
+
+            var scope = $"/subscriptions/{_subscriptionId}/";
+
+            return await CreateRoleAssignmentWithRetryAsync(
+                servicePrincipal,
+                scope,
+                roleAssignmentDefinition,
+                "NetworkContributor",
+                cancellationToken
+            );
+        }
+
+        protected async Task<RoleAssignmentInner> CreateRoleAssignmentWithRetryAsync(
+            ServicePrincipal servicePrincipal,
+            string scope,
+            RoleAssignmentCreateParameters roleAssignmentDefinition,
+            string roleDescription,
+            CancellationToken cancellationToken = default
+        ) {
+            const int retrySeconds = 240;
             const int waitSeconds = 5;
 
-            try {
-                Log.Debug($"Assigning NetworkContributor role to Service Principal: {servicePrincipal.DisplayName} ...");
+            Log.Debug($"Assigning {roleDescription} role to Service Principal: {servicePrincipal.DisplayName} ...");
 
-                var roleAssignmentDefinition = new RoleAssignmentCreateParameters {
-                    PrincipalId = servicePrincipal.Id,
-                    RoleDefinitionId = _networkContributorRoleDefinitionId
-                };
+            var spIdFormatted = new Guid(servicePrincipal.Id).ToString("N");
+            var spDoesNotExistMessage = $"principal {spIdFormatted} does not exist";
 
-                var spIdFormatted = new Guid(servicePrincipal.Id).ToString("N");
-                var spDoesNotExistMessage = $"principal {spIdFormatted} does not exist";
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
 
-                var stopwatch = new Stopwatch();
-                stopwatch.Start();
+            // It can take some time for new service principal to
+            // propagate throughout Azure AD. So we will retry in
+            // a loop for retrySeconds.
+            do {
+                try {
+                    var roleAssignmentResult = await _authorizationManagementClient
+                        .RoleAssignments
+                        .CreateAsync(
+                            scope,
+                            Guid.NewGuid().ToString(),
+                            roleAssignmentDefinition,
+                            cancellationToken
+                        );
 
-                // It can take some time for new service principal to 
-                // propagate throughout Azure AD. So we will retry in
-                // a loop for retrySeconds.
-                do {
-                    try {
-                        var roleAssignmentResult = await _authorizationManagementClient
-                            .RoleAssignments
-                            .CreateAsync(
-                                resourceId,
-                                Guid.NewGuid().ToString(),
-                                roleAssignmentDefinition,
-                                cancellationToken
-                            );
+                    Log.Debug($"Assigned {roleDescription} role to Service Principal: {servicePrincipal.DisplayName}");
 
-                        Log.Debug($"Assigned NetworkContributor role to Service Principal: {servicePrincipal.DisplayName}");
+                    return roleAssignmentResult;
+                }
+                catch (Rest.Azure.CloudException ex) {
+                    if (ex.Message.ToLower().Contains(spDoesNotExistMessage)) {
+                        Log.Debug($"ServicePrincipal creation has not propagated correctly. " +
+                            $"Waiting for {waitSeconds} seconds before retry.");
 
-                        return roleAssignmentResult;
+                        await Task.Delay(waitSeconds * 1000, cancellationToken);
                     }
-                    catch (Rest.Azure.CloudException ex) {
-                        if (ex.Message.ToLower().Contains(spDoesNotExistMessage)) {
-                            Log.Debug($"ServicePrincipal creation has not propagated correctly. " +
-                                $"Waiting for {waitSeconds} seconds before retry.");
-
-                            await Task.Delay(waitSeconds * 1000, cancellationToken);
-                        }
-                        else {
-                            throw;
-                        }
+                    else {
+                        throw;
                     }
-                } while (stopwatch.Elapsed < TimeSpan.FromSeconds(retrySeconds));
-            }
-            catch (Exception ex) {
-                Log.Error(ex, $"Failed to assign NetworkContributor role " +
-                    $"to Service Principal: {servicePrincipal.DisplayName}");
-                throw;
-            }
+                }
+            } while (stopwatch.Elapsed < TimeSpan.FromSeconds(retrySeconds));
 
             // We exited do/while loop without successfully creating role assignment.
-            var errorMessage = $"Failed to assign NetworkContributor role within {retrySeconds} seconds " +
-                $"to Service Principal: {servicePrincipal.DisplayName}";
+            var errorMessage = $"Failed to assign {roleDescription} role within {retrySeconds} " +
+                $"seconds to Service Principal: {servicePrincipal.DisplayName}";
             throw new Exception(errorMessage);
         }
 

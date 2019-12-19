@@ -75,7 +75,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
 
         public IIoTEnvironment(
             AzureEnvironment azureEnvironment,
-            Guid tenantIdGuid,
+            Guid tenantId,
             IotHubDescription iotHub,
             string iotHubOwnerConnectionString,
             string iotHubOnboardingConsumerGroupName,
@@ -128,11 +128,11 @@ namespace Microsoft.Azure.IIoT.Deployment {
             PCS_AUTH_HTTPSREDIRECTPORT = "0";
             PCS_AUTH_REQUIRED = "true";
             PCS_AUTH_AUDIENCE = serviceApplication.IdentifierUris.First();
-            PCS_AUTH_ISSUER = $"https://sts.windows.net/{tenantIdGuid.ToString()}/";
+            PCS_AUTH_ISSUER = $"https://sts.windows.net/{tenantId.ToString()}/";
 
             PCS_WEBUI_AUTH_AAD_APPID = clientApplication.AppId;
             PCS_WEBUI_AUTH_AAD_AUTHORITY = azureEnvironment.AuthenticationEndpoint;
-            PCS_WEBUI_AUTH_AAD_TENANT = tenantIdGuid.ToString();
+            PCS_WEBUI_AUTH_AAD_TENANT = tenantId.ToString();
 
             PCS_CORS_WHITELIST = "*";
 
