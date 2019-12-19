@@ -47,7 +47,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 using (var writer = new StringWriter()) {
                     using (var encoder = new JsonEncoderEx(writer, message.ServiceMessageContext) {
                         // TODO: Configure encoding further
-                        UseUriEncoding = false
+                        UseUriEncoding = true
                     }) {
                         value.Encode(encoder);
                     }

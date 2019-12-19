@@ -206,7 +206,7 @@ namespace Microsoft.Azure.IIoT.App {
             builder.RegisterType<RegistryServiceEvents>()
                 .AsImplementedInterfaces().AsSelf().SingleInstance();
             builder.RegisterType<PublisherServiceEvents>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces().AsSelf().SingleInstance();
 
             builder.RegisterType<Registry>()
                 .AsImplementedInterfaces().AsSelf().SingleInstance();

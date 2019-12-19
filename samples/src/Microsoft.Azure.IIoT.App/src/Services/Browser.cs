@@ -51,7 +51,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
             };
 
             if (direction == BrowseDirection.Forward) {
-                model.MaxReferencesToReturn = 10;
+                model.MaxReferencesToReturn = _MAX_REFERENCES;
                 model.NodeId = id;
                 if (id == string.Empty) {
                     Path = string.Empty;
@@ -276,5 +276,6 @@ namespace Microsoft.Azure.IIoT.App.Services {
         }
 
         private readonly ITwinServiceApi _twinService;
+        private const int _MAX_REFERENCES = 50;
     }
 }
