@@ -41,10 +41,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             _fileSystemWatcher = new FileSystemWatcher(directory, file);
             _fileSystemWatcher.Changed += _fileSystemWatcher_Changed;
             _fileSystemWatcher.EnableRaisingEvents = true;
-            LoadJobFromFile();
+            RefreshJobFromFile();
         }
-
-
 
         /// <summary>
         /// Gets the next available job - this will always return the job representation of the legacy publishednodes.json along with legacy command line arguments.
@@ -92,11 +90,22 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             if (writerGroupJobModels.Count() == 1) {
                 return writerGroupJobModels.Single();
             }
-            else throw new NotImplementedException();
+            // we use the first item in as template and add the DataSet writers of the subsequent jobs
+            var writerGroupTemplate  = writerGroupJobModels.First().WriterGroup.Clone();
+            writerGroupTemplate.DataSetWriters = writerGroupJobModels.SelectMany(s => s.WriterGroup.DataSetWriters).ToList();
+
+            var mergedModel = new WriterGroupJobModel() {
+                ConnectionString = null,
+                Engine = writerGroupJobModels.First().Engine,
+                MessagingMode = writerGroupJobModels.First().MessagingMode,
+                WriterGroup = writerGroupTemplate
+            };
+
+            return mergedModel;
         }
 
         private void _fileSystemWatcher_Changed(object sender, FileSystemEventArgs e) {
-            LoadJobFromFile();
+            RefreshJobFromFile();
         }
 
         private static string GetChecksum(string file) {
@@ -107,32 +116,52 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             }
         }
 
-        private void LoadJobFromFile() {
-            var currentFileHash = GetChecksum(_legacyCliModel.PublishedNodesFile);
+        private void RefreshJobFromFile() {
+            int retryCount = 3;
 
-            if (currentFileHash != _lastKnownFileHash) {
-                _lastKnownFileHash = currentFileHash;
+            while (true) {
+                try {
+                    var currentFileHash = GetChecksum(_legacyCliModel.PublishedNodesFile);
 
-                using (var reader = new StreamReader(_legacyCliModel.PublishedNodesFile)) {
-                    var jobs = _publishedNodesJobConverter.Read(reader, _legacyCliModel);
-                    var flattened = Flatten(jobs);
+                    if (currentFileHash != _lastKnownFileHash) {
+                        _logger.Information("File {publishedNodesFile} has changed, reloading...", _legacyCliModel.PublishedNodesFile);
+                        _lastKnownFileHash = currentFileHash;
 
-                    var serializedJob = _jobSerializer.SerializeJobConfiguration(flattened, out var jobConfigurationType);
+                        using (var reader = new StreamReader(_legacyCliModel.PublishedNodesFile)) {
+                            var jobs = _publishedNodesJobConverter.Read(reader, _legacyCliModel);
+                            var flattened = Flatten(jobs);
 
-                    _jobProcessingInstructionModel = new JobProcessingInstructionModel() {
-                        Job = new JobInfoModel() {
-                            Demands = new List<DemandModel>(),
-                            Id = "LegacyJob",
-                            JobConfiguration = serializedJob,
-                            JobConfigurationType = jobConfigurationType,
-                            LifetimeData = new JobLifetimeDataModel(),
-                            Name = "LegacyJob",
-                            RedundancyConfig = new RedundancyConfigModel() { DesiredActiveAgents = 1, DesiredPassiveAgents = 0 }
-                        },
-                        ProcessMode = ProcessMode.Active
-                    };
+                            var serializedJob = _jobSerializer.SerializeJobConfiguration(flattened, out var jobConfigurationType);
 
-                    _updated = true;
+                            _jobProcessingInstructionModel = new JobProcessingInstructionModel() {
+                                Job = new JobInfoModel() {
+                                    Demands = new List<DemandModel>(),
+                                    Id = "LegacyJob",
+                                    JobConfiguration = serializedJob,
+                                    JobConfigurationType = jobConfigurationType,
+                                    LifetimeData = new JobLifetimeDataModel(),
+                                    Name = "LegacyJob",
+                                    RedundancyConfig = new RedundancyConfigModel() { DesiredActiveAgents = 1, DesiredPassiveAgents = 0 }
+                                },
+                                ProcessMode = ProcessMode.Active
+                            };
+
+                            _updated = true;
+                        }
+                    }
+
+                    break;
+                }
+                catch (IOException ex) {
+                    retryCount--;
+
+                    if (retryCount > 0) {
+                        _logger.Error("Error while loading job from file, retrying...");
+                    }
+                    else {
+                        _logger.Error(ex, "Error while loading job from file. Retry expired, giving up.");
+                        break;
+                    }
                 }
             }
         }

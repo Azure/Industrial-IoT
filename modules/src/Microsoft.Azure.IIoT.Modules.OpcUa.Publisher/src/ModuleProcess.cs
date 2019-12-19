@@ -9,6 +9,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
     using Microsoft.Azure.IIoT.Api.Jobs.Clients;
     using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
+    using Microsoft.Azure.IIoT.Module.Framework.Hosting;
     using Microsoft.Azure.IIoT.Module.Framework.Services;
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Agent;
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime;
@@ -133,6 +134,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
 
             if (legacyCliOptions.RunInLegacyMode) {
                 loggerConfiguration = legacyCliOptions.ToLoggerConfiguration();
+
+                // we overwrite the ModuleHost registration from PerLifetimeScope (in builder.RegisterModule<ModuleFramework>) to Singleton as
+                // we want to reuse the Client from the ModuleHost in sub-scopes.
+                builder.RegisterType<ModuleHost>().AsImplementedInterfaces().SingleInstance();
 
                 builder.RegisterInstance(legacyCliOptions).AsImplementedInterfaces();
                 builder.RegisterType<PublishedNodesJobConverter>().SingleInstance();

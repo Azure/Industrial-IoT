@@ -249,9 +249,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             return new AgentConfigModel {
                 AgentId = "StandalonePublisher",
                 Capabilities = new Dictionary<string, string>(),
-                HeartbeatInterval = GetValueOrDefault<TimeSpan?>(LegacyCliConfigKeys.HeartbeatIntervalDefault),
-                JobCheckInterval = null,
-                JobOrchestratorUrl = null,
+                HeartbeatInterval = TimeSpan.FromSeconds(30), // heartbeat is needed even though in standalone mode to be notified about config file changes
+                JobCheckInterval = TimeSpan.FromSeconds(30),
+                JobOrchestratorUrl = "standalone", //we have to set a value so that the (legacy) job orchestrator is called
                 MaxWorkers = 1
             };
         }

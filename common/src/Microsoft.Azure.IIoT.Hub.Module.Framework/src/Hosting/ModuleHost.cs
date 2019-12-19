@@ -31,9 +31,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         public int MaxMethodPayloadCharacterCount => 120 * 1024;
 
         /// <inheritdoc/>
-        public IClient Client => _client;
-
-        /// <inheritdoc/>
         public IReadOnlyDictionary<string, dynamic> Reported => _reported;
 
         /// <inheritdoc/>
@@ -44,6 +41,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
 
         /// <inheritdoc/>
         public string SiteId { get; private set; }
+
+        /// <inheritdoc/>
+        public IClient Client =>  _client;
 
         /// <summary>
         /// Create module host

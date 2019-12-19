@@ -56,13 +56,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         SentMessagesCount);
                     SentMessagesCount = 0;
                 }
-                SentMessagesCount += messagesCount;
                 if (messagesCount == 1) {
                     await _client.SendEventAsync(messageObjects.First());
                 }
                 else {
                     await _client.SendEventBatchAsync(messageObjects);
                 }
+
+                SentMessagesCount += messagesCount;
+            }
+            catch (Exception ex) {
+                _logger.Error(ex, "Error while sending messages to IoT Hub."); // we do not set the block into a faulted state.
             }
             finally {
                 messageObjects.ForEach(m => m.Dispose());
@@ -98,7 +102,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         }
 
         private const long kMessageCounterResetThreshold = long.MaxValue - 1000;
-        private readonly IClient _client;
         private readonly ILogger _logger;
+        private readonly IClient _client;
     }
 }
