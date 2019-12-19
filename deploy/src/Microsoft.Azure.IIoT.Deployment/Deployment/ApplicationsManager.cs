@@ -176,7 +176,10 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public async Task GetDefinitionsFromMicrosoftGraphAsync(
-            ApplicationRegistrationConfiguration applicationRegistrationConfiguration,
+            Guid serviceApplicationId,
+            Guid clientApplicationId,
+            Guid aksApplicationId,
+            string AksApplicationRbacSecret,
             CancellationToken cancellationToken = default
         ) {
             Log.Information("Application and Service Principal definitions will be retrieved from Microsoft Graph.");
@@ -184,7 +187,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             Log.Information("Getting service application registration ...");
             _serviceApplication = await _msGraphServiceClient
                 .GetApplicationAsync(
-                    applicationRegistrationConfiguration.ServicesApplicationId,
+                    serviceApplicationId,
                     cancellationToken
                 );
 
@@ -197,7 +200,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             Log.Information("Getting client application registration ...");
             _clientApplication = await _msGraphServiceClient
                 .GetApplicationAsync(
-                    applicationRegistrationConfiguration.ClientsApplicationId,
+                    clientApplicationId,
                     cancellationToken
                 );
 
@@ -210,7 +213,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             Log.Information("Getting AKS application registration ...");
             _aksApplication = await _msGraphServiceClient
                 .GetApplicationAsync(
-                    applicationRegistrationConfiguration.AksApplicationId,
+                    aksApplicationId,
                     cancellationToken
                 );
 
@@ -220,7 +223,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     cancellationToken
                 );
 
-            _aksApplicationPasswordCredentialRbacSecret = applicationRegistrationConfiguration.AksApplicationRbacSecret;
+            _aksApplicationPasswordCredentialRbacSecret = AksApplicationRbacSecret;
         }
 
         /// <summary>
@@ -229,11 +232,11 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
         /// </summary>
         /// <param name="applicationRegistrationDefinition"></param>
         public void Load(ApplicationRegistrationDefinition applicationRegistrationDefinition) {
-            _serviceApplication = applicationRegistrationDefinition.ServicesApplication;
-            _serviceApplicationSP = applicationRegistrationDefinition.ServicesApplicationSP;
+            _serviceApplication = applicationRegistrationDefinition.ServiceApplication;
+            _serviceApplicationSP = applicationRegistrationDefinition.ServiceApplicationSP;
 
-            _clientApplication = applicationRegistrationDefinition.ClientsApplication;
-            _clientApplicationSP = applicationRegistrationDefinition.ClientsApplicationSP;
+            _clientApplication = applicationRegistrationDefinition.ClientApplication;
+            _clientApplicationSP = applicationRegistrationDefinition.ClientApplicationSP;
 
             _aksApplication = applicationRegistrationDefinition.AksApplication;
             _aksApplicationSP = applicationRegistrationDefinition.AksApplicationSP;
@@ -366,7 +369,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
         }
 
         protected async Task<Application> RegisterServiceApplicationAsync(
-            string servicesApplicationName,
+            string serviceApplicationName,
             DirectoryObject owner,
             IEnumerable<string> tags = null,
             CancellationToken cancellationToken = default
@@ -436,13 +439,13 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 // Add OAuth2Permissions
                 var oauth2Permissions = new List<PermissionScope> {
                     new PermissionScope {
-                        AdminConsentDescription = $"Allow the app to access {servicesApplicationName} on behalf of the signed-in user.",
-                        AdminConsentDisplayName = $"Access {servicesApplicationName}",
+                        AdminConsentDescription = $"Allow the app to access {serviceApplicationName} on behalf of the signed-in user.",
+                        AdminConsentDisplayName = $"Access {serviceApplicationName}",
                         Id = Guid.NewGuid(),
                         IsEnabled = true,
                         Type = "User",
-                        UserConsentDescription = $"Allow the application to access {servicesApplicationName} on your behalf.",
-                        UserConsentDisplayName = $"Access {servicesApplicationName}",
+                        UserConsentDescription = $"Allow the application to access {serviceApplicationName} on your behalf.",
+                        UserConsentDisplayName = $"Access {serviceApplicationName}",
                         Value = "user_impersonation"
                     }
                 };
@@ -458,10 +461,10 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 };
 
                 var serviceApplicationDefinition = new Application {
-                    DisplayName = servicesApplicationName,
+                    DisplayName = serviceApplicationName,
                     IsFallbackPublicClient = false,
                     IdentifierUris = new List<string> {
-                        $"https://{_tenantId.ToString()}/{servicesApplicationName}"
+                        $"https://{_tenantId.ToString()}/{serviceApplicationName}"
                     },
                     Tags = tags,
                     SignInAudience = "AzureADMyOrg",
@@ -508,7 +511,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     PrincipalType = "Group";
                 }
                 else {
-                    throw new ArgumentException($"Owner is of unknown type: {owner.GetType()}");
+                    throw new ArgumentException($"Owner is of unknown type: {owner.GetType()}", "owner");
                 }
 
                 var approverAppRoleAssignmentDefinition = new AppRoleAssignment {
@@ -578,7 +581,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
 
         public async Task<Application> RegisterClientApplicationAsync(
             Application serviceApplication,
-            string clientsApplicationName,
+            string clientApplicationName,
             IEnumerable<string> tags = null,
             CancellationToken cancellationToken = default
         ) {
@@ -648,10 +651,10 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 };
 
                 var clientApplicationDefinition = new Application {
-                    DisplayName = clientsApplicationName,
+                    DisplayName = clientApplicationName,
                     IsFallbackPublicClient = true,
                     IdentifierUris = new List<string> {
-                        $"https://{_tenantId.ToString()}/{clientsApplicationName}"
+                        $"https://{_tenantId.ToString()}/{clientApplicationName}"
                     },
                     Tags = tags,
                     SignInAudience = "AzureADMyOrg",

@@ -9,27 +9,27 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
 
     class ApplicationRegistrationDefinition {
 
-        public Application ServicesApplication { get; }
-        public ServicePrincipal ServicesApplicationSP { get; }
-        public Application ClientsApplication { get; }
-        public ServicePrincipal ClientsApplicationSP { get; }
+        public Application ServiceApplication { get; }
+        public ServicePrincipal ServiceApplicationSP { get; }
+        public Application ClientApplication { get; }
+        public ServicePrincipal ClientApplicationSP { get; }
         public Application AksApplication { get; }
         public ServicePrincipal AksApplicationSP { get; }
         public string AksApplicationRbacSecret { get; }
 
         public ApplicationRegistrationDefinition(
-            Application servicesApplication,
-            ServicePrincipal servicesApplicationSP,
-            Application clientsApplication,
-            ServicePrincipal clientsApplicationSP,
+            Application serviceApplication,
+            ServicePrincipal serviceApplicationSP,
+            Application clientApplication,
+            ServicePrincipal clientApplicationSP,
             Application aksApplication,
             ServicePrincipal aksApplicationSP,
             string aksApplicationRbacSecret
         ) {
-            ServicesApplication = servicesApplication;
-            ServicesApplicationSP = servicesApplicationSP;
-            ClientsApplication = clientsApplication;
-            ClientsApplicationSP = clientsApplicationSP;
+            ServiceApplication = serviceApplication;
+            ServiceApplicationSP = serviceApplicationSP;
+            ClientApplication = clientApplication;
+            ClientApplicationSP = clientApplicationSP;
             AksApplication = aksApplication;
             AksApplicationSP = aksApplicationSP;
             AksApplicationRbacSecret = aksApplicationRbacSecret;

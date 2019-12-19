@@ -31,7 +31,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure.Extensions {
                 return AzureCloudInstance.AzureUsGovernment;
             }
             else {
-                throw new ArgumentException($"Unknown AzureEnvironment: {azureEnvironment.Name}");
+                throw new Exception($"Unknown AzureEnvironment: {azureEnvironment.Name}");
             }
         }
     }

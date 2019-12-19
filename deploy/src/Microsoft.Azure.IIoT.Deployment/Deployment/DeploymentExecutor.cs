@@ -118,7 +118,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     await RunResourceDeploymentOnlyAsync(cancellationToken);
                     break;
                 default:
-                    throw new ArgumentException($"Unknown RunMode: {runMode}");
+                    throw new Exception($"Unknown RunMode: {runMode}");
             }
         }
 
@@ -169,7 +169,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
 
                 await SetupApplicationsAsync(cancellationToken);
                 await UpdateClientApplicationRedirectUrisAsync(cancellationToken);
-                //OutputApplicationRegistrationConfiguration();
                 OutputApplicationRegistrationDefinition();
 
                 Log.Information("Done.");
@@ -433,8 +432,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
         ) {
             var runMode = _configurationProvider.GetRunMode();
 
-            var applicationRegistrationConfiguration = _configurationProvider
-                .GetApplicationRegistrationConfiguration();
             var applicationRegistrationDefinition = _configurationProvider
                 .GetApplicationRegistrationDefinition();
 
@@ -444,14 +441,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 if (null != applicationRegistrationDefinition) {
                     // Load definitions of existing applications.
                     _applicationsManager.Load(applicationRegistrationDefinition);
-                }
-                else if (null != applicationRegistrationConfiguration) {
-                    // Load definitions of existing applications from Microsoft Graph.
-                    await _applicationsManager
-                        .GetDefinitionsFromMicrosoftGraphAsync(
-                            applicationRegistrationConfiguration,
-                            cancellationToken
-                        );
                 }
                 else {
                     // Create new applications.
@@ -481,21 +470,11 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     // Load definitions of existing applications.
                     _applicationsManager.Load(applicationRegistrationDefinition);
                 }
-                else if (null != applicationRegistrationConfiguration) {
-                    // Load definitions of existing applications from Microsoft Graph.
-                    await _applicationsManager
-                        .GetDefinitionsFromMicrosoftGraphAsync(
-                            applicationRegistrationConfiguration,
-                            cancellationToken
-                        );
-                }
                 else {
                     // In ResourceDeployment mode, we assume that the application
                     // does not have enouh permissions to create new Applications
-                    // and Service Principals. So either ApplicationRegistration
-                    // or ApplicationRegistrationDefinition must be configured.
-                    throw new ArgumentException("ApplicationRegistration or " +
-                        "ApplicationRegistrationDefinition must be configured.");
+                    // and Service Principals. So ApplicationRegistration must be configured.
+                    throw new Exception("ApplicationRegistration must be configured.");
                 }
             }
         }
@@ -549,26 +528,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             await _applicationsManager.DeleteApplicationsAsync(cancellationToken);
         }
 
-        protected void OutputApplicationRegistrationConfiguration() {
-            var appRegConf = new ApplicationRegistrationConfiguration(
-                new Guid(_applicationsManager.GetServiceApplication().Id),
-                new Guid(_applicationsManager.GetClientApplication().Id),
-                new Guid(_applicationsManager.GetAKSApplication().Id),
-                _applicationsManager.GetAKSApplicationRbacSecret()
-            );
-
-            var jsonString = JsonConvert
-                .SerializeObject(
-                    appRegConf,
-                    Formatting.Indented,
-                    new JsonConverter[] { new StringEnumConverter() }
-                );
-
-            Log.Information("Use details bellow as ApplicationRegistration " +
-                "for resource deployment of Industrial IoT solution.");
-            Console.WriteLine(jsonString);
-        }
-
         protected void OutputApplicationRegistrationDefinition() {
             var appRegDef = new ApplicationRegistrationDefinitionSettings(
                 new ApplicationSettings(_applicationsManager.GetServiceApplication()),
@@ -587,7 +546,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     new JsonConverter[] { new StringEnumConverter() }
                 );
 
-            Log.Information("Use details bellow as ApplicationRegistrationDefinition " +
+            Log.Information("Use details bellow as ApplicationRegistration " +
                 "for resource deployment of Industrial IoT solution.");
             Console.WriteLine(jsonString);
         }

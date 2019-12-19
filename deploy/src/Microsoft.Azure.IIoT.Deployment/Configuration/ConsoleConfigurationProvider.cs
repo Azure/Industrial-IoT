@@ -54,7 +54,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
                     Log.Information($"Configured Azure environment will be used: {ToString(azureEnvironment)}");
                 }
                 else {
-                    throw new ArgumentException($"Configured '{ToString(azureEnvironment)}' Azure environment not found.");
+                    throw new Exception($"Configured '{ToString(azureEnvironment)}' Azure environment not found.");
                 }
             } else {
                 azureEnvironment = GetAzureEnvironmentFromConsole(azureEnvironments);
@@ -149,7 +149,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
                     return results.First();
                 }
                 else {
-                    throw new ArgumentException($"Configured '{_appSettings.SubscriptionId.Value}' subscription not found.");
+                    throw new Exception($"Configured '{_appSettings.SubscriptionId.Value}' subscription not found.");
                 }
             }
 
@@ -164,7 +164,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
             ISubscription subscription;
 
             if (subscriptionsCount == 0) {
-                throw new SystemException("The account does not contain any subscription");
+                throw new Exception("The account does not contain any subscription");
             }
             else if (subscriptionsCount == 1) {
                 subscription = subscriptionsList.First();
@@ -232,7 +232,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
                     return results.First();
                 }
                 else {
-                    throw new ArgumentException($"Configured '{_appSettings.ResourceGroup.Name}' resource group not found.");
+                    throw new Exception($"Configured '{_appSettings.ResourceGroup.Name}' resource group not found.");
                 }
             }
 
@@ -272,7 +272,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
                     Log.Information($"Configured region will be used: {ToString(resourceGroupRegion)}");
                 }
                 else {
-                    throw new ArgumentException($"Configured '{ToString(resourceGroupRegion)}' region not found.");
+                    throw new Exception($"Configured '{ToString(resourceGroupRegion)}' region not found.");
                 }
             }
             else {
@@ -287,7 +287,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
                     Log.Information($"Configured resource group name will be used: {resourceGroupName}");
                 }
                 else {
-                    throw new ArgumentException($"Configured '{resourceGroupName}' resource group already exists.");
+                    throw new Exception($"Configured '{resourceGroupName}' resource group already exists.");
                 }
             }
             else {
@@ -353,42 +353,17 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
             return resourceGroupName;
         }
 
-        public override ApplicationRegistrationConfiguration GetApplicationRegistrationConfiguration() {
-            if (null == _appSettings?.ApplicationRegistration) {
+        public override ApplicationRegistrationDefinition GetApplicationRegistrationDefinition() {
+            var applicationRegistration = _appSettings?.ApplicationRegistration;
+
+            if (null == applicationRegistration) {
                 return null;
             }
 
-            // If one of ApplicationRegistration properties is provided, then we will require that all are provided.
-            var applicationRegistrationSettings = _appSettings.ApplicationRegistration;
+            // Validate that all configuration properties are set.
+            applicationRegistration.Validate();
 
-            if (null == applicationRegistrationSettings.ServicesApplicationId) {
-                throw new ArgumentException("ApplicationRegistration.ServicesApplicationId property is missing.");
-            }
-
-            if (null == applicationRegistrationSettings.ClientsApplicationId) {
-                throw new ArgumentException("ApplicationRegistration.ClientsApplicationId property is missing.");
-            }
-
-            if (null == applicationRegistrationSettings.AksApplicationId) {
-                throw new ArgumentException("ApplicationRegistration.AksApplicationId property is missing.");
-            }
-
-            if (string.IsNullOrEmpty(applicationRegistrationSettings.AksApplicationRbacSecret)) {
-                throw new ArgumentException("ApplicationRegistration.AksApplicationRbacSecret property is missing or empty.");
-            }
-
-            var applicationRegistrationConfiguration = new ApplicationRegistrationConfiguration(
-                applicationRegistrationSettings.ServicesApplicationId.Value,
-                applicationRegistrationSettings.ClientsApplicationId.Value,
-                applicationRegistrationSettings.AksApplicationId.Value,
-                applicationRegistrationSettings.AksApplicationRbacSecret
-            );
-
-            return applicationRegistrationConfiguration;
-        }
-
-        public override ApplicationRegistrationDefinition GetApplicationRegistrationDefinition() {
-            return _appSettings?.ApplicationRegistrationDefinition?.ToApplicationRegistrationDefinition();
+            return applicationRegistration.ToApplicationRegistrationDefinition();
         }
 
         public override string GetApplicationURL() {

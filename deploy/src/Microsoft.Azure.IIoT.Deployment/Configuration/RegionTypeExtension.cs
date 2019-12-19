@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
                 RegionType.EuropeNorth => Region.EuropeNorth,
                 RegionType.EuropeWest => Region.EuropeWest,
                 RegionType.AsiaSouthEast => Region.AsiaSouthEast,
-                _ => throw new ArgumentException($"Unrecognized RegionType: {region.ToString()}")
+                _ => throw new Exception($"Unrecognized RegionType: {region.ToString()}")
             };
         }
     }

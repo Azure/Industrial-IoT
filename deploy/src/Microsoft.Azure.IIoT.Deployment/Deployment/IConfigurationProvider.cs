@@ -37,8 +37,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             string resourceGroupDefaultName = null
         );
 
-        ApplicationRegistrationConfiguration GetApplicationRegistrationConfiguration();
-
         ApplicationRegistrationDefinition GetApplicationRegistrationDefinition();
 
         string GetApplicationURL();

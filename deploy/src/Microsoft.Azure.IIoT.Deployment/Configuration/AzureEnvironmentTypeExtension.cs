@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
                 AzureEnvironmentType.AzureChinaCloud => AzureEnvironment.AzureChinaCloud,
                 AzureEnvironmentType.AzureUSGovernment => AzureEnvironment.AzureUSGovernment,
                 AzureEnvironmentType.AzureGermanCloud => AzureEnvironment.AzureGermanCloud,
-                _ => throw new ArgumentException($"Unrecognized AzureEnvironmentType: {azureEnvironment.ToString()}")
+                _ => throw new Exception($"Unrecognized AzureEnvironmentType: {azureEnvironment.ToString()}")
             };
         }
     }

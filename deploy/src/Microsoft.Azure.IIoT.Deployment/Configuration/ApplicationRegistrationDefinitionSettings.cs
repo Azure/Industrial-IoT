@@ -5,14 +5,15 @@
 
 namespace Microsoft.Azure.IIoT.Deployment.Configuration {
 
+    using System;
     using Microsoft.Azure.IIoT.Deployment.Deployment;
 
     class ApplicationRegistrationDefinitionSettings {
 
-        public ApplicationSettings ServicesApplication { get; set; }
-        public ServicePrincipalSettings ServicesApplicationSP { get; set; }
-        public ApplicationSettings ClientsApplication { get; set; }
-        public ServicePrincipalSettings ClientsApplicationSP { get; set; }
+        public ApplicationSettings ServiceApplication { get; set; }
+        public ServicePrincipalSettings ServiceApplicationSP { get; set; }
+        public ApplicationSettings ClientApplication { get; set; }
+        public ServicePrincipalSettings ClientApplicationSP { get; set; }
         public ApplicationSettings AksApplication { get; set; }
         public ServicePrincipalSettings AksApplicationSP { get; set; }
         public string AksApplicationRbacSecret { get; set; }
@@ -20,18 +21,18 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
         public ApplicationRegistrationDefinitionSettings() { }
 
         public ApplicationRegistrationDefinitionSettings(
-            ApplicationSettings servicesApplication,
-            ServicePrincipalSettings servicesApplicationSP,
-            ApplicationSettings clientsApplication,
-            ServicePrincipalSettings clientsApplicationSP,
+            ApplicationSettings serviceApplication,
+            ServicePrincipalSettings serviceApplicationSP,
+            ApplicationSettings clientApplication,
+            ServicePrincipalSettings clientApplicationSP,
             ApplicationSettings aksApplication,
             ServicePrincipalSettings aksApplicationSP,
             string aksApplicationRbacSecret
         ) {
-            ServicesApplication = servicesApplication;
-            ServicesApplicationSP = servicesApplicationSP;
-            ClientsApplication = clientsApplication;
-            ClientsApplicationSP = clientsApplicationSP;
+            ServiceApplication = serviceApplication;
+            ServiceApplicationSP = serviceApplicationSP;
+            ClientApplication = clientApplication;
+            ClientApplicationSP = clientApplicationSP;
             AksApplication = aksApplication;
             AksApplicationSP = aksApplicationSP;
             AksApplicationRbacSecret = aksApplicationRbacSecret;
@@ -39,16 +40,59 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
 
         public ApplicationRegistrationDefinition ToApplicationRegistrationDefinition() {
             var appRegDef = new ApplicationRegistrationDefinition(
-                ServicesApplication.ToApplication(),
-                ServicesApplicationSP.ToServicePrincipal(),
-                ClientsApplication.ToApplication(),
-                ClientsApplicationSP.ToServicePrincipal(),
+                ServiceApplication.ToApplication(),
+                ServiceApplicationSP.ToServicePrincipal(),
+                ClientApplication.ToApplication(),
+                ClientApplicationSP.ToServicePrincipal(),
                 AksApplication.ToApplication(),
                 AksApplicationSP.ToServicePrincipal(),
                 AksApplicationRbacSecret
             );
 
             return appRegDef;
+        }
+
+        /// <summary>
+        /// Validate that all configuration properties are set.
+        /// </summary>
+        public void Validate() {
+            // If any of ApplicationRegistration properties is provided,
+            // then we will require that all are provided.
+
+            if (null == ServiceApplication) {
+                throw new Exception("ApplicationRegistration.ServiceApplication" +
+                    " configuration property is missing.");
+            }
+
+            if (null == ServiceApplicationSP) {
+                throw new Exception("ApplicationRegistration.ServiceApplicationSP" +
+                    " configuration property is missing.");
+            }
+
+            if (null == ClientApplication) {
+                throw new Exception("ApplicationRegistration.ClientApplication" +
+                    " configuration property is missing.");
+            }
+
+            if (null == ClientApplicationSP) {
+                throw new Exception("ApplicationRegistration.ClientApplicationSP" +
+                    " configuration property is missing.");
+            }
+
+            if (null == AksApplication) {
+                throw new Exception("ApplicationRegistration.AksApplication" +
+                    " configuration property is missing.");
+            }
+
+            if (null == AksApplicationSP) {
+                throw new Exception("ApplicationRegistration.AksApplicationSP" +
+                    " configuration property is missing.");
+            }
+
+            if (string.IsNullOrEmpty(AksApplicationRbacSecret)) {
+                throw new Exception("ApplicationRegistration.AksApplicationRbacSecret" +
+                    " configuration property is missing or is empty.");
+            }
         }
     }
 }
