@@ -55,42 +55,54 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
         /// <summary>
         /// Validate that all configuration properties are set.
         /// </summary>
-        public void Validate() {
+        public void Validate(string parentProperty) {
             // If any of ApplicationRegistration properties is provided,
             // then we will require that all are provided.
 
             if (null == ServiceApplication) {
-                throw new Exception("ApplicationRegistration.ServiceApplication" +
+                throw new Exception($"{parentProperty}.ServiceApplication" +
                     " configuration property is missing.");
             }
+
+            ServiceApplication.Validate($"{parentProperty}.ServiceApplication");
 
             if (null == ServiceApplicationSP) {
-                throw new Exception("ApplicationRegistration.ServiceApplicationSP" +
+                throw new Exception($"{parentProperty}.ServiceApplicationSP" +
                     " configuration property is missing.");
             }
+
+            ServiceApplicationSP.Validate($"{parentProperty}.ServiceApplicationSP");
 
             if (null == ClientApplication) {
-                throw new Exception("ApplicationRegistration.ClientApplication" +
+                throw new Exception($"{parentProperty}.ClientApplication" +
                     " configuration property is missing.");
             }
+
+            ClientApplication.Validate($"{parentProperty}.ClientApplication");
 
             if (null == ClientApplicationSP) {
-                throw new Exception("ApplicationRegistration.ClientApplicationSP" +
+                throw new Exception($"{parentProperty}.ClientApplicationSP" +
                     " configuration property is missing.");
             }
+
+            ClientApplicationSP.Validate($"{parentProperty}.ClientApplicationSP");
 
             if (null == AksApplication) {
-                throw new Exception("ApplicationRegistration.AksApplication" +
+                throw new Exception($"{parentProperty}.AksApplication" +
                     " configuration property is missing.");
             }
+
+            AksApplication.Validate($"{parentProperty}.AksApplication");
 
             if (null == AksApplicationSP) {
-                throw new Exception("ApplicationRegistration.AksApplicationSP" +
+                throw new Exception($"{parentProperty}.AksApplicationSP" +
                     " configuration property is missing.");
             }
 
+            AksApplicationSP.Validate($"{parentProperty}.AksApplicationSP");
+
             if (string.IsNullOrEmpty(AksApplicationRbacSecret)) {
-                throw new Exception("ApplicationRegistration.AksApplicationRbacSecret" +
+                throw new Exception($"{parentProperty}.AksApplicationRbacSecret" +
                     " configuration property is missing or is empty.");
             }
         }

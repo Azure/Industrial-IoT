@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Deployment.Configuration {
 
+    using System;
     using System.Collections.Generic;
     using System.Linq;
 
@@ -12,20 +13,20 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
 
     class ApplicationSettings {
 
-        public string Id { get; set; }
+        public Guid Id { get; set; }
         public string DisplayName { get; set; }
         public List<string> IdentifierUris { get; set; }
-        public string AppId { get; set; }
+        public Guid AppId { get; set; }
 
         public ApplicationSettings() {
             IdentifierUris = new List<string>();
         }
 
         public ApplicationSettings(
-            string id,
+            Guid id,
             string displayName,
             IEnumerable<string> identifierUris,
-            string appId
+            Guid appId
         ) {
             Id = id;
             DisplayName = displayName;
@@ -46,9 +47,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
         public ApplicationSettings(
             Application application
         ) {
-            Id = application.Id;
+            Id = new Guid(application.Id);
             DisplayName = application.DisplayName;
-            AppId = application.AppId;
+            AppId = new Guid(application.AppId);
 
             if (null != application.IdentifierUris) {
                 IdentifierUris = application.IdentifierUris.ToList();
@@ -64,13 +65,35 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
         /// <returns></returns>
         public Application ToApplication() {
             var application = new Application() {
-                Id = Id,
+                Id = Id.ToString(),
                 DisplayName = DisplayName,
-                AppId = AppId,
+                AppId = AppId.ToString(),
                 IdentifierUris = IdentifierUris
             };
 
             return application;
+        }
+
+        public void Validate(string parentProperty) {
+            if (default == Id) {
+                throw new Exception($"{parentProperty}.Id" +
+                    $" configuration property is missing.");
+            }
+
+            if (string.IsNullOrEmpty(DisplayName)) {
+                throw new Exception($"{parentProperty}.DisplayName" +
+                    $" configuration property is missing or is empty.");
+            }
+
+            if (null == IdentifierUris || IdentifierUris.Count == 0) {
+                throw new Exception($"{parentProperty}.IdentifierUris" +
+                    $" configuration property is missing or is empty.");
+            }
+
+            if (default == AppId) {
+                throw new Exception($"{parentProperty}.AppId" +
+                    $" configuration property is missing.");
+            }
         }
     }
 }

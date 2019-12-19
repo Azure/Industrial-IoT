@@ -5,17 +5,18 @@
 
 namespace Microsoft.Azure.IIoT.Deployment.Configuration {
 
+    using System;
     using Microsoft.Graph;
 
     class ServicePrincipalSettings {
 
-        public string Id { get; set; }
+        public Guid Id { get; set; }
         public string DisplayName { get; set; }
 
         public ServicePrincipalSettings() { }
 
         public ServicePrincipalSettings(
-            string id,
+            Guid id,
             string displayName
         ) {
             Id = id;
@@ -29,7 +30,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
         public ServicePrincipalSettings(
             ServicePrincipal servicePrincipal
         ) {
-            Id = servicePrincipal.Id;
+            Id = new Guid(servicePrincipal.Id);
             DisplayName = servicePrincipal.DisplayName;
         }
 
@@ -39,11 +40,23 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
         /// <returns></returns>
         public ServicePrincipal ToServicePrincipal() {
             var servicePrincipal = new ServicePrincipal() {
-                Id = Id,
+                Id = Id.ToString(),
                 DisplayName = DisplayName
             };
 
             return servicePrincipal;
+        }
+
+        public void Validate(string parentProperty) {
+            if (default == Id) {
+                throw new Exception($"{parentProperty}.Id" +
+                    $" configuration property is missing.");
+            }
+
+            if (string.IsNullOrEmpty(DisplayName)) {
+                throw new Exception($"{parentProperty}.DisplayName" +
+                    $" configuration property is missing or is empty.");
+            }
         }
     }
 }

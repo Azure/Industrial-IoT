@@ -361,7 +361,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
             }
 
             // Validate that all configuration properties are set.
-            applicationRegistration.Validate();
+            applicationRegistration.Validate("ApplicationRegistration");
 
             return applicationRegistration.ToApplicationRegistrationDefinition();
         }
