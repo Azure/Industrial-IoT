@@ -1,22 +1,134 @@
-# Microsoft.Azure.IIoT.Deployment
+# Microsoft.Azure.IIoT.Deployment (Preview)
 
 ## Table Of Contents
 
 * [Running Microsoft.Azure.IIoT.Deployment](#running-microsoft.azure.iiot.deployment)
+  * [Run Modes](#run-modes)
+  * [Running with User Credentials](#running-with-user-credentials)
+  * [Running with Service Principal Credentials](#running-with-service-principal-credentials)
+  * [Sample Run](#sample-run)
+  * [Granting Admin Consent](#granting-admin-consent)
+  * [Resource Cleanup](#resource-cleanup)
+* [Configuration](#configuration)
 * [Deployed Resources](#deployed-resources)
 * [Missing And Planned Features](#missing-and-planned-features)
 * [Known Issues](#known-issues)
 * [Resources](#resources)
 
-`Microsoft.Azure.IIoT.Deployment` is a command line application for deploying Industrial IoT solution. It takes care of deploying Azure infrastructure resources and microservices of Industrial IoT solution.
+`Microsoft.Azure.IIoT.Deployment` is a command line application for deploying Industrial IoT solution.
+It takes care of deploying Azure infrastructure resources and microservices of Industrial IoT solution.
 
-This replaces [services/deploy/deploy.ps1](../services/deploy/deploy.ps1) script, which similarly deployed Azure infrastructure resources and microservices. Main difference from infrastructure perspective is that `Microsoft.Azure.IIoT.Deployment` deploys microservices to an AKS cluster, while `deploy.ps1` uses a VM for that.
+This replaces [services/deploy/deploy.ps1](../services/deploy/deploy.ps1) script, which similarly deployed
+Azure infrastructure resources and microservices. Main difference from infrastructure perspective is that
+`Microsoft.Azure.IIoT.Deployment` deploys microservices to an AKS cluster, while `deploy.ps1` uses a VM for
+that.
 
 ## Running Microsoft.Azure.IIoT.Deployment
 
-`Microsoft.Azure.IIoT.Deployment` requires permissions to create azure resources on users behalf and as such it requires admin consent within the Azure tenant. This entails a few additional manual steps before the application can run properly. Those steps are required after first run which will fail if the admin of Azure Active Directory has not already consented to use of the Enterprise App within the directory. **5**th step below describes the error that you might get if you are lacking admin consent and [Granting Admin Consent](#granting-admin-consent) walks you through steps to mitigate that problem. Please note, that you will still need to run the application once before granting the consent and that first run will fail.
+`Microsoft.Azure.IIoT.Deployment` application can be run with either user or Service Principal credentials.
+And those two methods have different setup requirements before the application can run successfully.
+The main difference is that when running with user credentials, the application will require onboarding of
+`AzureIndustrialIoTDeployment` Enterprise Application into your Azure AD and that will require consent of
+organization administrator.
 
-We are working on simplifying this flow, but as of right now these are the steps to run `Microsoft.Azure.IIoT.Deployment`:
+Additionally, `Microsoft.Azure.IIoT.Deployment` has three distinct run modes which require different
+permissions.
+
+### Run Modes
+
+`Microsoft.Azure.IIoT.Deployment` supports the following three run modes:
+
+| RunMode                   | Description                                                                                                                                   |
+|---------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
+| `Full`                    | Performs Applications registration, deployment of Azure resources and deployment of microservices into AKS cluster. This is **default** mode. |
+| `ApplicationRegistration` | Performs only Applications registration and outputs JSON definition of Applications and Service Principals created.                           |
+| `ResourceDeployment`      | Performs deployment of Azure resources and deployment of microservices into AKS cluster.                                                      |
+
+For `Full` and `ApplicationRegistration` modes you would require **Administrator** role.
+
+For `ResourceDeployment` mode **Contributor** role on a subscription would suffice. But it requires
+definitions of existing Applications and Service Principals. You can get those if you first run in
+`ApplicationRegistration` mode, which would then output those definitions.
+
+Note that `Full` will do full deployment of the Industrial IoT solution. And `ApplicationRegistration` and
+`ResourceDeployment` modes represent separation of the full deployment into two steps where first one
+requires Administrator role, but second one doesn't.
+
+### Running with User Credentials
+
+Execution of `Microsoft.Azure.IIoT.Deployment` application with user credentials will result in initiation of
+onboarding process of `AzureIndustrialIoTDeployment` Enterprise Application into your Azure AD, if it is not
+already present. If you have admin role, then first run of the application will ask you whether you want to
+add `AzureIndustrialIoTDeployment` Enterprise Application in your Azure AD. This will happen immediately after
+login prompt. If you are not an administrator, then you will have the opportunity to propagate the request
+to your organization administrator. After this, an administrator should also consent to the permissions that
+the application requires to run in your Azure AD. The steps to do so are described in
+[Granting Admin Consent](#granting-admin-consent) bellow.
+
+### Running with Service Principal Credentials
+
+To run `Microsoft.Azure.IIoT.Deployment` with Service Principal credentials, you would first need to
+create a Service Principal with enough permissions to execute the application and then pass Service
+Principal `ClientId` (same as `ApplicationId` or `AppId`) and `ClientSecret` (also referred as password)
+to the application via configuration. Please note that if you do not pass those configuration properties,
+then the application will fall back to user credentials authentication flow.
+
+To create a Service Principal you can use [Azure CLI](https://docs.microsoft.com/cli/azure/?view=azure-cli-latest).
+And you can use the command bellow to create a Service Principal for password-based authentication
+([source](https://docs.microsoft.com/cli/azure/create-an-azure-service-principal-azure-cli?view=azure-cli-latest#password-based-authentication)):
+
+``` bash
+az ad sp create-for-rbac --name ServicePrincipalName
+```
+
+1. In `Full` and `ApplicationRegistration` run modes, the application will create three Application
+    registrations (with corresponding Service Principals) and assign permissions to the Applications. This
+    operation required administrator role in the AD. So you would need to assign one of the following roles
+    to a Service Principal:
+
+    * [Global administrator](https://docs.microsoft.com/azure/active-directory/users-groups-roles/directory-assign-admin-roles#global-administrator--company-administrator)
+    * [Application Administrator](https://docs.microsoft.com/azure/active-directory/users-groups-roles/directory-assign-admin-roles#application-administrator)
+    * [Cloud Application Administrator](https://docs.microsoft.com/azure/active-directory/users-groups-roles/directory-assign-admin-roles#cloud-application-administrator)
+
+    You can read more about these roles in
+    [Administrator role permissions in Azure Active Directory](https://docs.microsoft.com/azure/active-directory/users-groups-roles/directory-assign-admin-roles).
+    And you can use this guide to
+    [view and assign administrator roles in Azure Active Directory](https://docs.microsoft.com/azure/active-directory/users-groups-roles/directory-manage-roles-portal).
+
+    Additionally you would also need to give permission to the Service Principal to register applications.
+    To do this follow these steps:
+
+    1. Go to Azure Portal
+    2. Then go to **App registration** service
+    3. Find application registration for the Service Principal that you've created. It will have the same
+        name as Service Principal.
+    4. On the left side find **API permissions** under **Manage** group and select it. It will show list of
+        permissions currently granted to Service Principal.
+    5. Click on **Add a permission** and choose **Microsoft APIs** tab.
+    6. Find **Microsoft Graph** and select it.
+    7. Select **Application permissions**.
+    8. Find **Application** group and expand it.
+    9. Select either **Application.ReadWrite.OwnedBy** or **Application.ReadWrite.All**.
+    10. Push **Add permission** button on the bottom.
+    11. Click on `Grant admin consent for <your-directory-name>` button to grant consent for the Service
+        Principal to create applications.
+
+2. In `ResourceDeployment` mode Service Principal needs only **Contributor** role on a subscription.
+    Service Principals created through ```az ad sp create-for-rbac``` would already have it.
+
+### Sample Run
+
+`Microsoft.Azure.IIoT.Deployment` requires permissions to create azure resources on users behalf and as such
+it requires admin consent within the Azure tenant. This entails a few additional manual steps before the
+application can run properly. Those steps are required after first run which will fail if the admin of Azure
+Active Directory has not already consented to use of the Enterprise Application within the directory. **5**th
+step below describes the error that you might get if you are lacking admin consent and
+[Granting Admin Consent](#granting-admin-consent) walks you through steps to mitigate that problem. Please
+note, that you will still need to run the application once before granting the consent and that first run will
+fail.
+
+We are working on simplifying this flow, but as of right now these are the steps to run
+`Microsoft.Azure.IIoT.Deployment`:
 
 1. Run `Microsoft.Azure.IIoT.Deployment` application from command line:
 
@@ -24,13 +136,15 @@ We are working on simplifying this flow, but as of right now these are the steps
     ./Microsoft.Azure.IIoT.Deployment
     ```
 
-    On Linux and MacOS you might need to assign execute permission to the application before you can run it. To do that run the following command first:
+    On Linux and MacOS you might need to assign execute permission to the application before you can run it.
+    To do that run the following command first:
 
     ``` bash
     chmod +x Microsoft.Azure.IIoT.Deployment
     ```
 
-2. The application will ask you to choose your Azure environment, please select one. Those are either Azure Global Cloud or government-specific independent deployments of Microsoft Azure.
+2. The application will ask you to choose your Azure environment, please select one. Those are either Azure
+    Global Cloud or government-specific independent deployments of Microsoft Azure.
 
     ``` bash
     Please select Azure environment to use:
@@ -44,11 +158,13 @@ We are working on simplifying this flow, but as of right now these are the steps
     0
     ```
 
-3. The application will ask you to provide your Tenant Id. This is the same as Directory Id. To find out your Directory Id:
+3. The application will ask you to provide your Tenant Id. This is the same as Directory Id. To find out your
+    Directory Id:
 
     * Go to Azure Portal
     * Then go to **Azure Active Directory** service
-    * In Azure Active Directory service page, on the left side find **Properties** under **Manage** group. Copy Directory Id from `Properties` page.
+    * In Azure Active Directory service page, on the left side find **Properties** under **Manage** group.
+        Copy Directory Id from `Properties` page.
 
     Then provide Tenant Id to the application:
 
@@ -57,30 +173,38 @@ We are working on simplifying this flow, but as of right now these are the steps
     XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
     ```
 
-4. Now the application will ask you to login to Azure. During the first run, login flow will also ask your consent to provide permissions to `AzureIndustrialIoTDeployment` application. If you are not an admin in your Azure account, you would be asked to request consent from an admin.
+4. Now the application will ask you to login to Azure. During the first run, login flow will also ask your
+    consent to provide permissions to `AzureIndustrialIoTDeployment` application. If you are not an admin in
+    your Azure account, you would be asked to request consent from an admin.
 
     * On Windows, an interactive flow will launch a web browser and ask you to login to Azure.
 
-    * On Linux and MacOS, a device login flow will be used which will ask you to manually open a web browser, go to Azure device login page and login with the code provided by the application. This can be done on a different machine if the one in question does not have a web browser. It will look something like this:
+    * On Linux and MacOS, a device login flow will be used which will ask you to manually open a web browser,
+        go to Azure device login page and login with the code provided by the application. This can be done on
+        a different machine if the one in question does not have a web browser. It will look something like
+        this:
 
         ``` bash
         To sign in, use a web browser to open the page https://microsoft.com/devicelogin and enter the code XXXXXXXXX to authenticate.
         ```
 
-5. At this point you might receive an error indicating that the user or administrator has not consented to use of the application, it will look like this:
+5. At this point you might receive an error indicating that the user or administrator has not consented to use
+    of the application, it will look like this:
 
     ``` bash
     [10:46:35 ERR] Failed to deploy Industrial IoT solution.
-    System.AggregateException: One or more errors occurred. (AADSTS65001: The user or administrator has not consented to use the application with ID 'fb2ca262-60d8-4167-ac33-1998d6d5c50b' named 'AzureIndustrialIoTIAI'. Send an interactive authorization request for this user and resource.
+    System.AggregateException: One or more errors occurred. (AADSTS65001: The user or administrator has not consented to use the application with ID 'fb2ca262-60d8-4167-ac33-1998d6d5c50b' named 'AzureIndustrialIoTDeployment'. Send an interactive authorization request for this user and resource.
     Trace ID: XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
     Correlation ID: XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
     Timestamp: 2019-11-11 09:46:35Z)
     ...
     ```
 
-    If you encounter this go to [Granting Admin Consent](#granting-admin-consent) to resolve this issue and then try to run the application again.
+    If you encounter this go to [Granting Admin Consent](#granting-admin-consent) to resolve this issue and
+    then try to run the application again.
 
-6. Provide a name for the AAD applications that will be registered. You will be asked for one name, but 3 applications will be registered:
+6. Provide a name for the AAD applications that will be registered. You will be asked for one name, but 3
+    applications will be registered:
 
     * one with `-services` suffix added to provided name
     * one with `-clients` suffix added to provided name
@@ -91,7 +215,9 @@ We are working on simplifying this flow, but as of right now these are the steps
     kkTestApp51
     ```
 
-7. Select a Subscription within your Azure Account that will be used for creating Azure resources. If just one Subscription exists in your Account, then it will be listed and application will proceed further, otherwise you have to select Subscription from the list of available Subscriptions:
+7. Select a Subscription within your Azure Account that will be used for creating Azure resources. If just
+    one Subscription exists in your Account, then it will be listed and application will proceed further,
+    otherwise you have to select Subscription from the list of available Subscriptions:
 
     ``` bash
     The following subscription will be used:
@@ -99,9 +225,9 @@ We are working on simplifying this flow, but as of right now these are the steps
     ```
 
 8. Select Resource Group. You would be presented with options of either using an existing Resource Group or
-creating a new one. If you choose to use an existing one, you will be presented with a list of all Resource
-Groups within the Subscription to choose from. Otherwise, you would be asked to select a Region for the new
-Resource Group and provide a name for it. Output for the latter case is below.
+    creating a new one. If you choose to use an existing one, you will be presented with a list of all Resource
+    Groups within the Subscription to choose from. Otherwise, you would be asked to select a Region for the new
+    Resource Group and provide a name for it. Output for the latter case is below.
 
     > **Note:** If the application encounters an error during execution, it will ask you whether to perform a
     cleanup or not. Cleanup works by deleting registered Applications and the Resource Group. This means
@@ -130,7 +256,9 @@ Resource Group and provide a name for it. Output for the latter case is below.
     [13:36:21 INF] Created Resource Group: kkTestApp51
     ```
 
-9. Now the application will perform application registration, Azure resource deployment and deployment of microservices to AKS cluster. This will take around 15 to 20 minutes depending on Azure Region. Along the way, it will log what Azure resources are created. Sample log looks like this:
+9. Now the application will perform application registration, Azure resource deployment and deployment of
+    microservices to AKS cluster. This will take around 15 to 20 minutes depending on Azure Region. Along
+    the way, it will log what Azure resources are created. Sample log looks like this:
 
     ``` bash
     [13:36:21 INF] Registering resource providers ...
@@ -177,7 +305,9 @@ Resource Group and provide a name for it. Output for the latter case is below.
     [13:49:11 INF] Deployed Industrial IoT microservices to Azure AKS cluster
     ```
 
-10. After that you would be provided with an option to save connection details of deployed resources to '.env' file. If you choose to do so, please store the file is a secure location afterwards since it contains sensitive data such as connection string to the resources and some secrets.
+10. After that you would be provided with an option to save connection details of deployed resources to
+    '.env' file. If you choose to do so, please store the file is a secure location afterwards since it
+    contains sensitive data such as connection string to the resources and some secrets.
 
     ``` bash
     [13:49:11 INF] Deployed Industrial IoT microservices to Azure AKS cluster
@@ -186,7 +316,10 @@ Resource Group and provide a name for it. Output for the latter case is below.
     [13:49:17 INF] Writing environment to file: '.env' ...
     ```
 
-11. At this point the application should have successfully deployed Industrial IoT solution. One last thing left to do is to manually lower the scale of created CosmosDB containers. This is not a functional issue, but the default size of created containers will cost ~60$ per day. Check [CosmosDB Scale](#cosmosdb-scale) to learn more and lower the cost.
+11. At this point the application should have successfully deployed Industrial IoT solution. One last thing
+    left to do is to manually lower the scale of created CosmosDB containers. This is not a functional issue,
+    but the default size of created containers will cost ~60$ per day. Check [CosmosDB Scale](#cosmosdb-scale)
+    to learn more and lower the cost.
 
 ### Granting Admin Consent
 
@@ -195,8 +328,11 @@ To grant admin consent you have to be **admin** in the Azure account. Here are t
 * Go to Azure Portal
 * Then go to **Enterprise Applications** service
 * Find `AzureIndustrialIoTDeployment` in the list of applications and select it
-* On the left side find **Permissions** under **Security** group and select it. It will show list of permissions currently granted to `AzureIndustrialIoTDeployment`.
-* Click on `Grant admin consent for <your-directory-name>` button to grant consent for the application to manage Azure resources. It will show you a prompt with some additional permissions that `AzureIndustrialIoTDeployment` has requested.
+* On the left side find **Permissions** under **Security** group and select it. It will show list of
+    permissions currently granted to `AzureIndustrialIoTDeployment`.
+* Click on `Grant admin consent for <your-directory-name>` button to grant consent for the application to
+    manage Azure resources. It will show you a prompt with some additional permissions that
+    `AzureIndustrialIoTDeployment` has requested.
 
 ### Resource Cleanup
 
@@ -222,13 +358,20 @@ y
 [11:25:04 INF] Deleted application: IAIDeployment-aks
 ```
 
+## Configuration
+
 ## Deployed Resources
 
 ### AKS
 
-All of microservices of Industrial IoT solution are deployed to an AKS Kubernetes cluster. The deployment creates `industrial-iot` namespace where all microservices are running. To provide connection details for all Azure resources created by `Microsoft.Azure.IIoT.Deployment`, we created `industrial-iot-env` secret, which is then consumed by deployments.
+All of microservices of Industrial IoT solution are deployed to an AKS Kubernetes cluster. The deployment
+creates `industrial-iot` namespace where all microservices are running. To provide connection details for
+all Azure resources created by `Microsoft.Azure.IIoT.Deployment`, we created `industrial-iot-env` secret,
+which is then consumed by deployments.
 
-To see YAML files of all Kubernetes resources that are created by the application check [deploy/src/Microsoft.Azure.IIoT.Deployment/Resources/aks/](../deploy/src/Microsoft.Azure.IIoT.Deployment/Resources/aks/) directory.
+To see YAML files of all Kubernetes resources that are created by the application check
+[deploy/src/Microsoft.Azure.IIoT.Deployment/Resources/aks/](../deploy/src/Microsoft.Azure.IIoT.Deployment/Resources/aks/)
+directory.
 
 To see state of microservices you can check Kubernetes Dashboard. Follow this tutorial on how to access it:
 
@@ -238,9 +381,13 @@ To see state of microservices you can check Kubernetes Dashboard. Follow this tu
 
 ### Connectivity To AKS
 
-Currently we are missing the connection from App Services to deployed microservices which are running in AKS cluster. This is required if you want to access APIs exposed by microservices for debugging or exploratory purposes. The connectivity will be added in the next iteration of the application. Currently it is possible to manually setup connection.
+Currently we are missing the connection from App Services to deployed microservices which are running in AKS
+cluster. This is required if you want to access APIs exposed by microservices for debugging or exploratory
+purposes. The connectivity will be added in the next iteration of the application. Currently it is possible
+to manually setup connection.
 
-You will need to have [Azure CLI](https://docs.microsoft.com/cli/azure/?view=azure-cli-latest) installed for next steps.
+You will need to have [Azure CLI](https://docs.microsoft.com/cli/azure/?view=azure-cli-latest) installed
+for next steps.
 
 * [Install the Azure CLI](https://docs.microsoft.com/cli/azure/install-azure-cli?view=azure-cli-latest)
 
@@ -277,8 +424,11 @@ Setup connection between App Service and AKS cluster:
     [Create an HTTPS ingress controller and use your own TLS certificates on Azure Kubernetes Service (AKS)](https://docs.microsoft.com/azure/aks/ingress-own-tls)
 
     1. Instead of using `ingress-basic` namespace use `industrial-iot`. So you don't have to create a new namespace.
-    2. Instead of manually **generating a TLS certificate** (step 2) and **creating a Kubernetes Secret for the certificate** (step 3) use an existing `web-app` secret in `industrial-iot` namespace as [default ssl certificate](https://kubernetes.github.io/ingress-nginx/user-guide/tls/#default-ssl-certificate).
-    `web-app` secret will already be created by `Microsoft.Azure.IIoT.Deployment` application. So the `helm install` command in **Create an ingress controller** (step 1) should look like this:
+    2. Instead of manually **generating a TLS certificate** (step 2) and **creating a Kubernetes Secret for the certificate**
+        (step 3) use an existing `web-app` secret in `industrial-iot` namespace as
+        [default ssl certificate](https://kubernetes.github.io/ingress-nginx/user-guide/tls/#default-ssl-certificate).
+        `web-app` secret will already be created by `Microsoft.Azure.IIoT.Deployment` application. So the
+        `helm install` command in **Create an ingress controller** (step 1) should look like this:
 
         ```bash
         # Use Helm to deploy an NGINX ingress controller
@@ -334,9 +484,11 @@ Setup connection between App Service and AKS cluster:
                   servicePort: 9044
         ```
 
-    After completing above steps you should be able to see a Load Balancer and a Public IP Address being created in the Resource Group managed by AKS cluster.
-    When creating an AKS cluster, Azure will create a new Resource Group which will contain managed Azure resources that are required to run a Kubernetes cluster, such as VMs, Network Interfaces ans so on.
-    Name of the Resource Groups managed by your AKS cluster should look something like this:
+    After completing above steps you should be able to see a Load Balancer and a Public IP Address being
+    created in the Resource Group managed by AKS cluster. When creating an AKS cluster, Azure will create
+    a new Resource Group which will contain managed Azure resources that are required to run a Kubernetes
+    cluster, such as VMs, Network Interfaces ans so on. Name of the Resource Groups managed by your AKS
+    cluster should look something like this:
 
     * MC_\<resource_group_name\>\_\<aks-cluster-name\>\_\<region\>
 
@@ -347,30 +499,40 @@ Setup connection between App Service and AKS cluster:
     * Go to Azure Portal.
     * Go to **Resource Groups** service.
     * Find and select Resource Group that was used for deployment.
-    * Within the Resource Group find instance of **App Service** and select it. You can also find the name of App Service in logs of the deployment.
+    * Within the Resource Group find instance of **App Service** and select it. You can also find the name of
+        App Service in logs of the deployment.
     * Under **Settings** group select **Configuration**.
-    * Find **REMOTE_ENDPOINT** setting and edit its value to point to IP address of Public IP Address service that was created in the previous step. Do not forget to have `https://` prefix before the address. Save your change.
+    * Find **REMOTE_ENDPOINT** setting and edit its value to point to IP address of Public IP Address service
+        that was created in the previous step. Do not forget to have `https://` prefix before the address.
+        Save your change.
     * Go to **Overview** of you App Service, find **Restart** button on top and restart the service instance.
 
-Now you should be able to access APIs of microservices through URL of App Service. The URL is available in overview of App Service. You can try to access OPC Registry Service by appending `/registry/` to the URL. It should look something like this:
+Now you should be able to access APIs of microservices through URL of App Service. The URL is available
+in overview of App Service. You can try to access OPC Registry Service by appending `/registry/` to the URL.
+It should look something like this:
 
-* https://kktestapp51.azurewebsites.net/registry/
+* `https://kktestapp51.azurewebsites.net/registry/`
 
 Where kktestapp51 is the name of App Service.
 
 ### Non-admin Users
 
-Currently only admin users in Azure directory can run `Microsoft.Azure.IIoT.Deployment` application. We will add support of non-admin users in next iterations.
+Currently only admin users in Azure directory can run `Microsoft.Azure.IIoT.Deployment` application. We will
+add support of non-admin users in next iterations.
 
 ### Configuring Azure Resources
 
-Currently `Microsoft.Azure.IIoT.Deployment` application deploys predefined Azure resources. In the next iterations we will provide a way to re-use existing Azure resources and specifying you own definitions of resources.
+Currently `Microsoft.Azure.IIoT.Deployment` application deploys predefined Azure resources. In the next
+iterations we will provide a way to re-use existing Azure resources and specifying you own definitions of
+resources.
 
 ## Known Issues
 
 ### CosmosDB Scale
 
-`Microsoft.Azure.IIoT.Deployment` deploys version `2.5.1` of Industrial IoT platform which includes deployment of CosmosDB databases and containers within it. The solution creates 2 CosmosDB databases with 3 containers which are used by microservices:
+`Microsoft.Azure.IIoT.Deployment` deploys version `2.5.1` of Industrial IoT platform which includes
+deployment of CosmosDB databases and containers within it. The solution creates 2 CosmosDB databases
+with 3 containers which are used by microservices:
 
 * `iiot_opc` database, which contains the following containers:
   * `iiot_opc-indices`
@@ -378,16 +540,27 @@ Currently `Microsoft.Azure.IIoT.Deployment` application deploys predefined Azure
 * `OpcVault` database, which contains the following container:
   * `AppsAndCertRequests`
 
-By default, the containers are created with [throughput allocation of 10000 RU/s](https://docs.microsoft.com/azure/cosmos-db/request-units) which each costs around 20$ daily. The next version of the platform will create containers with lower throughput allocation, but currently you have to manually lower the cost of throughput allocation. To do that follow these steps:
+By default, the containers are created with
+[throughput allocation of 10000 RU/s](https://docs.microsoft.com/azure/cosmos-db/request-units) which each
+costs around 20$ daily. The next version of the platform will create containers with lower throughput
+allocation, but currently you have to manually lower the cost of throughput allocation. To do that follow
+these steps:
 
 1. Go to Azure Portal.
 2. Go to **Resource Groups**.
 3. Find the Resource Groups that has been selected during the deployment and select it.
-4. Within the Resource Group, find and select instance of CosmosDB that has been deployed. Deployment logs will contain the name of ConsmosBD, which will be something like `cosmosdb-98554`. Last 5 characters will be different for each deployment.
+4. Within the Resource Group, find and select instance of CosmosDB that has been deployed. Deployment logs
+    will contain the name of CosmosBD, which will be something like `cosmosdb-98554`. Last 5 characters will
+    be different for each deployment.
 5. On the left side find **Scale** under **Containers** group and select it.
 6. Then for each container listed above change the value of **Throughput** from 10000 to 400 and Save it.
 
 ## Resources
+
+### Azure AD
+
+* [Administrator role permissions in Azure Active Directory](https://docs.microsoft.com/azure/active-directory/users-groups-roles/directory-assign-admin-roles)
+* [View and assign administrator roles in Azure Active Directory](https://docs.microsoft.com/azure/active-directory/users-groups-roles/directory-manage-roles-portal)
 
 ### AKS Docs
 
