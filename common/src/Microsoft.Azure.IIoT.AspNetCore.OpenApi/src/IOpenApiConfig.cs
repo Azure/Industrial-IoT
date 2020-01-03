@@ -21,6 +21,11 @@ namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi {
         bool WithAuth { get; }
 
         /// <summary>
+        /// Create v2 open api json
+        /// </summary>
+        bool UseV2 { get; }
+
+        /// <summary>
         /// The AAD application id for the openapi UI client.
         /// </summary>
         string OpenApiAppId { get; }

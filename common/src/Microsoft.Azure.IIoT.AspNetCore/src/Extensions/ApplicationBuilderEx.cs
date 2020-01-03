@@ -18,6 +18,9 @@ namespace Microsoft.AspNetCore.Hosting {
     using System.Threading;
     using System.Threading.Tasks;
     using Autofac.Extensions.Hosting;
+    using Autofac.Extensions.DependencyInjection;
+    using Microsoft.Azure.IIoT.Http;
+    using Microsoft.Extensions.Primitives;
 
     /// <summary>
     /// Application builder extensions
@@ -34,27 +37,25 @@ namespace Microsoft.AspNetCore.Hosting {
 
             // Create a dummy server that acts as a scoped service provider
             var addresses = app.ServerFeatures.Get<IServerAddressesFeature>();
-            var host = Host.CreateDefaultBuilder()
-                .UseAutofac()
-                .ConfigureWebHost(builder => builder
-                    .UseStartup<T>()
-                    .ConfigureServices(s => {
-                        // Get root configuration
-                        var config = app.ApplicationServices.GetService<IConfiguration>();
-                        if (config != null) {
-                            s.AddSingleton(config);
-                        }
-                        s.AddSingleton(typeof(IServer), new DummyServer(path,
-                            addresses?.Addresses ?? Enumerable.Empty<string>()));
-                    }))
-                .Build();
+            var host = new WebHostBuilder()
+                .UseStartup<T>()
+                .ConfigureServices(s => {
+                    s.AddAutofac();
+                    // Get root configuration
+                    var config = app.ApplicationServices.GetService<IConfiguration>();
+                    if (config != null) {
+                        s.AddSingleton(config);
+                    }
+                    s.AddSingleton(typeof(IServer), new DummyServer(path,
+                        addresses?.Addresses ?? Enumerable.Empty<string>()));
+                }).Build();
 
             // Now configure the application branch
             var serviceProvider = host.Services;
 
             var startup = serviceProvider.GetRequiredService<IStartup>();
             var appBuilderFactory = serviceProvider.GetRequiredService<IApplicationBuilderFactory>();
-            var branchBuilder = appBuilderFactory.CreateBuilder(app.ServerFeatures);
+            var branchBuilder = appBuilderFactory.CreateBuilder(host.ServerFeatures);
             var factory = serviceProvider.GetRequiredService<IServiceScopeFactory>();
 
             // Register branch middleware

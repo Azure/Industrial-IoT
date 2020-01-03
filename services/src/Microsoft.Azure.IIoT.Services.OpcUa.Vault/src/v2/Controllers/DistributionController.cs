@@ -39,6 +39,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Controllers {
         /// <returns>The Issuer Ca cert as a file</returns>
         [HttpGet("issuer/{serialNumber}")]
         [Produces(ContentMimeType.Cert)]
+        [ProducesResponseType(typeof(FileContentResult), 200)]
+        [ProducesResponseType(typeof(NotFoundResult), 404)]
         public async Task<ActionResult> GetIssuerCertificateChainAsync(string serialNumber) {
             if (string.IsNullOrEmpty(serialNumber)) {
                 throw new ArgumentNullException(nameof(serialNumber));
@@ -68,6 +70,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Controllers {
         /// <returns></returns>
         [HttpGet("crl/{serialNumber}")]
         [Produces(ContentMimeType.Crl)]
+        [ProducesResponseType(typeof(FileContentResult), 200)]
+        [ProducesResponseType(typeof(NotFoundResult), 404)]
         public async Task<ActionResult> GetIssuerCrlChainAsync(string serialNumber) {
             if (string.IsNullOrEmpty(serialNumber)) {
                 throw new ArgumentNullException(nameof(serialNumber));

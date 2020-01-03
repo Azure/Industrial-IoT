@@ -100,6 +100,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
             // Setup (not enabling yet) CORS
             services.AddCors();
             services.AddHealthChecks();
+            services.AddDistributedMemoryCache();
 
             // Add authentication
             services.AddJwtBearerAuthentication(Config,
@@ -112,9 +113,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
             });
 
             // Add controllers as services so they'll be resolved.
-            services.AddMvc()
-                .AddApplicationPart(GetType().Assembly)
-                .AddControllersAsServices()
+            services.AddControllers()
                 .AddNewtonsoftJson(options => {
                     options.SerializerSettings.Formatting = Formatting.Indented;
                     options.SerializerSettings.Converters.Add(new ExceptionConverter(
@@ -148,6 +147,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
             if (Config.AuthRequired) {
                 app.UseAuthentication();
             }
+            app.UseAuthorization();
             if (Config.HttpsRedirectPort > 0) {
                 app.UseHsts();
                 app.UseHttpsRedirection();

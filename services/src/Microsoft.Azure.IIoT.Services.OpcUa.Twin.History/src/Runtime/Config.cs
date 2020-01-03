@@ -56,13 +56,15 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.Runtime {
         public TimeSpan AllowedClockSkew => _auth.AllowedClockSkew;
 
         /// <inheritdoc/>
-        public bool UIEnabled => _swagger.UIEnabled;
+        public bool UIEnabled => _openApi.UIEnabled;
         /// <inheritdoc/>
-        public bool WithAuth => _swagger.WithAuth;
+        public bool WithAuth => _openApi.WithAuth;
         /// <inheritdoc/>
-        public string OpenApiAppId => _swagger.OpenApiAppId;
+        public string OpenApiAppId => _openApi.OpenApiAppId;
         /// <inheritdoc/>
-        public string OpenApiAppSecret => _swagger.OpenApiAppSecret;
+        public string OpenApiAppSecret => _openApi.OpenApiAppSecret;
+        /// <inheritdoc/>
+        public bool UseV2 => _openApi.UseV2;
 
         /// <summary>
         /// Whether to use role based access
@@ -76,14 +78,14 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.Runtime {
         public Config(IConfiguration configuration) :
             base(configuration) {
 
-            _swagger = new OpenApiConfig(configuration);
+            _openApi = new OpenApiConfig(configuration);
             _auth = new AuthConfig(configuration);
             _host = new HostConfig(configuration);
             _hub = new IoTHubConfig(configuration);
             _cors = new CorsConfig(configuration);
         }
 
-        private readonly OpenApiConfig _swagger;
+        private readonly OpenApiConfig _openApi;
         private readonly HostConfig _host;
         private readonly AuthConfig _auth;
         private readonly CorsConfig _cors;

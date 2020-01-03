@@ -88,11 +88,10 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge {
             // Setup (not enabling yet) CORS
             services.AddCors();
             services.AddHealthChecks();
+            services.AddDistributedMemoryCache();
 
             // Add controllers as services so they'll be resolved.
-            services.AddMvc()
-                .AddApplicationPart(GetType().Assembly)
-                .AddControllersAsServices()
+            services.AddControllers()
                 .AddNewtonsoftJson(options => {
                     options.SerializerSettings.Formatting = Formatting.Indented;
                     options.SerializerSettings.Converters.Add(new ExceptionConverter(
@@ -132,6 +131,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge {
             if (Config.AuthRequired) {
                 app.UseAuthentication();
             }
+            app.UseAuthorization();
             if (Config.HttpsRedirectPort > 0) {
                 app.UseHsts();
                 app.UseHttpsRedirection();

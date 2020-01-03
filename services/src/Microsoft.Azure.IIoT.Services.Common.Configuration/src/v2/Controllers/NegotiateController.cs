@@ -32,7 +32,9 @@ namespace Microsoft.Azure.IIoT.Services.Common.Configuration.v2.Controllers {
         /// <param name="user"></param>
         /// <returns></returns>
         [HttpPost("{hub}/negotiate")]
-        public ActionResult Index(string hub, string user) {
+        [ProducesResponseType(typeof(JsonResult), 200)]
+        [ProducesResponseType(typeof(BadRequestObjectResult), 400)]
+        public IActionResult Index(string hub, string user) {
             if (string.IsNullOrEmpty(user)) {
                 return BadRequest("User ID is null or empty.");
             }

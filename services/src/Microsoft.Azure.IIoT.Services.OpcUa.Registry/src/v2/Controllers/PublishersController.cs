@@ -26,14 +26,14 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Controllers {
     [Produces(ContentMimeType.Json)]
     [Authorize(Policy = Policies.CanQuery)]
     [ApiController]
-    public class PublisherController : ControllerBase {
+    public class PublishersController : ControllerBase {
 
         /// <summary>
         /// Create controller for publisher services
         /// </summary>
         /// <param name="publishers"></param>
         /// <param name="events"></param>
-        public PublisherController(IPublisherRegistry publishers,
+        public PublishersController(IPublisherRegistry publishers,
             IGroupRegistration events) {
             _publishers = publishers;
             _events = events;

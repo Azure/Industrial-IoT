@@ -26,14 +26,14 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Controllers {
     [Produces(ContentMimeType.Json)]
     [Authorize(Policy = Policies.CanQuery)]
     [ApiController]
-    public class GatewayController : ControllerBase {
+    public class GatewaysController : ControllerBase {
 
         /// <summary>
         /// Create controller for Gateway services
         /// </summary>
         /// <param name="Gateways"></param>
         /// <param name="events"></param>
-        public GatewayController(IGatewayRegistry Gateways,
+        public GatewaysController(IGatewayRegistry Gateways,
             IGroupRegistration events) {
             _Gateways = Gateways;
             _events = events;

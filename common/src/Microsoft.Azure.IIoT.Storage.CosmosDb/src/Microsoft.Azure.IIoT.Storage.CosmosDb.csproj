@@ -4,7 +4,6 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Description>Azure Industrial IoT Core Azure Storage Implementations</Description>
     <VersionSuffix>$(PrereleaseSuffix)</VersionSuffix>
-    <NoWarn>NU1608;NU5125</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Script\bulkDelete.js" />

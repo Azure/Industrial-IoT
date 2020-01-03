@@ -88,6 +88,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway {
             // Setup (not enabling yet) CORS
             services.AddCors();
             services.AddHealthChecks();
+            services.AddDistributedMemoryCache();
 
             // Add authentication
             services.AddJwtBearerAuthentication(Config, Environment.IsDevelopment());
@@ -96,9 +97,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway {
             // services.AddHttpClient();
 
             // Add controllers as services so they'll be resolved.
-            services.AddMvc()
-                .AddApplicationPart(GetType().Assembly)
-                .AddControllersAsServices();
+            services.AddControllers();
         }
 
         /// <summary>
@@ -117,6 +116,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway {
             if (Config.AuthRequired) {
                 app.UseAuthentication();
             }
+            app.UseAuthorization();
             if (Config.HttpsRedirectPort > 0) {
                 app.UseHsts();
                 app.UseHttpsRedirection();

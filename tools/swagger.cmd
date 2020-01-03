@@ -39,7 +39,7 @@ rem
 :retrieve_spec
 :retrieve_retry
 if exist %1.json del /f %1.json
-curl -o %1.json http://%_hostname%:9080/%1/v2/swagger.json
+curl -o %1.json http://%_hostname%:9080/%1/swagger/v2/openapi.json
 if exist %1.json goto :eof
 ping nowhere -w 5000 >nul 2>&1
 goto :retrieve_retry

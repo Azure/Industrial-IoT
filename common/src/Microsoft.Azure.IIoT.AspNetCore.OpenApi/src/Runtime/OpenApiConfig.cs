@@ -15,25 +15,29 @@ namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi.Runtime {
         /// <summary>
         /// OpenApi configuration
         /// </summary>
-        private const string kSwagger_EnabledKey = "OpenApi:Enabled";
-        private const string kSwagger_AppIdKey = "OpenApi:AppId";
-        private const string kSwagger_AppSecretKey = "OpenApi:AppSecret";
+        private const string kOpenApi_EnabledKey = "OpenApi:Enabled";
+        private const string kOpenApi_UseV2Key = "OpenApi:UseV2";
+        private const string kOpenApi_AppIdKey = "OpenApi:AppId";
+        private const string kOpenApi_AppSecretKey = "OpenApi:AppSecret";
         private const string kAuth_RequiredKey = "Auth:Required";
 
         /// <summary>Enabled</summary>
-        public bool UIEnabled => GetBoolOrDefault(kSwagger_EnabledKey,
+        public bool UIEnabled => GetBoolOrDefault(kOpenApi_EnabledKey,
             !WithAuth || !string.IsNullOrEmpty(OpenApiAppId)); // Disable with auth but no appid
         /// <summary>Auth enabled</summary>
         public bool WithAuth => GetBoolOrDefault(kAuth_RequiredKey,
             GetBoolOrDefault("PCS_AUTH_REQUIRED", !string.IsNullOrEmpty(OpenApiAppId)));
+        /// <summary>Generate swagger.json</summary>
+        public bool UseV2 => GetBoolOrDefault(kOpenApi_UseV2Key,
+            GetBoolOrDefault("PCS_SWAGGER_V2", true));
         /// <summary>Application id</summary>
-        public string OpenApiAppId => GetStringOrDefault(kSwagger_AppIdKey,
+        public string OpenApiAppId => GetStringOrDefault(kOpenApi_AppIdKey,
             GetStringOrDefault("PCS_AUTH_CLIENT_APPID",
-            GetStringOrDefault("PCS_SWAGGER_APP_ID")))?.Trim();
+            GetStringOrDefault("PCS_OPENAPI_APP_ID")))?.Trim();
         /// <summary>App secret</summary>
-        public string OpenApiAppSecret => GetStringOrDefault(kSwagger_AppSecretKey,
+        public string OpenApiAppSecret => GetStringOrDefault(kOpenApi_AppSecretKey,
             GetStringOrDefault("PCS_AUTH_CLIENT_SECRET",
-            GetStringOrDefault("PCS_SWAGGER_APP_KEY")))?.Trim();
+            GetStringOrDefault("PCS_OPENAPI_APP_KEY")))?.Trim();
 
         /// <summary>
         /// Configuration constructor

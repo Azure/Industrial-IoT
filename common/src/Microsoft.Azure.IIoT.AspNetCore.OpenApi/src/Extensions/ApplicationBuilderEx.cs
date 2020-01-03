@@ -48,28 +48,29 @@ namespace Microsoft.OpenApi.Models {
                         .Append("https")
                         .Append(request.Scheme)
                         .Distinct()) {
-                        var basePath = path;
-                        if (request.Headers.TryGetValue(HttpHeader.Location,
-                                out var values) && values.Count > 0) {
-                            basePath += "/" + values[0];
-                        }
                         doc.Servers.Add(new OpenApiServer {
                             Description = $"{scheme} endpoint.",
-                            Url = new UriBuilder {
-                                Scheme = scheme,
-                                Host = request.Host.Value,
-                                Path = basePath
-                            }.Uri.ToString()
+                            Url = $"{scheme}://{request.Host.Value}"
                         });
+                        if (!string.IsNullOrEmpty(path)) {
+                            doc.Servers.Add(new OpenApiServer {
+                                Description = $"{scheme} at {path}.",
+                                Url = new UriBuilder($"{scheme}://{request.Host.Value}") {
+                                    Path = path
+                                }.Uri.ToString()
+                            });
+                        }
                     }
                 });
                 options.SerializeAsV2 = true;
-                options.RouteTemplate = "{documentName}/openapi.json";
+                options.RouteTemplate = "swagger/{documentName}/openapi.json";
             });
             if (!config.UIEnabled) {
                 return;
             }
 
+            // Where to host the ui
+            var basePath = string.IsNullOrEmpty(path) ? "" : "/" + path;
             app.UseSwaggerUI(options => {
                 foreach (var info in infos) {
                     if (config.WithAuth) {
@@ -86,8 +87,7 @@ namespace Microsoft.OpenApi.Models {
                                 });
                         }
                     }
-                    options.RoutePrefix = "";
-                    options.SwaggerEndpoint($"{info.Version}/openapi.json",
+                    options.SwaggerEndpoint($"{basePath}/swagger/{info.Version}/openapi.json",
                         info.Version);
                 }
             });

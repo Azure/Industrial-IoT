@@ -21,13 +21,15 @@ namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi {
             var name = context.MethodInfo.Name;
             if (name.EndsWith("Async", StringComparison.InvariantCultureIgnoreCase)) {
                 var autoOperationId = name.Substring(0, name.Length - 5);
-                if (autoOperationId.Length < operation.OperationId.Length) {
+                if (operation.OperationId == null ||
+                    autoOperationId.Length < operation.OperationId.Length) {
                     operation.OperationId = autoOperationId;
                 }
             }
-            if (operation.OperationId.Contains("CreateOrUpdate") &&
+            var patchOperationId = operation.OperationId ?? context.MethodInfo.Name;
+            if (patchOperationId.Contains("CreateOrUpdate") &&
                 context.ApiDescription.HttpMethod.EqualsIgnoreCase("PATCH")) {
-                operation.OperationId = operation.OperationId.Replace("CreateOrUpdate", "Update");
+                operation.OperationId = patchOperationId.Replace("CreateOrUpdate", "Update");
             }
             var attribute = context.MethodInfo
                 .GetCustomAttributes<AutoRestExtensionAttribute>().FirstOrDefault();
