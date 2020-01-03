@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
     /// <summary>
     /// Application registry event publisher
     /// </summary>
-    public class RegistryEventPublisherHost : IHost, IDisposable,
+    public class RegistryEventPublisherHost : IHostProcess, IDisposable,
         IEventHandler<ApplicationEventModel>, IEventHandler<EndpointEventModel> {
 
         /// <summary>

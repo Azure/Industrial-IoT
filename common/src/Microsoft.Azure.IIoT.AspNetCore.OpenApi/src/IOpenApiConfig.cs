@@ -3,31 +3,31 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Services.Swagger {
+namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi {
 
     /// <summary>
-    /// Swagger configuration
+    /// OpenApi / Swagger configuration
     /// </summary>
-    public interface ISwaggerConfig {
+    public interface IOpenApiConfig {
 
         /// <summary>
-        /// Whether swagger should be enabled
+        /// Whether openapi should be enabled
         /// </summary>
         bool UIEnabled { get; }
 
         /// <summary>
-        /// Whether authentication should be added to swagger ui
+        /// Whether authentication should be added to openapi ui
         /// </summary>
         bool WithAuth { get; }
 
         /// <summary>
-        /// The AAD application id for the swagger client.
+        /// The AAD application id for the openapi UI client.
         /// </summary>
-        string SwaggerAppId { get; }
+        string OpenApiAppId { get; }
 
         /// <summary>
         /// AAD Client / Application secret (optional)
         /// </summary>
-        string SwaggerAppSecret { get; }
+        string OpenApiAppSecret { get; }
     }
 }

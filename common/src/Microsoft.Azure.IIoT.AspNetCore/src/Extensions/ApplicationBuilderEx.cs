@@ -6,14 +6,13 @@
 namespace Microsoft.AspNetCore.Hosting {
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting.Builder;
-    using Microsoft.AspNetCore.Hosting.Internal;
     using Microsoft.AspNetCore.Hosting.Server;
     using Microsoft.AspNetCore.Hosting.Server.Features;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Http.Features;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
-    using System;
+    using Microsoft.Extensions.Hosting;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
@@ -31,47 +30,32 @@ namespace Microsoft.AspNetCore.Hosting {
         /// <param name="app">Application builder</param>
         /// <param name="path">Mount path</param>
         public static IApplicationBuilder AddStartupBranch<T>(this IApplicationBuilder app,
-            PathString path) {
+            PathString path) where T : class {
 
             // Create a dummy server that acts as a scoped service provider
-            StartupMethods methods = null;
             var addresses = app.ServerFeatures.Get<IServerAddressesFeature>();
-            var webHost = new WebHostBuilder()
-                .UseStartup<EmptyStartup>()
+            var host = Host.CreateDefaultBuilder()
                 .UseAutofac()
-                .ConfigureServices(s => {
-                    // Get root configuration
-                    var config = app.ApplicationServices.GetService<IConfiguration>();
-                    if (config != null) {
-                        s.AddSingleton(config);
-                    }
-                    s.AddSingleton(typeof(IServer), new DummyServer(path,
-                        addresses?.Addresses ?? Enumerable.Empty<string>()));
-                    s.AddSingleton(typeof(IStartup), delegate (IServiceProvider sp) {
-                        var requiredService = sp.GetRequiredService<IHostingEnvironment>();
-                        methods = StartupLoader.LoadMethods(sp, typeof(T),
-                            requiredService.EnvironmentName);
-
-                        // Service configuration for the server
-                        return new ConventionBasedStartup(
-                            new StartupMethods(methods.StartupInstance, a => { } ,
-                                methods.ConfigureServicesDelegate));
-                    });
-                })
+                .ConfigureWebHost(builder => builder
+                    .UseStartup<T>()
+                    .ConfigureServices(s => {
+                        // Get root configuration
+                        var config = app.ApplicationServices.GetService<IConfiguration>();
+                        if (config != null) {
+                            s.AddSingleton(config);
+                        }
+                        s.AddSingleton(typeof(IServer), new DummyServer(path,
+                            addresses?.Addresses ?? Enumerable.Empty<string>()));
+                    }))
                 .Build();
 
-            if (methods == null) {
-                throw new InvalidOperationException("Could not load startup");
-            }
-
             // Now configure the application branch
-            var serviceProvider = webHost.Services;
-            var appBuilderFactory = serviceProvider
-                .GetRequiredService<IApplicationBuilderFactory>();
-            var branchBuilder = appBuilderFactory.
-                CreateBuilder(webHost.ServerFeatures);
-            var factory = serviceProvider
-                .GetRequiredService<IServiceScopeFactory>();
+            var serviceProvider = host.Services;
+
+            var startup = serviceProvider.GetRequiredService<IStartup>();
+            var appBuilderFactory = serviceProvider.GetRequiredService<IApplicationBuilderFactory>();
+            var branchBuilder = appBuilderFactory.CreateBuilder(app.ServerFeatures);
+            var factory = serviceProvider.GetRequiredService<IServiceScopeFactory>();
 
             // Register branch middleware
             branchBuilder.Use(async (context, next) => {
@@ -89,7 +73,7 @@ namespace Microsoft.AspNetCore.Hosting {
             });
 
             // Do remaining application configuration
-            methods.ConfigureDelegate.Invoke(branchBuilder);
+            startup.Configure(branchBuilder);
             var branch = branchBuilder.Build();
 
             // Map the route to the branch

@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Swashbuckle.AspNetCore.Swagger {
+namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi {
     using System;
 
     /// <summary>
@@ -16,11 +16,6 @@ namespace Swashbuckle.AspNetCore.Swagger {
         /// Describe the operation as long running
         /// </summary>
         public bool LongRunning { get; set; }
-
-        /// <summary>
-        /// Describe the response type as stream
-        /// </summary>
-        public bool ResponseTypeIsFileStream { get; set; }
 
         /// <summary>
         /// Sets the next page link for x-ms-pageable.

@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy {
     /// <summary>
     /// Deploys publisher module
     /// </summary>
-    public sealed class IoTHubPublisherDeployment : IHost {
+    public sealed class IoTHubPublisherDeployment : IHostProcess {
 
         /// <summary>
         /// Create edge base deployer

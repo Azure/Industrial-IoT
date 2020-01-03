@@ -9,6 +9,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Controllers {
     using Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Models;
     using Microsoft.Azure.IIoT.OpcUa.Vault;
     using Microsoft.Azure.IIoT.OpcUa.Vault.Models;
+    using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
     using Microsoft.Azure.IIoT.Http;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
@@ -16,7 +17,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Controllers {
     using System.Linq;
     using System.Threading.Tasks;
     using System.ComponentModel.DataAnnotations;
-    using Swashbuckle.AspNetCore.Swagger;
 
     /// <summary>
     /// Certificate request services.

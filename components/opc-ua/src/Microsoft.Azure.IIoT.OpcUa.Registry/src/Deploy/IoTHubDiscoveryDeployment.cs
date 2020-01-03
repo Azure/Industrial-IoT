@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
     /// <summary>
     /// Deploys discovery module
     /// </summary>
-    public sealed class IoTHubDiscoveryDeployment : IHost {
+    public sealed class IoTHubDiscoveryDeployment : IHostProcess {
 
         /// <summary>
         /// Create deployer

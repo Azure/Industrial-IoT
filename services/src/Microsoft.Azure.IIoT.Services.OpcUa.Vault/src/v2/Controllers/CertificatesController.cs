@@ -8,9 +8,9 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Controllers {
     using Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Filters;
     using Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Models;
     using Microsoft.Azure.IIoT.OpcUa.Vault;
+    using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
-    using Swashbuckle.AspNetCore.Swagger;
     using System;
     using System.Threading.Tasks;
 

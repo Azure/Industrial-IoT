@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
     using Microsoft.Azure.IIoT.Services.OpcUa.Vault.Runtime;
-    using Microsoft.AspNetCore;
+    using Microsoft.Extensions.Hosting;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Mvc.Testing;
     using Autofac;
@@ -21,7 +21,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
         /// Create startup
         /// </summary>
         /// <param name="env"></param>
-        public TestStartup(IHostingEnvironment env) : base(env, new Config(null)) {
+        public TestStartup(IWebHostEnvironment env) : base(env, new Config(null)) {
         }
 
         /// <inheritdoc/>
@@ -41,14 +41,15 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
     public class WebAppFixture : WebApplicationFactory<TestStartup>, IHttpClientFactory {
 
         /// <inheritdoc/>
-        protected override IWebHostBuilder CreateWebHostBuilder() {
-            return WebHost.CreateDefaultBuilder().UseStartup<TestStartup>();
+        protected override void ConfigureWebHost(IWebHostBuilder builder) {
+            builder.UseContentRoot(".").UseStartup<TestStartup>();
+            base.ConfigureWebHost(builder);
         }
 
         /// <inheritdoc/>
-        protected override void ConfigureWebHost(IWebHostBuilder builder) {
-            builder.UseContentRoot(".").UseAutofac();
-            base.ConfigureWebHost(builder);
+        protected override IHost CreateHost(IHostBuilder builder) {
+            builder.UseAutofac();
+            return base.CreateHost(builder);
         }
 
         /// <inheritdoc/>

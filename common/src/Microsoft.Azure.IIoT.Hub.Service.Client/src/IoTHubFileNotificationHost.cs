@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
     /// <summary>
     /// File notification processor
     /// </summary>
-    public sealed class IoTHubFileNotificationHost : IHost, IDisposable {
+    public sealed class IoTHubFileNotificationHost : IHostProcess, IDisposable {
 
         /// <summary>
         /// Create service client

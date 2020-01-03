@@ -70,7 +70,7 @@ namespace Microsoft.Azure.IIoT.Utils {
 
             /// <inheritdoc/>
             public void Dispose() {
-                _asyncDisposable.DisposeAsync().Wait();
+                _asyncDisposable.DisposeAsync().AsTask().Wait();
             }
 
             private readonly IAsyncDisposable _asyncDisposable;

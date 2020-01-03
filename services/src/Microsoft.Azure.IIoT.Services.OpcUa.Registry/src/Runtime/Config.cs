@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Runtime {
-    using Microsoft.Azure.IIoT.Services.Swagger;
-    using Microsoft.Azure.IIoT.Services.Swagger.Runtime;
+    using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
+    using Microsoft.Azure.IIoT.AspNetCore.OpenApi.Runtime;
     using Microsoft.Azure.IIoT.Services.Cors;
     using Microsoft.Azure.IIoT.Services.Cors.Runtime;
     using Microsoft.Azure.IIoT.Hub.Client;
@@ -28,7 +28,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Runtime {
     /// Common web service configuration aggregation
     /// </summary>
     public class Config : DiagnosticsConfig, IAuthConfig, IIoTHubConfig, ICorsConfig,
-        IClientConfig, ISwaggerConfig, IServiceBusConfig, ISignalRServiceConfig,
+        IClientConfig, IOpenApiConfig, IServiceBusConfig, ISignalRServiceConfig,
         ICosmosDbConfig, IItemContainerConfig {
 
         /// <summary>
@@ -73,9 +73,9 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Runtime {
         /// <inheritdoc/>
         public bool WithAuth => _swagger.WithAuth;
         /// <inheritdoc/>
-        public string SwaggerAppId => _swagger.SwaggerAppId;
+        public string OpenApiAppId => _swagger.OpenApiAppId;
         /// <inheritdoc/>
-        public string SwaggerAppSecret => _swagger.SwaggerAppSecret;
+        public string OpenApiAppSecret => _swagger.OpenApiAppSecret;
 
         /// <inheritdoc/>
         public string ServiceBusConnString => _sb.ServiceBusConnString;
@@ -101,7 +101,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Runtime {
         public Config(IConfiguration configuration) :
             base(configuration) {
 
-            _swagger = new SwaggerConfig(configuration);
+            _swagger = new OpenApiConfig(configuration);
             _auth = new AuthConfig(configuration);
             _host = new HostConfig(configuration);
             _hub = new IoTHubConfig(configuration);
@@ -111,7 +111,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Runtime {
             _sr = new SignalRServiceConfig(configuration);
         }
 
-        private readonly SwaggerConfig _swagger;
+        private readonly OpenApiConfig _swagger;
         private readonly AuthConfig _auth;
         private readonly HostConfig _host;
         private readonly CorsConfig _cors;
