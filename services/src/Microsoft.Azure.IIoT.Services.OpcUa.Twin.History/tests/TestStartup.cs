@@ -63,6 +63,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History {
     /// <inheritdoc/>
     public class WebAppFixture : WebApplicationFactory<TestStartup>, IHttpClientFactory {
 
+        /// <inheritdoc/>
+        protected override IHostBuilder CreateHostBuilder() {
+            return Host.CreateDefaultBuilder();
+        }
 
         /// <inheritdoc/>
         protected override void ConfigureWebHost(IWebHostBuilder builder) {
@@ -87,7 +91,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History {
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
         public T Resolve<T>() {
-            return (T)Server.Host.Services.GetService(typeof(T));
+            return (T)Server.Services.GetService(typeof(T));
         }
     }
 }

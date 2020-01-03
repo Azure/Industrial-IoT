@@ -41,6 +41,11 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
     public class WebAppFixture : WebApplicationFactory<TestStartup>, IHttpClientFactory {
 
         /// <inheritdoc/>
+        protected override IHostBuilder CreateHostBuilder() {
+            return Host.CreateDefaultBuilder();
+        }
+
+        /// <inheritdoc/>
         protected override void ConfigureWebHost(IWebHostBuilder builder) {
             builder.UseContentRoot(".").UseStartup<TestStartup>();
             base.ConfigureWebHost(builder);
@@ -63,7 +68,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
         public T Resolve<T>() {
-            return (T)Server.Host.Services.GetService(typeof(T));
+            return (T)Server.Services.GetService(typeof(T));
         }
     }
 }

@@ -51,6 +51,11 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding {
     public class WebAppFixture : WebApplicationFactory<TestStartup>, IHttpClientFactory {
 
         /// <inheritdoc/>
+        protected override IHostBuilder CreateHostBuilder() {
+            return Host.CreateDefaultBuilder();
+        }
+
+        /// <inheritdoc/>
         protected override void ConfigureWebHost(IWebHostBuilder builder) {
             builder.UseContentRoot(".").UseStartup<TestStartup>();
             base.ConfigureWebHost(builder);
