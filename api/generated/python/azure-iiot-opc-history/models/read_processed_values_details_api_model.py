@@ -25,7 +25,7 @@ class ReadProcessedValuesDetailsApiModel(Model):
     :type aggregate_type_id: str
     :param aggregate_configuration: A configuration for the aggregate
     :type aggregate_configuration:
-     ~azure-iiot-opc-history.models.AggregateConfigApiModel
+     ~azure-iiot-opc-history.models.AggregateConfigurationApiModel
     """
 
     _attribute_map = {
@@ -33,7 +33,7 @@ class ReadProcessedValuesDetailsApiModel(Model):
         'end_time': {'key': 'endTime', 'type': 'iso-8601'},
         'processing_interval': {'key': 'processingInterval', 'type': 'float'},
         'aggregate_type_id': {'key': 'aggregateTypeId', 'type': 'str'},
-        'aggregate_configuration': {'key': 'aggregateConfiguration', 'type': 'AggregateConfigApiModel'},
+        'aggregate_configuration': {'key': 'aggregateConfiguration', 'type': 'AggregateConfigurationApiModel'},
     }
 
     def __init__(self, start_time=None, end_time=None, processing_interval=None, aggregate_type_id=None, aggregate_configuration=None):

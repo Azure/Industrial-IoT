@@ -83,6 +83,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cli {
         /// Test client entry point
         /// </summary>
         public static void Main(string[] args) {
+            AppDomain.CurrentDomain.UnhandledException +=
+                (s, e) => Console.WriteLine("unhandled: " + e.ExceptionObject);
             var op = Op.None;
             var endpoint = new EndpointModel();
             string deviceId = null, moduleId = null, addressRanges = null, fileName = null;
@@ -259,14 +261,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cli {
                     }
                 }
                 if (op == Op.None) {
-                    throw new ArgumentException("Missing operation.");
+                    if (ports.Count == 0) {
+                        var envPort = Environment.GetEnvironmentVariable("SERVER_PORT");
+                        if (!string.IsNullOrEmpty(envPort) && int.TryParse(envPort, out var port)) {
+                            ports.Add(port);
+                        }
+                        else {
+                            throw new ArgumentException(
+                                "Missing port to run sample server or specify --sample option.");
+                        }
+                    }
+                    op = Op.RunSampleServer;
                 }
             }
             catch (Exception e) {
                 Console.WriteLine(e.Message);
                 Console.WriteLine(
                     @"
-Test Client
+Test host
 usage:       [options] operation [args]
 
 Options:
@@ -277,8 +289,8 @@ Options:
 
 Operations (Mutually exclusive):
 
-     -s
     --sample / -s           Run sample server and wait for cancellation.
+                            Default if port is specified.
 
     --events                Listen for events
     --scan-net              Tests network scanning.
@@ -312,7 +324,7 @@ Operations (Mutually exclusive):
                 switch (op) {
                     case Op.RunSampleServer:
                         RunServerAsync(ports).Wait();
-                        break;
+                        return;
                     case Op.RunEventListener:
                         RunEventListenerAsync().Wait();
                         break;
@@ -364,6 +376,7 @@ Operations (Mutually exclusive):
             }
             catch (Exception e) {
                 Console.WriteLine(e);
+                return;
             }
 
             Console.WriteLine("Press key to exit...");
@@ -391,6 +404,7 @@ Operations (Mutually exclusive):
                     }
 #endif
                     await tcs.Task;
+                    logger.Logger.Information("Exiting.");
                 }
             }
         }

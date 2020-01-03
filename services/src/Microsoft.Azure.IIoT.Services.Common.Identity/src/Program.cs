@@ -37,10 +37,11 @@ namespace Microsoft.Azure.IIoT.Services.Common.Identity {
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", true, true)
                 .AddJsonFile($"appsettings.{environmentName}.json", true, true)
-                .AddFromDotEnvFile()
+                .AddEnvironmentVariables()
                 .AddEnvironmentVariables(EnvironmentVariableTarget.User)
-                .AddCommandLine(args)
+                .AddFromDotEnvFile()
                 .AddFromKeyVault()
+                .AddCommandLine(args)
                 .Build();
 
             // Set up dependency injection for the event processor host

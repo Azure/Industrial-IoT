@@ -11,6 +11,7 @@ Azure Industrial IoT OPC UA Historic Access Service
 
 
 ### URI scheme
+*BasePath* : /history  
 *Schemes* : HTTPS, HTTP
 
 

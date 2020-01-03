@@ -23,6 +23,7 @@ namespace Microsoft.Azure.IIoT.App {
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
+    using Microsoft.AspNetCore.HttpOverrides;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc.Authorization;
     using Microsoft.Extensions.Configuration;
@@ -46,11 +47,6 @@ namespace Microsoft.Azure.IIoT.App {
         public Config Config { get; }
 
         /// <summary>
-        /// Di container
-        /// </summary>
-        public ILifetimeScope ApplicationContainer { get; private set; }
-
-        /// <summary>
         /// Created through builder
         /// </summary>
         /// <param name="configuration"></param>
@@ -61,8 +57,9 @@ namespace Microsoft.Azure.IIoT.App {
 
             configuration = new ConfigurationBuilder()
                 .AddConfiguration(configuration)
-                .AddFromDotEnvFile()
                 .AddEnvironmentVariables()
+                .AddEnvironmentVariables(EnvironmentVariableTarget.User)
+                .AddFromDotEnvFile()
                 .AddFromKeyVault()
                 .Build();
 
@@ -77,7 +74,8 @@ namespace Microsoft.Azure.IIoT.App {
         /// <param name="appLifetime"></param>
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env,
             IHostApplicationLifetime appLifetime) {
-            ApplicationContainer = app.ApplicationServices.GetAutofacRoot();
+            var applicationContainer = app.ApplicationServices.GetAutofacRoot();
+            app.UseForwardedHeaders();
 
             if (env.IsDevelopment()) {
                 app.UseDeveloperExceptionPage();
@@ -89,7 +87,6 @@ namespace Microsoft.Azure.IIoT.App {
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
-
             app.UseRouting();
 
             app.UseAuthentication();
@@ -103,7 +100,7 @@ namespace Microsoft.Azure.IIoT.App {
 
             // If you want to dispose of resources that have been resolved in the
             // application container, register for the "ApplicationStopped" event.
-            appLifetime.ApplicationStopped.Register(ApplicationContainer.Dispose);
+            appLifetime.ApplicationStopped.Register(applicationContainer.Dispose);
         }
 
         /// <summary>
@@ -115,11 +112,30 @@ namespace Microsoft.Azure.IIoT.App {
         /// <returns></returns>
         public void ConfigureServices(IServiceCollection services) {
 
+            if (string.Equals(
+                Environment.GetEnvironmentVariable("ASPNETCORE_FORWARDEDHEADERS_ENABLED"),
+                    "true", StringComparison.OrdinalIgnoreCase)) {
+
+                services.Configure<ForwardedHeadersOptions>(options => {
+                    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor |
+                        ForwardedHeaders.XForwardedProto;
+                    // Only loopback proxies are allowed by default.
+                    // Clear that restriction because forwarders are enabled by explicit
+                    // configuration.
+                    options.KnownNetworks.Clear();
+                    options.KnownProxies.Clear();
+                });
+            }
+
             services.Configure<CookiePolicyOptions>(options => {
                 // This lambda determines whether user consent for non-essential cookies
                 // is needed for a given request.
                 options.CheckConsentNeeded = context => true;
                 options.MinimumSameSitePolicy = SameSiteMode.Strict;
+            });
+
+            services.AddAntiforgery(options => {
+                options.Cookie.SameSite = SameSiteMode.None;
             });
 
             services.AddHttpContextAccessor();
@@ -138,7 +154,7 @@ namespace Microsoft.Azure.IIoT.App {
             // the OnAuthorizationCodeReceived event is not called but instead
             // OnTokenValidated event is called. Here we request both so that
             // OnTokenValidated is called first which ensures that context.Principal
-            // has a non-null value when OnAuthorizeationCodeReceived is called
+            // has a non-null value when OnAuthorizationCodeReceived is called
             //
             services
                 .Configure<OpenIdConnectOptions>(AzureADDefaults.OpenIdScheme, options => {

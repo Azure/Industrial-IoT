@@ -16,10 +16,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// <summary>
         /// Get all endpoints in paged form
         /// </summary>
+        /// <param name="continuation"></param>
         /// <param name="onlyServerState">Whether only
         /// desired endpoint state should be returned.
         /// </param>
-        /// <param name="continuation"></param>
         /// <param name="pageSize"></param>
         /// <param name="ct"></param>
         /// <returns></returns>

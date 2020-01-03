@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
-    using Microsoft.Azure.IIoT.Storage.CosmosDb;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Http.Exceptions;
@@ -45,8 +44,8 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
         /// Create collection
         /// </summary>
         /// <param name="db"></param>
-        /// <param name="serializer"></param>
         /// <param name="container"></param>
+        /// <param name="serializer"></param>
         /// <param name="logger"></param>
         internal DocumentCollection(DocumentDatabase db, CosmosContainer container,
             JsonSerializerSettings serializer, ILogger logger) {

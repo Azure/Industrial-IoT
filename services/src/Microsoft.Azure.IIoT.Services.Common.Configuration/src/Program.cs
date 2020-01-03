@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.Services.Common.Configuration {
     using Microsoft.AspNetCore;
     using Microsoft.AspNetCore.Hosting;
+    using Autofac.Extensions.Hosting;
     using Serilog;
 
     /// <summary>
@@ -29,8 +30,9 @@ namespace Microsoft.Azure.IIoT.Services.Common.Configuration {
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) {
             return WebHost.CreateDefaultBuilder<Startup>(args)
                 .UseUrls("http://*:9050")
-                .UseKestrel(o => o.AddServerHeader = false)
-                .UseSerilog();
+                .UseAutofac()
+                .UseSerilog()
+                .UseKestrel(o => o.AddServerHeader = false);
         }
     }
 }

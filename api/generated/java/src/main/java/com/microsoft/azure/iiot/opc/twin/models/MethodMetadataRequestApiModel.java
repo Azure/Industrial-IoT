@@ -21,7 +21,7 @@ public class MethodMetadataRequestApiModel {
      * Method id of method to call.
      * (Required).
      */
-    @JsonProperty(value = "methodId", required = true)
+    @JsonProperty(value = "methodId")
     private String methodId;
 
     /**

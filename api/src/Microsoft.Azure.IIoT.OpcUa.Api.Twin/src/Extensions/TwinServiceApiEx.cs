@@ -20,8 +20,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin {
         /// wants all. If user has requested maximum to return uses
         /// <see cref="ITwinServiceApi.NodeBrowseFirstAsync"/>
         /// </summary>
-        /// <param name="endpoint"></param>
         /// <param name="service"></param>
+        /// <param name="endpoint"></param>
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>

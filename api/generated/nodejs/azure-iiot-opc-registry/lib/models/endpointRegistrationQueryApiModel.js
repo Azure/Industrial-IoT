@@ -18,9 +18,6 @@ class EndpointRegistrationQueryApiModel {
   /**
    * Create a EndpointRegistrationQueryApiModel.
    * @property {string} [url] Endoint url for direct server access
-   * @property {string} [userAuthentication] Type of credential selected for
-   * authentication. Possible values include: 'None', 'UserName',
-   * 'X509Certificate', 'JwtToken'
    * @property {buffer} [certificate] Certificate of the endpoint
    * @property {string} [securityMode] Security Mode. Possible values include:
    * 'Best', 'Sign', 'SignAndEncrypt', 'None'
@@ -56,14 +53,6 @@ class EndpointRegistrationQueryApiModel {
             serializedName: 'url',
             type: {
               name: 'String'
-            }
-          },
-          userAuthentication: {
-            required: false,
-            serializedName: 'userAuthentication',
-            type: {
-              name: 'Enum',
-              allowedValues: [ 'None', 'UserName', 'X509Certificate', 'JwtToken' ]
             }
           },
           certificate: {

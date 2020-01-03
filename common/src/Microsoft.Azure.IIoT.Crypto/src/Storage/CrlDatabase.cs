@@ -26,8 +26,8 @@ namespace Microsoft.Azure.IIoT.Crypto.Storage {
         /// </summary>
         /// <param name="container"></param>
         /// <param name="factory"></param>
-        /// <param name="logger"></param>
         /// <param name="certificates"></param>
+        /// <param name="logger"></param>
         public CrlDatabase(IItemContainerFactory container, ICertificateStore certificates,
             ICrlFactory factory, ILogger logger) {
             _certificates = certificates ?? throw new ArgumentNullException(nameof(certificates));

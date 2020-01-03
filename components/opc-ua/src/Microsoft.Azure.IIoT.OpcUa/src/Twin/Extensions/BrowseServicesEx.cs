@@ -19,8 +19,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin {
         /// wants all. If user has requested maximum to return use
         /// <see cref="IBrowseServices{T}.NodeBrowseFirstAsync"/>
         /// </summary>
-        /// <param name="endpoint"></param>
         /// <param name="service"></param>
+        /// <param name="endpoint"></param>
         /// <param name="request"></param>
         /// <returns></returns>
         public static async Task<BrowseResultModel> NodeBrowseAsync<T>(

@@ -11,6 +11,7 @@ Azure Industrial IoT OPC UA Vault Service
 
 
 ### URI scheme
+*BasePath* : /vault  
 *Schemes* : HTTPS, HTTP
 
 

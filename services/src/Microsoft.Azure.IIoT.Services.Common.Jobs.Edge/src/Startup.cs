@@ -10,7 +10,6 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge {
     using Microsoft.Azure.IIoT.Agent.Framework.Storage.Database;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Hub.Auth;
-    using Microsoft.Azure.IIoT.Services;
     using Microsoft.Azure.IIoT.Services.Auth.Clients;
     using Microsoft.Azure.IIoT.Services.Cors;
     using Microsoft.Azure.IIoT.Http.Default;
@@ -51,11 +50,6 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge {
         public IHostingEnvironment Environment { get; }
 
         /// <summary>
-        /// Di container - Initialized in `ConfigureServices`
-        /// </summary>
-        public IContainer ApplicationContainer { get; private set; }
-
-        /// <summary>
         /// Create startup
         /// </summary>
         /// <param name="env"></param>
@@ -63,6 +57,8 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge {
         public Startup(IHostingEnvironment env, IConfiguration configuration) :
             this(env, new Config(new ConfigurationBuilder()
                 .AddConfiguration(configuration)
+                .AddEnvironmentVariables()
+                .AddEnvironmentVariables(EnvironmentVariableTarget.User)
                 .AddFromDotEnvFile()
                 .AddFromKeyVault()
                 .Build())) {
@@ -83,12 +79,12 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge {
         /// </summary>
         /// <param name="services"></param>
         /// <returns></returns>
-        public IServiceProvider ConfigureServices(IServiceCollection services) {
-
+        public void ConfigureServices(IServiceCollection services) {
             services.AddLogging(o => o.AddConsole().AddDebug());
 
             // Setup (not enabling yet) CORS
             services.AddCors();
+            services.AddHealthChecks();
 
             services.AddMvc()
                 .AddApplicationPart(GetType().Assembly)
@@ -109,13 +105,6 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge {
                 Version = VersionInfo.PATH,
                 Description = ServiceInfo.Description,
             });
-
-            // Prepare DI container
-            var builder = new ContainerBuilder();
-            builder.Populate(services);
-            ConfigureContainer(builder);
-            ApplicationContainer = builder.Build();
-            return new AutofacServiceProvider(ApplicationContainer);
         }
 
         /// <summary>
@@ -125,7 +114,8 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge {
         /// <param name="app"></param>
         /// <param name="appLifetime"></param>
         public void Configure(IApplicationBuilder app, IApplicationLifetime appLifetime) {
-            var log = ApplicationContainer.Resolve<ILogger>();
+            var applicationContainer = app.ApplicationServices.GetAutofacRoot();
+            var log = applicationContainer.Resolve<ILogger>();
 
             app.EnableCors();
 
@@ -137,17 +127,18 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge {
                 app.UseHttpsRedirection();
             }
 
-            app.UseSwagger(Config, new Info {
+            app.UseSwagger(new Info {
                 Title = ServiceInfo.Name,
                 Version = VersionInfo.PATH,
                 Description = ServiceInfo.Description,
             });
 
             app.UseMvc();
+            app.UseHealthChecks("/healthz");
 
             // If you want to dispose of resources that have been resolved in the
             // application container, register for the "ApplicationStopped" event.
-            appLifetime.ApplicationStopped.Register(ApplicationContainer.Dispose);
+            appLifetime.ApplicationStopped.Register(applicationContainer.Dispose);
 
             // Print some useful information at bootstrap time
             log.Information("{service} web service started with id {id}", ServiceInfo.Name,

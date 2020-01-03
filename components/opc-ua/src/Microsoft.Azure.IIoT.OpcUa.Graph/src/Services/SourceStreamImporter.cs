@@ -51,8 +51,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Services {
         /// Import source blob
         /// </summary>
         /// <param name="stream"></param>
-        /// <param name="contentType"></param>
         /// <param name="sourceId"></param>
+        /// <param name="contentType"></param>
         /// <param name="tags"></param>
         /// <param name="ct"></param>
         /// <returns></returns>

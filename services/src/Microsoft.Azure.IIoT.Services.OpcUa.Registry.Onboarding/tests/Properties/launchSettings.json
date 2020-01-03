@@ -3,8 +3,8 @@
     "windowsAuthentication": false,
     "anonymousAuthentication": true,
     "iisExpress": {
-      "applicationUrl": "http://localhost:32629/",
-      "sslPort": 0
+      "applicationUrl": "http://localhost:25511/",
+      "sslPort": 44373
     }
   },
   "profiles": {
@@ -15,13 +15,13 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "Microsoft.Azure.IIoT.Services.OpcUa.Registry.Tests": {
+    "Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding.Tests": {
       "commandName": "Project",
       "launchBrowser": true,
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
-      "applicationUrl": "http://localhost:32630/"
+      "applicationUrl": "https://localhost:5001;http://localhost:5000"
     }
   }
 }

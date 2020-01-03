@@ -1,6 +1,0 @@
-Only support activated publishing targets when setting up jobs
-Job document OM
-Containers
-break apart api config 
-pub/sub OM for configuration
-

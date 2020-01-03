@@ -114,6 +114,16 @@ export const includeNotSeenSince: msRest.OperationQueryParameter = {
     }
   }
 };
+export const mode: msRest.OperationQueryParameter = {
+  parameterPath: "mode",
+  mapper: {
+    required: true,
+    serializedName: "mode",
+    type: {
+      name: "String"
+    }
+  }
+};
 export const notSeenFor: msRest.OperationQueryParameter = {
   parameterPath: [
     "options",
@@ -147,6 +157,26 @@ export const pageSize: msRest.OperationQueryParameter = {
     serializedName: "pageSize",
     type: {
       name: "Number"
+    }
+  }
+};
+export const publisherId: msRest.OperationURLParameter = {
+  parameterPath: "publisherId",
+  mapper: {
+    required: true,
+    serializedName: "publisherId",
+    type: {
+      name: "String"
+    }
+  }
+};
+export const requestId: msRest.OperationURLParameter = {
+  parameterPath: "requestId",
+  mapper: {
+    required: true,
+    serializedName: "requestId",
+    type: {
+      name: "String"
     }
   }
 };
@@ -208,13 +238,11 @@ export const url: msRest.OperationQueryParameter = {
     }
   }
 };
-export const userAuthentication: msRest.OperationQueryParameter = {
-  parameterPath: [
-    "options",
-    "userAuthentication"
-  ],
+export const userId: msRest.OperationURLParameter = {
+  parameterPath: "userId",
   mapper: {
-    serializedName: "UserAuthentication",
+    required: true,
+    serializedName: "userId",
     type: {
       name: "String"
     }

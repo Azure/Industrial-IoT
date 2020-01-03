@@ -16,6 +16,7 @@ namespace Microsoft.Azure.IIoT.Services.All {
     using System.Threading.Tasks;
     using System.Threading;
     using System.Linq;
+    using Microsoft.Extensions.Diagnostics.HealthChecks;
 
     /// <summary>
     /// Mono app startup
@@ -33,24 +34,28 @@ namespace Microsoft.Azure.IIoT.Services.All {
         public IHostingEnvironment Environment { get; }
 
         /// <summary>
-        /// Autofac container
+        /// Create startup
         /// </summary>
-        public IContainer ApplicationContainer { get; private set; }
+        /// <param name="env"></param>
+        /// <param name="configuration"></param>
+        public Startup(IHostingEnvironment env, IConfiguration configuration) :
+            this(env, new Config(new ConfigurationBuilder()
+                .AddConfiguration(configuration)
+                .AddEnvironmentVariables()
+                .AddEnvironmentVariables(EnvironmentVariableTarget.User)
+                .AddFromDotEnvFile()
+                .AddFromKeyVault()
+                .Build())) {
+        }
 
         /// <summary>
         /// Create startup
         /// </summary>
         /// <param name="env"></param>
-        public Startup(IHostingEnvironment env) {
+        /// <param name="configuration"></param>
+        public Startup(IHostingEnvironment env, Config configuration) {
             Environment = env;
-            Config = new Config(new ConfigurationBuilder()
-                .SetBasePath(env.ContentRootPath)
-                .AddJsonFile("appsettings.json", true, true)
-                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", true, true)
-                .AddFromDotEnvFile()
-                .AddEnvironmentVariables(EnvironmentVariableTarget.User)
-                .AddFromKeyVault()
-                .Build());
+            Config = configuration;
         }
 
         /// <summary>
@@ -58,16 +63,10 @@ namespace Microsoft.Azure.IIoT.Services.All {
         /// </summary>
         /// <param name="services"></param>
         /// <returns></returns>
-        public IServiceProvider ConfigureServices(IServiceCollection services) {
+        public void ConfigureServices(IServiceCollection services) {
 
             services.AddHttpContextAccessor();
-
-            // Prepare DI container
-            var builder = new ContainerBuilder();
-            builder.Populate(services);
-            ConfigureContainer(builder);
-            ApplicationContainer = builder.Build();
-            return new AutofacServiceProvider(ApplicationContainer);
+            services.AddHealthChecks();
         }
 
         /// <summary>
@@ -76,6 +75,7 @@ namespace Microsoft.Azure.IIoT.Services.All {
         /// <param name="app"></param>
         /// <param name="appLifetime"></param>
         public void Configure(IApplicationBuilder app, IApplicationLifetime appLifetime) {
+            var applicationContainer = app.ApplicationServices.GetAutofacRoot();
 
             if (Config.HttpsRedirectPort > 0) {
                 app.UseHsts();
@@ -83,23 +83,28 @@ namespace Microsoft.Azure.IIoT.Services.All {
             }
 
             // Configure branches for business
+            app.UseWelcomePage("/");
+
             app.AddStartupBranch<OpcUa.Registry.Startup>("/registry");
             app.AddStartupBranch<OpcUa.Registry.Onboarding.Startup>("/onboarding");
             app.AddStartupBranch<OpcUa.Vault.Startup>("/vault");
             app.AddStartupBranch<OpcUa.Twin.Startup>("/twin");
-//            app.AddStartupBranch<OpcUa.Twin.Gateway.Startup>("/ua");
+            app.AddStartupBranch<OpcUa.Twin.Gateway.Startup>("/ua");
             app.AddStartupBranch<OpcUa.Twin.History.Startup>("/history");
             app.AddStartupBranch<OpcUa.Publisher.Startup>("/publisher");
             app.AddStartupBranch<Common.Jobs.Startup>("/jobs");
             app.AddStartupBranch<Common.Jobs.Edge.Startup>("/edge/jobs");
             app.AddStartupBranch<Common.Configuration.Startup>("/configuration");
+            app.AddStartupBranch<Common.Hub.Edgemanager.Startup>("/edge/manage");
+
+            app.UseHealthChecks("/healthz");
 
             // Start processors
-            ApplicationContainer.Resolve<IHost>().StartAsync().Wait();
+            applicationContainer.Resolve<IHost>().StartAsync().Wait();
 
             // If you want to dispose of resources that have been resolved in the
             // application container, register for the "ApplicationStopped" event.
-            appLifetime.ApplicationStopped.Register(ApplicationContainer.Dispose);
+            appLifetime.ApplicationStopped.Register(applicationContainer.Dispose);
         }
 
         /// <summary>
@@ -119,7 +124,7 @@ namespace Microsoft.Azure.IIoT.Services.All {
         /// <summary>
         /// Injected processor host
         /// </summary>
-        private sealed class ProcessorHost : IHost, IStartable, IDisposable {
+        private sealed class ProcessorHost : IHost, IStartable, IDisposable, IHealthCheck {
 
             /// <inheritdoc/>
             public void Start() {
@@ -162,6 +167,14 @@ namespace Microsoft.Azure.IIoT.Services.All {
             public void Dispose() {
                 Try.Async(StopAsync).Wait();
                 _cts?.Dispose();
+            }
+
+            /// <inheritdoc/>
+            public Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context,
+                CancellationToken cancellationToken) {
+                return Task.FromResult(_runner == null || !_runner.IsFaulted ?
+                    HealthCheckResult.Healthy() :
+                    new HealthCheckResult(HealthStatus.Unhealthy, null, _runner.Exception));
             }
 
             private Task _runner;

@@ -154,8 +154,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Export.Services {
             /// Export using browse encoder
             /// </summary>
             /// <param name="endpoint"></param>
-            /// <param name="stream"></param>
             /// <param name="diagnostics"></param>
+            /// <param name="stream"></param>
             /// <param name="ct"></param>
             /// <returns></returns>
             private async Task BrowseEncodeModelAsync(EndpointModel endpoint,

@@ -27,8 +27,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// Create converter
         /// </summary>
         /// <param name="logger"></param>
-        /// <param name="cryptoProvider"></param>
         /// <param name="config"></param>
+        /// <param name="cryptoProvider"></param>
         public PublishedNodesJobConverter(ILogger logger,
             IEngineConfiguration config = null, ISecureElement cryptoProvider = null) {
             _config = config;

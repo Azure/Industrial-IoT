@@ -82,7 +82,7 @@ else {
         }
     }
     if ([string]::IsNullOrEmpty($sourceTag)) {
-        $sourceTag = "latest"
+        throw "Failed getting version from get-version.ps1"
     }
 }
 
@@ -111,12 +111,28 @@ if ([string]::IsNullOrEmpty($branchName)) {
     }
 }
 
-# Check and set registry
-if ([string]::IsNullOrEmpty($Registry)) {
-    $Registry = $env.BUILD_REGISTRY
-    if ([string]::IsNullOrEmpty($Registry)) {
-        $Registry = "industrialiotdev"
-        Write-Warning "No registry specified - using $($Registry).azurecr.io."
+# Set namespace name based on branch name
+if ([string]::IsNullOrEmpty($branchName) -or ($branchName -eq "HEAD")) {
+    Write-Warning "Error - Branch '$($branchName)' invalid - using default."
+    $namespace = "deletemesoon/"
+    $branchName = "HEAD"
+}
+else {
+    $namespace = $branchName
+    if ($namespace.StartsWith("feature/")) {
+        $namespace = $namespace.Replace("feature/", "")
+    }
+    elseif ($namespace.StartsWith("release/")) {
+        $namespace = "master"
+    }
+    $namespace = $namespace.Replace("_", "/").Substring(0, [Math]::Min($namespace.Length, 24))
+    $namespace = "$($namespace)/"
+
+    if (![string]::IsNullOrEmpty($Registry)) {
+        # if we build from release or from master and registry is provided we leave namespace empty
+        if ($branchName.StartsWith("release/") -or ($branchName -eq "master")) {
+            $namespace = ""
+        }
     }
 }
 
@@ -127,6 +143,15 @@ if (![string]::IsNullOrEmpty($Subscription)) {
     & "az" $argumentList 2>&1 | ForEach-Object { Write-Host "$_" }
     if ($LastExitCode -ne 0) {
         throw "az $($argumentList) failed with $($LastExitCode)."
+    }
+}
+
+# Check and set registry
+if ([string]::IsNullOrEmpty($Registry)) {
+    $Registry = $env.BUILD_REGISTRY
+    if ([string]::IsNullOrEmpty($Registry)) {
+        $Registry = "industrialiotdev"
+        Write-Warning "No registry specified - using $($Registry).azurecr.io."
     }
 }
 
@@ -150,25 +175,6 @@ Write-Debug "Using User name $($user) and passsword ****"
 # Set image name and namespace in acr based on branch and source tag
 $imageName = $metadata.name
 
-# Set namespace name
-if ([string]::IsNullOrEmpty($branchName) -or ($branchName -eq "HEAD")) {
-    Write-Warning "Error - Branch '$($branchName)' invalid - using default."
-    $namespace = "deletemesoon"
-    $branchName = "HEAD"
-}
-else {
-    $namespace = $branchName
-    if ($namespace.StartsWith("feature/")) {
-        $namespace = $namespace.Replace("feature/", "")
-    }
-    elseif ($namespace.StartsWith("release/")) {
-        $namespace = "master"
-    }
-    $namespace = $namespace.Substring(0, [Math]::Min($namespace.Length, 24))
-}
-$namespace = "$($namespace)/"
-Write-Host "Pushing '$($sourceTag)' build for $($branchName) to $($namespace)."
-
 $tagPostfix = ""
 $tagPrefix = ""
 if ($Debug.IsPresent) {
@@ -178,26 +184,22 @@ if (![string]::IsNullOrEmpty($metadata.tag)) {
     $tagPrefix = "$($metadata.tag)-"
 }
 
-# Create manifest file
-$tags = @()
-$versionParts = $sourceTag.Split('.')
-if ($versionParts.Count -gt 0) {
-    $versionTag = $versionParts[0]
-    $tags += "$($tagPrefix)$($versionTag)$($tagPostfix)"
-    for ($i = 1; $i -lt $versionParts.Count; $i++) {
-        $versionTag = ("$($versionTag).{0}" -f $versionParts[$i])
-        $tags += "$($tagPrefix)$($versionTag)$($tagPostfix)"
-    }
-    $tagList = ("'{0}'" -f ($tags -join "', '"))
+# do not push latest during master / release builds - release to latest happens later
+if (![string]::IsNullOrEmpty($namespace)) {
+    Write-Host "Pushing '$($sourceTag)' build for $($branchName) to $($namespace)."
+    $topTag = "latest"
+}
+else {
+    Write-Host "Pushing '$($sourceTag)' build as preview build."
+    $topTag = "preview"
 }
 
-$fullImageName = "$($Registry).azurecr.io/$($namespace)$($imageName):$($tagPrefix)latest$($tagPostfix)"
-
+$fullImageName = "$($Registry).azurecr.io/$($namespace)$($imageName):$($tagPrefix)$($topTag)$($tagPostfix)"
 Write-Host "Full image name: $($fullImageName)"
 
 $manifest = @" 
 image: $($fullImageName)
-tags: [$($tagList)]
+tags: [$($sourceTag)]
 manifests:
 "@
 

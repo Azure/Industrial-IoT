@@ -8,12 +8,10 @@
 // regenerated.
 // </auto-generated>
 
-namespace Microsoft.Azure.IIoT.Opc.Twin.Models
+namespace Microsoft.Azure.IIoT.Opc.Publisher.Models
 {
     using Microsoft.Rest;
     using Newtonsoft.Json;
-    using System.Collections;
-    using System.Collections.Generic;
     using System.Linq;
 
     /// <summary>
@@ -33,25 +31,11 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         /// Initializes a new instance of the PublishStopRequestApiModel class.
         /// </summary>
         /// <param name="nodeId">Node of published item to unpublish</param>
-        /// <param name="browsePath">An optional path from NodeId instance to
-        /// the actual node.</param>
-        /// <param name="nodeAttribute">Attribute of item to unpublish.
-        /// Possible values include: 'NodeClass', 'BrowseName', 'DisplayName',
-        /// 'Description', 'WriteMask', 'UserWriteMask', 'IsAbstract',
-        /// 'Symmetric', 'InverseName', 'ContainsNoLoops', 'EventNotifier',
-        /// 'Value', 'DataType', 'ValueRank', 'ArrayDimensions', 'AccessLevel',
-        /// 'UserAccessLevel', 'MinimumSamplingInterval', 'Historizing',
-        /// 'Executable', 'UserExecutable', 'DataTypeDefinition',
-        /// 'RolePermissions', 'UserRolePermissions',
-        /// 'AccessRestrictions'</param>
-        /// <param name="diagnostics">Optional diagnostics
-        /// configuration</param>
-        public PublishStopRequestApiModel(string nodeId, IList<string> browsePath = default(IList<string>), NodeAttribute? nodeAttribute = default(NodeAttribute?), DiagnosticsApiModel diagnostics = default(DiagnosticsApiModel))
+        /// <param name="header">Optional request header</param>
+        public PublishStopRequestApiModel(string nodeId, RequestHeaderApiModel header = default(RequestHeaderApiModel))
         {
             NodeId = nodeId;
-            BrowsePath = browsePath;
-            NodeAttribute = nodeAttribute;
-            Diagnostics = diagnostics;
+            Header = header;
             CustomInit();
         }
 
@@ -67,30 +51,10 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         public string NodeId { get; set; }
 
         /// <summary>
-        /// Gets or sets an optional path from NodeId instance to
-        /// the actual node.
+        /// Gets or sets optional request header
         /// </summary>
-        [JsonProperty(PropertyName = "browsePath")]
-        public IList<string> BrowsePath { get; set; }
-
-        /// <summary>
-        /// Gets or sets attribute of item to unpublish. Possible values
-        /// include: 'NodeClass', 'BrowseName', 'DisplayName', 'Description',
-        /// 'WriteMask', 'UserWriteMask', 'IsAbstract', 'Symmetric',
-        /// 'InverseName', 'ContainsNoLoops', 'EventNotifier', 'Value',
-        /// 'DataType', 'ValueRank', 'ArrayDimensions', 'AccessLevel',
-        /// 'UserAccessLevel', 'MinimumSamplingInterval', 'Historizing',
-        /// 'Executable', 'UserExecutable', 'DataTypeDefinition',
-        /// 'RolePermissions', 'UserRolePermissions', 'AccessRestrictions'
-        /// </summary>
-        [JsonProperty(PropertyName = "nodeAttribute")]
-        public NodeAttribute? NodeAttribute { get; set; }
-
-        /// <summary>
-        /// Gets or sets optional diagnostics configuration
-        /// </summary>
-        [JsonProperty(PropertyName = "diagnostics")]
-        public DiagnosticsApiModel Diagnostics { get; set; }
+        [JsonProperty(PropertyName = "header")]
+        public RequestHeaderApiModel Header { get; set; }
 
         /// <summary>
         /// Validate the object.

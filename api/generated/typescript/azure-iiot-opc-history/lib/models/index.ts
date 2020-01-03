@@ -388,11 +388,11 @@ export interface ReadValuesAtTimesDetailsApiModel {
 
 /**
  * @interface
- * An interface representing AggregateConfigApiModel.
+ * An interface representing AggregateConfigurationApiModel.
  * Aggregate configuration
  *
  */
-export interface AggregateConfigApiModel {
+export interface AggregateConfigurationApiModel {
   /**
    * @member {boolean} [useServerCapabilitiesDefaults] Whether to use the
    * default server caps
@@ -441,10 +441,10 @@ export interface ReadProcessedValuesDetailsApiModel {
    */
   aggregateTypeId?: string;
   /**
-   * @member {AggregateConfigApiModel} [aggregateConfiguration] A configuration
-   * for the aggregate
+   * @member {AggregateConfigurationApiModel} [aggregateConfiguration] A
+   * configuration for the aggregate
    */
-  aggregateConfiguration?: AggregateConfigApiModel;
+  aggregateConfiguration?: AggregateConfigurationApiModel;
 }
 
 /**

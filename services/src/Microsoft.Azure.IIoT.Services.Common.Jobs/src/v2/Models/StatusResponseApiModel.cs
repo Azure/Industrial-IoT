@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.Common.Jobs.v2.Models {
-    using Microsoft.Azure.IIoT.Services.Common.Jobs.v2;
     using Microsoft.Azure.IIoT.Services.Common.Jobs.Runtime;
     using Newtonsoft.Json;
     using System.Collections.Generic;

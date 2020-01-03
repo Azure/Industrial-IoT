@@ -1235,7 +1235,7 @@ and server must trust each other.
                 'additionalProperties' => FALSE,
                 'required' => []
             ],
-            'AggregateConfigApiModel' => [
+            'AggregateConfigurationApiModel' => [
                 'properties' => [
                     'useServerCapabilitiesDefaults' => ['type' => 'boolean'],
                     'treatUncertainAsBad' => ['type' => 'boolean'],
@@ -1267,7 +1267,7 @@ and server must trust each other.
                         'format' => 'double'
                     ],
                     'aggregateTypeId' => ['type' => 'string'],
-                    'aggregateConfiguration' => ['$ref' => '#/definitions/AggregateConfigApiModel']
+                    'aggregateConfiguration' => ['$ref' => '#/definitions/AggregateConfigurationApiModel']
                 ],
                 'additionalProperties' => FALSE,
                 'required' => []

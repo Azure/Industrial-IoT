@@ -684,7 +684,7 @@ class AzureOpcHistoryClient extends AzureOpcHistoryClientContext {
 const serializer = new msRest.Serializer(Mappers);
 const historyDeleteValuesAtTimesOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v2/delete/{endpointId}/values/pick",
+  path: "history/v2/delete/{endpointId}/values/pick",
   urlParameters: [
     Parameters.endpointId
   ],
@@ -706,7 +706,7 @@ const historyDeleteValuesAtTimesOperationSpec: msRest.OperationSpec = {
 
 const historyDeleteValuesOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v2/delete/{endpointId}/values",
+  path: "history/v2/delete/{endpointId}/values",
   urlParameters: [
     Parameters.endpointId
   ],
@@ -728,7 +728,7 @@ const historyDeleteValuesOperationSpec: msRest.OperationSpec = {
 
 const historyDeleteModifiedValuesOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v2/delete/{endpointId}/values/modified",
+  path: "history/v2/delete/{endpointId}/values/modified",
   urlParameters: [
     Parameters.endpointId
   ],
@@ -750,7 +750,7 @@ const historyDeleteModifiedValuesOperationSpec: msRest.OperationSpec = {
 
 const historyDeleteEventsOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v2/delete/{endpointId}/events",
+  path: "history/v2/delete/{endpointId}/events",
   urlParameters: [
     Parameters.endpointId
   ],
@@ -772,7 +772,7 @@ const historyDeleteEventsOperationSpec: msRest.OperationSpec = {
 
 const historyReadRawOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v2/history/read/{endpointId}",
+  path: "history/v2/history/read/{endpointId}",
   urlParameters: [
     Parameters.endpointId
   ],
@@ -794,7 +794,7 @@ const historyReadRawOperationSpec: msRest.OperationSpec = {
 
 const historyReadRawNextOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v2/history/read/{endpointId}/next",
+  path: "history/v2/history/read/{endpointId}/next",
   urlParameters: [
     Parameters.endpointId
   ],
@@ -816,7 +816,7 @@ const historyReadRawNextOperationSpec: msRest.OperationSpec = {
 
 const historyUpdateRawOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v2/history/update/{endpointId}",
+  path: "history/v2/history/update/{endpointId}",
   urlParameters: [
     Parameters.endpointId
   ],
@@ -838,7 +838,7 @@ const historyUpdateRawOperationSpec: msRest.OperationSpec = {
 
 const historyInsertValuesOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v2/insert/{endpointId}/values",
+  path: "history/v2/insert/{endpointId}/values",
   urlParameters: [
     Parameters.endpointId
   ],
@@ -860,7 +860,7 @@ const historyInsertValuesOperationSpec: msRest.OperationSpec = {
 
 const historyInsertEventsOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v2/insert/{endpointId}/events",
+  path: "history/v2/insert/{endpointId}/events",
   urlParameters: [
     Parameters.endpointId
   ],
@@ -882,7 +882,7 @@ const historyInsertEventsOperationSpec: msRest.OperationSpec = {
 
 const historyReadEventsOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v2/read/{endpointId}/events",
+  path: "history/v2/read/{endpointId}/events",
   urlParameters: [
     Parameters.endpointId
   ],
@@ -904,7 +904,7 @@ const historyReadEventsOperationSpec: msRest.OperationSpec = {
 
 const historyReadEventsNextOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v2/read/{endpointId}/events/next",
+  path: "history/v2/read/{endpointId}/events/next",
   urlParameters: [
     Parameters.endpointId
   ],
@@ -926,7 +926,7 @@ const historyReadEventsNextOperationSpec: msRest.OperationSpec = {
 
 const historyReadValuesOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v2/read/{endpointId}/values",
+  path: "history/v2/read/{endpointId}/values",
   urlParameters: [
     Parameters.endpointId
   ],
@@ -948,7 +948,7 @@ const historyReadValuesOperationSpec: msRest.OperationSpec = {
 
 const historyReadValuesAtTimesOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v2/read/{endpointId}/values/pick",
+  path: "history/v2/read/{endpointId}/values/pick",
   urlParameters: [
     Parameters.endpointId
   ],
@@ -970,7 +970,7 @@ const historyReadValuesAtTimesOperationSpec: msRest.OperationSpec = {
 
 const historyReadProcessedValuesOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v2/read/{endpointId}/values/processed",
+  path: "history/v2/read/{endpointId}/values/processed",
   urlParameters: [
     Parameters.endpointId
   ],
@@ -992,7 +992,7 @@ const historyReadProcessedValuesOperationSpec: msRest.OperationSpec = {
 
 const historyReadModifiedValuesOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v2/read/{endpointId}/values/modified",
+  path: "history/v2/read/{endpointId}/values/modified",
   urlParameters: [
     Parameters.endpointId
   ],
@@ -1014,7 +1014,7 @@ const historyReadModifiedValuesOperationSpec: msRest.OperationSpec = {
 
 const historyReadValueNextOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v2/read/{endpointId}/values/next",
+  path: "history/v2/read/{endpointId}/values/next",
   urlParameters: [
     Parameters.endpointId
   ],
@@ -1036,7 +1036,7 @@ const historyReadValueNextOperationSpec: msRest.OperationSpec = {
 
 const historyReplaceValuesOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v2/replace/{endpointId}/values",
+  path: "history/v2/replace/{endpointId}/values",
   urlParameters: [
     Parameters.endpointId
   ],
@@ -1058,7 +1058,7 @@ const historyReplaceValuesOperationSpec: msRest.OperationSpec = {
 
 const historyReplaceEventsOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v2/replace/{endpointId}/events",
+  path: "history/v2/replace/{endpointId}/events",
   urlParameters: [
     Parameters.endpointId
   ],
@@ -1080,7 +1080,7 @@ const historyReplaceEventsOperationSpec: msRest.OperationSpec = {
 
 const getStatusOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
-  path: "v2/status",
+  path: "history/v2/status",
   contentType: "application/json; charset=utf-8",
   responses: {
     200: {

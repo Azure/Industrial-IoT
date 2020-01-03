@@ -85,26 +85,35 @@ Function Get-RequiredPermissions() {
         [string] $requiredDelegatedPermissions
     )
 
-    $requiredAccess = New-Object Microsoft.Open.AzureAD.Model.RequiredResourceAccess
-    $sp = Get-AzureADServicePrincipal -Filter "DisplayName eq '$($applicationDisplayName)'"
-    if (!$sp) {
-        Write-Warning "Service principal $($applicationDisplayName) not found."
-    }
-    else {
-        $requiredAccess.ResourceAppId = $sp.AppId
-        $requiredAccess.ResourceAccess =  
-        New-Object System.Collections.Generic.List[Microsoft.Open.AzureAD.Model.ResourceAccess]
+    for ($i = 0; $i -lt 20; $i++) {
+        try {
+            $requiredAccess = New-Object Microsoft.Open.AzureAD.Model.RequiredResourceAccess
+            $sp = Get-AzureADServicePrincipal -Filter "DisplayName eq '$($applicationDisplayName)'"
+            if (!$sp) {
+                Write-Warning "Service principal $($applicationDisplayName) not found."
+            }
+            else {
+                $requiredAccess.ResourceAppId = $sp.AppId
+                $requiredAccess.ResourceAccess =  
+                New-Object System.Collections.Generic.List[Microsoft.Open.AzureAD.Model.ResourceAccess]
 
-        if ($requiredDelegatedPermissions) {
-            Add-ResourcePermission $requiredAccess -exposedPermissions $sp.Oauth2Permissions `
-                -requiredAccesses $requiredDelegatedPermissions -permissionType "Scope"
+                if ($requiredDelegatedPermissions) {
+                    Add-ResourcePermission $requiredAccess -exposedPermissions $sp.Oauth2Permissions `
+                        -requiredAccesses $requiredDelegatedPermissions -permissionType "Scope"
+                }
+                if ($requiredApplicationPermissions) {
+                    Add-ResourcePermission $requiredAccess -exposedPermissions $sp.AppRoles `
+                        -requiredAccesses $requiredApplicationPermissions -permissionType "Role"
+                }
+            }
+            return $requiredAccess
         }
-        if ($requiredApplicationPermissions) {
-            Add-ResourcePermission $requiredAccess -exposedPermissions $sp.AppRoles `
-                -requiredAccesses $requiredApplicationPermissions -permissionType "Role"
+        catch {
+            Write-Host "$($_.Exception.Message) for $($applicationDisplayName) - Retrying..."
+            Start-Sleep -s 1
         }
     }
-    return $requiredAccess
+    throw "Failed to get resource permissions for $($applicationDisplayName)."
 }
 
 #*******************************************************************************************************

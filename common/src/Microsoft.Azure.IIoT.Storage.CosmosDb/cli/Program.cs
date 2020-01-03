@@ -285,6 +285,7 @@ Commands and Options
             var logger = ConsoleLogger.Create();
             var config = new ConfigurationBuilder()
                 .AddFromDotEnvFile()
+                .AddFromKeyVault()
                 .Build();
             var configuration = new CosmosDbConfig(config);
             var server = new CosmosDbServiceClient(configuration, logger);

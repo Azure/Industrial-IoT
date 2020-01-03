@@ -25,7 +25,8 @@ module azure.iiot.opc.history
       # @return [String] The aggregate type node ids
       attr_accessor :aggregate_type_id
 
-      # @return [AggregateConfigApiModel] A configuration for the aggregate
+      # @return [AggregateConfigurationApiModel] A configuration for the
+      # aggregate
       attr_accessor :aggregate_configuration
 
 
@@ -80,7 +81,7 @@ module azure.iiot.opc.history
                 serialized_name: 'aggregateConfiguration',
                 type: {
                   name: 'Composite',
-                  class_name: 'AggregateConfigApiModel'
+                  class_name: 'AggregateConfigurationApiModel'
                 }
               }
             }

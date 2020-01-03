@@ -39,12 +39,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// </summary>
         /// <param name="config">Application configuration</param>
         /// <param name="endpoint">Endpoint to connect to</param>
-        /// <param name="timeout">Session timeout</param>
+        /// <param name="logger">Logger</param>
         /// <param name="statusCb">Status callback for reporting</param>
         /// <param name="persistent">Persists until closed</param>
         /// <param name="maxOpTimeout"></param>
-        /// <param name="logger">Logger</param>
         /// <param name="sessionName">Optional session name</param>
+        /// <param name="timeout">Session timeout</param>
         /// <param name="keepAlive">Keep alive interval</param>
         public ClientSession(ApplicationConfiguration config, EndpointModel endpoint,
             ILogger logger, Func<EndpointModel, EndpointConnectivityState, Task> statusCb,

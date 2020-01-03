@@ -44,7 +44,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         /// client (module) and server (service) (default: false).</param>
         /// <param name="connected">Whether supervisor is connected on this
         /// registration</param>
-        public SupervisorApiModel(string id, string siteId = default(string), DiscoveryMode? discovery = default(DiscoveryMode?), DiscoveryConfigApiModel discoveryConfig = default(DiscoveryConfigApiModel), byte[] certificate = default(byte[]), SupervisorLogLevel? logLevel = default(SupervisorLogLevel?), bool? outOfSync = default(bool?), bool? connected = default(bool?))
+        public SupervisorApiModel(string id, string siteId = default(string), DiscoveryMode? discovery = default(DiscoveryMode?), DiscoveryConfigApiModel discoveryConfig = default(DiscoveryConfigApiModel), byte[] certificate = default(byte[]), TraceLogLevel? logLevel = default(TraceLogLevel?), bool? outOfSync = default(bool?), bool? connected = default(bool?))
         {
             Id = id;
             SiteId = siteId;
@@ -98,7 +98,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         /// 'Information', 'Debug', 'Verbose'
         /// </summary>
         [JsonProperty(PropertyName = "logLevel")]
-        public SupervisorLogLevel? LogLevel { get; set; }
+        public TraceLogLevel? LogLevel { get; set; }
 
         /// <summary>
         /// Gets or sets whether the registration is out of sync between

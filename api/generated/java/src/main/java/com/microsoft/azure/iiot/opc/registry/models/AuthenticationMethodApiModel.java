@@ -17,7 +17,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class AuthenticationMethodApiModel {
     /**
-     * Method id.
+     * Authentication method id.
      */
     @JsonProperty(value = "id", required = true)
     private String id;
@@ -42,7 +42,7 @@ public class AuthenticationMethodApiModel {
     private Object configuration;
 
     /**
-     * Get method id.
+     * Get authentication method id.
      *
      * @return the id value
      */
@@ -51,7 +51,7 @@ public class AuthenticationMethodApiModel {
     }
 
     /**
-     * Set method id.
+     * Set authentication method id.
      *
      * @param id the id value to set
      * @return the AuthenticationMethodApiModel object itself.

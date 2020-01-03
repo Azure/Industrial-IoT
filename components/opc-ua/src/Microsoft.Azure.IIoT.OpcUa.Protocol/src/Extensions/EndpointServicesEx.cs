@@ -22,8 +22,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <typeparam name="T"></typeparam>
         /// <param name="client"></param>
         /// <param name="elevation"></param>
-        /// <param name="timeout"></param>
         /// <param name="endpoint"></param>
+        /// <param name="timeout"></param>
         /// <param name="service"></param>
         /// <returns></returns>
         public static Task<T> ExecuteServiceAsync<T>(this IEndpointServices client,
@@ -39,8 +39,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="client"></param>
-        /// <param name="elevation"></param>
         /// <param name="endpoint"></param>
+        /// <param name="elevation"></param>
         /// <param name="service"></param>
         /// <returns></returns>
         public static Task<T> ExecuteServiceAsync<T>(this IEndpointServices client,
@@ -56,8 +56,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="client"></param>
         /// <param name="elevation"></param>
         /// <param name="priority"></param>
-        /// <param name="ct"></param>
         /// <param name="endpoint"></param>
+        /// <param name="ct"></param>
         /// <param name="service"></param>
         /// <returns></returns>
         public static Task<T> ExecuteServiceAsync<T>(this IEndpointServices client,
@@ -74,8 +74,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="client"></param>
         /// <param name="elevation"></param>
         /// <param name="priority"></param>
-        /// <param name="ct"></param>
         /// <param name="endpoint"></param>
+        /// <param name="ct"></param>
         /// <param name="service"></param>
         /// <param name="handler"></param>
         /// <returns></returns>

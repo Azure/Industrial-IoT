@@ -60,8 +60,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.Runtime {
         /// <inheritdoc/>
         public bool WithAuth => _swagger.WithAuth;
         /// <inheritdoc/>
-        public bool WithHttpScheme => _swagger.WithHttpScheme;
-        /// <inheritdoc/>
         public string SwaggerAppId => _swagger.SwaggerAppId;
         /// <inheritdoc/>
         public string SwaggerAppSecret => _swagger.SwaggerAppSecret;

@@ -40,15 +40,18 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         /// <param name="endpointUrl">Original endpoint url of the
         /// endpoint</param>
         /// <param name="siteId">Registered site of the endpoint</param>
+        /// <param name="supervisorId">Supervisor that registered the
+        /// endpoint.</param>
         /// <param name="securityLevel">Security level of the endpoint</param>
         /// <param name="authenticationMethods">Supported authentication
         /// methods that can be selected to
         /// obtain a credential and used to interact with the endpoint.</param>
-        public EndpointRegistrationApiModel(string id, EndpointApiModel endpoint, string endpointUrl = default(string), string siteId = default(string), int? securityLevel = default(int?), IList<AuthenticationMethodApiModel> authenticationMethods = default(IList<AuthenticationMethodApiModel>))
+        public EndpointRegistrationApiModel(string id, EndpointApiModel endpoint, string endpointUrl = default(string), string siteId = default(string), string supervisorId = default(string), int? securityLevel = default(int?), IList<AuthenticationMethodApiModel> authenticationMethods = default(IList<AuthenticationMethodApiModel>))
         {
             Id = id;
             EndpointUrl = endpointUrl;
             SiteId = siteId;
+            SupervisorId = supervisorId;
             Endpoint = endpoint;
             SecurityLevel = securityLevel;
             AuthenticationMethods = authenticationMethods;
@@ -77,6 +80,12 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         /// </summary>
         [JsonProperty(PropertyName = "siteId")]
         public string SiteId { get; set; }
+
+        /// <summary>
+        /// Gets or sets supervisor that registered the endpoint.
+        /// </summary>
+        [JsonProperty(PropertyName = "supervisorId")]
+        public string SupervisorId { get; set; }
 
         /// <summary>
         /// Gets or sets endpoint information of the registration

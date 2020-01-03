@@ -98,8 +98,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
         /// <summary>
         /// Create Union with endpoint
         /// </summary>
-        /// <param name="endpoint"></param>
         /// <param name="model"></param>
+        /// <param name="endpoint"></param>
         public static void UnionWith(this EndpointModel model,
             EndpointModel endpoint) {
             if (endpoint == null) {

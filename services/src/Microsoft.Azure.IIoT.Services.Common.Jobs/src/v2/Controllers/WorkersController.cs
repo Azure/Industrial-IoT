@@ -37,10 +37,10 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.v2.Controllers {
         /// <remarks>
         /// List all workers that are registered or continues a query.
         /// </remarks>
-        /// <param name="pageSize">Optional number of results to
-        /// return</param>
         /// <param name="continuationToken">Optional Continuation
         /// token</param>
+        /// <param name="pageSize">Optional number of results to
+        /// return</param>
         /// <returns>Workers</returns>
         [HttpGet]
         [AutoRestExtension(NextPageLinkName = "continuationToken")]

@@ -32,8 +32,8 @@ namespace Microsoft.Azure.IIoT.Http.Default {
         /// <summary>
         /// Create client
         /// </summary>
-        /// <param name="logger"></param>
         /// <param name="factory"></param>
+        /// <param name="logger"></param>
         public HttpClient(IHttpClientFactory factory, ILogger logger) {
             _factory = factory ?? new HttpClientFactory(null, logger);
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));

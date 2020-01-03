@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     using AutoFixture;
     using Microsoft.Azure.IIoT.Hub;
-    using Newtonsoft.Json.Linq;
     using System;
     using System.Linq;
     using Xunit;

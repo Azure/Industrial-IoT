@@ -17,9 +17,9 @@ namespace Microsoft.Azure.IIoT.Messaging.ServiceBus {
         /// <summary>
         /// Create subscription client
         /// </summary>
-        /// <param name="name"></param>
         /// <param name="handler"></param>
         /// <param name="exceptions"></param>
+        /// <param name="name"></param>
         /// <param name="topicName"></param>
         /// <returns></returns>
         Task<ISubscriptionClient> CreateOrGetSubscriptionClientAsync(

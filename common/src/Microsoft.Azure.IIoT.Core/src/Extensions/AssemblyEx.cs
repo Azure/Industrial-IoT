@@ -5,6 +5,7 @@
 
 namespace System {
     using IO;
+    using Newtonsoft.Json.Linq;
     using Reflection;
     using System.Collections.Generic;
     using System.Linq;
@@ -43,18 +44,18 @@ namespace System {
         public static IEnumerable<Tuple<string, ArraySegment<byte>>> GetManifestResources(
             this Assembly assembly, string extension = null) {
             return assembly?
-.GetManifestResourceNames()
-.Where(r => extension == null ||
-r.EndsWith(extension, StringComparison.Ordinal))
-.Select(r => {
-    using (var stream = assembly.GetManifestResourceStream(r)) {
-        if (stream == null) {
-            throw new FileNotFoundException(r + " not found");
-        }
-        return Tuple.Create(r.Replace($"{assembly.GetName().Name}.", ""),
-        stream.ReadAsBuffer());
-    }
-});
+                .GetManifestResourceNames()
+                .Where(r => extension == null ||
+                r.EndsWith(extension, StringComparison.Ordinal))
+                .Select(r => {
+                    using (var stream = assembly.GetManifestResourceStream(r)) {
+                        if (stream == null) {
+                            throw new FileNotFoundException(r + " not found");
+                        }
+                        return Tuple.Create(r.Replace($"{assembly.GetName().Name}.", ""),
+                        stream.ReadAsBuffer());
+                    }
+                });
         }
 
         /// <summary>
@@ -71,6 +72,34 @@ r.EndsWith(extension, StringComparison.Ordinal))
             return assemblyVersion;
         }
 
+        /// <summary>
+        /// Get assembly info version
+        /// </summary>
+        public static string GetInformationalVersion(this Assembly assembly) {
+            if (assembly == null) {
+                throw new ArgumentNullException(nameof(assembly));
+            }
+            return assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
+                .InformationalVersion ?? "";
+        }
+
+        /// <summary>
+        /// Get assembly info version
+        /// </summary>
+        public static JObject GetVersionInfoObject(this Assembly assembly) {
+            if (assembly == null) {
+                throw new ArgumentNullException(nameof(assembly));
+            }
+            var o = new JObject();
+            foreach (var p in assembly.GetType("ThisAssembly")?
+                .GetFields(BindingFlags.Static | BindingFlags.NonPublic)
+                .Select(f => new JProperty(f.Name, f.GetValue(null))) ??
+                    new JProperty("AssemblyVersion", "No version information found.")
+                        .YieldReturn()) {
+                o.Add(p);
+            }
+            return o;
+        }
 
         /// <summary>
         /// Loads from resource

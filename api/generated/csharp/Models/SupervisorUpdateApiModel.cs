@@ -11,8 +11,6 @@
 namespace Microsoft.Azure.IIoT.Opc.Registry.Models
 {
     using Newtonsoft.Json;
-    using System.Collections;
-    using System.Collections.Generic;
     using System.Linq;
 
     /// <summary>
@@ -38,19 +36,13 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         /// 'Network', 'Fast', 'Scan'</param>
         /// <param name="discoveryConfig">Supervisor discovery
         /// configuration</param>
-        /// <param name="discoveryCallbacks">Callbacks to add or remove (see
-        /// below)</param>
-        /// <param name="removeDiscoveryCallbacks">Whether to add or remove
-        /// callbacks</param>
         /// <param name="logLevel">Current log level. Possible values include:
         /// 'Error', 'Information', 'Debug', 'Verbose'</param>
-        public SupervisorUpdateApiModel(string siteId = default(string), DiscoveryMode? discovery = default(DiscoveryMode?), DiscoveryConfigApiModel discoveryConfig = default(DiscoveryConfigApiModel), IList<CallbackApiModel> discoveryCallbacks = default(IList<CallbackApiModel>), bool? removeDiscoveryCallbacks = default(bool?), SupervisorLogLevel? logLevel = default(SupervisorLogLevel?))
+        public SupervisorUpdateApiModel(string siteId = default(string), DiscoveryMode? discovery = default(DiscoveryMode?), DiscoveryConfigApiModel discoveryConfig = default(DiscoveryConfigApiModel), TraceLogLevel? logLevel = default(TraceLogLevel?))
         {
             SiteId = siteId;
             Discovery = discovery;
             DiscoveryConfig = discoveryConfig;
-            DiscoveryCallbacks = discoveryCallbacks;
-            RemoveDiscoveryCallbacks = removeDiscoveryCallbacks;
             LogLevel = logLevel;
             CustomInit();
         }
@@ -81,23 +73,11 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         public DiscoveryConfigApiModel DiscoveryConfig { get; set; }
 
         /// <summary>
-        /// Gets or sets callbacks to add or remove (see below)
-        /// </summary>
-        [JsonProperty(PropertyName = "discoveryCallbacks")]
-        public IList<CallbackApiModel> DiscoveryCallbacks { get; set; }
-
-        /// <summary>
-        /// Gets or sets whether to add or remove callbacks
-        /// </summary>
-        [JsonProperty(PropertyName = "removeDiscoveryCallbacks")]
-        public bool? RemoveDiscoveryCallbacks { get; set; }
-
-        /// <summary>
         /// Gets or sets current log level. Possible values include: 'Error',
         /// 'Information', 'Debug', 'Verbose'
         /// </summary>
         [JsonProperty(PropertyName = "logLevel")]
-        public SupervisorLogLevel? LogLevel { get; set; }
+        public TraceLogLevel? LogLevel { get; set; }
 
     }
 }

@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway {
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Twin.Clients;
-    using Microsoft.Azure.IIoT.Services;
     using Microsoft.Azure.IIoT.Services.Auth;
     using Microsoft.Azure.IIoT.Services.Auth.Clients;
     using Microsoft.Azure.IIoT.Http.Auth;
@@ -50,11 +49,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway {
         public IHostingEnvironment Environment { get; }
 
         /// <summary>
-        /// Di container - Initialized in `ConfigureServices`
-        /// </summary>
-        public IContainer ApplicationContainer { get; private set; }
-
-        /// <summary>
         /// Create startup
         /// </summary>
         /// <param name="env"></param>
@@ -62,6 +56,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway {
         public Startup(IHostingEnvironment env, IConfiguration configuration) :
             this(env, new Config(new ConfigurationBuilder()
                 .AddConfiguration(configuration)
+                .AddEnvironmentVariables()
+                .AddEnvironmentVariables(EnvironmentVariableTarget.User)
                 .AddFromDotEnvFile()
                 .AddFromKeyVault()
                 .Build())) {
@@ -84,12 +80,13 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway {
         /// </summary>
         /// <param name="services"></param>
         /// <returns></returns>
-        public IServiceProvider ConfigureServices(IServiceCollection services) {
+        public void ConfigureServices(IServiceCollection services) {
 
             services.AddLogging(o => o.AddConsole().AddDebug());
 
             // Setup (not enabling yet) CORS
             services.AddCors();
+            services.AddHealthChecks();
 
             // Add authentication
             services.AddJwtBearerAuthentication(Config, Environment.IsDevelopment());
@@ -101,13 +98,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway {
             services.AddMvc()
                 .AddApplicationPart(GetType().Assembly)
                 .AddControllersAsServices();
-
-            // Prepare DI container
-            var builder = new ContainerBuilder();
-            builder.Populate(services);
-            ConfigureContainer(builder);
-            ApplicationContainer = builder.Build();
-            return new AutofacServiceProvider(ApplicationContainer);
         }
 
         /// <summary>
@@ -117,8 +107,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway {
         /// <param name="app"></param>
         /// <param name="appLifetime"></param>
         public void Configure(IApplicationBuilder app, IApplicationLifetime appLifetime) {
-
-            var log = ApplicationContainer.Resolve<ILogger>();
+            var applicationContainer = app.ApplicationServices.GetAutofacRoot();
+            var log = applicationContainer.Resolve<ILogger>();
 
             if (Config.AuthRequired) {
                 app.UseAuthentication();
@@ -130,12 +120,14 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway {
 
             app.EnableCors();
             app.UseCorrelation();
+
             app.UseMvc();
+            app.UseHealthChecks("/healthz");
             app.UseOpcUaTransport();
 
             // If you want to dispose of resources that have been resolved in the
             // application container, register for the "ApplicationStopped" event.
-            appLifetime.ApplicationStopped.Register(ApplicationContainer.Dispose);
+            appLifetime.ApplicationStopped.Register(applicationContainer.Dispose);
 
             // Print some useful information at bootstrap time
             log.Information("{service} web service started with id {id}", ServiceInfo.Name,
@@ -189,7 +181,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway {
 
             // Auto start listeners
             builder.RegisterType<TcpChannelListener>()
-                .AutoActivate()
+               // .AutoActivate()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<WebSocketChannelListener>()
                 .AutoActivate()

@@ -201,9 +201,7 @@ namespace Boiler {
                         activeNode.Create(context, passiveNode);
 
                         // replace the node in the parent.
-                        if (passiveNode.Parent != null) {
-                            passiveNode.Parent.ReplaceChild(context, activeNode);
-                        }
+                        passiveNode.Parent?.ReplaceChild(context, activeNode);
 
                         // Autostart boiler simulation state machine
                         var start = activeNode.Simulation.Start;

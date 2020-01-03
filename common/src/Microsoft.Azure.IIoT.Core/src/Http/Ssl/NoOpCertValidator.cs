@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Http.Ssl {
-    using Microsoft.Azure.IIoT.Http;
     using System.Net.Http.Headers;
     using System;
     using System.Net.Security;

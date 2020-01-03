@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Messaging.Default {
-    using Microsoft.Azure.IIoT.Messaging;
     using System;
     using System.Collections.Generic;
     using System.Linq;

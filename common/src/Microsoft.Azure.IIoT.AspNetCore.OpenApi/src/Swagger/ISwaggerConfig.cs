@@ -21,11 +21,6 @@ namespace Microsoft.Azure.IIoT.Services.Swagger {
         bool WithAuth { get; }
 
         /// <summary>
-        /// Support http scheme in addition to https
-        /// </summary>
-        bool WithHttpScheme { get; }
-
-        /// <summary>
         /// The AAD application id for the swagger client.
         /// </summary>
         string SwaggerAppId { get; }

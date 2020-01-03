@@ -7,7 +7,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using Opc.Ua;
     using System;
     using System.IO;
-    using Microsoft.Azure.IIoT;
 
     /// <summary>
     /// Message serializer service implementation

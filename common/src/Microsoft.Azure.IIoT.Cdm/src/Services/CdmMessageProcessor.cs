@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Cdm.Services {
-    using Microsoft.Azure.IIoT.Cdm;
     using Microsoft.Azure.IIoT.Cdm.Models;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.CommonDataModel.ObjectModel.Cdm;

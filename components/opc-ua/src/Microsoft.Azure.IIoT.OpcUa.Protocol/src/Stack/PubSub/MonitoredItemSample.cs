@@ -6,7 +6,6 @@
 namespace Opc.Ua.PubSub {
     using System;
     using System.Collections.Generic;
-    using Opc.Ua;
 
     /// <summary>
     /// Encodeable monitored item message

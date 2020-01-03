@@ -54,8 +54,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher {
         /// <summary>
         /// Subscribe client to receive published samples
         /// </summary>
-        /// <param name="userId"></param>
         /// <param name="endpointId"></param>
+        /// <param name="userId"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         Task NodePublishSubscribeByEndpointAsync(string endpointId, string userId,
@@ -64,8 +64,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher {
         /// <summary>
         /// Unsubscribe client from receiving samples
         /// </summary>
-        /// <param name="userId"></param>
         /// <param name="endpointId"></param>
+        /// <param name="userId"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         Task NodePublishUnsubscribeByEndpointAsync(string endpointId, string userId,

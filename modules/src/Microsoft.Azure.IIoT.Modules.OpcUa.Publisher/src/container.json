@@ -1,4 +1,4 @@
 {
     "name": "iotedge/opc-publisher",
-    "tag": "preview"
+    "buildAlways": true
 }

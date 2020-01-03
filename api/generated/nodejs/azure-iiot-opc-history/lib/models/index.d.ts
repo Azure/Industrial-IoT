@@ -315,7 +315,7 @@ export interface ReadValuesAtTimesDetailsApiModel {
 /**
  * Aggregate configuration
  */
-export interface AggregateConfigApiModel {
+export interface AggregateConfigurationApiModel {
   /**
    * Whether to use the default server caps
    */
@@ -361,7 +361,7 @@ export interface ReadProcessedValuesDetailsApiModel {
   /**
    * A configuration for the aggregate
    */
-  aggregateConfiguration?: AggregateConfigApiModel;
+  aggregateConfiguration?: AggregateConfigurationApiModel;
 }
 
 /**

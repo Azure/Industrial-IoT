@@ -542,11 +542,11 @@ export const ReadValuesAtTimesDetailsApiModel: msRest.CompositeMapper = {
   }
 };
 
-export const AggregateConfigApiModel: msRest.CompositeMapper = {
-  serializedName: "AggregateConfigApiModel",
+export const AggregateConfigurationApiModel: msRest.CompositeMapper = {
+  serializedName: "AggregateConfigurationApiModel",
   type: {
     name: "Composite",
-    className: "AggregateConfigApiModel",
+    className: "AggregateConfigurationApiModel",
     modelProperties: {
       useServerCapabilitiesDefaults: {
         serializedName: "useServerCapabilitiesDefaults",
@@ -616,7 +616,7 @@ export const ReadProcessedValuesDetailsApiModel: msRest.CompositeMapper = {
         serializedName: "aggregateConfiguration",
         type: {
           name: "Composite",
-          className: "AggregateConfigApiModel"
+          className: "AggregateConfigurationApiModel"
         }
       }
     }

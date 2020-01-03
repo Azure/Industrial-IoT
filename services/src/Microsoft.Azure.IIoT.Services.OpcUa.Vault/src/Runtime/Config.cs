@@ -72,8 +72,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Runtime {
         public string SwaggerAppId => _swagger.SwaggerAppId;
         /// <inheritdoc/>
         public string SwaggerAppSecret => _swagger.SwaggerAppSecret;
-        /// <inheritdoc/>
-        public bool WithHttpScheme => _swagger.WithHttpScheme;
 
         /// <inheritdoc/>
         public int HttpsRedirectPort => _host.HttpsRedirectPort;

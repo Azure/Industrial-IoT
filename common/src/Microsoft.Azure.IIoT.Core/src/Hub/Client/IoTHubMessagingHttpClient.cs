@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.Hub.Client {
     using Serilog;
     using Microsoft.Azure.IIoT.Http;
-    using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Azure.IIoT.Utils;
     using System;

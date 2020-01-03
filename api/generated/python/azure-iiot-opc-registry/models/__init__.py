@@ -9,7 +9,6 @@
 # regenerated.
 # --------------------------------------------------------------------------
 
-from .callback_api_model import CallbackApiModel
 from .endpoint_activation_filter_api_model import EndpointActivationFilterApiModel
 from .server_registration_request_api_model import ServerRegistrationRequestApiModel
 from .application_registration_request_api_model import ApplicationRegistrationRequestApiModel
@@ -19,7 +18,6 @@ from .application_info_api_model import ApplicationInfoApiModel
 from .application_info_list_api_model import ApplicationInfoListApiModel
 from .discovery_config_api_model import DiscoveryConfigApiModel
 from .discovery_request_api_model import DiscoveryRequestApiModel
-from .credential_api_model import CredentialApiModel
 from .endpoint_api_model import EndpointApiModel
 from .authentication_method_api_model import AuthenticationMethodApiModel
 from .endpoint_registration_api_model import EndpointRegistrationApiModel
@@ -30,10 +28,14 @@ from .application_registration_query_api_model import ApplicationRegistrationQue
 from .application_record_query_api_model import ApplicationRecordQueryApiModel
 from .application_record_api_model import ApplicationRecordApiModel
 from .application_record_list_api_model import ApplicationRecordListApiModel
-from .endpoint_registration_update_api_model import EndpointRegistrationUpdateApiModel
 from .endpoint_info_api_model import EndpointInfoApiModel
 from .endpoint_info_list_api_model import EndpointInfoListApiModel
 from .endpoint_registration_query_api_model import EndpointRegistrationQueryApiModel
+from .publisher_config_api_model import PublisherConfigApiModel
+from .publisher_api_model import PublisherApiModel
+from .publisher_update_api_model import PublisherUpdateApiModel
+from .publisher_list_api_model import PublisherListApiModel
+from .publisher_query_api_model import PublisherQueryApiModel
 from .status_response_api_model import StatusResponseApiModel
 from .supervisor_api_model import SupervisorApiModel
 from .supervisor_update_api_model import SupervisorUpdateApiModel
@@ -42,7 +44,6 @@ from .supervisor_status_api_model import SupervisorStatusApiModel
 from .supervisor_list_api_model import SupervisorListApiModel
 from .supervisor_query_api_model import SupervisorQueryApiModel
 from .azure_opc_registry_client_enums import (
-    CallbackMethodType,
     SecurityMode,
     ApplicationType,
     DiscoveryMode,
@@ -50,11 +51,10 @@ from .azure_opc_registry_client_enums import (
     SecurityAssessment,
     EndpointActivationState,
     EndpointConnectivityState,
-    SupervisorLogLevel,
+    TraceLogLevel,
 )
 
 __all__ = [
-    'CallbackApiModel',
     'EndpointActivationFilterApiModel',
     'ServerRegistrationRequestApiModel',
     'ApplicationRegistrationRequestApiModel',
@@ -64,7 +64,6 @@ __all__ = [
     'ApplicationInfoListApiModel',
     'DiscoveryConfigApiModel',
     'DiscoveryRequestApiModel',
-    'CredentialApiModel',
     'EndpointApiModel',
     'AuthenticationMethodApiModel',
     'EndpointRegistrationApiModel',
@@ -75,10 +74,14 @@ __all__ = [
     'ApplicationRecordQueryApiModel',
     'ApplicationRecordApiModel',
     'ApplicationRecordListApiModel',
-    'EndpointRegistrationUpdateApiModel',
     'EndpointInfoApiModel',
     'EndpointInfoListApiModel',
     'EndpointRegistrationQueryApiModel',
+    'PublisherConfigApiModel',
+    'PublisherApiModel',
+    'PublisherUpdateApiModel',
+    'PublisherListApiModel',
+    'PublisherQueryApiModel',
     'StatusResponseApiModel',
     'SupervisorApiModel',
     'SupervisorUpdateApiModel',
@@ -86,7 +89,6 @@ __all__ = [
     'SupervisorStatusApiModel',
     'SupervisorListApiModel',
     'SupervisorQueryApiModel',
-    'CallbackMethodType',
     'SecurityMode',
     'ApplicationType',
     'DiscoveryMode',
@@ -94,5 +96,5 @@ __all__ = [
     'SecurityAssessment',
     'EndpointActivationState',
     'EndpointConnectivityState',
-    'SupervisorLogLevel',
+    'TraceLogLevel',
 ]

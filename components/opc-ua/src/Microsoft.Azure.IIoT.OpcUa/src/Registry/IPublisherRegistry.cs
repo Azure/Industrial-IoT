@@ -42,8 +42,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// Get publisher registration by identifer.
         /// </summary>
         /// <param name="onlyServerState"></param>
-        /// <param name="ct"></param>
         /// <param name="id"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         Task<PublisherModel> GetPublisherAsync(
             string id, bool onlyServerState = false,
@@ -53,8 +53,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// Update publisher configuration
         /// </summary>
         /// <param name="request"></param>
-        /// <param name="ct"></param>
         /// <param name="id"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         Task UpdatePublisherAsync(string id,
             PublisherUpdateModel request,

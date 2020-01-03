@@ -23,7 +23,7 @@ import (
 
 const (
 // DefaultBaseURI is the default URI used for the service Azureiiotopchistory
-DefaultBaseURI = "http://localhost")
+DefaultBaseURI = "/history")
 
 // BaseClient is the base client for Azureiiotopchistory.
 type BaseClient struct {

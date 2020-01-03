@@ -23,8 +23,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
         /// Create event publisher
         /// </summary>
         /// <param name="bus"></param>
-        /// <param name="logger"></param>
         /// <param name="callback"></param>
+        /// <param name="logger"></param>
         public RegistryEventPublisherHost(IEventBus bus, ICallbackInvoker callback, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _bus = bus ?? throw new ArgumentNullException(nameof(bus));

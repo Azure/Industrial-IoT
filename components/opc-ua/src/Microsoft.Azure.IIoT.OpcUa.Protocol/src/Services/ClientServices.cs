@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
-    using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
@@ -274,9 +273,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="localeIds"></param>
         /// <param name="caps"></param>
         /// <param name="timeout"></param>
-        /// <param name="result"></param>
         /// <param name="visitedUris"></param>
         /// <param name="queue"></param>
+        /// <param name="result"></param>
         private async Task DiscoverAsync(Uri discoveryUrl, StringCollection localeIds,
             IEnumerable<string> caps, int timeout, HashSet<string> visitedUris,
             Queue<Tuple<Uri, List<string>>> queue, HashSet<DiscoveredEndpointModel> result) {

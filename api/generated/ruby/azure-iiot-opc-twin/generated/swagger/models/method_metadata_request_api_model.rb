@@ -41,7 +41,7 @@ module azure.iiot.opc.twin
             model_properties: {
               method_id: {
                 client_side_validation: true,
-                required: true,
+                required: false,
                 serialized_name: 'methodId',
                 type: {
                   name: 'String'

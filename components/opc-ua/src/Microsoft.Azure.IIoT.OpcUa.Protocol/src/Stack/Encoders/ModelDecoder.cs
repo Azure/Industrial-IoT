@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Opc.Ua.Encoders {
-    using Opc.Ua;
     using System;
     using System.Xml;
     using System.IO;
@@ -25,8 +24,8 @@ namespace Opc.Ua.Encoders {
         /// Create wrapper
         /// </summary>
         /// <param name="contentType"></param>
-        /// <param name="context"></param>
         /// <param name="stream"></param>
+        /// <param name="context"></param>
         public ModelDecoder(Stream stream, string contentType,
             ServiceMessageContext context = null) :
             this(CreateDecoder(contentType, stream, context)) {

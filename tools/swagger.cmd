@@ -36,36 +36,28 @@ goto :main
 rem
 rem wait until listening
 rem
-:wait_up
-:wait_up_0
-set _registry_up=
-set _twin_up=
-set _history_up=
-set _vault_up=
-for /f %%i in ('netstat -na ^| findstr "9041" ^| findstr "LISTENING"') do set _twin_up=1
-for /f %%i in ('netstat -na ^| findstr "9042" ^| findstr "LISTENING"') do set _registry_up=1
-for /f %%i in ('netstat -na ^| findstr "9043" ^| findstr "LISTENING"') do set _history_up=1
-for /f %%i in ('netstat -na ^| findstr "9044" ^| findstr "LISTENING"') do set _vault_up=1
-for /f %%i in ('netstat -na ^| findstr "9050" ^| findstr "LISTENING"') do set _onboarding_up=1
-if "%_twin_up%" == "" goto :wait_up_0
-if "%_registry_up%" == "" goto :wait_up_0
-if "%_history_up%" == "" goto :wait_up_0
-if "%_vault_up%" == "" goto :wait_up_0
-if "%_onboarding_up%" == "" goto :wait_up_0
+:retrieve_spec
+:retrieve_retry
+if exist %1.json del /f %1.json
+curl -o %1.json http://%_hostname%:9080/%1/v2/swagger.json
+if exist %1.json goto :eof
 ping nowhere -w 5000 >nul 2>&1
-goto :eof
+goto :retrieve_retry
 
 rem
 rem retrieve swagger json
 rem
-:retrieve_spec
+:retrieve_specs
 if not exist %build_root%\api\swagger mkdir %build_root%\api\swagger
 pushd %build_root%\api\swagger
-curl -o twin.json http://%_hostname%:9041/v2/swagger.json
-curl -o registry.json http://%_hostname%:9042/v2/swagger.json
-curl -o history.json http://%_hostname%:9043/v2/swagger.json
-curl -o vault.json http://%_hostname%:9044/v2/swagger.json
-curl -o onboarding.json http://%_hostname%:9050/v2/swagger.json
+call :retrieve_spec twin
+call :retrieve_spec publisher
+call :retrieve_spec registry
+call :retrieve_spec history
+call :retrieve_spec vault
+
+rem call :retrieve_spec jobs
+rem call :retrieve_spec onboarding
 popd
 goto :eof
 
@@ -78,13 +70,11 @@ pushd %build_root%\services\src\Microsoft.Azure.IIoT.Services.All\src
 rem force https scheme only
 rem set PCS_AUTH_HTTPSREDIRECTPORT=443
 start dotnet run --project Microsoft.Azure.IIoT.Services.All.csproj
-call :wait_up
-echo ... Up.
 
 for /f %%i in ('hostname') do set _hostname=%%i
 if "%_hostname%" == "" set _hostname=localhost
 echo Retrieve swagger.
-call :retrieve_spec
+call :retrieve_specs
 
 :done
 if exist %TMP%\sdk_build.log del /f %TMP%\sdk_build.log

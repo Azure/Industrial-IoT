@@ -10,6 +10,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Mvc.Testing;
     using Autofac;
+    using Autofac.Extensions.Hosting;
     using System.Net.Http;
 
     /// <summary>
@@ -26,6 +27,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
 
         /// <inheritdoc/>
         public override void ConfigureContainer(ContainerBuilder builder) {
+            builder.RegisterInstance(Config)
+                .AsImplementedInterfaces().SingleInstance();
             // Add diagnostics based on configuration
             builder.AddDiagnostics(Config);
             // Register service info and configuration interfaces
@@ -46,7 +49,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
 
         /// <inheritdoc/>
         protected override void ConfigureWebHost(IWebHostBuilder builder) {
-            builder.UseContentRoot(".");
+            builder.UseContentRoot(".").UseAutofac();
             base.ConfigureWebHost(builder);
         }
 

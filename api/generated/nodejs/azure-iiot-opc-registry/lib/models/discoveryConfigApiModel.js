@@ -33,7 +33,6 @@ class DiscoveryConfigApiModel {
    * @property {array} [discoveryUrls] List of preset discovery urls to use
    * @property {array} [locales] List of locales to filter with during
    * discovery
-   * @property {array} [callbacks] Callbacks to invoke once onboarding finishes
    * @property {object} [activationFilter] Activate all twins with this filter
    * during onboarding.
    * @property {array} [activationFilter.trustLists] Certificate trust list
@@ -46,8 +45,8 @@ class DiscoveryConfigApiModel {
    * If set to null, all policies are in scope.
    * @property {string} [activationFilter.securityMode] Security mode level to
    * activate. If null,
-   * then Microsoft.Azure.IIoT.OpcUa.Registry.Models.SecurityMode.Best is
-   * assumed. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
+   * then Microsoft.Azure.IIoT.OpcUa.Core.Models.SecurityMode.Best is assumed.
+   * Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
    */
   constructor() {
   }
@@ -146,21 +145,6 @@ class DiscoveryConfigApiModel {
                   serializedName: 'StringElementType',
                   type: {
                     name: 'String'
-                  }
-              }
-            }
-          },
-          callbacks: {
-            required: false,
-            serializedName: 'callbacks',
-            type: {
-              name: 'Sequence',
-              element: {
-                  required: false,
-                  serializedName: 'CallbackApiModelElementType',
-                  type: {
-                    name: 'Composite',
-                    className: 'CallbackApiModel'
                   }
               }
             }

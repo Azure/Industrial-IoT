@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Models {
-    using Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2;
     using Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.Runtime;
     using Newtonsoft.Json;
     using System.Collections.Generic;

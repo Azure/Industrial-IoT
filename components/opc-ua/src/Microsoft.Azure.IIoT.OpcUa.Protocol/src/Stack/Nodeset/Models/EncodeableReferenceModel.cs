@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Opc.Ua.Nodeset {
-    using Opc.Ua;
 
     /// <summary>
     /// Specifies a reference which belongs to a node.

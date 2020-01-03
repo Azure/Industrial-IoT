@@ -14,30 +14,6 @@ import * as msRest from "@azure/ms-rest-js";
 
 /**
  * @interface
- * An interface representing CallbackApiModel.
- * A registered callback
- *
- */
-export interface CallbackApiModel {
-  /**
-   * @member {string} [uri] Uri to call - should use https scheme in which
-   * case security is enforced.
-   */
-  uri?: string;
-  /**
-   * @member {CallbackMethodType} [method] Http Method to use for callback.
-   * Possible values include: 'Get', 'Post', 'Put', 'Delete'
-   */
-  method?: CallbackMethodType;
-  /**
-   * @member {string} [authenticationHeader] Authentication header to add or
-   * null if not needed
-   */
-  authenticationHeader?: string;
-}
-
-/**
- * @interface
  * An interface representing EndpointActivationFilterApiModel.
  * Endpoint Activation Filter model
  *
@@ -60,8 +36,8 @@ export interface EndpointActivationFilterApiModel {
   /**
    * @member {SecurityMode} [securityMode] Security mode level to activate. If
    * null,
-   * then Microsoft.Azure.IIoT.OpcUa.Registry.Models.SecurityMode.Best is
-   * assumed. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
+   * then Microsoft.Azure.IIoT.OpcUa.Core.Models.SecurityMode.Best is assumed.
+   * Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
    */
   securityMode?: SecurityMode;
 }
@@ -81,11 +57,6 @@ export interface ServerRegistrationRequestApiModel {
    * @member {string} [id] Registration id
    */
   id?: string;
-  /**
-   * @member {CallbackApiModel} [callback] An optional callback hook to
-   * register.
-   */
-  callback?: CallbackApiModel;
   /**
    * @member {EndpointActivationFilterApiModel} [activationFilter] Upon
    * discovery, activate all endpoints with this filter.
@@ -337,11 +308,6 @@ export interface DiscoveryConfigApiModel {
    */
   locales?: string[];
   /**
-   * @member {CallbackApiModel[]} [callbacks] Callbacks to invoke once
-   * onboarding finishes
-   */
-  callbacks?: CallbackApiModel[];
-  /**
    * @member {EndpointActivationFilterApiModel} [activationFilter] Activate all
    * twins with this filter during onboarding.
    */
@@ -373,25 +339,6 @@ export interface DiscoveryRequestApiModel {
 
 /**
  * @interface
- * An interface representing CredentialApiModel.
- * Credential model
- *
- */
-export interface CredentialApiModel {
-  /**
-   * @member {CredentialType} [type] Type of credential. Possible values
-   * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'. Default value:
-   * 'None' .
-   */
-  type?: CredentialType;
-  /**
-   * @member {any} [value] Value to pass to server
-   */
-  value?: any;
-}
-
-/**
- * @interface
  * An interface representing EndpointApiModel.
  * Endpoint model
  *
@@ -407,10 +354,6 @@ export interface EndpointApiModel {
    * accessing and validating the server
    */
   alternativeUrls?: string[];
-  /**
-   * @member {CredentialApiModel} [user] User Authentication
-   */
-  user?: CredentialApiModel;
   /**
    * @member {SecurityMode} [securityMode] Security Mode to use for
    * communication
@@ -439,7 +382,7 @@ export interface EndpointApiModel {
  */
 export interface AuthenticationMethodApiModel {
   /**
-   * @member {string} id Method id
+   * @member {string} id Authentication method id
    */
   id: string;
   /**
@@ -478,6 +421,10 @@ export interface EndpointRegistrationApiModel {
    * @member {string} [siteId] Registered site of the endpoint
    */
   siteId?: string;
+  /**
+   * @member {string} [supervisorId] Supervisor that registered the endpoint.
+   */
+  supervisorId?: string;
   /**
    * @member {EndpointApiModel} endpoint Endpoint information of the
    * registration
@@ -713,20 +660,6 @@ export interface ApplicationRecordListApiModel {
 
 /**
  * @interface
- * An interface representing EndpointRegistrationUpdateApiModel.
- * Endpoint registration update request
- *
- */
-export interface EndpointRegistrationUpdateApiModel {
-  /**
-   * @member {CredentialApiModel} [user] User authentication to change on the
-   * endpoint.
-   */
-  user?: CredentialApiModel;
-}
-
-/**
- * @interface
  * An interface representing EndpointInfoApiModel.
  * Endpoint registration model
  *
@@ -792,12 +725,6 @@ export interface EndpointRegistrationQueryApiModel {
    */
   url?: string;
   /**
-   * @member {CredentialType} [userAuthentication] Type of credential selected
-   * for authentication. Possible values include: 'None', 'UserName',
-   * 'X509Certificate', 'JwtToken'
-   */
-  userAuthentication?: CredentialType;
-  /**
    * @member {Uint8Array} [certificate] Certificate of the endpoint
    */
   certificate?: Uint8Array;
@@ -830,6 +757,135 @@ export interface EndpointRegistrationQueryApiModel {
    * were soft deleted
    */
   includeNotSeenSince?: boolean;
+}
+
+/**
+ * @interface
+ * An interface representing PublisherConfigApiModel.
+ * Default publisher agent configuration
+ *
+ */
+export interface PublisherConfigApiModel {
+  /**
+   * @member {{ [propertyName: string]: string }} [capabilities] Capabilities
+   */
+  capabilities?: { [propertyName: string]: string };
+  /**
+   * @member {string} [jobCheckInterval] Interval to check job
+   */
+  jobCheckInterval?: string;
+  /**
+   * @member {string} [heartbeatInterval] Heartbeat interval
+   */
+  heartbeatInterval?: string;
+  /**
+   * @member {number} [maxWorkers] Parallel jobs
+   */
+  maxWorkers?: number;
+  /**
+   * @member {string} [jobOrchestratorUrl] Job orchestrator endpoint url
+   */
+  jobOrchestratorUrl?: string;
+}
+
+/**
+ * @interface
+ * An interface representing PublisherApiModel.
+ * Publisher registration model
+ *
+ */
+export interface PublisherApiModel {
+  /**
+   * @member {string} id Publisher id
+   */
+  id: string;
+  /**
+   * @member {string} [siteId] Site of the publisher
+   */
+  siteId?: string;
+  /**
+   * @member {Uint8Array} [certificate] Publisher public client cert
+   */
+  certificate?: Uint8Array;
+  /**
+   * @member {TraceLogLevel} [logLevel] Current log level. Possible values
+   * include: 'Error', 'Information', 'Debug', 'Verbose'. Default value:
+   * 'Information' .
+   */
+  logLevel?: TraceLogLevel;
+  /**
+   * @member {PublisherConfigApiModel} [configuration] Publisher agent
+   * configuration
+   */
+  configuration?: PublisherConfigApiModel;
+  /**
+   * @member {boolean} [outOfSync] Whether the registration is out of sync
+   * between
+   * client (module) and server (service) (default: false).
+   */
+  outOfSync?: boolean;
+  /**
+   * @member {boolean} [connected] Whether publisher is connected on this
+   * registration
+   */
+  connected?: boolean;
+}
+
+/**
+ * @interface
+ * An interface representing PublisherUpdateApiModel.
+ * Publisher registration update request
+ *
+ */
+export interface PublisherUpdateApiModel {
+  /**
+   * @member {string} [siteId] Site of the publisher
+   */
+  siteId?: string;
+  /**
+   * @member {PublisherConfigApiModel} [configuration] Publisher discovery
+   * configuration
+   */
+  configuration?: PublisherConfigApiModel;
+  /**
+   * @member {TraceLogLevel} [logLevel] Current log level. Possible values
+   * include: 'Error', 'Information', 'Debug', 'Verbose'
+   */
+  logLevel?: TraceLogLevel;
+}
+
+/**
+ * @interface
+ * An interface representing PublisherListApiModel.
+ * Publisher registration list
+ *
+ */
+export interface PublisherListApiModel {
+  /**
+   * @member {PublisherApiModel[]} [items] Registrations
+   */
+  items?: PublisherApiModel[];
+  /**
+   * @member {string} [continuationToken] Continuation or null if final
+   */
+  continuationToken?: string;
+}
+
+/**
+ * @interface
+ * An interface representing PublisherQueryApiModel.
+ * Publisher registration query
+ *
+ */
+export interface PublisherQueryApiModel {
+  /**
+   * @member {string} [siteId] Site of the publisher
+   */
+  siteId?: string;
+  /**
+   * @member {boolean} [connected] Included connected or disconnected
+   */
+  connected?: boolean;
 }
 
 /**
@@ -928,11 +984,11 @@ export interface SupervisorApiModel {
    */
   certificate?: Uint8Array;
   /**
-   * @member {SupervisorLogLevel} [logLevel] Current log level. Possible values
+   * @member {TraceLogLevel} [logLevel] Current log level. Possible values
    * include: 'Error', 'Information', 'Debug', 'Verbose'. Default value:
    * 'Information' .
    */
-  logLevel?: SupervisorLogLevel;
+  logLevel?: TraceLogLevel;
   /**
    * @member {boolean} [outOfSync] Whether the registration is out of sync
    * between
@@ -970,20 +1026,10 @@ export interface SupervisorUpdateApiModel {
    */
   discoveryConfig?: DiscoveryConfigApiModel;
   /**
-   * @member {CallbackApiModel[]} [discoveryCallbacks] Callbacks to add or
-   * remove (see below)
-   */
-  discoveryCallbacks?: CallbackApiModel[];
-  /**
-   * @member {boolean} [removeDiscoveryCallbacks] Whether to add or remove
-   * callbacks
-   */
-  removeDiscoveryCallbacks?: boolean;
-  /**
-   * @member {SupervisorLogLevel} [logLevel] Current log level. Possible values
+   * @member {TraceLogLevel} [logLevel] Current log level. Possible values
    * include: 'Error', 'Information', 'Debug', 'Verbose'
    */
-  logLevel?: SupervisorLogLevel;
+  logLevel?: TraceLogLevel;
 }
 
 /**
@@ -1181,6 +1227,65 @@ export interface AzureOpcRegistryClientQueryApplicationsByIdOptionalParams exten
 
 /**
  * @interface
+ * An interface representing AzureOpcRegistryClientSubscribeOptionalParams.
+ * Optional Parameters.
+ *
+ * @extends RequestOptionsBase
+ */
+export interface AzureOpcRegistryClientSubscribeOptionalParams extends msRest.RequestOptionsBase {
+  /**
+   * @member {string} [userId] The user that will receive application
+   * events.
+   */
+  userId?: string;
+}
+
+/**
+ * @interface
+ * An interface representing AzureOpcRegistryClientSubscribeBySupervisorIdOptionalParams.
+ * Optional Parameters.
+ *
+ * @extends RequestOptionsBase
+ */
+export interface AzureOpcRegistryClientSubscribeBySupervisorIdOptionalParams extends msRest.RequestOptionsBase {
+  /**
+   * @member {string} [userId] The user id that will receive discovery
+   * events.
+   */
+  userId?: string;
+}
+
+/**
+ * @interface
+ * An interface representing AzureOpcRegistryClientSubscribeByRequestIdOptionalParams.
+ * Optional Parameters.
+ *
+ * @extends RequestOptionsBase
+ */
+export interface AzureOpcRegistryClientSubscribeByRequestIdOptionalParams extends msRest.RequestOptionsBase {
+  /**
+   * @member {string} [userId] The user id that will receive discovery
+   * events.
+   */
+  userId?: string;
+}
+
+/**
+ * @interface
+ * An interface representing AzureOpcRegistryClientSetDiscoveryModeOptionalParams.
+ * Optional Parameters.
+ *
+ * @extends RequestOptionsBase
+ */
+export interface AzureOpcRegistryClientSetDiscoveryModeOptionalParams extends msRest.RequestOptionsBase {
+  /**
+   * @member {DiscoveryConfigApiModel} [config] Discovery configuration
+   */
+  config?: DiscoveryConfigApiModel;
+}
+
+/**
+ * @interface
  * An interface representing AzureOpcRegistryClientGetEndpointOptionalParams.
  * Optional Parameters.
  *
@@ -1230,12 +1335,6 @@ export interface AzureOpcRegistryClientGetFilteredListOfEndpointsOptionalParams 
    * @member {string} [url] Endoint url for direct server access
    */
   url?: string;
-  /**
-   * @member {UserAuthentication} [userAuthentication] Type of credential
-   * selected for authentication. Possible values include: 'None', 'UserName',
-   * 'X509Certificate', 'JwtToken'
-   */
-  userAuthentication?: UserAuthentication;
   /**
    * @member {Uint8Array} [certificate] Certificate of the endpoint
    */
@@ -1299,6 +1398,123 @@ export interface AzureOpcRegistryClientQueryEndpointsOptionalParams extends msRe
    * @member {number} [pageSize] Optional number of results to return
    */
   pageSize?: number;
+}
+
+/**
+ * @interface
+ * An interface representing AzureOpcRegistryClientSubscribe1OptionalParams.
+ * Optional Parameters.
+ *
+ * @extends RequestOptionsBase
+ */
+export interface AzureOpcRegistryClientSubscribe1OptionalParams extends msRest.RequestOptionsBase {
+  /**
+   * @member {string} [userId] The user id that will receive endpoint
+   * events.
+   */
+  userId?: string;
+}
+
+/**
+ * @interface
+ * An interface representing AzureOpcRegistryClientGetPublisherOptionalParams.
+ * Optional Parameters.
+ *
+ * @extends RequestOptionsBase
+ */
+export interface AzureOpcRegistryClientGetPublisherOptionalParams extends msRest.RequestOptionsBase {
+  /**
+   * @member {boolean} [onlyServerState] Whether to include only server
+   * state, or display current client state of the endpoint if
+   * available
+   */
+  onlyServerState?: boolean;
+}
+
+/**
+ * @interface
+ * An interface representing AzureOpcRegistryClientGetListOfPublisherOptionalParams.
+ * Optional Parameters.
+ *
+ * @extends RequestOptionsBase
+ */
+export interface AzureOpcRegistryClientGetListOfPublisherOptionalParams extends msRest.RequestOptionsBase {
+  /**
+   * @member {boolean} [onlyServerState] Whether to include only server
+   * state, or display current client state of the endpoint if available
+   */
+  onlyServerState?: boolean;
+  /**
+   * @member {string} [continuationToken] Optional Continuation token
+   */
+  continuationToken?: string;
+  /**
+   * @member {number} [pageSize] Optional number of results to return
+   */
+  pageSize?: number;
+}
+
+/**
+ * @interface
+ * An interface representing AzureOpcRegistryClientGetFilteredListOfPublisherOptionalParams.
+ * Optional Parameters.
+ *
+ * @extends RequestOptionsBase
+ */
+export interface AzureOpcRegistryClientGetFilteredListOfPublisherOptionalParams extends msRest.RequestOptionsBase {
+  /**
+   * @member {string} [siteId] Site of the publisher
+   */
+  siteId?: string;
+  /**
+   * @member {boolean} [connected] Included connected or disconnected
+   */
+  connected?: boolean;
+  /**
+   * @member {boolean} [onlyServerState] Whether to include only server
+   * state, or display current client state of the endpoint if
+   * available
+   */
+  onlyServerState?: boolean;
+  /**
+   * @member {number} [pageSize] Number of results to return
+   */
+  pageSize?: number;
+}
+
+/**
+ * @interface
+ * An interface representing AzureOpcRegistryClientQueryPublisherOptionalParams.
+ * Optional Parameters.
+ *
+ * @extends RequestOptionsBase
+ */
+export interface AzureOpcRegistryClientQueryPublisherOptionalParams extends msRest.RequestOptionsBase {
+  /**
+   * @member {boolean} [onlyServerState] Whether to include only server
+   * state, or display current client state of the endpoint if
+   * available
+   */
+  onlyServerState?: boolean;
+  /**
+   * @member {number} [pageSize] Number of results to return
+   */
+  pageSize?: number;
+}
+
+/**
+ * @interface
+ * An interface representing AzureOpcRegistryClientSubscribe2OptionalParams.
+ * Optional Parameters.
+ *
+ * @extends RequestOptionsBase
+ */
+export interface AzureOpcRegistryClientSubscribe2OptionalParams extends msRest.RequestOptionsBase {
+  /**
+   * @member {string} [userId] The user id that will receive publisher
+   * events.
+   */
+  userId?: string;
 }
 
 /**
@@ -1394,12 +1610,19 @@ export interface AzureOpcRegistryClientQuerySupervisorsOptionalParams extends ms
 }
 
 /**
- * Defines values for CallbackMethodType.
- * Possible values include: 'Get', 'Post', 'Put', 'Delete'
- * @readonly
- * @enum {string}
+ * @interface
+ * An interface representing AzureOpcRegistryClientSubscribe3OptionalParams.
+ * Optional Parameters.
+ *
+ * @extends RequestOptionsBase
  */
-export type CallbackMethodType = 'Get' | 'Post' | 'Put' | 'Delete';
+export interface AzureOpcRegistryClientSubscribe3OptionalParams extends msRest.RequestOptionsBase {
+  /**
+   * @member {string} [userId] The user id that will receive supervisor
+   * events.
+   */
+  userId?: string;
+}
 
 /**
  * Defines values for SecurityMode.
@@ -1459,20 +1682,12 @@ export type EndpointActivationState = 'Deactivated' | 'Activated' | 'ActivatedAn
 export type EndpointConnectivityState = 'Connecting' | 'NotReachable' | 'Busy' | 'NoTrust' | 'CertificateInvalid' | 'Ready' | 'Error';
 
 /**
- * Defines values for SupervisorLogLevel.
+ * Defines values for TraceLogLevel.
  * Possible values include: 'Error', 'Information', 'Debug', 'Verbose'
  * @readonly
  * @enum {string}
  */
-export type SupervisorLogLevel = 'Error' | 'Information' | 'Debug' | 'Verbose';
-
-/**
- * Defines values for UserAuthentication.
- * Possible values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
- * @readonly
- * @enum {string}
- */
-export type UserAuthentication = 'None' | 'UserName' | 'X509Certificate' | 'JwtToken';
+export type TraceLogLevel = 'Error' | 'Information' | 'Debug' | 'Verbose';
 
 /**
  * Defines values for SecurityMode1.
@@ -1498,6 +1713,14 @@ export type EndpointState = 'Connecting' | 'NotReachable' | 'Busy' | 'NoTrust' |
  * @enum {string}
  */
 export type Discovery = 'Off' | 'Local' | 'Network' | 'Fast' | 'Scan';
+
+/**
+ * Defines values for Mode.
+ * Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
+ * @readonly
+ * @enum {string}
+ */
+export type Mode = 'Off' | 'Local' | 'Network' | 'Fast' | 'Scan';
 
 /**
  * Contains response data for the getListOfApplications operation.
@@ -1705,6 +1928,82 @@ export type QueryEndpointsResponse = EndpointInfoListApiModel & {
        * The response body as parsed JSON or XML
        */
       parsedBody: EndpointInfoListApiModel;
+    };
+};
+
+/**
+ * Contains response data for the getPublisher operation.
+ */
+export type GetPublisherResponse = PublisherApiModel & {
+  /**
+   * The underlying HTTP response.
+   */
+  _response: msRest.HttpResponse & {
+      /**
+       * The response body as text (string format)
+       */
+      bodyAsText: string;
+      /**
+       * The response body as parsed JSON or XML
+       */
+      parsedBody: PublisherApiModel;
+    };
+};
+
+/**
+ * Contains response data for the getListOfPublisher operation.
+ */
+export type GetListOfPublisherResponse = PublisherListApiModel & {
+  /**
+   * The underlying HTTP response.
+   */
+  _response: msRest.HttpResponse & {
+      /**
+       * The response body as text (string format)
+       */
+      bodyAsText: string;
+      /**
+       * The response body as parsed JSON or XML
+       */
+      parsedBody: PublisherListApiModel;
+    };
+};
+
+/**
+ * Contains response data for the getFilteredListOfPublisher operation.
+ */
+export type GetFilteredListOfPublisherResponse = PublisherListApiModel & {
+  /**
+   * The underlying HTTP response.
+   */
+  _response: msRest.HttpResponse & {
+      /**
+       * The response body as text (string format)
+       */
+      bodyAsText: string;
+      /**
+       * The response body as parsed JSON or XML
+       */
+      parsedBody: PublisherListApiModel;
+    };
+};
+
+/**
+ * Contains response data for the queryPublisher operation.
+ */
+export type QueryPublisherResponse = PublisherListApiModel & {
+  /**
+   * The underlying HTTP response.
+   */
+  _response: msRest.HttpResponse & {
+      /**
+       * The response body as text (string format)
+       */
+      bodyAsText: string;
+      /**
+       * The response body as parsed JSON or XML
+       */
+      parsedBody: PublisherListApiModel;
     };
 };
 

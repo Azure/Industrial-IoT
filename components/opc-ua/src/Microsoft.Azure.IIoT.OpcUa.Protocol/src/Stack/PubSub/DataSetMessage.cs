@@ -5,7 +5,6 @@
 
 namespace Opc.Ua.PubSub {
     using System;
-    using Opc.Ua;
 
     /// <summary>
     /// Data set message
@@ -89,7 +88,7 @@ namespace Opc.Ua.PubSub {
         }
 
         /// <inheritdoc/>
-        public override bool Equals(Object value) {
+        public override bool Equals(object value) {
             return IsEqual(value as IEncodeable);
         }
 
@@ -103,11 +102,11 @@ namespace Opc.Ua.PubSub {
             if (ReferenceEquals(this, encodeable)) {
                 return true;
             }
-            
+
             if (!(encodeable is DataSetMessage wrapper)) {
                 return false;
             }
-            
+
             if (!Utils.IsEqual(wrapper.MessageContentMask, MessageContentMask) ||
                 !Utils.IsEqual(wrapper.DataSetWriterId, DataSetWriterId) ||
                 !Utils.IsEqual(wrapper.MetaDataVersion, MetaDataVersion) ||
@@ -170,22 +169,22 @@ namespace Opc.Ua.PubSub {
         /// Decode as json
         /// </summary>
         /// <param name="decoder"></param>
-        private void DecodeJson(IDecoder decoder) {            
+        private void DecodeJson(IDecoder decoder) {
             DataSetWriterId = decoder.ReadString(nameof(JsonDataSetMessageContentMask.DataSetWriterId));
             if (DataSetWriterId != null) {
                 MessageContentMask |= (uint)JsonDataSetMessageContentMask.DataSetWriterId;
             }
-            
+
             SequenceNumber = decoder.ReadUInt32(nameof(JsonDataSetMessageContentMask.SequenceNumber));
             if (SequenceNumber != 0) {
                 MessageContentMask |= (uint)JsonDataSetMessageContentMask.SequenceNumber;
             }
-            
+
             MetaDataVersion = decoder.ReadEncodeable(nameof(JsonDataSetMessageContentMask.MetaDataVersion), typeof(ConfigurationVersionDataType)) as ConfigurationVersionDataType;
             if (MetaDataVersion != null) {
                 MessageContentMask|= (uint)JsonDataSetMessageContentMask.MetaDataVersion;
             }
-            
+
             Timestamp = decoder.ReadDateTime(nameof(JsonDataSetMessageContentMask.Timestamp));
             if (Timestamp != null) {
                 MessageContentMask |= (uint)JsonDataSetMessageContentMask.Timestamp;
@@ -193,7 +192,7 @@ namespace Opc.Ua.PubSub {
 
             Status = decoder.ReadStatusCode(nameof(JsonDataSetMessageContentMask.Status));
             if (Status != null) {
-                MessageContentMask |= (uint)JsonDataSetMessageContentMask.Status;                
+                MessageContentMask |= (uint)JsonDataSetMessageContentMask.Status;
             }
 
             Payload = new DataSet();

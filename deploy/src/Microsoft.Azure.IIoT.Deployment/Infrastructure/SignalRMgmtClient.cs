@@ -57,11 +57,11 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
         public async Task<SignalRResource> CreateAsync(
             IResourceGroup resourceGroup,
             string signalRName,
-            IDictionary<string, string> tags = default,
+            IDictionary<string, string> tags = null,
             CancellationToken cancellationToken = default
         ) {
             try {
-                tags = tags ?? new Dictionary<string, string>();
+                tags ??= new Dictionary<string, string>();
 
                 Log.Information($"Creating SignalR Service: {signalRName} ...");
 

@@ -42,8 +42,6 @@ class SupervisorUpdateApiModel {
    * urls to use
    * @property {array} [discoveryConfig.locales] List of locales to filter with
    * during discovery
-   * @property {array} [discoveryConfig.callbacks] Callbacks to invoke once
-   * onboarding finishes
    * @property {object} [discoveryConfig.activationFilter] Activate all twins
    * with this filter during onboarding.
    * @property {array} [discoveryConfig.activationFilter.trustLists]
@@ -56,12 +54,8 @@ class SupervisorUpdateApiModel {
    * If set to null, all policies are in scope.
    * @property {string} [discoveryConfig.activationFilter.securityMode]
    * Security mode level to activate. If null,
-   * then Microsoft.Azure.IIoT.OpcUa.Registry.Models.SecurityMode.Best is
-   * assumed. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
-   * @property {array} [discoveryCallbacks] Callbacks to add or remove (see
-   * below)
-   * @property {boolean} [removeDiscoveryCallbacks] Whether to add or remove
-   * callbacks
+   * then Microsoft.Azure.IIoT.OpcUa.Core.Models.SecurityMode.Best is assumed.
+   * Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
    * @property {string} [logLevel] Current log level. Possible values include:
    * 'Error', 'Information', 'Debug', 'Verbose'
    */
@@ -104,28 +98,6 @@ class SupervisorUpdateApiModel {
             type: {
               name: 'Composite',
               className: 'DiscoveryConfigApiModel'
-            }
-          },
-          discoveryCallbacks: {
-            required: false,
-            serializedName: 'discoveryCallbacks',
-            type: {
-              name: 'Sequence',
-              element: {
-                  required: false,
-                  serializedName: 'CallbackApiModelElementType',
-                  type: {
-                    name: 'Composite',
-                    className: 'CallbackApiModel'
-                  }
-              }
-            }
-          },
-          removeDiscoveryCallbacks: {
-            required: false,
-            serializedName: 'removeDiscoveryCallbacks',
-            type: {
-              name: 'Boolean'
             }
           },
           logLevel: {

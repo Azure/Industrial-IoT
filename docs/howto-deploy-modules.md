@@ -53,8 +53,7 @@ All modules are deployed using a deployment manifest.  An example manifest to de
             "restartPolicy": "always",
             "settings": {
               "image": "mcr.microsoft.com/iotedge/opc-twin:latest",
-              "createOptions": "{\"Hostname\":\"opctwin\",\"Cmd\":[\"PkiRootPath=\\\\mount\\\\pki\",\"AutoAccept=true\"],\"NetworkingConfig\":{\"EndpointsConfig\":{\"host\":{}}},\"HostConfig\":{\"NetworkMode\":\"host\",\"CapAdd\":[\"NET_ADMIN\"],\"Mounts\":[{\"Type\":\"bind\",\"Source\":\"C:\\\\IoTEdgeMapping\",\"Target\":\"C:\\\\mount\"}]}}"              
-            }
+              "createOptions": "{\"Hostname\":\"opctwin\",\"Cmd\":[\"PkiRootPath=\\\\mount\\\\pki\",\"AutoAccept=true\"],\"NetworkingConfig\":{\"EndpointsConfig\":{\"host\":{}}},\"HostConfig\":{\"NetworkMode\":\"host\",\"CapAdd\":[\"NET_ADMIN\"],\"Mounts\":[{\"Type\":\"bind\",\"Source\":\"C:\\\\IoTEdgeMapping\",\"Target\":\"C:\\\\mount\"}]}}"               }
           },
           "opcpublisher": {
             "version": "1.0",
@@ -63,8 +62,7 @@ All modules are deployed using a deployment manifest.  An example manifest to de
             "restartPolicy": "always",
             "settings": {
               "image": "mcr.microsoft.com/iotedge/opc-publisher:latest",
-              "createOptions": "{\"Hostname\":\"opcpublisher\",\"Cmd\":[\"publisher\",\"--ap=\\\\publisher\",\"--pf=\\\\publisher\\\\publishednodes.json\",\"--di=60\",\"--to\",\"--aa\",\"--si=0\",\"--ms=0\",\"--appcertstoretype=X509Store\"],\"ExposedPorts\":{\"62222/tcp\":{}},\"NetworkingConfig\":{\"EndpointsConfig\":{\"host\":{}}},\"HostConfig\":{\"NetworkMode\":\"host\",\"CapAdd\":[\"NET_ADMIN\"],\"Mounts\":[{\"Type\":\"bind\",\"Source\":\"C:\\\\IoTEdgeMapping\",\"Target\":\"C:\\\\publisher\"}],\"PortBindings\":{\"62222/tcp\":[{\"HostPort\":\"62222\"}]}}}"              
-            }
+              "createOptions": "{\"Hostname\":\"opcpublisher\",\"Cmd\":[\"PkiRootPath=\\\\mount\\\\pki\",\"AutoAccept=true\"],\"HostConfig\":{\"Mounts\":[{\"Type\":\"bind\",\"Source\":\"C:\\\\IoTEdgeMapping\",\"Target\":\"C:\\\\mount\"}]}}"            }
           }
         }
       }
@@ -139,7 +137,6 @@ The easiest way to deploy the modules to an Azure IoT Edge gateway device is thr
 		"createOptions": "{\"Hostname\":\"opctwin\",\"Cmd\":[\"PkiRootPath=\\\\mount\\\\pki\",\"AutoAccept=true\"],\"NetworkingConfig\":{\"EndpointsConfig\":{\"host\":{\"IPAMConfig\":{\"IPv4Address\":\"192.168.30.100\"}}}},\"HostConfig\":{\"NetworkMode\":\"host\",\"CapAdd\":[\"NET_ADMIN\"],\"Mounts\":[{\"Type\":\"bind\",\"Source\":\"C:\\\\IoTEdgeMapping\",\"Target\":\"C:\\\\mount\"}]}}"
 		```
 		
-		
 
 
 ### Deploy to Edge device
@@ -179,7 +176,7 @@ The easiest way to deploy the modules to an Azure IoT Edge gateway device is thr
    As *create options* use the following JSON:
 
    ```json
-   {"Hostname":"publisher","Cmd":["publisher","--pf=./pn.json","--di=60","--to","--aa","--si=0","--ms=0"],"ExposedPorts":{"62222/tcp":{}},"HostConfig":{"PortBindings":{"62222/tcp":[{"HostPort":"62222"}] }}}
+   {"Hostname":"publisher","Cmd":["publisher","--aa"]}
    ```
 
 9. Select **Save** and then **Next** to continue to the routes section.

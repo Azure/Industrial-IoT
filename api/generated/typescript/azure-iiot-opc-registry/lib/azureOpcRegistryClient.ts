@@ -229,6 +229,35 @@ class AzureOpcRegistryClient extends AzureOpcRegistryClientContext {
   }
 
   /**
+   * Cancels a discovery request using the request identifier.
+   * @summary Cancel discovery
+   * @param requestId Discovery request
+   * @param [options] The optional parameters
+   * @returns Promise<msRest.RestResponse>
+   */
+  cancel(requestId: string, options?: msRest.RequestOptionsBase): Promise<msRest.RestResponse>;
+  /**
+   * @param requestId Discovery request
+   * @param callback The callback
+   */
+  cancel(requestId: string, callback: msRest.ServiceCallback<void>): void;
+  /**
+   * @param requestId Discovery request
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  cancel(requestId: string, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<void>): void;
+  cancel(requestId: string, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
+    return this.sendOperationRequest(
+      {
+        requestId,
+        options
+      },
+      cancelOperationSpec,
+      callback);
+  }
+
+  /**
    * @summary Get application registration
    * @param applicationId Application id for the server
    * @param [options] The optional parameters
@@ -437,6 +466,230 @@ class AzureOpcRegistryClient extends AzureOpcRegistryClientContext {
   }
 
   /**
+   * Register a client to receive application events through SignalR.
+   * @summary Subscribe for application events
+   * @param [options] The optional parameters
+   * @returns Promise<msRest.RestResponse>
+   */
+  subscribe(options?: Models.AzureOpcRegistryClientSubscribeOptionalParams): Promise<msRest.RestResponse>;
+  /**
+   * @param callback The callback
+   */
+  subscribe(callback: msRest.ServiceCallback<void>): void;
+  /**
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  subscribe(options: Models.AzureOpcRegistryClientSubscribeOptionalParams, callback: msRest.ServiceCallback<void>): void;
+  subscribe(options?: Models.AzureOpcRegistryClientSubscribeOptionalParams | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
+    return this.sendOperationRequest(
+      {
+        options
+      },
+      subscribeOperationSpec,
+      callback);
+  }
+
+  /**
+   * Unregister a user and stop it from receiving events.
+   * @summary Unsubscribe from application events
+   * @param userId The user id that will not receive
+   * any more events
+   * @param [options] The optional parameters
+   * @returns Promise<msRest.RestResponse>
+   */
+  unsubscribe(userId: string, options?: msRest.RequestOptionsBase): Promise<msRest.RestResponse>;
+  /**
+   * @param userId The user id that will not receive
+   * any more events
+   * @param callback The callback
+   */
+  unsubscribe(userId: string, callback: msRest.ServiceCallback<void>): void;
+  /**
+   * @param userId The user id that will not receive
+   * any more events
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  unsubscribe(userId: string, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<void>): void;
+  unsubscribe(userId: string, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
+    return this.sendOperationRequest(
+      {
+        userId,
+        options
+      },
+      unsubscribeOperationSpec,
+      callback);
+  }
+
+  /**
+   * Register a client to receive discovery progress events
+   * through SignalR from a particular supervisor.
+   * @summary Subscribe to discovery progress from supervisor
+   * @param supervisorId The supervisor to subscribe to
+   * @param [options] The optional parameters
+   * @returns Promise<msRest.RestResponse>
+   */
+  subscribeBySupervisorId(supervisorId: string, options?: Models.AzureOpcRegistryClientSubscribeBySupervisorIdOptionalParams): Promise<msRest.RestResponse>;
+  /**
+   * @param supervisorId The supervisor to subscribe to
+   * @param callback The callback
+   */
+  subscribeBySupervisorId(supervisorId: string, callback: msRest.ServiceCallback<void>): void;
+  /**
+   * @param supervisorId The supervisor to subscribe to
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  subscribeBySupervisorId(supervisorId: string, options: Models.AzureOpcRegistryClientSubscribeBySupervisorIdOptionalParams, callback: msRest.ServiceCallback<void>): void;
+  subscribeBySupervisorId(supervisorId: string, options?: Models.AzureOpcRegistryClientSubscribeBySupervisorIdOptionalParams | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
+    return this.sendOperationRequest(
+      {
+        supervisorId,
+        options
+      },
+      subscribeBySupervisorIdOperationSpec,
+      callback);
+  }
+
+  /**
+   * Register a client to receive discovery progress events
+   * through SignalR for a particular request.
+   * @summary Subscribe to discovery progress for a request
+   * @param requestId The request to monitor
+   * @param [options] The optional parameters
+   * @returns Promise<msRest.RestResponse>
+   */
+  subscribeByRequestId(requestId: string, options?: Models.AzureOpcRegistryClientSubscribeByRequestIdOptionalParams): Promise<msRest.RestResponse>;
+  /**
+   * @param requestId The request to monitor
+   * @param callback The callback
+   */
+  subscribeByRequestId(requestId: string, callback: msRest.ServiceCallback<void>): void;
+  /**
+   * @param requestId The request to monitor
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  subscribeByRequestId(requestId: string, options: Models.AzureOpcRegistryClientSubscribeByRequestIdOptionalParams, callback: msRest.ServiceCallback<void>): void;
+  subscribeByRequestId(requestId: string, options?: Models.AzureOpcRegistryClientSubscribeByRequestIdOptionalParams | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
+    return this.sendOperationRequest(
+      {
+        requestId,
+        options
+      },
+      subscribeByRequestIdOperationSpec,
+      callback);
+  }
+
+  /**
+   * Allows a caller to configure recurring discovery runs on the
+   * discovery module identified by the module id.
+   * @summary Enable server discovery
+   * @param supervisorId supervisor identifier
+   * @param mode Discovery mode. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
+   * @param [options] The optional parameters
+   * @returns Promise<msRest.RestResponse>
+   */
+  setDiscoveryMode(supervisorId: string, mode: Models.Mode, options?: Models.AzureOpcRegistryClientSetDiscoveryModeOptionalParams): Promise<msRest.RestResponse>;
+  /**
+   * @param supervisorId supervisor identifier
+   * @param mode Discovery mode. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
+   * @param callback The callback
+   */
+  setDiscoveryMode(supervisorId: string, mode: Models.Mode, callback: msRest.ServiceCallback<void>): void;
+  /**
+   * @param supervisorId supervisor identifier
+   * @param mode Discovery mode. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  setDiscoveryMode(supervisorId: string, mode: Models.Mode, options: Models.AzureOpcRegistryClientSetDiscoveryModeOptionalParams, callback: msRest.ServiceCallback<void>): void;
+  setDiscoveryMode(supervisorId: string, mode: Models.Mode, options?: Models.AzureOpcRegistryClientSetDiscoveryModeOptionalParams | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
+    return this.sendOperationRequest(
+      {
+        supervisorId,
+        mode,
+        options
+      },
+      setDiscoveryModeOperationSpec,
+      callback);
+  }
+
+  /**
+   * Unregister a client and stop it from receiving discovery
+   * events for a particular request.
+   * @summary Unsubscribe from discovery progress for a request.
+   * @param requestId The request to unsubscribe from
+   * @param userId The user id that will not receive
+   * any more discovery progress
+   * @param [options] The optional parameters
+   * @returns Promise<msRest.RestResponse>
+   */
+  unsubscribeByRequestId(requestId: string, userId: string, options?: msRest.RequestOptionsBase): Promise<msRest.RestResponse>;
+  /**
+   * @param requestId The request to unsubscribe from
+   * @param userId The user id that will not receive
+   * any more discovery progress
+   * @param callback The callback
+   */
+  unsubscribeByRequestId(requestId: string, userId: string, callback: msRest.ServiceCallback<void>): void;
+  /**
+   * @param requestId The request to unsubscribe from
+   * @param userId The user id that will not receive
+   * any more discovery progress
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  unsubscribeByRequestId(requestId: string, userId: string, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<void>): void;
+  unsubscribeByRequestId(requestId: string, userId: string, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
+    return this.sendOperationRequest(
+      {
+        requestId,
+        userId,
+        options
+      },
+      unsubscribeByRequestIdOperationSpec,
+      callback);
+  }
+
+  /**
+   * Unregister a client and stop it from receiving discovery events.
+   * @summary Unsubscribe from discovery progress from supervisor.
+   * @param supervisorId The supervisor to unsubscribe from
+   * @param userId The user id that will not receive
+   * any more discovery progress
+   * @param [options] The optional parameters
+   * @returns Promise<msRest.RestResponse>
+   */
+  unsubscribeBySupervisorId(supervisorId: string, userId: string, options?: msRest.RequestOptionsBase): Promise<msRest.RestResponse>;
+  /**
+   * @param supervisorId The supervisor to unsubscribe from
+   * @param userId The user id that will not receive
+   * any more discovery progress
+   * @param callback The callback
+   */
+  unsubscribeBySupervisorId(supervisorId: string, userId: string, callback: msRest.ServiceCallback<void>): void;
+  /**
+   * @param supervisorId The supervisor to unsubscribe from
+   * @param userId The user id that will not receive
+   * any more discovery progress
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  unsubscribeBySupervisorId(supervisorId: string, userId: string, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<void>): void;
+  unsubscribeBySupervisorId(supervisorId: string, userId: string, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
+    return this.sendOperationRequest(
+      {
+        supervisorId,
+        userId,
+        options
+      },
+      unsubscribeBySupervisorIdOperationSpec,
+      callback);
+  }
+
+  /**
    * Activates an endpoint for subsequent use in twin service.
    * All endpoints must be activated using this API or through a
    * activation filter during application registration or discovery.
@@ -494,38 +747,6 @@ class AzureOpcRegistryClient extends AzureOpcRegistryClientContext {
       },
       getEndpointOperationSpec,
       callback) as Promise<Models.GetEndpointResponse>;
-  }
-
-  /**
-   * @summary Update endpoint information
-   * @param endpointId endpoint identifier
-   * @param request Endpoint update request
-   * @param [options] The optional parameters
-   * @returns Promise<msRest.RestResponse>
-   */
-  updateEndpoint(endpointId: string, request: Models.EndpointRegistrationUpdateApiModel, options?: msRest.RequestOptionsBase): Promise<msRest.RestResponse>;
-  /**
-   * @param endpointId endpoint identifier
-   * @param request Endpoint update request
-   * @param callback The callback
-   */
-  updateEndpoint(endpointId: string, request: Models.EndpointRegistrationUpdateApiModel, callback: msRest.ServiceCallback<void>): void;
-  /**
-   * @param endpointId endpoint identifier
-   * @param request Endpoint update request
-   * @param options The optional parameters
-   * @param callback The callback
-   */
-  updateEndpoint(endpointId: string, request: Models.EndpointRegistrationUpdateApiModel, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<void>): void;
-  updateEndpoint(endpointId: string, request: Models.EndpointRegistrationUpdateApiModel, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
-    return this.sendOperationRequest(
-      {
-        endpointId,
-        request,
-        options
-      },
-      updateEndpointOperationSpec,
-      callback);
   }
 
   /**
@@ -644,6 +865,274 @@ class AzureOpcRegistryClient extends AzureOpcRegistryClientContext {
         options
       },
       deactivateEndpointOperationSpec,
+      callback);
+  }
+
+  /**
+   * Register a user to receive endpoint events through SignalR.
+   * @summary Subscribe for endpoint events
+   * @param [options] The optional parameters
+   * @returns Promise<msRest.RestResponse>
+   */
+  subscribe1(options?: Models.AzureOpcRegistryClientSubscribe1OptionalParams): Promise<msRest.RestResponse>;
+  /**
+   * @param callback The callback
+   */
+  subscribe1(callback: msRest.ServiceCallback<void>): void;
+  /**
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  subscribe1(options: Models.AzureOpcRegistryClientSubscribe1OptionalParams, callback: msRest.ServiceCallback<void>): void;
+  subscribe1(options?: Models.AzureOpcRegistryClientSubscribe1OptionalParams | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
+    return this.sendOperationRequest(
+      {
+        options
+      },
+      subscribe1OperationSpec,
+      callback);
+  }
+
+  /**
+   * Unregister a user and stop it from receiving endpoint events.
+   * @summary Unsubscribe from endpoint events
+   * @param userId The user id that will not receive
+   * any more endpoint events
+   * @param [options] The optional parameters
+   * @returns Promise<msRest.RestResponse>
+   */
+  unsubscribe1(userId: string, options?: msRest.RequestOptionsBase): Promise<msRest.RestResponse>;
+  /**
+   * @param userId The user id that will not receive
+   * any more endpoint events
+   * @param callback The callback
+   */
+  unsubscribe1(userId: string, callback: msRest.ServiceCallback<void>): void;
+  /**
+   * @param userId The user id that will not receive
+   * any more endpoint events
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  unsubscribe1(userId: string, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<void>): void;
+  unsubscribe1(userId: string, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
+    return this.sendOperationRequest(
+      {
+        userId,
+        options
+      },
+      unsubscribe1OperationSpec,
+      callback);
+  }
+
+  /**
+   * Returns a publisher's registration and connectivity information.
+   * A publisher id corresponds to the twin modules module identity.
+   * @summary Get publisher registration information
+   * @param publisherId Publisher identifier
+   * @param [options] The optional parameters
+   * @returns Promise<Models.GetPublisherResponse>
+   */
+  getPublisher(publisherId: string, options?: Models.AzureOpcRegistryClientGetPublisherOptionalParams): Promise<Models.GetPublisherResponse>;
+  /**
+   * @param publisherId Publisher identifier
+   * @param callback The callback
+   */
+  getPublisher(publisherId: string, callback: msRest.ServiceCallback<Models.PublisherApiModel>): void;
+  /**
+   * @param publisherId Publisher identifier
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  getPublisher(publisherId: string, options: Models.AzureOpcRegistryClientGetPublisherOptionalParams, callback: msRest.ServiceCallback<Models.PublisherApiModel>): void;
+  getPublisher(publisherId: string, options?: Models.AzureOpcRegistryClientGetPublisherOptionalParams | msRest.ServiceCallback<Models.PublisherApiModel>, callback?: msRest.ServiceCallback<Models.PublisherApiModel>): Promise<Models.GetPublisherResponse> {
+    return this.sendOperationRequest(
+      {
+        publisherId,
+        options
+      },
+      getPublisherOperationSpec,
+      callback) as Promise<Models.GetPublisherResponse>;
+  }
+
+  /**
+   * Allows a caller to configure operations on the publisher module
+   * identified by the publisher id.
+   * @summary Update publisher configuration
+   * @param publisherId Publisher identifier
+   * @param request Patch request
+   * @param [options] The optional parameters
+   * @returns Promise<msRest.RestResponse>
+   */
+  updatePublisher(publisherId: string, request: Models.PublisherUpdateApiModel, options?: msRest.RequestOptionsBase): Promise<msRest.RestResponse>;
+  /**
+   * @param publisherId Publisher identifier
+   * @param request Patch request
+   * @param callback The callback
+   */
+  updatePublisher(publisherId: string, request: Models.PublisherUpdateApiModel, callback: msRest.ServiceCallback<void>): void;
+  /**
+   * @param publisherId Publisher identifier
+   * @param request Patch request
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  updatePublisher(publisherId: string, request: Models.PublisherUpdateApiModel, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<void>): void;
+  updatePublisher(publisherId: string, request: Models.PublisherUpdateApiModel, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
+    return this.sendOperationRequest(
+      {
+        publisherId,
+        request,
+        options
+      },
+      updatePublisherOperationSpec,
+      callback);
+  }
+
+  /**
+   * Get all registered publishers and therefore twin modules in paged form.
+   * The returned model can contain a continuation token if more results are
+   * available.
+   * Call this operation again using the token to retrieve more results.
+   * @summary Get list of publishers
+   * @param [options] The optional parameters
+   * @returns Promise<Models.GetListOfPublisherResponse>
+   */
+  getListOfPublisher(options?: Models.AzureOpcRegistryClientGetListOfPublisherOptionalParams): Promise<Models.GetListOfPublisherResponse>;
+  /**
+   * @param callback The callback
+   */
+  getListOfPublisher(callback: msRest.ServiceCallback<Models.PublisherListApiModel>): void;
+  /**
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  getListOfPublisher(options: Models.AzureOpcRegistryClientGetListOfPublisherOptionalParams, callback: msRest.ServiceCallback<Models.PublisherListApiModel>): void;
+  getListOfPublisher(options?: Models.AzureOpcRegistryClientGetListOfPublisherOptionalParams | msRest.ServiceCallback<Models.PublisherListApiModel>, callback?: msRest.ServiceCallback<Models.PublisherListApiModel>): Promise<Models.GetListOfPublisherResponse> {
+    return this.sendOperationRequest(
+      {
+        options
+      },
+      getListOfPublisherOperationSpec,
+      callback) as Promise<Models.GetListOfPublisherResponse>;
+  }
+
+  /**
+   * Get a list of publishers filtered using the specified query parameters.
+   * The returned model can contain a continuation token if more results are
+   * available.
+   * Call the GetListOfPublisher operation using the token to retrieve
+   * more results.
+   * @summary Get filtered list of publishers
+   * @param [options] The optional parameters
+   * @returns Promise<Models.GetFilteredListOfPublisherResponse>
+   */
+  getFilteredListOfPublisher(options?: Models.AzureOpcRegistryClientGetFilteredListOfPublisherOptionalParams): Promise<Models.GetFilteredListOfPublisherResponse>;
+  /**
+   * @param callback The callback
+   */
+  getFilteredListOfPublisher(callback: msRest.ServiceCallback<Models.PublisherListApiModel>): void;
+  /**
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  getFilteredListOfPublisher(options: Models.AzureOpcRegistryClientGetFilteredListOfPublisherOptionalParams, callback: msRest.ServiceCallback<Models.PublisherListApiModel>): void;
+  getFilteredListOfPublisher(options?: Models.AzureOpcRegistryClientGetFilteredListOfPublisherOptionalParams | msRest.ServiceCallback<Models.PublisherListApiModel>, callback?: msRest.ServiceCallback<Models.PublisherListApiModel>): Promise<Models.GetFilteredListOfPublisherResponse> {
+    return this.sendOperationRequest(
+      {
+        options
+      },
+      getFilteredListOfPublisherOperationSpec,
+      callback) as Promise<Models.GetFilteredListOfPublisherResponse>;
+  }
+
+  /**
+   * Get all publishers that match a specified query.
+   * The returned model can contain a continuation token if more results are
+   * available.
+   * Call the GetListOfPublisher operation using the token to retrieve
+   * more results.
+   * @summary Query publishers
+   * @param query Publisher query model
+   * @param [options] The optional parameters
+   * @returns Promise<Models.QueryPublisherResponse>
+   */
+  queryPublisher(query: Models.PublisherQueryApiModel, options?: Models.AzureOpcRegistryClientQueryPublisherOptionalParams): Promise<Models.QueryPublisherResponse>;
+  /**
+   * @param query Publisher query model
+   * @param callback The callback
+   */
+  queryPublisher(query: Models.PublisherQueryApiModel, callback: msRest.ServiceCallback<Models.PublisherListApiModel>): void;
+  /**
+   * @param query Publisher query model
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  queryPublisher(query: Models.PublisherQueryApiModel, options: Models.AzureOpcRegistryClientQueryPublisherOptionalParams, callback: msRest.ServiceCallback<Models.PublisherListApiModel>): void;
+  queryPublisher(query: Models.PublisherQueryApiModel, options?: Models.AzureOpcRegistryClientQueryPublisherOptionalParams | msRest.ServiceCallback<Models.PublisherListApiModel>, callback?: msRest.ServiceCallback<Models.PublisherListApiModel>): Promise<Models.QueryPublisherResponse> {
+    return this.sendOperationRequest(
+      {
+        query,
+        options
+      },
+      queryPublisherOperationSpec,
+      callback) as Promise<Models.QueryPublisherResponse>;
+  }
+
+  /**
+   * Register a user to receive publisher events through SignalR.
+   * @summary Subscribe to publisher registry events
+   * @param [options] The optional parameters
+   * @returns Promise<msRest.RestResponse>
+   */
+  subscribe2(options?: Models.AzureOpcRegistryClientSubscribe2OptionalParams): Promise<msRest.RestResponse>;
+  /**
+   * @param callback The callback
+   */
+  subscribe2(callback: msRest.ServiceCallback<void>): void;
+  /**
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  subscribe2(options: Models.AzureOpcRegistryClientSubscribe2OptionalParams, callback: msRest.ServiceCallback<void>): void;
+  subscribe2(options?: Models.AzureOpcRegistryClientSubscribe2OptionalParams | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
+    return this.sendOperationRequest(
+      {
+        options
+      },
+      subscribe2OperationSpec,
+      callback);
+  }
+
+  /**
+   * Unregister a user and stop it from receiving publisher events.
+   * @summary Unsubscribe registry events
+   * @param userId The user id that will not receive
+   * any more publisher events
+   * @param [options] The optional parameters
+   * @returns Promise<msRest.RestResponse>
+   */
+  unsubscribe2(userId: string, options?: msRest.RequestOptionsBase): Promise<msRest.RestResponse>;
+  /**
+   * @param userId The user id that will not receive
+   * any more publisher events
+   * @param callback The callback
+   */
+  unsubscribe2(userId: string, callback: msRest.ServiceCallback<void>): void;
+  /**
+   * @param userId The user id that will not receive
+   * any more publisher events
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  unsubscribe2(userId: string, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<void>): void;
+  unsubscribe2(userId: string, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
+    return this.sendOperationRequest(
+      {
+        userId,
+        options
+      },
+      unsubscribe2OperationSpec,
       callback);
   }
 
@@ -884,13 +1373,70 @@ class AzureOpcRegistryClient extends AzureOpcRegistryClientContext {
       querySupervisorsOperationSpec,
       callback) as Promise<Models.QuerySupervisorsResponse>;
   }
+
+  /**
+   * Register a user to receive supervisor events through SignalR.
+   * @summary Subscribe to supervisor registry events
+   * @param [options] The optional parameters
+   * @returns Promise<msRest.RestResponse>
+   */
+  subscribe3(options?: Models.AzureOpcRegistryClientSubscribe3OptionalParams): Promise<msRest.RestResponse>;
+  /**
+   * @param callback The callback
+   */
+  subscribe3(callback: msRest.ServiceCallback<void>): void;
+  /**
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  subscribe3(options: Models.AzureOpcRegistryClientSubscribe3OptionalParams, callback: msRest.ServiceCallback<void>): void;
+  subscribe3(options?: Models.AzureOpcRegistryClientSubscribe3OptionalParams | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
+    return this.sendOperationRequest(
+      {
+        options
+      },
+      subscribe3OperationSpec,
+      callback);
+  }
+
+  /**
+   * Unregister a user and stop it from receiving supervisor events.
+   * @summary Unsubscribe registry events
+   * @param userId The user id that will not receive
+   * any more supervisor events
+   * @param [options] The optional parameters
+   * @returns Promise<msRest.RestResponse>
+   */
+  unsubscribe3(userId: string, options?: msRest.RequestOptionsBase): Promise<msRest.RestResponse>;
+  /**
+   * @param userId The user id that will not receive
+   * any more supervisor events
+   * @param callback The callback
+   */
+  unsubscribe3(userId: string, callback: msRest.ServiceCallback<void>): void;
+  /**
+   * @param userId The user id that will not receive
+   * any more supervisor events
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  unsubscribe3(userId: string, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<void>): void;
+  unsubscribe3(userId: string, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
+    return this.sendOperationRequest(
+      {
+        userId,
+        options
+      },
+      unsubscribe3OperationSpec,
+      callback);
+  }
 }
 
 // Operation Specifications
 const serializer = new msRest.Serializer(Mappers);
 const getListOfApplicationsOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
-  path: "v2/applications",
+  path: "registry/v2/applications",
   queryParameters: [
     Parameters.continuationToken,
     Parameters.pageSize
@@ -906,7 +1452,7 @@ const getListOfApplicationsOperationSpec: msRest.OperationSpec = {
 
 const createApplicationOperationSpec: msRest.OperationSpec = {
   httpMethod: "PUT",
-  path: "v2/applications",
+  path: "registry/v2/applications",
   requestBody: {
     parameterPath: "request",
     mapper: {
@@ -926,7 +1472,7 @@ const createApplicationOperationSpec: msRest.OperationSpec = {
 
 const registerServerOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v2/applications",
+  path: "registry/v2/applications",
   requestBody: {
     parameterPath: "request",
     mapper: {
@@ -944,7 +1490,7 @@ const registerServerOperationSpec: msRest.OperationSpec = {
 
 const deleteAllDisabledApplicationsOperationSpec: msRest.OperationSpec = {
   httpMethod: "DELETE",
-  path: "v2/applications",
+  path: "registry/v2/applications",
   queryParameters: [
     Parameters.notSeenFor
   ],
@@ -957,7 +1503,7 @@ const deleteAllDisabledApplicationsOperationSpec: msRest.OperationSpec = {
 
 const disableApplicationOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v2/applications/{applicationId}/disable",
+  path: "registry/v2/applications/{applicationId}/disable",
   urlParameters: [
     Parameters.applicationId
   ],
@@ -970,7 +1516,7 @@ const disableApplicationOperationSpec: msRest.OperationSpec = {
 
 const enableApplicationOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v2/applications/{applicationId}/enable",
+  path: "registry/v2/applications/{applicationId}/enable",
   urlParameters: [
     Parameters.applicationId
   ],
@@ -983,7 +1529,7 @@ const enableApplicationOperationSpec: msRest.OperationSpec = {
 
 const discoverServerOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v2/applications/discover",
+  path: "registry/v2/applications/discover",
   requestBody: {
     parameterPath: "request",
     mapper: {
@@ -999,9 +1545,22 @@ const discoverServerOperationSpec: msRest.OperationSpec = {
   serializer
 };
 
+const cancelOperationSpec: msRest.OperationSpec = {
+  httpMethod: "DELETE",
+  path: "registry/v2/applications/discover/{requestId}",
+  urlParameters: [
+    Parameters.requestId
+  ],
+  responses: {
+    200: {},
+    default: {}
+  },
+  serializer
+};
+
 const getApplicationRegistrationOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
-  path: "v2/applications/{applicationId}",
+  path: "registry/v2/applications/{applicationId}",
   urlParameters: [
     Parameters.applicationId
   ],
@@ -1016,7 +1575,7 @@ const getApplicationRegistrationOperationSpec: msRest.OperationSpec = {
 
 const deleteApplicationOperationSpec: msRest.OperationSpec = {
   httpMethod: "DELETE",
-  path: "v2/applications/{applicationId}",
+  path: "registry/v2/applications/{applicationId}",
   urlParameters: [
     Parameters.applicationId
   ],
@@ -1029,7 +1588,7 @@ const deleteApplicationOperationSpec: msRest.OperationSpec = {
 
 const updateApplicationRegistrationOperationSpec: msRest.OperationSpec = {
   httpMethod: "PATCH",
-  path: "v2/applications/{applicationId}",
+  path: "registry/v2/applications/{applicationId}",
   urlParameters: [
     Parameters.applicationId
   ],
@@ -1050,7 +1609,7 @@ const updateApplicationRegistrationOperationSpec: msRest.OperationSpec = {
 
 const getListOfSitesOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
-  path: "v2/applications/sites",
+  path: "registry/v2/applications/sites",
   queryParameters: [
     Parameters.continuationToken,
     Parameters.pageSize
@@ -1066,7 +1625,7 @@ const getListOfSitesOperationSpec: msRest.OperationSpec = {
 
 const getFilteredListOfApplicationsOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
-  path: "v2/applications/query",
+  path: "registry/v2/applications/query",
   queryParameters: [
     Parameters.pageSize
   ],
@@ -1089,7 +1648,7 @@ const getFilteredListOfApplicationsOperationSpec: msRest.OperationSpec = {
 
 const queryApplicationsOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v2/applications/query",
+  path: "registry/v2/applications/query",
   queryParameters: [
     Parameters.pageSize
   ],
@@ -1112,7 +1671,7 @@ const queryApplicationsOperationSpec: msRest.OperationSpec = {
 
 const queryApplicationsByIdOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v2/applications/querybyid",
+  path: "registry/v2/applications/querybyid",
   requestBody: {
     parameterPath: [
       "options",
@@ -1130,9 +1689,149 @@ const queryApplicationsByIdOperationSpec: msRest.OperationSpec = {
   serializer
 };
 
+const subscribeOperationSpec: msRest.OperationSpec = {
+  httpMethod: "PUT",
+  path: "registry/v2/applications/events",
+  requestBody: {
+    parameterPath: [
+      "options",
+      "userId"
+    ],
+    mapper: {
+      serializedName: "userId",
+      type: {
+        name: "String"
+      }
+    }
+  },
+  contentType: "application/json-patch+json; charset=utf-8",
+  responses: {
+    200: {},
+    default: {}
+  },
+  serializer
+};
+
+const unsubscribeOperationSpec: msRest.OperationSpec = {
+  httpMethod: "DELETE",
+  path: "registry/v2/applications/events/{userId}",
+  urlParameters: [
+    Parameters.userId
+  ],
+  responses: {
+    200: {},
+    default: {}
+  },
+  serializer
+};
+
+const subscribeBySupervisorIdOperationSpec: msRest.OperationSpec = {
+  httpMethod: "PUT",
+  path: "registry/v2/discovery/{supervisorId}/events",
+  urlParameters: [
+    Parameters.supervisorId
+  ],
+  requestBody: {
+    parameterPath: [
+      "options",
+      "userId"
+    ],
+    mapper: {
+      serializedName: "userId",
+      type: {
+        name: "String"
+      }
+    }
+  },
+  contentType: "application/json-patch+json; charset=utf-8",
+  responses: {
+    200: {},
+    default: {}
+  },
+  serializer
+};
+
+const subscribeByRequestIdOperationSpec: msRest.OperationSpec = {
+  httpMethod: "PUT",
+  path: "registry/v2/discovery/requests/{requestId}/events",
+  urlParameters: [
+    Parameters.requestId
+  ],
+  requestBody: {
+    parameterPath: [
+      "options",
+      "userId"
+    ],
+    mapper: {
+      serializedName: "userId",
+      type: {
+        name: "String"
+      }
+    }
+  },
+  contentType: "application/json-patch+json; charset=utf-8",
+  responses: {
+    200: {},
+    default: {}
+  },
+  serializer
+};
+
+const setDiscoveryModeOperationSpec: msRest.OperationSpec = {
+  httpMethod: "POST",
+  path: "registry/v2/discovery/{supervisorId}",
+  urlParameters: [
+    Parameters.supervisorId
+  ],
+  queryParameters: [
+    Parameters.mode
+  ],
+  requestBody: {
+    parameterPath: [
+      "options",
+      "config"
+    ],
+    mapper: Mappers.DiscoveryConfigApiModel
+  },
+  contentType: "application/json-patch+json; charset=utf-8",
+  responses: {
+    200: {},
+    default: {}
+  },
+  serializer
+};
+
+const unsubscribeByRequestIdOperationSpec: msRest.OperationSpec = {
+  httpMethod: "DELETE",
+  path: "registry/v2/discovery/requests/{requestId}/events/{userId}",
+  urlParameters: [
+    Parameters.requestId,
+    Parameters.userId
+  ],
+  responses: {
+    200: {},
+    default: {}
+  },
+  serializer
+};
+
+const unsubscribeBySupervisorIdOperationSpec: msRest.OperationSpec = {
+  httpMethod: "DELETE",
+  path: "registry/v2/discovery/{supervisorId}/events/{userId}",
+  urlParameters: [
+    Parameters.supervisorId,
+    Parameters.userId
+  ],
+  responses: {
+    200: {},
+    default: {}
+  },
+  serializer
+};
+
 const activateEndpointOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v2/endpoints/{endpointId}/activate",
+  path: "registry/v2/endpoints/{endpointId}/activate",
   urlParameters: [
     Parameters.endpointId
   ],
@@ -1145,7 +1844,7 @@ const activateEndpointOperationSpec: msRest.OperationSpec = {
 
 const getEndpointOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
-  path: "v2/endpoints/{endpointId}",
+  path: "registry/v2/endpoints/{endpointId}",
   urlParameters: [
     Parameters.endpointId
   ],
@@ -1161,30 +1860,9 @@ const getEndpointOperationSpec: msRest.OperationSpec = {
   serializer
 };
 
-const updateEndpointOperationSpec: msRest.OperationSpec = {
-  httpMethod: "PATCH",
-  path: "v2/endpoints/{endpointId}",
-  urlParameters: [
-    Parameters.endpointId
-  ],
-  requestBody: {
-    parameterPath: "request",
-    mapper: {
-      ...Mappers.EndpointRegistrationUpdateApiModel,
-      required: true
-    }
-  },
-  contentType: "application/json-patch+json; charset=utf-8",
-  responses: {
-    200: {},
-    default: {}
-  },
-  serializer
-};
-
 const getListOfEndpointsOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
-  path: "v2/endpoints",
+  path: "registry/v2/endpoints",
   queryParameters: [
     Parameters.onlyServerState,
     Parameters.continuationToken,
@@ -1201,10 +1879,9 @@ const getListOfEndpointsOperationSpec: msRest.OperationSpec = {
 
 const getFilteredListOfEndpointsOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
-  path: "v2/endpoints/query",
+  path: "registry/v2/endpoints/query",
   queryParameters: [
     Parameters.url,
-    Parameters.userAuthentication,
     Parameters.certificate,
     Parameters.securityMode,
     Parameters.securityPolicy,
@@ -1226,7 +1903,7 @@ const getFilteredListOfEndpointsOperationSpec: msRest.OperationSpec = {
 
 const queryEndpointsOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v2/endpoints/query",
+  path: "registry/v2/endpoints/query",
   queryParameters: [
     Parameters.onlyServerState,
     Parameters.pageSize
@@ -1250,7 +1927,7 @@ const queryEndpointsOperationSpec: msRest.OperationSpec = {
 
 const deactivateEndpointOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v2/endpoints/{endpointId}/deactivate",
+  path: "registry/v2/endpoints/{endpointId}/deactivate",
   urlParameters: [
     Parameters.endpointId
   ],
@@ -1261,9 +1938,179 @@ const deactivateEndpointOperationSpec: msRest.OperationSpec = {
   serializer
 };
 
+const subscribe1OperationSpec: msRest.OperationSpec = {
+  httpMethod: "PUT",
+  path: "registry/v2/endpoints/events",
+  requestBody: {
+    parameterPath: [
+      "options",
+      "userId"
+    ],
+    mapper: {
+      serializedName: "userId",
+      type: {
+        name: "String"
+      }
+    }
+  },
+  contentType: "application/json-patch+json; charset=utf-8",
+  responses: {
+    200: {},
+    default: {}
+  },
+  serializer
+};
+
+const unsubscribe1OperationSpec: msRest.OperationSpec = {
+  httpMethod: "DELETE",
+  path: "registry/v2/endpoints/events/{userId}",
+  urlParameters: [
+    Parameters.userId
+  ],
+  responses: {
+    200: {},
+    default: {}
+  },
+  serializer
+};
+
+const getPublisherOperationSpec: msRest.OperationSpec = {
+  httpMethod: "GET",
+  path: "registry/v2/publishers/{publisherId}",
+  urlParameters: [
+    Parameters.publisherId
+  ],
+  queryParameters: [
+    Parameters.onlyServerState
+  ],
+  responses: {
+    200: {
+      bodyMapper: Mappers.PublisherApiModel
+    },
+    default: {}
+  },
+  serializer
+};
+
+const updatePublisherOperationSpec: msRest.OperationSpec = {
+  httpMethod: "PATCH",
+  path: "registry/v2/publishers/{publisherId}",
+  urlParameters: [
+    Parameters.publisherId
+  ],
+  requestBody: {
+    parameterPath: "request",
+    mapper: {
+      ...Mappers.PublisherUpdateApiModel,
+      required: true
+    }
+  },
+  contentType: "application/json-patch+json; charset=utf-8",
+  responses: {
+    200: {},
+    default: {}
+  },
+  serializer
+};
+
+const getListOfPublisherOperationSpec: msRest.OperationSpec = {
+  httpMethod: "GET",
+  path: "registry/v2/publishers",
+  queryParameters: [
+    Parameters.onlyServerState,
+    Parameters.continuationToken,
+    Parameters.pageSize
+  ],
+  responses: {
+    200: {
+      bodyMapper: Mappers.PublisherListApiModel
+    },
+    default: {}
+  },
+  serializer
+};
+
+const getFilteredListOfPublisherOperationSpec: msRest.OperationSpec = {
+  httpMethod: "GET",
+  path: "registry/v2/publishers/query",
+  queryParameters: [
+    Parameters.siteId,
+    Parameters.connected,
+    Parameters.onlyServerState,
+    Parameters.pageSize
+  ],
+  responses: {
+    200: {
+      bodyMapper: Mappers.PublisherListApiModel
+    },
+    default: {}
+  },
+  serializer
+};
+
+const queryPublisherOperationSpec: msRest.OperationSpec = {
+  httpMethod: "POST",
+  path: "registry/v2/publishers/query",
+  queryParameters: [
+    Parameters.onlyServerState,
+    Parameters.pageSize
+  ],
+  requestBody: {
+    parameterPath: "query",
+    mapper: {
+      ...Mappers.PublisherQueryApiModel,
+      required: true
+    }
+  },
+  contentType: "application/json-patch+json; charset=utf-8",
+  responses: {
+    200: {
+      bodyMapper: Mappers.PublisherListApiModel
+    },
+    default: {}
+  },
+  serializer
+};
+
+const subscribe2OperationSpec: msRest.OperationSpec = {
+  httpMethod: "PUT",
+  path: "registry/v2/publishers/events",
+  requestBody: {
+    parameterPath: [
+      "options",
+      "userId"
+    ],
+    mapper: {
+      serializedName: "userId",
+      type: {
+        name: "String"
+      }
+    }
+  },
+  contentType: "application/json-patch+json; charset=utf-8",
+  responses: {
+    200: {},
+    default: {}
+  },
+  serializer
+};
+
+const unsubscribe2OperationSpec: msRest.OperationSpec = {
+  httpMethod: "DELETE",
+  path: "registry/v2/publishers/events/{userId}",
+  urlParameters: [
+    Parameters.userId
+  ],
+  responses: {
+    200: {},
+    default: {}
+  },
+  serializer
+};
+
 const getStatusOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
-  path: "v2/status",
+  path: "registry/v2/status",
   responses: {
     200: {
       bodyMapper: Mappers.StatusResponseApiModel
@@ -1275,7 +2122,7 @@ const getStatusOperationSpec: msRest.OperationSpec = {
 
 const getSupervisorOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
-  path: "v2/supervisors/{supervisorId}",
+  path: "registry/v2/supervisors/{supervisorId}",
   urlParameters: [
     Parameters.supervisorId
   ],
@@ -1293,7 +2140,7 @@ const getSupervisorOperationSpec: msRest.OperationSpec = {
 
 const updateSupervisorOperationSpec: msRest.OperationSpec = {
   httpMethod: "PATCH",
-  path: "v2/supervisors/{supervisorId}",
+  path: "registry/v2/supervisors/{supervisorId}",
   urlParameters: [
     Parameters.supervisorId
   ],
@@ -1314,7 +2161,7 @@ const updateSupervisorOperationSpec: msRest.OperationSpec = {
 
 const getSupervisorStatusOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
-  path: "v2/supervisors/{supervisorId}/status",
+  path: "registry/v2/supervisors/{supervisorId}/status",
   urlParameters: [
     Parameters.supervisorId
   ],
@@ -1329,7 +2176,7 @@ const getSupervisorStatusOperationSpec: msRest.OperationSpec = {
 
 const resetSupervisorOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v2/supervisors/{supervisorId}/reset",
+  path: "registry/v2/supervisors/{supervisorId}/reset",
   urlParameters: [
     Parameters.supervisorId
   ],
@@ -1342,7 +2189,7 @@ const resetSupervisorOperationSpec: msRest.OperationSpec = {
 
 const getListOfSupervisorsOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
-  path: "v2/supervisors",
+  path: "registry/v2/supervisors",
   queryParameters: [
     Parameters.onlyServerState,
     Parameters.continuationToken,
@@ -1359,7 +2206,7 @@ const getListOfSupervisorsOperationSpec: msRest.OperationSpec = {
 
 const getFilteredListOfSupervisorsOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
-  path: "v2/supervisors/query",
+  path: "registry/v2/supervisors/query",
   queryParameters: [
     Parameters.siteId,
     Parameters.discovery,
@@ -1378,7 +2225,7 @@ const getFilteredListOfSupervisorsOperationSpec: msRest.OperationSpec = {
 
 const querySupervisorsOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v2/supervisors/query",
+  path: "registry/v2/supervisors/query",
   queryParameters: [
     Parameters.onlyServerState,
     Parameters.pageSize
@@ -1395,6 +2242,42 @@ const querySupervisorsOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.SupervisorListApiModel
     },
+    default: {}
+  },
+  serializer
+};
+
+const subscribe3OperationSpec: msRest.OperationSpec = {
+  httpMethod: "PUT",
+  path: "registry/v2/supervisors/events",
+  requestBody: {
+    parameterPath: [
+      "options",
+      "userId"
+    ],
+    mapper: {
+      serializedName: "userId",
+      type: {
+        name: "String"
+      }
+    }
+  },
+  contentType: "application/json-patch+json; charset=utf-8",
+  responses: {
+    200: {},
+    default: {}
+  },
+  serializer
+};
+
+const unsubscribe3OperationSpec: msRest.OperationSpec = {
+  httpMethod: "DELETE",
+  path: "registry/v2/supervisors/events/{userId}",
+  urlParameters: [
+    Parameters.userId
+  ],
+  responses: {
+    200: {},
     default: {}
   },
   serializer

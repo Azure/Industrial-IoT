@@ -10,7 +10,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Services;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Migration;
-    using Microsoft.Azure.IIoT.Services;
     using Microsoft.Azure.IIoT.Services.Auth;
     using Microsoft.Azure.IIoT.Services.Auth.Clients;
     using Microsoft.Azure.IIoT.Services.Cors;
@@ -35,7 +34,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
     using Newtonsoft.Json;
     using Swashbuckle.AspNetCore.Swagger;
     using System;
-    using Serilog;
     using ILogger = Serilog.ILogger;
 
     /// <summary>
@@ -59,11 +57,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
         public IHostingEnvironment Environment { get; }
 
         /// <summary>
-        /// Di container - Initialized in `ConfigureServices`
-        /// </summary>
-        public IContainer ApplicationContainer { get; private set; }
-
-        /// <summary>
         /// Create startup
         /// </summary>
         /// <param name="env"></param>
@@ -71,6 +64,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
         public Startup(IHostingEnvironment env, IConfiguration configuration) :
             this (env, new Config(new ConfigurationBuilder()
                 .AddConfiguration(configuration)
+                .AddEnvironmentVariables()
+                .AddEnvironmentVariables(EnvironmentVariableTarget.User)
                 .AddFromDotEnvFile()
                 .AddFromKeyVault()
                 .Build())) {
@@ -93,12 +88,13 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
         /// </summary>
         /// <param name="services"></param>
         /// <returns></returns>
-        public IServiceProvider ConfigureServices(IServiceCollection services) {
+        public void ConfigureServices(IServiceCollection services) {
 
             services.AddLogging(o => o.AddConsole().AddDebug());
 
             // Setup (not enabling yet) CORS
             services.AddCors();
+            services.AddHealthChecks();
 
             // Add authentication
             services.AddJwtBearerAuthentication(Config,
@@ -129,15 +125,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
                 Version = VersionInfo.PATH,
                 Description = ServiceInfo.Description,
             });
-
-            // Prepare DI container
-            var builder = new ContainerBuilder();
-            builder.Populate(services);
-            ConfigureContainer(builder);
-            ApplicationContainer = builder.Build();
-            return new AutofacServiceProvider(ApplicationContainer);
         }
-
 
         /// <summary>
         /// This method is called by the runtime, after the ConfigureServices
@@ -146,8 +134,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
         /// <param name="app"></param>
         /// <param name="appLifetime"></param>
         public void Configure(IApplicationBuilder app, IApplicationLifetime appLifetime) {
-
-            var log = ApplicationContainer.Resolve<ILogger>();
+            var applicationContainer = app.ApplicationServices.GetAutofacRoot();
+            var log = applicationContainer.Resolve<ILogger>();
 
             if (Config.AuthRequired) {
                 app.UseAuthentication();
@@ -159,17 +147,18 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
 
             app.EnableCors();
             app.UseCorrelation();
-            app.UseSwagger(Config, new Info {
+            app.UseSwagger(new Info {
                 Title = ServiceInfo.Name,
                 Version = VersionInfo.PATH,
                 Description = ServiceInfo.Description,
             });
 
             app.UseMvc();
+            app.UseHealthChecks("/healthz");
 
             // If you want to dispose of resources that have been resolved in the
             // application container, register for the "ApplicationStopped" event.
-            appLifetime.ApplicationStopped.Register(ApplicationContainer.Dispose);
+            appLifetime.ApplicationStopped.Register(applicationContainer.Dispose);
 
             // Print some useful information at bootstrap time
             log.Information("{service} web service started with id {id}", ServiceInfo.Name,

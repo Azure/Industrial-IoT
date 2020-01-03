@@ -23,7 +23,7 @@ import (
 
 const (
 // DefaultBaseURI is the default URI used for the service Azureiiotopcvault
-DefaultBaseURI = "http://localhost")
+DefaultBaseURI = "/vault")
 
 // BaseClient is the base client for Azureiiotopcvault.
 type BaseClient struct {

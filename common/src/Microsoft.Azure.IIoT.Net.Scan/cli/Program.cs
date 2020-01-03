@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Net.Cli {
-    using Microsoft.Azure.IIoT.Net;
     using Microsoft.Azure.IIoT.Net.Scanner;
     using Microsoft.Azure.IIoT.Net.Models;
     using Microsoft.Azure.IIoT.Diagnostics;

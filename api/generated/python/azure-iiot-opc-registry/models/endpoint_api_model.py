@@ -20,8 +20,6 @@ class EndpointApiModel(Model):
     :param alternative_urls: Alternative endpoint urls that can be used for
      accessing and validating the server
     :type alternative_urls: list[str]
-    :param user: User Authentication
-    :type user: ~azure-iiot-opc-registry.models.CredentialApiModel
     :param security_mode: Security Mode to use for communication
      default to best. Possible values include: 'Best', 'Sign',
      'SignAndEncrypt', 'None'. Default value: "Best" .
@@ -41,17 +39,15 @@ class EndpointApiModel(Model):
     _attribute_map = {
         'url': {'key': 'url', 'type': 'str'},
         'alternative_urls': {'key': 'alternativeUrls', 'type': '[str]'},
-        'user': {'key': 'user', 'type': 'CredentialApiModel'},
         'security_mode': {'key': 'securityMode', 'type': 'SecurityMode'},
         'security_policy': {'key': 'securityPolicy', 'type': 'str'},
         'certificate': {'key': 'certificate', 'type': 'bytearray'},
     }
 
-    def __init__(self, url, alternative_urls=None, user=None, security_mode="Best", security_policy=None, certificate=None):
+    def __init__(self, url, alternative_urls=None, security_mode="Best", security_policy=None, certificate=None):
         super(EndpointApiModel, self).__init__()
         self.url = url
         self.alternative_urls = alternative_urls
-        self.user = user
         self.security_mode = security_mode
         self.security_policy = security_policy
         self.certificate = certificate

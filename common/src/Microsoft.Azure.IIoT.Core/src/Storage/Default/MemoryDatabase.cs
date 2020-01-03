@@ -329,8 +329,8 @@ namespace Microsoft.Azure.IIoT.Storage.Default {
                 /// <summary>
                 /// Create memory document
                 /// </summary>
-                /// <param name="id"></param>
                 /// <param name="value"></param>
+                /// <param name="id"></param>
                 /// <param name="partitionKey"></param>
                 protected MemoryDocument(JObject value, string id, string partitionKey) {
                     Value = value;

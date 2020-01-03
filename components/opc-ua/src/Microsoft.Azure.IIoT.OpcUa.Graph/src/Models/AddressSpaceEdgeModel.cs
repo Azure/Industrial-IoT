@@ -10,8 +10,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
     /// <summary>
     /// Node to some other type edge
     /// </summary>
-    /// <typeparam name="TInV"></typeparam>
     /// <typeparam name="TOutV"></typeparam>
+    /// <typeparam name="TInV"></typeparam>
     public class AddressSpaceEdgeModel<TOutV, TInV> :
         ManyToManyEdge<TOutV, TInV>
         where TOutV : AddressSpaceVertexModel

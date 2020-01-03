@@ -52,10 +52,11 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry {
             var config = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", true)
-                .AddFromDotEnvFile()
+                .AddEnvironmentVariables()
                 .AddEnvironmentVariables(EnvironmentVariableTarget.User)
-                .AddCommandLine(args)
+                .AddFromDotEnvFile()
                 .AddFromKeyVault()
+                .AddCommandLine(args)
                 .Build();
 
             // Set up dependency injection for the event processor host
@@ -168,7 +169,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry {
             // Handle the CDM handler
             builder.RegisterType<AdlsCsvStorage>()
                 .AsImplementedInterfaces().SingleInstance();
-              // handlers for the legacy publisher (disabled) 
+              // handlers for the legacy publisher (disabled)
 //            builder.RegisterType<SubscriberCdmSampleHandler>()
 //                .AsImplementedInterfaces().SingleInstance();
 //            builder.RegisterType<SubscriberSampleCdmProcessor>()

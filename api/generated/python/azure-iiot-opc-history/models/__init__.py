@@ -27,7 +27,7 @@ from .insert_events_details_api_model import InsertEventsDetailsApiModel
 from .read_events_details_api_model import ReadEventsDetailsApiModel
 from .read_values_details_api_model import ReadValuesDetailsApiModel
 from .read_values_at_times_details_api_model import ReadValuesAtTimesDetailsApiModel
-from .aggregate_config_api_model import AggregateConfigApiModel
+from .aggregate_configuration_api_model import AggregateConfigurationApiModel
 from .read_processed_values_details_api_model import ReadProcessedValuesDetailsApiModel
 from .read_modified_values_details_api_model import ReadModifiedValuesDetailsApiModel
 from .replace_values_details_api_model import ReplaceValuesDetailsApiModel
@@ -79,7 +79,7 @@ __all__ = [
     'ReadEventsDetailsApiModel',
     'ReadValuesDetailsApiModel',
     'ReadValuesAtTimesDetailsApiModel',
-    'AggregateConfigApiModel',
+    'AggregateConfigurationApiModel',
     'ReadProcessedValuesDetailsApiModel',
     'ReadModifiedValuesDetailsApiModel',
     'ReplaceValuesDetailsApiModel',

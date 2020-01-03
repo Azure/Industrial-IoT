@@ -482,7 +482,7 @@ namespace HistoricalAccess {
             if (configurationToUse.UseServerCapabilitiesDefaults) {
                 var configuration = item.ArchiveItem.AggregateConfiguration;
 
-                if (configuration == null || configuration.UseServerCapabilitiesDefaults) {
+                if (configuration?.UseServerCapabilitiesDefaults != false) {
                     configuration = Server.AggregateManager.GetDefaultConfiguration(null);
                 }
 
@@ -594,7 +594,7 @@ namespace HistoricalAccess {
                         if (data is HistoryModifiedData modifiedData) {
                             ModificationInfo modificationInfo = null;
 
-                            if (request.ModificationInfos != null && request.ModificationInfos.Count > 0) {
+                            if (request.ModificationInfos?.Count > 0) {
                                 modificationInfo = request.ModificationInfos.First.Value;
                                 request.ModificationInfos.RemoveFirst();
                             }
@@ -1004,9 +1004,7 @@ namespace HistoricalAccess {
                 }
             }
 
-            if (item != null) {
-                item.ReloadFromSource(context);
-            }
+            item?.ReloadFromSource(context);
 
             return item;
         }
@@ -1115,9 +1113,7 @@ namespace HistoricalAccess {
                     // add value.
                     values.AddLast(RowToDataValue(context, nodeToRead, view[ii], applyIndexRangeOrEncoding));
 
-                    if (modificationInfos != null) {
-                        modificationInfos.AddLast((ModificationInfo)view[ii].Row[6]);
-                    }
+                    modificationInfos?.AddLast((ModificationInfo)view[ii].Row[6]);
                 }
                 finally {
                     if (timeFlowsBackward) {

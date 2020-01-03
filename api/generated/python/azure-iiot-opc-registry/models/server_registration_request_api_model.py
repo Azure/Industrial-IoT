@@ -19,8 +19,6 @@ class ServerRegistrationRequestApiModel(Model):
     :type discovery_url: str
     :param id: Registration id
     :type id: str
-    :param callback: An optional callback hook to register.
-    :type callback: ~azure-iiot-opc-registry.models.CallbackApiModel
     :param activation_filter: Upon discovery, activate all endpoints with this
      filter.
     :type activation_filter:
@@ -34,13 +32,11 @@ class ServerRegistrationRequestApiModel(Model):
     _attribute_map = {
         'discovery_url': {'key': 'discoveryUrl', 'type': 'str'},
         'id': {'key': 'id', 'type': 'str'},
-        'callback': {'key': 'callback', 'type': 'CallbackApiModel'},
         'activation_filter': {'key': 'activationFilter', 'type': 'EndpointActivationFilterApiModel'},
     }
 
-    def __init__(self, discovery_url, id=None, callback=None, activation_filter=None):
+    def __init__(self, discovery_url, id=None, activation_filter=None):
         super(ServerRegistrationRequestApiModel, self).__init__()
         self.discovery_url = discovery_url
         self.id = id
-        self.callback = callback
         self.activation_filter = activation_filter

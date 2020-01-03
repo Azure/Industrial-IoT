@@ -27,8 +27,13 @@ namespace Autofac {
             if (builder == null) {
                 throw new ArgumentNullException(nameof(builder));
             }
+            if (config == null) {
+                throw new ArgumentNullException(nameof(config));
+            }
             // Register metrics logger
             builder.RegisterType<ApplicationInsightsMetrics>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<HealthCheckRegistrar>()
                 .AsImplementedInterfaces().SingleInstance();
             return builder.RegisterModule(
                 new LoggerProviderModule(new ApplicationInsightsLogger(config, log, addConsole)));

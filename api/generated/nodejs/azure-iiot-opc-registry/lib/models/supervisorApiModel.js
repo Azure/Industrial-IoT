@@ -42,8 +42,6 @@ class SupervisorApiModel {
    * urls to use
    * @property {array} [discoveryConfig.locales] List of locales to filter with
    * during discovery
-   * @property {array} [discoveryConfig.callbacks] Callbacks to invoke once
-   * onboarding finishes
    * @property {object} [discoveryConfig.activationFilter] Activate all twins
    * with this filter during onboarding.
    * @property {array} [discoveryConfig.activationFilter.trustLists]
@@ -56,8 +54,8 @@ class SupervisorApiModel {
    * If set to null, all policies are in scope.
    * @property {string} [discoveryConfig.activationFilter.securityMode]
    * Security mode level to activate. If null,
-   * then Microsoft.Azure.IIoT.OpcUa.Registry.Models.SecurityMode.Best is
-   * assumed. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
+   * then Microsoft.Azure.IIoT.OpcUa.Core.Models.SecurityMode.Best is assumed.
+   * Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
    * @property {buffer} [certificate] Supervisor public client cert
    * @property {string} [logLevel] Current log level. Possible values include:
    * 'Error', 'Information', 'Debug', 'Verbose'. Default value: 'Information' .

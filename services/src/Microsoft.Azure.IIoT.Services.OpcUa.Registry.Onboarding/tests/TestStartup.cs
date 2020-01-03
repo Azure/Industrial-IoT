@@ -11,6 +11,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding {
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Mvc.Testing;
     using Autofac;
+    using Autofac.Extensions.Hosting;
     using System;
     using System.Net.Http;
     using System.Text;
@@ -56,7 +57,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding {
 
         /// <inheritdoc/>
         protected override void ConfigureWebHost(IWebHostBuilder builder) {
-            builder.UseContentRoot(".");
+            builder.UseContentRoot(".").UseAutofac();
             base.ConfigureWebHost(builder);
         }
 

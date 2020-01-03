@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge.v2.Models {
-    using Microsoft.Azure.IIoT.Services.Common.Jobs.Edge.v2;
     using Microsoft.Azure.IIoT.Services.Common.Jobs.Edge.Runtime;
     using Newtonsoft.Json;
     using System.Collections.Generic;

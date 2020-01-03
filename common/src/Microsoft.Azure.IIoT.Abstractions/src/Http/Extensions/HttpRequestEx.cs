@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Http {
-    using Microsoft.Azure.IIoT;
     using System;
     using System.Net.Http;
     using System.Net.Http.Headers;

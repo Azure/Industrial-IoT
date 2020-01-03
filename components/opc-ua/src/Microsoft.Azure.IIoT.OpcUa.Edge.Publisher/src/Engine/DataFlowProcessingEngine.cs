@@ -32,8 +32,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// Create engine
         /// </summary>
         /// <param name="messageTrigger"></param>
-        /// <param name="messageSink"></param>
         /// <param name="encoder"></param>
+        /// <param name="messageSink"></param>
         /// <param name="engineConfiguration"></param>
         /// <param name="logger"></param>
         public DataFlowProcessingEngine(IMessageTrigger messageTrigger, IMessageEncoder encoder,

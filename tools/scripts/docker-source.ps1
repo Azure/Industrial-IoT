@@ -169,29 +169,39 @@ ENV PATH="${PATH}:/root/vsdbg/vsdbg"
             $entryPoint = "[`"dotnet`", `"$($assemblyName).dll`"]"
         }
 
+        $environmentVars = ""
         $exposes = ""
         if ($metadata.exposes -ne $null) {
             $metadata.exposes | ForEach-Object {
                 $exposes = "$("EXPOSE $($_)" | Out-String)$($exposes)"
             }
+            $environmentVars += "ASPNETCORE_FORWARDEDHEADERS_ENABLED=true "
         }
         $workdir = ""
         if ($metadata.workdir -ne $null) {
             $workdir = "WORKDIR /$($metadata.workdir)"
         }
+        if (![string]::IsNullOrEmpty($environmentVars)) {
+            $environmentVars = "ENV $($environmentVars)"
+        }
+        if ([string]::IsNullOrEmpty($workdir)) {
+            $workdir = "WORKDIR /app"
+        }
         $dockerFileContent = @"
 FROM $($baseImage)
+
 $($exposes)
 
-WORKDIR /app
+$($workdir)
 COPY . .
 $($runtimeOnly)
 
 $($debugger)
 
+$($environmentVars)
+
 ENTRYPOINT $($entryPoint)
 
-$($workdir)
 "@ 
         $imageContent = (Join-Path $output $runtimeId)
         $dockerFile = (Join-Path $imageContent "Dockerfile.$($platformTag)")

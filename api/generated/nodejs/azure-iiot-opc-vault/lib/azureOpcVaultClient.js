@@ -3169,7 +3169,7 @@ class AzureOpcVaultClient extends ServiceClient {
 
     this.baseUri = baseUri;
     if (!this.baseUri) {
-      this.baseUri = 'http://localhost';
+      this.baseUri = '/vault';
     }
     this.credentials = credentials;
 

@@ -2023,8 +2023,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
         /// <summary>
         /// Validates the leaf certificate meets the client description
         /// </summary>
-        /// <param name="applicationUri"></param>
         /// <param name="clientCertificate"></param>
+        /// <param name="applicationUri"></param>
         /// <param name="securityPolicyUri"></param>
         /// <returns></returns>
         private X509Certificate2 ValidateClientLeafCertificate(byte[] clientCertificate,

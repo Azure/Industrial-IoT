@@ -74,8 +74,8 @@ const fqdn = "go/azure-iiot-opc-history"
         return []HistoryUpdateOperation{Delete,Insert,Replace,Update}
     }
 
-            // AggregateConfigAPIModel aggregate configuration
-            type AggregateConfigAPIModel struct {
+            // AggregateConfigurationAPIModel aggregate configuration
+            type AggregateConfigurationAPIModel struct {
             // UseServerCapabilitiesDefaults - Whether to use the default server caps
             UseServerCapabilitiesDefaults *bool `json:"useServerCapabilitiesDefaults,omitempty"`
             // TreatUncertainAsBad - Whether to treat uncertain as bad
@@ -588,7 +588,7 @@ const fqdn = "go/azure-iiot-opc-history"
             // AggregateTypeID - The aggregate type node ids
             AggregateTypeID *string `json:"aggregateTypeId,omitempty"`
             // AggregateConfiguration - A configuration for the aggregate
-            AggregateConfiguration *AggregateConfigAPIModel `json:"aggregateConfiguration,omitempty"`
+            AggregateConfiguration *AggregateConfigurationAPIModel `json:"aggregateConfiguration,omitempty"`
             }
 
             // ReadValuesAtTimesDetailsAPIModel read data at specified times

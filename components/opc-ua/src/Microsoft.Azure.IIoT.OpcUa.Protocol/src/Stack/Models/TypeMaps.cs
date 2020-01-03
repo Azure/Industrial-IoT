@@ -72,8 +72,8 @@ namespace Opc.Ua.Models {
         /// <summary>
         /// Get identifier
         /// </summary>
-        /// <param name="id"></param>
         /// <param name="value"></param>
+        /// <param name="id"></param>
         /// <returns></returns>
         public bool TryGetIdentifier(string value, out uint id) {
             return _reverse.TryGetValue(value, out id);

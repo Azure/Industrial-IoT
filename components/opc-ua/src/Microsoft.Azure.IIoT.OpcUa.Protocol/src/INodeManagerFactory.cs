@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Opc.Ua.Server {
-    using Opc.Ua;
 
     /// <summary>
     /// Create node managers

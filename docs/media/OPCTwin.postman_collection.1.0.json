@@ -1,0 +1,491 @@
+{
+	"info": {
+		"_postman_id": "1018e8eb-586e-48b4-83f2-1df89633f736",
+		"name": "OPC Twin",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Registry - Get Applications",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://{{OPC-SERVICEURL}}/registry/v2/applications",
+					"protocol": "https",
+					"host": [
+						"{{OPC-SERVICEURL}}"
+					],
+					"path": [
+						"registry",
+						"v2",
+						"applications"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Registry - Add Application",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"id\": \"9a2837f5-9b70-4d1c-a5ea-2841dff16204\",\n\t\"discoveryUrl\": \"opc.tcp://vm-nmgb3:50000\",\n\t\"activationFilter\": \n\t{\n\t\t\"securityMode\": \"None\"\n\t}\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://{{OPC-SERVICEURL}}/registry/v2/applications",
+					"protocol": "https",
+					"host": [
+						"{{OPC-SERVICEURL}}"
+					],
+					"path": [
+						"registry",
+						"v2",
+						"applications"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Registry: Activate endpoint",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "https://{{OPC-SERVICEURL}}/registry/v2/endpoints/uat5bf736971027939a93e06a35c4a2d5957762409a/activate",
+					"protocol": "https",
+					"host": [
+						"{{OPC-SERVICEURL}}"
+					],
+					"path": [
+						"registry",
+						"v2",
+						"endpoints",
+						"uat5bf736971027939a93e06a35c4a2d5957762409a",
+						"activate"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Registry: discover applications",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"discovery\": \"Network\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://{{OPC-SERVICEURL}}/registry/v2/applications/discover",
+					"protocol": "https",
+					"host": [
+						"{{OPC-SERVICEURL}}"
+					],
+					"path": [
+						"registry",
+						"v2",
+						"applications",
+						"discover"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Registry: browse endpoints",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://{{OPC-SERVICEURL}}/registry/v2/endpoints",
+					"protocol": "https",
+					"host": [
+						"{{OPC-SERVICEURL}}"
+					],
+					"path": [
+						"registry",
+						"v2",
+						"endpoints"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Twin: browse endpoint for ID x",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://{{OPC-SERVICEURL}}/twin/v2/browse/uat5bf736971027939a93e06a35c4a2d5957762409a",
+					"protocol": "https",
+					"host": [
+						"{{OPC-SERVICEURL}}"
+					],
+					"path": [
+						"twin",
+						"v2",
+						"browse",
+						"uat5bf736971027939a93e06a35c4a2d5957762409a"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Twin: browse node Objects",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://{{OPC-SERVICEURL}}/twin/v2/browse/uat89dfa72f7e9679b3e217411261b57ea7e082349f",
+					"protocol": "https",
+					"host": [
+						"{{OPC-SERVICEURL}}"
+					],
+					"path": [
+						"twin",
+						"v2",
+						"browse",
+						"uat89dfa72f7e9679b3e217411261b57ea7e082349f"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Twin: browse target node",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://{{OPC-SERVICEURL}}/twin/v2/browse/uat89dfa72f7e9679b3e217411261b57ea7e082349f?nodeId=http%3A%2F%2Fmicrosoft.com%2FOpc%2FOpcPlc%2F%23s%3DOpcPlc",
+					"protocol": "https",
+					"host": [
+						"{{OPC-SERVICEURL}}"
+					],
+					"path": [
+						"twin",
+						"v2",
+						"browse",
+						"uat89dfa72f7e9679b3e217411261b57ea7e082349f"
+					],
+					"query": [
+						{
+							"key": "nodeId",
+							"value": "http%3A%2F%2Fmicrosoft.com%2FOpc%2FOpcPlc%2F%23s%3DOpcPlc"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Twin: read value",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://{{OPC-SERVICEURL}}/twin/v2/read/uat89dfa72f7e9679b3e217411261b57ea7e082349f?nodeId=http%3A%2F%2Fmicrosoft.com%2FOpc%2FOpcPlc%2F%23s%3DSpikeData",
+					"protocol": "https",
+					"host": [
+						"{{OPC-SERVICEURL}}"
+					],
+					"path": [
+						"twin",
+						"v2",
+						"read",
+						"uat89dfa72f7e9679b3e217411261b57ea7e082349f"
+					],
+					"query": [
+						{
+							"key": "nodeId",
+							"value": "http%3A%2F%2Fmicrosoft.com%2FOpc%2FOpcPlc%2F%23s%3DSpikeData"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Twin: Get currently published nodes",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"continuationToken\": null\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://{{OPC-SERVICEURL}}/twin/v2/publish/uat89dfa72f7e9679b3e217411261b57ea7e082349f",
+					"protocol": "https",
+					"host": [
+						"{{OPC-SERVICEURL}}"
+					],
+					"path": [
+						"twin",
+						"v2",
+						"publish",
+						"uat89dfa72f7e9679b3e217411261b57ea7e082349f"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Twin: Start publishing node",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"item\": \n\t{\n\t\t\"nodeId\" : \"http://microsoft.com/Opc/OpcPlc/#s=SpikeData\"\n\t}\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://{{OPC-SERVICEURL}}/twin/v2/publish/uat89dfa72f7e9679b3e217411261b57ea7e082349f/start",
+					"protocol": "https",
+					"host": [
+						"{{OPC-SERVICEURL}}"
+					],
+					"path": [
+						"twin",
+						"v2",
+						"publish",
+						"uat89dfa72f7e9679b3e217411261b57ea7e082349f",
+						"start"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Registry - Unregister application",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://{{OPC-SERVICEURL}}/registry/v2/applications/uas1c8e48c668911e7eeb831e69555a426b5053d0f7",
+					"protocol": "https",
+					"host": [
+						"{{OPC-SERVICEURL}}"
+					],
+					"path": [
+						"registry",
+						"v2",
+						"applications",
+						"uas1c8e48c668911e7eeb831e69555a426b5053d0f7"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Registry - Get Supervisors",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://{{OPC-SERVICEURL}}/registry/v2/applications",
+					"protocol": "https",
+					"host": [
+						"{{OPC-SERVICEURL}}"
+					],
+					"path": [
+						"registry",
+						"v2",
+						"applications"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "oauth2",
+		"oauth2": [
+			{
+				"key": "accessToken",
+				"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6IkJCOENlRlZxeWFHckdOdWVoSklpTDRkZmp6dyIsImtpZCI6IkJCOENlRlZxeWFHckdOdWVoSklpTDRkZmp6dyJ9.eyJhdWQiOiJodHRwczovL21pY3Jvc29mdC5vbm1pY3Jvc29mdC5jb20vbWFpbmlpb3RzZXJ2aWNlLXNlcnZpY2VzIiwiaXNzIjoiaHR0cHM6Ly9zdHMud2luZG93cy5uZXQvNzJmOTg4YmYtODZmMS00MWFmLTkxYWItMmQ3Y2QwMTFkYjQ3LyIsImlhdCI6MTU3NjIyMjg1NiwibmJmIjoxNTc2MjIyODU2LCJleHAiOjE1NzYyMjY3NTYsImFjciI6IjEiLCJhaW8iOiJBVlFBcS84TkFBQUFKV0puYW5NaTIzYlpwRHpLL3djVllwaEllY0tnbjdGWDI1VzJ1MmZGZTF0Y3NOZHpFdDFFSTBSU2I0TjJSWGZqd3ZtYVhwajVjVVdRZG0yUUt4UDNTWDZyN3F0Z3IxYW9YYXhNd3J4TXloaz0iLCJhbXIiOlsicHdkIl0sImFwcGlkIjoiOTQwMjhhMjYtZGM2ZC00ZGJiLWFiZWQtNTUxYTY2OWE5ZmUwIiwiYXBwaWRhY3IiOiIxIiwiZW1haWwiOiJLYXRyaWVuZEBvdXRsb29rLmNvbSIsImZhbWlseV9uYW1lIjoiRGUgR3JhZXZlIiwiZ2l2ZW5fbmFtZSI6IkthdHJpZW4iLCJpZHAiOiJsaXZlLmNvbSIsImlwYWRkciI6IjE2Ny4yMjAuMTk2LjM4IiwibmFtZSI6IkthdHJpZW5kQG91dGxvb2suY29tIiwib2lkIjoiZmIyNDNkMTItZTllOC00MTFhLTllNzgtMzdiNzVlZGIyZjVmIiwic2NwIjoidXNlcl9pbXBlcnNvbmF0aW9uIiwic3ViIjoialhwMjNtOGFDTk10TFdIRjZkTV81RTFkZzRIRDdpejhxYS1MekUtNG5uOCIsInRpZCI6IjcyZjk4OGJmLTg2ZjEtNDFhZi05MWFiLTJkN2NkMDExZGI0NyIsInVuaXF1ZV9uYW1lIjoibGl2ZS5jb20jS2F0cmllbmRAb3V0bG9vay5jb20iLCJ1dGkiOiJkYzk5VWhkLVRVV2dNWGpTSlpZQ0FBIiwidmVyIjoiMS4wIn0.RXUvkzlTAD2KGDz1vi35jIhlJanAmt7ZHTKxRfj_rcrw4PX9nVNhcsaa1g8yyQ3r2UiSdIglQhwBJqU7jl2zr8KWLoH4rXhu1zc7S4uLgREms0KUYRVPw9TRdNf6ANaVwkQh5k9DXIGqeX8ggIGP3b6j01E1TM0yvE9Nu8UK8kG2yy78ZvH1qt4Cg1lKyMpnJTjHwGY29jYayGm4bKDUsNnqRDGskgbC9z4fdKvjHVCN_2v7joWkAcSF0L9Usu1JMNSwDOBtu6_7KpD8Ohrkw64pQ8VUWlXU2H2OeZDIh_agDtr5jGv9X4tg_uVaZf2c5uQdHNNrG681k_8FACm67w",
+				"type": "string"
+			},
+			{
+				"key": "tokenType",
+				"value": "Bearer",
+				"type": "string"
+			},
+			{
+				"key": "addTokenTo",
+				"value": "header",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "1dde2951-de0c-452d-a11c-071e796134db",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "5aa2e5c7-53ad-4f15-8bc6-3ae4fdd0d337",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"protocolProfileBehavior": {}
+}

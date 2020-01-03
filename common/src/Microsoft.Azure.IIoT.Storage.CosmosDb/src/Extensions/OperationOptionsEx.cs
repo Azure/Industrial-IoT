@@ -15,8 +15,8 @@ namespace Microsoft.Azure.Documents.Client {
         /// Convert to request options
         /// </summary>
         /// <param name="options"></param>
-        /// <param name="etag"></param>
         /// <param name="partitioned"></param>
+        /// <param name="etag"></param>
         /// <returns></returns>
         public static RequestOptions ToRequestOptions(this OperationOptions options,
             bool partitioned = true, string etag = null) {

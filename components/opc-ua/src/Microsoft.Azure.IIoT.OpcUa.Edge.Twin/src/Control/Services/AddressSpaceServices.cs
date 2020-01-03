@@ -944,10 +944,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
         /// Resolve provided path to node.
         /// </summary>
         /// <param name="rootId"></param>
-        /// <param name="paramName"></param>
         /// <param name="session"></param>
-        /// <param name="diagnostics"></param>
+        /// <param name="paramName"></param>
         /// <param name="paths"></param>
+        /// <param name="diagnostics"></param>
         /// <param name="operations"></param>
         /// <returns></returns>
         private async Task<NodeId> ResolveBrowsePathToNodeAsync(Session session,

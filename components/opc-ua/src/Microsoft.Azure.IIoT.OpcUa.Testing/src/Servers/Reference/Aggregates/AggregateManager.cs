@@ -201,7 +201,9 @@ namespace Opc.Ua.Aggregates {
         }
 
         private readonly object _lock = new object();
+#pragma warning disable IDE0052 // Remove unread private members
         private readonly IServerInternal _server;
+#pragma warning restore IDE0052 // Remove unread private members
         private AggregateConfiguration _defaultConfiguration;
         private readonly Dictionary<NodeId, AggregatorFactory> _factories;
         private double _minimumProcessingInterval;

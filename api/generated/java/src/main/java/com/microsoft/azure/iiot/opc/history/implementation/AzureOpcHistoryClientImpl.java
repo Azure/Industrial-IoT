@@ -69,7 +69,7 @@ public class AzureOpcHistoryClientImpl extends ServiceClient implements AzureOpc
      * Initializes an instance of AzureOpcHistoryClient client.
      */
     public AzureOpcHistoryClientImpl() {
-        this("http://localhost");
+        this("https:///history");
     }
 
     /**
@@ -89,7 +89,7 @@ public class AzureOpcHistoryClientImpl extends ServiceClient implements AzureOpc
      * @param restBuilder the builder for building an Retrofit client, bundled with user configurations
      */
     public AzureOpcHistoryClientImpl(OkHttpClient.Builder clientBuilder, Retrofit.Builder restBuilder) {
-        this("http://localhost", clientBuilder, restBuilder);
+        this("https:///history", clientBuilder, restBuilder);
         initialize();
     }
 

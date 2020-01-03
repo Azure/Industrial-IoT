@@ -88,10 +88,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Controllers {
         /// available.
         /// Call this operation again using the token to retrieve more results.
         /// </remarks>
-        /// <param name="pageSize">Optional number of results to return</param>
-        /// <param name="continuationToken">Optional Continuation token</param>
         /// <param name="onlyServerState">Whether to include only server
         /// state, or display current client state of the endpoint if available</param>
+        /// <param name="continuationToken">Optional Continuation token</param>
+        /// <param name="pageSize">Optional number of results to return</param>
         /// <returns>
         /// List of publishers and continuation token to use for next request
         /// in x-ms-continuation header.
@@ -126,10 +126,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Controllers {
         /// more results.
         /// </remarks>
         /// <param name="query">Publisher query model</param>
-        /// <param name="pageSize">Number of results to return</param>
         /// <param name="onlyServerState">Whether to include only server
         /// state, or display current client state of the endpoint if
         /// available</param>
+        /// <param name="pageSize">Number of results to return</param>
         /// <returns>Publisher</returns>
         [HttpPost("query")]
         public async Task<PublisherListApiModel> QueryPublisherAsync(
@@ -162,10 +162,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Controllers {
         /// more results.
         /// </remarks>
         /// <param name="query">Publisher Query model</param>
-        /// <param name="pageSize">Number of results to return</param>
         /// <param name="onlyServerState">Whether to include only server
         /// state, or display current client state of the endpoint if
         /// available</param>
+        /// <param name="pageSize">Number of results to return</param>
         /// <returns>Publisher</returns>
         [HttpGet("query")]
         public async Task<PublisherListApiModel> GetFilteredListOfPublisherAsync(

@@ -454,8 +454,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             /// <summary>
             /// Cast to object of type
             /// </summary>
-            /// <param name="type"></param>
             /// <param name="value"></param>
+            /// <param name="type"></param>
             /// <returns></returns>
             public object Cast(dynamic value, Type type) {
                 if (value == null) {

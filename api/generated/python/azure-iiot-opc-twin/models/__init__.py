@@ -30,13 +30,6 @@ from .method_metadata_response_api_model import MethodMetadataResponseApiModel
 from .method_call_argument_api_model import MethodCallArgumentApiModel
 from .method_call_request_api_model import MethodCallRequestApiModel
 from .method_call_response_api_model import MethodCallResponseApiModel
-from .published_item_api_model import PublishedItemApiModel
-from .publish_start_request_api_model import PublishStartRequestApiModel
-from .publish_start_response_api_model import PublishStartResponseApiModel
-from .publish_stop_request_api_model import PublishStopRequestApiModel
-from .publish_stop_response_api_model import PublishStopResponseApiModel
-from .published_item_list_request_api_model import PublishedItemListRequestApiModel
-from .published_item_list_response_api_model import PublishedItemListResponseApiModel
 from .value_read_request_api_model import ValueReadRequestApiModel
 from .value_read_response_api_model import ValueReadResponseApiModel
 from .attribute_read_request_api_model import AttributeReadRequestApiModel
@@ -85,13 +78,6 @@ __all__ = [
     'MethodCallArgumentApiModel',
     'MethodCallRequestApiModel',
     'MethodCallResponseApiModel',
-    'PublishedItemApiModel',
-    'PublishStartRequestApiModel',
-    'PublishStartResponseApiModel',
-    'PublishStopRequestApiModel',
-    'PublishStopResponseApiModel',
-    'PublishedItemListRequestApiModel',
-    'PublishedItemListResponseApiModel',
     'ValueReadRequestApiModel',
     'ValueReadResponseApiModel',
     'AttributeReadRequestApiModel',

@@ -39,8 +39,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Cli {
             string deviceId = null, moduleId = null;
             Console.WriteLine("Publisher module command line interface.");
             var configuration = new ConfigurationBuilder()
-                .AddFromDotEnvFile()
                 .AddEnvironmentVariables()
+                .AddEnvironmentVariables(EnvironmentVariableTarget.User)
+                .AddFromDotEnvFile()
                 .AddFromKeyVault()
                 .Build();
             var cs = configuration.GetValue<string>("PCS_IOTHUB_CONNSTRING", null);

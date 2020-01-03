@@ -10,7 +10,6 @@
 
 namespace Microsoft.Azure.IIoT.Opc.Twin.Models
 {
-    using Microsoft.Rest;
     using Newtonsoft.Json;
     using System.Collections;
     using System.Collections.Generic;
@@ -41,7 +40,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         /// an array, string or bytestring.
         /// See 7.22 of part 4: NumericRange.</param>
         /// <param name="header">Optional request header</param>
-        public ValueReadRequestApiModel(string nodeId, IList<string> browsePath = default(IList<string>), string indexRange = default(string), RequestHeaderApiModel header = default(RequestHeaderApiModel))
+        public ValueReadRequestApiModel(string nodeId = default(string), IList<string> browsePath = default(IList<string>), string indexRange = default(string), RequestHeaderApiModel header = default(RequestHeaderApiModel))
         {
             NodeId = nodeId;
             BrowsePath = browsePath;
@@ -83,18 +82,5 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         [JsonProperty(PropertyName = "header")]
         public RequestHeaderApiModel Header { get; set; }
 
-        /// <summary>
-        /// Validate the object.
-        /// </summary>
-        /// <exception cref="ValidationException">
-        /// Thrown if validation fails
-        /// </exception>
-        public virtual void Validate()
-        {
-            if (NodeId == null)
-            {
-                throw new ValidationException(ValidationRules.CannotBeNull, "NodeId");
-            }
-        }
     }
 }

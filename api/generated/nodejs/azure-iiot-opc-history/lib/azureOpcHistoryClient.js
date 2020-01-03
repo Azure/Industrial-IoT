@@ -3434,7 +3434,7 @@ class AzureOpcHistoryClient extends ServiceClient {
 
     this.baseUri = baseUri;
     if (!this.baseUri) {
-      this.baseUri = 'http://localhost';
+      this.baseUri = '/history';
     }
     this.credentials = credentials;
 

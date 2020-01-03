@@ -20,7 +20,7 @@ public class ValueReadRequestApiModel {
     /**
      * Node to read from (mandatory).
      */
-    @JsonProperty(value = "nodeId", required = true)
+    @JsonProperty(value = "nodeId")
     private String nodeId;
 
     /**

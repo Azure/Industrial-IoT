@@ -10,7 +10,6 @@
 
 package com.microsoft.azure.iiot.opc.registry.models;
 
-import java.util.List;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -38,23 +37,11 @@ public class SupervisorUpdateApiModel {
     private DiscoveryConfigApiModel discoveryConfig;
 
     /**
-     * Callbacks to add or remove (see below).
-     */
-    @JsonProperty(value = "discoveryCallbacks")
-    private List<CallbackApiModel> discoveryCallbacks;
-
-    /**
-     * Whether to add or remove callbacks.
-     */
-    @JsonProperty(value = "removeDiscoveryCallbacks")
-    private Boolean removeDiscoveryCallbacks;
-
-    /**
      * Current log level. Possible values include: 'Error', 'Information',
      * 'Debug', 'Verbose'.
      */
     @JsonProperty(value = "logLevel")
-    private SupervisorLogLevel logLevel;
+    private TraceLogLevel logLevel;
 
     /**
      * Get site of the supervisor.
@@ -119,51 +106,11 @@ public class SupervisorUpdateApiModel {
     }
 
     /**
-     * Get callbacks to add or remove (see below).
-     *
-     * @return the discoveryCallbacks value
-     */
-    public List<CallbackApiModel> discoveryCallbacks() {
-        return this.discoveryCallbacks;
-    }
-
-    /**
-     * Set callbacks to add or remove (see below).
-     *
-     * @param discoveryCallbacks the discoveryCallbacks value to set
-     * @return the SupervisorUpdateApiModel object itself.
-     */
-    public SupervisorUpdateApiModel withDiscoveryCallbacks(List<CallbackApiModel> discoveryCallbacks) {
-        this.discoveryCallbacks = discoveryCallbacks;
-        return this;
-    }
-
-    /**
-     * Get whether to add or remove callbacks.
-     *
-     * @return the removeDiscoveryCallbacks value
-     */
-    public Boolean removeDiscoveryCallbacks() {
-        return this.removeDiscoveryCallbacks;
-    }
-
-    /**
-     * Set whether to add or remove callbacks.
-     *
-     * @param removeDiscoveryCallbacks the removeDiscoveryCallbacks value to set
-     * @return the SupervisorUpdateApiModel object itself.
-     */
-    public SupervisorUpdateApiModel withRemoveDiscoveryCallbacks(Boolean removeDiscoveryCallbacks) {
-        this.removeDiscoveryCallbacks = removeDiscoveryCallbacks;
-        return this;
-    }
-
-    /**
      * Get current log level. Possible values include: 'Error', 'Information', 'Debug', 'Verbose'.
      *
      * @return the logLevel value
      */
-    public SupervisorLogLevel logLevel() {
+    public TraceLogLevel logLevel() {
         return this.logLevel;
     }
 
@@ -173,7 +120,7 @@ public class SupervisorUpdateApiModel {
      * @param logLevel the logLevel value to set
      * @return the SupervisorUpdateApiModel object itself.
      */
-    public SupervisorUpdateApiModel withLogLevel(SupervisorLogLevel logLevel) {
+    public SupervisorUpdateApiModel withLogLevel(TraceLogLevel logLevel) {
         this.logLevel = logLevel;
         return this;
     }

@@ -31,12 +31,6 @@ public class EndpointApiModel {
     private List<String> alternativeUrls;
 
     /**
-     * User Authentication.
-     */
-    @JsonProperty(value = "user")
-    private CredentialApiModel user;
-
-    /**
      * Security Mode to use for communication
      * default to best. Possible values include: 'Best', 'Sign',
      * 'SignAndEncrypt', 'None'.
@@ -96,26 +90,6 @@ public class EndpointApiModel {
      */
     public EndpointApiModel withAlternativeUrls(List<String> alternativeUrls) {
         this.alternativeUrls = alternativeUrls;
-        return this;
-    }
-
-    /**
-     * Get user Authentication.
-     *
-     * @return the user value
-     */
-    public CredentialApiModel user() {
-        return this.user;
-    }
-
-    /**
-     * Set user Authentication.
-     *
-     * @param user the user value to set
-     * @return the EndpointApiModel object itself.
-     */
-    public EndpointApiModel withUser(CredentialApiModel user) {
-        this.user = user;
         return this;
     }
 

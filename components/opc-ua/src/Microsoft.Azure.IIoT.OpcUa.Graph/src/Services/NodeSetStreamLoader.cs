@@ -30,8 +30,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Services {
         /// <param name="loader"></param>
         /// <param name="deviceId"></param>
         /// <param name="tags"></param>
-        /// <param name="codec"></param>
         /// <param name="revision"></param>
+        /// <param name="codec"></param>
         /// <param name="logger"></param>
         internal NodeSetStreamLoader(IGraphLoader loader, string deviceId,
             IDictionary<string, string> tags, long revision, IVariantEncoder codec,

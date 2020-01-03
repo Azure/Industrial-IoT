@@ -49,7 +49,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             User user,
             IDictionary<string, string> tags = null
         ) {
-            tags = tags ?? new Dictionary<string, string>();
+            tags ??= new Dictionary<string, string>();
 
             var keyVaultAccessPolicies = new List<AccessPolicyEntry> {
                     new AccessPolicyEntry {
@@ -168,14 +168,31 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             string keyVaultName,
             CancellationToken cancellationToken = default
         ) {
-            var result = await _keyVaultManagementClient
-                .Vaults
-                .CheckNameAvailabilityAsync(
-                    keyVaultName,
-                    cancellationToken
-                );
+            try {
+                var result = await _keyVaultManagementClient
+                    .Vaults
+                    .CheckNameAvailabilityAsync(
+                        keyVaultName,
+                        cancellationToken
+                    );
 
-            return result.NameAvailable.Value;
+                if (result.NameAvailable.HasValue) {
+                    return result.NameAvailable.Value;
+                }
+            }
+            catch (Microsoft.Rest.Azure.CloudException) {
+                // Will be thrown if there is no registered resource provider
+                // found for specified location and/or api version to perform
+                // name availability check.
+                throw;
+            }
+            catch (Exception ex) {
+                Log.Error(ex, $"Failed to check KeyVault Service name availability for {keyVaultName}");
+                throw;
+            }
+
+            // !result.NameAvailable.HasValue
+            throw new Exception($"Failed to check KeyVault Service name availability for {keyVaultName}");
         }
 
         /// <summary>

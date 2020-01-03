@@ -39,9 +39,9 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
         /// <param name="factory"></param>
         /// <param name="hub"></param>
         /// <param name="config"></param>
-        /// <param name="logger"></param>
         /// <param name="checkpoint"></param>
         /// <param name="lease"></param>
+        /// <param name="logger"></param>
         public EventProcessorHost(IEventProcessorFactory factory, IEventHubConsumerConfig hub,
             IEventProcessorConfig config, ICheckpointManager checkpoint,
             ILeaseManager lease, ILogger logger) {

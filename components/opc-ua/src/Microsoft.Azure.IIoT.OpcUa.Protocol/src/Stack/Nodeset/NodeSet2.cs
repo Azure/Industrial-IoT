@@ -6,7 +6,6 @@
 namespace Opc.Ua.Nodeset {
     using Opc.Ua.Nodeset.Schema;
     using Opc.Ua.Models;
-    using Opc.Ua;
     using System;
     using System.Linq;
     using System.IO;
@@ -25,8 +24,8 @@ namespace Opc.Ua.Nodeset {
         /// </summary>
         /// <param name="collection"></param>
         /// <param name="lastModified"></param>
-        /// <param name="context"></param>
         /// <param name="model"></param>
+        /// <param name="context"></param>
         /// <returns></returns>
         public static NodeSet2 CreateFromNodeStateCollection(NodeStateCollection collection,
             ModelTableEntry model, DateTime? lastModified, ISystemContext context) {
@@ -50,8 +49,8 @@ namespace Opc.Ua.Nodeset {
         /// </summary>
         /// <param name="nodes"></param>
         /// <param name="lastModified"></param>
-        /// <param name="context"></param>
         /// <param name="model"></param>
+        /// <param name="context"></param>
         /// <returns></returns>
         public static NodeSet2 Create(IEnumerable<BaseNodeModel> nodes,
             ModelTableEntry model, DateTime? lastModified, ISystemContext context) {

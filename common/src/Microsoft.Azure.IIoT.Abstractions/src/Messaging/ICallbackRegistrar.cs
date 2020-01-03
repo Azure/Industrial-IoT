@@ -20,9 +20,9 @@ namespace Microsoft.Azure.IIoT.Messaging {
         /// <summary>
         /// Register handler to handle a method call
         /// </summary>
-        /// <param name="method"></param>
         /// <param name="handler"></param>
         /// <param name="thiz"></param>
+        /// <param name="method"></param>
         /// <param name="arguments"></param>
         /// <returns></returns>
         IDisposable Register(Func<object[], object, Task> handler,

@@ -226,10 +226,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Controllers {
         /// <remarks>
         /// List all sites applications are registered in.
         /// </remarks>
-        /// <param name="pageSize">Optional number of results to
-        /// return</param>
         /// <param name="continuationToken">Optional Continuation
         /// token</param>
+        /// <param name="pageSize">Optional number of results to
+        /// return</param>
         /// <returns>Sites</returns>
         [HttpGet("sites")]
         [AutoRestExtension(NextPageLinkName = "continuationToken")]
@@ -259,10 +259,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Controllers {
         /// available.
         /// Call this operation again using the token to retrieve more results.
         /// </remarks>
-        /// <param name="pageSize">Optional number of results to
-        /// return</param>
         /// <param name="continuationToken">Optional Continuation
         /// token</param>
+        /// <param name="pageSize">Optional number of results to
+        /// return</param>
         /// <returns>
         /// List of servers and continuation token to use for next request
         /// in x-ms-continuation header.

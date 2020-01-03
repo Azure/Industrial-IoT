@@ -332,8 +332,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <summary>
         /// Convert to results
         /// </summary>
-        /// <param name="result"></param>
         /// <param name="codec"></param>
+        /// <param name="result"></param>
         /// <returns></returns>
         public static HistoricValueModel[] DecodeValues(this IVariantEncoder codec, JToken result) {
             var extensionObject = codec.DecodeExtensionObject(result);
@@ -369,8 +369,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <summary>
         /// Convert to results
         /// </summary>
-        /// <param name="result"></param>
         /// <param name="codec"></param>
+        /// <param name="result"></param>
         /// <returns></returns>
         public static HistoricEventModel[] DecodeEvents(this IVariantEncoder codec, JToken result) {
             var extensionObject = codec.DecodeExtensionObject(result);

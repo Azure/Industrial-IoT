@@ -35,8 +35,8 @@ namespace Microsoft.Azure.IIoT.Crypto.Models {
         /// <summary>
         /// Compare parameters
         /// </summary>
-        /// <param name="other"></param>
         /// <param name="parameters"></param>
+        /// <param name="other"></param>
         /// <returns></returns>
         public static bool SameAs(this KeyParams parameters, KeyParams other) {
             if (parameters == null) {

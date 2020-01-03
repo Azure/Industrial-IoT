@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding {
     using Microsoft.AspNetCore;
     using Microsoft.AspNetCore.Hosting;
+    using Autofac.Extensions.Hosting;
     using Serilog;
 
     /// <summary>
@@ -29,8 +30,9 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding {
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) {
             return WebHost.CreateDefaultBuilder<Startup>(args)
                 .UseUrls("http://*:9060")
-                .UseKestrel(o => o.AddServerHeader = false)
-                .UseSerilog();
+                .UseAutofac()
+                .UseSerilog()
+                .UseKestrel(o => o.AddServerHeader = false);
         }
     }
 }

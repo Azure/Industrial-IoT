@@ -20,15 +20,12 @@ class EndpointRegistrationApiModel {
    * @property {string} id Registered identifier of the endpoint
    * @property {string} [endpointUrl] Original endpoint url of the endpoint
    * @property {string} [siteId] Registered site of the endpoint
+   * @property {string} [supervisorId] Supervisor that registered the endpoint.
    * @property {object} endpoint Endpoint information of the registration
    * @property {string} [endpoint.url] Endpoint url to use to connect with
    * @property {array} [endpoint.alternativeUrls] Alternative endpoint urls
    * that can be used for
    * accessing and validating the server
-   * @property {object} [endpoint.user] User Authentication
-   * @property {string} [endpoint.user.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
-   * @property {object} [endpoint.user.value] Value to pass to server
    * @property {string} [endpoint.securityMode] Security Mode to use for
    * communication
    * default to best. Possible values include: 'Best', 'Sign',
@@ -77,6 +74,13 @@ class EndpointRegistrationApiModel {
           siteId: {
             required: false,
             serializedName: 'siteId',
+            type: {
+              name: 'String'
+            }
+          },
+          supervisorId: {
+            required: false,
+            serializedName: 'supervisorId',
             type: {
               name: 'String'
             }

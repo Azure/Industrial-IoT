@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Opc.Ua.Encoders {
-    using Opc.Ua;
     using System;
     using System.Collections.Generic;
     using System.Xml;
@@ -22,8 +21,8 @@ namespace Opc.Ua.Encoders {
         /// </summary>
         /// <param name="contentType"></param>
         /// <param name="callback"></param>
-        /// <param name="context"></param>
         /// <param name="stream"></param>
+        /// <param name="context"></param>
         public ModelEncoder(Stream stream, string contentType,
             Action<ExpandedNodeId> callback = null,
             ServiceMessageContext context = null) :

@@ -22,6 +22,9 @@ module azure.iiot.opc.registry
       # @return [String] Registered site of the endpoint
       attr_accessor :site_id
 
+      # @return [String] Supervisor that registered the endpoint.
+      attr_accessor :supervisor_id
+
       # @return [EndpointApiModel] Endpoint information of the registration
       attr_accessor :endpoint
 
@@ -67,6 +70,14 @@ module azure.iiot.opc.registry
                 client_side_validation: true,
                 required: false,
                 serialized_name: 'siteId',
+                type: {
+                  name: 'String'
+                }
+              },
+              supervisor_id: {
+                client_side_validation: true,
+                required: false,
+                serialized_name: 'supervisorId',
                 type: {
                   name: 'String'
                 }

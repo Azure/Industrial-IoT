@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
     using Microsoft.Azure.IIoT.Exceptions;
-    using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.Storage;
     using Serilog;
@@ -24,8 +23,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// Create listener
         /// </summary>
         /// <param name="db"></param>
-        /// <param name="events"></param>
         /// <param name="logger"></param>
+        /// <param name="events"></param>
         public ApplicationRecordQuery(IItemContainerFactory db, ILogger logger,
             IApplicationRegistryEvents events = null) {
             _database = new ApplicationDatabase(db, logger);

@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace System.Security.Claims {
-    using System;
     using System.Collections.Generic;
     using System.Linq;
 

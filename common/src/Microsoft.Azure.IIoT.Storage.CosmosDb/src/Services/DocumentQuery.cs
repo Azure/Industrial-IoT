@@ -14,7 +14,6 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Gremlin.Net.CosmosDb;
 
     /// <summary>
     /// Document query client

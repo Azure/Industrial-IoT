@@ -5,6 +5,7 @@
     "title": "Opc-Vault-Service",
     "description": "Azure Industrial IoT OPC UA Vault Service"
   },
+  "basePath": "/vault",
   "schemes": [
     "https",
     "http"

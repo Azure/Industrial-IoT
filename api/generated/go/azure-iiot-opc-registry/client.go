@@ -23,7 +23,7 @@ import (
 
 const (
 // DefaultBaseURI is the default URI used for the service Azureiiotopcregistry
-DefaultBaseURI = "http://localhost")
+DefaultBaseURI = "/registry")
 
 // BaseClient is the base client for Azureiiotopcregistry.
 type BaseClient struct {
@@ -104,6 +104,73 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
     // ActivateEndpointResponder handles the response to the ActivateEndpoint request. The method always
     // closes the http.Response Body.
     func (client BaseClient) ActivateEndpointResponder(resp *http.Response) (result autorest.Response, err error) {
+        err = autorest.Respond(
+        resp,
+        client.ByInspecting(),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
+        autorest.ByClosing())
+        result.Response = resp
+            return
+        }
+
+    // Cancel cancels a discovery request using the request identifier.
+        // Parameters:
+            // requestID - discovery request
+    func (client BaseClient) Cancel(ctx context.Context, requestID string) (result autorest.Response, err error) {
+        if tracing.IsEnabled() {
+            ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.Cancel")
+            defer func() {
+                sc := -1
+                if result.Response != nil {
+                    sc = result.Response.StatusCode
+                }
+                tracing.EndSpan(ctx, sc, err)
+            }()
+        }
+            req, err := client.CancelPreparer(ctx, requestID)
+        if err != nil {
+        err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "Cancel", nil , "Failure preparing request")
+        return
+        }
+
+                resp, err := client.CancelSender(req)
+                if err != nil {
+                result.Response = resp
+                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "Cancel", resp, "Failure sending request")
+                return
+                }
+
+                result, err = client.CancelResponder(resp)
+                if err != nil {
+                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "Cancel", resp, "Failure responding to request")
+                }
+
+        return
+        }
+
+        // CancelPreparer prepares the Cancel request.
+        func (client BaseClient) CancelPreparer(ctx context.Context, requestID string) (*http.Request, error) {
+                pathParameters := map[string]interface{} {
+                "requestId": autorest.Encode("path",requestID),
+                }
+
+            preparer := autorest.CreatePreparer(
+        autorest.AsDelete(),
+        autorest.WithBaseURL(client.BaseURI),
+        autorest.WithPathParameters("/v2/applications/discover/{requestId}",pathParameters))
+        return preparer.Prepare((&http.Request{}).WithContext(ctx))
+        }
+
+        // CancelSender sends the Cancel request. The method will close the
+        // http.Response Body if it receives an error.
+        func (client BaseClient) CancelSender(req *http.Request) (*http.Response, error) {
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
+                }
+
+    // CancelResponder handles the response to the Cancel request. The method always
+    // closes the http.Response Body.
+    func (client BaseClient) CancelResponder(resp *http.Response) (result autorest.Response, err error) {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
@@ -836,7 +903,6 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
     // more results.
         // Parameters:
             // URLParameter - endoint url for direct server access
-            // userAuthentication - type of credential selected for authentication
             // certificate - certificate of the endpoint
             // securityMode - security Mode
             // securityPolicy - security policy uri
@@ -849,7 +915,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             // current client state of the endpoint if available
             // pageSize - optional number of results to
             // return
-    func (client BaseClient) GetFilteredListOfEndpoints(ctx context.Context, URLParameter string, userAuthentication string, certificate []byte, securityMode string, securityPolicy string, activated *bool, connected *bool, endpointState string, includeNotSeenSince *bool, onlyServerState *bool, pageSize *int32) (result EndpointInfoListAPIModel, err error) {
+    func (client BaseClient) GetFilteredListOfEndpoints(ctx context.Context, URLParameter string, certificate []byte, securityMode string, securityPolicy string, activated *bool, connected *bool, endpointState string, includeNotSeenSince *bool, onlyServerState *bool, pageSize *int32) (result EndpointInfoListAPIModel, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.GetFilteredListOfEndpoints")
             defer func() {
@@ -860,7 +926,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 tracing.EndSpan(ctx, sc, err)
             }()
         }
-            req, err := client.GetFilteredListOfEndpointsPreparer(ctx, URLParameter, userAuthentication, certificate, securityMode, securityPolicy, activated, connected, endpointState, includeNotSeenSince, onlyServerState, pageSize)
+            req, err := client.GetFilteredListOfEndpointsPreparer(ctx, URLParameter, certificate, securityMode, securityPolicy, activated, connected, endpointState, includeNotSeenSince, onlyServerState, pageSize)
         if err != nil {
         err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "GetFilteredListOfEndpoints", nil , "Failure preparing request")
         return
@@ -882,14 +948,11 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
         // GetFilteredListOfEndpointsPreparer prepares the GetFilteredListOfEndpoints request.
-        func (client BaseClient) GetFilteredListOfEndpointsPreparer(ctx context.Context, URLParameter string, userAuthentication string, certificate []byte, securityMode string, securityPolicy string, activated *bool, connected *bool, endpointState string, includeNotSeenSince *bool, onlyServerState *bool, pageSize *int32) (*http.Request, error) {
+        func (client BaseClient) GetFilteredListOfEndpointsPreparer(ctx context.Context, URLParameter string, certificate []byte, securityMode string, securityPolicy string, activated *bool, connected *bool, endpointState string, includeNotSeenSince *bool, onlyServerState *bool, pageSize *int32) (*http.Request, error) {
                     queryParameters := map[string]interface{} {
             }
                 if len(URLParameter) > 0 {
                 queryParameters["Url"] = autorest.Encode("query",URLParameter)
-                }
-                if len(string(userAuthentication)) > 0 {
-                queryParameters["UserAuthentication"] = autorest.Encode("query",userAuthentication)
                 }
                 if certificate != nil && len(certificate) > 0 {
                 queryParameters["Certificate"] = autorest.Encode("query",certificate)
@@ -937,6 +1000,96 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
     // GetFilteredListOfEndpointsResponder handles the response to the GetFilteredListOfEndpoints request. The method always
     // closes the http.Response Body.
     func (client BaseClient) GetFilteredListOfEndpointsResponder(resp *http.Response) (result EndpointInfoListAPIModel, err error) {
+        err = autorest.Respond(
+        resp,
+        client.ByInspecting(),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
+        autorest.ByUnmarshallingJSON(&result),
+        autorest.ByClosing())
+        result.Response = autorest.Response{Response: resp}
+            return
+        }
+
+    // GetFilteredListOfPublisher get a list of publishers filtered using the
+    // specified query parameters.
+    // The returned model can contain a continuation token if more results are
+    // available.
+    // Call the GetListOfPublisher operation using the token to retrieve
+    // more results.
+        // Parameters:
+            // siteID - site of the publisher
+            // connected - included connected or disconnected
+            // onlyServerState - whether to include only server
+            // state, or display current client state of the endpoint if
+            // available
+            // pageSize - number of results to return
+    func (client BaseClient) GetFilteredListOfPublisher(ctx context.Context, siteID string, connected *bool, onlyServerState *bool, pageSize *int32) (result PublisherListAPIModel, err error) {
+        if tracing.IsEnabled() {
+            ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.GetFilteredListOfPublisher")
+            defer func() {
+                sc := -1
+                if result.Response.Response != nil {
+                    sc = result.Response.Response.StatusCode
+                }
+                tracing.EndSpan(ctx, sc, err)
+            }()
+        }
+            req, err := client.GetFilteredListOfPublisherPreparer(ctx, siteID, connected, onlyServerState, pageSize)
+        if err != nil {
+        err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "GetFilteredListOfPublisher", nil , "Failure preparing request")
+        return
+        }
+
+                resp, err := client.GetFilteredListOfPublisherSender(req)
+                if err != nil {
+                result.Response = autorest.Response{Response: resp}
+                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "GetFilteredListOfPublisher", resp, "Failure sending request")
+                return
+                }
+
+                result, err = client.GetFilteredListOfPublisherResponder(resp)
+                if err != nil {
+                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "GetFilteredListOfPublisher", resp, "Failure responding to request")
+                }
+
+        return
+        }
+
+        // GetFilteredListOfPublisherPreparer prepares the GetFilteredListOfPublisher request.
+        func (client BaseClient) GetFilteredListOfPublisherPreparer(ctx context.Context, siteID string, connected *bool, onlyServerState *bool, pageSize *int32) (*http.Request, error) {
+                    queryParameters := map[string]interface{} {
+            }
+                if len(siteID) > 0 {
+                queryParameters["SiteId"] = autorest.Encode("query",siteID)
+                }
+                if connected != nil {
+                queryParameters["Connected"] = autorest.Encode("query",*connected)
+                }
+                if onlyServerState != nil {
+                queryParameters["onlyServerState"] = autorest.Encode("query",*onlyServerState)
+                }
+                if pageSize != nil {
+                queryParameters["pageSize"] = autorest.Encode("query",*pageSize)
+                }
+
+            preparer := autorest.CreatePreparer(
+        autorest.AsGet(),
+        autorest.WithBaseURL(client.BaseURI),
+        autorest.WithPath("/v2/publishers/query"),
+        autorest.WithQueryParameters(queryParameters))
+        return preparer.Prepare((&http.Request{}).WithContext(ctx))
+        }
+
+        // GetFilteredListOfPublisherSender sends the GetFilteredListOfPublisher request. The method will close the
+        // http.Response Body if it receives an error.
+        func (client BaseClient) GetFilteredListOfPublisherSender(req *http.Request) (*http.Response, error) {
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
+                }
+
+    // GetFilteredListOfPublisherResponder handles the response to the GetFilteredListOfPublisher request. The method always
+    // closes the http.Response Body.
+    func (client BaseClient) GetFilteredListOfPublisherResponder(resp *http.Response) (result PublisherListAPIModel, err error) {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
@@ -1280,6 +1433,128 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                     return
             }
 
+    // GetListOfPublisher get all registered publishers and therefore twin modules
+    // in paged form.
+    // The returned model can contain a continuation token if more results are
+    // available.
+    // Call this operation again using the token to retrieve more results.
+        // Parameters:
+            // onlyServerState - whether to include only server
+            // state, or display current client state of the endpoint if available
+            // continuationToken - optional Continuation token
+            // pageSize - optional number of results to return
+    func (client BaseClient) GetListOfPublisher(ctx context.Context, onlyServerState *bool, continuationToken string, pageSize *int32) (result PublisherListAPIModelPage, err error) {
+        if tracing.IsEnabled() {
+            ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.GetListOfPublisher")
+            defer func() {
+                sc := -1
+                if result.plam.Response.Response != nil {
+                    sc = result.plam.Response.Response.StatusCode
+                }
+                tracing.EndSpan(ctx, sc, err)
+            }()
+        }
+                    result.fn = client.getListOfPublisherNextResults
+        req, err := client.GetListOfPublisherPreparer(ctx, onlyServerState, continuationToken, pageSize)
+        if err != nil {
+        err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "GetListOfPublisher", nil , "Failure preparing request")
+        return
+        }
+
+                resp, err := client.GetListOfPublisherSender(req)
+                if err != nil {
+                result.plam.Response = autorest.Response{Response: resp}
+                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "GetListOfPublisher", resp, "Failure sending request")
+                return
+                }
+
+                result.plam, err = client.GetListOfPublisherResponder(resp)
+                if err != nil {
+                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "GetListOfPublisher", resp, "Failure responding to request")
+                }
+
+        return
+        }
+
+        // GetListOfPublisherPreparer prepares the GetListOfPublisher request.
+        func (client BaseClient) GetListOfPublisherPreparer(ctx context.Context, onlyServerState *bool, continuationToken string, pageSize *int32) (*http.Request, error) {
+                    queryParameters := map[string]interface{} {
+            }
+                if onlyServerState != nil {
+                queryParameters["onlyServerState"] = autorest.Encode("query",*onlyServerState)
+                }
+                if len(continuationToken) > 0 {
+                queryParameters["continuationToken"] = autorest.Encode("query",continuationToken)
+                }
+                if pageSize != nil {
+                queryParameters["pageSize"] = autorest.Encode("query",*pageSize)
+                }
+
+            preparer := autorest.CreatePreparer(
+        autorest.AsGet(),
+        autorest.WithBaseURL(client.BaseURI),
+        autorest.WithPath("/v2/publishers"),
+        autorest.WithQueryParameters(queryParameters))
+        return preparer.Prepare((&http.Request{}).WithContext(ctx))
+        }
+
+        // GetListOfPublisherSender sends the GetListOfPublisher request. The method will close the
+        // http.Response Body if it receives an error.
+        func (client BaseClient) GetListOfPublisherSender(req *http.Request) (*http.Response, error) {
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
+                }
+
+    // GetListOfPublisherResponder handles the response to the GetListOfPublisher request. The method always
+    // closes the http.Response Body.
+    func (client BaseClient) GetListOfPublisherResponder(resp *http.Response) (result PublisherListAPIModel, err error) {
+        err = autorest.Respond(
+        resp,
+        client.ByInspecting(),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
+        autorest.ByUnmarshallingJSON(&result),
+        autorest.ByClosing())
+        result.Response = autorest.Response{Response: resp}
+            return
+        }
+
+                // getListOfPublisherNextResults retrieves the next set of results, if any.
+                func (client BaseClient) getListOfPublisherNextResults(ctx context.Context, lastResults PublisherListAPIModel) (result PublisherListAPIModel, err error) {
+                req, err := lastResults.publisherListAPIModelPreparer(ctx)
+                if err != nil {
+                return result, autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "getListOfPublisherNextResults", nil , "Failure preparing next results request")
+                }
+                if req == nil {
+                return
+                }
+                resp, err := client.GetListOfPublisherSender(req)
+                if err != nil {
+                result.Response = autorest.Response{Response: resp}
+                return result, autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "getListOfPublisherNextResults", resp, "Failure sending next results request")
+                }
+                result, err = client.GetListOfPublisherResponder(resp)
+                if err != nil {
+                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "getListOfPublisherNextResults", resp, "Failure responding to next results request")
+                }
+                return
+                        }
+
+        // GetListOfPublisherComplete enumerates all values, automatically crossing page boundaries as required.
+        func (client BaseClient) GetListOfPublisherComplete(ctx context.Context, onlyServerState *bool, continuationToken string, pageSize *int32) (result PublisherListAPIModelIterator, err error) {
+            if tracing.IsEnabled() {
+                ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.GetListOfPublisher")
+                defer func() {
+                    sc := -1
+                    if result.Response().Response.Response != nil {
+                        sc = result.page.Response().Response.Response.StatusCode
+                    }
+                    tracing.EndSpan(ctx, sc, err)
+                }()
+         }
+            result.page, err = client.GetListOfPublisher(ctx, onlyServerState, continuationToken, pageSize)
+                    return
+            }
+
     // GetListOfSites list all sites applications are registered in.
         // Parameters:
             // continuationToken - optional Continuation
@@ -1516,6 +1791,86 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             result.page, err = client.GetListOfSupervisors(ctx, onlyServerState, continuationToken, pageSize)
                     return
             }
+
+    // GetPublisher returns a publisher's registration and connectivity
+    // information.
+    // A publisher id corresponds to the twin modules module identity.
+        // Parameters:
+            // publisherID - publisher identifier
+            // onlyServerState - whether to include only server
+            // state, or display current client state of the endpoint if
+            // available
+    func (client BaseClient) GetPublisher(ctx context.Context, publisherID string, onlyServerState *bool) (result PublisherAPIModel, err error) {
+        if tracing.IsEnabled() {
+            ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.GetPublisher")
+            defer func() {
+                sc := -1
+                if result.Response.Response != nil {
+                    sc = result.Response.Response.StatusCode
+                }
+                tracing.EndSpan(ctx, sc, err)
+            }()
+        }
+            req, err := client.GetPublisherPreparer(ctx, publisherID, onlyServerState)
+        if err != nil {
+        err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "GetPublisher", nil , "Failure preparing request")
+        return
+        }
+
+                resp, err := client.GetPublisherSender(req)
+                if err != nil {
+                result.Response = autorest.Response{Response: resp}
+                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "GetPublisher", resp, "Failure sending request")
+                return
+                }
+
+                result, err = client.GetPublisherResponder(resp)
+                if err != nil {
+                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "GetPublisher", resp, "Failure responding to request")
+                }
+
+        return
+        }
+
+        // GetPublisherPreparer prepares the GetPublisher request.
+        func (client BaseClient) GetPublisherPreparer(ctx context.Context, publisherID string, onlyServerState *bool) (*http.Request, error) {
+                pathParameters := map[string]interface{} {
+                "publisherId": autorest.Encode("path",publisherID),
+                }
+
+                        queryParameters := map[string]interface{} {
+            }
+                if onlyServerState != nil {
+                queryParameters["onlyServerState"] = autorest.Encode("query",*onlyServerState)
+                }
+
+            preparer := autorest.CreatePreparer(
+        autorest.AsGet(),
+        autorest.WithBaseURL(client.BaseURI),
+        autorest.WithPathParameters("/v2/publishers/{publisherId}",pathParameters),
+        autorest.WithQueryParameters(queryParameters))
+        return preparer.Prepare((&http.Request{}).WithContext(ctx))
+        }
+
+        // GetPublisherSender sends the GetPublisher request. The method will close the
+        // http.Response Body if it receives an error.
+        func (client BaseClient) GetPublisherSender(req *http.Request) (*http.Response, error) {
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
+                }
+
+    // GetPublisherResponder handles the response to the GetPublisher request. The method always
+    // closes the http.Response Body.
+    func (client BaseClient) GetPublisherResponder(resp *http.Response) (result PublisherAPIModel, err error) {
+        err = autorest.Respond(
+        resp,
+        client.ByInspecting(),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
+        autorest.ByUnmarshallingJSON(&result),
+        autorest.ByClosing())
+        result.Response = autorest.Response{Response: resp}
+            return
+        }
 
     // GetStatus sends the get status request.
     func (client BaseClient) GetStatus(ctx context.Context) (result StatusResponseAPIModel, err error) {
@@ -1957,6 +2312,90 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             return
         }
 
+    // QueryPublisher get all publishers that match a specified query.
+    // The returned model can contain a continuation token if more results are
+    // available.
+    // Call the GetListOfPublisher operation using the token to retrieve
+    // more results.
+        // Parameters:
+            // query - publisher query model
+            // onlyServerState - whether to include only server
+            // state, or display current client state of the endpoint if
+            // available
+            // pageSize - number of results to return
+    func (client BaseClient) QueryPublisher(ctx context.Context, query PublisherQueryAPIModel, onlyServerState *bool, pageSize *int32) (result PublisherListAPIModel, err error) {
+        if tracing.IsEnabled() {
+            ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.QueryPublisher")
+            defer func() {
+                sc := -1
+                if result.Response.Response != nil {
+                    sc = result.Response.Response.StatusCode
+                }
+                tracing.EndSpan(ctx, sc, err)
+            }()
+        }
+            req, err := client.QueryPublisherPreparer(ctx, query, onlyServerState, pageSize)
+        if err != nil {
+        err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "QueryPublisher", nil , "Failure preparing request")
+        return
+        }
+
+                resp, err := client.QueryPublisherSender(req)
+                if err != nil {
+                result.Response = autorest.Response{Response: resp}
+                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "QueryPublisher", resp, "Failure sending request")
+                return
+                }
+
+                result, err = client.QueryPublisherResponder(resp)
+                if err != nil {
+                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "QueryPublisher", resp, "Failure responding to request")
+                }
+
+        return
+        }
+
+        // QueryPublisherPreparer prepares the QueryPublisher request.
+        func (client BaseClient) QueryPublisherPreparer(ctx context.Context, query PublisherQueryAPIModel, onlyServerState *bool, pageSize *int32) (*http.Request, error) {
+                    queryParameters := map[string]interface{} {
+            }
+                if onlyServerState != nil {
+                queryParameters["onlyServerState"] = autorest.Encode("query",*onlyServerState)
+                }
+                if pageSize != nil {
+                queryParameters["pageSize"] = autorest.Encode("query",*pageSize)
+                }
+
+            preparer := autorest.CreatePreparer(
+        autorest.AsContentType("application/json-patch+json; charset=utf-8"),
+        autorest.AsPost(),
+        autorest.WithBaseURL(client.BaseURI),
+        autorest.WithPath("/v2/publishers/query"),
+        autorest.WithJSON(query),
+        autorest.WithQueryParameters(queryParameters))
+        return preparer.Prepare((&http.Request{}).WithContext(ctx))
+        }
+
+        // QueryPublisherSender sends the QueryPublisher request. The method will close the
+        // http.Response Body if it receives an error.
+        func (client BaseClient) QueryPublisherSender(req *http.Request) (*http.Response, error) {
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
+                }
+
+    // QueryPublisherResponder handles the response to the QueryPublisher request. The method always
+    // closes the http.Response Body.
+    func (client BaseClient) QueryPublisherResponder(resp *http.Response) (result PublisherListAPIModel, err error) {
+        err = autorest.Respond(
+        resp,
+        client.ByInspecting(),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
+        autorest.ByUnmarshallingJSON(&result),
+        autorest.ByClosing())
+        result.Response = autorest.Response{Response: resp}
+            return
+        }
+
     // QuerySupervisors get all supervisors that match a specified query.
     // The returned model can contain a continuation token if more results are
     // available.
@@ -2184,6 +2623,929 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             return
         }
 
+    // SetDiscoveryMode allows a caller to configure recurring discovery runs on
+    // the
+    // discovery module identified by the module id.
+        // Parameters:
+            // supervisorID - supervisor identifier
+            // mode - discovery mode
+            // config - discovery configuration
+    func (client BaseClient) SetDiscoveryMode(ctx context.Context, supervisorID string, mode string, config *DiscoveryConfigAPIModel) (result autorest.Response, err error) {
+        if tracing.IsEnabled() {
+            ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.SetDiscoveryMode")
+            defer func() {
+                sc := -1
+                if result.Response != nil {
+                    sc = result.Response.StatusCode
+                }
+                tracing.EndSpan(ctx, sc, err)
+            }()
+        }
+            req, err := client.SetDiscoveryModePreparer(ctx, supervisorID, mode, config)
+        if err != nil {
+        err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "SetDiscoveryMode", nil , "Failure preparing request")
+        return
+        }
+
+                resp, err := client.SetDiscoveryModeSender(req)
+                if err != nil {
+                result.Response = resp
+                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "SetDiscoveryMode", resp, "Failure sending request")
+                return
+                }
+
+                result, err = client.SetDiscoveryModeResponder(resp)
+                if err != nil {
+                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "SetDiscoveryMode", resp, "Failure responding to request")
+                }
+
+        return
+        }
+
+        // SetDiscoveryModePreparer prepares the SetDiscoveryMode request.
+        func (client BaseClient) SetDiscoveryModePreparer(ctx context.Context, supervisorID string, mode string, config *DiscoveryConfigAPIModel) (*http.Request, error) {
+                pathParameters := map[string]interface{} {
+                "supervisorId": autorest.Encode("path",supervisorID),
+                }
+
+                        queryParameters := map[string]interface{} {
+            "mode": autorest.Encode("query",mode),
+            }
+
+            preparer := autorest.CreatePreparer(
+        autorest.AsContentType("application/json-patch+json; charset=utf-8"),
+        autorest.AsPost(),
+        autorest.WithBaseURL(client.BaseURI),
+        autorest.WithPathParameters("/v2/discovery/{supervisorId}",pathParameters),
+        autorest.WithQueryParameters(queryParameters))
+                if config != nil {
+                preparer = autorest.DecoratePreparer(preparer,
+                autorest.WithJSON(config))
+                }
+        return preparer.Prepare((&http.Request{}).WithContext(ctx))
+        }
+
+        // SetDiscoveryModeSender sends the SetDiscoveryMode request. The method will close the
+        // http.Response Body if it receives an error.
+        func (client BaseClient) SetDiscoveryModeSender(req *http.Request) (*http.Response, error) {
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
+                }
+
+    // SetDiscoveryModeResponder handles the response to the SetDiscoveryMode request. The method always
+    // closes the http.Response Body.
+    func (client BaseClient) SetDiscoveryModeResponder(resp *http.Response) (result autorest.Response, err error) {
+        err = autorest.Respond(
+        resp,
+        client.ByInspecting(),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
+        autorest.ByClosing())
+        result.Response = resp
+            return
+        }
+
+    // Subscribe register a client to receive application events through SignalR.
+        // Parameters:
+            // userID - the user that will receive application
+            // events.
+    func (client BaseClient) Subscribe(ctx context.Context, userID string) (result autorest.Response, err error) {
+        if tracing.IsEnabled() {
+            ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.Subscribe")
+            defer func() {
+                sc := -1
+                if result.Response != nil {
+                    sc = result.Response.StatusCode
+                }
+                tracing.EndSpan(ctx, sc, err)
+            }()
+        }
+            req, err := client.SubscribePreparer(ctx, userID)
+        if err != nil {
+        err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "Subscribe", nil , "Failure preparing request")
+        return
+        }
+
+                resp, err := client.SubscribeSender(req)
+                if err != nil {
+                result.Response = resp
+                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "Subscribe", resp, "Failure sending request")
+                return
+                }
+
+                result, err = client.SubscribeResponder(resp)
+                if err != nil {
+                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "Subscribe", resp, "Failure responding to request")
+                }
+
+        return
+        }
+
+        // SubscribePreparer prepares the Subscribe request.
+        func (client BaseClient) SubscribePreparer(ctx context.Context, userID string) (*http.Request, error) {
+            preparer := autorest.CreatePreparer(
+        autorest.AsContentType("application/json-patch+json; charset=utf-8"),
+        autorest.AsPut(),
+        autorest.WithBaseURL(client.BaseURI),
+        autorest.WithPath("/v2/applications/events"))
+                if len(userID) > 0 {
+                preparer = autorest.DecoratePreparer(preparer,
+                autorest.WithJSON(userID))
+                }
+        return preparer.Prepare((&http.Request{}).WithContext(ctx))
+        }
+
+        // SubscribeSender sends the Subscribe request. The method will close the
+        // http.Response Body if it receives an error.
+        func (client BaseClient) SubscribeSender(req *http.Request) (*http.Response, error) {
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
+                }
+
+    // SubscribeResponder handles the response to the Subscribe request. The method always
+    // closes the http.Response Body.
+    func (client BaseClient) SubscribeResponder(resp *http.Response) (result autorest.Response, err error) {
+        err = autorest.Respond(
+        resp,
+        client.ByInspecting(),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
+        autorest.ByClosing())
+        result.Response = resp
+            return
+        }
+
+    // Subscribe1 register a user to receive endpoint events through SignalR.
+        // Parameters:
+            // userID - the user id that will receive endpoint
+            // events.
+    func (client BaseClient) Subscribe1(ctx context.Context, userID string) (result autorest.Response, err error) {
+        if tracing.IsEnabled() {
+            ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.Subscribe1")
+            defer func() {
+                sc := -1
+                if result.Response != nil {
+                    sc = result.Response.StatusCode
+                }
+                tracing.EndSpan(ctx, sc, err)
+            }()
+        }
+            req, err := client.Subscribe1Preparer(ctx, userID)
+        if err != nil {
+        err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "Subscribe1", nil , "Failure preparing request")
+        return
+        }
+
+                resp, err := client.Subscribe1Sender(req)
+                if err != nil {
+                result.Response = resp
+                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "Subscribe1", resp, "Failure sending request")
+                return
+                }
+
+                result, err = client.Subscribe1Responder(resp)
+                if err != nil {
+                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "Subscribe1", resp, "Failure responding to request")
+                }
+
+        return
+        }
+
+        // Subscribe1Preparer prepares the Subscribe1 request.
+        func (client BaseClient) Subscribe1Preparer(ctx context.Context, userID string) (*http.Request, error) {
+            preparer := autorest.CreatePreparer(
+        autorest.AsContentType("application/json-patch+json; charset=utf-8"),
+        autorest.AsPut(),
+        autorest.WithBaseURL(client.BaseURI),
+        autorest.WithPath("/v2/endpoints/events"))
+                if len(userID) > 0 {
+                preparer = autorest.DecoratePreparer(preparer,
+                autorest.WithJSON(userID))
+                }
+        return preparer.Prepare((&http.Request{}).WithContext(ctx))
+        }
+
+        // Subscribe1Sender sends the Subscribe1 request. The method will close the
+        // http.Response Body if it receives an error.
+        func (client BaseClient) Subscribe1Sender(req *http.Request) (*http.Response, error) {
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
+                }
+
+    // Subscribe1Responder handles the response to the Subscribe1 request. The method always
+    // closes the http.Response Body.
+    func (client BaseClient) Subscribe1Responder(resp *http.Response) (result autorest.Response, err error) {
+        err = autorest.Respond(
+        resp,
+        client.ByInspecting(),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
+        autorest.ByClosing())
+        result.Response = resp
+            return
+        }
+
+    // Subscribe2 register a user to receive publisher events through SignalR.
+        // Parameters:
+            // userID - the user id that will receive publisher
+            // events.
+    func (client BaseClient) Subscribe2(ctx context.Context, userID string) (result autorest.Response, err error) {
+        if tracing.IsEnabled() {
+            ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.Subscribe2")
+            defer func() {
+                sc := -1
+                if result.Response != nil {
+                    sc = result.Response.StatusCode
+                }
+                tracing.EndSpan(ctx, sc, err)
+            }()
+        }
+            req, err := client.Subscribe2Preparer(ctx, userID)
+        if err != nil {
+        err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "Subscribe2", nil , "Failure preparing request")
+        return
+        }
+
+                resp, err := client.Subscribe2Sender(req)
+                if err != nil {
+                result.Response = resp
+                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "Subscribe2", resp, "Failure sending request")
+                return
+                }
+
+                result, err = client.Subscribe2Responder(resp)
+                if err != nil {
+                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "Subscribe2", resp, "Failure responding to request")
+                }
+
+        return
+        }
+
+        // Subscribe2Preparer prepares the Subscribe2 request.
+        func (client BaseClient) Subscribe2Preparer(ctx context.Context, userID string) (*http.Request, error) {
+            preparer := autorest.CreatePreparer(
+        autorest.AsContentType("application/json-patch+json; charset=utf-8"),
+        autorest.AsPut(),
+        autorest.WithBaseURL(client.BaseURI),
+        autorest.WithPath("/v2/publishers/events"))
+                if len(userID) > 0 {
+                preparer = autorest.DecoratePreparer(preparer,
+                autorest.WithJSON(userID))
+                }
+        return preparer.Prepare((&http.Request{}).WithContext(ctx))
+        }
+
+        // Subscribe2Sender sends the Subscribe2 request. The method will close the
+        // http.Response Body if it receives an error.
+        func (client BaseClient) Subscribe2Sender(req *http.Request) (*http.Response, error) {
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
+                }
+
+    // Subscribe2Responder handles the response to the Subscribe2 request. The method always
+    // closes the http.Response Body.
+    func (client BaseClient) Subscribe2Responder(resp *http.Response) (result autorest.Response, err error) {
+        err = autorest.Respond(
+        resp,
+        client.ByInspecting(),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
+        autorest.ByClosing())
+        result.Response = resp
+            return
+        }
+
+    // Subscribe3 register a user to receive supervisor events through SignalR.
+        // Parameters:
+            // userID - the user id that will receive supervisor
+            // events.
+    func (client BaseClient) Subscribe3(ctx context.Context, userID string) (result autorest.Response, err error) {
+        if tracing.IsEnabled() {
+            ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.Subscribe3")
+            defer func() {
+                sc := -1
+                if result.Response != nil {
+                    sc = result.Response.StatusCode
+                }
+                tracing.EndSpan(ctx, sc, err)
+            }()
+        }
+            req, err := client.Subscribe3Preparer(ctx, userID)
+        if err != nil {
+        err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "Subscribe3", nil , "Failure preparing request")
+        return
+        }
+
+                resp, err := client.Subscribe3Sender(req)
+                if err != nil {
+                result.Response = resp
+                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "Subscribe3", resp, "Failure sending request")
+                return
+                }
+
+                result, err = client.Subscribe3Responder(resp)
+                if err != nil {
+                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "Subscribe3", resp, "Failure responding to request")
+                }
+
+        return
+        }
+
+        // Subscribe3Preparer prepares the Subscribe3 request.
+        func (client BaseClient) Subscribe3Preparer(ctx context.Context, userID string) (*http.Request, error) {
+            preparer := autorest.CreatePreparer(
+        autorest.AsContentType("application/json-patch+json; charset=utf-8"),
+        autorest.AsPut(),
+        autorest.WithBaseURL(client.BaseURI),
+        autorest.WithPath("/v2/supervisors/events"))
+                if len(userID) > 0 {
+                preparer = autorest.DecoratePreparer(preparer,
+                autorest.WithJSON(userID))
+                }
+        return preparer.Prepare((&http.Request{}).WithContext(ctx))
+        }
+
+        // Subscribe3Sender sends the Subscribe3 request. The method will close the
+        // http.Response Body if it receives an error.
+        func (client BaseClient) Subscribe3Sender(req *http.Request) (*http.Response, error) {
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
+                }
+
+    // Subscribe3Responder handles the response to the Subscribe3 request. The method always
+    // closes the http.Response Body.
+    func (client BaseClient) Subscribe3Responder(resp *http.Response) (result autorest.Response, err error) {
+        err = autorest.Respond(
+        resp,
+        client.ByInspecting(),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
+        autorest.ByClosing())
+        result.Response = resp
+            return
+        }
+
+    // SubscribeByRequestID register a client to receive discovery progress events
+    // through SignalR for a particular request.
+        // Parameters:
+            // requestID - the request to monitor
+            // userID - the user id that will receive discovery
+            // events.
+    func (client BaseClient) SubscribeByRequestID(ctx context.Context, requestID string, userID string) (result autorest.Response, err error) {
+        if tracing.IsEnabled() {
+            ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.SubscribeByRequestID")
+            defer func() {
+                sc := -1
+                if result.Response != nil {
+                    sc = result.Response.StatusCode
+                }
+                tracing.EndSpan(ctx, sc, err)
+            }()
+        }
+            req, err := client.SubscribeByRequestIDPreparer(ctx, requestID, userID)
+        if err != nil {
+        err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "SubscribeByRequestID", nil , "Failure preparing request")
+        return
+        }
+
+                resp, err := client.SubscribeByRequestIDSender(req)
+                if err != nil {
+                result.Response = resp
+                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "SubscribeByRequestID", resp, "Failure sending request")
+                return
+                }
+
+                result, err = client.SubscribeByRequestIDResponder(resp)
+                if err != nil {
+                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "SubscribeByRequestID", resp, "Failure responding to request")
+                }
+
+        return
+        }
+
+        // SubscribeByRequestIDPreparer prepares the SubscribeByRequestID request.
+        func (client BaseClient) SubscribeByRequestIDPreparer(ctx context.Context, requestID string, userID string) (*http.Request, error) {
+                pathParameters := map[string]interface{} {
+                "requestId": autorest.Encode("path",requestID),
+                }
+
+            preparer := autorest.CreatePreparer(
+        autorest.AsContentType("application/json-patch+json; charset=utf-8"),
+        autorest.AsPut(),
+        autorest.WithBaseURL(client.BaseURI),
+        autorest.WithPathParameters("/v2/discovery/requests/{requestId}/events",pathParameters))
+                if len(userID) > 0 {
+                preparer = autorest.DecoratePreparer(preparer,
+                autorest.WithJSON(userID))
+                }
+        return preparer.Prepare((&http.Request{}).WithContext(ctx))
+        }
+
+        // SubscribeByRequestIDSender sends the SubscribeByRequestID request. The method will close the
+        // http.Response Body if it receives an error.
+        func (client BaseClient) SubscribeByRequestIDSender(req *http.Request) (*http.Response, error) {
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
+                }
+
+    // SubscribeByRequestIDResponder handles the response to the SubscribeByRequestID request. The method always
+    // closes the http.Response Body.
+    func (client BaseClient) SubscribeByRequestIDResponder(resp *http.Response) (result autorest.Response, err error) {
+        err = autorest.Respond(
+        resp,
+        client.ByInspecting(),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
+        autorest.ByClosing())
+        result.Response = resp
+            return
+        }
+
+    // SubscribeBySupervisorID register a client to receive discovery progress
+    // events
+    // through SignalR from a particular supervisor.
+        // Parameters:
+            // supervisorID - the supervisor to subscribe to
+            // userID - the user id that will receive discovery
+            // events.
+    func (client BaseClient) SubscribeBySupervisorID(ctx context.Context, supervisorID string, userID string) (result autorest.Response, err error) {
+        if tracing.IsEnabled() {
+            ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.SubscribeBySupervisorID")
+            defer func() {
+                sc := -1
+                if result.Response != nil {
+                    sc = result.Response.StatusCode
+                }
+                tracing.EndSpan(ctx, sc, err)
+            }()
+        }
+            req, err := client.SubscribeBySupervisorIDPreparer(ctx, supervisorID, userID)
+        if err != nil {
+        err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "SubscribeBySupervisorID", nil , "Failure preparing request")
+        return
+        }
+
+                resp, err := client.SubscribeBySupervisorIDSender(req)
+                if err != nil {
+                result.Response = resp
+                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "SubscribeBySupervisorID", resp, "Failure sending request")
+                return
+                }
+
+                result, err = client.SubscribeBySupervisorIDResponder(resp)
+                if err != nil {
+                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "SubscribeBySupervisorID", resp, "Failure responding to request")
+                }
+
+        return
+        }
+
+        // SubscribeBySupervisorIDPreparer prepares the SubscribeBySupervisorID request.
+        func (client BaseClient) SubscribeBySupervisorIDPreparer(ctx context.Context, supervisorID string, userID string) (*http.Request, error) {
+                pathParameters := map[string]interface{} {
+                "supervisorId": autorest.Encode("path",supervisorID),
+                }
+
+            preparer := autorest.CreatePreparer(
+        autorest.AsContentType("application/json-patch+json; charset=utf-8"),
+        autorest.AsPut(),
+        autorest.WithBaseURL(client.BaseURI),
+        autorest.WithPathParameters("/v2/discovery/{supervisorId}/events",pathParameters))
+                if len(userID) > 0 {
+                preparer = autorest.DecoratePreparer(preparer,
+                autorest.WithJSON(userID))
+                }
+        return preparer.Prepare((&http.Request{}).WithContext(ctx))
+        }
+
+        // SubscribeBySupervisorIDSender sends the SubscribeBySupervisorID request. The method will close the
+        // http.Response Body if it receives an error.
+        func (client BaseClient) SubscribeBySupervisorIDSender(req *http.Request) (*http.Response, error) {
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
+                }
+
+    // SubscribeBySupervisorIDResponder handles the response to the SubscribeBySupervisorID request. The method always
+    // closes the http.Response Body.
+    func (client BaseClient) SubscribeBySupervisorIDResponder(resp *http.Response) (result autorest.Response, err error) {
+        err = autorest.Respond(
+        resp,
+        client.ByInspecting(),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
+        autorest.ByClosing())
+        result.Response = resp
+            return
+        }
+
+    // Unsubscribe unregister a user and stop it from receiving events.
+        // Parameters:
+            // userID - the user id that will not receive
+            // any more events
+    func (client BaseClient) Unsubscribe(ctx context.Context, userID string) (result autorest.Response, err error) {
+        if tracing.IsEnabled() {
+            ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.Unsubscribe")
+            defer func() {
+                sc := -1
+                if result.Response != nil {
+                    sc = result.Response.StatusCode
+                }
+                tracing.EndSpan(ctx, sc, err)
+            }()
+        }
+            req, err := client.UnsubscribePreparer(ctx, userID)
+        if err != nil {
+        err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "Unsubscribe", nil , "Failure preparing request")
+        return
+        }
+
+                resp, err := client.UnsubscribeSender(req)
+                if err != nil {
+                result.Response = resp
+                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "Unsubscribe", resp, "Failure sending request")
+                return
+                }
+
+                result, err = client.UnsubscribeResponder(resp)
+                if err != nil {
+                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "Unsubscribe", resp, "Failure responding to request")
+                }
+
+        return
+        }
+
+        // UnsubscribePreparer prepares the Unsubscribe request.
+        func (client BaseClient) UnsubscribePreparer(ctx context.Context, userID string) (*http.Request, error) {
+                pathParameters := map[string]interface{} {
+                "userId": autorest.Encode("path",userID),
+                }
+
+            preparer := autorest.CreatePreparer(
+        autorest.AsDelete(),
+        autorest.WithBaseURL(client.BaseURI),
+        autorest.WithPathParameters("/v2/applications/events/{userId}",pathParameters))
+        return preparer.Prepare((&http.Request{}).WithContext(ctx))
+        }
+
+        // UnsubscribeSender sends the Unsubscribe request. The method will close the
+        // http.Response Body if it receives an error.
+        func (client BaseClient) UnsubscribeSender(req *http.Request) (*http.Response, error) {
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
+                }
+
+    // UnsubscribeResponder handles the response to the Unsubscribe request. The method always
+    // closes the http.Response Body.
+    func (client BaseClient) UnsubscribeResponder(resp *http.Response) (result autorest.Response, err error) {
+        err = autorest.Respond(
+        resp,
+        client.ByInspecting(),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
+        autorest.ByClosing())
+        result.Response = resp
+            return
+        }
+
+    // Unsubscribe1 unregister a user and stop it from receiving endpoint events.
+        // Parameters:
+            // userID - the user id that will not receive
+            // any more endpoint events
+    func (client BaseClient) Unsubscribe1(ctx context.Context, userID string) (result autorest.Response, err error) {
+        if tracing.IsEnabled() {
+            ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.Unsubscribe1")
+            defer func() {
+                sc := -1
+                if result.Response != nil {
+                    sc = result.Response.StatusCode
+                }
+                tracing.EndSpan(ctx, sc, err)
+            }()
+        }
+            req, err := client.Unsubscribe1Preparer(ctx, userID)
+        if err != nil {
+        err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "Unsubscribe1", nil , "Failure preparing request")
+        return
+        }
+
+                resp, err := client.Unsubscribe1Sender(req)
+                if err != nil {
+                result.Response = resp
+                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "Unsubscribe1", resp, "Failure sending request")
+                return
+                }
+
+                result, err = client.Unsubscribe1Responder(resp)
+                if err != nil {
+                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "Unsubscribe1", resp, "Failure responding to request")
+                }
+
+        return
+        }
+
+        // Unsubscribe1Preparer prepares the Unsubscribe1 request.
+        func (client BaseClient) Unsubscribe1Preparer(ctx context.Context, userID string) (*http.Request, error) {
+                pathParameters := map[string]interface{} {
+                "userId": autorest.Encode("path",userID),
+                }
+
+            preparer := autorest.CreatePreparer(
+        autorest.AsDelete(),
+        autorest.WithBaseURL(client.BaseURI),
+        autorest.WithPathParameters("/v2/endpoints/events/{userId}",pathParameters))
+        return preparer.Prepare((&http.Request{}).WithContext(ctx))
+        }
+
+        // Unsubscribe1Sender sends the Unsubscribe1 request. The method will close the
+        // http.Response Body if it receives an error.
+        func (client BaseClient) Unsubscribe1Sender(req *http.Request) (*http.Response, error) {
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
+                }
+
+    // Unsubscribe1Responder handles the response to the Unsubscribe1 request. The method always
+    // closes the http.Response Body.
+    func (client BaseClient) Unsubscribe1Responder(resp *http.Response) (result autorest.Response, err error) {
+        err = autorest.Respond(
+        resp,
+        client.ByInspecting(),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
+        autorest.ByClosing())
+        result.Response = resp
+            return
+        }
+
+    // Unsubscribe2 unregister a user and stop it from receiving publisher events.
+        // Parameters:
+            // userID - the user id that will not receive
+            // any more publisher events
+    func (client BaseClient) Unsubscribe2(ctx context.Context, userID string) (result autorest.Response, err error) {
+        if tracing.IsEnabled() {
+            ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.Unsubscribe2")
+            defer func() {
+                sc := -1
+                if result.Response != nil {
+                    sc = result.Response.StatusCode
+                }
+                tracing.EndSpan(ctx, sc, err)
+            }()
+        }
+            req, err := client.Unsubscribe2Preparer(ctx, userID)
+        if err != nil {
+        err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "Unsubscribe2", nil , "Failure preparing request")
+        return
+        }
+
+                resp, err := client.Unsubscribe2Sender(req)
+                if err != nil {
+                result.Response = resp
+                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "Unsubscribe2", resp, "Failure sending request")
+                return
+                }
+
+                result, err = client.Unsubscribe2Responder(resp)
+                if err != nil {
+                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "Unsubscribe2", resp, "Failure responding to request")
+                }
+
+        return
+        }
+
+        // Unsubscribe2Preparer prepares the Unsubscribe2 request.
+        func (client BaseClient) Unsubscribe2Preparer(ctx context.Context, userID string) (*http.Request, error) {
+                pathParameters := map[string]interface{} {
+                "userId": autorest.Encode("path",userID),
+                }
+
+            preparer := autorest.CreatePreparer(
+        autorest.AsDelete(),
+        autorest.WithBaseURL(client.BaseURI),
+        autorest.WithPathParameters("/v2/publishers/events/{userId}",pathParameters))
+        return preparer.Prepare((&http.Request{}).WithContext(ctx))
+        }
+
+        // Unsubscribe2Sender sends the Unsubscribe2 request. The method will close the
+        // http.Response Body if it receives an error.
+        func (client BaseClient) Unsubscribe2Sender(req *http.Request) (*http.Response, error) {
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
+                }
+
+    // Unsubscribe2Responder handles the response to the Unsubscribe2 request. The method always
+    // closes the http.Response Body.
+    func (client BaseClient) Unsubscribe2Responder(resp *http.Response) (result autorest.Response, err error) {
+        err = autorest.Respond(
+        resp,
+        client.ByInspecting(),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
+        autorest.ByClosing())
+        result.Response = resp
+            return
+        }
+
+    // Unsubscribe3 unregister a user and stop it from receiving supervisor events.
+        // Parameters:
+            // userID - the user id that will not receive
+            // any more supervisor events
+    func (client BaseClient) Unsubscribe3(ctx context.Context, userID string) (result autorest.Response, err error) {
+        if tracing.IsEnabled() {
+            ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.Unsubscribe3")
+            defer func() {
+                sc := -1
+                if result.Response != nil {
+                    sc = result.Response.StatusCode
+                }
+                tracing.EndSpan(ctx, sc, err)
+            }()
+        }
+            req, err := client.Unsubscribe3Preparer(ctx, userID)
+        if err != nil {
+        err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "Unsubscribe3", nil , "Failure preparing request")
+        return
+        }
+
+                resp, err := client.Unsubscribe3Sender(req)
+                if err != nil {
+                result.Response = resp
+                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "Unsubscribe3", resp, "Failure sending request")
+                return
+                }
+
+                result, err = client.Unsubscribe3Responder(resp)
+                if err != nil {
+                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "Unsubscribe3", resp, "Failure responding to request")
+                }
+
+        return
+        }
+
+        // Unsubscribe3Preparer prepares the Unsubscribe3 request.
+        func (client BaseClient) Unsubscribe3Preparer(ctx context.Context, userID string) (*http.Request, error) {
+                pathParameters := map[string]interface{} {
+                "userId": autorest.Encode("path",userID),
+                }
+
+            preparer := autorest.CreatePreparer(
+        autorest.AsDelete(),
+        autorest.WithBaseURL(client.BaseURI),
+        autorest.WithPathParameters("/v2/supervisors/events/{userId}",pathParameters))
+        return preparer.Prepare((&http.Request{}).WithContext(ctx))
+        }
+
+        // Unsubscribe3Sender sends the Unsubscribe3 request. The method will close the
+        // http.Response Body if it receives an error.
+        func (client BaseClient) Unsubscribe3Sender(req *http.Request) (*http.Response, error) {
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
+                }
+
+    // Unsubscribe3Responder handles the response to the Unsubscribe3 request. The method always
+    // closes the http.Response Body.
+    func (client BaseClient) Unsubscribe3Responder(resp *http.Response) (result autorest.Response, err error) {
+        err = autorest.Respond(
+        resp,
+        client.ByInspecting(),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
+        autorest.ByClosing())
+        result.Response = resp
+            return
+        }
+
+    // UnsubscribeByRequestID unregister a client and stop it from receiving
+    // discovery
+    // events for a particular request.
+        // Parameters:
+            // requestID - the request to unsubscribe from
+            // userID - the user id that will not receive
+            // any more discovery progress
+    func (client BaseClient) UnsubscribeByRequestID(ctx context.Context, requestID string, userID string) (result autorest.Response, err error) {
+        if tracing.IsEnabled() {
+            ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.UnsubscribeByRequestID")
+            defer func() {
+                sc := -1
+                if result.Response != nil {
+                    sc = result.Response.StatusCode
+                }
+                tracing.EndSpan(ctx, sc, err)
+            }()
+        }
+            req, err := client.UnsubscribeByRequestIDPreparer(ctx, requestID, userID)
+        if err != nil {
+        err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "UnsubscribeByRequestID", nil , "Failure preparing request")
+        return
+        }
+
+                resp, err := client.UnsubscribeByRequestIDSender(req)
+                if err != nil {
+                result.Response = resp
+                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "UnsubscribeByRequestID", resp, "Failure sending request")
+                return
+                }
+
+                result, err = client.UnsubscribeByRequestIDResponder(resp)
+                if err != nil {
+                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "UnsubscribeByRequestID", resp, "Failure responding to request")
+                }
+
+        return
+        }
+
+        // UnsubscribeByRequestIDPreparer prepares the UnsubscribeByRequestID request.
+        func (client BaseClient) UnsubscribeByRequestIDPreparer(ctx context.Context, requestID string, userID string) (*http.Request, error) {
+                pathParameters := map[string]interface{} {
+                "requestId": autorest.Encode("path",requestID),
+                "userId": autorest.Encode("path",userID),
+                }
+
+            preparer := autorest.CreatePreparer(
+        autorest.AsDelete(),
+        autorest.WithBaseURL(client.BaseURI),
+        autorest.WithPathParameters("/v2/discovery/requests/{requestId}/events/{userId}",pathParameters))
+        return preparer.Prepare((&http.Request{}).WithContext(ctx))
+        }
+
+        // UnsubscribeByRequestIDSender sends the UnsubscribeByRequestID request. The method will close the
+        // http.Response Body if it receives an error.
+        func (client BaseClient) UnsubscribeByRequestIDSender(req *http.Request) (*http.Response, error) {
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
+                }
+
+    // UnsubscribeByRequestIDResponder handles the response to the UnsubscribeByRequestID request. The method always
+    // closes the http.Response Body.
+    func (client BaseClient) UnsubscribeByRequestIDResponder(resp *http.Response) (result autorest.Response, err error) {
+        err = autorest.Respond(
+        resp,
+        client.ByInspecting(),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
+        autorest.ByClosing())
+        result.Response = resp
+            return
+        }
+
+    // UnsubscribeBySupervisorID unregister a client and stop it from receiving
+    // discovery events.
+        // Parameters:
+            // supervisorID - the supervisor to unsubscribe from
+            // userID - the user id that will not receive
+            // any more discovery progress
+    func (client BaseClient) UnsubscribeBySupervisorID(ctx context.Context, supervisorID string, userID string) (result autorest.Response, err error) {
+        if tracing.IsEnabled() {
+            ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.UnsubscribeBySupervisorID")
+            defer func() {
+                sc := -1
+                if result.Response != nil {
+                    sc = result.Response.StatusCode
+                }
+                tracing.EndSpan(ctx, sc, err)
+            }()
+        }
+            req, err := client.UnsubscribeBySupervisorIDPreparer(ctx, supervisorID, userID)
+        if err != nil {
+        err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "UnsubscribeBySupervisorID", nil , "Failure preparing request")
+        return
+        }
+
+                resp, err := client.UnsubscribeBySupervisorIDSender(req)
+                if err != nil {
+                result.Response = resp
+                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "UnsubscribeBySupervisorID", resp, "Failure sending request")
+                return
+                }
+
+                result, err = client.UnsubscribeBySupervisorIDResponder(resp)
+                if err != nil {
+                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "UnsubscribeBySupervisorID", resp, "Failure responding to request")
+                }
+
+        return
+        }
+
+        // UnsubscribeBySupervisorIDPreparer prepares the UnsubscribeBySupervisorID request.
+        func (client BaseClient) UnsubscribeBySupervisorIDPreparer(ctx context.Context, supervisorID string, userID string) (*http.Request, error) {
+                pathParameters := map[string]interface{} {
+                "supervisorId": autorest.Encode("path",supervisorID),
+                "userId": autorest.Encode("path",userID),
+                }
+
+            preparer := autorest.CreatePreparer(
+        autorest.AsDelete(),
+        autorest.WithBaseURL(client.BaseURI),
+        autorest.WithPathParameters("/v2/discovery/{supervisorId}/events/{userId}",pathParameters))
+        return preparer.Prepare((&http.Request{}).WithContext(ctx))
+        }
+
+        // UnsubscribeBySupervisorIDSender sends the UnsubscribeBySupervisorID request. The method will close the
+        // http.Response Body if it receives an error.
+        func (client BaseClient) UnsubscribeBySupervisorIDSender(req *http.Request) (*http.Response, error) {
+            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+                return autorest.SendWithSender(client, req, sd...)
+                }
+
+    // UnsubscribeBySupervisorIDResponder handles the response to the UnsubscribeBySupervisorID request. The method always
+    // closes the http.Response Body.
+    func (client BaseClient) UnsubscribeBySupervisorIDResponder(resp *http.Response) (result autorest.Response, err error) {
+        err = autorest.Respond(
+        resp,
+        client.ByInspecting(),
+        azure.WithErrorUnlessStatusCode(http.StatusOK),
+        autorest.ByClosing())
+        result.Response = resp
+            return
+        }
+
     // UpdateApplicationRegistration the application information is updated with
     // new properties.  Note that
     // this information might be overridden if the application is re-discovered
@@ -2257,13 +3619,15 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             return
         }
 
-    // UpdateEndpoint sends the update endpoint request.
+    // UpdatePublisher allows a caller to configure operations on the publisher
+    // module
+    // identified by the publisher id.
         // Parameters:
-            // endpointID - endpoint identifier
-            // request - endpoint update request
-    func (client BaseClient) UpdateEndpoint(ctx context.Context, endpointID string, request EndpointRegistrationUpdateAPIModel) (result autorest.Response, err error) {
+            // publisherID - publisher identifier
+            // request - patch request
+    func (client BaseClient) UpdatePublisher(ctx context.Context, publisherID string, request PublisherUpdateAPIModel) (result autorest.Response, err error) {
         if tracing.IsEnabled() {
-            ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.UpdateEndpoint")
+            ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.UpdatePublisher")
             defer func() {
                 sc := -1
                 if result.Response != nil {
@@ -2272,52 +3636,52 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 tracing.EndSpan(ctx, sc, err)
             }()
         }
-            req, err := client.UpdateEndpointPreparer(ctx, endpointID, request)
+            req, err := client.UpdatePublisherPreparer(ctx, publisherID, request)
         if err != nil {
-        err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "UpdateEndpoint", nil , "Failure preparing request")
+        err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "UpdatePublisher", nil , "Failure preparing request")
         return
         }
 
-                resp, err := client.UpdateEndpointSender(req)
+                resp, err := client.UpdatePublisherSender(req)
                 if err != nil {
                 result.Response = resp
-                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "UpdateEndpoint", resp, "Failure sending request")
+                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "UpdatePublisher", resp, "Failure sending request")
                 return
                 }
 
-                result, err = client.UpdateEndpointResponder(resp)
+                result, err = client.UpdatePublisherResponder(resp)
                 if err != nil {
-                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "UpdateEndpoint", resp, "Failure responding to request")
+                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "UpdatePublisher", resp, "Failure responding to request")
                 }
 
         return
         }
 
-        // UpdateEndpointPreparer prepares the UpdateEndpoint request.
-        func (client BaseClient) UpdateEndpointPreparer(ctx context.Context, endpointID string, request EndpointRegistrationUpdateAPIModel) (*http.Request, error) {
+        // UpdatePublisherPreparer prepares the UpdatePublisher request.
+        func (client BaseClient) UpdatePublisherPreparer(ctx context.Context, publisherID string, request PublisherUpdateAPIModel) (*http.Request, error) {
                 pathParameters := map[string]interface{} {
-                "endpointId": autorest.Encode("path",endpointID),
+                "publisherId": autorest.Encode("path",publisherID),
                 }
 
             preparer := autorest.CreatePreparer(
         autorest.AsContentType("application/json-patch+json; charset=utf-8"),
         autorest.AsPatch(),
         autorest.WithBaseURL(client.BaseURI),
-        autorest.WithPathParameters("/v2/endpoints/{endpointId}",pathParameters),
+        autorest.WithPathParameters("/v2/publishers/{publisherId}",pathParameters),
         autorest.WithJSON(request))
         return preparer.Prepare((&http.Request{}).WithContext(ctx))
         }
 
-        // UpdateEndpointSender sends the UpdateEndpoint request. The method will close the
+        // UpdatePublisherSender sends the UpdatePublisher request. The method will close the
         // http.Response Body if it receives an error.
-        func (client BaseClient) UpdateEndpointSender(req *http.Request) (*http.Response, error) {
+        func (client BaseClient) UpdatePublisherSender(req *http.Request) (*http.Response, error) {
             sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
                 return autorest.SendWithSender(client, req, sd...)
                 }
 
-    // UpdateEndpointResponder handles the response to the UpdateEndpoint request. The method always
+    // UpdatePublisherResponder handles the response to the UpdatePublisher request. The method always
     // closes the http.Response Body.
-    func (client BaseClient) UpdateEndpointResponder(resp *http.Response) (result autorest.Response, err error) {
+    func (client BaseClient) UpdatePublisherResponder(resp *http.Response) (result autorest.Response, err error) {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),

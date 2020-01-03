@@ -1,0 +1,197 @@
+﻿// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------
+
+namespace Microsoft.Azure.IIoT.Services.Common.Hub.Edgemanager {
+    using Microsoft.Azure.IIoT.Services.Common.Hub.Edgemanager.Runtime;
+    using Microsoft.Azure.IIoT.Services.Common.Hub.Edgemanager.v2;
+    using Microsoft.Azure.IIoT.Services.Cors;
+    using Microsoft.Azure.IIoT.Services.Auth;
+    using Microsoft.Azure.IIoT.Hub.Client;
+    using Microsoft.Azure.IIoT.Hub.Services;
+    using Microsoft.Azure.IIoT.Diagnostics;
+    using Microsoft.Azure.IIoT.Utils;
+    using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Logging;
+    using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Hosting;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy;
+    using Microsoft.Azure.IIoT.OpcUa.Twin.Deploy;
+    using Autofac;
+    using Autofac.Extensions.DependencyInjection;
+    using Swashbuckle.AspNetCore.Swagger;
+    using System;
+    using ILogger = Serilog.ILogger;
+    using Newtonsoft.Json;
+
+    /// <summary>
+    /// Webservice startup
+    /// </summary>
+    public class Startup {
+
+        /// <summary>
+        /// Configuration - Initialized in constructor
+        /// </summary>
+        public Config Config { get; }
+
+        /// <summary>
+        /// Service info - Initialized in constructor
+        /// </summary>
+        public ServiceInfo ServiceInfo { get; } = new ServiceInfo();
+
+        /// <summary>
+        /// Current hosting environment - Initialized in constructor
+        /// </summary>
+        public IHostingEnvironment Environment { get; }
+
+        /// <summary>
+        /// Create startup
+        /// </summary>
+        /// <param name="env"></param>
+        /// <param name="configuration"></param>
+        public Startup(IHostingEnvironment env, IConfiguration configuration) :
+            this(env, new Config(new ConfigurationBuilder()
+                .AddConfiguration(configuration)
+                .AddEnvironmentVariables()
+                .AddEnvironmentVariables(EnvironmentVariableTarget.User)
+                .AddFromDotEnvFile()
+                .AddFromKeyVault()
+                .Build())) {
+        }
+
+        /// <summary>
+        /// Create startup
+        /// </summary>
+        /// <param name="env"></param>
+        /// <param name="configuration"></param>
+        public Startup(IHostingEnvironment env, Config configuration) {
+            Environment = env;
+            Config = configuration;
+        }
+
+        /// <summary>
+        /// This is where you register dependencies, add services to the
+        /// container. This method is called by the runtime, before the
+        /// Configure method below.
+        /// </summary>
+        /// <param name="services"></param>
+        /// <returns></returns>
+        public void ConfigureServices(IServiceCollection services) {
+
+            services.AddLogging(o => o.AddConsole().AddDebug());
+
+            // Setup (not enabling yet) CORS
+            services.AddCors();
+            services.AddHealthChecks();
+
+            // Add authentication
+            services.AddJwtBearerAuthentication(Config,
+                Environment.IsDevelopment());
+
+            // Add authorization
+            services.AddAuthorization(options => {
+                options.AddPolicies(Config.AuthRequired,
+                    Config.UseRoles && !Environment.IsDevelopment());
+            });
+
+            // Add controllers as services so they'll be resolved.
+            services.AddMvc()
+                .AddApplicationPart(GetType().Assembly)
+                .AddControllersAsServices()
+                .AddJsonOptions(options => {
+                    options.SerializerSettings.Formatting = Formatting.Indented;
+                    options.SerializerSettings.Converters.Add(new ExceptionConverter(
+                        Environment.IsDevelopment()));
+                    options.SerializerSettings.MaxDepth = 10;
+                });
+
+            services.AddSwagger(Config, new Info {
+                Title = ServiceInfo.Name,
+                Version = VersionInfo.PATH,
+                Description = ServiceInfo.Description,
+            });
+        }
+
+        /// <summary>
+        /// This method is called by the runtime, after the ConfigureServices
+        /// method above and used to add middleware
+        /// </summary>
+        /// <param name="app"></param>
+        /// <param name="appLifetime"></param>
+        public void Configure(IApplicationBuilder app, IApplicationLifetime appLifetime) {
+            var applicationContainer = app.ApplicationServices.GetAutofacRoot();
+            var log = applicationContainer.Resolve<ILogger>();
+
+            if (Config.AuthRequired) {
+                app.UseAuthentication();
+            }
+            if (Config.HttpsRedirectPort > 0) {
+                // app.UseHsts();
+                app.UseHttpsRedirection();
+            }
+
+            app.EnableCors();
+            app.UseCorrelation();
+            app.UseSwagger(new Info {
+                Title = ServiceInfo.Name,
+                Version = VersionInfo.PATH,
+                Description = ServiceInfo.Description,
+            });
+
+            app.UseMvc();
+            app.UseHealthChecks("/healthz");
+
+            // If you want to dispose of resources that have been resolved in the
+            // application container, register for the "ApplicationStopped" event.
+            appLifetime.ApplicationStopped.Register(applicationContainer.Dispose);
+
+            // Print some useful information at bootstrap time
+            log.Information("{service} web service started with id {id}", ServiceInfo.Name,
+                Uptime.ProcessId);
+        }
+
+        /// <summary>
+        /// Autofac configuration.
+        /// </summary>
+        /// <param name="builder"></param>
+        public virtual void ConfigureContainer(ContainerBuilder builder) {
+
+            builder.RegisterInstance(Config)
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterInstance(Config.Configuration)
+                .AsImplementedInterfaces().SingleInstance();
+
+            // Register logger
+            builder.AddDiagnostics(Config);
+
+            // Register metrics logger
+            builder.RegisterType<MetricsLogger>()
+                .AsImplementedInterfaces().SingleInstance();
+
+            // CORS setup
+            builder.RegisterType<CorsSetup>()
+                .AsImplementedInterfaces().SingleInstance();
+
+            builder.RegisterType<IoTHubServiceClient>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<IoTHubEdgeBaseDeployment>()
+                .AsImplementedInterfaces().SingleInstance();
+
+            // TODO - use service client everywhere and move to publisher and twin service
+            // TODO - then remove references
+            builder.RegisterType<IoTHubPublisherDeployment>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<IoTHubSupervisorDeployment>()
+                .AsImplementedInterfaces().SingleInstance();
+            // builder.RegisterType<IoTHubDiscoveryDeployment>()
+            //     .AsImplementedInterfaces().SingleInstance();
+
+            // ... and auto start
+            builder.RegisterType<HostAutoStart>()
+                .AutoActivate()
+                .AsImplementedInterfaces().SingleInstance();
+        }
+    }
+}

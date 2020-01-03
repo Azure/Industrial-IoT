@@ -5,7 +5,6 @@
 
 namespace Opc.Ua.Encoders {
     using Opc.Ua.Models;
-    using Opc.Ua;
     using System;
     using Xunit;
     using System.Globalization;

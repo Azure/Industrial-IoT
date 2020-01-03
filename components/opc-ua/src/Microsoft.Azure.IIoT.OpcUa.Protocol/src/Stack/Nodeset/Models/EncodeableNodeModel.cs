@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Opc.Ua.Nodeset {
-    using Opc.Ua;
     using Opc.Ua.Extensions;
     using System;
     using System.Linq;

@@ -6,4 +6,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Description>Azure Industrial IoT common abstractions and primitives</Description>
   </PropertyGroup>
+  <ItemGroup>
+    <Folder Include="Hosting\" />
+  </ItemGroup>
 </Project>

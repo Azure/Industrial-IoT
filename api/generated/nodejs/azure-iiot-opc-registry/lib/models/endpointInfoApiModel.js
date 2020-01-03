@@ -22,6 +22,8 @@ class EndpointInfoApiModel {
    * @property {string} [registration.endpointUrl] Original endpoint url of the
    * endpoint
    * @property {string} [registration.siteId] Registered site of the endpoint
+   * @property {string} [registration.supervisorId] Supervisor that registered
+   * the endpoint.
    * @property {object} [registration.endpoint] Endpoint information of the
    * registration
    * @property {string} [registration.endpoint.url] Endpoint url to use to
@@ -29,11 +31,6 @@ class EndpointInfoApiModel {
    * @property {array} [registration.endpoint.alternativeUrls] Alternative
    * endpoint urls that can be used for
    * accessing and validating the server
-   * @property {object} [registration.endpoint.user] User Authentication
-   * @property {string} [registration.endpoint.user.type] Type of credential.
-   * Possible values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
-   * @property {object} [registration.endpoint.user.value] Value to pass to
-   * server
    * @property {string} [registration.endpoint.securityMode] Security Mode to
    * use for communication
    * default to best. Possible values include: 'Best', 'Sign',

@@ -700,7 +700,7 @@ export default class AzureOpcTwinClient extends ServiceClient {
    *
    * @param {object} request The method metadata request
    *
-   * @param {string} request.methodId Method id of method to call.
+   * @param {string} [request.methodId] Method id of method to call.
    * (Required)
    *
    * @param {array} [request.methodBrowsePath] An optional component path from
@@ -758,7 +758,7 @@ export default class AzureOpcTwinClient extends ServiceClient {
    *
    * @param {object} request The method metadata request
    *
-   * @param {string} request.methodId Method id of method to call.
+   * @param {string} [request.methodId] Method id of method to call.
    * (Required)
    *
    * @param {array} [request.methodBrowsePath] An optional component path from
@@ -983,432 +983,6 @@ export default class AzureOpcTwinClient extends ServiceClient {
 
 
   /**
-   * @summary Start publishing node values
-   *
-   * Start publishing variable node values to IoT Hub.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
-   *
-   * @param {string} endpointId The identifier of the activated endpoint.
-   *
-   * @param {object} request The publish request
-   *
-   * @param {object} request.item Item to publish
-   *
-   * @param {string} request.item.nodeId Node to monitor
-   *
-   * @param {array} [request.item.browsePath] An optional path from NodeId
-   * instance to
-   * the actual node.
-   *
-   * @param {string} [request.item.nodeAttribute] Attribute to monitor. Possible
-   * values include: 'NodeClass', 'BrowseName', 'DisplayName', 'Description',
-   * 'WriteMask', 'UserWriteMask', 'IsAbstract', 'Symmetric', 'InverseName',
-   * 'ContainsNoLoops', 'EventNotifier', 'Value', 'DataType', 'ValueRank',
-   * 'ArrayDimensions', 'AccessLevel', 'UserAccessLevel',
-   * 'MinimumSamplingInterval', 'Historizing', 'Executable', 'UserExecutable',
-   * 'DataTypeDefinition', 'RolePermissions', 'UserRolePermissions',
-   * 'AccessRestrictions'
-   *
-   * @param {number} [request.item.publishingInterval] Publishing interval to use
-   *
-   * @param {number} [request.item.samplingInterval] Sampling interval to use
-   *
-   * @param {object} [request.header] Optional request header
-   *
-   * @param {object} [request.header.elevation] Optional User elevation
-   *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
-   *
-   * @param {object} [request.header.elevation.value] Value to pass to server
-   *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
-   *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
-   *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
-   *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
-   * (default: client generated)
-   *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
-   * (default: client generated)
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<PublishStartResponseApiModel>} - The deserialized result object.
-   *
-   * @reject {Error|ServiceError} - The error object.
-   */
-  startPublishingValuesWithHttpOperationResponse(endpointId: string, request: models.PublishStartRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.PublishStartResponseApiModel>>;
-
-  /**
-   * @summary Start publishing node values
-   *
-   * Start publishing variable node values to IoT Hub.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
-   *
-   * @param {string} endpointId The identifier of the activated endpoint.
-   *
-   * @param {object} request The publish request
-   *
-   * @param {object} request.item Item to publish
-   *
-   * @param {string} request.item.nodeId Node to monitor
-   *
-   * @param {array} [request.item.browsePath] An optional path from NodeId
-   * instance to
-   * the actual node.
-   *
-   * @param {string} [request.item.nodeAttribute] Attribute to monitor. Possible
-   * values include: 'NodeClass', 'BrowseName', 'DisplayName', 'Description',
-   * 'WriteMask', 'UserWriteMask', 'IsAbstract', 'Symmetric', 'InverseName',
-   * 'ContainsNoLoops', 'EventNotifier', 'Value', 'DataType', 'ValueRank',
-   * 'ArrayDimensions', 'AccessLevel', 'UserAccessLevel',
-   * 'MinimumSamplingInterval', 'Historizing', 'Executable', 'UserExecutable',
-   * 'DataTypeDefinition', 'RolePermissions', 'UserRolePermissions',
-   * 'AccessRestrictions'
-   *
-   * @param {number} [request.item.publishingInterval] Publishing interval to use
-   *
-   * @param {number} [request.item.samplingInterval] Sampling interval to use
-   *
-   * @param {object} [request.header] Optional request header
-   *
-   * @param {object} [request.header.elevation] Optional User elevation
-   *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
-   *
-   * @param {object} [request.header.elevation.value] Value to pass to server
-   *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
-   *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
-   *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
-   *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
-   * (default: client generated)
-   *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
-   * (default: client generated)
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {ServiceCallback} [optionalCallback] - The optional callback.
-   *
-   * @returns {ServiceCallback|Promise} If a callback was passed as the last
-   * parameter then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned.
-   *
-   *                      @resolve {PublishStartResponseApiModel} - The deserialized result object.
-   *
-   *                      @reject {Error|ServiceError} - The error object.
-   *
-   * {ServiceCallback} optionalCallback(err, result, request, response)
-   *
-   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {PublishStartResponseApiModel} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link PublishStartResponseApiModel} for more
-   *                      information.
-   *
-   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
-   */
-  startPublishingValues(endpointId: string, request: models.PublishStartRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.PublishStartResponseApiModel>;
-  startPublishingValues(endpointId: string, request: models.PublishStartRequestApiModel, callback: ServiceCallback<models.PublishStartResponseApiModel>): void;
-  startPublishingValues(endpointId: string, request: models.PublishStartRequestApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.PublishStartResponseApiModel>): void;
-
-
-  /**
-   * @summary Stop publishing node values
-   *
-   * Stop publishing variable node values to IoT Hub.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
-   *
-   * @param {string} endpointId The identifier of the activated endpoint.
-   *
-   * @param {object} request The unpublish request
-   *
-   * @param {string} request.nodeId Node of published item to unpublish
-   *
-   * @param {array} [request.browsePath] An optional path from NodeId instance to
-   * the actual node.
-   *
-   * @param {string} [request.nodeAttribute] Attribute of item to unpublish.
-   * Possible values include: 'NodeClass', 'BrowseName', 'DisplayName',
-   * 'Description', 'WriteMask', 'UserWriteMask', 'IsAbstract', 'Symmetric',
-   * 'InverseName', 'ContainsNoLoops', 'EventNotifier', 'Value', 'DataType',
-   * 'ValueRank', 'ArrayDimensions', 'AccessLevel', 'UserAccessLevel',
-   * 'MinimumSamplingInterval', 'Historizing', 'Executable', 'UserExecutable',
-   * 'DataTypeDefinition', 'RolePermissions', 'UserRolePermissions',
-   * 'AccessRestrictions'
-   *
-   * @param {object} [request.diagnostics] Optional diagnostics configuration
-   *
-   * @param {string} [request.diagnostics.level] Requested level of response
-   * diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
-   *
-   * @param {string} [request.diagnostics.auditId] Client audit log entry.
-   * (default: client generated)
-   *
-   * @param {date} [request.diagnostics.timeStamp] Timestamp of request.
-   * (default: client generated)
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<PublishStopResponseApiModel>} - The deserialized result object.
-   *
-   * @reject {Error|ServiceError} - The error object.
-   */
-  stopPublishingValuesWithHttpOperationResponse(endpointId: string, request: models.PublishStopRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.PublishStopResponseApiModel>>;
-
-  /**
-   * @summary Stop publishing node values
-   *
-   * Stop publishing variable node values to IoT Hub.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
-   *
-   * @param {string} endpointId The identifier of the activated endpoint.
-   *
-   * @param {object} request The unpublish request
-   *
-   * @param {string} request.nodeId Node of published item to unpublish
-   *
-   * @param {array} [request.browsePath] An optional path from NodeId instance to
-   * the actual node.
-   *
-   * @param {string} [request.nodeAttribute] Attribute of item to unpublish.
-   * Possible values include: 'NodeClass', 'BrowseName', 'DisplayName',
-   * 'Description', 'WriteMask', 'UserWriteMask', 'IsAbstract', 'Symmetric',
-   * 'InverseName', 'ContainsNoLoops', 'EventNotifier', 'Value', 'DataType',
-   * 'ValueRank', 'ArrayDimensions', 'AccessLevel', 'UserAccessLevel',
-   * 'MinimumSamplingInterval', 'Historizing', 'Executable', 'UserExecutable',
-   * 'DataTypeDefinition', 'RolePermissions', 'UserRolePermissions',
-   * 'AccessRestrictions'
-   *
-   * @param {object} [request.diagnostics] Optional diagnostics configuration
-   *
-   * @param {string} [request.diagnostics.level] Requested level of response
-   * diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
-   *
-   * @param {string} [request.diagnostics.auditId] Client audit log entry.
-   * (default: client generated)
-   *
-   * @param {date} [request.diagnostics.timeStamp] Timestamp of request.
-   * (default: client generated)
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {ServiceCallback} [optionalCallback] - The optional callback.
-   *
-   * @returns {ServiceCallback|Promise} If a callback was passed as the last
-   * parameter then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned.
-   *
-   *                      @resolve {PublishStopResponseApiModel} - The deserialized result object.
-   *
-   *                      @reject {Error|ServiceError} - The error object.
-   *
-   * {ServiceCallback} optionalCallback(err, result, request, response)
-   *
-   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {PublishStopResponseApiModel} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link PublishStopResponseApiModel} for more
-   *                      information.
-   *
-   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
-   */
-  stopPublishingValues(endpointId: string, request: models.PublishStopRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.PublishStopResponseApiModel>;
-  stopPublishingValues(endpointId: string, request: models.PublishStopRequestApiModel, callback: ServiceCallback<models.PublishStopResponseApiModel>): void;
-  stopPublishingValues(endpointId: string, request: models.PublishStopRequestApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.PublishStopResponseApiModel>): void;
-
-
-  /**
-   * @summary Get next set of published nodes
-   *
-   * Returns next set of currently published node ids for an endpoint.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
-   *
-   * @param {string} endpointId The identifier of the activated endpoint.
-   *
-   * @param {string} continuationToken The continuation token to continue with
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<PublishedItemListResponseApiModel>} - The deserialized result object.
-   *
-   * @reject {Error|ServiceError} - The error object.
-   */
-  getNextListOfPublishedNodesWithHttpOperationResponse(endpointId: string, continuationToken: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.PublishedItemListResponseApiModel>>;
-
-  /**
-   * @summary Get next set of published nodes
-   *
-   * Returns next set of currently published node ids for an endpoint.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
-   *
-   * @param {string} endpointId The identifier of the activated endpoint.
-   *
-   * @param {string} continuationToken The continuation token to continue with
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {ServiceCallback} [optionalCallback] - The optional callback.
-   *
-   * @returns {ServiceCallback|Promise} If a callback was passed as the last
-   * parameter then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned.
-   *
-   *                      @resolve {PublishedItemListResponseApiModel} - The deserialized result object.
-   *
-   *                      @reject {Error|ServiceError} - The error object.
-   *
-   * {ServiceCallback} optionalCallback(err, result, request, response)
-   *
-   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {PublishedItemListResponseApiModel} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link PublishedItemListResponseApiModel} for more
-   *                      information.
-   *
-   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
-   */
-  getNextListOfPublishedNodes(endpointId: string, continuationToken: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.PublishedItemListResponseApiModel>;
-  getNextListOfPublishedNodes(endpointId: string, continuationToken: string, callback: ServiceCallback<models.PublishedItemListResponseApiModel>): void;
-  getNextListOfPublishedNodes(endpointId: string, continuationToken: string, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.PublishedItemListResponseApiModel>): void;
-
-
-  /**
-   * @summary Get currently published nodes
-   *
-   * Returns currently published node ids for an endpoint.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
-   *
-   * @param {string} endpointId The identifier of the activated endpoint.
-   *
-   * @param {object} request The list request
-   *
-   * @param {string} [request.continuationToken] Continuation token or null to
-   * start
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<PublishedItemListResponseApiModel>} - The deserialized result object.
-   *
-   * @reject {Error|ServiceError} - The error object.
-   */
-  getFirstListOfPublishedNodesWithHttpOperationResponse(endpointId: string, request: models.PublishedItemListRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.PublishedItemListResponseApiModel>>;
-
-  /**
-   * @summary Get currently published nodes
-   *
-   * Returns currently published node ids for an endpoint.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
-   *
-   * @param {string} endpointId The identifier of the activated endpoint.
-   *
-   * @param {object} request The list request
-   *
-   * @param {string} [request.continuationToken] Continuation token or null to
-   * start
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {ServiceCallback} [optionalCallback] - The optional callback.
-   *
-   * @returns {ServiceCallback|Promise} If a callback was passed as the last
-   * parameter then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned.
-   *
-   *                      @resolve {PublishedItemListResponseApiModel} - The deserialized result object.
-   *
-   *                      @reject {Error|ServiceError} - The error object.
-   *
-   * {ServiceCallback} optionalCallback(err, result, request, response)
-   *
-   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {PublishedItemListResponseApiModel} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link PublishedItemListResponseApiModel} for more
-   *                      information.
-   *
-   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
-   */
-  getFirstListOfPublishedNodes(endpointId: string, request: models.PublishedItemListRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.PublishedItemListResponseApiModel>;
-  getFirstListOfPublishedNodes(endpointId: string, request: models.PublishedItemListRequestApiModel, callback: ServiceCallback<models.PublishedItemListResponseApiModel>): void;
-  getFirstListOfPublishedNodes(endpointId: string, request: models.PublishedItemListRequestApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.PublishedItemListResponseApiModel>): void;
-
-
-  /**
    * @summary Get variable value
    *
    * Get a variable node's value using its node id.
@@ -1487,7 +1061,7 @@ export default class AzureOpcTwinClient extends ServiceClient {
    *
    * @param {object} request The read value request
    *
-   * @param {string} request.nodeId Node to read from (mandatory)
+   * @param {string} [request.nodeId] Node to read from (mandatory)
    *
    * @param {array} [request.browsePath] An optional path from NodeId instance to
    * the actual node.
@@ -1548,7 +1122,7 @@ export default class AzureOpcTwinClient extends ServiceClient {
    *
    * @param {object} request The read value request
    *
-   * @param {string} request.nodeId Node to read from (mandatory)
+   * @param {string} [request.nodeId] Node to read from (mandatory)
    *
    * @param {array} [request.browsePath] An optional path from NodeId instance to
    * the actual node.
@@ -1806,7 +1380,7 @@ export default class AzureOpcTwinClient extends ServiceClient {
    *
    * @param {object} request The write value request
    *
-   * @param {string} request.nodeId Node id to to write value to.
+   * @param {string} [request.nodeId] Node id to to write value to.
    *
    * @param {array} [request.browsePath] An optional path from NodeId instance to
    * the actual node.
@@ -1874,7 +1448,7 @@ export default class AzureOpcTwinClient extends ServiceClient {
    *
    * @param {object} request The write value request
    *
-   * @param {string} request.nodeId Node id to to write value to.
+   * @param {string} [request.nodeId] Node id to to write value to.
    *
    * @param {array} [request.browsePath] An optional path from NodeId instance to
    * the actual node.

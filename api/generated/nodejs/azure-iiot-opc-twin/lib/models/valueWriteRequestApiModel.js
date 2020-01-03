@@ -17,7 +17,7 @@
 class ValueWriteRequestApiModel {
   /**
    * Create a ValueWriteRequestApiModel.
-   * @property {string} nodeId Node id to to write value to.
+   * @property {string} [nodeId] Node id to to write value to.
    * @property {array} [browsePath] An optional path from NodeId instance to
    * the actual node.
    * @property {object} value Value to write. The system tries to convert
@@ -64,7 +64,7 @@ class ValueWriteRequestApiModel {
         className: 'ValueWriteRequestApiModel',
         modelProperties: {
           nodeId: {
-            required: true,
+            required: false,
             serializedName: 'nodeId',
             type: {
               name: 'String'

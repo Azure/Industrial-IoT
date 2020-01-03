@@ -23,7 +23,7 @@ import (
 
 const (
 // DefaultBaseURI is the default URI used for the service Azureiiotopctwin
-DefaultBaseURI = "http://localhost")
+DefaultBaseURI = "/twin")
 
 // BaseClient is the base client for Azureiiotopctwin.
 type BaseClient struct {
@@ -376,13 +376,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 tracing.EndSpan(ctx, sc, err)
             }()
         }
-                if err := validation.Validate([]validation.Validation{
-                { TargetValue: request,
-                 Constraints: []validation.Constraint{	{Target: "request.MethodID", Name: validation.Null, Rule: true, Chain: nil }}}}); err != nil {
-                return result, validation.NewError("azureiiotopctwin.BaseClient", "GetCallMetadata", err.Error())
-                }
-
-                    req, err := client.GetCallMetadataPreparer(ctx, endpointID, request)
+            req, err := client.GetCallMetadataPreparer(ctx, endpointID, request)
         if err != nil {
         err = autorest.NewErrorWithError(err, "azureiiotopctwin.BaseClient", "GetCallMetadata", nil , "Failure preparing request")
         return
@@ -437,195 +431,6 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         result.Response = autorest.Response{Response: resp}
             return
         }
-
-    // GetFirstListOfPublishedNodes returns currently published node ids for an
-    // endpoint.
-    // The endpoint must be activated and connected and the module client
-    // and server must trust each other.
-        // Parameters:
-            // endpointID - the identifier of the activated endpoint.
-            // request - the list request
-    func (client BaseClient) GetFirstListOfPublishedNodes(ctx context.Context, endpointID string, request PublishedItemListRequestAPIModel) (result PublishedItemListResponseAPIModel, err error) {
-        if tracing.IsEnabled() {
-            ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.GetFirstListOfPublishedNodes")
-            defer func() {
-                sc := -1
-                if result.Response.Response != nil {
-                    sc = result.Response.Response.StatusCode
-                }
-                tracing.EndSpan(ctx, sc, err)
-            }()
-        }
-            req, err := client.GetFirstListOfPublishedNodesPreparer(ctx, endpointID, request)
-        if err != nil {
-        err = autorest.NewErrorWithError(err, "azureiiotopctwin.BaseClient", "GetFirstListOfPublishedNodes", nil , "Failure preparing request")
-        return
-        }
-
-                resp, err := client.GetFirstListOfPublishedNodesSender(req)
-                if err != nil {
-                result.Response = autorest.Response{Response: resp}
-                err = autorest.NewErrorWithError(err, "azureiiotopctwin.BaseClient", "GetFirstListOfPublishedNodes", resp, "Failure sending request")
-                return
-                }
-
-                result, err = client.GetFirstListOfPublishedNodesResponder(resp)
-                if err != nil {
-                err = autorest.NewErrorWithError(err, "azureiiotopctwin.BaseClient", "GetFirstListOfPublishedNodes", resp, "Failure responding to request")
-                }
-
-        return
-        }
-
-        // GetFirstListOfPublishedNodesPreparer prepares the GetFirstListOfPublishedNodes request.
-        func (client BaseClient) GetFirstListOfPublishedNodesPreparer(ctx context.Context, endpointID string, request PublishedItemListRequestAPIModel) (*http.Request, error) {
-                pathParameters := map[string]interface{} {
-                "endpointId": autorest.Encode("path",endpointID),
-                }
-
-            preparer := autorest.CreatePreparer(
-        autorest.AsContentType("application/json-patch+json; charset=utf-8"),
-        autorest.AsPost(),
-        autorest.WithBaseURL(client.BaseURI),
-        autorest.WithPathParameters("/v2/publish/{endpointId}",pathParameters),
-        autorest.WithJSON(request))
-        return preparer.Prepare((&http.Request{}).WithContext(ctx))
-        }
-
-        // GetFirstListOfPublishedNodesSender sends the GetFirstListOfPublishedNodes request. The method will close the
-        // http.Response Body if it receives an error.
-        func (client BaseClient) GetFirstListOfPublishedNodesSender(req *http.Request) (*http.Response, error) {
-            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-                return autorest.SendWithSender(client, req, sd...)
-                }
-
-    // GetFirstListOfPublishedNodesResponder handles the response to the GetFirstListOfPublishedNodes request. The method always
-    // closes the http.Response Body.
-    func (client BaseClient) GetFirstListOfPublishedNodesResponder(resp *http.Response) (result PublishedItemListResponseAPIModel, err error) {
-        err = autorest.Respond(
-        resp,
-        client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK),
-        autorest.ByUnmarshallingJSON(&result),
-        autorest.ByClosing())
-        result.Response = autorest.Response{Response: resp}
-            return
-        }
-
-    // GetNextListOfPublishedNodes returns next set of currently published node ids
-    // for an endpoint.
-    // The endpoint must be activated and connected and the module client
-    // and server must trust each other.
-        // Parameters:
-            // endpointID - the identifier of the activated endpoint.
-            // continuationToken - the continuation token to continue with
-    func (client BaseClient) GetNextListOfPublishedNodes(ctx context.Context, endpointID string, continuationToken string) (result PublishedItemListResponseAPIModelPage, err error) {
-        if tracing.IsEnabled() {
-            ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.GetNextListOfPublishedNodes")
-            defer func() {
-                sc := -1
-                if result.pilram.Response.Response != nil {
-                    sc = result.pilram.Response.Response.StatusCode
-                }
-                tracing.EndSpan(ctx, sc, err)
-            }()
-        }
-                    result.fn = client.getNextListOfPublishedNodesNextResults
-        req, err := client.GetNextListOfPublishedNodesPreparer(ctx, endpointID, continuationToken)
-        if err != nil {
-        err = autorest.NewErrorWithError(err, "azureiiotopctwin.BaseClient", "GetNextListOfPublishedNodes", nil , "Failure preparing request")
-        return
-        }
-
-                resp, err := client.GetNextListOfPublishedNodesSender(req)
-                if err != nil {
-                result.pilram.Response = autorest.Response{Response: resp}
-                err = autorest.NewErrorWithError(err, "azureiiotopctwin.BaseClient", "GetNextListOfPublishedNodes", resp, "Failure sending request")
-                return
-                }
-
-                result.pilram, err = client.GetNextListOfPublishedNodesResponder(resp)
-                if err != nil {
-                err = autorest.NewErrorWithError(err, "azureiiotopctwin.BaseClient", "GetNextListOfPublishedNodes", resp, "Failure responding to request")
-                }
-
-        return
-        }
-
-        // GetNextListOfPublishedNodesPreparer prepares the GetNextListOfPublishedNodes request.
-        func (client BaseClient) GetNextListOfPublishedNodesPreparer(ctx context.Context, endpointID string, continuationToken string) (*http.Request, error) {
-                pathParameters := map[string]interface{} {
-                "endpointId": autorest.Encode("path",endpointID),
-                }
-
-                        queryParameters := map[string]interface{} {
-            "continuationToken": autorest.Encode("query",continuationToken),
-            }
-
-            preparer := autorest.CreatePreparer(
-        autorest.AsGet(),
-        autorest.WithBaseURL(client.BaseURI),
-        autorest.WithPathParameters("/v2/publish/{endpointId}",pathParameters),
-        autorest.WithQueryParameters(queryParameters))
-        return preparer.Prepare((&http.Request{}).WithContext(ctx))
-        }
-
-        // GetNextListOfPublishedNodesSender sends the GetNextListOfPublishedNodes request. The method will close the
-        // http.Response Body if it receives an error.
-        func (client BaseClient) GetNextListOfPublishedNodesSender(req *http.Request) (*http.Response, error) {
-            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-                return autorest.SendWithSender(client, req, sd...)
-                }
-
-    // GetNextListOfPublishedNodesResponder handles the response to the GetNextListOfPublishedNodes request. The method always
-    // closes the http.Response Body.
-    func (client BaseClient) GetNextListOfPublishedNodesResponder(resp *http.Response) (result PublishedItemListResponseAPIModel, err error) {
-        err = autorest.Respond(
-        resp,
-        client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK),
-        autorest.ByUnmarshallingJSON(&result),
-        autorest.ByClosing())
-        result.Response = autorest.Response{Response: resp}
-            return
-        }
-
-                // getNextListOfPublishedNodesNextResults retrieves the next set of results, if any.
-                func (client BaseClient) getNextListOfPublishedNodesNextResults(ctx context.Context, lastResults PublishedItemListResponseAPIModel) (result PublishedItemListResponseAPIModel, err error) {
-                req, err := lastResults.publishedItemListResponseAPIModelPreparer(ctx)
-                if err != nil {
-                return result, autorest.NewErrorWithError(err, "azureiiotopctwin.BaseClient", "getNextListOfPublishedNodesNextResults", nil , "Failure preparing next results request")
-                }
-                if req == nil {
-                return
-                }
-                resp, err := client.GetNextListOfPublishedNodesSender(req)
-                if err != nil {
-                result.Response = autorest.Response{Response: resp}
-                return result, autorest.NewErrorWithError(err, "azureiiotopctwin.BaseClient", "getNextListOfPublishedNodesNextResults", resp, "Failure sending next results request")
-                }
-                result, err = client.GetNextListOfPublishedNodesResponder(resp)
-                if err != nil {
-                err = autorest.NewErrorWithError(err, "azureiiotopctwin.BaseClient", "getNextListOfPublishedNodesNextResults", resp, "Failure responding to next results request")
-                }
-                return
-                        }
-
-        // GetNextListOfPublishedNodesComplete enumerates all values, automatically crossing page boundaries as required.
-        func (client BaseClient) GetNextListOfPublishedNodesComplete(ctx context.Context, endpointID string, continuationToken string) (result PublishedItemListResponseAPIModelIterator, err error) {
-            if tracing.IsEnabled() {
-                ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.GetNextListOfPublishedNodes")
-                defer func() {
-                    sc := -1
-                    if result.Response().Response.Response != nil {
-                        sc = result.page.Response().Response.Response.StatusCode
-                    }
-                    tracing.EndSpan(ctx, sc, err)
-                }()
-         }
-            result.page, err = client.GetNextListOfPublishedNodes(ctx, endpointID, continuationToken)
-                    return
-            }
 
     // GetNextSetOfUniqueNodes browse the next set of unique hierarchically
     // referenced target nodes on the
@@ -1064,13 +869,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 tracing.EndSpan(ctx, sc, err)
             }()
         }
-                if err := validation.Validate([]validation.Validation{
-                { TargetValue: request,
-                 Constraints: []validation.Constraint{	{Target: "request.NodeID", Name: validation.Null, Rule: true, Chain: nil }}}}); err != nil {
-                return result, validation.NewError("azureiiotopctwin.BaseClient", "ReadValue", err.Error())
-                }
-
-                    req, err := client.ReadValuePreparer(ctx, endpointID, request)
+            req, err := client.ReadValuePreparer(ctx, endpointID, request)
         if err != nil {
         err = autorest.NewErrorWithError(err, "azureiiotopctwin.BaseClient", "ReadValue", nil , "Failure preparing request")
         return
@@ -1116,166 +915,6 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
     // ReadValueResponder handles the response to the ReadValue request. The method always
     // closes the http.Response Body.
     func (client BaseClient) ReadValueResponder(resp *http.Response) (result ValueReadResponseAPIModel, err error) {
-        err = autorest.Respond(
-        resp,
-        client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK),
-        autorest.ByUnmarshallingJSON(&result),
-        autorest.ByClosing())
-        result.Response = autorest.Response{Response: resp}
-            return
-        }
-
-    // StartPublishingValues start publishing variable node values to IoT Hub.
-    // The endpoint must be activated and connected and the module client
-    // and server must trust each other.
-        // Parameters:
-            // endpointID - the identifier of the activated endpoint.
-            // request - the publish request
-    func (client BaseClient) StartPublishingValues(ctx context.Context, endpointID string, request PublishStartRequestAPIModel) (result PublishStartResponseAPIModel, err error) {
-        if tracing.IsEnabled() {
-            ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.StartPublishingValues")
-            defer func() {
-                sc := -1
-                if result.Response.Response != nil {
-                    sc = result.Response.Response.StatusCode
-                }
-                tracing.EndSpan(ctx, sc, err)
-            }()
-        }
-                if err := validation.Validate([]validation.Validation{
-                { TargetValue: request,
-                 Constraints: []validation.Constraint{	{Target: "request.Item", Name: validation.Null, Rule: true ,
-                Chain: []validation.Constraint{	{Target: "request.Item.NodeID", Name: validation.Null, Rule: true, Chain: nil },
-                }}}}}); err != nil {
-                return result, validation.NewError("azureiiotopctwin.BaseClient", "StartPublishingValues", err.Error())
-                }
-
-                    req, err := client.StartPublishingValuesPreparer(ctx, endpointID, request)
-        if err != nil {
-        err = autorest.NewErrorWithError(err, "azureiiotopctwin.BaseClient", "StartPublishingValues", nil , "Failure preparing request")
-        return
-        }
-
-                resp, err := client.StartPublishingValuesSender(req)
-                if err != nil {
-                result.Response = autorest.Response{Response: resp}
-                err = autorest.NewErrorWithError(err, "azureiiotopctwin.BaseClient", "StartPublishingValues", resp, "Failure sending request")
-                return
-                }
-
-                result, err = client.StartPublishingValuesResponder(resp)
-                if err != nil {
-                err = autorest.NewErrorWithError(err, "azureiiotopctwin.BaseClient", "StartPublishingValues", resp, "Failure responding to request")
-                }
-
-        return
-        }
-
-        // StartPublishingValuesPreparer prepares the StartPublishingValues request.
-        func (client BaseClient) StartPublishingValuesPreparer(ctx context.Context, endpointID string, request PublishStartRequestAPIModel) (*http.Request, error) {
-                pathParameters := map[string]interface{} {
-                "endpointId": autorest.Encode("path",endpointID),
-                }
-
-            preparer := autorest.CreatePreparer(
-        autorest.AsContentType("application/json-patch+json; charset=utf-8"),
-        autorest.AsPost(),
-        autorest.WithBaseURL(client.BaseURI),
-        autorest.WithPathParameters("/v2/publish/{endpointId}/start",pathParameters),
-        autorest.WithJSON(request))
-        return preparer.Prepare((&http.Request{}).WithContext(ctx))
-        }
-
-        // StartPublishingValuesSender sends the StartPublishingValues request. The method will close the
-        // http.Response Body if it receives an error.
-        func (client BaseClient) StartPublishingValuesSender(req *http.Request) (*http.Response, error) {
-            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-                return autorest.SendWithSender(client, req, sd...)
-                }
-
-    // StartPublishingValuesResponder handles the response to the StartPublishingValues request. The method always
-    // closes the http.Response Body.
-    func (client BaseClient) StartPublishingValuesResponder(resp *http.Response) (result PublishStartResponseAPIModel, err error) {
-        err = autorest.Respond(
-        resp,
-        client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK),
-        autorest.ByUnmarshallingJSON(&result),
-        autorest.ByClosing())
-        result.Response = autorest.Response{Response: resp}
-            return
-        }
-
-    // StopPublishingValues stop publishing variable node values to IoT Hub.
-    // The endpoint must be activated and connected and the module client
-    // and server must trust each other.
-        // Parameters:
-            // endpointID - the identifier of the activated endpoint.
-            // request - the unpublish request
-    func (client BaseClient) StopPublishingValues(ctx context.Context, endpointID string, request PublishStopRequestAPIModel) (result PublishStopResponseAPIModel, err error) {
-        if tracing.IsEnabled() {
-            ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.StopPublishingValues")
-            defer func() {
-                sc := -1
-                if result.Response.Response != nil {
-                    sc = result.Response.Response.StatusCode
-                }
-                tracing.EndSpan(ctx, sc, err)
-            }()
-        }
-                if err := validation.Validate([]validation.Validation{
-                { TargetValue: request,
-                 Constraints: []validation.Constraint{	{Target: "request.NodeID", Name: validation.Null, Rule: true, Chain: nil }}}}); err != nil {
-                return result, validation.NewError("azureiiotopctwin.BaseClient", "StopPublishingValues", err.Error())
-                }
-
-                    req, err := client.StopPublishingValuesPreparer(ctx, endpointID, request)
-        if err != nil {
-        err = autorest.NewErrorWithError(err, "azureiiotopctwin.BaseClient", "StopPublishingValues", nil , "Failure preparing request")
-        return
-        }
-
-                resp, err := client.StopPublishingValuesSender(req)
-                if err != nil {
-                result.Response = autorest.Response{Response: resp}
-                err = autorest.NewErrorWithError(err, "azureiiotopctwin.BaseClient", "StopPublishingValues", resp, "Failure sending request")
-                return
-                }
-
-                result, err = client.StopPublishingValuesResponder(resp)
-                if err != nil {
-                err = autorest.NewErrorWithError(err, "azureiiotopctwin.BaseClient", "StopPublishingValues", resp, "Failure responding to request")
-                }
-
-        return
-        }
-
-        // StopPublishingValuesPreparer prepares the StopPublishingValues request.
-        func (client BaseClient) StopPublishingValuesPreparer(ctx context.Context, endpointID string, request PublishStopRequestAPIModel) (*http.Request, error) {
-                pathParameters := map[string]interface{} {
-                "endpointId": autorest.Encode("path",endpointID),
-                }
-
-            preparer := autorest.CreatePreparer(
-        autorest.AsContentType("application/json-patch+json; charset=utf-8"),
-        autorest.AsPost(),
-        autorest.WithBaseURL(client.BaseURI),
-        autorest.WithPathParameters("/v2/publish/{endpointId}/stop",pathParameters),
-        autorest.WithJSON(request))
-        return preparer.Prepare((&http.Request{}).WithContext(ctx))
-        }
-
-        // StopPublishingValuesSender sends the StopPublishingValues request. The method will close the
-        // http.Response Body if it receives an error.
-        func (client BaseClient) StopPublishingValuesSender(req *http.Request) (*http.Response, error) {
-            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-                return autorest.SendWithSender(client, req, sd...)
-                }
-
-    // StopPublishingValuesResponder handles the response to the StopPublishingValues request. The method always
-    // closes the http.Response Body.
-    func (client BaseClient) StopPublishingValuesResponder(resp *http.Response) (result PublishStopResponseAPIModel, err error) {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
@@ -1384,8 +1023,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
                 if err := validation.Validate([]validation.Validation{
                 { TargetValue: request,
-                 Constraints: []validation.Constraint{	{Target: "request.NodeID", Name: validation.Null, Rule: true, Chain: nil },
-                	{Target: "request.Value", Name: validation.Null, Rule: true, Chain: nil }}}}); err != nil {
+                 Constraints: []validation.Constraint{	{Target: "request.Value", Name: validation.Null, Rule: true, Chain: nil }}}}); err != nil {
                 return result, validation.NewError("azureiiotopctwin.BaseClient", "WriteValue", err.Error())
                 }
 

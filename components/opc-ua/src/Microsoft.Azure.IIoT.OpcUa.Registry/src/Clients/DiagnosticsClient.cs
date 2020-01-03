@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.Module;
-    using Microsoft.Azure.IIoT.Hub;
     using Serilog;
     using Newtonsoft.Json;
     using System;

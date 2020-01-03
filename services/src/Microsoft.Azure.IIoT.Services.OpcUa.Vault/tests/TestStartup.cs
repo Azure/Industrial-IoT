@@ -9,6 +9,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Mvc.Testing;
     using Autofac;
+    using Autofac.Extensions.Hosting;
     using System.Net.Http;
 
     /// <summary>
@@ -46,7 +47,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
 
         /// <inheritdoc/>
         protected override void ConfigureWebHost(IWebHostBuilder builder) {
-            builder.UseContentRoot(".");
+            builder.UseContentRoot(".").UseAutofac();
             base.ConfigureWebHost(builder);
         }
 

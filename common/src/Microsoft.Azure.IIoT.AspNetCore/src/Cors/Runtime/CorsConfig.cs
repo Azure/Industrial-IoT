@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.Cors.Runtime {
-    using Microsoft.Azure.IIoT.Services.Cors;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Azure.IIoT.Utils;
 

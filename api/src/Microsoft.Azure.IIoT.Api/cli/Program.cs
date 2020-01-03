@@ -101,8 +101,8 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
             // Load hosting configuration
             var config = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
-                .AddFromDotEnvFile()
                 .AddJsonFile("appsettings.json", true)
+                .AddFromDotEnvFile()
                 .AddFromKeyVault()
                 .Build();
 
@@ -498,6 +498,38 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                                 case "--help":
                                 case "help":
                                     PrintPublishersHelp();
+                                    break;
+                                default:
+                                    throw new ArgumentException($"Unknown command {command}.");
+                            }
+                            break;
+                        case "gateways":
+                            if (args.Length < 2) {
+                                throw new ArgumentException("Need a command!");
+                            }
+                            command = args[1].ToLowerInvariant();
+                            options = new CliOptions(args, 2);
+                            switch (command) {
+                                case "get":
+                                    await GetGatewayAsync(options);
+                                    break;
+                                case "update":
+                                    await UpdateGatewayAsync(options);
+                                    break;
+                                case "list":
+                                    await ListGatewaysAsync(options);
+                                    break;
+                                case "select":
+                                    await SelectGatewayAsync(options);
+                                    break;
+                                case "query":
+                                    await QueryGatewaysAsync(options);
+                                    break;
+                                case "-?":
+                                case "-h":
+                                case "--help":
+                                case "help":
+                                    PrintGatewaysHelp();
                                     break;
                                 default:
                                     throw new ArgumentException($"Unknown command {command}.");
@@ -962,6 +994,109 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
             finally {
                 await complete.DisposeAsync();
             }
+        }
+
+        private string _gatewayId;
+
+        /// <summary>
+        /// Get gateway id
+        /// </summary>
+        private string GetGatewayId(CliOptions options, bool shouldThrow = true) {
+            var id = options.GetValueOrDefault<string>("-i", "--id", null);
+            if (_gatewayId != null) {
+                if (id == null) {
+                    return _gatewayId;
+                }
+                _gatewayId = null;
+            }
+            if (id != null) {
+                return id;
+            }
+            if (!shouldThrow) {
+                return null;
+            }
+            throw new ArgumentException("Missing -i/--id option.");
+        }
+
+        /// <summary>
+        /// Select gateway registration
+        /// </summary>
+        private async Task SelectGatewayAsync(CliOptions options) {
+            if (options.IsSet("-c", "--clear")) {
+                _gatewayId = null;
+            }
+            else if (options.IsSet("-s", "--show")) {
+                Console.WriteLine(_gatewayId);
+            }
+            else {
+                var gatewayId = options.GetValueOrDefault<string>("-i", "--id", null);
+                if (string.IsNullOrEmpty(gatewayId)) {
+                    var result = await _registry.ListAllGatewaysAsync();
+                    gatewayId = ConsoleEx.Select(result.Select(r => r.Id));
+                    if (string.IsNullOrEmpty(gatewayId)) {
+                        Console.WriteLine("Nothing selected - gateway selection cleared.");
+                    }
+                    else {
+                        Console.WriteLine($"Selected {gatewayId}.");
+                    }
+                }
+                _gatewayId = gatewayId;
+            }
+        }
+
+        /// <summary>
+        /// List gateway registrations
+        /// </summary>
+        private async Task ListGatewaysAsync(CliOptions options) {
+            if (options.IsSet("-A", "--all")) {
+                var result = await _registry.ListAllGatewaysAsync();
+                PrintResult(options, result);
+                Console.WriteLine($"{result.Count()} item(s) found...");
+            }
+            else {
+                var result = await _registry.ListGatewaysAsync(
+                    options.GetValueOrDefault<string>("-C", "--continuation", null),
+                    options.GetValueOrDefault<int>("-P", "--page-size", null));
+                PrintResult(options, result);
+            }
+        }
+
+        /// <summary>
+        /// Query gateway registrations
+        /// </summary>
+        private async Task QueryGatewaysAsync(CliOptions options) {
+            var query = new GatewayQueryApiModel {
+                Connected = options.IsProvidedOrNull("-c", "--connected"),
+                SiteId = options.GetValueOrDefault<string>("-s", "--siteId", null)
+            };
+            if (options.IsSet("-A", "--all")) {
+                var result = await _registry.QueryAllGatewaysAsync(query);
+                PrintResult(options, result);
+                Console.WriteLine($"{result.Count()} item(s) found...");
+            }
+            else {
+                var result = await _registry.QueryGatewaysAsync(query,
+                    options.GetValueOrDefault<int>("-P", "--page-size", null));
+                PrintResult(options, result);
+            }
+        }
+
+        /// <summary>
+        /// Get gateway
+        /// </summary>
+        private async Task GetGatewayAsync(CliOptions options) {
+            var result = await _registry.GetGatewayAsync(GetGatewayId(options));
+            PrintResult(options, result);
+        }
+
+        /// <summary>
+        /// Update gateway
+        /// </summary>
+        private async Task UpdateGatewayAsync(CliOptions options) {
+            await _registry.UpdateGatewayAsync(GetGatewayId(options),
+                new GatewayUpdateApiModel {
+                    SiteId = options.GetValueOrDefault<string>("-s", "--siteId", null),
+                });
         }
 
         private string _groupId;
@@ -2704,6 +2839,53 @@ Commands and Options
         with ...
         -i, --id        Id of endpoint to publish value from (mandatory)
         -n, --nodeid    Node to browse (mandatory)
+
+     help, -h, -? --help
+                 Prints out this help.
+"
+                );
+        }
+
+        /// <summary>
+        /// Print help
+        /// </summary>
+        private void PrintGatewaysHelp() {
+            Console.WriteLine(
+                @"
+Manage and configure Edge Gateways
+
+Commands and Options
+
+     select      Select gateway as -i/--id argument in all calls.
+        with ...
+        -i, --id        Gateway id to select.
+        -c, --clear     Clear current selection
+        -s, --show      Show current selection
+
+     update      Update gateway
+        with ...
+        -i, --id        Id of gateway to retrieve (mandatory)
+        -s, --siteId    Updated site of the gateway.
+
+     list        List gateways
+        with ...
+        -C, --continuation
+                        Continuation from previous result.
+        -P, --page-size Size of page
+        -A, --all       Return all gateways (unpaged)
+        -F, --format    Json format for result
+
+     query       Find gateways
+        -c, --connected Only return connected or disconnected.
+        -s, --siteId    Site of the gateways.
+        -P, --page-size Size of page
+        -A, --all       Return all endpoints (unpaged)
+        -F, --format    Json format for result
+
+     get         Get gateway
+        with ...
+        -i, --id        Id of gateway to retrieve (mandatory)
+        -F, --format    Json format for result
 
      help, -h, -? --help
                  Prints out this help.

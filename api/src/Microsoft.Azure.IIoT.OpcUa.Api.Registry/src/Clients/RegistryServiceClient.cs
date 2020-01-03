@@ -635,6 +635,65 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
             response.Validate();
         }
 
+        /// <inheritdoc/>
+        public async Task<GatewayListApiModel> ListGatewaysAsync(
+            string continuation, int? pageSize, CancellationToken ct) {
+            var uri = new UriBuilder($"{_serviceUri}/v2/gateways");
+            var request = _httpClient.NewRequest(uri.Uri, _resourceId);
+            if (continuation != null) {
+                request.AddHeader(HttpHeader.ContinuationToken, continuation);
+            }
+            if (pageSize != null) {
+                request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
+            }
+            var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
+            response.Validate();
+            return response.GetContent<GatewayListApiModel>();
+        }
+
+        /// <inheritdoc/>
+        public async Task UpdateGatewayAsync(string gatewayId,
+            GatewayUpdateApiModel content, CancellationToken ct) {
+            if (content == null) {
+                throw new ArgumentNullException(nameof(content));
+            }
+            if (string.IsNullOrEmpty(gatewayId)) {
+                throw new ArgumentNullException(nameof(gatewayId));
+            }
+            var request = _httpClient.NewRequest($"{_serviceUri}/v2/gateways/{gatewayId}",
+                _resourceId);
+            request.SetContent(content);
+            var response = await _httpClient.PatchAsync(request, ct).ConfigureAwait(false);
+            response.Validate();
+        }
+
+        /// <inheritdoc/>
+        public async Task<GatewayListApiModel> QueryGatewaysAsync(
+            GatewayQueryApiModel query, int? pageSize, CancellationToken ct) {
+            var uri = new UriBuilder($"{_serviceUri}/v2/gateways/query");
+            var request = _httpClient.NewRequest(uri.Uri, _resourceId);
+            if (pageSize != null) {
+                request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
+            }
+            request.SetContent(query);
+            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
+            response.Validate();
+            return response.GetContent<GatewayListApiModel>();
+        }
+
+        /// <inheritdoc/>
+        public async Task<GatewayApiModel> GetGatewayAsync(string gatewayId,
+            CancellationToken ct) {
+            if (string.IsNullOrEmpty(gatewayId)) {
+                throw new ArgumentNullException(nameof(gatewayId));
+            }
+            var uri = new UriBuilder($"{_serviceUri}/v2/gateways/{gatewayId}");
+            var request = _httpClient.NewRequest(uri.Uri, _resourceId);
+            var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
+            response.Validate();
+            return response.GetContent<GatewayApiModel>();
+        }
+
         private readonly IHttpClient _httpClient;
         private readonly string _serviceUri;
         private readonly string _resourceId;

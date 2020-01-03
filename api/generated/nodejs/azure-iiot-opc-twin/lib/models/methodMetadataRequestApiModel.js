@@ -17,7 +17,7 @@
 class MethodMetadataRequestApiModel {
   /**
    * Create a MethodMetadataRequestApiModel.
-   * @property {string} methodId Method id of method to call.
+   * @property {string} [methodId] Method id of method to call.
    * (Required)
    * @property {array} [methodBrowsePath] An optional component path from the
    * node identified by
@@ -57,7 +57,7 @@ class MethodMetadataRequestApiModel {
         className: 'MethodMetadataRequestApiModel',
         modelProperties: {
           methodId: {
-            required: true,
+            required: false,
             serializedName: 'methodId',
             type: {
               name: 'String'

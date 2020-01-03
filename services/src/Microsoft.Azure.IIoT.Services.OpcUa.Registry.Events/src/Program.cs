@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Events {
     using Microsoft.Azure.IIoT.Services.OpcUa.Registry.Events.Runtime;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Http.Ssl;
     using Microsoft.Azure.IIoT.Hub.Client;
@@ -13,6 +14,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Events {
     using Microsoft.Azure.IIoT.Messaging.Default;
     using Microsoft.Azure.IIoT.Messaging.ServiceBus.Services;
     using Microsoft.Azure.IIoT.Messaging.ServiceBus.Clients;
+    using Microsoft.Azure.IIoT.Messaging.SignalR.Services;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
     using Autofac;
@@ -21,8 +23,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Events {
     using System.IO;
     using System.Runtime.Loader;
     using System.Threading.Tasks;
-    using Microsoft.Azure.IIoT.Messaging.SignalR.Services;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients;
 
     /// <summary>
     /// Forwarded registry events to user interface
@@ -39,10 +39,11 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Events {
             var config = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", true)
-                .AddFromDotEnvFile()
+                .AddEnvironmentVariables()
                 .AddEnvironmentVariables(EnvironmentVariableTarget.User)
-                .AddCommandLine(args)
+                .AddFromDotEnvFile()
                 .AddFromKeyVault()
+                .AddCommandLine(args)
                 .Build();
 
             // Set up dependency injection for the event processor host

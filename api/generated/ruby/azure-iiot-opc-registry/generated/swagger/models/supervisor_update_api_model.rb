@@ -24,15 +24,8 @@ module azure.iiot.opc.registry
       # @return [DiscoveryConfigApiModel] Supervisor discovery configuration
       attr_accessor :discovery_config
 
-      # @return [Array<CallbackApiModel>] Callbacks to add or remove (see
-      # below)
-      attr_accessor :discovery_callbacks
-
-      # @return [Boolean] Whether to add or remove callbacks
-      attr_accessor :remove_discovery_callbacks
-
-      # @return [SupervisorLogLevel] Current log level. Possible values
-      # include: 'Error', 'Information', 'Debug', 'Verbose'
+      # @return [TraceLogLevel] Current log level. Possible values include:
+      # 'Error', 'Information', 'Debug', 'Verbose'
       attr_accessor :log_level
 
 
@@ -76,38 +69,13 @@ module azure.iiot.opc.registry
                   class_name: 'DiscoveryConfigApiModel'
                 }
               },
-              discovery_callbacks: {
-                client_side_validation: true,
-                required: false,
-                serialized_name: 'discoveryCallbacks',
-                type: {
-                  name: 'Sequence',
-                  element: {
-                      client_side_validation: true,
-                      required: false,
-                      serialized_name: 'CallbackApiModelElementType',
-                      type: {
-                        name: 'Composite',
-                        class_name: 'CallbackApiModel'
-                      }
-                  }
-                }
-              },
-              remove_discovery_callbacks: {
-                client_side_validation: true,
-                required: false,
-                serialized_name: 'removeDiscoveryCallbacks',
-                type: {
-                  name: 'Boolean'
-                }
-              },
               log_level: {
                 client_side_validation: true,
                 required: false,
                 serialized_name: 'logLevel',
                 type: {
                   name: 'Enum',
-                  module: 'SupervisorLogLevel'
+                  module: 'TraceLogLevel'
                 }
               }
             }

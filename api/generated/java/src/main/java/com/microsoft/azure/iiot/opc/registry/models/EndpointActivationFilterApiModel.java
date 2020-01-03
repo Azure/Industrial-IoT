@@ -35,7 +35,7 @@ public class EndpointActivationFilterApiModel {
 
     /**
      * Security mode level to activate. If null,
-     * then Microsoft.Azure.IIoT.OpcUa.Registry.Models.SecurityMode.Best is
+     * then Microsoft.Azure.IIoT.OpcUa.Core.Models.SecurityMode.Best is
      * assumed. Possible values include: 'Best', 'Sign', 'SignAndEncrypt',
      * 'None'.
      */
@@ -92,7 +92,7 @@ public class EndpointActivationFilterApiModel {
 
     /**
      * Get security mode level to activate. If null,
-     then Microsoft.Azure.IIoT.OpcUa.Registry.Models.SecurityMode.Best is assumed. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'.
+     then Microsoft.Azure.IIoT.OpcUa.Core.Models.SecurityMode.Best is assumed. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'.
      *
      * @return the securityMode value
      */
@@ -102,7 +102,7 @@ public class EndpointActivationFilterApiModel {
 
     /**
      * Set security mode level to activate. If null,
-     then Microsoft.Azure.IIoT.OpcUa.Registry.Models.SecurityMode.Best is assumed. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'.
+     then Microsoft.Azure.IIoT.OpcUa.Core.Models.SecurityMode.Best is assumed. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'.
      *
      * @param securityMode the securityMode value to set
      * @return the EndpointActivationFilterApiModel object itself.

@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Crypto.Default {
-    using Microsoft.Azure.IIoT.Crypto;
     using Microsoft.Azure.IIoT.Crypto.Models;
     using System;
     using System.Collections.Generic;

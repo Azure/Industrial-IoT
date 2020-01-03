@@ -34,7 +34,7 @@ class AzureOpcHistoryClientConfiguration(Configuration):
         if credentials is None:
             raise ValueError("Parameter 'credentials' must not be None.")
         if not base_url:
-            base_url = 'http://localhost'
+            base_url = '/history'
 
         super(AzureOpcHistoryClientConfiguration, self).__init__(base_url)
 

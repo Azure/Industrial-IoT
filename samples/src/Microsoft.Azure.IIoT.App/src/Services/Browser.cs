@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App.Services {
-    using Microsoft.AspNetCore.Mvc.ModelBinding;
     using Microsoft.Azure.IIoT.App.Data;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models;
@@ -136,10 +135,10 @@ namespace Microsoft.Azure.IIoT.App.Services {
             var model = new ValueReadRequestApiModel() {
                 NodeId = nodeId
             };
-            
+
             try {
                 var value = await _twinService.NodeValueReadAsync(endpointId, model);
-                
+
                 if (value.ErrorInfo == null) {
                     return value.Value?.ToString();
                 }
@@ -165,7 +164,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
         public async Task<string> WriteValueAsync(string endpointId, string nodeId, string value) {
 
             var model = new ValueWriteRequestApiModel() {
-                NodeId = nodeId, 
+                NodeId = nodeId,
                 Value = value
             };
 
@@ -233,7 +232,8 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <param name="parameterValues"></param>
         /// <param name="nodeId"></param>
         /// <returns>Status</returns>
-        public async Task<string> MethodCallAsync(MethodMetadataResponseApiModel parameters, string[] parameterValues, string endpointId, string nodeId) {
+        public async Task<string> MethodCallAsync(MethodMetadataResponseApiModel parameters, string[] parameterValues,
+            string endpointId, string nodeId) {
 
             var argumentsList = new List<MethodCallArgumentApiModel>();
             var model = new MethodCallRequestApiModel() {
@@ -242,12 +242,12 @@ namespace Microsoft.Azure.IIoT.App.Services {
             };
 
             try {
-
-                int count = 0;
+                var count = 0;
                 foreach (var item in parameters.InputArguments) {
-                    var argument = new MethodCallArgumentApiModel();
-                    argument.Value = parameterValues[count] != null ? parameterValues[count] : string.Empty;
-                    argument.DataType = item.Type.DataType;
+                    var argument = new MethodCallArgumentApiModel {
+                        Value = parameterValues[count] ?? string.Empty,
+                        DataType = item.Type.DataType
+                    };
                     argumentsList.Add(argument);
                     count++;
                 }
@@ -264,7 +264,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                     }
                     else {
                         return MethodCallResponse.ErrorInfo.ToString();
-                    }    
+                    }
                 }
             }
             catch (Exception e) {
