@@ -128,7 +128,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Import {
                 .AsImplementedInterfaces();
             builder.RegisterType<TaskProcessor>()
                 .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<JsonVariantEncoder>()
+            builder.RegisterType<VariantEncoderFactory>()
                 .AsImplementedInterfaces().SingleInstance();
 
             // ... into cosmos db collection with configured name.

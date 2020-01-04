@@ -50,7 +50,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// <summary>
         /// Monitoring mode (Publisher extension)
         /// </summary>
-        public MonitoringMode? MonitoringMode { get; set; }
+        public MonitoringItemMode? MonitoringMode { get; set; }
 
         /// <summary>
         /// Node in dataset writer that triggers reporting

@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
+    using System.Collections.Generic;
     using System.Linq;
 
     /// <summary>
@@ -25,6 +26,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
                     .Select(e => e.Clone())
                     .ToList()
             };
+        }
+
+
+        /// <summary>
+        /// Compare operands
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="other"></param>
+        /// <returns></returns>
+        public static bool IsSameAs(this ContentFilterModel model, ContentFilterModel other) {
+            if (model == null && other == null) {
+                return true;
+            }
+            if (model == null || other == null) {
+                return false;
+            }
+            if (!model.Elements.SetEqualsSafe(other.Elements,
+                (x, y) => x.IsSameAs(y))) {
+                return false;
+            }
+            return true;
         }
     }
 }

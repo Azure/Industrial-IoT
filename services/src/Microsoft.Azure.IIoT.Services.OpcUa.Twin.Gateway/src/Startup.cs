@@ -200,7 +200,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway {
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<MessageSerializer>()
                 .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<JsonVariantEncoder>()
+            builder.RegisterType<VariantEncoderFactory>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<GatewayServer>()
                 .AsImplementedInterfaces().SingleInstance();

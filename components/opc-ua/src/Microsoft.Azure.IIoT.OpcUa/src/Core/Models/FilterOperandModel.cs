@@ -9,7 +9,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
     /// <summary>
     /// Filter operand
     /// </summary>
-    public class FilterOperandModel : SimpleAttributeOperandModel {
+    public class FilterOperandModel {
+
+        /// <summary>
+        /// Type definition node id if operand is
+        /// simple or full attribute operand.
+        /// </summary>
+        public string NodeId { get; set; }
+
+        /// <summary>
+        /// Browse path of attribute operand
+        /// </summary>
+        public string[] BrowsePath { get; set; }
+
+        /// <summary>
+        /// Attribute id
+        /// </summary>
+        public NodeAttribute? AttributeId { get; set; }
+
+        /// <summary>
+        /// Index range of attribute operand
+        /// </summary>
+        public string IndexRange { get; set; }
 
         /// <summary>
         /// Element reference in the outer list if

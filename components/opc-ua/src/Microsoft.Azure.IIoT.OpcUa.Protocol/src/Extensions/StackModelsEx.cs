@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using Opc.Ua;
@@ -133,61 +134,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// Convert to stack model
         /// </summary>
         /// <param name="model"></param>
-        /// <param name="codec"></param>
         /// <returns></returns>
-        public static EventFilter ToStackModel(this EventFilterModel model,
-            IVariantEncoder codec) {
+        public static DataChangeFilter ToStackModel(this DataChangeFilterModel model) {
             if (model == null) {
                 return null;
             }
-            return new EventFilter {
-                SelectClauses = new SimpleAttributeOperandCollection(
-                    model.SelectClauses == null ? Enumerable.Empty<SimpleAttributeOperand>() :
-                    model.SelectClauses.Select(c => c.ToStackModel(codec.Context))),
-                //
-                // Per Part 4 only allow simple attribute operands in where clause
-                // elements of event filters.
-                //
-                WhereClause = model.WhereClause.ToStackModel(codec, true)
-
-            };
-        }
-
-        /// <summary>
-        /// Convert to stack model
-        /// </summary>
-        /// <param name="model"></param>
-        /// <param name="codec"></param>
-        /// <returns></returns>
-        public static EventFilterModel ToServiceModel(this EventFilter model,
-            IVariantEncoder codec) {
-            if (model == null) {
-                return null;
-            }
-            return new EventFilterModel {
-                SelectClauses = model.SelectClauses?
-                    .Select(c => c.ToServiceModel(codec.Context))
-                    .ToList(),
-                WhereClause = model.WhereClause.ToServiceModel(codec)
-            };
-        }
-
-        /// <summary>
-        /// Convert to stack model
-        /// </summary>
-        /// <param name="model"></param>
-        /// <param name="codec"></param>
-        /// <param name="onlySimpleAttributeOperands"></param>
-        /// <returns></returns>
-        public static ContentFilter ToStackModel(this ContentFilterModel model,
-            IVariantEncoder codec, bool onlySimpleAttributeOperands = false) {
-            if (model == null) {
-                return null;
-            }
-            return new ContentFilter {
-                Elements = new ContentFilterElementCollection(model.Elements == null ?
-                    Enumerable.Empty<ContentFilterElement>() : model.Elements
-                        .Select(e => e.ToStackModel(codec, onlySimpleAttributeOperands)))
+            return new DataChangeFilter {
+                DeadbandValue = model.DeadBandValue ?? 0.0,
+                DeadbandType = (uint)model.DeadBandType.ToStackType(),
+                Trigger = model.DataChangeTrigger.ToStackType()
             };
         }
 
@@ -195,17 +150,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// Convert to service model
         /// </summary>
         /// <param name="model"></param>
-        /// <param name="codec"></param>
         /// <returns></returns>
-        public static ContentFilterModel ToServiceModel(this ContentFilter model,
-            IVariantEncoder codec) {
+        public static DataChangeFilterModel ToServiceModel(this DataChangeFilter model) {
             if (model == null) {
                 return null;
             }
-            return new ContentFilterModel {
-                Elements = model.Elements?
-                    .Select(e => e.ToServiceModel(codec))
-                    .ToList()
+            return new DataChangeFilterModel {
+                DeadBandValue = (int)model.DeadbandValue == 0 ? (double?)null :
+                    model.DeadbandValue,
+                DeadBandType = ((DeadbandType)model.DeadbandType).ToServiceType(),
+                DataChangeTrigger = model.Trigger.ToServiceType()
             };
         }
 
@@ -213,19 +167,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// Convert to stack model
         /// </summary>
         /// <param name="model"></param>
-        /// <param name="codec"></param>
-        /// <param name="onlySimpleAttributeOperands"></param>
+        /// <param name="context"></param>
         /// <returns></returns>
-        public static ContentFilterElement ToStackModel(this ContentFilterElementModel model,
-            IVariantEncoder codec, bool onlySimpleAttributeOperands = false) {
+        public static AggregateFilter ToStackModel(this AggregateFilterModel model,
+            ServiceMessageContext context) {
             if (model == null) {
                 return null;
             }
-            return new ContentFilterElement {
-                FilterOperands = new ExtensionObjectCollection(model?.FilterOperands == null ?
-                    Enumerable.Empty<ExtensionObject>() : model.FilterOperands
-                        .Select(e => new ExtensionObject(e.ToStackModel(codec, onlySimpleAttributeOperands)))),
-                FilterOperator = model.FilterOperator.ToStackType()
+            return new AggregateFilter {
+                AggregateConfiguration = model.AggregateConfiguration.ToStackModel(),
+                AggregateType = model.AggregateTypeId.ToNodeId(context),
+                StartTime = model.StartTime ?? DateTime.MinValue,
+                ProcessingInterval = model.ProcessingInterval ?? 0.0
             };
         }
 
@@ -233,20 +186,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// Convert to service model
         /// </summary>
         /// <param name="model"></param>
-        /// <param name="codec"></param>
+        /// <param name="context"></param>
         /// <returns></returns>
-        public static ContentFilterElementModel ToServiceModel(this ContentFilterElement model,
-            IVariantEncoder codec) {
+        public static AggregateFilterModel ToServiceModel(this AggregateFilter model,
+            ServiceMessageContext context) {
             if (model == null) {
                 return null;
             }
-            return new ContentFilterElementModel {
-                FilterOperands = model.FilterOperands
-                    .Select(e => e.Body)
-                    .Cast<FilterOperand>()
-                    .Select(o => o.ToServiceModel(codec))
-                    .ToList(),
-                FilterOperator = model.FilterOperator.ToServiceType()
+            return new AggregateFilterModel {
+                AggregateConfiguration = model.AggregateConfiguration.ToServiceModel(),
+                AggregateTypeId = model.AggregateType.AsString(context),
+                StartTime = model.StartTime == DateTime.MinValue ? (DateTime?)null :
+                    model.StartTime,
+                ProcessingInterval = (int)model.ProcessingInterval == 0 ? (double?)null :
+                    model.ProcessingInterval
             };
         }
 
@@ -254,74 +207,43 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// Convert to stack model
         /// </summary>
         /// <param name="model"></param>
-        /// <param name="codec"></param>
-        /// <param name="onlySimpleAttributeOperands"></param>
         /// <returns></returns>
-        public static FilterOperand ToStackModel(this FilterOperandModel model,
-            IVariantEncoder codec, bool onlySimpleAttributeOperands = false) {
+        public static AggregateConfiguration ToStackModel(
+            this AggregateConfigurationModel model) {
             if (model == null) {
-                return null;
+                return new AggregateConfiguration();
             }
-            if (model.Index != null) {
-                return new ElementOperand {
-                    Index = model.Index.Value
-                };
-            }
-            if (model.Value != null) {
-                return new LiteralOperand {
-                    Value = codec.Decode(model.Value)
-                };
-            }
-            if (model.Alias != null && !onlySimpleAttributeOperands) {
-                return new AttributeOperand {
-                    Alias = model.Alias,
-                    NodeId = model.NodeId.ToNodeId(codec.Context),
-                    AttributeId = (uint)(model.AttributeId ?? NodeAttribute.Value),
-                    BrowsePath = model.BrowsePath.ToRelativePath(codec.Context),
-                    IndexRange = model.IndexRange
-                };
-            }
-            return ((SimpleAttributeOperandModel)model).ToStackModel(codec.Context);
+            return new AggregateConfiguration {
+                UseServerCapabilitiesDefaults = model.UseServerCapabilitiesDefaults ?? true,
+                PercentDataBad = model.PercentDataBad ?? 0,
+                PercentDataGood = model.PercentDataGood ?? 0,
+                TreatUncertainAsBad = model.TreatUncertainAsBad ?? true,
+                UseSlopedExtrapolation = model.UseSlopedExtrapolation ?? true
+            };
         }
 
         /// <summary>
         /// Convert to service model
         /// </summary>
         /// <param name="model"></param>
-        /// <param name="codec"></param>
         /// <returns></returns>
-        public static FilterOperandModel ToServiceModel(this FilterOperand model,
-            IVariantEncoder codec) {
+        public static AggregateConfigurationModel ToServiceModel(
+            this AggregateConfiguration model) {
             if (model == null) {
                 return null;
             }
-            switch (model) {
-                case ElementOperand elem:
-                    return new FilterOperandModel {
-                        Index = elem.Index
-                    };
-                case LiteralOperand lit:
-                    return new FilterOperandModel {
-                        Value = codec.Encode(lit.Value)
-                    };
-                case AttributeOperand attr:
-                    return new FilterOperandModel {
-                        NodeId = attr.NodeId.AsString(codec.Context),
-                        AttributeId = (NodeAttribute)attr.AttributeId,
-                        BrowsePath = attr.BrowsePath.AsString(codec.Context),
-                        IndexRange = attr.IndexRange,
-                        Alias = attr.Alias
-                    };
-                case SimpleAttributeOperand sattr:
-                    return new FilterOperandModel {
-                        NodeId = sattr.TypeDefinitionId.AsString(codec.Context),
-                        AttributeId = (NodeAttribute)sattr.AttributeId,
-                        BrowsePath = sattr.BrowsePath?.Select(p => p.AsString(codec.Context)).ToArray(),
-                        IndexRange = sattr.IndexRange
-                    };
-                default:
-                    throw new NotSupportedException("Operand not supported");
-            }
+            return new AggregateConfigurationModel {
+                UseServerCapabilitiesDefaults = model.UseServerCapabilitiesDefaults ? (bool?)null :
+                    model.UseServerCapabilitiesDefaults,
+                PercentDataBad = model.PercentDataBad == 0 ? (byte?)null :
+                    model.PercentDataBad,
+                PercentDataGood = model.PercentDataGood == 0 ? (byte?)null :
+                    model.PercentDataGood,
+                TreatUncertainAsBad = model.TreatUncertainAsBad ? (bool?)null :
+                    model.TreatUncertainAsBad,
+                UseSlopedExtrapolation = model.UseSlopedExtrapolation ? (bool?)null :
+                    model.UseSlopedExtrapolation
+            };
         }
 
         /// <summary>
@@ -356,7 +278,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
             if (model == null) {
                 return null;
             }
-            return new FilterOperandModel {
+            return new SimpleAttributeOperandModel {
                 NodeId = model.TypeDefinitionId.AsString(context),
                 AttributeId = (NodeAttribute)model.AttributeId,
                 BrowsePath = model.BrowsePath?.Select(p => p.AsString(context)).ToArray(),

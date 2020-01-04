@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
     using Opc.Ua;
     using Opc.Ua.Client;
+    using Opc.Ua.Encoders;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -29,7 +30,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                 if (monitoredItem == null) {
                     continue;
                 }
-                var message = notification.MonitoredItems[i].ToMonitoredItemNotification(monitoredItem);
+                var message = notification.MonitoredItems[i].ToMonitoredItemNotification(
+                    monitoredItem);
                 if (message == null) {
                     continue;
                 }
@@ -58,7 +60,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                 return m.ToMonitoredItemNotification(monitoredItem);
             }
             if (notification is EventFieldList e) {
-                return null; // todo
+                return e.ToMonitoredItemNotification(monitoredItem);
             }
             return defaultValue?.Invoke();
         }
@@ -96,6 +98,82 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                     notification.Message.StringTable,
                 DiagnosticInfo = notification.DiagnosticInfo
             };
+        }
+
+        /// <summary>
+        /// Convert to monitored item notifications
+        /// </summary>
+        /// <param name="eventFieldList"></param>
+        /// <param name="monitoredItem"></param>
+        /// <returns></returns>
+        public static MonitoredItemNotificationModel ToMonitoredItemNotification(
+           this EventFieldList eventFieldList, MonitoredItem monitoredItem) {
+            if (eventFieldList == null || monitoredItem == null) {
+                return null;
+            }
+            return new MonitoredItemNotificationModel {
+                Id = monitoredItem.DisplayName,
+                DisplayName = monitoredItem.DisplayName,
+                NodeId = monitoredItem.StartNodeId,
+                AttributeId = monitoredItem.AttributeId,
+                ClientHandle = eventFieldList.ClientHandle,
+                Value = ToDataValue(eventFieldList, monitoredItem),
+                NotificationData = eventFieldList.Message == null ||
+                                    eventFieldList.Message.IsEmpty ? null :
+                    eventFieldList.Message.NotificationData.ToList(),
+                PublishTime = eventFieldList.Message == null ||
+                                    eventFieldList.Message.IsEmpty ? (DateTime?)null :
+                    eventFieldList.Message.PublishTime,
+                SequenceNumber = eventFieldList.Message == null ||
+                                    eventFieldList.Message.IsEmpty ? (uint?)null :
+                    eventFieldList.Message.SequenceNumber,
+                StringTable = eventFieldList.Message == null ||
+                                    eventFieldList.Message.IsEmpty ? null :
+                    eventFieldList.Message.StringTable
+            };
+        }
+
+        /// <summary>
+        /// Convert to Datavalue
+        /// </summary>
+        /// <param name="eventFields"></param>
+        /// <param name="monitoredItem"></param>
+        /// <returns></returns>
+        public static DataValue ToDataValue(this EventFieldList eventFields,
+            MonitoredItem monitoredItem) {
+            if (eventFields == null) {
+                return new DataValue(StatusCodes.BadNoData);
+            }
+            return new DataValue {
+                ServerPicoseconds = 0,
+                ServerTimestamp = eventFields.GetEventValue<DateTime>(
+                    BrowseNames.Time, monitoredItem),
+                SourcePicoseconds = 0,
+                SourceTimestamp = eventFields.GetEventValue<DateTime>(
+                    BrowseNames.ReceiveTime, monitoredItem),
+                StatusCode = eventFields.GetEventValue<StatusCode>(
+                    BrowseNames.StatusCode, monitoredItem),
+                Value = new EncodeableDictionary {
+                    Fields = new KeyValuePairCollection(eventFields.EventFields
+                        .Select((value, i) => new Opc.Ua.KeyValuePair {
+                            Key = monitoredItem.GetFieldName(i),
+                            Value = value
+                        }))
+                }
+            };
+        }
+
+        /// <summary>
+        /// Returns value of the field name containing the event type.
+        /// </summary>
+        public static T GetEventValue<T>(this EventFieldList eventFields, string name,
+            MonitoredItem monitoredItem, T defaultValue = default) {
+            // get value
+            var value = monitoredItem.GetFieldValue(eventFields, ObjectTypes.BaseEventType, name);
+            if (value != null) {
+                return value.As<T>();
+            }
+            return defaultValue;
         }
     }
 }

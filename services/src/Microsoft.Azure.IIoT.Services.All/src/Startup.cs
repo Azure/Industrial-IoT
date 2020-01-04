@@ -10,14 +10,14 @@ namespace Microsoft.Azure.IIoT.Services.All {
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Diagnostics.HealthChecks;
+    using Microsoft.Extensions.Hosting;
     using Autofac.Extensions.DependencyInjection;
     using Autofac;
     using System;
     using System.Threading.Tasks;
     using System.Threading;
     using System.Linq;
-    using Microsoft.Extensions.Diagnostics.HealthChecks;
-    using Microsoft.Extensions.Hosting;
 
     /// <summary>
     /// Mono app startup
@@ -65,7 +65,6 @@ namespace Microsoft.Azure.IIoT.Services.All {
         /// <param name="services"></param>
         /// <returns></returns>
         public void ConfigureServices(IServiceCollection services) {
-
             services.AddHttpContextAccessor();
             services.AddHealthChecks();
             services.AddDistributedMemoryCache();

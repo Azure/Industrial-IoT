@@ -154,7 +154,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2.Models {
         /// </summary>
         [JsonProperty(PropertyName = "monitoringMode",
             NullValueHandling = NullValueHandling.Ignore)]
-        public MonitoringMode? MonitoringMode { get; set; }
+        public MonitoringItemMode? MonitoringMode { get; set; }
 
         /// <summary>
         /// Queue size (Publisher extension)

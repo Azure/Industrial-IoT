@@ -104,10 +104,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
         /// <param name="sourceId"></param>
         /// <param name="revision"></param>
         /// <param name="codec"></param>
-        /// <param name="context"></param>
         /// <returns></returns>
         public static BaseNodeVertexModel ToVertex(this BaseNodeModel node, string sourceId,
-            long revision, IVariantEncoder codec, ServiceMessageContext context) {
+            long revision, IVariantEncoder codec) {
             if (node == null) {
                 throw new ArgumentNullException(nameof(node));
             }
@@ -132,7 +131,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
                         MinimumSamplingInterval = vNode.MinimumSamplingInterval,
                         Historizing = vNode.Historizing,
                         Value = vNode.Value == null ? null : codec.Encode(vNode.Value.Value,
-                            out builtInType, context),
+                            out builtInType),
                         BuiltInType = builtInType
                     };
                     break;
@@ -146,7 +145,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
                         MinimumSamplingInterval = vNode.MinimumSamplingInterval,
                         Historizing = vNode.Historizing,
                         Value = vNode.Value == null ? null : codec.Encode(vNode.Value.Value,
-                            out builtInType, context),
+                            out builtInType),
                         BuiltInType = builtInType
                     };
                     break;
@@ -172,7 +171,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
                         ValueRank = (NodeValueRank?)vtNode.ValueRank,
                         ArrayDimensions = vtNode.ArrayDimensions,
                         Value = vtNode.Value == null ? null : codec.Encode(vtNode.Value.Value,
-                            out builtInType, context),
+                            out builtInType),
                         BuiltInType = builtInType
                     };
                     break;
@@ -182,7 +181,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
                         ValueRank = (NodeValueRank?)vtNode.ValueRank,
                         ArrayDimensions = vtNode.ArrayDimensions,
                         Value = vtNode.Value == null ? null : codec.Encode(vtNode.Value.Value,
-                            out builtInType, context),
+                            out builtInType),
                         BuiltInType = builtInType
                     };
                     break;
@@ -191,7 +190,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
                         IsAbstract = dtNode.IsAbstract,
                         DataTypeDefinition = dtNode.Definition == null ? null :
                             codec.Encode(new Variant(new ExtensionObject(dtNode.Definition)),
-                            out _, context)
+                            out _)
                     };
                     break;
                 case ReferenceTypeNodeModel rtNode:
@@ -204,8 +203,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
                 default:
                     return null;
             }
-            vertex.NodeId = node.NodeId.AsString(context);
-            vertex.BrowseName = node.BrowseName.AsString(context);
+            vertex.NodeId = node.NodeId.AsString(codec.Context);
+            vertex.BrowseName = node.BrowseName.AsString(codec.Context);
             vertex.DisplayName = node.DisplayName.AsString();
             vertex.Description = node.Description.AsString();
             vertex.WriteMask = (uint?)node.WriteMask;
@@ -234,9 +233,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
                     }
                 }
                 exportedReferences.Add(new Reference {
-                    ReferenceType = EncodeNodeId(reference.ReferenceTypeId, context),
+                    ReferenceType = EncodeNodeId(reference.ReferenceTypeId),
                     IsForward = !reference.IsInverse,
-                    Value = EncodeExpandedNodeId(reference.TargetId, context)
+                    Value = EncodeExpandedNodeId(reference.TargetId)
                 });
             }
             vertex.References = exportedReferences.ToArray();
@@ -253,13 +252,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
         /// <param name="rolePermissions"></param>
         /// <param name="userRolePermissions"></param>
         /// <param name="codec"></param>
-        /// <param name="context"></param>
         /// <returns></returns>
         public static BaseNodeModel ToNodeModel(this BaseNodeVertexModel vertex,
             string dataTypeId, IEnumerable<ReferenceNodeVertexModel> nodeReferences,
             IEnumerable<RolePermissionEdgeModel> rolePermissions,
             IEnumerable<RolePermissionEdgeModel> userRolePermissions,
-            IVariantEncoder codec, ServiceMessageContext context) {
+            IVariantEncoder codec) {
             BaseNodeModel decoded;
             switch (vertex) {
                 case ObjectNodeVertexModel uaObject:
@@ -269,7 +267,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
                     break;
                 case PropertyNodeVertexModel uaProperty:
                     decoded = new PropertyNodeModel(null) {
-                        DataType = dataTypeId.ToNodeId(context),
+                        DataType = dataTypeId.ToNodeId(codec.Context),
                         ValueRank = (int?)uaProperty.ValueRank,
                         ArrayDimensions = uaProperty.ArrayDimensions,
                         AccessLevelEx = (uint?)uaProperty.AccessLevel,
@@ -279,14 +277,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
                             (byte?)((uint)uaProperty.UserAccessLevel.Value & 0xff),
                         MinimumSamplingInterval = uaProperty.MinimumSamplingInterval,
                         Historizing = uaProperty.Historizing,
-                        Value = codec.Decode(uaProperty.Value, uaProperty.BuiltInType,
-                            context),
+                        Value = codec.Decode(uaProperty.Value, uaProperty.BuiltInType),
                         TypeDefinitionId = null
                     };
                     break;
                 case VariableNodeVertexModel uaVariable:
                     decoded = new DataVariableNodeModel(null) {
-                        DataType = dataTypeId.ToNodeId(context),
+                        DataType = dataTypeId.ToNodeId(codec.Context),
                         ValueRank = (int?)uaVariable.ValueRank,
                         ArrayDimensions = uaVariable.ArrayDimensions,
                         AccessLevelEx = (uint?)uaVariable.AccessLevel,
@@ -296,8 +293,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
                             (byte?)((uint)uaVariable.UserAccessLevel.Value & 0xff),
                         MinimumSamplingInterval = uaVariable.MinimumSamplingInterval,
                         Historizing = uaVariable.Historizing,
-                        Value = codec.Decode(uaVariable.Value, uaVariable.BuiltInType,
-                            context),
+                        Value = codec.Decode(uaVariable.Value, uaVariable.BuiltInType),
                         TypeDefinitionId = null
                     };
                     break;
@@ -321,21 +317,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
                 case PropertyTypeNodeVertexModel uaPropertyType:
                     decoded = new PropertyTypeNodeModel {
                         IsAbstract = uaPropertyType.IsAbstract,
-                        DataType = dataTypeId.ToNodeId(context),
+                        DataType = dataTypeId.ToNodeId(codec.Context),
                         ValueRank = (int?)uaPropertyType.ValueRank,
                         ArrayDimensions = uaPropertyType.ArrayDimensions,
-                        Value = codec.Decode(uaPropertyType.Value, uaPropertyType.BuiltInType,
-                            context)
+                        Value = codec.Decode(uaPropertyType.Value, uaPropertyType.BuiltInType)
                     };
                     break;
                 case VariableTypeNodeVertexModel uaVariableType:
                     decoded = new DataVariableTypeNodeModel {
                         IsAbstract = uaVariableType.IsAbstract,
-                        DataType = dataTypeId.ToNodeId(context),
+                        DataType = dataTypeId.ToNodeId(codec.Context),
                         ValueRank = (int?)uaVariableType.ValueRank,
                         ArrayDimensions = uaVariableType.ArrayDimensions,
-                        Value = codec.Decode(uaVariableType.Value, uaVariableType.BuiltInType,
-                            context)
+                        Value = codec.Decode(uaVariableType.Value, uaVariableType.BuiltInType)
                     };
                     break;
                 case DataTypeNodeVertexModel uaDataType:
@@ -343,7 +337,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
                         IsAbstract = uaDataType.IsAbstract,
                         Definition = uaDataType.DataTypeDefinition == null ? null :
                             (DataTypeDefinition)(codec.Decode(uaDataType.DataTypeDefinition,
-                                BuiltInType.ExtensionObject, context).Value as ExtensionObject)?.Body,
+                                BuiltInType.ExtensionObject).Value as ExtensionObject)?.Body,
                         Purpose = Opc.Ua.Nodeset.Schema.DataTypePurpose.Normal
                     };
                     break;
@@ -358,7 +352,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
                     return null;
             }
             decoded.NodeId = vertex.NodeId;
-            decoded.BrowseName = vertex.BrowseName.ToQualifiedName(context);
+            decoded.BrowseName = vertex.BrowseName.ToQualifiedName(codec.Context);
             decoded.DisplayName = vertex.DisplayName.ToLocalizedText();
             decoded.Description = vertex.Description.ToLocalizedText();
             decoded.WriteMask = (AttributeWriteMask)vertex.WriteMask;
@@ -366,13 +360,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
             decoded.RolePermissions = rolePermissions?
                 .Select(r => new RolePermissionType {
                     Permissions = (uint)(PermissionType)(r.Permissions ?? 0),
-                    RoleId = r.RoleId.ToNodeId(context)
+                    RoleId = r.RoleId.ToNodeId(codec.Context)
                 })
                 .ToList();
             decoded.UserRolePermissions = userRolePermissions?
                 .Select(r => new RolePermissionType {
                     Permissions = (uint)(PermissionType)(r.Permissions ?? 0),
-                    RoleId = r.RoleId.ToNodeId(context)
+                    RoleId = r.RoleId.ToNodeId(codec.Context)
                 })
                 .ToList();
             if (!string.IsNullOrEmpty(vertex.SymbolicName)) {
@@ -382,27 +376,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
             var references = new List<IReference>();
             if (nodeReferences != null) {
                 foreach (var reference in nodeReferences) {
-                    var referenceTypeId = reference.ReferenceTypeId.ToNodeId(context);
+                    var referenceTypeId = reference.ReferenceTypeId.ToNodeId(codec.Context);
                     var isInverse = reference.TargetId == vertex.NodeId;
                     var targetId = isInverse ?
-                        reference.OriginId.ToNodeId(context) :
-                        reference.TargetId.ToNodeId(context);
+                        reference.OriginId.ToNodeId(codec.Context) :
+                        reference.TargetId.ToNodeId(codec.Context);
                     if (decoded is InstanceNodeModel instance) {
                         if (referenceTypeId == ReferenceTypeIds.HasModellingRule && !isInverse) {
                             instance.ModellingRuleId = ExpandedNodeId.ToNodeId(
-                                targetId, context.NamespaceUris);
+                                targetId, codec.Context.NamespaceUris);
                             continue;
                         }
                         if (referenceTypeId == ReferenceTypeIds.HasTypeDefinition && !isInverse) {
                             instance.TypeDefinitionId = ExpandedNodeId.ToNodeId(
-                                targetId, context.NamespaceUris);
+                                targetId, codec.Context.NamespaceUris);
                             continue;
                         }
                     }
                     if (decoded is TypeNodeModel type) {
                         if (referenceTypeId == ReferenceTypeIds.HasSubtype && isInverse) {
                             type.SuperTypeId = ExpandedNodeId.ToNodeId(targetId,
-                                context.NamespaceUris);
+                                codec.Context.NamespaceUris);
                             continue;
                         }
                     }

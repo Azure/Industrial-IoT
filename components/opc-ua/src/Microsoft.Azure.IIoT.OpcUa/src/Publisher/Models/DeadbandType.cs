@@ -21,6 +21,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// <summary>
         /// Percentage
         /// </summary>
-        Percentage
+        Percent
     }
 }

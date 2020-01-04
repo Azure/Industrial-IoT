@@ -38,7 +38,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Export.Services {
             _upload = upload ?? throw new ArgumentNullException(nameof(upload));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _scheduler = scheduler ?? throw new ArgumentNullException(nameof(scheduler));
-            _tasks = new ConcurrentDictionary<EndpointIdentifier, ModelUploadTask>();
+            _tasks = new ConcurrentDictionary<ConnectionIdentifier, ModelUploadTask>();
         }
 
         /// <inheritdoc/>
@@ -52,8 +52,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Export.Services {
             }
 
             // Get or add new task
-            var task = _tasks.GetOrAdd(new EndpointIdentifier(endpoint),
-                id => new ModelUploadTask(this, id, request.ContentEncoding, request.Diagnostics));
+            var task = _tasks.GetOrAdd(new ConnectionIdentifier(new ConnectionModel {
+                Endpoint = endpoint
+            }), id => new ModelUploadTask(this, id, request.ContentEncoding, request.Diagnostics));
 
             // Return info about task
             return Task.FromResult(new ModelUploadStartResultModel {
@@ -100,7 +101,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Export.Services {
             /// <param name="id"></param>
             /// <param name="contentType"></param>
             /// <param name="diagnostics"></param>
-            public ModelUploadTask(DataUploadServices outer, EndpointIdentifier id,
+            public ModelUploadTask(DataUploadServices outer, ConnectionIdentifier id,
                 string contentType, DiagnosticsModel diagnostics) {
                 Encoding = ValidateEncoding(contentType, out var extension);
                 StartTime = DateTime.UtcNow;
@@ -117,32 +118,32 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Export.Services {
             /// <param name="diagnostics"></param>
             /// <param name="ct"></param>
             /// <returns></returns>
-            private async Task UploadModelAsync(EndpointIdentifier id, DiagnosticsModel diagnostics,
+            private async Task UploadModelAsync(ConnectionIdentifier id, DiagnosticsModel diagnostics,
                 CancellationToken ct) {
                 var fullPath = Path.Combine(Path.GetTempPath(), FileName);
                 try {
                     _outer._logger.Information("Start model upload to {fileName} for {url}.",
-                        FileName, id.Endpoint.Url);
+                        FileName, id.Connection.Endpoint.Url);
                     using (var file = new FileStream(fullPath, FileMode.Create))
                     using (var stream = new GZipStream(file, CompressionMode.Compress)) {
                         // TODO: Try read nodeset from namespace metadata!
                         // ...
 
                         // Otherwise browse model
-                        await BrowseEncodeModelAsync(id.Endpoint, diagnostics, stream, ct);
+                        await BrowseEncodeModelAsync(id.Connection.Endpoint, diagnostics, stream, ct);
                     }
                     // now upload file
                     await _outer._upload.SendFileAsync(fullPath, Encoding);
                     _outer._logger.Information("Model uploaded to {fileName} for {url}.",
-                        FileName, id.Endpoint.Url);
+                        FileName, id.Connection.Endpoint.Url);
                 }
                 catch (OperationCanceledException) {
                     _outer._logger.Information("Cancelled model upload of {fileName} for {url}",
-                        FileName, id.Endpoint.Url);
+                        FileName, id.Connection.Endpoint.Url);
                 }
                 catch (Exception ex) {
                     _outer._logger.Error(ex, "Error during exportto {fileName} for {url}.",
-                        FileName, id.Endpoint.Url);
+                        FileName, id.Connection.Endpoint.Url);
                 }
                 finally {
                     File.Delete(fullPath);
@@ -213,6 +214,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Export.Services {
         private readonly IBlobUpload _upload;
         private readonly ITaskScheduler _scheduler;
         private readonly ILogger _logger;
-        private readonly ConcurrentDictionary<EndpointIdentifier, ModelUploadTask> _tasks;
+        private readonly ConcurrentDictionary<ConnectionIdentifier, ModelUploadTask> _tasks;
     }
 }

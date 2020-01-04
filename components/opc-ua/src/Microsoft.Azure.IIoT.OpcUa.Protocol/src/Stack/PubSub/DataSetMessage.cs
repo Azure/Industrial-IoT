@@ -157,12 +157,16 @@ namespace Opc.Ua.PubSub {
             }
         }
 
+#pragma warning disable IDE0060 // Remove unused parameter
         /// <summary>
         /// Encode as binary
         /// </summary>
         /// <param name="decoder"></param>
         private void DecodeBinary(IDecoder decoder) {
-            throw new NotImplementedException("Binary decoding is not implemented.");
+#pragma warning restore IDE0060 // Remove unused parameter
+
+            // TODO
+            throw new NotImplementedException();
         }
 
         /// <summary>

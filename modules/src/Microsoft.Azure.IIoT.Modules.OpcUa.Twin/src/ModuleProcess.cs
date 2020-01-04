@@ -135,7 +135,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<AddressSpaceServices>()
                 .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<JsonVariantEncoder>()
+            builder.RegisterType<VariantEncoderFactory>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<StackLogger>()
                 .AsImplementedInterfaces().SingleInstance().AutoActivate();
@@ -207,7 +207,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
                     .AsImplementedInterfaces().SingleInstance();
 
                 // Register other opc ua services
-                builder.RegisterType<JsonVariantEncoder>()
+                builder.RegisterType<VariantEncoderFactory>()
                     .AsImplementedInterfaces().SingleInstance();
                 builder.RegisterType<TwinServices>()
                     .AsImplementedInterfaces().SingleInstance();

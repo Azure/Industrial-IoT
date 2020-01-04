@@ -8,6 +8,8 @@ namespace Microsoft.Azure.IIoT.Services.Common.Hub.Edgemanager {
     using Microsoft.Azure.IIoT.Services.Common.Hub.Edgemanager.v2;
     using Microsoft.Azure.IIoT.Services.Cors;
     using Microsoft.Azure.IIoT.Services.Auth;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy;
+    using Microsoft.Azure.IIoT.OpcUa.Twin.Deploy;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Hub.Services;
     using Microsoft.Azure.IIoT.Diagnostics;
@@ -17,16 +19,14 @@ namespace Microsoft.Azure.IIoT.Services.Common.Hub.Edgemanager {
     using Microsoft.Extensions.Logging;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy;
-    using Microsoft.Azure.IIoT.OpcUa.Twin.Deploy;
+    using Microsoft.OpenApi.Models;
+    using Microsoft.Extensions.Hosting;
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
     using Swashbuckle.AspNetCore.Swagger;
     using System;
     using ILogger = Serilog.ILogger;
     using Newtonsoft.Json;
-    using Microsoft.OpenApi.Models;
-    using Microsoft.Extensions.Hosting;
 
     /// <summary>
     /// Webservice startup

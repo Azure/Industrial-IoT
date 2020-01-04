@@ -15,9 +15,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     /// </summary>
     public interface IClientSession : IDisposable {
 
-
         /// <summary>
-        /// Whether the session is inactive based on its timeout setting.
+        /// Whether the session is inactive and can be collected
         /// </summary>
         bool Inactive { get; }
 
@@ -25,12 +24,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// How many operations are currently pending for the session.
         /// </summary>
         int Pending { get; }
-
-        /// <summary>
-        /// Closes the session and cancelles any outstanding operations.
-        /// </summary>
-        /// <returns></returns>
-        Task CloseAsync();
 
         /// <summary>
         /// Try schedule operation on the session
@@ -47,5 +40,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         bool TryScheduleServiceCall<T>(CredentialModel elevation, int priority,
             Func<Session, Task<T>> serviceCall, Func<Exception, bool> handler,
             TimeSpan? timeout, CancellationToken? ct, out Task<T> completion);
+
+        /// <summary>
+        /// Get a new safe handle to the session
+        /// </summary>
+        /// <returns></returns>
+        ISessionHandle GetSafeHandle();
+
+        /// <summary>
+        /// Closes the session and cancels any outstanding operations.
+        /// </summary>
+        /// <returns></returns>
+        Task CloseAsync();
     }
 }

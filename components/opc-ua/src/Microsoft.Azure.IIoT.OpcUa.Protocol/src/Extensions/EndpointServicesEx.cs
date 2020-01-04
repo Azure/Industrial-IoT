@@ -16,6 +16,58 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     public static class EndpointServicesEx {
 
         /// <summary>
+        /// Overload that does not continue on exception and can only be cancelled.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="client"></param>
+        /// <param name="ct"></param>
+        /// <param name="connection"></param>
+        /// <param name="service"></param>
+        /// <returns></returns>
+        public static Task<T> ExecuteServiceAsync<T>(this IEndpointServices client,
+            ConnectionModel connection, CancellationToken ct, Func<Session, Task<T>> service) {
+            return client.ExecuteServiceAsync(connection, ct, service, _ => true);
+        }
+
+        /// <summary>
+        /// Overload which can only be cancelled.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="client"></param>
+        /// <param name="ct"></param>
+        /// <param name="connection"></param>
+        /// <param name="service"></param>
+        /// <param name="handler"></param>
+        /// <returns></returns>
+        public static Task<T> ExecuteServiceAsync<T>(this IEndpointServices client,
+            ConnectionModel connection, CancellationToken ct, Func<Session, Task<T>> service,
+            Func<Exception, bool> handler) {
+            return client.ExecuteServiceAsync(connection, null, 0, service,
+                null, ct, handler);
+        }
+
+        /// <summary>
+        /// Execute the service on the provided session.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="client"></param>
+        /// <param name="endpoint"></param>
+        /// <param name="elevation"></param>
+        /// <param name="priority"></param>
+        /// <param name="service"></param>
+        /// <param name="timeout"></param>
+        /// <param name="ct"></param>
+        /// <param name="exceptionHandler"></param>
+        /// <returns></returns>
+        public static Task<T> ExecuteServiceAsync<T>(this IEndpointServices client,
+            EndpointModel endpoint, CredentialModel elevation, int priority, Func<Session,
+            Task<T>> service, TimeSpan? timeout, CancellationToken ct,
+            Func<Exception, bool> exceptionHandler) {
+            return client.ExecuteServiceAsync(new ConnectionModel { Endpoint = endpoint },
+                elevation, priority, service, timeout, ct, exceptionHandler);
+        }
+
+        /// <summary>
         /// Overload that runs in the foreground, does not continue on exception
         /// but allows specifying timeout.
         /// </summary>

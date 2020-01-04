@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
-    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
+    using Microsoft.Azure.IIoT.Diagnostics;
     using System.IO;
     using System.Linq;
     using System.Text;

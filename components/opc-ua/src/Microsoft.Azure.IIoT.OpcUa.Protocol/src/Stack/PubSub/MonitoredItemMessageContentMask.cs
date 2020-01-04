@@ -10,7 +10,7 @@ namespace Opc.Ua {
     /// Monitored item message content fields
     /// </summary>
     [Flags]
-    public enum MonitoredItemSampleContentMask {
+    public enum MonitoredItemMessageContentMask {
 
         /// <summary>
         /// Source timestamp included

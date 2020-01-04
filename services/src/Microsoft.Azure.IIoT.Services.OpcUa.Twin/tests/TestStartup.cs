@@ -50,7 +50,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
                 .AsImplementedInterfaces();
             builder.RegisterType<UploadServicesStub<EndpointModel>>()
                 .AsImplementedInterfaces();
-            builder.RegisterType<JsonVariantEncoder>()
+            builder.RegisterType<VariantEncoderFactory>()
                 .AsImplementedInterfaces().SingleInstance();
         }
 

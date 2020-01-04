@@ -34,11 +34,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Services {
         /// <param name="codec"></param>
         /// <param name="logger"></param>
         internal NodeSetStreamLoader(IGraphLoader loader, string deviceId,
-            IDictionary<string, string> tags, long revision, IVariantEncoder codec,
+            IDictionary<string, string> tags, long revision, IVariantEncoderFactory codec,
             ILogger logger) {
 
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _codec = codec ?? throw new ArgumentNullException(nameof(codec));
+            _codec = codec?.Default ?? throw new ArgumentNullException(nameof(codec));
             _deviceId = deviceId ?? throw new ArgumentNullException(nameof(deviceId));
             _tags = tags ?? throw new ArgumentNullException(nameof(tags));
             _loader = loader ?? throw new ArgumentNullException(nameof(loader));
@@ -51,7 +51,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Services {
 
             _source = null; // TODO
 
-            var context = _context.ToSystemContext();
+            var context = _codec.Context.ToSystemContext();
             if (contentType == ContentMimeType.UaNodesetXml) {
                 // If nodeset, read as nodeset xml
                 var nodeset = NodeSet2.Load(stream);
@@ -64,7 +64,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Services {
             }
             else {
                 // Otherwise decode from stream
-                using (var decoder = new ModelDecoder(stream, contentType, _context)) {
+                using (var decoder = new ModelDecoder(stream, contentType, _codec.Context)) {
                     while (true) {
                         ct.ThrowIfCancellationRequested();
                         var node = decoder.ReadEncodeable<EncodeableNodeModel>(null);
@@ -88,7 +88,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Services {
             if (node == null) {
                 return;
             }
-            var vertex = node.ToVertex(_source.Id, _revision, _codec, _context);
+            var vertex = node.ToVertex(_source.Id, _revision, _codec);
             if (vertex == null) {
                 return;
             }
@@ -119,8 +119,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Services {
             IReference reference) {
 
             var originId = vertex.NodeId;
-            var typeId = reference.ReferenceTypeId.AsString(_context);
-            var targetId = reference.TargetId.AsString(_context);
+            var typeId = reference.ReferenceTypeId.AsString(_codec.Context);
+            var targetId = reference.TargetId.AsString(_codec.Context);
 
             // Create address space reference node
             var rid = AddressSpaceEx.CreateAddressSpaceReferenceNodeId(
@@ -184,7 +184,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Services {
             var rolePermissions = value.GetValueOrDefault<RolePermissionTypeCollection>();
             if (rolePermissions != null) {
                 foreach (var permission in rolePermissions) {
-                    var roleId = permission.RoleId.AsString(_context);
+                    var roleId = permission.RoleId.AsString(_codec.Context);
                     await _loader.AddEdgeAsync(model,
                         new RolePermissionEdgeModel {
                             Id = _source.CreateEdgeId(model.NodeId, roleId),
@@ -204,7 +204,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Services {
         /// <param name="value"></param>
         /// <returns></returns>
         private Task WriteDataTypeAsync(VariableTypeNodeVertexModel model, DataValue value) {
-            var dataTypeId = value.GetValue(NodeId.Null).AsString(_context);
+            var dataTypeId = value.GetValue(NodeId.Null).AsString(_codec.Context);
             if (dataTypeId != null) {
                 return _loader.AddEdgeAsync(model,
                     new DataTypeEdgeModel {
@@ -222,7 +222,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Services {
         private readonly IVariantEncoder _codec;
         private readonly string _deviceId;
         private readonly IDictionary<string, string> _tags;
-        private readonly ServiceMessageContext _context = new ServiceMessageContext();
         private readonly IGraphLoader _loader;
         private SourceVertexModel _source;
     }

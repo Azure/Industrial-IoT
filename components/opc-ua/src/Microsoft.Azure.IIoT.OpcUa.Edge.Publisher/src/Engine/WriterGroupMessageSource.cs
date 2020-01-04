@@ -9,6 +9,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
+    using Microsoft.Azure.IIoT.Utils;
     using Serilog;
     using System;
     using System.Collections.Generic;
@@ -155,7 +156,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     _outer._logger.Debug("Insert keyframe message...");
                     var sequenceNumber = (uint)Interlocked.Increment(ref _currentSequenceNumber);
                     var snapshot = await Subscription.GetSnapshotAsync();
-                    CallMessageReceiverDelegates(this, sequenceNumber, snapshot);
+                    if (snapshot != null) {
+                        CallMessageReceiverDelegates(this, sequenceNumber, snapshot);
+                    }
                 }
                 catch (Exception ex) {
                     _outer._logger.Information(ex, "Failed to send keyframe.");
@@ -184,12 +187,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 var sequenceNumber = (uint)Interlocked.Increment(ref _currentSequenceNumber);
                 if (_keyFrameCount.HasValue && _keyFrameCount.Value != 0 &&
                     (sequenceNumber % _keyFrameCount.Value) == 0) {
-                    try {
-                        var snapshot = await Subscription.GetSnapshotAsync();
+                    var snapshot = await Try.Async(() => Subscription.GetSnapshotAsync());
+                    if (snapshot != null) {
                         notification = snapshot;
-                    }
-                    catch (Exception ex) {
-                        _outer._logger.Information(ex, "Failed to create key frame message.");
                     }
                 }
                 CallMessageReceiverDelegates(sender, sequenceNumber, notification);

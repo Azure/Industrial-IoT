@@ -16,9 +16,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using System.Collections.Generic;
 
     /// <summary>
-    /// Publisher sample message encoder
+    /// Publisher monitored item message encoder
     /// </summary>
-    public class MonitoredItemSampleEncoder : IMessageEncoder {
+    public class MonitoredItemMessageEncoder : IMessageEncoder {
 
         /// <inheritdoc/>
         public Task<IEnumerable<NetworkMessageModel>> EncodeAsync(DataSetMessageModel message) {
@@ -32,9 +32,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <returns></returns>
         public IEnumerable<NetworkMessageModel> Encode(DataSetMessageModel message) {
             foreach (var notification in message.Notifications) {
-                var value = new MonitoredItemSample {
+                var value = new MonitoredItemMessage {
                     MessageContentMask = (message.Writer?.MessageSettings?
-                        .DataSetMessageContentMask).ToMonitoredItemSampleMask(
+                        .DataSetMessageContentMask).ToMonitoredItemMessageMask(
                             message.Writer?.DataSetFieldContentMask),
                     ApplicationUri = message.ApplicationUri,
                     EndpointUrl = message.EndpointUrl,
@@ -43,7 +43,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     Value = notification.Value,
                     DisplayName = notification.DisplayName
                 };
-
                 using (var writer = new StringWriter()) {
                     using (var encoder = new JsonEncoderEx(writer, message.ServiceMessageContext) {
                         // TODO: Configure encoding further

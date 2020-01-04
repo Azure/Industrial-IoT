@@ -34,11 +34,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         public string[] RelativePath { get; set; }
 
         /// <summary>
-        /// Node class
-        /// </summary>
-        public NodeClass? NodeClass { get; set; }
-
-        /// <summary>
         /// Attribute
         /// </summary>
         public NodeAttribute? AttributeId { get; set; }
@@ -66,7 +61,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// <summary>
         /// Monitoring mode
         /// </summary>
-        public MonitoringMode? MonitoringMode { get; set; }
+        public MonitoringItemMode? MonitoringMode { get; set; }
 
         /// <summary>
         /// Monitored item that triggers reporting of this item
