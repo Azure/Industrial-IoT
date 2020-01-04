@@ -328,14 +328,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// </summary>
         /// <param name="mode"></param>
         /// <returns></returns>
-        public static MonitoringItemMode? ToServiceType(this UaMonitoringMode mode) {
+        public static MonitoringMode? ToServiceType(this UaMonitoringMode mode) {
             switch (mode) {
                 case UaMonitoringMode.Disabled:
-                    return MonitoringItemMode.Disabled;
+                    return MonitoringMode.Disabled;
                 case UaMonitoringMode.Sampling:
-                    return MonitoringItemMode.Sampling;
+                    return MonitoringMode.Sampling;
                 case UaMonitoringMode.Reporting:
-                    return MonitoringItemMode.Reporting;
+                    return MonitoringMode.Reporting;
                 default:
                     return null;
             }
@@ -346,16 +346,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// </summary>
         /// <param name="mode"></param>
         /// <returns></returns>
-        public static UaMonitoringMode? ToStackType(this MonitoringItemMode? mode) {
+        public static UaMonitoringMode? ToStackType(this MonitoringMode? mode) {
             if (mode == null) {
                 return null;
             }
             switch (mode) {
-                case MonitoringItemMode.Disabled:
+                case MonitoringMode.Disabled:
                     return UaMonitoringMode.Disabled;
-                case MonitoringItemMode.Sampling:
+                case MonitoringMode.Sampling:
                     return UaMonitoringMode.Sampling;
-                case MonitoringItemMode.Reporting:
+                case MonitoringMode.Reporting:
                     return UaMonitoringMode.Reporting;
                 default:
                     return UaMonitoringMode.Reporting;

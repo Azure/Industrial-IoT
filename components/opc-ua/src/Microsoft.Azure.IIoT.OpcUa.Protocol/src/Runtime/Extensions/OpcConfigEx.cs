@@ -20,9 +20,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="opcConfig"></param>
         /// <param name="createSelfSignedCertIfNone"></param>
         /// <returns></returns>
-        public static ApplicationConfiguration ToApplicationConfiguration(this IClientServicesConfig opcConfig, bool createSelfSignedCertIfNone) {
+        public static ApplicationConfiguration ToApplicationConfiguration(this IClientServicesConfig2 opcConfig, bool createSelfSignedCertIfNone) {
             if (string.IsNullOrWhiteSpace(opcConfig.ApplicationName)) {
-                throw new ArgumentNullException($"{nameof(opcConfig)}.{nameof(ClientServicesConfig.ApplicationName)}");
+                throw new ArgumentNullException($"{nameof(opcConfig)}.{nameof(ClientServicesConfig2.ApplicationName)}");
             }
 
             var applicationConfiguration = new ApplicationConfiguration {

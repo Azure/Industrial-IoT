@@ -30,12 +30,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <summary>
         /// Create subscription manager
         /// </summary>
-        /// <param name="client"></param>
+        /// <param name="sessionManager"></param>
         /// <param name="codec"></param>
         /// <param name="logger"></param>
-        public SubscriptionServices(IEndpointServices client, IVariantEncoderFactory codec,
+        public SubscriptionServices(ISessionManager sessionManager, IVariantEncoderFactory codec,
             ILogger logger) {
-            _client = client ?? throw new ArgumentNullException(nameof(client));
+            _sessionManager = sessionManager ?? throw new ArgumentNullException(nameof(sessionManager));
             _codec = codec ?? throw new ArgumentNullException(nameof(codec));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -374,7 +374,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             }
 
             /// <summary>
-            /// Retriev a raw subscription with all settings applied (no lock)
+            /// Retrieve a raw subscription with all settings applied (no lock)
             /// </summary>
             /// <param name="configuration"></param>
             /// <returns></returns>
@@ -649,15 +649,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     changes = true;
                 }
 
-                if ((Template.MonitoringMode ?? Publisher.Models.MonitoringItemMode.Reporting) !=
-                    (model.Template.MonitoringMode ?? Publisher.Models.MonitoringItemMode.Reporting)) {
+                if ((Template.MonitoringMode ?? Publisher.Models.MonitoringMode.Reporting) !=
+                    (model.Template.MonitoringMode ?? Publisher.Models.MonitoringMode.Reporting)) {
                     _logger.Debug("{item}: Changing monitoring mode from {old} to {new}",
                         this,
-                        Template.MonitoringMode ?? Publisher.Models.MonitoringItemMode.Reporting,
-                        model.Template.MonitoringMode ?? Publisher.Models.MonitoringItemMode.Reporting);
+                        Template.MonitoringMode ?? Publisher.Models.MonitoringMode.Reporting,
+                        model.Template.MonitoringMode ?? Publisher.Models.MonitoringMode.Reporting);
                     Template.MonitoringMode = model.Template.MonitoringMode;
                     _modeChange = Template.MonitoringMode ??
-                        Publisher.Models.MonitoringItemMode.Reporting;
+                        Publisher.Models.MonitoringMode.Reporting;
                 }
 
                 // TODO
@@ -699,7 +699,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
             private HashSet<uint> _newTriggers = new HashSet<uint>();
             private HashSet<uint> _triggers = new HashSet<uint>();
-            private Publisher.Models.MonitoringItemMode? _modeChange;
+            private Publisher.Models.MonitoringMode? _modeChange;
             private readonly ILogger _logger;
         }
 

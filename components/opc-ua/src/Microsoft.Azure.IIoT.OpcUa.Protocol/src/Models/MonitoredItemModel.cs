@@ -61,7 +61,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// <summary>
         /// Monitoring mode
         /// </summary>
-        public MonitoringItemMode? MonitoringMode { get; set; }
+        public MonitoringMode? MonitoringMode { get; set; }
 
         /// <summary>
         /// Monitored item that triggers reporting of this item

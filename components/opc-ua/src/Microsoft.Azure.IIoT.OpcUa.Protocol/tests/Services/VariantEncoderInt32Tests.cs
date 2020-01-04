@@ -12,9 +12,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         [Fact]
         public void DecodeEncodeInt32FromJValue() {
-            var codec = new JsonVariantEncoder();
+            var codec = new VariantEncoderFactory().Default;
             var str = new JValue(-123);
-            var variant = codec.Decode(str, BuiltInType.Int32, null);
+            var variant = codec.Decode(str, BuiltInType.Int32);
             var expected = new Variant(-123);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
@@ -23,9 +23,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         [Fact]
         public void DecodeEncodeInt32ArrayFromJArray() {
-            var codec = new JsonVariantEncoder();
+            var codec = new VariantEncoderFactory().Default;
             var str = new JArray(-123, -124, -125);
-            var variant = codec.Decode(str, BuiltInType.Int32, null);
+            var variant = codec.Decode(str, BuiltInType.Int32);
             var expected = new Variant(new int[] { -123, -124, -125 });
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
@@ -34,9 +34,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         [Fact]
         public void DecodeEncodeInt32FromJValueTypeNullIsInt64() {
-            var codec = new JsonVariantEncoder();
+            var codec = new VariantEncoderFactory().Default;
             var str = new JValue(-123);
-            var variant = codec.Decode(str, BuiltInType.Null, null);
+            var variant = codec.Decode(str, BuiltInType.Null);
             var expected = new Variant(-123L);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
@@ -45,9 +45,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         [Fact]
         public void DecodeEncodeInt32ArrayFromJArrayTypeNullIsInt64() {
-            var codec = new JsonVariantEncoder();
+            var codec = new VariantEncoderFactory().Default;
             var str = new JArray(-123, -124, -125);
-            var variant = codec.Decode(str, BuiltInType.Null, null);
+            var variant = codec.Decode(str, BuiltInType.Null);
             var expected = new Variant(new long[] { -123, -124, -125 });
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
@@ -56,9 +56,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         [Fact]
         public void DecodeEncodeInt32FromString() {
-            var codec = new JsonVariantEncoder();
+            var codec = new VariantEncoderFactory().Default;
             var str = "-123";
-            var variant = codec.Decode(str, BuiltInType.Int32, null);
+            var variant = codec.Decode(str, BuiltInType.Int32);
             var expected = new Variant(-123);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
@@ -67,9 +67,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         [Fact]
         public void DecodeEncodeInt32ArrayFromString() {
-            var codec = new JsonVariantEncoder();
+            var codec = new VariantEncoderFactory().Default;
             var str = "-123, -124, -125";
-            var variant = codec.Decode(str, BuiltInType.Int32, null);
+            var variant = codec.Decode(str, BuiltInType.Int32);
             var expected = new Variant(new int[] { -123, -124, -125 });
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
@@ -78,9 +78,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         [Fact]
         public void DecodeEncodeInt32ArrayFromString2() {
-            var codec = new JsonVariantEncoder();
+            var codec = new VariantEncoderFactory().Default;
             var str = "[-123, -124, -125]";
-            var variant = codec.Decode(str, BuiltInType.Int32, null);
+            var variant = codec.Decode(str, BuiltInType.Int32);
             var expected = new Variant(new int[] { -123, -124, -125 });
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
@@ -89,9 +89,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         [Fact]
         public void DecodeEncodeInt32ArrayFromString3() {
-            var codec = new JsonVariantEncoder();
+            var codec = new VariantEncoderFactory().Default;
             var str = "[]";
-            var variant = codec.Decode(str, BuiltInType.Int32, null);
+            var variant = codec.Decode(str, BuiltInType.Int32);
             var expected = new Variant(new int[0]);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
@@ -100,9 +100,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         [Fact]
         public void DecodeEncodeInt32FromStringTypeIntegerIsInt64() {
-            var codec = new JsonVariantEncoder();
+            var codec = new VariantEncoderFactory().Default;
             var str = "-123";
-            var variant = codec.Decode(str, BuiltInType.Integer, null);
+            var variant = codec.Decode(str, BuiltInType.Integer);
             var expected = new Variant(-123L);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
@@ -111,9 +111,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         [Fact]
         public void DecodeEncodeInt32ArrayFromStringTypeIntegerIsInt641() {
-            var codec = new JsonVariantEncoder();
+            var codec = new VariantEncoderFactory().Default;
             var str = "[-123, -124, -125]";
-            var variant = codec.Decode(str, BuiltInType.Integer, null);
+            var variant = codec.Decode(str, BuiltInType.Integer);
             var expected = new Variant(new Variant[] {
                 new Variant(-123L), new Variant(-124L), new Variant(-125L)
             });
@@ -124,9 +124,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         [Fact]
         public void DecodeEncodeInt32ArrayFromStringTypeIntegerIsInt642() {
-            var codec = new JsonVariantEncoder();
+            var codec = new VariantEncoderFactory().Default;
             var str = "[]";
-            var variant = codec.Decode(str, BuiltInType.Integer, null);
+            var variant = codec.Decode(str, BuiltInType.Integer);
             var expected = new Variant(new Variant[0]);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
@@ -135,9 +135,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         [Fact]
         public void DecodeEncodeInt32FromStringTypeNumberIsInt64() {
-            var codec = new JsonVariantEncoder();
+            var codec = new VariantEncoderFactory().Default;
             var str = "-123";
-            var variant = codec.Decode(str, BuiltInType.Number, null);
+            var variant = codec.Decode(str, BuiltInType.Number);
             var expected = new Variant(-123L);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
@@ -146,9 +146,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         [Fact]
         public void DecodeEncodeInt32ArrayFromStringTypeNumberIsInt641() {
-            var codec = new JsonVariantEncoder();
+            var codec = new VariantEncoderFactory().Default;
             var str = "[-123, -124, -125]";
-            var variant = codec.Decode(str, BuiltInType.Number, null);
+            var variant = codec.Decode(str, BuiltInType.Number);
             var expected = new Variant(new Variant[] {
                 new Variant(-123L), new Variant(-124L), new Variant(-125L)
             });
@@ -159,9 +159,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         [Fact]
         public void DecodeEncodeInt32ArrayFromStringTypeNumberIsInt642() {
-            var codec = new JsonVariantEncoder();
+            var codec = new VariantEncoderFactory().Default;
             var str = "[]";
-            var variant = codec.Decode(str, BuiltInType.Number, null);
+            var variant = codec.Decode(str, BuiltInType.Number);
             var expected = new Variant(new Variant[0]);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
@@ -170,9 +170,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         [Fact]
         public void DecodeEncodeInt32FromStringTypeNullIsInt64() {
-            var codec = new JsonVariantEncoder();
+            var codec = new VariantEncoderFactory().Default;
             var str = "-123";
-            var variant = codec.Decode(str, BuiltInType.Null, null);
+            var variant = codec.Decode(str, BuiltInType.Null);
             var expected = new Variant(-123L);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
@@ -180,9 +180,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         }
         [Fact]
         public void DecodeEncodeInt32ArrayFromStringTypeNullIsInt64() {
-            var codec = new JsonVariantEncoder();
+            var codec = new VariantEncoderFactory().Default;
             var str = "-123, -124, -125";
-            var variant = codec.Decode(str, BuiltInType.Null, null);
+            var variant = codec.Decode(str, BuiltInType.Null);
             var expected = new Variant(new long[] { -123, -124, -125 });
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
@@ -191,9 +191,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         [Fact]
         public void DecodeEncodeInt32ArrayFromStringTypeNullIsInt642() {
-            var codec = new JsonVariantEncoder();
+            var codec = new VariantEncoderFactory().Default;
             var str = "[-123, -124, -125]";
-            var variant = codec.Decode(str, BuiltInType.Null, null);
+            var variant = codec.Decode(str, BuiltInType.Null);
             var expected = new Variant(new long[] { -123, -124, -125 });
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
@@ -202,9 +202,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         [Fact]
         public void DecodeEncodeInt32ArrayFromStringTypeNullIsNull() {
-            var codec = new JsonVariantEncoder();
+            var codec = new VariantEncoderFactory().Default;
             var str = "[]";
-            var variant = codec.Decode(str, BuiltInType.Null, null);
+            var variant = codec.Decode(str, BuiltInType.Null);
             var expected = Variant.Null;
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
@@ -212,9 +212,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         [Fact]
         public void DecodeEncodeInt32FromQuotedString() {
-            var codec = new JsonVariantEncoder();
+            var codec = new VariantEncoderFactory().Default;
             var str = "\"-123\"";
-            var variant = codec.Decode(str, BuiltInType.Int32, null);
+            var variant = codec.Decode(str, BuiltInType.Int32);
             var expected = new Variant(-123);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
@@ -223,9 +223,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         [Fact]
         public void DecodeEncodeInt32FromSinglyQuotedString() {
-            var codec = new JsonVariantEncoder();
+            var codec = new VariantEncoderFactory().Default;
             var str = "  '-123'";
-            var variant = codec.Decode(str, BuiltInType.Int32, null);
+            var variant = codec.Decode(str, BuiltInType.Int32);
             var expected = new Variant(-123);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
@@ -234,9 +234,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         [Fact]
         public void DecodeEncodeInt32ArrayFromQuotedString() {
-            var codec = new JsonVariantEncoder();
+            var codec = new VariantEncoderFactory().Default;
             var str = "\"-123\",'-124',\"-125\"";
-            var variant = codec.Decode(str, BuiltInType.Int32, null);
+            var variant = codec.Decode(str, BuiltInType.Int32);
             var expected = new Variant(new int[] { -123, -124, -125 });
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
@@ -245,9 +245,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         [Fact]
         public void DecodeEncodeInt32ArrayFromQuotedString2() {
-            var codec = new JsonVariantEncoder();
+            var codec = new VariantEncoderFactory().Default;
             var str = " [\"-123\",'-124',\"-125\"] ";
-            var variant = codec.Decode(str, BuiltInType.Int32, null);
+            var variant = codec.Decode(str, BuiltInType.Int32);
             var expected = new Variant(new int[] { -123, -124, -125 });
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
@@ -256,12 +256,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         [Fact]
         public void DecodeEncodeInt32FromVariantJsonTokenTypeVariant() {
-            var codec = new JsonVariantEncoder();
+            var codec = new VariantEncoderFactory().Default;
             var str = JToken.FromObject(new {
                 Type = "Int32",
                 Body = -123
             });
-            var variant = codec.Decode(str, BuiltInType.Variant, null);
+            var variant = codec.Decode(str, BuiltInType.Variant);
             var expected = new Variant(-123);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
@@ -270,12 +270,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         [Fact]
         public void DecodeEncodeInt32ArrayFromVariantJsonTokenTypeVariant1() {
-            var codec = new JsonVariantEncoder();
+            var codec = new VariantEncoderFactory().Default;
             var str = JToken.FromObject(new {
                 Type = "Int32",
                 Body = new int[] { -123, -124, -125 }
             });
-            var variant = codec.Decode(str, BuiltInType.Variant, null);
+            var variant = codec.Decode(str, BuiltInType.Variant);
             var expected = new Variant(new int[] { -123, -124, -125 });
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
@@ -284,12 +284,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         [Fact]
         public void DecodeEncodeInt32ArrayFromVariantJsonTokenTypeVariant2() {
-            var codec = new JsonVariantEncoder();
+            var codec = new VariantEncoderFactory().Default;
             var str = JToken.FromObject(new {
                 Type = "Int32",
                 Body = new int[0]
             });
-            var variant = codec.Decode(str, BuiltInType.Variant, null);
+            var variant = codec.Decode(str, BuiltInType.Variant);
             var expected = new Variant(new int[0]);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
@@ -298,12 +298,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         [Fact]
         public void DecodeEncodeInt32FromVariantJsonStringTypeVariant() {
-            var codec = new JsonVariantEncoder();
+            var codec = new VariantEncoderFactory().Default;
             var str = JToken.FromObject(new {
                 Type = "Int32",
                 Body = -123
             }).ToString();
-            var variant = codec.Decode(str, BuiltInType.Variant, null);
+            var variant = codec.Decode(str, BuiltInType.Variant);
             var expected = new Variant(-123);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
@@ -312,12 +312,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         [Fact]
         public void DecodeEncodeInt32ArrayFromVariantJsonStringTypeVariant() {
-            var codec = new JsonVariantEncoder();
+            var codec = new VariantEncoderFactory().Default;
             var str = JToken.FromObject(new {
                 Type = "Int32",
                 Body = new int[] { -123, -124, -125 }
             }).ToString();
-            var variant = codec.Decode(str, BuiltInType.Variant, null);
+            var variant = codec.Decode(str, BuiltInType.Variant);
             var expected = new Variant(new int[] { -123, -124, -125 });
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
@@ -326,12 +326,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         [Fact]
         public void DecodeEncodeInt32FromVariantJsonTokenTypeNull() {
-            var codec = new JsonVariantEncoder();
+            var codec = new VariantEncoderFactory().Default;
             var str = JToken.FromObject(new {
                 Type = "Int32",
                 Body = -123
             });
-            var variant = codec.Decode(str, BuiltInType.Null, null);
+            var variant = codec.Decode(str, BuiltInType.Null);
             var expected = new Variant(-123);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
@@ -340,12 +340,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         [Fact]
         public void DecodeEncodeInt32ArrayFromVariantJsonTokenTypeNull1() {
-            var codec = new JsonVariantEncoder();
+            var codec = new VariantEncoderFactory().Default;
             var str = JToken.FromObject(new {
                 TYPE = "INT32",
                 BODY = new int[] { -123, -124, -125 }
             });
-            var variant = codec.Decode(str, BuiltInType.Null, null);
+            var variant = codec.Decode(str, BuiltInType.Null);
             var expected = new Variant(new int[] { -123, -124, -125 });
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
@@ -354,12 +354,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         [Fact]
         public void DecodeEncodeInt32ArrayFromVariantJsonTokenTypeNull2() {
-            var codec = new JsonVariantEncoder();
+            var codec = new VariantEncoderFactory().Default;
             var str = JToken.FromObject(new {
                 Type = "Int32",
                 Body = new int[0]
             });
-            var variant = codec.Decode(str, BuiltInType.Null, null);
+            var variant = codec.Decode(str, BuiltInType.Null);
             var expected = new Variant(new int[0]);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
@@ -368,12 +368,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         [Fact]
         public void DecodeEncodeInt32FromVariantJsonStringTypeNull() {
-            var codec = new JsonVariantEncoder();
+            var codec = new VariantEncoderFactory().Default;
             var str = JToken.FromObject(new {
                 Type = "int32",
                 Body = -123
             }).ToString();
-            var variant = codec.Decode(str, BuiltInType.Null, null);
+            var variant = codec.Decode(str, BuiltInType.Null);
             var expected = new Variant(-123);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
@@ -382,12 +382,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         [Fact]
         public void DecodeEncodeInt32ArrayFromVariantJsonStringTypeNull() {
-            var codec = new JsonVariantEncoder();
+            var codec = new VariantEncoderFactory().Default;
             var str = JToken.FromObject(new {
                 type = "Int32",
                 body = new int[] { -123, -124, -125 }
             }).ToString();
-            var variant = codec.Decode(str, BuiltInType.Null, null);
+            var variant = codec.Decode(str, BuiltInType.Null);
             var expected = new Variant(new int[] { -123, -124, -125 });
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
@@ -396,12 +396,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         [Fact]
         public void DecodeEncodeInt32FromVariantJsonTokenTypeNullMsftEncoding() {
-            var codec = new JsonVariantEncoder();
+            var codec = new VariantEncoderFactory().Default;
             var str = JToken.FromObject(new {
                 DataType = "Int32",
                 Value = -123
             });
-            var variant = codec.Decode(str, BuiltInType.Null, null);
+            var variant = codec.Decode(str, BuiltInType.Null);
             var expected = new Variant(-123);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
@@ -410,12 +410,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         [Fact]
         public void DecodeEncodeInt32FromVariantJsonStringTypeVariantMsftEncoding() {
-            var codec = new JsonVariantEncoder();
+            var codec = new VariantEncoderFactory().Default;
             var str = JToken.FromObject(new {
                 DataType = "Int32",
                 Value = -123
             }).ToString();
-            var variant = codec.Decode(str, BuiltInType.Variant, null);
+            var variant = codec.Decode(str, BuiltInType.Variant);
             var expected = new Variant(-123);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
@@ -424,12 +424,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         [Fact]
         public void DecodeEncodeInt32ArrayFromVariantJsonTokenTypeVariantMsftEncoding() {
-            var codec = new JsonVariantEncoder();
+            var codec = new VariantEncoderFactory().Default;
             var str = JToken.FromObject(new {
                 dataType = "Int32",
                 value = new int[] { -123, -124, -125 }
             });
-            var variant = codec.Decode(str, BuiltInType.Variant, null);
+            var variant = codec.Decode(str, BuiltInType.Variant);
             var expected = new Variant(new int[] { -123, -124, -125 });
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
@@ -438,14 +438,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         [Fact]
         public void DecodeEncodeInt32MatrixFromStringJsonStringTypeInt32() {
-            var codec = new JsonVariantEncoder();
+            var codec = new VariantEncoderFactory().Default;
             var str = JToken.FromObject(new int[,,] {
                 { { 123, -124, 125 }, { 123, -124, 125 }, { 123, -124, 125 } },
                 { { 123, -124, 125 }, { 123, -124, 125 }, { 123, -124, 125 } },
                 { { 123, -124, 125 }, { 123, -124, 125 }, { 123, -124, 125 } },
                 { { 123, -124, 125 }, { 123, -124, 125 }, { 123, -124, 125 } }
             }).ToString();
-            var variant = codec.Decode(str, BuiltInType.Int32, null);
+            var variant = codec.Decode(str, BuiltInType.Int32);
             var expected = new Variant(new int[,,] {
                     { { 123, -124, 125 }, { 123, -124, 125 }, { 123, -124, 125 } },
                     { { 123, -124, 125 }, { 123, -124, 125 }, { 123, -124, 125 } },
@@ -461,7 +461,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         [Fact]
         public void DecodeEncodeInt32MatrixFromVariantJsonStringTypeVariant() {
-            var codec = new JsonVariantEncoder();
+            var codec = new VariantEncoderFactory().Default;
             var str = JToken.FromObject(new {
                 type = "Int32",
                 body = new int[,,] {
@@ -471,7 +471,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     { { 123, -124, 125 }, { 123, -124, 125 }, { 123, -124, 125 } }
                 }
             }).ToString();
-            var variant = codec.Decode(str, BuiltInType.Variant, null);
+            var variant = codec.Decode(str, BuiltInType.Variant);
             var expected = new Variant(new int[,,] {
                     { { 123, -124, 125 }, { 123, -124, 125 }, { 123, -124, 125 } },
                     { { 123, -124, 125 }, { 123, -124, 125 }, { 123, -124, 125 } },
@@ -487,7 +487,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         [Fact]
         public void DecodeEncodeInt32MatrixFromVariantJsonTokenTypeVariantMsftEncoding() {
-            var codec = new JsonVariantEncoder();
+            var codec = new VariantEncoderFactory().Default;
             var str = JToken.FromObject(new {
                 dataType = "Int32",
                 value = new int[,,] {
@@ -497,7 +497,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     { { 123, -124, 125 }, { 123, -124, 125 }, { 123, -124, 125 } }
                 }
             }).ToString();
-            var variant = codec.Decode(str, BuiltInType.Variant, null);
+            var variant = codec.Decode(str, BuiltInType.Variant);
             var expected = new Variant(new int[,,] {
                     { { 123, -124, 125 }, { 123, -124, 125 }, { 123, -124, 125 } },
                     { { 123, -124, 125 }, { 123, -124, 125 }, { 123, -124, 125 } },
@@ -513,7 +513,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         [Fact]
         public void DecodeEncodeInt32MatrixFromVariantJsonStringTypeNull() {
-            var codec = new JsonVariantEncoder();
+            var codec = new VariantEncoderFactory().Default;
             var str = JToken.FromObject(new {
                 type = "Int32",
                 body = new int[,,] {
@@ -523,7 +523,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     { { 123, -124, 125 }, { 123, -124, 125 }, { 123, -124, 125 } }
                 }
             }).ToString();
-            var variant = codec.Decode(str, BuiltInType.Null, null);
+            var variant = codec.Decode(str, BuiltInType.Null);
             var expected = new Variant(new int[,,] {
                     { { 123, -124, 125 }, { 123, -124, 125 }, { 123, -124, 125 } },
                     { { 123, -124, 125 }, { 123, -124, 125 }, { 123, -124, 125 } },
@@ -539,7 +539,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         [Fact]
         public void DecodeEncodeInt32MatrixFromVariantJsonTokenTypeNullMsftEncoding() {
-            var codec = new JsonVariantEncoder();
+            var codec = new VariantEncoderFactory().Default;
             var str = JToken.FromObject(new {
                 dataType = "Int32",
                 value = new int[,,] {
@@ -549,7 +549,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     { { 123, -124, 125 }, { 123, -124, 125 }, { 123, -124, 125 } }
                 }
             }).ToString();
-            var variant = codec.Decode(str, BuiltInType.Null, null);
+            var variant = codec.Decode(str, BuiltInType.Null);
             var expected = new Variant(new int[,,] {
                     { { 123, -124, 125 }, { 123, -124, 125 }, { 123, -124, 125 } },
                     { { 123, -124, 125 }, { 123, -124, 125 }, { 123, -124, 125 } },

@@ -700,11 +700,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10321";
 
-            var encoder = new JsonVariantEncoder();
+            var encoder = new VariantEncoderFactory();
             var values = _generator.GetRandomArray<string>();
             var expected = new JArray(values
                 .Select(delegate (object v) {
-                    var body = encoder.Encode(new Variant(v), out var t, null);
+                    var body = encoder.Default.Encode(new Variant(v), out var t);
                     return JToken.FromObject(new {
                         Type = t.ToString(),
                         Body = body
@@ -1275,7 +1275,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10324";
 
-            var encoder = new JsonVariantEncoder();
+            var encoder = new VariantEncoderFactory();
             var values = _generator.GetRandomArray<sbyte>();
             var expected = new JArray(values
                 .Select(v => JToken.FromObject(new {
@@ -1301,7 +1301,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10324";
 
-            var encoder = new JsonVariantEncoder();
+            var encoder = new VariantEncoderFactory();
             var values = _generator.GetRandomArray<sbyte>();
             var expected = JArray.FromObject(values);
 
@@ -1323,7 +1323,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10325";
 
-            var encoder = new JsonVariantEncoder();
+            var encoder = new VariantEncoderFactory();
             var values = _generator.GetRandomArray<int>();
             var expected = new JArray(values
                 .Select(v => JToken.FromObject(new {
@@ -1349,7 +1349,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10325";
 
-            var encoder = new JsonVariantEncoder();
+            var encoder = new VariantEncoderFactory();
             var values = _generator.GetRandomArray<int>();
             var expected = new JArray(values);
 
@@ -1371,7 +1371,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10326";
 
-            var encoder = new JsonVariantEncoder();
+            var encoder = new VariantEncoderFactory();
             var values = _generator.GetRandomArray<ushort>();
             var expected = new JArray(values
                 .Select(v => JToken.FromObject(new {
@@ -1397,7 +1397,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10326";
 
-            var encoder = new JsonVariantEncoder();
+            var encoder = new VariantEncoderFactory();
             var values = _generator.GetRandomArray<ushort>();
             var expected = JToken.FromObject(values);
 

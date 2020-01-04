@@ -74,7 +74,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// <summary>
         /// Monitoring mode (Publisher extension)
         /// </summary>
-        public MonitoringItemMode? MonitoringMode { get; set; }
+        public MonitoringMode? MonitoringMode { get; set; }
 
         /// <summary>
         /// Queue size (Publisher extension)

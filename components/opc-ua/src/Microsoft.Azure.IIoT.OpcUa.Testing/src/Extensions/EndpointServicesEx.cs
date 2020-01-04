@@ -35,7 +35,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <returns></returns>
         public static Task<JToken> ReadValueAsync(this IEndpointServices client,
             EndpointModel endpoint, CredentialModel elevation, string readNode) {
-            var codec = new JsonVariantEncoder();
+            var codec = new VariantEncoderFactory();
             return client.ExecuteServiceAsync(endpoint, elevation, session => {
                 var nodesToRead = new ReadValueIdCollection {
                     new ReadValueId {
@@ -45,8 +45,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 };
                 var responseHeader = session.Read(null, 0, TimestampsToReturn.Both,
                     nodesToRead, out var values, out var diagnosticInfos);
-                var result = codec.Encode(values[0].WrappedValue,
-                    out var tmp, session.MessageContext);
+                var result = codec.Create(session.MessageContext)
+                    .Encode(values[0].WrappedValue, out var tmp);
                 return Task.FromResult(result);
             });
         }

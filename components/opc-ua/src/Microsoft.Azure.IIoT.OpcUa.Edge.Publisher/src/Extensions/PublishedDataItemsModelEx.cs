@@ -51,7 +51,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
 
                 map.Add(item.TriggerId,
                     new MonitoredItemModel {
-                        MonitoringMode = MonitoringItemMode.Sampling,
+                        MonitoringMode = MonitoringMode.Sampling,
                         StartNodeId = "i=2258",
                         SamplingInterval = item.HeartbeatInterval,
                         Id = item.TriggerId,

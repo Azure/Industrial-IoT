@@ -12,7 +12,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
     /// Monitoring modes
     /// </summary>
     [JsonConverter(typeof(StringEnumConverter))]
-    public enum MonitoringItemMode {
+    public enum MonitoringMode {
 
         /// <summary>
         /// Disabled

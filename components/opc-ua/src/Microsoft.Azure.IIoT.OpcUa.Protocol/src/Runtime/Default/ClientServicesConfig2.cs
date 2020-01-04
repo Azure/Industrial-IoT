@@ -12,7 +12,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
     /// <summary>
     /// Default client configuration
     /// </summary>
-    public class ClientServicesConfig : ConfigBase, IClientServicesConfig, ISecurityConfig, ITransportQuotaConfig {
+    public class ClientServicesConfig2 : ConfigBase, IClientServicesConfig2, ISecurityConfig, ITransportQuotaConfig {
 
         /// <summary>
         /// Configuration
@@ -84,7 +84,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
         public int SecurityTokenLifetime => _transport.SecurityTokenLifetime;
 
         /// <inheritdoc/>
-        public ClientServicesConfig(IConfiguration configuration = null) : base(configuration) {
+        public ClientServicesConfig2(IConfiguration configuration = null) : base(configuration) {
             _security = new SecurityConfig(configuration);
             _transport = new TransportQuotaConfig(configuration);
         }
