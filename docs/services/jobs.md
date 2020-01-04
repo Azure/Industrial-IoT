@@ -1,5 +1,7 @@
-# Jobs Agent 
+# Jobs Service and Edge endpoint
 
 [Home](../readme.md)
 
-The Job manager agent multiplexes device method calls to device and module identities in the system.  It is used to dispatch discovery requests to all active supervisors.
+## Overview
+
+The Job service is responsible to manage distribution of Jobs, such as Publish jobs to Agents that are able to handle them.  It is used to orchestrate and fail over publishing of nodes from one publisher module to another.

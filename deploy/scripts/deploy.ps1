@@ -11,6 +11,9 @@
  .PARAMETER resourceGroupName
     Can be the name of an existing or a new resource group
 
+ .PARAMETER resourceGroupLocation
+    Optional, a resource group location. If specified, will try to create a new resource group in this location.
+
  .PARAMETER subscriptionId
     Optional, the subscription id where resources will be deployed.
 
@@ -20,20 +23,23 @@
  .PARAMETER accountName
     The account name to use if not to use default.
 
- .PARAMETER resourceGroupLocation
-    Optional, a resource group location. If specified, will try to create a new resource group in this location.
+ .PARAMETER applicationName
+    The name of the application if not local deployment. 
 
  .PARAMETER aadConfig
     The aad configuration object (use aad-register.ps1 to create object).  If not provides calls aad-register.ps1.
 
  .PARAMETER context
-    The a previously created az context
+    A previously created az context to be used as authentication.
 
  .PARAMETER aadApplicationName
     The application name to use when registering aad application.  If not set, uses applicationName
 
- .PARAMETER applicationName
-    The name of the application if not local deployment. 
+ .PARAMETER acrRegistryName
+    An optional name of a Azure container registry to deploy containers from.
+
+ .PARAMETER acrSubscriptionName
+    The subscription of the container registry if differemt from the specified subscription.
 
 #>
 

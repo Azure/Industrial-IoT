@@ -12,5 +12,5 @@
 
 ## Next steps
 
-- [Use the REST API using PostMan](../services/howto-use-postman.md)
-- [Use the CLI to call REST API](../services/howto-use-cli.md).
+- [Use the REST API using PostMan](../howto-use-postman.md)
+- [Use the CLI to call REST API](../howto-use-cli.md).
