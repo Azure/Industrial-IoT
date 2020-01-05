@@ -2,7 +2,7 @@
 
 [Home](../readme.md)
 
-The platform is made up of several cloud components that divide into Microservices providing REST API and Agent services that can provide processing and daemon like functionality.
+The platform is made up of several cloud components that divide into Microservices providing REST API and Agent services that can provide processing and daemon like functionality.  Check out the [architecture](../architecture.md) for how these components relate.
 
 ## Microservices
 
@@ -40,7 +40,6 @@ The following Agents are part of the platform:
 
 ## Next steps
 
-* [Explore the Architecture](../architecture.md)
 * [Deploy Microservices to Azure](../howto-deploy-microservices.md)
 * [Register a server and browse its address space](../howto-use-cli.md)
 * [Explore the REST API](../api/readme.md)

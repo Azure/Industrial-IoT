@@ -173,5 +173,5 @@ Note this step does not remove any configuration for published nodes in OPC Publ
 
 Now that you are done, try to run your own OPC UA server in the same network as your IoT Edge gateway and follow the instructions above with the relevant variations (e.g. discovery URL).
 
-* Learn how to write an application that reads and writes variable values on an OPC UA server (COMING SOON)
+* See the [architectural flow diagrams](architecture-flow.md) for more information.
 * [Explore Microservices REST APIs](api/readme.md)

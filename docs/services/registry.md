@@ -2,6 +2,8 @@
 
 [Home](../readme.md)
 
+## Overview
+
 The role of the Registry Microservice is to manage identities in IoT Hub.  These items include:
 
 * **Applications**. In OPC parlance, an “Application” can be a server or a client or both.  It is also a grouping mechanism for Endpoints, i.e. Applications have Endpoints.  An Application contains all server provided information, such as Discovery URLs, Application and Product URIs.
@@ -11,6 +13,10 @@ The role of the Registry Microservice is to manage identities in IoT Hub.  These
 * **Gateways.**  The gateway is the host of supervisor (OPC Twin) and publisher (OPC Publisher) modules.
 
 You can update, read as well as **query** all of these identities' models in the OPC Registry.  
+
+The following diagram shows the registry service in relationship to the other components.
+
+![](media/architecture.PNG)
 
 ## Create and Delete Items in the registry
 

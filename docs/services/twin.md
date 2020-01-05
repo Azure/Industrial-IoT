@@ -2,9 +2,15 @@
 
 [Home](../readme.md)
 
-## Supported OPC UA Services
+## Overview
 
-OPC Twin Microservice in cloud exposes a [REST API](../api/twin/readme.md) to call the following OPC UA services on activated endpoints in an OPC Twin edge module:
+The following diagram shows the twin service in relationship to the other components.
+
+![](media/architecture.PNG)
+
+OPC Twin Microservice in cloud exposes a [REST API](../api/twin/readme.md) to call the following OPC UA services on activated endpoints in an OPC Twin edge module.
+
+## Supported OPC UA Services
 
 * **Read** and **Write** a “Value” on a Variable node
   Write is also exposed as Desired/Reported Property on the endpoint identity

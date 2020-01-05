@@ -203,6 +203,8 @@ To make the demo deterministic we also start a demo OPC UA server.
 
    This will take some time depending on the number of server endpoints activated.   Note that this is typically done manually and only after validating and trusting the server certificate.
 
+   See the [architectural flow diagrams](architecture-flow.md) for more information.
+
 5. To get a list of connected and ready endpoints run
 
    ```bash
@@ -289,6 +291,8 @@ apps unregister
    ```
 
    This will take some time depending on the number of server endpoints activated.   Note that this is typically done manually and only after validating and trusting the server certificate.
+
+   See the [architectural flow diagrams](architecture-flow.md) for more information.
 
 1. To get a list of connected and ready endpoints run
 
