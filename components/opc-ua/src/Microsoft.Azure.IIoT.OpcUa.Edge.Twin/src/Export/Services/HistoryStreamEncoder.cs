@@ -32,14 +32,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Export.Services {
         /// </summary>
         /// <param name="client"></param>
         /// <param name="endpoint"></param>
-        /// <param name="elevation"></param>
         /// <param name="stream"></param>
         /// <param name="contentType"></param>
         /// <param name="nodeId"></param>
+        /// <param name="logger"></param>
+        /// <param name="elevation"></param>
         /// <param name="startTime"></param>
         /// <param name="endTime"></param>
         /// <param name="maxValues"></param>
-        /// <param name="logger"></param>
         /// <param name="priority"></param>
         public HistoryStreamEncoder(IEndpointServices client, EndpointModel endpoint,
             Stream stream, string contentType, string nodeId, ILogger logger,
@@ -55,13 +55,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Export.Services {
         /// </summary>
         /// <param name="client"></param>
         /// <param name="endpoint"></param>
-        /// <param name="elevation"></param>
         /// <param name="encoder"></param>
         /// <param name="nodeId"></param>
+        /// <param name="logger"></param>
+        /// <param name="elevation"></param>
         /// <param name="startTime"></param>
         /// <param name="endTime"></param>
         /// <param name="maxValues"></param>
-        /// <param name="logger"></param>
         /// <param name="priority"></param>
         public HistoryStreamEncoder(IEndpointServices client, EndpointModel endpoint,
             IEncoder encoder, string nodeId, ILogger logger, CredentialModel elevation = null,

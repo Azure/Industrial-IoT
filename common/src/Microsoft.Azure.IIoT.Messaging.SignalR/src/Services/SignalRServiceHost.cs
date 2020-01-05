@@ -5,22 +5,23 @@
 
 namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
     using Microsoft.Azure.IIoT.Auth;
+    using Microsoft.Azure.IIoT.Auth.Models;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Services;
     using Microsoft.Azure.SignalR.Management;
+    using Microsoft.Extensions.Diagnostics.HealthChecks;
     using System;
     using System.Threading;
     using System.Threading.Tasks;
     using System.Collections.Generic;
     using System.Security.Claims;
     using Serilog;
-    using Microsoft.Azure.IIoT.Auth.Models;
 
     /// <summary>
     /// Publish subscriber service built using signalr
     /// </summary>
     public class SignalRServiceHost : IIdentityTokenGenerator, IEndpoint,
-        ICallbackInvoker, IGroupRegistration, IHost, IDisposable {
+        ICallbackInvoker, IGroupRegistration, IHostProcess, IHealthCheck, IDisposable {
 
         /// <inheritdoc/>
         public string Resource { get; }
@@ -44,6 +45,28 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
             }).Build();
             Resource = !string.IsNullOrEmpty(config.SignalRHubName) ?
                 config.SignalRHubName : "default";
+        }
+
+        /// <inheritdoc/>
+        public async Task<HealthCheckResult> CheckHealthAsync(
+            HealthCheckContext context, CancellationToken ct) {
+            var hub = _hub;
+            try {
+                if (hub == null) {
+                    hub = await _serviceManager.CreateHubContextAsync(Resource);
+                }
+                await hub.Clients.All.SendCoreAsync("ping", new object[0], ct);
+                return HealthCheckResult.Healthy();
+            }
+            catch (Exception ex) {
+                return new HealthCheckResult(context.Registration.FailureStatus,
+                    exception: ex);
+            }
+            finally {
+                if (hub != _hub) {
+                    await hub.DisposeAsync();
+                }
+            }
         }
 
         /// <inheritdoc/>

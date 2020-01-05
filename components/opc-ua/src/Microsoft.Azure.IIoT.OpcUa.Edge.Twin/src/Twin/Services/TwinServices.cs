@@ -5,10 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Services {
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.Module;
-    using Microsoft.Azure.IIoT.Utils;
     using System;
     using System.Threading.Tasks;
 
@@ -26,40 +24,49 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Services {
         /// </summary>
         /// <param name="client"></param>
         /// <param name="events"></param>
-        public TwinServices(IClientHost client, IEventEmitter events) {
+        public TwinServices(IEndpointServices client, IEventEmitter events) {
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _events = events ?? throw new ArgumentNullException(nameof(events));
         }
 
         /// <inheritdoc/>
-        public async Task SetEndpointAsync(EndpointModel endpoint) {
-            if (endpoint.IsSameAs(Endpoint)) {
-                return;
-            }
+        public Task SetEndpointAsync(EndpointModel endpoint) {
+            if (!endpoint.IsSameAs(Endpoint)) {
+                // Unregister old endpoint
+                if (Endpoint != null) {
+                    _callback?.Dispose();
+                    _callback = null;
+                    _session?.Dispose();
+                    _session = null;
+                }
 
-            // Unregister old endpoint
-            if (Endpoint != null) {
-                await _client.UnregisterAsync(Endpoint);
-            }
+                // Set new endpoint
+                Endpoint = endpoint;
 
-            // Set new endpoint
-            Endpoint = endpoint;
-
-            // Register callback to report endpoint state property
-            if (Endpoint != null) {
-                await _client.RegisterAsync(Endpoint,
-                    state => _events?.ReportAsync("State", state));
+                // Register callback to report endpoint state property
+                if (Endpoint != null) {
+                    var connection = new ConnectionModel {
+                        Endpoint = Endpoint
+                    };
+                    _session = _client.GetSessionHandle(connection);
+                    _callback = _client.RegisterCallback(connection,
+                        state => _events?.ReportAsync("State", state));
+                }
             }
+            return Task.CompletedTask;
         }
 
         /// <inheritdoc/>
         public void Dispose() {
-            if (Endpoint != null) {
-                Try.Op(() => SetEndpointAsync(null).Wait());
-            }
+            _callback?.Dispose();
+            _callback = null;
+            _session?.Dispose();
+            _session = null;
         }
 
-        private readonly IClientHost _client;
+        private ISessionHandle _session;
+        private IDisposable _callback;
+        private readonly IEndpointServices _client;
         private readonly IEventEmitter _events;
     }
 }

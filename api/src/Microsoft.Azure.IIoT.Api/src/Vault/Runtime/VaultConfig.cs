@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Runtime {
-    using Microsoft.Azure.IIoT.OpcUa.Api.Vault;
     using Microsoft.Azure.IIoT.Api.Runtime;
     using Microsoft.Extensions.Configuration;
 

@@ -6,7 +6,6 @@
 namespace Opc.Ua.PubSub {
     using System;
     using System.IO;
-    using Opc.Ua;
 
     /// <summary>
     /// Encodeable dataset metadata

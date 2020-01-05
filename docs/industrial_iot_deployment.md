@@ -291,8 +291,48 @@ Setup connection between App Service and AKS cluster:
         ```
 
     3. Skip **Run demo applications** (step 4).
-    4. For step 5, **Create an ingress route**, use [22_industrial_iot_ingress.yaml](../deploy/src/Microsoft.Azure.IIoT.Deployment/Resources/aks/22_industrial_iot_ingress.yaml) file.
-    Stop after this step.
+    4. For step 5, **Create an ingress route**, use [30_industrial_iot_ingress.yaml](../deploy/src/Microsoft.Azure.IIoT.Deployment/Resources/aks/30_industrial_iot_ingress.yaml)
+    file or the snippet bellow. Stop after this step.
+
+        ```yaml
+        apiVersion: extensions/v1beta1
+        kind: Ingress
+        metadata:
+          name: industrial-iot-ingress
+          namespace: industrial-iot
+          annotations:
+            kubernetes.io/ingress.class: nginx
+            nginx.ingress.kubernetes.io/rewrite-target: /$1
+          labels:
+            app.kubernetes.io/name: industrial-iot-ingress
+            app.kubernetes.io/part-of: industrial-iot
+            app.kubernetes.io/version: 2.5.1
+            app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
+        spec:
+          rules:
+          - http:
+              paths:
+              - path: /registry/(.*)
+                backend:
+                  serviceName: registry-service
+                  servicePort: 9042
+              - path: /twin/(.*)
+                backend:
+                  serviceName: twin-service
+                  servicePort: 9041
+              - path: /history/(.*)
+                backend:
+                  serviceName: history-service
+                  servicePort: 9043
+              - path: /ua/(.*)
+                backend:
+                  serviceName: gateway-service
+                  servicePort: 9040
+              - path: /vault/(.*)
+                backend:
+                  serviceName: vault-service
+                  servicePort: 9044
+        ```
 
     After completing above steps you should be able to see a Load Balancer and a Public IP Address being created in the Resource Group managed by AKS cluster.
     When creating an AKS cluster, Azure will create a new Resource Group which will contain managed Azure resources that are required to run a Kubernetes cluster, such as VMs, Network Interfaces ans so on.

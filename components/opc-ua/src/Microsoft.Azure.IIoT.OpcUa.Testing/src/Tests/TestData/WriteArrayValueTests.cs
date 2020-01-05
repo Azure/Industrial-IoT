@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
     using Opc.Ua;
     using System;
     using System.Linq;
-    using System.Net;
     using System.Threading.Tasks;
     using System.Xml;
     using Xunit;
@@ -701,11 +700,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10321";
 
-            var encoder = new JsonVariantEncoder();
+            var encoder = new VariantEncoderFactory();
             var values = _generator.GetRandomArray<string>();
             var expected = new JArray(values
                 .Select(delegate (object v) {
-                    var body = encoder.Encode(new Variant(v), out var t, null);
+                    var body = encoder.Default.Encode(new Variant(v), out var t);
                     return JToken.FromObject(new {
                         Type = t.ToString(),
                         Body = body
@@ -781,7 +780,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             ""UInt32Value"": 1124716060,
             ""Int64Value"": 6272273485009155588,
             ""UInt64Value"": 8748332193282252019,
-            ""FloatValue"": 1.35505721E+28,
+            ""FloatValue"": 1.3550572E+28,
             ""DoubleValue"": -55.151821136474609,
             ""StringValue"": ""레몬 딸기^ 고양이) 파인애플"",
             ""DateTimeValue"": ""2071-08-08T14:25:16.7814639Z"",
@@ -845,7 +844,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             ""UInt32Value"": 2322690949,
             ""Int64Value"": -8682057831558849682,
             ""UInt64Value"": 10042278942021613161,
-            ""FloatValue"": 4.18431919E-05,
+            ""FloatValue"": 4.1843192E-05,
             ""DoubleValue"": 32635254472704.0,
             ""StringValue"": ""Голубика> Дракон@"",
             ""DateTimeValue"": ""2014-01-20T12:32:21.1556352Z"",
@@ -970,7 +969,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             ""UInt32Value"": 4087763535,
             ""Int64Value"": 3156392098576755738,
             ""UInt64Value"": 11790719998462990154,
-            ""FloatValue"": -1.27968963E-06,
+            ""FloatValue"": -1.2796896E-06,
             ""DoubleValue"": -2.4084619380135754E-35,
             ""StringValue"": ""ヘビ~ 猫* 緑) マンゴ< レモン ブタ\"" 石灰 石灰{ 黒! ブタ 猿 馬 ブタ@ 牛 ヘビ' 犬 犬\"" 牛$"",
             ""DateTimeValue"": ""1949-12-22T18:46:59.3619463Z"",
@@ -1098,7 +1097,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             ""UInt32Value"": [ 405022290, 3763626854, 2219565007, 635093313, 1150728258 ],
             ""Int64Value"": [ -1689618757610414770, -1598013270992443575, -6068487195887049228, 3886489167998855712 ],
             ""UInt64Value"": [ 14348387007481775183, 579235881671951863, 10801679293459156539, 13309432137704145439 ],
-            ""FloatValue"": [ 4.31136247E-33, 6.620173E-35, -8.877828E-29, -1.27605766E+29, -1.64668731E-22, 1.80246614E-21 ],
+            ""FloatValue"": [ 4.311362E-33, 6.620173E-35, -8.877828E-29, -1.2760576E+29, -1.646687E-22, 1.802464E-21 ],
             ""DoubleValue"": [ -6011373486080.0, 108132739055616.0, 8.3547184787473483E-36, 5.2422583022226784E+27, 1.0392232580248937E-32, 1.0094077198242765E+33, -8.35414627813762E-39 ],
             ""StringValue"": [ ""녹색 들쭉 들쭉 돼지 녹색% 녹색 암소 원숭이 딸기+ 들쭉 암소~ 망고 망고 딸기 녹색 녹색 돼지 들쭉) 석회 개} 검정 쥐~ 쥐 코끼리= 들쭉"", ""Обезьяна Красно Зеленыйцвет Крыса"", ""Красно, Желтыйцвет Манго= Ананас Бело&"", ""Голубика Желтыйцвет"", ""蓝莓 大象~ 绵羊 柠檬 母牛 母牛 红色"", ""狗\"" 马 紫色` 葡萄@ 柠檬 芒果 猪 菠萝 龙^ 黑色* 马 绿色 绵羊 大象 红色) 蓝莓 蛇# 狗 香蕉 草莓 黑色@ 红色 鼠~ 蓝色 香蕉 猫 红色% 黑色"", ""Чернота- Собака Пурпурово# Голубика Чернота Голубо: Дракон яблоко Бело Зеленыйцвет"" ],
             ""DateTimeValue"": [ ""1916-05-09T17:48:30.6223191Z"" ],
@@ -1207,7 +1206,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             ""UInt32Value"": 3693060540,
             ""Int64Value"": -2577172637598593213,
             ""UInt64Value"": 11187487780701632783,
-            ""FloatValue"": 1.93125867E+17,
+            ""FloatValue"": 1.931257E+17,
             ""DoubleValue"": -0.00033564501791261137,
             ""StringValue"": ""ラット} 馬` いちご 青い 白い 象 レモン. パイナップル"",
             ""DateTimeValue"": ""1985-11-03T22:42:37.1296614Z"",
@@ -1276,7 +1275,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10324";
 
-            var encoder = new JsonVariantEncoder();
+            var encoder = new VariantEncoderFactory();
             var values = _generator.GetRandomArray<sbyte>();
             var expected = new JArray(values
                 .Select(v => JToken.FromObject(new {
@@ -1302,7 +1301,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10324";
 
-            var encoder = new JsonVariantEncoder();
+            var encoder = new VariantEncoderFactory();
             var values = _generator.GetRandomArray<sbyte>();
             var expected = JArray.FromObject(values);
 
@@ -1324,7 +1323,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10325";
 
-            var encoder = new JsonVariantEncoder();
+            var encoder = new VariantEncoderFactory();
             var values = _generator.GetRandomArray<int>();
             var expected = new JArray(values
                 .Select(v => JToken.FromObject(new {
@@ -1350,7 +1349,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10325";
 
-            var encoder = new JsonVariantEncoder();
+            var encoder = new VariantEncoderFactory();
             var values = _generator.GetRandomArray<int>();
             var expected = new JArray(values);
 
@@ -1372,7 +1371,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10326";
 
-            var encoder = new JsonVariantEncoder();
+            var encoder = new VariantEncoderFactory();
             var values = _generator.GetRandomArray<ushort>();
             var expected = new JArray(values
                 .Select(v => JToken.FromObject(new {
@@ -1398,7 +1397,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10326";
 
-            var encoder = new JsonVariantEncoder();
+            var encoder = new VariantEncoderFactory();
             var values = _generator.GetRandomArray<ushort>();
             var expected = JToken.FromObject(values);
 

@@ -37,7 +37,7 @@ export class AzureOpcVaultClientContext extends msRest.ServiceClient {
 
     super(credentials, options);
 
-    this.baseUri = options.baseUri || this.baseUri || "http://localhost";
+    this.baseUri = options.baseUri || this.baseUri || "";
     this.requestContentType = "application/json; charset=utf-8";
     this.credentials = credentials;
 

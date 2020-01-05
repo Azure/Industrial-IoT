@@ -22,7 +22,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.History {
         }
 
         private HistoryReadValuesTests<EndpointModel> GetTests() {
-            var codec = new JsonVariantEncoder();
+            var codec = new VariantEncoderFactory();
             return new HistoryReadValuesTests<EndpointModel>(
                 () => new HistoricAccessAdapter<EndpointModel>(new AddressSpaceServices(_server.Client,
                     codec, _server.Logger), codec),

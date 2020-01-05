@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.Auth.IoTHub {
     /// <summary>
     /// Writes Identity Token into twin
     /// </summary>
-    public class TwinIdentityTokenUpdater : IHost, IDisposable {
+    public class TwinIdentityTokenUpdater : IHostProcess, IDisposable {
 
         /// <summary>
         /// Create writer

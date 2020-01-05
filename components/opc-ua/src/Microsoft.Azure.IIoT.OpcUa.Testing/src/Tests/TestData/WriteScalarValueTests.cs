@@ -648,7 +648,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         ""UInt32Value"": 1871434347,
         ""Int64Value"": -485429667643080766,
         ""UInt64Value"": 455062722452308260,
-        ""FloatValue"": -5.00243159E+26,
+        ""FloatValue"": -5.00243E+26,
         ""DoubleValue"": 0.00046682002721354365,
         ""StringValue"": ""黄色) 黄色] 桃子{ 黑色 狗[ 紫色 桃子] 狗 红色 葡萄% 桃子? 猫 猴子 绵羊"",
         ""DateTimeValue"": ""2027-02-05T11:29:29.9135123Z"",

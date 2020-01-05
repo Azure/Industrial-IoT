@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Messaging.Default {
-    using Microsoft.Azure.IIoT.Messaging;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -13,7 +12,7 @@ namespace Microsoft.Azure.IIoT.Messaging.Default {
     /// <summary>
     /// Event bus host to auto inject handlers
     /// </summary>
-    public class EventBusHost : IHost {
+    public class EventBusHost : IHostProcess {
 
         /// <summary>
         /// Auto registers handlers in client

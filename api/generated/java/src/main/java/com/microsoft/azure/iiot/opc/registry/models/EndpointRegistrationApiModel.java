@@ -36,6 +36,12 @@ public class EndpointRegistrationApiModel {
     private String siteId;
 
     /**
+     * Supervisor that registered the endpoint.
+     */
+    @JsonProperty(value = "supervisorId")
+    private String supervisorId;
+
+    /**
      * Endpoint information of the registration.
      */
     @JsonProperty(value = "endpoint", required = true)
@@ -111,6 +117,26 @@ public class EndpointRegistrationApiModel {
      */
     public EndpointRegistrationApiModel withSiteId(String siteId) {
         this.siteId = siteId;
+        return this;
+    }
+
+    /**
+     * Get supervisor that registered the endpoint.
+     *
+     * @return the supervisorId value
+     */
+    public String supervisorId() {
+        return this.supervisorId;
+    }
+
+    /**
+     * Set supervisor that registered the endpoint.
+     *
+     * @param supervisorId the supervisorId value to set
+     * @return the EndpointRegistrationApiModel object itself.
+     */
+    public EndpointRegistrationApiModel withSupervisorId(String supervisorId) {
+        this.supervisorId = supervisorId;
         return this;
     }
 

@@ -42,8 +42,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// Get supervisor registration by identifer.
         /// </summary>
         /// <param name="onlyServerState"></param>
-        /// <param name="ct"></param>
         /// <param name="id"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         Task<SupervisorModel> GetSupervisorAsync(
             string id, bool onlyServerState = false,
@@ -53,8 +53,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// Update supervisor, e.g. set discovery mode
         /// </summary>
         /// <param name="request"></param>
-        /// <param name="ct"></param>
         /// <param name="id"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         Task UpdateSupervisorAsync(string id,
             SupervisorUpdateModel request,

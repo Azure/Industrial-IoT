@@ -10,7 +10,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Azure.IIoT.Utils;
-    using Newtonsoft.Json.Linq;
     using Serilog;
     using System;
     using System.Collections.Generic;
@@ -666,9 +665,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// Convert device twin registration property to registration model
         /// </summary>
         /// <param name="twin"></param>
-        /// <param name="skipInvalid"></param>
         /// <param name="onlyServerState">Only desired should be returned
         /// this means that you will look at stale information.</param>
+        /// <param name="skipInvalid"></param>
         /// <returns></returns>
         private static EndpointInfoModel TwinModelToEndpointRegistrationModel(
             DeviceTwinModel twin, bool onlyServerState, bool skipInvalid) {

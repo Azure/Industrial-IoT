@@ -52,7 +52,7 @@ public class SupervisorApiModel {
      * 'Debug', 'Verbose'.
      */
     @JsonProperty(value = "logLevel")
-    private SupervisorLogLevel logLevel;
+    private TraceLogLevel logLevel;
 
     /**
      * Whether the registration is out of sync between
@@ -172,7 +172,7 @@ public class SupervisorApiModel {
      *
      * @return the logLevel value
      */
-    public SupervisorLogLevel logLevel() {
+    public TraceLogLevel logLevel() {
         return this.logLevel;
     }
 
@@ -182,7 +182,7 @@ public class SupervisorApiModel {
      * @param logLevel the logLevel value to set
      * @return the SupervisorApiModel object itself.
      */
-    public SupervisorApiModel withLogLevel(SupervisorLogLevel logLevel) {
+    public SupervisorApiModel withLogLevel(TraceLogLevel logLevel) {
         this.logLevel = logLevel;
         return this;
     }

@@ -84,7 +84,7 @@ class ReadProcessedValuesDetailsApiModel {
             serializedName: 'aggregateConfiguration',
             type: {
               name: 'Composite',
-              className: 'AggregateConfigApiModel'
+              className: 'AggregateConfigurationApiModel'
             }
           }
         }

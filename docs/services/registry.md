@@ -1,14 +1,22 @@
-# OPC Registry Microservice
+# Registry Microservice
 
 [Home](../readme.md)
 
-The role of the OPC Registry Microservice is to manage all involved device identities in IoT Hub.  These items include:
+## Overview
+
+The role of the Registry Microservice is to manage identities in IoT Hub.  These items include:
 
 * **Applications**. In OPC parlance, an “Application” can be a server or a client or both.  It is also a grouping mechanism for Endpoints, i.e. Applications have Endpoints.  An Application contains all server provided information, such as Discovery URLs, Application and Product URIs.
 * **Endpoints**.  Each endpoint represents the twin of an OPC UA Server application’s endpoint.  A server can have multiple endpoints with different configurations, including security properties.
 * **Supervisors**.  The supervisor identity is a OPC Twin module’s identity.  A supervisor manages "activated" endpoint identities.  It also performs discovery and has a couple of other Microservices up its sleeve.  
+* **Publishers**.  The publisher identity is the OPC Publisher module's identity.  A publisher is the host of multiple publish job workers.
+* **Gateways.**  The gateway is the host of supervisor (OPC Twin) and publisher (OPC Publisher) modules.
 
 You can update, read as well as **query** all of these identities' models in the OPC Registry.  
+
+The following diagram shows the registry service in relationship to the other components.
+
+![](../media/architecture.PNG)
 
 ## Create and Delete Items in the registry
 
@@ -34,6 +42,6 @@ When registered in OPC Registry (and thus Azure IoT Hub) Server endpoints are by
 
 ## Next steps
 
-* [Learn about OPC Registry Onboarding](onboarding.md)
+* [Learn about Registry Onboarding](onboarding.md)
 * [Learn about the OPC Twin module](../modules/twin.md)
-* [Explore the OPC Registry REST API](../api/registry/readme.md)
+* [Explore the Registry REST API](../api/registry/readme.md)

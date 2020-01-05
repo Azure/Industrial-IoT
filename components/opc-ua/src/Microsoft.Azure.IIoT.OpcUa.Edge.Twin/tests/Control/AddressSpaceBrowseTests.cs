@@ -23,7 +23,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
         private BrowseServicesTests<EndpointModel> GetTests() {
             return new BrowseServicesTests<EndpointModel>(
                 () => new AddressSpaceServices(_server.Client,
-                    new JsonVariantEncoder(), _server.Logger),
+                    new VariantEncoderFactory(), _server.Logger),
                 new EndpointModel {
                     Url = $"opc.tcp://{Dns.GetHostName()}:{_server.Port}/UA/SampleServer",
                     Certificate = _server.Certificate?.RawData

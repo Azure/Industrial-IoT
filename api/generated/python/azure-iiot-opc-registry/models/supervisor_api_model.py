@@ -30,7 +30,7 @@ class SupervisorApiModel(Model):
     :type certificate: bytearray
     :param log_level: Current log level. Possible values include: 'Error',
      'Information', 'Debug', 'Verbose'. Default value: "Information" .
-    :type log_level: str or ~azure-iiot-opc-registry.models.SupervisorLogLevel
+    :type log_level: str or ~azure-iiot-opc-registry.models.TraceLogLevel
     :param out_of_sync: Whether the registration is out of sync between
      client (module) and server (service) (default: false).
     :type out_of_sync: bool
@@ -48,7 +48,7 @@ class SupervisorApiModel(Model):
         'discovery': {'key': 'discovery', 'type': 'DiscoveryMode'},
         'discovery_config': {'key': 'discoveryConfig', 'type': 'DiscoveryConfigApiModel'},
         'certificate': {'key': 'certificate', 'type': 'bytearray'},
-        'log_level': {'key': 'logLevel', 'type': 'SupervisorLogLevel'},
+        'log_level': {'key': 'logLevel', 'type': 'TraceLogLevel'},
         'out_of_sync': {'key': 'outOfSync', 'type': 'bool'},
         'connected': {'key': 'connected', 'type': 'bool'},
     }

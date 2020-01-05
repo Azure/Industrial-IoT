@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Crypto.Storage.Models {
-    using Microsoft.Azure.IIoT.Crypto;
     using Microsoft.Azure.IIoT.Crypto.Models;
     using System;
     using System.Linq;
@@ -47,9 +46,9 @@ namespace Microsoft.Azure.IIoT.Crypto.Storage.Models {
         /// Create document
         /// </summary>
         /// <param name="id"></param>
-        /// <param name="serializer"></param>
         /// <param name="cert"></param>
         /// <param name="certificateName"></param>
+        /// <param name="serializer"></param>
         /// <returns></returns>
         public static CertificateDocument ToDocument(this Certificate cert,
             string certificateName, string id, IKeyHandleSerializer serializer) {

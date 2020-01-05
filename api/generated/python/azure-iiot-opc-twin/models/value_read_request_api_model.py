@@ -29,10 +29,6 @@ class ValueReadRequestApiModel(Model):
     :type header: ~azure-iiot-opc-twin.models.RequestHeaderApiModel
     """
 
-    _validation = {
-        'node_id': {'required': True},
-    }
-
     _attribute_map = {
         'node_id': {'key': 'nodeId', 'type': 'str'},
         'browse_path': {'key': 'browsePath', 'type': '[str]'},
@@ -40,7 +36,7 @@ class ValueReadRequestApiModel(Model):
         'header': {'key': 'header', 'type': 'RequestHeaderApiModel'},
     }
 
-    def __init__(self, node_id, browse_path=None, index_range=None, header=None):
+    def __init__(self, node_id=None, browse_path=None, index_range=None, header=None):
         super(ValueReadRequestApiModel, self).__init__()
         self.node_id = node_id
         self.browse_path = browse_path

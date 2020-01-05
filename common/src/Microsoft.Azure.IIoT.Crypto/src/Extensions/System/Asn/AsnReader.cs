@@ -1041,7 +1041,7 @@ namespace System.Security.Cryptography.Asn1 {
                 ReadOnlySpan<byte> valueSpan = stackSpan.Slice(0, bytesWritten);
 
                 // Now that the 0-bounds check is out of the way:
-                // 
+                //
                 // T-REC-X.690-201508 sec 11.2.2
                 if (_ruleSet == AsnEncodingRules.DER ||
                     _ruleSet == AsnEncodingRules.CER) {
@@ -2304,7 +2304,7 @@ namespace System.Security.Cryptography.Asn1 {
             const byte SuffixState = 2;
             var state = HmsState;
 
-            byte? GetNextState(byte octet) {
+            static byte? GetNextState(byte octet) {
                 if (octet == 'Z' || octet == '-' || octet == '+') {
                     return SuffixState;
                 }

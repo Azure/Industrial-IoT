@@ -51,7 +51,7 @@ public interface AzureOpcVaultClient {
     /**
      * The default base URL.
      */
-    String DEFAULT_BASE_URL = "http://localhost";
+    String DEFAULT_BASE_URL = "https:///vault";
 
     /**
      * Get Issuer CA Certificate chain.

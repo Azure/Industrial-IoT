@@ -10,7 +10,6 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge {
     using Microsoft.Azure.IIoT.Agent.Framework.Storage.Database;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Hub.Auth;
-    using Microsoft.Azure.IIoT.Services;
     using Microsoft.Azure.IIoT.Services.Auth.Clients;
     using Microsoft.Azure.IIoT.Services.Cors;
     using Microsoft.Azure.IIoT.Http.Default;
@@ -29,6 +28,9 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge {
     using Swashbuckle.AspNetCore.Swagger;
     using System;
     using ILogger = Serilog.ILogger;
+    using Microsoft.Extensions.Hosting;
+    using Microsoft.OpenApi.Models;
+    using Newtonsoft.Json;
 
     /// <summary>
     /// Webservice startup
@@ -48,21 +50,18 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge {
         /// <summary>
         /// Current hosting environment - Initialized in constructor
         /// </summary>
-        public IHostingEnvironment Environment { get; }
-
-        /// <summary>
-        /// Di container - Initialized in `ConfigureServices`
-        /// </summary>
-        public IContainer ApplicationContainer { get; private set; }
+        public IWebHostEnvironment Environment { get; }
 
         /// <summary>
         /// Create startup
         /// </summary>
         /// <param name="env"></param>
         /// <param name="configuration"></param>
-        public Startup(IHostingEnvironment env, IConfiguration configuration) :
+        public Startup(IWebHostEnvironment env, IConfiguration configuration) :
             this(env, new Config(new ConfigurationBuilder()
                 .AddConfiguration(configuration)
+                .AddEnvironmentVariables()
+                .AddEnvironmentVariables(EnvironmentVariableTarget.User)
                 .AddFromDotEnvFile()
                 .AddFromKeyVault()
                 .Build())) {
@@ -73,7 +72,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge {
         /// </summary>
         /// <param name="env"></param>
         /// <param name="configuration"></param>
-        public Startup(IHostingEnvironment env, Config configuration) {
+        public Startup(IWebHostEnvironment env, Config configuration) {
             Environment = env;
             Config = configuration;
         }
@@ -83,17 +82,22 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge {
         /// </summary>
         /// <param name="services"></param>
         /// <returns></returns>
-        public IServiceProvider ConfigureServices(IServiceCollection services) {
-
+        public void ConfigureServices(IServiceCollection services) {
             services.AddLogging(o => o.AddConsole().AddDebug());
 
             // Setup (not enabling yet) CORS
             services.AddCors();
+            services.AddHealthChecks();
+            services.AddDistributedMemoryCache();
 
-            services.AddMvc()
-                .AddApplicationPart(GetType().Assembly)
-                .AddControllersAsServices()
-                .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            // Add controllers as services so they'll be resolved.
+            services.AddControllers()
+                .AddNewtonsoftJson(options => {
+                    options.SerializerSettings.Formatting = Formatting.Indented;
+                    options.SerializerSettings.Converters.Add(new ExceptionConverter(
+                        Environment.IsDevelopment()));
+                    options.SerializerSettings.MaxDepth = 10;
+                });
 
             // TODO: Remove http client factory and use
             // services.AddHttpClient();
@@ -104,18 +108,11 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge {
                     "DeviceTokenAuth", null);
             services.AddDistributedMemoryCache();
 
-            services.AddSwagger(Config, new Info {
+            services.AddSwagger(Config, new OpenApiInfo {
                 Title = ServiceInfo.Name,
                 Version = VersionInfo.PATH,
                 Description = ServiceInfo.Description,
             });
-
-            // Prepare DI container
-            var builder = new ContainerBuilder();
-            builder.Populate(services);
-            ConfigureContainer(builder);
-            ApplicationContainer = builder.Build();
-            return new AutofacServiceProvider(ApplicationContainer);
         }
 
         /// <summary>
@@ -124,30 +121,37 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge {
         /// </summary>
         /// <param name="app"></param>
         /// <param name="appLifetime"></param>
-        public void Configure(IApplicationBuilder app, IApplicationLifetime appLifetime) {
-            var log = ApplicationContainer.Resolve<ILogger>();
+        public void Configure(IApplicationBuilder app, IHostApplicationLifetime appLifetime) {
+            var applicationContainer = app.ApplicationServices.GetAutofacRoot();
+            var log = applicationContainer.Resolve<ILogger>();
 
+            app.UseRouting();
             app.EnableCors();
 
             if (Config.AuthRequired) {
                 app.UseAuthentication();
             }
+            app.UseAuthorization();
             if (Config.HttpsRedirectPort > 0) {
-                // app.UseHsts();
+                app.UseHsts();
                 app.UseHttpsRedirection();
             }
 
-            app.UseSwagger(Config, new Info {
+            app.UseCorrelation();
+            app.UseSwagger(new OpenApiInfo {
                 Title = ServiceInfo.Name,
                 Version = VersionInfo.PATH,
                 Description = ServiceInfo.Description,
             });
 
-            app.UseMvc();
+            app.UseEndpoints(endpoints => {
+                endpoints.MapControllers();
+                endpoints.MapHealthChecks("/healthz");
+            });
 
             // If you want to dispose of resources that have been resolved in the
             // application container, register for the "ApplicationStopped" event.
-            appLifetime.ApplicationStopped.Register(ApplicationContainer.Dispose);
+            appLifetime.ApplicationStopped.Register(applicationContainer.Dispose);
 
             // Print some useful information at bootstrap time
             log.Information("{service} web service started with id {id}", ServiceInfo.Name,

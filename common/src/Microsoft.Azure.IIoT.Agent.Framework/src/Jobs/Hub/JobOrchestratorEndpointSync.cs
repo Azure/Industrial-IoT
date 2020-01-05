@@ -15,7 +15,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
     /// <summary>
     /// Synchronize job orchestrator endpoints on all agent twins
     /// </summary>
-    public class JobOrchestratorEndpointSync : IHost, IDisposable {
+    public class JobOrchestratorEndpointSync : IHostProcess, IDisposable {
 
         /// <summary>
         /// Create writer

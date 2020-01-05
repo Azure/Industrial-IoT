@@ -8,8 +8,8 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.v2.Controllers {
     using Microsoft.Azure.IIoT.Services.Common.Jobs.v2.Filters;
     using Microsoft.Azure.IIoT.Agent.Framework;
     using Microsoft.Azure.IIoT.Http;
+    using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
     using Microsoft.AspNetCore.Mvc;
-    using Swashbuckle.AspNetCore.Swagger;
     using System.Threading.Tasks;
     using System.Linq;
     using System;
@@ -37,10 +37,10 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.v2.Controllers {
         /// <remarks>
         /// List all jobs that are registered or continues a query.
         /// </remarks>
-        /// <param name="pageSize">Optional number of results to
-        /// return</param>
         /// <param name="continuationToken">Optional Continuation
         /// token</param>
+        /// <param name="pageSize">Optional number of results to
+        /// return</param>
         /// <returns>Jobs</returns>
         [HttpGet]
         [AutoRestExtension(NextPageLinkName = "continuationToken")]
@@ -67,9 +67,9 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.v2.Controllers {
         /// <remarks>
         /// List all jobs that are registered or continues a query.
         /// </remarks>
+        /// <param name="query">Query specification to use as filter.</param>
         /// <param name="pageSize">Optional number of results to
         /// return</param>
-        /// <param name="query">Query specification to use as filter.</param>
         /// <returns>Jobs</returns>
         [HttpPost]
         public async Task<JobInfoListApiModel> QueryJobsAsync(

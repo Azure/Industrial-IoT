@@ -13,9 +13,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     using UaNodeClass = Opc.Ua.NodeClass;
     using UaFilterOperator = Opc.Ua.FilterOperator;
     using UaMonitoringMode = Opc.Ua.MonitoringMode;
+    using UaDeadbandType = Opc.Ua.DeadbandType;
+    using UaDataChangeTrigger = Opc.Ua.DataChangeTrigger;
     using UaPermissionType = Opc.Ua.PermissionType;
     using UaDiagnosticsLevel = Opc.Ua.DiagnosticsMasks;
-    using UaMonitoredItemSampleContentMask = Opc.Ua.MonitoredItemSampleContentMask;
+    using UaMonitoredItemMessageContentMask = Opc.Ua.MonitoredItemMessageContentMask;
     using JsonDataSetMessageContentMask = Opc.Ua.JsonDataSetMessageContentMask;
     using JsonNetworkMessageContentMask = Opc.Ua.JsonNetworkMessageContentMask;
     using UadpDataSetMessageContentMask = Opc.Ua.UadpDataSetMessageContentMask;
@@ -361,6 +363,82 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         }
 
         /// <summary>
+        /// Convert deadband type
+        /// </summary>
+        /// <param name="mode"></param>
+        /// <returns></returns>
+        public static UaDeadbandType ToStackType(this DeadbandType? mode) {
+            if (mode == null) {
+                return UaDeadbandType.None;
+            }
+            switch (mode.Value) {
+                case DeadbandType.Absolute:
+                    return UaDeadbandType.Absolute;
+                case DeadbandType.Percent:
+                    return UaDeadbandType.Percent;
+                default:
+                    return UaDeadbandType.None;
+            }
+        }
+
+        /// <summary>
+        /// Convert deadband type
+        /// </summary>
+        /// <param name="mode"></param>
+        /// <returns></returns>
+        public static DeadbandType? ToServiceType(this UaDeadbandType mode) {
+            switch (mode) {
+                case UaDeadbandType.None:
+                    return null;
+                case UaDeadbandType.Absolute:
+                    return DeadbandType.Absolute;
+                case UaDeadbandType.Percent:
+                    return DeadbandType.Percent;
+                default:
+                    return null;
+            }
+        }
+
+        /// <summary>
+        /// Convert deadband type
+        /// </summary>
+        /// <param name="mode"></param>
+        /// <returns></returns>
+        public static UaDataChangeTrigger ToStackType(this DataChangeTriggerType? mode) {
+            if (mode == null) {
+                return UaDataChangeTrigger.Status;
+            }
+            switch (mode.Value) {
+                case DataChangeTriggerType.Status:
+                    return UaDataChangeTrigger.Status;
+                case DataChangeTriggerType.StatusValue:
+                    return UaDataChangeTrigger.StatusValue;
+                case DataChangeTriggerType.StatusValueTimestamp:
+                    return UaDataChangeTrigger.StatusValueTimestamp;
+                default:
+                    return UaDataChangeTrigger.Status;
+            }
+        }
+
+        /// <summary>
+        /// Convert deadband type
+        /// </summary>
+        /// <param name="mode"></param>
+        /// <returns></returns>
+        public static DataChangeTriggerType? ToServiceType(this UaDataChangeTrigger mode) {
+            switch (mode) {
+                case UaDataChangeTrigger.Status:
+                    return DataChangeTriggerType.Status;
+                case UaDataChangeTrigger.StatusValue:
+                    return DataChangeTriggerType.StatusValue;
+                case UaDataChangeTrigger.StatusValueTimestamp:
+                    return DataChangeTriggerType.StatusValueTimestamp;
+                default:
+                    return null;
+            }
+        }
+
+        /// <summary>
         /// Convert to stack type
         /// </summary>
         /// <param name="type"></param>
@@ -460,69 +538,69 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// Get message content mask
         /// </summary>
         /// <returns></returns>
-        public static uint ToMonitoredItemSampleMask(this DataSetContentMask? message,
+        public static uint ToMonitoredItemMessageMask(this DataSetContentMask? message,
             DataSetFieldContentMask? field) {
-            UaMonitoredItemSampleContentMask result = 0;
+            UaMonitoredItemMessageContentMask result = 0;
             if (field == null) {
                 result |=
-                    UaMonitoredItemSampleContentMask.StatusCode |
-                    UaMonitoredItemSampleContentMask.SourceTimestamp |
-                    UaMonitoredItemSampleContentMask.NodeId |
-                    UaMonitoredItemSampleContentMask.EndpointUrl |
-                    UaMonitoredItemSampleContentMask.ApplicationUri |
-                    UaMonitoredItemSampleContentMask.DisplayName |
-                    UaMonitoredItemSampleContentMask.SubscriptionId |
-                    UaMonitoredItemSampleContentMask.ExtraFields;
+                    UaMonitoredItemMessageContentMask.StatusCode |
+                    UaMonitoredItemMessageContentMask.SourceTimestamp |
+                    UaMonitoredItemMessageContentMask.NodeId |
+                    UaMonitoredItemMessageContentMask.EndpointUrl |
+                    UaMonitoredItemMessageContentMask.ApplicationUri |
+                    UaMonitoredItemMessageContentMask.DisplayName |
+                    UaMonitoredItemMessageContentMask.SubscriptionId |
+                    UaMonitoredItemMessageContentMask.ExtraFields;
             }
             else {
                 if (0 != (field & DataSetFieldContentMask.SourceTimestamp)) {
-                    result |= UaMonitoredItemSampleContentMask.SourceTimestamp;
+                    result |= UaMonitoredItemMessageContentMask.SourceTimestamp;
                 }
                 if (0 != (field & DataSetFieldContentMask.SourcePicoSeconds)) {
-                    result |= UaMonitoredItemSampleContentMask.SourcePicoSeconds;
+                    result |= UaMonitoredItemMessageContentMask.SourcePicoSeconds;
                 }
                 if (0 != (field & DataSetFieldContentMask.ServerTimestamp)) {
-                    result |= UaMonitoredItemSampleContentMask.ServerTimestamp;
+                    result |= UaMonitoredItemMessageContentMask.ServerTimestamp;
                 }
                 if (0 != (field & DataSetFieldContentMask.ServerPicoSeconds)) {
-                    result |= UaMonitoredItemSampleContentMask.ServerPicoSeconds;
+                    result |= UaMonitoredItemMessageContentMask.ServerPicoSeconds;
                 }
                 if (0 != (field & DataSetFieldContentMask.StatusCode)) {
-                    result |= UaMonitoredItemSampleContentMask.StatusCode;
+                    result |= UaMonitoredItemMessageContentMask.StatusCode;
                 }
                 if (0 != (field & DataSetFieldContentMask.NodeId)) {
-                    result |= UaMonitoredItemSampleContentMask.NodeId;
+                    result |= UaMonitoredItemMessageContentMask.NodeId;
                 }
                 if (0 != (field & DataSetFieldContentMask.EndpointUrl)) {
-                    result |= UaMonitoredItemSampleContentMask.EndpointUrl;
+                    result |= UaMonitoredItemMessageContentMask.EndpointUrl;
                 }
                 if (0 != (field & DataSetFieldContentMask.ApplicationUri)) {
-                    result |= UaMonitoredItemSampleContentMask.ApplicationUri;
+                    result |= UaMonitoredItemMessageContentMask.ApplicationUri;
                 }
                 if (0 != (field & DataSetFieldContentMask.DisplayName)) {
-                    result |= UaMonitoredItemSampleContentMask.DisplayName;
+                    result |= UaMonitoredItemMessageContentMask.DisplayName;
                 }
                 if (0 != (field & DataSetFieldContentMask.SubscriptionId)) {
-                    result |= UaMonitoredItemSampleContentMask.SubscriptionId;
+                    result |= UaMonitoredItemMessageContentMask.SubscriptionId;
                 }
                 if (0 != (field & DataSetFieldContentMask.ExtraFields)) {
-                    result |= UaMonitoredItemSampleContentMask.ExtraFields;
+                    result |= UaMonitoredItemMessageContentMask.ExtraFields;
                 }
             }
             if (message == null) {
                 result |=
-                    UaMonitoredItemSampleContentMask.Timestamp |
-                    UaMonitoredItemSampleContentMask.Status;
+                    UaMonitoredItemMessageContentMask.Timestamp |
+                    UaMonitoredItemMessageContentMask.Status;
             }
             else {
                 if (0 != (message & DataSetContentMask.Timestamp)) {
-                    result |= UaMonitoredItemSampleContentMask.Timestamp;
+                    result |= UaMonitoredItemMessageContentMask.Timestamp;
                 }
                 if (0 != (message & DataSetContentMask.PicoSeconds)) {
-                    result |= UaMonitoredItemSampleContentMask.PicoSeconds;
+                    result |= UaMonitoredItemMessageContentMask.PicoSeconds;
                 }
                 if (0 != (message & DataSetContentMask.Status)) {
-                    result |= UaMonitoredItemSampleContentMask.Status;
+                    result |= UaMonitoredItemMessageContentMask.Status;
                 }
             }
             return (uint)result;

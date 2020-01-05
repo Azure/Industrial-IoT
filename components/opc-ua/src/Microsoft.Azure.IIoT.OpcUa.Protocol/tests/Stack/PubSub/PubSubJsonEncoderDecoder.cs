@@ -1,47 +1,50 @@
-﻿
+﻿// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------
 
 namespace Opc.Ua.PubSub.Tests {
-
     using System;
     using System.IO;
-    using Opc.Ua;
-    using System.Collections.Generic;    
+    using System.Collections.Generic;
     using Opc.Ua.Encoders;
-    using Opc.Ua.PubSub;
     using Xunit;
 
     public class PubSubJsonEncoderDecoder {
-        
-        private uint currentSequenceNumber = 0;
+
+        private uint _currentSequenceNumber = 0;
 
         [Fact]
         public void EncodeDecodeNetworkMessage() {
-            var payload = new Dictionary<string, DataValue>();
+            var payload = new Dictionary<string, DataValue> {
+                { "1", new DataValue(new Variant(5), StatusCodes.Good, DateTime.Now) },
+                { "2", new DataValue(new Variant(0.5), StatusCodes.Good, DateTime.Now) },
+                { "3", new DataValue("abcd") }
+            };
 
-            payload.Add("1", new DataValue(new Variant(5), StatusCodes.Good, DateTime.Now));
-            payload.Add("2", new DataValue(new Variant(0.5), StatusCodes.Good, DateTime.Now));
-            payload.Add("3", new DataValue("abcd"));
-
-            var message = new DataSetMessage();
-            message.DataSetWriterId = "WriterId";
-            message.MetaDataVersion = new ConfigurationVersionDataType { MajorVersion = 1, MinorVersion = 1 };
-            message.SequenceNumber = ++currentSequenceNumber;
-            message.Status = StatusCodes.Good;
-            message.Timestamp = DateTime.UtcNow;
-            message.MessageContentMask = (uint)(
+            var message = new DataSetMessage {
+                DataSetWriterId = "WriterId",
+                MetaDataVersion = new ConfigurationVersionDataType { MajorVersion = 1, MinorVersion = 1 },
+                SequenceNumber = ++_currentSequenceNumber,
+                Status = StatusCodes.Good,
+                Timestamp = DateTime.UtcNow,
+                MessageContentMask = (uint)(
                 JsonDataSetMessageContentMask.DataSetWriterId |
                 JsonDataSetMessageContentMask.SequenceNumber |
                 JsonDataSetMessageContentMask.MetaDataVersion |
                 JsonDataSetMessageContentMask.Timestamp |
-                JsonDataSetMessageContentMask.Status);
-            message.Payload = new DataSet(payload);
-            message.Payload.FieldContentMask = (uint)(DataSetFieldContentMask.StatusCode | DataSetFieldContentMask.SourceTimestamp);
+                JsonDataSetMessageContentMask.Status),
+                Payload = new DataSet(payload) {
+                    FieldContentMask = (uint)(DataSetFieldContentMask.StatusCode | DataSetFieldContentMask.SourceTimestamp)
+                }
+            };
 
-            var networkMessage = new NetworkMessage();
-            networkMessage.MessageId = Guid.NewGuid().ToString(); // TODO
-            networkMessage.MessageType = "ua-data";
-            networkMessage.Messages = new List<DataSetMessage>();
-            networkMessage.PublisherId = "PublisherId";
+            var networkMessage = new NetworkMessage {
+                MessageId = Guid.NewGuid().ToString(), // TODO
+                MessageType = "ua-data",
+                Messages = new List<DataSetMessage>(),
+                PublisherId = "PublisherId"
+            };
 
             networkMessage.Messages.Add(message);
             networkMessage.MessageContentMask = (uint)(
@@ -59,7 +62,7 @@ namespace Opc.Ua.PubSub.Tests {
                 buffer = stream.ToArray();
                 json = buffer.ToBase16String();
             }
-       
+
             using (var stream = new MemoryStream(buffer)) {
                 using (var decoder = new JsonDecoderEx(stream, context)) {
                     var result = decoder.ReadEncodeable(null, typeof(NetworkMessage)) as NetworkMessage;

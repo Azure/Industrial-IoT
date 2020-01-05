@@ -1,42 +1,82 @@
 <#
  .SYNOPSIS
-    Installs Industrial IoT edge on windows
+    Installs IoT edge 
 
  .DESCRIPTION
-    Installs Industrial IoT edge on windows and finishes installation.
+    Installs IoT edge on either linux or windows vm and enrolls vm in DPS.
 
- .PARAMETER edgeKey
-    The IoT edge connection string
+ .PARAMETER dpsConnString
+    The Dps connection string
+
+ .PARAMETER idScope
+    The Dps id scope
 #>
 param(
-    [string] $edgeKey,
-    [Switch] $Install
+    [Parameter(Mandatory)]
+    [string] $dpsConnString,
+    [Parameter(Mandatory)]
+    [string] $idScope
 )
 
-$path = $script:MyInvocation.MyCommand.Path
+$path = Split-Path $script:MyInvocation.MyCommand.Path
+$enrollPath = join-path $path vm-enroll.ps1
+if ($PsVersionTable.Platform -eq "Unix") {
 
-if ([string]::IsNullOrEmpty($edgeKey)) {
-    Write-Host "Nothing to do."
-    return
-}
-else {
-    if (!$Install.IsPresent) {
-        Write-Host "Deploying IoT Edge to machine."
-
-        . { Invoke-WebRequest -useb https://aka.ms/iotedge-win } | Invoke-Expression; `
-            Deploy-IoTEdge -RestartIfNeeded
-
-        # Register ourselves to initilaize edge        
-        $trigger = New-JobTrigger -AtStartup -RandomDelay 00:00:30
-        $out = Register-ScheduledJob -Trigger $trigger –Name "IotEdge" -FilePath $path -ArgumentList @($script:edgeKey, "-Install")
-        Write-Host $out.Command
-
-        Write-Host "Restart to finish installation."
-        Restart-Computer
+    $file = "/etc/iotedge/config.yaml"
+    if (Test-Path $file) {
+        $backup = "$($file)-backup"
+        if (Test-Path $backup) {
+            Write-Host "Already configured."
+            return
+        }
+        $configyml = Get-Content $file -Raw
+        if ([string]::IsNullOrWhiteSpace($configyml)) {
+            throw "$($file) empty."
+        }
+        $configyml | Out-File $backup -Force
     }
     else {
-        Write-Host "Configure and initialize IoT Edge."
-        . { Invoke-WebRequest -useb https://aka.ms/iotedge-win } | Invoke-Expression; `
-            Initialize-IoTEdge -Manual -DeviceConnectionString "$script:edgeKey"
+        throw "$($file) does not exist."
     }
+
+    Write-Host "Create new IoT Edge enrollment."
+    $enrollment = & $enrollPath -dpsConnString $dpsConnString -os Linux
+    Write-Host "Configure and initialize IoT Edge on Linux using enrollment information."
+
+    # comment out existing 
+    $configyml = $configyml.Replace("`nprovisioning:", "`n#provisioning:")
+    $configyml = $configyml.Replace("`n  source:", "`n#  source:")
+    $configyml = $configyml.Replace("`n  device_connection_string:", "`n#  device_connection_string:")
+    $configyml = $configyml.Replace("`n  dynamic_reprovisioning:", "`n#  dynamic_reprovisioning:")
+
+    # add dps setting
+    $configyml += "`n"
+    $configyml += "`n########################################################################"
+    $configyml += "`n# DPS symmetric key provisioning configuration - added by vm-setup.ps1 #"
+    $configyml += "`n########################################################################"
+    $configyml += "`n"
+    $configyml += "`nprovisioning:"
+    $configyml += "`n  source: `"dps`""
+    $configyml += "`n  global_endpoint: `"https://global.azure-devices-provisioning.net`""
+    $configyml += "`n  scope_id: `"$($idScope)`""
+    $configyml += "`n  attestation:"
+    $configyml += "`n    method: `"symmetric_key`""
+    $configyml += "`n    registration_id: `"$($enrollment.registrationId)`""
+    $configyml += "`n    symmetric_key: `"$($enrollment.primaryKey)`""
+    $configyml += "`n"
+    $configyml += "`n########################################################################"
+    $configyml += "`n"
+
+    $configyml | Out-File $file -Force
+}
+else {
+    Start-Transcript -path (join-path $path "vm-setup.log")
+
+    Write-Host "Create new IoT Edge enrollment."
+    $enrollment = & $enrollPath -dpsConnString $dpsConnString -os Windows
+
+    Write-Host "Configure and initialize IoT Edge on Windows using enrollment information."
+    . { Invoke-WebRequest -useb https://aka.ms/iotedge-win } | Invoke-Expression; `
+        Install-IoTEdge -Dps -ScopeId $idScope -ContainerOs Windows -RegistrationId `
+            $enrollment.registrationId -SymmetricKey $enrollment.primaryKey
 }

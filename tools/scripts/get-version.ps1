@@ -11,13 +11,10 @@ try {
     # Try install tool
     & dotnet @("tool", "install", "-g", "nbgv") 2>&1 | Out-Null
 
-    # Call tool
-    & nbgv  @("cloud", "-c", "-a")
-    if ($LastExitCode -ne 0) {
-        throw "Error: 'nbgv cloud -c -a' failed with $($LastExitCode)."
-    }
-
     $props = (& nbgv  @("get-version", "-f", "json")) | ConvertFrom-Json
+    if ($LastExitCode -ne 0) {
+        throw "Error: 'nbgv get-version -f json' failed with $($LastExitCode)."
+    }
 
     return [pscustomobject] @{ 
         Full = $props.CloudBuildAllVars.NBGV_NuGetPackageVersion

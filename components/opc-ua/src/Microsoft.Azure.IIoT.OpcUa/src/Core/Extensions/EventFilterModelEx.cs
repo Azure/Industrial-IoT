@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
+    using System.Collections.Generic;
     using System.Linq;
 
     /// <summary>
@@ -26,6 +27,29 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
                     .ToList(),
                 WhereClause = model.WhereClause.Clone()
             };
+        }
+
+        /// <summary>
+        /// Compare filters
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="other"></param>
+        /// <returns></returns>
+        public static bool IsSameAs(this EventFilterModel model, EventFilterModel other) {
+            if (model == null && other == null) {
+                return true;
+            }
+            if (model == null || other == null) {
+                return false;
+            }
+            if (!model.SelectClauses.SetEqualsSafe(other.SelectClauses,
+                (x, y) => x.IsSameAs(y))) {
+                return false;
+            }
+            if (!model.WhereClause.IsSameAs(other.WhereClause)) {
+                return false;
+            }
+            return true;
         }
     }
 }

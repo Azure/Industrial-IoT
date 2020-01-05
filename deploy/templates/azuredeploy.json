@@ -173,11 +173,11 @@
         }
     },
     "variables": {
-        "infrastructureResourcName": "Infrastructure",
+        "infrastructureResourcName": "infrastructure",
         "infrastructureResourceId": "[resourceId('Microsoft.Resources/deployments', variables('infrastructureResourcName'))]",
-        "authConfigurationResourcName": "AuthConfiguration",
+        "authConfigurationResourcName": "auth.configuration",
         "platformDeployment": "[not(and(empty(parameters('siteName')), empty(parameters('serviceSiteName')), equals(0, parameters('numberOfLinuxGateways')), equals(0, parameters('numberOfWindowsGateways'))))]",
-        "platformResourcName": "Platform",
+        "platformResourcName": "platform",
         "platformResourceId": "[resourceId('Microsoft.Resources/deployments', variables('platformResourcName'))]",
         "templateBaseUrl": "[if(empty(parameters('templateUrl')), deployment().properties.templateLink.uri, concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/templates/'))]"
     },
@@ -260,6 +260,22 @@
                             {
                                 "key": "PCS_AUTH_ISSUER",
                                 "value": "[parameters('trustedTokenIssuer')]"
+                            },
+                            {
+                                "key": "PCS_DOCKER_SERVER",
+                                "value": "[parameters('dockerServer')]"
+                            },
+                            {
+                                "key": "PCS_DOCKER_USER",
+                                "value": "[parameters('dockerUser')]"
+                            },
+                            {
+                                "key": "PCS_DOCKER_PASSWORD",
+                                "value": "[parameters('dockerPassword')]"
+                            },
+                            {
+                                "key": "PCS_IMAGE_NAMESPACE",
+                                "value": "[parameters('imageNamespace')]"
                             }
                         ]
                     }
@@ -372,7 +388,7 @@
         },
         "appUrl": {
             "type": "string",
-            "value": "[if (variables('platformDeployment'), reference(variables('platformResourceId'), '2017-05-10').outputs.azureWebsite.value, '')]"
+            "value": "[if (variables('platformDeployment'), reference(variables('platformResourceId'), '2017-05-10').outputs.appUrl.value, '')]"
         }
     }
 }

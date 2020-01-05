@@ -22,10 +22,6 @@ final class AzureOpcTwinClient
         $this->_BrowseUsingPath_operation = $_client->createOperation('BrowseUsingPath');
         $this->_GetCallMetadata_operation = $_client->createOperation('GetCallMetadata');
         $this->_CallMethod_operation = $_client->createOperation('CallMethod');
-        $this->_StartPublishingValues_operation = $_client->createOperation('StartPublishingValues');
-        $this->_StopPublishingValues_operation = $_client->createOperation('StopPublishingValues');
-        $this->_GetNextListOfPublishedNodes_operation = $_client->createOperation('GetNextListOfPublishedNodes');
-        $this->_GetFirstListOfPublishedNodes_operation = $_client->createOperation('GetFirstListOfPublishedNodes');
         $this->_GetValue_operation = $_client->createOperation('GetValue');
         $this->_ReadValue_operation = $_client->createOperation('ReadValue');
         $this->_ReadAttributes_operation = $_client->createOperation('ReadAttributes');
@@ -170,78 +166,6 @@ and server must trust each other.
         ]);
     }
     /**
-     * Start publishing variable node values to IoT Hub.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
-     * @param string $endpointId
-     * @param array $request
-     * @return array
-     */
-    public function startPublishingValues(
-        $endpointId,
-        array $request
-    )
-    {
-        return $this->_StartPublishingValues_operation->call([
-            'endpointId' => $endpointId,
-            'request' => $request
-        ]);
-    }
-    /**
-     * Stop publishing variable node values to IoT Hub.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
-     * @param string $endpointId
-     * @param array $request
-     * @return array
-     */
-    public function stopPublishingValues(
-        $endpointId,
-        array $request
-    )
-    {
-        return $this->_StopPublishingValues_operation->call([
-            'endpointId' => $endpointId,
-            'request' => $request
-        ]);
-    }
-    /**
-     * Returns next set of currently published node ids for an endpoint.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
-     * @param string $endpointId
-     * @param string $continuationToken
-     * @return array
-     */
-    public function getNextListOfPublishedNodes(
-        $endpointId,
-        $continuationToken
-    )
-    {
-        return $this->_GetNextListOfPublishedNodes_operation->call([
-            'endpointId' => $endpointId,
-            'continuationToken' => $continuationToken
-        ]);
-    }
-    /**
-     * Returns currently published node ids for an endpoint.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
-     * @param string $endpointId
-     * @param array $request
-     * @return array
-     */
-    public function getFirstListOfPublishedNodes(
-        $endpointId,
-        array $request
-    )
-    {
-        return $this->_GetFirstListOfPublishedNodes_operation->call([
-            'endpointId' => $endpointId,
-            'request' => $request
-        ]);
-    }
-    /**
      * Get a variable node's value using its node id.
 The endpoint must be activated and connected and the module client
 and server must trust each other.
@@ -366,22 +290,6 @@ and server must trust each other.
      * @var \Microsoft\Rest\OperationInterface
      */
     private $_CallMethod_operation;
-    /**
-     * @var \Microsoft\Rest\OperationInterface
-     */
-    private $_StartPublishingValues_operation;
-    /**
-     * @var \Microsoft\Rest\OperationInterface
-     */
-    private $_StopPublishingValues_operation;
-    /**
-     * @var \Microsoft\Rest\OperationInterface
-     */
-    private $_GetNextListOfPublishedNodes_operation;
-    /**
-     * @var \Microsoft\Rest\OperationInterface
-     */
-    private $_GetFirstListOfPublishedNodes_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
@@ -539,80 +447,6 @@ and server must trust each other.
                 ],
                 'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/MethodCallResponseApiModel']]]
             ]],
-            '/v2/publish/{endpointId}/start' => ['post' => [
-                'operationId' => 'StartPublishingValues',
-                'parameters' => [
-                    [
-                        'name' => 'endpointId',
-                        'in' => 'path',
-                        'required' => TRUE,
-                        'type' => 'string'
-                    ],
-                    [
-                        'name' => 'request',
-                        'in' => 'body',
-                        'required' => TRUE,
-                        'schema' => ['$ref' => '#/definitions/PublishStartRequestApiModel']
-                    ]
-                ],
-                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/PublishStartResponseApiModel']]]
-            ]],
-            '/v2/publish/{endpointId}/stop' => ['post' => [
-                'operationId' => 'StopPublishingValues',
-                'parameters' => [
-                    [
-                        'name' => 'endpointId',
-                        'in' => 'path',
-                        'required' => TRUE,
-                        'type' => 'string'
-                    ],
-                    [
-                        'name' => 'request',
-                        'in' => 'body',
-                        'required' => TRUE,
-                        'schema' => ['$ref' => '#/definitions/PublishStopRequestApiModel']
-                    ]
-                ],
-                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/PublishStopResponseApiModel']]]
-            ]],
-            '/v2/publish/{endpointId}' => [
-                'get' => [
-                    'operationId' => 'GetNextListOfPublishedNodes',
-                    'parameters' => [
-                        [
-                            'name' => 'endpointId',
-                            'in' => 'path',
-                            'required' => TRUE,
-                            'type' => 'string'
-                        ],
-                        [
-                            'name' => 'continuationToken',
-                            'in' => 'query',
-                            'required' => TRUE,
-                            'type' => 'string'
-                        ]
-                    ],
-                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/PublishedItemListResponseApiModel']]]
-                ],
-                'post' => [
-                    'operationId' => 'GetFirstListOfPublishedNodes',
-                    'parameters' => [
-                        [
-                            'name' => 'endpointId',
-                            'in' => 'path',
-                            'required' => TRUE,
-                            'type' => 'string'
-                        ],
-                        [
-                            'name' => 'request',
-                            'in' => 'body',
-                            'required' => TRUE,
-                            'schema' => ['$ref' => '#/definitions/PublishedItemListRequestApiModel']
-                        ]
-                    ],
-                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/PublishedItemListResponseApiModel']]]
-                ]
-            ],
             '/v2/read/{endpointId}' => [
                 'get' => [
                     'operationId' => 'GetValue',
@@ -1065,7 +899,7 @@ and server must trust each other.
                     'header' => ['$ref' => '#/definitions/RequestHeaderApiModel']
                 ],
                 'additionalProperties' => FALSE,
-                'required' => ['methodId']
+                'required' => []
             ],
             'MethodMetadataArgumentApiModel' => [
                 'properties' => [
@@ -1151,131 +985,6 @@ and server must trust each other.
                 'additionalProperties' => FALSE,
                 'required' => []
             ],
-            'PublishedItemApiModel' => [
-                'properties' => [
-                    'nodeId' => ['type' => 'string'],
-                    'browsePath' => [
-                        'type' => 'array',
-                        'items' => ['type' => 'string']
-                    ],
-                    'nodeAttribute' => [
-                        'type' => 'string',
-                        'enum' => [
-                            'NodeClass',
-                            'BrowseName',
-                            'DisplayName',
-                            'Description',
-                            'WriteMask',
-                            'UserWriteMask',
-                            'IsAbstract',
-                            'Symmetric',
-                            'InverseName',
-                            'ContainsNoLoops',
-                            'EventNotifier',
-                            'Value',
-                            'DataType',
-                            'ValueRank',
-                            'ArrayDimensions',
-                            'AccessLevel',
-                            'UserAccessLevel',
-                            'MinimumSamplingInterval',
-                            'Historizing',
-                            'Executable',
-                            'UserExecutable',
-                            'DataTypeDefinition',
-                            'RolePermissions',
-                            'UserRolePermissions',
-                            'AccessRestrictions'
-                        ]
-                    ],
-                    'publishingInterval' => [
-                        'type' => 'integer',
-                        'format' => 'int32'
-                    ],
-                    'samplingInterval' => [
-                        'type' => 'integer',
-                        'format' => 'int32'
-                    ]
-                ],
-                'additionalProperties' => FALSE,
-                'required' => ['nodeId']
-            ],
-            'PublishStartRequestApiModel' => [
-                'properties' => [
-                    'item' => ['$ref' => '#/definitions/PublishedItemApiModel'],
-                    'header' => ['$ref' => '#/definitions/RequestHeaderApiModel']
-                ],
-                'additionalProperties' => FALSE,
-                'required' => ['item']
-            ],
-            'PublishStartResponseApiModel' => [
-                'properties' => ['errorInfo' => ['$ref' => '#/definitions/ServiceResultApiModel']],
-                'additionalProperties' => FALSE,
-                'required' => []
-            ],
-            'PublishStopRequestApiModel' => [
-                'properties' => [
-                    'nodeId' => ['type' => 'string'],
-                    'browsePath' => [
-                        'type' => 'array',
-                        'items' => ['type' => 'string']
-                    ],
-                    'nodeAttribute' => [
-                        'type' => 'string',
-                        'enum' => [
-                            'NodeClass',
-                            'BrowseName',
-                            'DisplayName',
-                            'Description',
-                            'WriteMask',
-                            'UserWriteMask',
-                            'IsAbstract',
-                            'Symmetric',
-                            'InverseName',
-                            'ContainsNoLoops',
-                            'EventNotifier',
-                            'Value',
-                            'DataType',
-                            'ValueRank',
-                            'ArrayDimensions',
-                            'AccessLevel',
-                            'UserAccessLevel',
-                            'MinimumSamplingInterval',
-                            'Historizing',
-                            'Executable',
-                            'UserExecutable',
-                            'DataTypeDefinition',
-                            'RolePermissions',
-                            'UserRolePermissions',
-                            'AccessRestrictions'
-                        ]
-                    ],
-                    'diagnostics' => ['$ref' => '#/definitions/DiagnosticsApiModel']
-                ],
-                'additionalProperties' => FALSE,
-                'required' => ['nodeId']
-            ],
-            'PublishStopResponseApiModel' => [
-                'properties' => ['errorInfo' => ['$ref' => '#/definitions/ServiceResultApiModel']],
-                'additionalProperties' => FALSE,
-                'required' => []
-            ],
-            'PublishedItemListRequestApiModel' => [
-                'properties' => ['continuationToken' => ['type' => 'string']],
-                'additionalProperties' => FALSE,
-                'required' => []
-            ],
-            'PublishedItemListResponseApiModel' => [
-                'properties' => [
-                    'items' => [
-                        'type' => 'array',
-                        'items' => ['$ref' => '#/definitions/PublishedItemApiModel']
-                    ],
-                    'continuationToken' => ['type' => 'string']
-                ],
-                'additionalProperties' => FALSE,
-                'required' => []
-            ],
             'ValueReadRequestApiModel' => [
                 'properties' => [
                     'nodeId' => ['type' => 'string'],
@@ -1287,7 +996,7 @@ and server must trust each other.
                     'header' => ['$ref' => '#/definitions/RequestHeaderApiModel']
                 ],
                 'additionalProperties' => FALSE,
-                'required' => ['nodeId']
+                'required' => []
             ],
             'ValueReadResponseApiModel' => [
                 'properties' => [
@@ -1421,10 +1130,7 @@ and server must trust each other.
                     'header' => ['$ref' => '#/definitions/RequestHeaderApiModel']
                 ],
                 'additionalProperties' => FALSE,
-                'required' => [
-                    'nodeId',
-                    'value'
-                ]
+                'required' => ['value']
             ],
             'ValueWriteResponseApiModel' => [
                 'properties' => ['errorInfo' => ['$ref' => '#/definitions/ServiceResultApiModel']],

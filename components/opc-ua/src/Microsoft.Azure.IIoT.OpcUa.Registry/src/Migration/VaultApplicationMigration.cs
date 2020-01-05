@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Migration {
-    using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.Storage;
@@ -33,13 +32,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Migration {
             IDatabaseServer db, IConfiguration configuration, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _repo = repo ?? throw new ArgumentNullException(nameof(repo));
-
-            // Bind legacy configuration
-            var config = new ServicesConfig();
-            configuration?.Bind("OpcVault", config);
-
-            var database = db.OpenAsync(config.CosmosDBDatabase).Result;
             try {
+                // Bind legacy configuration
+                var config = new ServicesConfig();
+                configuration?.Bind("OpcVault", config);
+
+                var database = db.OpenAsync(config.CosmosDBDatabase).Result;
+
                 _source = database.OpenContainerAsync(config.CosmosDBCollection)
                     .Result
                     .AsDocuments();

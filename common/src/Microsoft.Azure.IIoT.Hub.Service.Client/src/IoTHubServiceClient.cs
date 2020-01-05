@@ -7,7 +7,6 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
     using Microsoft.Azure.Devices;
     using Microsoft.Azure.Devices.Common.Exceptions;
     using Microsoft.Azure.Devices.Shared;
-    using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Azure.IIoT.Utils;
     using Newtonsoft.Json.Linq;
@@ -252,7 +251,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
             try {
                 // Try update configuration
                 var result = await _registry.UpdateConfigurationAsync(
-                    configuration.ToConfiguration(), ct);
+                    configuration.ToConfiguration(), forceUpdate, ct);
                 return result.ToModel();
             }
             catch (Exception e) {

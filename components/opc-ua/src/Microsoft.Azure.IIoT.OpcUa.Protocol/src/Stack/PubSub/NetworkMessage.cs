@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Opc.Ua.PubSub {
-    using Opc.Ua;
     using System;
     using System.Collections.Generic;
 

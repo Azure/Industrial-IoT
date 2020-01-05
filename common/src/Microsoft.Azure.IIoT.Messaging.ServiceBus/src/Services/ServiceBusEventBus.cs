@@ -25,8 +25,8 @@ namespace Microsoft.Azure.IIoT.Messaging.ServiceBus.Services {
         /// Create service bus event bus
         /// </summary>
         /// <param name="factory"></param>
-        /// <param name="process"></param>
         /// <param name="logger"></param>
+        /// <param name="process"></param>
         public ServiceBusEventBus(IServiceBusClientFactory factory,
             ILogger logger, IProcessIdentity process = null) {
 

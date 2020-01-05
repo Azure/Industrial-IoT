@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding.Runtime {
-    using Microsoft.Azure.IIoT.Services.Swagger;
-    using Microsoft.Azure.IIoT.Services.Swagger.Runtime;
+    using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
+    using Microsoft.Azure.IIoT.AspNetCore.OpenApi.Runtime;
     using Microsoft.Azure.IIoT.Services.Cors;
     using Microsoft.Azure.IIoT.Services.Cors.Runtime;
     using Microsoft.Azure.IIoT.Hub.Client;
@@ -26,7 +26,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding.Runtime {
     /// Common web service configuration aggregation
     /// </summary>
     public class Config : DiagnosticsConfig, IAuthConfig, IIoTHubConfig, ICorsConfig,
-        IClientConfig, ISwaggerConfig, IServiceBusConfig,
+        IClientConfig, IOpenApiConfig, IServiceBusConfig,
         ICosmosDbConfig, IItemContainerConfig {
 
         /// <summary>
@@ -67,15 +67,15 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding.Runtime {
         public TimeSpan AllowedClockSkew => _auth.AllowedClockSkew;
 
         /// <inheritdoc/>
-        public bool UIEnabled => _swagger.UIEnabled;
+        public bool UIEnabled => _openApi.UIEnabled;
         /// <inheritdoc/>
-        public bool WithAuth => _swagger.WithAuth;
+        public bool WithAuth => _openApi.WithAuth;
         /// <inheritdoc/>
-        public bool WithHttpScheme => _swagger.WithHttpScheme;
+        public string OpenApiAppId => _openApi.OpenApiAppId;
         /// <inheritdoc/>
-        public string SwaggerAppId => _swagger.SwaggerAppId;
+        public string OpenApiAppSecret => _openApi.OpenApiAppSecret;
         /// <inheritdoc/>
-        public string SwaggerAppSecret => _swagger.SwaggerAppSecret;
+        public bool UseV2 => _openApi.UseV2;
 
         /// <inheritdoc/>
         public string ServiceBusConnString => _sb.ServiceBusConnString;
@@ -96,7 +96,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding.Runtime {
         public Config(IConfiguration configuration) :
             base(configuration) {
 
-            _swagger = new SwaggerConfig(configuration);
+            _openApi = new OpenApiConfig(configuration);
             _auth = new AuthConfig(configuration);
             _host = new HostConfig(configuration);
             _hub = new IoTHubConfig(configuration);
@@ -105,7 +105,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding.Runtime {
             _cosmos = new CosmosDbConfig(configuration);
         }
 
-        private readonly SwaggerConfig _swagger;
+        private readonly OpenApiConfig _openApi;
         private readonly HostConfig _host;
         private readonly AuthConfig _auth;
         private readonly CorsConfig _cors;

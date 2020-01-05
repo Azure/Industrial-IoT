@@ -822,7 +822,7 @@ class AzureOpcVaultClient extends AzureOpcVaultClientContext {
 const serializer = new msRest.Serializer(Mappers);
 const getIssuerCertificateChainOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
-  path: "v2/certificates/{serialNumber}",
+  path: "vault/v2/certificates/{serialNumber}",
   urlParameters: [
     Parameters.serialNumber
   ],
@@ -837,7 +837,7 @@ const getIssuerCertificateChainOperationSpec: msRest.OperationSpec = {
 
 const getIssuerCrlChainOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
-  path: "v2/certificates/{serialNumber}/crl",
+  path: "vault/v2/certificates/{serialNumber}/crl",
   urlParameters: [
     Parameters.serialNumber
   ],
@@ -852,7 +852,7 @@ const getIssuerCrlChainOperationSpec: msRest.OperationSpec = {
 
 const getIssuerCertificateChain1OperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
-  path: "v2/issuer/{serialNumber}",
+  path: "vault/v2/issuer/{serialNumber}",
   urlParameters: [
     Parameters.serialNumber
   ],
@@ -865,7 +865,7 @@ const getIssuerCertificateChain1OperationSpec: msRest.OperationSpec = {
 
 const getIssuerCrlChain1OperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
-  path: "v2/crl/{serialNumber}",
+  path: "vault/v2/crl/{serialNumber}",
   urlParameters: [
     Parameters.serialNumber
   ],
@@ -878,7 +878,7 @@ const getIssuerCrlChain1OperationSpec: msRest.OperationSpec = {
 
 const startSigningRequestOperationSpec: msRest.OperationSpec = {
   httpMethod: "PUT",
-  path: "v2/requests/sign",
+  path: "vault/v2/requests/sign",
   requestBody: {
     parameterPath: "signingRequest",
     mapper: {
@@ -898,7 +898,7 @@ const startSigningRequestOperationSpec: msRest.OperationSpec = {
 
 const finishSigningRequestOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
-  path: "v2/requests/sign/{requestId}",
+  path: "vault/v2/requests/sign/{requestId}",
   urlParameters: [
     Parameters.requestId
   ],
@@ -913,7 +913,7 @@ const finishSigningRequestOperationSpec: msRest.OperationSpec = {
 
 const startNewKeyPairRequestOperationSpec: msRest.OperationSpec = {
   httpMethod: "PUT",
-  path: "v2/requests/keypair",
+  path: "vault/v2/requests/keypair",
   requestBody: {
     parameterPath: "newKeyPairRequest",
     mapper: {
@@ -933,7 +933,7 @@ const startNewKeyPairRequestOperationSpec: msRest.OperationSpec = {
 
 const finishNewKeyPairRequestOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
-  path: "v2/requests/keypair/{requestId}",
+  path: "vault/v2/requests/keypair/{requestId}",
   urlParameters: [
     Parameters.requestId
   ],
@@ -948,7 +948,7 @@ const finishNewKeyPairRequestOperationSpec: msRest.OperationSpec = {
 
 const approveRequestOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v2/requests/{requestId}/approve",
+  path: "vault/v2/requests/{requestId}/approve",
   urlParameters: [
     Parameters.requestId
   ],
@@ -961,7 +961,7 @@ const approveRequestOperationSpec: msRest.OperationSpec = {
 
 const rejectRequestOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v2/requests/{requestId}/reject",
+  path: "vault/v2/requests/{requestId}/reject",
   urlParameters: [
     Parameters.requestId
   ],
@@ -974,7 +974,7 @@ const rejectRequestOperationSpec: msRest.OperationSpec = {
 
 const acceptRequestOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v2/requests/{requestId}/accept",
+  path: "vault/v2/requests/{requestId}/accept",
   urlParameters: [
     Parameters.requestId
   ],
@@ -987,7 +987,7 @@ const acceptRequestOperationSpec: msRest.OperationSpec = {
 
 const getRequestOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
-  path: "v2/requests/{requestId}",
+  path: "vault/v2/requests/{requestId}",
   urlParameters: [
     Parameters.requestId
   ],
@@ -1002,7 +1002,7 @@ const getRequestOperationSpec: msRest.OperationSpec = {
 
 const deleteRequestOperationSpec: msRest.OperationSpec = {
   httpMethod: "DELETE",
-  path: "v2/requests/{requestId}",
+  path: "vault/v2/requests/{requestId}",
   urlParameters: [
     Parameters.requestId
   ],
@@ -1015,7 +1015,7 @@ const deleteRequestOperationSpec: msRest.OperationSpec = {
 
 const queryRequestsOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v2/requests/query",
+  path: "vault/v2/requests/query",
   queryParameters: [
     Parameters.pageSize
   ],
@@ -1038,7 +1038,7 @@ const queryRequestsOperationSpec: msRest.OperationSpec = {
 
 const listRequestsOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
-  path: "v2/requests",
+  path: "vault/v2/requests",
   queryParameters: [
     Parameters.nextPageLink,
     Parameters.pageSize
@@ -1054,7 +1054,7 @@ const listRequestsOperationSpec: msRest.OperationSpec = {
 
 const getStatusOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
-  path: "v2/status",
+  path: "vault/v2/status",
   responses: {
     200: {
       bodyMapper: Mappers.StatusResponseApiModel
@@ -1066,7 +1066,7 @@ const getStatusOperationSpec: msRest.OperationSpec = {
 
 const listGroupsOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
-  path: "v2/groups",
+  path: "vault/v2/groups",
   queryParameters: [
     Parameters.nextPageLink,
     Parameters.pageSize
@@ -1082,7 +1082,7 @@ const listGroupsOperationSpec: msRest.OperationSpec = {
 
 const createGroupOperationSpec: msRest.OperationSpec = {
   httpMethod: "PUT",
-  path: "v2/groups",
+  path: "vault/v2/groups",
   requestBody: {
     parameterPath: "request",
     mapper: {
@@ -1102,7 +1102,7 @@ const createGroupOperationSpec: msRest.OperationSpec = {
 
 const getGroupOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
-  path: "v2/groups/{groupId}",
+  path: "vault/v2/groups/{groupId}",
   urlParameters: [
     Parameters.groupId
   ],
@@ -1117,7 +1117,7 @@ const getGroupOperationSpec: msRest.OperationSpec = {
 
 const updateGroupOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v2/groups/{groupId}",
+  path: "vault/v2/groups/{groupId}",
   urlParameters: [
     Parameters.groupId
   ],
@@ -1138,7 +1138,7 @@ const updateGroupOperationSpec: msRest.OperationSpec = {
 
 const deleteGroupOperationSpec: msRest.OperationSpec = {
   httpMethod: "DELETE",
-  path: "v2/groups/{groupId}",
+  path: "vault/v2/groups/{groupId}",
   urlParameters: [
     Parameters.groupId
   ],
@@ -1151,7 +1151,7 @@ const deleteGroupOperationSpec: msRest.OperationSpec = {
 
 const createRootOperationSpec: msRest.OperationSpec = {
   httpMethod: "PUT",
-  path: "v2/groups/root",
+  path: "vault/v2/groups/root",
   requestBody: {
     parameterPath: "request",
     mapper: {
@@ -1171,7 +1171,7 @@ const createRootOperationSpec: msRest.OperationSpec = {
 
 const renewIssuerCertificateOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v2/groups/{groupId}/renew",
+  path: "vault/v2/groups/{groupId}/renew",
   urlParameters: [
     Parameters.groupId
   ],
@@ -1184,7 +1184,7 @@ const renewIssuerCertificateOperationSpec: msRest.OperationSpec = {
 
 const addTrustRelationshipOperationSpec: msRest.OperationSpec = {
   httpMethod: "PUT",
-  path: "v2/trustlists/{entityId}/{trustedEntityId}",
+  path: "vault/v2/trustlists/{entityId}/{trustedEntityId}",
   urlParameters: [
     Parameters.entityId,
     Parameters.trustedEntityId
@@ -1198,7 +1198,7 @@ const addTrustRelationshipOperationSpec: msRest.OperationSpec = {
 
 const listTrustedCertificatesOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
-  path: "v2/trustlists/{entityId}",
+  path: "vault/v2/trustlists/{entityId}",
   urlParameters: [
     Parameters.entityId
   ],
@@ -1217,7 +1217,7 @@ const listTrustedCertificatesOperationSpec: msRest.OperationSpec = {
 
 const removeTrustRelationshipOperationSpec: msRest.OperationSpec = {
   httpMethod: "DELETE",
-  path: "v2/trustlists/{entityId}/{untrustedEntityId}",
+  path: "vault/v2/trustlists/{entityId}/{untrustedEntityId}",
   urlParameters: [
     Parameters.entityId,
     Parameters.untrustedEntityId

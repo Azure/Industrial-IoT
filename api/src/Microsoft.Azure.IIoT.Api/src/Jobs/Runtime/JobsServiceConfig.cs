@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Api.Jobs.Runtime {
-    using Microsoft.Azure.IIoT.Api.Jobs;
     using Microsoft.Azure.IIoT.Api.Runtime;
     using Microsoft.Extensions.Configuration;
 

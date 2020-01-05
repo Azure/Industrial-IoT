@@ -7,10 +7,11 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding {
     using Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding.Runtime;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Utils;
-    using Microsoft.AspNetCore;
+    using Microsoft.Extensions.Hosting;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Mvc.Testing;
     using Autofac;
+    using Autofac.Extensions.Hosting;
     using System;
     using System.Net.Http;
     using System.Text;
@@ -24,7 +25,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding {
         /// Create startup
         /// </summary>
         /// <param name="env"></param>
-        public TestStartup(IHostingEnvironment env) : base(env, new Config(null)) {
+        public TestStartup(IWebHostEnvironment env) : base(env, new Config(null)) {
         }
 
         /// <inheritdoc/>
@@ -50,14 +51,20 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding {
     public class WebAppFixture : WebApplicationFactory<TestStartup>, IHttpClientFactory {
 
         /// <inheritdoc/>
-        protected override IWebHostBuilder CreateWebHostBuilder() {
-            return WebHost.CreateDefaultBuilder().UseStartup<TestStartup>();
+        protected override IHostBuilder CreateHostBuilder() {
+            return Host.CreateDefaultBuilder();
         }
 
         /// <inheritdoc/>
         protected override void ConfigureWebHost(IWebHostBuilder builder) {
-            builder.UseContentRoot(".");
+            builder.UseContentRoot(".").UseStartup<TestStartup>();
             base.ConfigureWebHost(builder);
+        }
+
+        /// <inheritdoc/>
+        protected override IHost CreateHost(IHostBuilder builder) {
+            builder.UseAutofac();
+            return base.CreateHost(builder);
         }
 
         /// <inheritdoc/>

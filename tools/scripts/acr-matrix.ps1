@@ -9,13 +9,28 @@
  .PARAMETER BuildRoot
     The root folder to start traversing the repository from.
 
+ .PARAMETER Registry
+    The name of the registry
+
+ .PARAMETER Subscription
+    The subscription to use - otherwise uses default
+
  .PARAMETER Build
     If not set the task generates jobs in azure pipeline.
+
+ .PARAMETER Debug
+    Build debug and include debugger into images (where applicable)
+
+ .PARAMETER Fast
+    Only build images that are absolutely needed (tagged with buildAlways:true)
 #>
 
 Param(
-    [string] $BuildRoot = $null,
+    [string] $BuildRoot,
+    [string] $Registry,
+    [string] $Subscription,
     [switch] $Build,
+    [switch] $Fast,
     [switch] $Debug
 )
 
@@ -32,6 +47,13 @@ Get-ChildItem $BuildRoot -Recurse -Include "container.json" `
     # Get root
     $dockerFolder = $_.DirectoryName.Replace($BuildRoot, "").Substring(1)
     $metadata = Get-Content -Raw -Path $_.FullName | ConvertFrom-Json
+
+    if ($Fast.IsPresent) {
+        if (!$metadata.buildAlways) {
+            return
+        }
+    }
+
     try {
         $jobName = "$($metadata.name)"
         if (![string]::IsNullOrEmpty($metadata.tag)) {
@@ -48,8 +70,8 @@ Get-ChildItem $BuildRoot -Recurse -Include "container.json" `
 
 if ($Build.IsPresent) {
     $acrMatrix.Values | ForEach-Object {
-        & (Join-Path $PSScriptRoot "acr-build.ps1") `
-            -Path $_.dockerFolder -Debug:$Debug
+        & (Join-Path $PSScriptRoot "acr-build.ps1") -Path $_.dockerFolder `
+            -Debug:$Debug -Registry $Registry -Subscription $Subscription
     }
 }
 else {

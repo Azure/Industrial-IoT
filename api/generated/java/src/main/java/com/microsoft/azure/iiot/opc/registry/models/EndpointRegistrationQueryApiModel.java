@@ -23,13 +23,6 @@ public class EndpointRegistrationQueryApiModel {
     private String url;
 
     /**
-     * Type of credential selected for authentication. Possible values include:
-     * 'None', 'UserName', 'X509Certificate', 'JwtToken'.
-     */
-    @JsonProperty(value = "userAuthentication")
-    private CredentialType userAuthentication;
-
-    /**
      * Certificate of the endpoint.
      */
     @JsonProperty(value = "certificate")
@@ -91,26 +84,6 @@ public class EndpointRegistrationQueryApiModel {
      */
     public EndpointRegistrationQueryApiModel withUrl(String url) {
         this.url = url;
-        return this;
-    }
-
-    /**
-     * Get type of credential selected for authentication. Possible values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'.
-     *
-     * @return the userAuthentication value
-     */
-    public CredentialType userAuthentication() {
-        return this.userAuthentication;
-    }
-
-    /**
-     * Set type of credential selected for authentication. Possible values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'.
-     *
-     * @param userAuthentication the userAuthentication value to set
-     * @return the EndpointRegistrationQueryApiModel object itself.
-     */
-    public EndpointRegistrationQueryApiModel withUserAuthentication(CredentialType userAuthentication) {
-        this.userAuthentication = userAuthentication;
         return this;
     }
 

@@ -36,13 +36,13 @@ namespace Microsoft.Azure.IIoT.Storage {
         /// <summary>
         /// Add edge from a vertex that is defined only by its mandatory fields
         /// </summary>
-        /// <typeparam name="V"></typeparam>
         /// <typeparam name="E"></typeparam>
+        /// <typeparam name="V"></typeparam>
         /// <param name="loader"></param>
-        /// <param name="outVertex"></param>
-        /// <param name="edge"></param>
         /// <param name="outVId"></param>
         /// <param name="outVLabel"></param>
+        /// <param name="edge"></param>
+        /// <param name="outVertex"></param>
         /// <param name="outVPk"></param>
         /// <returns></returns>
         public static Task AddEdgeAsync<E, V>(this IGraphLoader loader,

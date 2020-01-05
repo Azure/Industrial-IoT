@@ -16,8 +16,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Vault {
         /// <summary>
         /// Assign entity to group.
         /// </summary>
-        /// <param name="entityId"></param>
         /// <param name="id"></param>
+        /// <param name="entityId"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         Task AddMemberAsync(string id, string entityId,
@@ -38,8 +38,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Vault {
         /// <summary>
         /// Remove entity from specified group.
         /// </summary>
-        /// <param name="entityId"></param>
         /// <param name="id"></param>
+        /// <param name="entityId"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         Task RemoveMemberAsync(string id,

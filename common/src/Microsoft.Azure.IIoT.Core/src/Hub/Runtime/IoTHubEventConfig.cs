@@ -80,8 +80,8 @@ namespace Microsoft.Azure.IIoT.Hub.Client.Runtime {
         /// <summary>
         /// Configuration constructor
         /// </summary>
-        /// <param name="serviceId"></param>
         /// <param name="configuration"></param>
+        /// <param name="serviceId"></param>
         public IoTHubEventConfig(IConfiguration configuration, string serviceId = "") :
             base(configuration) {
             _serviceId = serviceId ?? throw new ArgumentNullException(nameof(serviceId));

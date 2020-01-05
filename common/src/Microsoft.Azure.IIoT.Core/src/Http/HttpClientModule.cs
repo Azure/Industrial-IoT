@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Http.Default {
-    using Microsoft.Azure.IIoT.Http;
     using Autofac;
 
     /// <summary>

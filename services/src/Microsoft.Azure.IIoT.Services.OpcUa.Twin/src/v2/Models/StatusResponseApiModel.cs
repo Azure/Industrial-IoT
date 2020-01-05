@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.v2.Models {
-    using Microsoft.Azure.IIoT.Services.OpcUa.Twin.v2;
     using Microsoft.Azure.IIoT.Services.OpcUa.Twin.Runtime;
     using Newtonsoft.Json;
     using System.Collections.Generic;

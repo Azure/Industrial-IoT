@@ -45,10 +45,13 @@ mkdir %build_root%\api\generated
 pushd %build_root%\api\generated
 
 call :generate_sdk_for_service twin
+call :generate_sdk_for_service publisher
 call :generate_sdk_for_service registry
 call :generate_sdk_for_service history
 call :generate_sdk_for_service vault
-call :generate_sdk_for_service onboarding
+
+rem call :generate_sdk_for_service jobs
+rem call :generate_sdk_for_service onboarding
 
 popd
 goto :eof

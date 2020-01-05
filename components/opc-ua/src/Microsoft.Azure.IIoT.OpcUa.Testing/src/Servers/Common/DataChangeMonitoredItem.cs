@@ -450,9 +450,7 @@ namespace Opc.Ua.Sample {
                 _lastError = error;
 
                 // queue value.
-                if (_queue != null) {
-                    _queue.QueueValue(value, error);
-                }
+                _queue?.QueueValue(value, error);
 
                 // flag the item as ready to publish.
                 _readyToPublish = true;

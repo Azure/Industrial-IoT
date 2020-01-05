@@ -291,9 +291,7 @@ namespace DataAccess {
             }
             finally {
                 // store the node in the cache to optimize subsequent lookups.
-                if (cache != null) {
-                    cache.Add(handle.NodeId, target);
-                }
+                cache?.Add(handle.NodeId, target);
             }
         }
 

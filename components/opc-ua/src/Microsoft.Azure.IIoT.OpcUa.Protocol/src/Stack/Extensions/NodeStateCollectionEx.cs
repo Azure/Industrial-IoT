@@ -9,7 +9,6 @@ namespace Opc.Ua.Extensions {
     using System.Runtime.Serialization;
     using System.Text;
     using System.Xml;
-    using Opc.Ua;
     using Opc.Ua.Encoders;
     using Opc.Ua.Nodeset.Schema;
     using Opc.Ua.Nodeset;
@@ -48,9 +47,9 @@ namespace Opc.Ua.Extensions {
         /// Writes collection as json
         /// </summary>
         /// <param name="collection"></param>
-        /// <param name="context"></param>
-        /// <param name="formatting"></param>
         /// <param name="ostrm"></param>
+        /// <param name="formatting"></param>
+        /// <param name="context"></param>
         public static void SaveAsJson(this NodeStateCollection collection, Stream ostrm,
             Newtonsoft.Json.Formatting formatting, ISystemContext context) {
             using (var encoder = new JsonEncoderEx(ostrm, context.ToMessageContext(),

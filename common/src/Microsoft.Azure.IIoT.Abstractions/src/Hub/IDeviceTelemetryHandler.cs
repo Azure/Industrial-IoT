@@ -22,8 +22,8 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// <summary>
         /// Handle event
         /// </summary>
-        /// <param name="moduleId"></param>
         /// <param name="deviceId"></param>
+        /// <param name="moduleId"></param>
         /// <param name="payload"></param>
         /// <param name="properties"></param>
         /// <param name="checkpoint"></param>

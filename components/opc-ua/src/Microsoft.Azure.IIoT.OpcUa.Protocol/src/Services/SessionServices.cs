@@ -289,11 +289,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// <param name="context"></param>
             /// <param name="id"></param>
             /// <param name="endpoint"></param>
-            /// <param name="serverCertificate"></param>
-            /// <param name="clientNonce"></param>
-            /// <param name="timeout"></param>
-            /// <param name="serverNonce"></param>
             /// <param name="clientCertificate"></param>
+            /// <param name="clientNonce"></param>
+            /// <param name="serverCertificate"></param>
+            /// <param name="serverNonce"></param>
+            /// <param name="timeout"></param>
             /// <param name="maxRequestAge"></param>
             /// <param name="validator"></param>
             public GatewaySession(SessionServices manager,

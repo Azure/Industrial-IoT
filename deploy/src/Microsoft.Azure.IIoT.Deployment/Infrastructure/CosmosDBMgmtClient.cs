@@ -20,7 +20,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
         public const string DEFAULT_COSMOS_DB_ACCOUNT_NAME_PREFIX = "cosmosDB-";
         public const int NUM_OF_MAX_NAME_AVAILABILITY_CHECKS = 5;
 
-        private const string COSMOS_DB_ACCOUNT_CONNECTION_STRING_FORMAT = "AccountEndpoint={0};AccountKey={1};";
+        private const string kCOSMOS_DB_ACCOUNT_CONNECTION_STRING_FORMAT = "AccountEndpoint={0};AccountKey={1};";
 
         private readonly CosmosDB _cosmosDBManagementClient;
 
@@ -120,7 +120,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             CancellationToken cancellationToken = default
         ) {
             try {
-                tags = tags ?? new Dictionary<string, string>();
+                tags ??= new Dictionary<string, string>();
 
                 Log.Information($"Creating Azure CosmosDB Account: {cosmosDBAccountName} ...");
 
@@ -180,7 +180,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                 );
 
             var cosmosDBAccountConnectionString = string.Format(
-                COSMOS_DB_ACCOUNT_CONNECTION_STRING_FORMAT,
+                kCOSMOS_DB_ACCOUNT_CONNECTION_STRING_FORMAT,
                 cosmosDBAccount.DocumentEndpoint,
                 cosmosDBAccountKeys.PrimaryMasterKey
             );

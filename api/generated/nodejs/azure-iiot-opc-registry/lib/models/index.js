@@ -14,7 +14,6 @@
 
 'use strict';
 
-exports.CallbackApiModel = require('./callbackApiModel');
 exports.EndpointActivationFilterApiModel = require('./endpointActivationFilterApiModel');
 exports.ServerRegistrationRequestApiModel = require('./serverRegistrationRequestApiModel');
 exports.ApplicationRegistrationRequestApiModel = require('./applicationRegistrationRequestApiModel');
@@ -24,7 +23,6 @@ exports.ApplicationInfoApiModel = require('./applicationInfoApiModel');
 exports.ApplicationInfoListApiModel = require('./applicationInfoListApiModel');
 exports.DiscoveryConfigApiModel = require('./discoveryConfigApiModel');
 exports.DiscoveryRequestApiModel = require('./discoveryRequestApiModel');
-exports.CredentialApiModel = require('./credentialApiModel');
 exports.EndpointApiModel = require('./endpointApiModel');
 exports.AuthenticationMethodApiModel = require('./authenticationMethodApiModel');
 exports.EndpointRegistrationApiModel = require('./endpointRegistrationApiModel');
@@ -35,10 +33,14 @@ exports.ApplicationRegistrationQueryApiModel = require('./applicationRegistratio
 exports.ApplicationRecordQueryApiModel = require('./applicationRecordQueryApiModel');
 exports.ApplicationRecordApiModel = require('./applicationRecordApiModel');
 exports.ApplicationRecordListApiModel = require('./applicationRecordListApiModel');
-exports.EndpointRegistrationUpdateApiModel = require('./endpointRegistrationUpdateApiModel');
 exports.EndpointInfoApiModel = require('./endpointInfoApiModel');
 exports.EndpointInfoListApiModel = require('./endpointInfoListApiModel');
 exports.EndpointRegistrationQueryApiModel = require('./endpointRegistrationQueryApiModel');
+exports.PublisherConfigApiModel = require('./publisherConfigApiModel');
+exports.PublisherApiModel = require('./publisherApiModel');
+exports.PublisherUpdateApiModel = require('./publisherUpdateApiModel');
+exports.PublisherListApiModel = require('./publisherListApiModel');
+exports.PublisherQueryApiModel = require('./publisherQueryApiModel');
 exports.StatusResponseApiModel = require('./statusResponseApiModel');
 exports.SupervisorApiModel = require('./supervisorApiModel');
 exports.SupervisorUpdateApiModel = require('./supervisorUpdateApiModel');

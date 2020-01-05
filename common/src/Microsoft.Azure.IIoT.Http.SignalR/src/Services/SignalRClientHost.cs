@@ -18,7 +18,7 @@ namespace Microsoft.Azure.IIoT.Http.SignalR.Services {
     /// <summary>
     /// Subscriber for signalr service
     /// </summary>
-    public class SignalRClientHost : ICallbackRegistrar, IHost {
+    public class SignalRClientHost : ICallbackRegistrar, IHostProcess {
 
         /// <inheritdoc/>
         public string UserId { get; }

@@ -38,10 +38,11 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Import {
             var config = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", true)
-                .AddFromDotEnvFile()
+                .AddEnvironmentVariables()
                 .AddEnvironmentVariables(EnvironmentVariableTarget.User)
-                .AddCommandLine(args)
+                .AddFromDotEnvFile()
                 .AddFromKeyVault()
+                .AddCommandLine(args)
                 .Build();
 
             // Set up dependency injection for the event processor host
@@ -127,7 +128,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Import {
                 .AsImplementedInterfaces();
             builder.RegisterType<TaskProcessor>()
                 .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<JsonVariantEncoder>()
+            builder.RegisterType<VariantEncoderFactory>()
                 .AsImplementedInterfaces().SingleInstance();
 
             // ... into cosmos db collection with configured name.

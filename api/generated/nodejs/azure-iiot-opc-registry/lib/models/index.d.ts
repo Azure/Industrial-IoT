@@ -9,25 +9,6 @@
 import * as moment from "moment";
 
 /**
- * A registered callback
- */
-export interface CallbackApiModel {
-  /**
-   * Uri to call - should use https scheme in which
-   * case security is enforced.
-   */
-  uri?: string;
-  /**
-   * Http Method to use for callback. Possible values include: 'Get', 'Post', 'Put', 'Delete'
-   */
-  method?: string;
-  /**
-   * Authentication header to add or null if not needed
-   */
-  authenticationHeader?: string;
-}
-
-/**
  * Endpoint Activation Filter model
  */
 export interface EndpointActivationFilterApiModel {
@@ -45,7 +26,7 @@ export interface EndpointActivationFilterApiModel {
   securityPolicies?: string[];
   /**
    * Security mode level to activate. If null,
-   * then Microsoft.Azure.IIoT.OpcUa.Registry.Models.SecurityMode.Best is assumed. Possible values
+   * then Microsoft.Azure.IIoT.OpcUa.Core.Models.SecurityMode.Best is assumed. Possible values
    * include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
    */
   securityMode?: string;
@@ -63,10 +44,6 @@ export interface ServerRegistrationRequestApiModel {
    * Registration id
    */
   id?: string;
-  /**
-   * An optional callback hook to register.
-   */
-  callback?: CallbackApiModel;
   /**
    * Upon discovery, activate all endpoints with this filter.
    */
@@ -286,10 +263,6 @@ export interface DiscoveryConfigApiModel {
    */
   locales?: string[];
   /**
-   * Callbacks to invoke once onboarding finishes
-   */
-  callbacks?: CallbackApiModel[];
-  /**
    * Activate all twins with this filter during onboarding.
    */
   activationFilter?: EndpointActivationFilterApiModel;
@@ -314,20 +287,6 @@ export interface DiscoveryRequestApiModel {
 }
 
 /**
- * Credential model
- */
-export interface CredentialApiModel {
-  /**
-   * Type of credential. Possible values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
-   */
-  type?: string;
-  /**
-   * Value to pass to server
-   */
-  value?: any;
-}
-
-/**
  * Endpoint model
  */
 export interface EndpointApiModel {
@@ -340,10 +299,6 @@ export interface EndpointApiModel {
    * accessing and validating the server
    */
   alternativeUrls?: string[];
-  /**
-   * User Authentication
-   */
-  user?: CredentialApiModel;
   /**
    * Security Mode to use for communication
    * default to best. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
@@ -365,7 +320,7 @@ export interface EndpointApiModel {
  */
 export interface AuthenticationMethodApiModel {
   /**
-   * Method id
+   * Authentication method id
    */
   id: string;
   /**
@@ -398,6 +353,10 @@ export interface EndpointRegistrationApiModel {
    * Registered site of the endpoint
    */
   siteId?: string;
+  /**
+   * Supervisor that registered the endpoint.
+   */
+  supervisorId?: string;
   /**
    * Endpoint information of the registration
    */
@@ -603,16 +562,6 @@ export interface ApplicationRecordListApiModel {
 }
 
 /**
- * Endpoint registration update request
- */
-export interface EndpointRegistrationUpdateApiModel {
-  /**
-   * User authentication to change on the endpoint.
-   */
-  user?: CredentialApiModel;
-}
-
-/**
  * Endpoint registration model
  */
 export interface EndpointInfoApiModel {
@@ -667,11 +616,6 @@ export interface EndpointRegistrationQueryApiModel {
    */
   url?: string;
   /**
-   * Type of credential selected for authentication. Possible values include: 'None', 'UserName',
-   * 'X509Certificate', 'JwtToken'
-   */
-  userAuthentication?: string;
-  /**
    * Certificate of the endpoint
    */
   certificate?: Buffer;
@@ -700,6 +644,113 @@ export interface EndpointRegistrationQueryApiModel {
    * Whether to include endpoints that were soft deleted
    */
   includeNotSeenSince?: boolean;
+}
+
+/**
+ * Default publisher agent configuration
+ */
+export interface PublisherConfigApiModel {
+  /**
+   * Capabilities
+   */
+  capabilities?: { [propertyName: string]: string };
+  /**
+   * Interval to check job
+   */
+  jobCheckInterval?: string;
+  /**
+   * Heartbeat interval
+   */
+  heartbeatInterval?: string;
+  /**
+   * Parallel jobs
+   */
+  maxWorkers?: number;
+  /**
+   * Job orchestrator endpoint url
+   */
+  jobOrchestratorUrl?: string;
+}
+
+/**
+ * Publisher registration model
+ */
+export interface PublisherApiModel {
+  /**
+   * Publisher id
+   */
+  id: string;
+  /**
+   * Site of the publisher
+   */
+  siteId?: string;
+  /**
+   * Publisher public client cert
+   */
+  certificate?: Buffer;
+  /**
+   * Current log level. Possible values include: 'Error', 'Information', 'Debug', 'Verbose'
+   */
+  logLevel?: string;
+  /**
+   * Publisher agent configuration
+   */
+  configuration?: PublisherConfigApiModel;
+  /**
+   * Whether the registration is out of sync between
+   * client (module) and server (service) (default: false).
+   */
+  outOfSync?: boolean;
+  /**
+   * Whether publisher is connected on this registration
+   */
+  connected?: boolean;
+}
+
+/**
+ * Publisher registration update request
+ */
+export interface PublisherUpdateApiModel {
+  /**
+   * Site of the publisher
+   */
+  siteId?: string;
+  /**
+   * Publisher discovery configuration
+   */
+  configuration?: PublisherConfigApiModel;
+  /**
+   * Current log level. Possible values include: 'Error', 'Information', 'Debug', 'Verbose'
+   */
+  logLevel?: string;
+}
+
+/**
+ * Publisher registration list
+ */
+export interface PublisherListApiModel {
+  /**
+   * Registrations
+   */
+  items?: PublisherApiModel[];
+  /**
+   * Continuation or null if final
+   */
+  continuationToken?: string;
+}
+
+/**
+ * Publisher registration query
+ */
+export interface PublisherQueryApiModel {
+  /**
+   * Site of the publisher
+   */
+  siteId?: string;
+  /**
+   * Included connected or disconnected
+   */
+  connected?: boolean;
 }
 
 /**
@@ -803,14 +854,6 @@ export interface SupervisorUpdateApiModel {
    * Supervisor discovery configuration
    */
   discoveryConfig?: DiscoveryConfigApiModel;
-  /**
-   * Callbacks to add or remove (see below)
-   */
-  discoveryCallbacks?: CallbackApiModel[];
-  /**
-   * Whether to add or remove callbacks
-   */
-  removeDiscoveryCallbacks?: boolean;
   /**
    * Current log level. Possible values include: 'Error', 'Information', 'Debug', 'Verbose'
    */

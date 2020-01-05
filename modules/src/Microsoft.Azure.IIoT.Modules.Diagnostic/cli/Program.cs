@@ -39,8 +39,9 @@ namespace Microsoft.Azure.IIoT.Modules.Diagnostic.Cli {
             var logger = ConsoleLogger.Create(LogEventLevel.Information);
             Console.WriteLine("Edge Diagnostics command line interface.");
             var configuration = new ConfigurationBuilder()
-                .AddFromDotEnvFile()
                 .AddEnvironmentVariables()
+                .AddEnvironmentVariables(EnvironmentVariableTarget.User)
+                .AddFromDotEnvFile()
                 .AddFromKeyVault()
                 .Build();
             var cs = configuration.GetValue<string>("PCS_IOTHUB_CONNSTRING", null);

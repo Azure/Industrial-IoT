@@ -86,16 +86,6 @@ namespace Reference {
             return node.NodeId;
         }
 
-        private static bool IsUnsignedAnalogType(BuiltInType builtInType) {
-            if (builtInType == BuiltInType.Byte ||
-                builtInType == BuiltInType.UInt16 ||
-                builtInType == BuiltInType.UInt32 ||
-                builtInType == BuiltInType.UInt64) {
-                return true;
-            }
-            return false;
-        }
-
         private static bool IsAnalogType(BuiltInType builtInType) {
             switch (builtInType) {
                 case BuiltInType.Byte:
@@ -1388,65 +1378,9 @@ namespace Reference {
                 EventNotifier = EventNotifiers.None
             };
 
-            if (parent != null) {
-                parent.AddChild(folder);
-            }
+            parent?.AddChild(folder);
 
             return folder;
-        }
-
-        /// <summary>
-        /// Creates a new object.
-        /// </summary>
-        private BaseObjectState CreateObject(NodeState parent, string path, string name) {
-            var folder = new BaseObjectState(parent) {
-                SymbolicName = name,
-                ReferenceTypeId = ReferenceTypes.Organizes,
-                TypeDefinitionId = ObjectTypeIds.BaseObjectType,
-                NodeId = new NodeId(path, NamespaceIndex),
-                BrowseName = new QualifiedName(name, NamespaceIndex)
-            };
-            folder.DisplayName = folder.BrowseName.Name;
-            folder.WriteMask = AttributeWriteMask.None;
-            folder.UserWriteMask = AttributeWriteMask.None;
-            folder.EventNotifier = EventNotifiers.None;
-
-            if (parent != null) {
-                parent.AddChild(folder);
-            }
-
-            return folder;
-        }
-
-        /// <summary>
-        /// Creates a new object type.
-        /// </summary>
-        private BaseObjectTypeState CreateObjectType(NodeState parent, IDictionary<NodeId, IList<IReference>> externalReferences, string path, string name) {
-            var type = new BaseObjectTypeState {
-                SymbolicName = name,
-                SuperTypeId = ObjectTypeIds.BaseObjectType,
-                NodeId = new NodeId(path, NamespaceIndex),
-                BrowseName = new QualifiedName(name, NamespaceIndex)
-            };
-            type.DisplayName = type.BrowseName.Name;
-            type.WriteMask = AttributeWriteMask.None;
-            type.UserWriteMask = AttributeWriteMask.None;
-            type.IsAbstract = false;
-
-
-            if (!externalReferences.TryGetValue(ObjectTypeIds.BaseObjectType, out var references)) {
-                externalReferences[ObjectTypeIds.BaseObjectType] = references = new List<IReference>();
-            }
-
-            references.Add(new NodeStateReference(ReferenceTypes.HasSubtype, false, type.NodeId));
-
-            if (parent != null) {
-                parent.AddReference(ReferenceTypes.Organizes, false, type.NodeId);
-                type.AddReference(ReferenceTypes.Organizes, true, parent.NodeId);
-            }
-
-            AddPredefinedNode(SystemContext, type);
-            return type;
         }
 
         /// <summary>
@@ -1512,61 +1446,9 @@ namespace Reference {
             variable.Definition.AccessLevel = AccessLevels.CurrentReadOrWrite;
             variable.Definition.UserAccessLevel = AccessLevels.CurrentReadOrWrite;
 
-            if (parent != null) {
-                parent.AddChild(variable);
-            }
+            parent?.AddChild(variable);
 
             return variable;
-        }
-
-        private DataItemState[] CreateDataItemVariables(NodeState parent, string path, string name, BuiltInType dataType, int valueRank, ushort numVariables) {
-            var itemsCreated = new List<DataItemState> {
-                // create the default name first:
-                CreateDataItemVariable(parent, path, name, dataType, valueRank)
-            };
-            // now to create the remaining NUMBERED items
-            for (uint i = 0; i < numVariables; i++) {
-                var newName = string.Format("{0}{1}", name, i.ToString("000"));
-                var newPath = string.Format("{0}/Mass/{1}", path, newName);
-                itemsCreated.Add(CreateDataItemVariable(parent, newPath, newName, dataType, valueRank));
-            }//for i
-            return itemsCreated.ToArray();
-        }
-
-        private ServiceResult OnWriteDataItem(
-            ISystemContext context,
-            NodeState node,
-#pragma warning disable RECS0154 // Parameter is never used
-#pragma warning disable IDE0060 // Remove unused parameter
-            NumericRange indexRange,
-            QualifiedName dataEncoding,
-            ref object value,
-            ref StatusCode statusCode,
-            ref DateTime timestamp)
-#pragma warning restore IDE0060 // Remove unused parameter
-#pragma warning restore RECS0154 // Parameter is never used
-        {
-            var variable = node as DataItemState;
-
-            // verify data type.
-            var typeInfo = TypeInfo.IsInstanceOfDataType(
-                value,
-                variable.DataType,
-                variable.ValueRank,
-                context.NamespaceUris,
-                context.TypeTable);
-
-            if (typeInfo == null || typeInfo == TypeInfo.Unknown) {
-                return StatusCodes.BadTypeMismatch;
-            }
-
-            if (typeInfo.BuiltInType != BuiltInType.DateTime) {
-                var number = Convert.ToDouble(value);
-                number = Math.Round(number, (int)variable.ValuePrecision.Value);
-                value = TypeInfo.Cast(number, typeInfo.BuiltInType);
-            }
-
-            return ServiceResult.Good;
         }
 
         /// <summary>
@@ -1659,9 +1541,7 @@ namespace Reference {
             variable.InstrumentRange.AccessLevel = AccessLevels.CurrentReadOrWrite;
             variable.InstrumentRange.UserAccessLevel = AccessLevels.CurrentReadOrWrite;
 
-            if (parent != null) {
-                parent.AddChild(variable);
-            }
+            parent?.AddChild(variable);
 
             return variable;
         }
@@ -1704,9 +1584,7 @@ namespace Reference {
             variable.FalseState.AccessLevel = AccessLevels.CurrentReadOrWrite;
             variable.FalseState.UserAccessLevel = AccessLevels.CurrentReadOrWrite;
 
-            if (parent != null) {
-                parent.AddChild(variable);
-            }
+            parent?.AddChild(variable);
 
             return variable;
         }
@@ -1752,9 +1630,7 @@ namespace Reference {
             variable.EnumStrings.AccessLevel = AccessLevels.CurrentReadOrWrite;
             variable.EnumStrings.UserAccessLevel = AccessLevels.CurrentReadOrWrite;
 
-            if (parent != null) {
-                parent.AddChild(variable);
-            }
+            parent?.AddChild(variable);
 
             return variable;
         }
@@ -1821,9 +1697,7 @@ namespace Reference {
             variable.EnumValues.UserAccessLevel = AccessLevels.CurrentReadOrWrite;
             variable.ValueAsText.Value = variable.EnumValues.Value[0].DisplayName;
 
-            if (parent != null) {
-                parent.AddChild(variable);
-            }
+            parent?.AddChild(variable);
 
             return variable;
         }
@@ -2026,9 +1900,7 @@ namespace Reference {
                 variable.ArrayDimensions = new ReadOnlyList<uint>(new List<uint> { 0, 0 });
             }
 
-            if (parent != null) {
-                parent.AddChild(variable);
-            }
+            parent?.AddChild(variable);
 
             return variable;
         }
@@ -2087,104 +1959,6 @@ namespace Reference {
         }
 
         /// <summary>
-        /// Creates a new variable type.
-        /// </summary>
-        private BaseVariableTypeState CreateVariableType(NodeState parent, IDictionary<NodeId, IList<IReference>> externalReferences, string path, string name, BuiltInType dataType, int valueRank) {
-            var type = new BaseDataVariableTypeState {
-                SymbolicName = name,
-                SuperTypeId = VariableTypeIds.BaseDataVariableType,
-                NodeId = new NodeId(path, NamespaceIndex),
-                BrowseName = new QualifiedName(name, NamespaceIndex)
-            };
-            type.DisplayName = type.BrowseName.Name;
-            type.WriteMask = AttributeWriteMask.None;
-            type.UserWriteMask = AttributeWriteMask.None;
-            type.IsAbstract = false;
-            type.DataType = (uint)dataType;
-            type.ValueRank = valueRank;
-            type.Value = null;
-
-
-            if (!externalReferences.TryGetValue(VariableTypeIds.BaseDataVariableType, out var references)) {
-                externalReferences[VariableTypeIds.BaseDataVariableType] = references = new List<IReference>();
-            }
-
-            references.Add(new NodeStateReference(ReferenceTypes.HasSubtype, false, type.NodeId));
-
-            if (parent != null) {
-                parent.AddReference(ReferenceTypes.Organizes, false, type.NodeId);
-                type.AddReference(ReferenceTypes.Organizes, true, parent.NodeId);
-            }
-
-            AddPredefinedNode(SystemContext, type);
-            return type;
-        }
-
-        /// <summary>
-        /// Creates a new data type.
-        /// </summary>
-        private DataTypeState CreateDataType(NodeState parent, IDictionary<NodeId, IList<IReference>> externalReferences, string path, string name) {
-            var type = new DataTypeState {
-                SymbolicName = name,
-                SuperTypeId = DataTypeIds.Structure,
-                NodeId = new NodeId(path, NamespaceIndex),
-                BrowseName = new QualifiedName(name, NamespaceIndex)
-            };
-            type.DisplayName = type.BrowseName.Name;
-            type.WriteMask = AttributeWriteMask.None;
-            type.UserWriteMask = AttributeWriteMask.None;
-            type.IsAbstract = false;
-
-
-            if (!externalReferences.TryGetValue(DataTypeIds.Structure, out var references)) {
-                externalReferences[DataTypeIds.Structure] = references = new List<IReference>();
-            }
-
-            references.Add(new NodeStateReference(ReferenceTypeIds.HasSubtype, false, type.NodeId));
-
-            if (parent != null) {
-                parent.AddReference(ReferenceTypes.Organizes, false, type.NodeId);
-                type.AddReference(ReferenceTypes.Organizes, true, parent.NodeId);
-            }
-
-            AddPredefinedNode(SystemContext, type);
-            return type;
-        }
-
-        /// <summary>
-        /// Creates a new reference type.
-        /// </summary>
-        private ReferenceTypeState CreateReferenceType(NodeState parent, IDictionary<NodeId, IList<IReference>> externalReferences, string path, string name) {
-            var type = new ReferenceTypeState {
-                SymbolicName = name,
-                SuperTypeId = ReferenceTypeIds.NonHierarchicalReferences,
-                NodeId = new NodeId(path, NamespaceIndex),
-                BrowseName = new QualifiedName(name, NamespaceIndex)
-            };
-            type.DisplayName = type.BrowseName.Name;
-            type.WriteMask = AttributeWriteMask.None;
-            type.UserWriteMask = AttributeWriteMask.None;
-            type.IsAbstract = false;
-            type.Symmetric = true;
-            type.InverseName = name;
-
-
-            if (!externalReferences.TryGetValue(ReferenceTypeIds.NonHierarchicalReferences, out var references)) {
-                externalReferences[ReferenceTypeIds.NonHierarchicalReferences] = references = new List<IReference>();
-            }
-
-            references.Add(new NodeStateReference(ReferenceTypeIds.HasSubtype, false, type.NodeId));
-
-            if (parent != null) {
-                parent.AddReference(ReferenceTypes.Organizes, false, type.NodeId);
-                type.AddReference(ReferenceTypes.Organizes, true, parent.NodeId);
-            }
-
-            AddPredefinedNode(SystemContext, type);
-            return type;
-        }
-
-        /// <summary>
         /// Creates a new view.
         /// </summary>
         private ViewState CreateView(NodeState parent, IDictionary<NodeId, IList<IReference>> externalReferences, string path, string name) {
@@ -2231,9 +2005,7 @@ namespace Reference {
                 UserExecutable = true
             };
 
-            if (parent != null) {
-                parent.AddChild(method);
-            }
+            parent?.AddChild(method);
 
             return method;
         }

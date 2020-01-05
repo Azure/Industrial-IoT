@@ -2,8 +2,8 @@
 <a name="definitions"></a>
 ## Definitions
 
-<a name="aggregateconfigapimodel"></a>
-### AggregateConfigApiModel
+<a name="aggregateconfigurationapimodel"></a>
+### AggregateConfigurationApiModel
 Aggregate configuration
 
 
@@ -468,7 +468,7 @@ Read processed historic data
 
 |Name|Description|Schema|
 |---|---|---|
-|**aggregateConfiguration**  <br>*optional*|A configuration for the aggregate|[AggregateConfigApiModel](definitions.md#aggregateconfigapimodel)|
+|**aggregateConfiguration**  <br>*optional*|A configuration for the aggregate|[AggregateConfigurationApiModel](definitions.md#aggregateconfigurationapimodel)|
 |**aggregateTypeId**  <br>*optional*|The aggregate type node ids|string|
 |**endTime**  <br>*optional*|End time to read until|string (date-time)|
 |**processingInterval**  <br>*optional*|Interval to process|number (double)|

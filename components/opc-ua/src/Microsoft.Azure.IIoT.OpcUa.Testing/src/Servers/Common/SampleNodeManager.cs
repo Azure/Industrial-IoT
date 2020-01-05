@@ -507,7 +507,7 @@ namespace Opc.Ua.Sample {
                     var reference = references[ii];
 
                     // nothing to do with external nodes.
-                    if (reference.TargetId == null || reference.TargetId.IsAbsolute) {
+                    if (reference.TargetId?.IsAbsolute != false) {
                         continue;
                     }
 

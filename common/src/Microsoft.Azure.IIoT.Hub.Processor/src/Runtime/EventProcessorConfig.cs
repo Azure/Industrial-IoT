@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Hub.Processor.Runtime {
-    using Microsoft.Azure.IIoT.Hub.Processor;
     using Microsoft.Azure.IIoT.Storage.Blob.Runtime;
     using Microsoft.Extensions.Configuration;
     using System;

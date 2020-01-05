@@ -73,7 +73,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
         /// <param name="logger"></param>
         public GatewayServer(IApplicationRegistry registry, ISessionServices sessions,
             INodeServices<string> nodes, IHistoricAccessServices<string> historian,
-            IBrowseServices<string> browser, IVariantEncoder codec,
+            IBrowseServices<string> browser, IVariantEncoderFactory codec,
             IAuthConfig auth, ITokenValidator validator, ILogger logger) {
 
             _registry = registry ?? throw new ArgumentNullException(nameof(registry));
@@ -986,13 +986,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
             var endpointId = ToEndpointId(context.ChannelContext.EndpointDescription);
             var diagnostics = requestHeader.ToServiceModel();
             var elevation = GetRemoteCredentialsFromContext(context);
+            var codec = _codec.Create(context.Session.MessageContext);
             for (var i = 0; i < methodsToCall.Count; i++) {
                 try {
                     // Convert input arguments
                     var inputs = methodsToCall[i].InputArguments?
                         .Select(v => new MethodCallArgumentModel {
-                            Value = _codec.Encode(v, out var type,
-                                context.Session.MessageContext),
+                            Value = codec.Encode(v, out var type),
                             DataType = type.ToString()
                         })
                         .ToList();
@@ -1017,8 +1017,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
 
                     // Convert output arguments
                     var outputs = response.Results?
-                        .Select(r => _codec.Decode(r.Value, r.DataType,
-                            context.Session.MessageContext));
+                        .Select(r => codec.Decode(r.Value, r.DataType));
 
                     results[i] = new CallMethodResult {
                         StatusCode = statusCode,
@@ -1054,6 +1053,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
             var endpointId = ToEndpointId(context.ChannelContext.EndpointDescription);
             var diagnostics = requestHeader.ToServiceModel();
             var elevation = GetRemoteCredentialsFromContext(context);
+            var codec = _codec.Create(context.Session.MessageContext);
 
             var batch = new ReadRequestModel {
                 Attributes = new List<AttributeReadRequestModel>(),
@@ -1084,8 +1084,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                         diagnosticInfos[i] = response.ErrorInfo.ToDiagnosticsInfo(
                             diagnostics, context.Session.MessageContext, out var statusCode);
 
-                        var value = _codec.Decode(response.Value, response.DataType,
-                            context.Session.MessageContext);
+                        var value = codec.Decode(response.Value, response.DataType);
                         results[i] = new DataValue(value, statusCode,
                             response.SourceTimestamp ?? DateTime.MinValue,
                             response.ServerTimestamp ?? DateTime.MinValue) {
@@ -1131,9 +1130,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                             var response = batchResponse.Results[index++];
                             diagnosticInfos[i] = response.ErrorInfo.ToDiagnosticsInfo(
                                 diagnostics, context.Session.MessageContext, out var statusCode);
-                            var value = _codec.Decode(response.Value,
-                                AttributeMap.GetBuiltInType(nodesToRead[i].AttributeId),
-                                context.Session.MessageContext);
+                            var value = codec.Decode(response.Value,
+                                AttributeMap.GetBuiltInType(nodesToRead[i].AttributeId));
                             results[i] = new DataValue(value, statusCode, DateTime.MinValue,
                                 DateTime.UtcNow);
                         }
@@ -1170,6 +1168,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
             var endpointId = ToEndpointId(context.ChannelContext.EndpointDescription);
             var diagnostics = requestHeader.ToServiceModel();
             var elevation = GetRemoteCredentialsFromContext(context);
+            var codec = _codec.Create(context.Session.MessageContext);
 
             var batch = new WriteRequestModel {
                 Attributes = new List<AttributeWriteRequestModel>(),
@@ -1191,9 +1190,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                                     context.Session.MessageContext),
                                 DataType = nodesToWrite[i].TypeId.AsString(
                                     context.Session.MessageContext),
-                                Value = _codec.Encode(
-                                    nodesToWrite[i].Value.WrappedValue, out var type,
-                                    context.Session.MessageContext),
+                                Value = codec.Encode(
+                                    nodesToWrite[i].Value.WrappedValue, out var type),
                                 Header = new RequestHeaderModel {
                                     Diagnostics = diagnostics,
                                     Elevation = elevation
@@ -1222,9 +1220,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                     batch.Attributes.Add(new AttributeWriteRequestModel {
                         Attribute = (NodeAttribute)nodesToWrite[i].AttributeId,
                         NodeId = nodesToWrite[i].NodeId.AsString(context.Session.MessageContext),
-                        Value = _codec.Encode(
-                            nodesToWrite[i].Value.WrappedValue, out var type,
-                            context.Session.MessageContext)
+                        Value = codec.Encode(
+                            nodesToWrite[i].Value.WrappedValue, out var type)
                     });
                 }
             }
@@ -1282,6 +1279,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
             var endpointId = ToEndpointId(context.ChannelContext.EndpointDescription);
             var diagnostics = requestHeader.ToServiceModel();
             var elevation = GetRemoteCredentialsFromContext(context);
+            var codec = _codec.Create(context.Session.MessageContext);
             for (var i = 0; i < nodesToRead.Count; i++) {
                 try {
                     if (nodesToRead[i].ContinuationPoint == null) {
@@ -1292,8 +1290,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                                     .AsString(context.Session.MessageContext),
                                 IndexRange = nodesToRead[i].IndexRange,
                                 Details = historyReadDetails == null ? null :
-                                    _codec.Encode(new Variant(historyReadDetails), out var tmp,
-                                        context.Session.MessageContext),
+                                    codec.Encode(new Variant(historyReadDetails), out var tmp),
                                 Header = new RequestHeaderModel {
                                     Diagnostics = diagnostics,
                                     Elevation = elevation
@@ -1309,8 +1306,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                             StatusCode = statusCode,
                             ContinuationPoint = response.ContinuationToken?.DecodeAsBase64(),
                             HistoryData = response.History == null ? null : (ExtensionObject)
-                                _codec.Decode(response.History, BuiltInType.ExtensionObject,
-                                    context.Session.MessageContext).Value
+                                codec.Decode(response.History, BuiltInType.ExtensionObject).Value
                         };
                     }
                     else {
@@ -1335,8 +1331,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                             StatusCode = statusCode,
                             ContinuationPoint = response.ContinuationToken?.DecodeAsBase64(),
                             HistoryData = response.History == null ? null : (ExtensionObject)
-                                _codec.Decode(response.History, BuiltInType.ExtensionObject,
-                                    context.Session.MessageContext).Value
+                                codec.Decode(response.History, BuiltInType.ExtensionObject).Value
                         };
                     }
                 }
@@ -1366,14 +1361,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
             var endpointId = ToEndpointId(context.ChannelContext.EndpointDescription);
             var diagnostics = requestHeader.ToServiceModel();
             var elevation = GetRemoteCredentialsFromContext(context);
+            var codec = _codec.Create(context.Session.MessageContext);
             for (var i = 0; i < historyUpdateDetails.Count; i++) {
                 try {
                     // Call service
                     var response = await _historian.HistoryUpdateAsync(endpointId,
                         new HistoryUpdateRequestModel<JToken> {
                             Details = historyUpdateDetails == null ? null :
-                                _codec.Encode(new Variant(historyUpdateDetails), out var tmp,
-                                    context.Session.MessageContext),
+                                codec.Encode(new Variant(historyUpdateDetails), out var tmp),
                             Header = new RequestHeaderModel {
                                 Diagnostics = diagnostics,
                                 Elevation = elevation
@@ -2023,8 +2018,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
         /// <summary>
         /// Validates the leaf certificate meets the client description
         /// </summary>
-        /// <param name="applicationUri"></param>
         /// <param name="clientCertificate"></param>
+        /// <param name="applicationUri"></param>
         /// <param name="securityPolicyUri"></param>
         /// <returns></returns>
         private X509Certificate2 ValidateClientLeafCertificate(byte[] clientCertificate,
@@ -2078,7 +2073,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
         private const string kGatewayPolicyPrefix = "$Gateway_Auth_";
         private readonly object _lock = new object();
         private readonly IApplicationRegistry _registry;
-        private readonly IVariantEncoder _codec;
+        private readonly IVariantEncoderFactory _codec;
         private readonly ILogger _logger;
         private readonly IBrowseServices<string> _browser;
         private readonly IHistoricAccessServices<string> _historian;

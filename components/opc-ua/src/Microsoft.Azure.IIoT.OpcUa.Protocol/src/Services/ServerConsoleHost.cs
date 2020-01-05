@@ -28,8 +28,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <summary>
         /// Create server console host
         /// </summary>
-        /// <param name="logger"></param>
         /// <param name="factory"></param>
+        /// <param name="logger"></param>
         public ServerConsoleHost(IServerFactory factory, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _factory = factory ?? throw new ArgumentNullException(nameof(factory));
@@ -75,6 +75,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     }
                 }
                 catch (Exception ex) {
+                    _logger.Error(ex, "Starting server caused exception.");
                     _server?.Dispose();
                     _server = null;
                     throw ex;
@@ -98,10 +99,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="ports"></param>
         /// <returns></returns>
         private async Task StartServerInternalAsync(IEnumerable<int> ports) {
-            _logger.Information("Starting server...");
             ApplicationInstance.MessageDlg = new DummyDialog();
 
             var config = _factory.CreateServer(ports, out _server);
+            _logger.Information("Server created...");
 
             config = ApplicationInstance.FixupAppConfig(config);
 
@@ -111,6 +112,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 config.SecurityConfiguration.ApplicationCertificate.StorePath =
                     "CurrentUser\\UA_MachineDefault";
             }
+            _logger.Information("Validate configuration...");
             await config.Validate(ApplicationType.Server);
 
             config.CertificateValidator = new CertificateValidator();
@@ -121,12 +123,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         " Certificate {subject}", e.Certificate.Subject);
                 }
             };
+
+            _logger.Information("Initialize certificate validation...");
             await config.CertificateValidator.Update(config.SecurityConfiguration);
 
             // Use existing certificate, if it is there.
             var cert = await config.SecurityConfiguration.ApplicationCertificate
                 .Find(true);
             if (cert == null) {
+                _logger.Information("Creating new certificate in {path}...",
+                    config.SecurityConfiguration.ApplicationCertificate.StorePath);
                 // Create cert
 #pragma warning disable IDE0067 // Dispose objects before losing scope
                 cert = CertificateFactory.CreateCertificate(
@@ -153,13 +159,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             var haveAppCertificate =
                 await application.CheckApplicationInstanceCertificate(false, 0);
             if (!haveAppCertificate) {
-                throw new Exception(
-                    "Application instance certificate invalid!");
+                _logger.Error("Failed validating certificate!");
+                throw new Exception("Application instance certificate invalid!");
             }
 
             // Set certificate
             Certificate = cert;
 
+            _logger.Information("Starting server ...");
             // start the server.
             await application.Start(_server);
 

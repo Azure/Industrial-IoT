@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Modules.Diagnostic.Services.Default {
-    using Microsoft.Azure.IIoT.Modules.Diagnostic.Services;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Utils;
     using Newtonsoft.Json;

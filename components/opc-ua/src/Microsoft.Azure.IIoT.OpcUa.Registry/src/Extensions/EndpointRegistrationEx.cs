@@ -41,9 +41,52 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public static DeviceTwinModel Patch(this EndpointRegistration existing,
             EndpointRegistration update) {
 
-            var twin = BaseRegistrationEx.PatchBase(existing, update);
+            var twin = new DeviceTwinModel {
+                Etag = existing?.Etag,
+                Tags = new Dictionary<string, JToken>(),
+                Properties = new TwinPropertiesModel {
+                    Desired = new Dictionary<string, JToken>()
+                }
+            };
 
             // Tags
+
+            if (update?.ApplicationId != null &&
+                update.ApplicationId != existing?.ApplicationId) {
+                twin.Tags.Add(nameof(ApplicationId), update.ApplicationId);
+            }
+
+            if (update?.IsDisabled != null &&
+                update.IsDisabled != existing?.IsDisabled) {
+                twin.Tags.Add(nameof(BaseRegistration.IsDisabled), (update?.IsDisabled ?? false) ?
+                    true : (bool?)null);
+                twin.Tags.Add(nameof(BaseRegistration.NotSeenSince), (update?.IsDisabled ?? false) ?
+                    DateTime.UtcNow : (DateTime?)null);
+            }
+
+            if (update?.SiteOrSupervisorId != existing?.SiteOrSupervisorId) {
+                twin.Tags.Add(nameof(BaseRegistration.SiteOrSupervisorId), update?.SiteOrSupervisorId);
+            }
+
+            if (update?.SupervisorId != existing?.SupervisorId) {
+                twin.Tags.Add(nameof(BaseRegistration.SupervisorId), update?.SupervisorId);
+            }
+
+            if (update?.SiteId != existing?.SiteId) {
+                twin.Tags.Add(nameof(BaseRegistration.SiteId), update?.SiteId);
+            }
+
+            var certUpdate = update?.Certificate.DecodeAsByteArray().SequenceEqualsSafe(
+                existing?.Certificate.DecodeAsByteArray());
+            if (!(certUpdate ?? true)) {
+                twin.Tags.Add(nameof(BaseRegistration.Certificate), update?.Certificate == null ?
+                    null : JToken.FromObject(update.Certificate));
+                twin.Tags.Add(nameof(BaseRegistration.Thumbprint),
+                    update?.Certificate?.DecodeAsByteArray()?.ToSha1Hash());
+            }
+
+            twin.Tags.Add(nameof(BaseRegistration.DeviceType), update?.DeviceType);
+
 
             if (update?.EndpointRegistrationUrl != null &&
                 update.EndpointRegistrationUrl != existing?.EndpointRegistrationUrl) {
@@ -288,8 +331,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// Returns true if this registration matches the server endpoint
         /// model provided.
         /// </summary>
-        /// <param name="model"></param>
         /// <param name="registration"></param>
+        /// <param name="model"></param>
         /// <returns></returns>
         public static bool Matches(this EndpointRegistration registration, EndpointInfoModel model) {
             return model != null &&
@@ -304,8 +347,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// Returns true if this registration matches the endpoint
         /// model provided.
         /// </summary>
-        /// <param name="endpoint"></param>
         /// <param name="registration"></param>
+        /// <param name="endpoint"></param>
         /// <returns></returns>
         public static bool Matches(this EndpointRegistration registration, EndpointModel endpoint) {
             return endpoint != null &&

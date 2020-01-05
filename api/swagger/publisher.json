@@ -1,0 +1,614 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "v2",
+    "title": "Opc-Publisher-Service",
+    "description": "Azure Industrial IoT OPC UA Publisher Service"
+  },
+  "basePath": "/publisher",
+  "schemes": [
+    "https",
+    "http"
+  ],
+  "paths": {
+    "/v2/monitor/{endpointId}/samples": {
+      "put": {
+        "tags": [
+          "Monitor"
+        ],
+        "summary": "Subscribe to receive samples",
+        "description": "Register a client to receive publisher samples through SignalR.",
+        "operationId": "Subscribe",
+        "consumes": [
+          "application/json-patch+json",
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "endpointId",
+            "in": "path",
+            "description": "The endpoint to subscribe to",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "userId",
+            "in": "body",
+            "description": "The user id that will receive publisher\r\n            samples.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
+      }
+    },
+    "/v2/monitor/{endpointId}/samples/{userId}": {
+      "delete": {
+        "tags": [
+          "Monitor"
+        ],
+        "summary": "Unsubscribe from receiving samples.",
+        "description": "Unregister a client and stop it from receiving samples.",
+        "operationId": "Unsubscribe",
+        "consumes": [],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "endpointId",
+            "in": "path",
+            "description": "The endpoint to unsubscribe from",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "The user id that will not receive\r\n            any more published samples",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
+      }
+    },
+    "/v2/publish/{endpointId}/start": {
+      "post": {
+        "tags": [
+          "Publish"
+        ],
+        "summary": "Start publishing node values",
+        "description": "Start publishing variable node values to IoT Hub.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "operationId": "StartPublishingValues",
+        "consumes": [
+          "application/json-patch+json",
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "endpointId",
+            "in": "path",
+            "description": "The identifier of the activated endpoint.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "request",
+            "in": "body",
+            "description": "The publish request",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/PublishStartRequestApiModel"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/PublishStartResponseApiModel"
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
+      }
+    },
+    "/v2/publish/{endpointId}/stop": {
+      "post": {
+        "tags": [
+          "Publish"
+        ],
+        "summary": "Stop publishing node values",
+        "description": "Stop publishing variable node values to IoT Hub.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "operationId": "StopPublishingValues",
+        "consumes": [
+          "application/json-patch+json",
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "endpointId",
+            "in": "path",
+            "description": "The identifier of the activated endpoint.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "request",
+            "in": "body",
+            "description": "The unpublish request",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/PublishStopRequestApiModel"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/PublishStopResponseApiModel"
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
+      }
+    },
+    "/v2/publish/{endpointId}": {
+      "get": {
+        "tags": [
+          "Publish"
+        ],
+        "summary": "Get next set of published nodes",
+        "description": "Returns next set of currently published node ids for an endpoint.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "operationId": "GetNextListOfPublishedNodes",
+        "consumes": [],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "endpointId",
+            "in": "path",
+            "description": "The identifier of the activated endpoint.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "continuationToken",
+            "in": "query",
+            "description": "The continuation token to continue with",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/PublishedItemListResponseApiModel"
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ],
+        "x-ms-pageable": {
+          "nextLinkName": "continuationToken"
+        }
+      },
+      "post": {
+        "tags": [
+          "Publish"
+        ],
+        "summary": "Get currently published nodes",
+        "description": "Returns currently published node ids for an endpoint.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "operationId": "GetFirstListOfPublishedNodes",
+        "consumes": [
+          "application/json-patch+json",
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "endpointId",
+            "in": "path",
+            "description": "The identifier of the activated endpoint.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "request",
+            "in": "body",
+            "description": "The list request",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/PublishedItemListRequestApiModel"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/PublishedItemListResponseApiModel"
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
+      }
+    },
+    "/v2/status": {
+      "get": {
+        "tags": [
+          "Status"
+        ],
+        "summary": "Return the service status in the form of the service status\r\napi model.",
+        "operationId": "GetStatus",
+        "consumes": [],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/StatusResponseApiModel"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "PublishStartRequestApiModel": {
+      "description": "Publish request",
+      "required": [
+        "item"
+      ],
+      "type": "object",
+      "properties": {
+        "item": {
+          "$ref": "#/definitions/PublishedItemApiModel",
+          "description": "Item to publish"
+        },
+        "header": {
+          "$ref": "#/definitions/RequestHeaderApiModel",
+          "description": "Optional request header"
+        }
+      }
+    },
+    "PublishedItemApiModel": {
+      "description": "A monitored and published item",
+      "required": [
+        "nodeId"
+      ],
+      "type": "object",
+      "properties": {
+        "nodeId": {
+          "description": "Node to monitor",
+          "type": "string"
+        },
+        "publishingInterval": {
+          "description": "Publishing interval to use",
+          "type": "string"
+        },
+        "samplingInterval": {
+          "description": "Sampling interval to use",
+          "type": "string"
+        }
+      }
+    },
+    "RequestHeaderApiModel": {
+      "description": "Request header model",
+      "type": "object",
+      "properties": {
+        "elevation": {
+          "$ref": "#/definitions/CredentialApiModel",
+          "description": "Optional User elevation"
+        },
+        "locales": {
+          "description": "Optional list of locales in preference order.",
+          "uniqueItems": false,
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "diagnostics": {
+          "$ref": "#/definitions/DiagnosticsApiModel",
+          "description": "Optional diagnostics configuration"
+        }
+      }
+    },
+    "CredentialApiModel": {
+      "description": "Credential model",
+      "type": "object",
+      "properties": {
+        "type": {
+          "description": "Type of credential",
+          "enum": [
+            "None",
+            "UserName",
+            "X509Certificate",
+            "JwtToken"
+          ],
+          "type": "string",
+          "x-ms-enum": {
+            "name": "CredentialType",
+            "modelAsString": false
+          }
+        },
+        "value": {
+          "description": "Value to pass to server",
+          "type": "object"
+        }
+      }
+    },
+    "DiagnosticsApiModel": {
+      "description": "Diagnostics configuration",
+      "type": "object",
+      "properties": {
+        "level": {
+          "description": "Requested level of response diagnostics.\r\n(default: Status)",
+          "enum": [
+            "None",
+            "Status",
+            "Operations",
+            "Diagnostics",
+            "Verbose"
+          ],
+          "type": "string",
+          "x-ms-enum": {
+            "name": "DiagnosticsLevel",
+            "modelAsString": false
+          }
+        },
+        "auditId": {
+          "description": "Client audit log entry.\r\n(default: client generated)",
+          "type": "string"
+        },
+        "timeStamp": {
+          "format": "date-time",
+          "description": "Timestamp of request.\r\n(default: client generated)",
+          "type": "string"
+        }
+      }
+    },
+    "PublishStartResponseApiModel": {
+      "description": "Result of publish request",
+      "type": "object",
+      "properties": {
+        "errorInfo": {
+          "$ref": "#/definitions/ServiceResultApiModel",
+          "description": "Service result in case of error"
+        }
+      }
+    },
+    "ServiceResultApiModel": {
+      "description": "Service result",
+      "type": "object",
+      "properties": {
+        "statusCode": {
+          "format": "int32",
+          "description": "Error code - if null operation succeeded.",
+          "type": "integer"
+        },
+        "errorMessage": {
+          "description": "Error message in case of error or null.",
+          "type": "string"
+        },
+        "diagnostics": {
+          "description": "Additional diagnostics information",
+          "type": "object"
+        }
+      }
+    },
+    "PublishStopRequestApiModel": {
+      "description": "Unpublish request",
+      "required": [
+        "nodeId"
+      ],
+      "type": "object",
+      "properties": {
+        "nodeId": {
+          "description": "Node of published item to unpublish",
+          "type": "string"
+        },
+        "header": {
+          "$ref": "#/definitions/RequestHeaderApiModel",
+          "description": "Optional request header"
+        }
+      }
+    },
+    "PublishStopResponseApiModel": {
+      "description": "Result of unpublish request",
+      "type": "object",
+      "properties": {
+        "errorInfo": {
+          "$ref": "#/definitions/ServiceResultApiModel",
+          "description": "Service result in case of error"
+        }
+      }
+    },
+    "PublishedItemListRequestApiModel": {
+      "description": "Request list of published items",
+      "type": "object",
+      "properties": {
+        "continuationToken": {
+          "description": "Continuation token or null to start",
+          "type": "string"
+        }
+      }
+    },
+    "PublishedItemListResponseApiModel": {
+      "description": "List of published nodes",
+      "type": "object",
+      "properties": {
+        "items": {
+          "description": "Monitored items",
+          "uniqueItems": false,
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/PublishedItemApiModel"
+          }
+        },
+        "continuationToken": {
+          "description": "Continuation or null if final",
+          "type": "string"
+        }
+      }
+    },
+    "StatusResponseApiModel": {
+      "description": "Status response model",
+      "type": "object",
+      "properties": {
+        "name": {
+          "description": "Name of this service",
+          "type": "string"
+        },
+        "status": {
+          "description": "Operational status",
+          "type": "string"
+        },
+        "currentTime": {
+          "description": "Current time",
+          "type": "string",
+          "readOnly": true
+        },
+        "startTime": {
+          "description": "Start time of service",
+          "type": "string",
+          "readOnly": true
+        },
+        "upTime": {
+          "format": "int64",
+          "description": "Up time of service",
+          "type": "integer",
+          "readOnly": true
+        },
+        "uid": {
+          "description": "Value generated at bootstrap by each instance of the service and\r\nused to correlate logs coming from the same instance. The value\r\nchanges every time the service starts.",
+          "type": "string",
+          "readOnly": true
+        },
+        "properties": {
+          "description": "A property bag with details about the service",
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "readOnly": true
+        },
+        "dependencies": {
+          "description": "A property bag with details about the internal dependencies",
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "readOnly": true
+        },
+        "$metadata": {
+          "description": "Optional meta data.",
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "readOnly": true
+        }
+      }
+    }
+  },
+  "securityDefinitions": {
+    "oauth2": {
+      "flow": "implicit",
+      "authorizationUrl": "https://login.microsoftonline.com/6e660ce4-d51a-4585-80c6-58035e212354/oauth2/authorize",
+      "scopes": {
+        "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication": "Access http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication operations"
+      },
+      "type": "oauth2",
+      "description": "Implicit oauth2 token flow."
+    }
+  },
+  "tags": [
+    {
+      "name": "Monitor",
+      "description": "Value and Event monitoring services"
+    },
+    {
+      "name": "Publish",
+      "description": "Value and Event publishing services"
+    },
+    {
+      "name": "Status",
+      "description": "Status checks"
+    }
+  ]
+}

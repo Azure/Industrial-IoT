@@ -481,7 +481,7 @@ export interface MethodMetadataRequestApiModel {
    * Method id of method to call.
    * (Required)
    */
-  methodId: string;
+  methodId?: string;
   /**
    * An optional component path from the node identified by
    * MethodId to the actual method node.
@@ -610,131 +610,13 @@ export interface MethodCallResponseApiModel {
 }
 
 /**
- * A monitored and published item
- */
-export interface PublishedItemApiModel {
-  /**
-   * Node to monitor
-   */
-  nodeId: string;
-  /**
-   * An optional path from NodeId instance to
-   * the actual node.
-   */
-  browsePath?: string[];
-  /**
-   * Attribute to monitor. Possible values include: 'NodeClass', 'BrowseName', 'DisplayName',
-   * 'Description', 'WriteMask', 'UserWriteMask', 'IsAbstract', 'Symmetric', 'InverseName',
-   * 'ContainsNoLoops', 'EventNotifier', 'Value', 'DataType', 'ValueRank', 'ArrayDimensions',
-   * 'AccessLevel', 'UserAccessLevel', 'MinimumSamplingInterval', 'Historizing', 'Executable',
-   * 'UserExecutable', 'DataTypeDefinition', 'RolePermissions', 'UserRolePermissions',
-   * 'AccessRestrictions'
-   */
-  nodeAttribute?: string;
-  /**
-   * Publishing interval to use
-   */
-  publishingInterval?: number;
-  /**
-   * Sampling interval to use
-   */
-  samplingInterval?: number;
-}
-
-/**
- * Publish request
- */
-export interface PublishStartRequestApiModel {
-  /**
-   * Item to publish
-   */
-  item: PublishedItemApiModel;
-  /**
-   * Optional request header
-   */
-  header?: RequestHeaderApiModel;
-}
-
-/**
- * Result of publish request
- */
-export interface PublishStartResponseApiModel {
-  /**
-   * Service result in case of error
-   */
-  errorInfo?: ServiceResultApiModel;
-}
-
-/**
- * Unpublish request
- */
-export interface PublishStopRequestApiModel {
-  /**
-   * Node of published item to unpublish
-   */
-  nodeId: string;
-  /**
-   * An optional path from NodeId instance to
-   * the actual node.
-   */
-  browsePath?: string[];
-  /**
-   * Attribute of item to unpublish. Possible values include: 'NodeClass', 'BrowseName',
-   * 'DisplayName', 'Description', 'WriteMask', 'UserWriteMask', 'IsAbstract', 'Symmetric',
-   * 'InverseName', 'ContainsNoLoops', 'EventNotifier', 'Value', 'DataType', 'ValueRank',
-   * 'ArrayDimensions', 'AccessLevel', 'UserAccessLevel', 'MinimumSamplingInterval', 'Historizing',
-   * 'Executable', 'UserExecutable', 'DataTypeDefinition', 'RolePermissions',
-   * 'UserRolePermissions', 'AccessRestrictions'
-   */
-  nodeAttribute?: string;
-  /**
-   * Optional diagnostics configuration
-   */
-  diagnostics?: DiagnosticsApiModel;
-}
-
-/**
- * Result of unpublish request
- */
-export interface PublishStopResponseApiModel {
-  /**
-   * Service result in case of error
-   */
-  errorInfo?: ServiceResultApiModel;
-}
-
-/**
- * Request list of published items
- */
-export interface PublishedItemListRequestApiModel {
-  /**
-   * Continuation token or null to start
-   */
-  continuationToken?: string;
-}
-
-/**
- * List of published nodes
- */
-export interface PublishedItemListResponseApiModel {
-  /**
-   * Monitored items
-   */
-  items?: PublishedItemApiModel[];
-  /**
-   * Continuation or null if final
-   */
-  continuationToken?: string;
-}
-
-/**
  * Node value read request webservice api model
  */
 export interface ValueReadRequestApiModel {
   /**
    * Node to read from (mandatory)
    */
-  nodeId: string;
+  nodeId?: string;
   /**
    * An optional path from NodeId instance to
    * the actual node.
@@ -895,7 +777,7 @@ export interface ValueWriteRequestApiModel {
   /**
    * Node id to to write value to.
    */
-  nodeId: string;
+  nodeId?: string;
   /**
    * An optional path from NodeId instance to
    * the actual node.

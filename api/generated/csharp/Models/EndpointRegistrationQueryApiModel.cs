@@ -32,9 +32,6 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         /// class.
         /// </summary>
         /// <param name="url">Endoint url for direct server access</param>
-        /// <param name="userAuthentication">Type of credential selected for
-        /// authentication. Possible values include: 'None', 'UserName',
-        /// 'X509Certificate', 'JwtToken'</param>
         /// <param name="certificate">Certificate of the endpoint</param>
         /// <param name="securityMode">Security Mode. Possible values include:
         /// 'Best', 'Sign', 'SignAndEncrypt', 'None'</param>
@@ -47,10 +44,9 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         /// 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'</param>
         /// <param name="includeNotSeenSince">Whether to include endpoints that
         /// were soft deleted</param>
-        public EndpointRegistrationQueryApiModel(string url = default(string), CredentialType? userAuthentication = default(CredentialType?), byte[] certificate = default(byte[]), SecurityMode? securityMode = default(SecurityMode?), string securityPolicy = default(string), bool? activated = default(bool?), bool? connected = default(bool?), EndpointConnectivityState? endpointState = default(EndpointConnectivityState?), bool? includeNotSeenSince = default(bool?))
+        public EndpointRegistrationQueryApiModel(string url = default(string), byte[] certificate = default(byte[]), SecurityMode? securityMode = default(SecurityMode?), string securityPolicy = default(string), bool? activated = default(bool?), bool? connected = default(bool?), EndpointConnectivityState? endpointState = default(EndpointConnectivityState?), bool? includeNotSeenSince = default(bool?))
         {
             Url = url;
-            UserAuthentication = userAuthentication;
             Certificate = certificate;
             SecurityMode = securityMode;
             SecurityPolicy = securityPolicy;
@@ -71,14 +67,6 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         /// </summary>
         [JsonProperty(PropertyName = "url")]
         public string Url { get; set; }
-
-        /// <summary>
-        /// Gets or sets type of credential selected for authentication.
-        /// Possible values include: 'None', 'UserName', 'X509Certificate',
-        /// 'JwtToken'
-        /// </summary>
-        [JsonProperty(PropertyName = "userAuthentication")]
-        public CredentialType? UserAuthentication { get; set; }
 
         /// <summary>
         /// Gets or sets certificate of the endpoint

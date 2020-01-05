@@ -6,8 +6,6 @@
 namespace System.Security.Cryptography.X509Certificates {
     using Microsoft.Azure.IIoT.Crypto.Models;
     using Microsoft.Azure.IIoT.Crypto;
-    using System;
-    using System.Security.Cryptography;
     using System.Security.Cryptography.Asn1;
 
     /// <summary>
@@ -37,8 +35,8 @@ namespace System.Security.Cryptography.X509Certificates {
             /// Create signature generator.
             /// </summary>
             /// <param name="signKey">The signing key</param>
-            /// <param name="signature"></param>
             /// <param name="signer">Digest signer to use</param>
+            /// <param name="signature"></param>
             public X509SignatureGeneratorAdapter(IDigestSigner signer, KeyHandle signKey,
                 SignatureType signature) {
                 _signKey = signKey ?? throw new ArgumentNullException(nameof(signKey));

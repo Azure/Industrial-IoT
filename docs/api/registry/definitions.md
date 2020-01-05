@@ -178,31 +178,8 @@ Authentication Method model
 |---|---|---|
 |**configuration**  <br>*optional*|Method specific configuration|object|
 |**credentialType**  <br>*optional*|Type of credential  <br>**Default** : `"None"`|enum (None, UserName, X509Certificate, JwtToken)|
-|**id**  <br>*required*|Method id|string|
+|**id**  <br>*required*|Authentication method id|string|
 |**securityPolicy**  <br>*optional*|Security policy to use when passing credential.|string|
-
-
-<a name="callbackapimodel"></a>
-### CallbackApiModel
-A registered callback
-
-
-|Name|Description|Schema|
-|---|---|---|
-|**authenticationHeader**  <br>*optional*|Authentication header to add or null if not needed|string|
-|**method**  <br>*optional*|Http Method to use for callback|enum (Get, Post, Put, Delete)|
-|**uri**  <br>*optional*|Uri to call - should use https scheme in which<br>case security is enforced.|string|
-
-
-<a name="credentialapimodel"></a>
-### CredentialApiModel
-Credential model
-
-
-|Name|Description|Schema|
-|---|---|---|
-|**type**  <br>*optional*|Type of credential  <br>**Default** : `"None"`|enum (None, UserName, X509Certificate, JwtToken)|
-|**value**  <br>*optional*|Value to pass to server|object|
 
 
 <a name="discoveryconfigapimodel"></a>
@@ -214,7 +191,6 @@ Discovery configuration
 |---|---|---|
 |**activationFilter**  <br>*optional*|Activate all twins with this filter during onboarding.|[EndpointActivationFilterApiModel](definitions.md#endpointactivationfilterapimodel)|
 |**addressRangesToScan**  <br>*optional*|Address ranges to scan (null == all wired nics)|string|
-|**callbacks**  <br>*optional*|Callbacks to invoke once onboarding finishes|< [CallbackApiModel](definitions.md#callbackapimodel) > array|
 |**discoveryUrls**  <br>*optional*|List of preset discovery urls to use|< string > array|
 |**idleTimeBetweenScansSec**  <br>*optional*|Delay time between discovery sweeps in seconds|integer (int32)|
 |**locales**  <br>*optional*|List of locales to filter with during discovery|< string > array|
@@ -245,7 +221,7 @@ Endpoint Activation Filter model
 
 |Name|Description|Schema|
 |---|---|---|
-|**securityMode**  <br>*optional*|Security mode level to activate. If null,<br>then Microsoft.Azure.IIoT.OpcUa.Registry.Models.SecurityMode.Best is assumed.|enum (Best, Sign, SignAndEncrypt, None)|
+|**securityMode**  <br>*optional*|Security mode level to activate. If null,<br>then Microsoft.Azure.IIoT.OpcUa.Core.Models.SecurityMode.Best is assumed.|enum (Best, Sign, SignAndEncrypt, None)|
 |**securityPolicies**  <br>*optional*|Endpoint security policies to filter against.<br>If set to null, all policies are in scope.|< string > array|
 |**trustLists**  <br>*optional*|Certificate trust list identifiers to use for<br>activation, if null, all certificates are<br>trusted.  If empty list, no certificates are<br>trusted which is equal to no filter.|< string > array|
 
@@ -273,7 +249,6 @@ Endpoint model
 |**securityMode**  <br>*optional*|Security Mode to use for communication<br>default to best.  <br>**Default** : `"Best"`|enum (Best, Sign, SignAndEncrypt, None)|
 |**securityPolicy**  <br>*optional*|Security policy uri to use for communication<br>default to best.|string|
 |**url**  <br>*required*|Endpoint url to use to connect with|string|
-|**user**  <br>*optional*|User Authentication|[CredentialApiModel](definitions.md#credentialapimodel)|
 
 
 <a name="endpointinfoapimodel"></a>
@@ -315,6 +290,7 @@ Endpoint registration model
 |**id**  <br>*required*|Registered identifier of the endpoint|string|
 |**securityLevel**  <br>*optional*|Security level of the endpoint|integer (int32)|
 |**siteId**  <br>*optional*|Registered site of the endpoint|string|
+|**supervisorId**  <br>*optional*|Supervisor that registered the endpoint.|string|
 
 
 <a name="endpointregistrationqueryapimodel"></a>
@@ -332,17 +308,70 @@ Endpoint query
 |**securityMode**  <br>*optional*|Security Mode|enum (Best, Sign, SignAndEncrypt, None)|
 |**securityPolicy**  <br>*optional*|Security policy uri|string|
 |**url**  <br>*optional*|Endoint url for direct server access|string|
-|**userAuthentication**  <br>*optional*|Type of credential selected for authentication|enum (None, UserName, X509Certificate, JwtToken)|
 
 
-<a name="endpointregistrationupdateapimodel"></a>
-### EndpointRegistrationUpdateApiModel
-Endpoint registration update request
+<a name="publisherapimodel"></a>
+### PublisherApiModel
+Publisher registration model
 
 
 |Name|Description|Schema|
 |---|---|---|
-|**user**  <br>*optional*|User authentication to change on the endpoint.|[CredentialApiModel](definitions.md#credentialapimodel)|
+|**certificate**  <br>*optional*|Publisher public client cert  <br>**Pattern** : `"^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==\|[A-Za-z0-9+/]{3}=)?$"`|string (byte)|
+|**configuration**  <br>*optional*|Publisher agent configuration|[PublisherConfigApiModel](definitions.md#publisherconfigapimodel)|
+|**connected**  <br>*optional*|Whether publisher is connected on this registration|boolean|
+|**id**  <br>*required*|Publisher id|string|
+|**logLevel**  <br>*optional*|Current log level  <br>**Default** : `"Information"`|enum (Error, Information, Debug, Verbose)|
+|**outOfSync**  <br>*optional*|Whether the registration is out of sync between<br>client (module) and server (service) (default: false).|boolean|
+|**siteId**  <br>*optional*|Site of the publisher|string|
+
+
+<a name="publisherconfigapimodel"></a>
+### PublisherConfigApiModel
+Default publisher agent configuration
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**capabilities**  <br>*optional*|Capabilities|< string, string > map|
+|**heartbeatInterval**  <br>*optional*|Heartbeat interval|string|
+|**jobCheckInterval**  <br>*optional*|Interval to check job|string|
+|**jobOrchestratorUrl**  <br>*optional*|Job orchestrator endpoint url|string|
+|**maxWorkers**  <br>*optional*|Parallel jobs|integer (int32)|
+
+
+<a name="publisherlistapimodel"></a>
+### PublisherListApiModel
+Publisher registration list
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**continuationToken**  <br>*optional*|Continuation or null if final|string|
+|**items**  <br>*optional*|Registrations|< [PublisherApiModel](definitions.md#publisherapimodel) > array|
+
+
+<a name="publisherqueryapimodel"></a>
+### PublisherQueryApiModel
+Publisher registration query
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**connected**  <br>*optional*|Included connected or disconnected|boolean|
+|**siteId**  <br>*optional*|Site of the publisher|string|
+
+
+<a name="publisherupdateapimodel"></a>
+### PublisherUpdateApiModel
+Publisher registration update request
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**configuration**  <br>*optional*|Publisher discovery configuration|[PublisherConfigApiModel](definitions.md#publisherconfigapimodel)|
+|**logLevel**  <br>*optional*|Current log level|enum (Error, Information, Debug, Verbose)|
+|**siteId**  <br>*optional*|Site of the publisher|string|
 
 
 <a name="registryoperationapimodel"></a>
@@ -364,7 +393,6 @@ Application registration request
 |Name|Description|Schema|
 |---|---|---|
 |**activationFilter**  <br>*optional*|Upon discovery, activate all endpoints with this filter.|[EndpointActivationFilterApiModel](definitions.md#endpointactivationfilterapimodel)|
-|**callback**  <br>*optional*|An optional callback hook to register.|[CallbackApiModel](definitions.md#callbackapimodel)|
 |**discoveryUrl**  <br>*required*|Discovery url to use for registration|string|
 |**id**  <br>*optional*|Registration id|string|
 
@@ -448,10 +476,8 @@ Supervisor registration update request
 |Name|Description|Schema|
 |---|---|---|
 |**discovery**  <br>*optional*|Whether the supervisor is in discovery mode.<br>If null, does not change.  <br>**Default** : `"Off"`|enum (Off, Local, Network, Fast, Scan)|
-|**discoveryCallbacks**  <br>*optional*|Callbacks to add or remove (see below)|< [CallbackApiModel](definitions.md#callbackapimodel) > array|
 |**discoveryConfig**  <br>*optional*|Supervisor discovery configuration|[DiscoveryConfigApiModel](definitions.md#discoveryconfigapimodel)|
 |**logLevel**  <br>*optional*|Current log level|enum (Error, Information, Debug, Verbose)|
-|**removeDiscoveryCallbacks**  <br>*optional*|Whether to add or remove callbacks|boolean|
 |**siteId**  <br>*optional*|Site of the supervisor|string|
 
 

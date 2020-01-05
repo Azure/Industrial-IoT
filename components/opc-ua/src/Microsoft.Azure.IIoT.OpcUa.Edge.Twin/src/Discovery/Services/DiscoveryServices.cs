@@ -50,8 +50,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
         /// </summary>
         /// <param name="client"></param>
         /// <param name="events"></param>
-        /// <param name="progress"></param>
         /// <param name="logger"></param>
+        /// <param name="progress"></param>
         public DiscoveryServices(IEndpointDiscovery client, IEventEmitter events,
             ILogger logger, IDiscoveryProgress progress = null) {
 
@@ -456,8 +456,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
         /// Upload results
         /// </summary>
         /// <param name="discovered"></param>
-        /// <param name="timestamp"></param>
         /// <param name="request"></param>
+        /// <param name="timestamp"></param>
         /// <param name="diagnostics"></param>
         /// <param name="ct"></param>
         /// <returns></returns>

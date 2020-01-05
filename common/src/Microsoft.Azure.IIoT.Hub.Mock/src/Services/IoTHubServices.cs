@@ -24,7 +24,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
     /// Mock device registry
     /// </summary>
     public class IoTHubServices : IIoTHubTwinServices, IIoTHubJobServices,
-        IIoTHubTelemetryServices, IIoTHub, IEventProcessorHost, IHost {
+        IIoTHubTelemetryServices, IIoTHub, IEventProcessorHost, IHostProcess {
 
         /// <inheritdoc/>
         public string HostName { get; } = "mock.azure-devices.net";

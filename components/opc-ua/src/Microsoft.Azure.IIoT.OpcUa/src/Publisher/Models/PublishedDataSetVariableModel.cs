@@ -62,12 +62,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         public double? DeadbandValue { get; set; }
 
         /// <summary>
-        /// Substitution value for empty results
+        /// Substitution value for bad / empty results (not supported yet)
         /// </summary>
         public JToken SubstituteValue { get; set; }
 
         /// <summary>
-        /// MetaData properties qualified names.
+        /// MetaData properties qualified names. (not supported yet)
         /// </summary>
         public List<string> MetaDataProperties { get; set; }
 
@@ -91,5 +91,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// (Publisher extension)
         /// </summary>
         public string TriggerId { get; set; }
+
+        /// <summary>
+        /// Hidden trigger that triggers reporting this variable on
+        /// at a minimum interval.  Mutually exclusive with TriggerId.
+        /// (Publisher extension)
+        /// </summary>
+        public TimeSpan? HeartbeatInterval { get; set; }
     }
 }

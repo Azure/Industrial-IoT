@@ -4,6 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
+    using System.Collections.Generic;
+
     /// <summary>
     /// Monitored item model extensions
     /// </summary>
@@ -25,16 +28,70 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                 SamplingInterval = model.SamplingInterval,
                 QueueSize = model.QueueSize,
                 DiscardNew = model.DiscardNew,
-                DataChangeFilter = model.DataChangeFilter, // TODO
-                EventFilter = model.EventFilter, // TODO
-                AggregateFilter = model.AggregateFilter, // TODO
+                DataChangeFilter = model.DataChangeFilter.Clone(),
+                EventFilter = model.EventFilter.Clone(),
+                AggregateFilter = model.AggregateFilter.Clone(),
                 AttributeId = model.AttributeId,
                 IndexRange = model.IndexRange,
-                NodeClass = model.NodeClass,
                 MonitoringMode = model.MonitoringMode,
                 DisplayName = model.DisplayName,
                 RelativePath = model.RelativePath
             };
+        }
+
+        /// <summary>
+        /// Compare items
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="other"></param>
+        /// <returns></returns>
+        public static bool IsSameAs(this MonitoredItemModel model, MonitoredItemModel other) {
+            if (model == null && other == null) {
+                return true;
+            }
+            if (model == null || other == null) {
+                return false;
+            }
+            if (model.TriggerId != other.TriggerId) {
+                return false;
+            }
+            if (model.StartNodeId != other.StartNodeId) {
+                return false;
+            }
+            if (model.SamplingInterval != other.SamplingInterval) {
+                return false;
+            }
+            if (model.QueueSize != other.QueueSize) {
+                return false;
+            }
+            if (model.DiscardNew != other.DiscardNew) {
+                return false;
+            }
+            if (!model.DataChangeFilter.IsSameAs(other.DataChangeFilter)) {
+                return false;
+            }
+            if (!model.AggregateFilter.IsSameAs(other.AggregateFilter)) {
+                return false;
+            }
+            if (!model.EventFilter.IsSameAs(other.EventFilter)) {
+                return false;
+            }
+            if (model.AttributeId != other.AttributeId) {
+                return false;
+            }
+            if (model.IndexRange != other.IndexRange) {
+                return false;
+            }
+            if (model.MonitoringMode != other.MonitoringMode) {
+                return false;
+            }
+            if (model.DisplayName != other.DisplayName) {
+                return false;
+            }
+            if (!model.RelativePath.SequenceEqualsSafe(other.RelativePath)) {
+                return false;
+            }
+            return true;
         }
     }
 }

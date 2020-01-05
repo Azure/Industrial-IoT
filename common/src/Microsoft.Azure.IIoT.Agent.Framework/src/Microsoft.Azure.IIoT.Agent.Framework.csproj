@@ -1,12 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <Description>Azure Industrial IoT common abstractions and primitives</Description>
+    <Description>Azure Industrial IoT agent framework</Description>
   </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="System.Threading.Tasks.Dataflow" Version="4.11.0" />
-  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Core\src\Microsoft.Azure.IIoT.Core.csproj" />
   </ItemGroup>

@@ -5,9 +5,7 @@
 
 namespace System.Security.Cryptography.X509Certificates {
     using Microsoft.Azure.IIoT.Crypto.Models;
-    using System;
     using System.Linq;
-    using System.Security.Cryptography;
 
     /// <summary>
     /// X509 cert extensions
@@ -46,8 +44,8 @@ namespace System.Security.Cryptography.X509Certificates {
         /// <summary>
         /// Create self signed cert
         /// </summary>
-        /// <param name="subject"></param>
         /// <param name="signature"></param>
+        /// <param name="subject"></param>
         /// <returns></returns>
         internal static AsymmetricAlgorithm CreateCsr(this SignatureType signature, string subject,
             out CertificateRequest csr) {
@@ -78,8 +76,8 @@ namespace System.Security.Cryptography.X509Certificates {
         /// <summary>
         /// Create self signed ca cert
         /// </summary>
-        /// <param name="subject"></param>
         /// <param name="signature"></param>
+        /// <param name="subject"></param>
         /// <returns></returns>
         internal static AsymmetricAlgorithm CreateCsr(this SignatureType signature,
             string subject, bool ca, out CertificateRequest csr) {

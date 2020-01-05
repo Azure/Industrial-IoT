@@ -39,13 +39,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="encoder"></param>
         /// <param name="value"></param>
         /// <param name="type"></param>
-        /// <param name="context"></param>
         /// <returns></returns>
         public static Variant Decode(this IVariantEncoder encoder, JToken value,
-            string type, ServiceMessageContext context) {
-            return encoder.Decode(value,
-                string.IsNullOrEmpty(type) || context == null ? BuiltInType.Null :
-                TypeInfo.GetBuiltInType(type.ToNodeId(context)), context);
+            string type) {
+            return encoder.Decode(value, string.IsNullOrEmpty(type) ? BuiltInType.Null :
+                TypeInfo.GetBuiltInType(type.ToNodeId(encoder.Context)));
         }
     }
 }

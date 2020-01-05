@@ -22,13 +22,7 @@ Azure Industrial IoT manages OPC UA Application Certificates and Trust Lists of 
 
 ## Architecture
 
-The overall Azure Industrial IOT [architecture](architecture.md) looks like below.
-
-![architecture](media/architecture.PNG)
-
-Details on how things work together can be found at [architectural code flow](architecture.md).
-
-The Platform includes several [Azure IoT Edge modules](modules/readme.md), which can be [deployed](howto-deploy-modules.md) and used in conjunction with the included cloud services, or standalone with Azure IoT Hub (but with limited functionality).   These include:
+Check out the Azure Industrial IoT platform [architecture](architecture.md) and [flow](architecture-flow.md).  The Platform includes several [Azure IoT Edge modules](modules/readme.md), which can be [deployed](howto-deploy-modules.md) and used in conjunction with the included cloud services, or standalone with Azure IoT Hub (but with limited functionality).   These include:
 
 - [OPC Publisher](modules/publisher.md)
 - [OPC Twin](modules/twin.md)
@@ -44,10 +38,11 @@ Deploying Azure Industrial IoT includes deploying the Azure Industrial IoT Micro
 
 ## Learn more
 
-- [Explore the code structure](code-structure.md)
-- [Discover a server and browse its address space using REST and the CLI](services/howto-use-cli.md).
+- [Discover a server and browse its address space using the CLI](howto-use-cli.md).
+- [Discover a server and browse its address space using Postman](howto-use-postman.md).
 - [Industrial IoT cloud Microservices](services/readme.md)
   - [What is OPC Twin?](services/twin.md)
   - [What is OPC Vault?](services/vault.md)
-- [Explore the REST API](api/readme.md) 
+- [Explore and work with the REST API](api/readme.md)
+- [Explore the code structure](code-structure.md)
 

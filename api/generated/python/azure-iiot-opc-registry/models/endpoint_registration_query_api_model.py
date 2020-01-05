@@ -17,11 +17,6 @@ class EndpointRegistrationQueryApiModel(Model):
 
     :param url: Endoint url for direct server access
     :type url: str
-    :param user_authentication: Type of credential selected for
-     authentication. Possible values include: 'None', 'UserName',
-     'X509Certificate', 'JwtToken'
-    :type user_authentication: str or
-     ~azure-iiot-opc-registry.models.CredentialType
     :param certificate: Certificate of the endpoint
     :type certificate: bytearray
     :param security_mode: Security Mode. Possible values include: 'Best',
@@ -45,7 +40,6 @@ class EndpointRegistrationQueryApiModel(Model):
 
     _attribute_map = {
         'url': {'key': 'url', 'type': 'str'},
-        'user_authentication': {'key': 'userAuthentication', 'type': 'CredentialType'},
         'certificate': {'key': 'certificate', 'type': 'bytearray'},
         'security_mode': {'key': 'securityMode', 'type': 'SecurityMode'},
         'security_policy': {'key': 'securityPolicy', 'type': 'str'},
@@ -55,10 +49,9 @@ class EndpointRegistrationQueryApiModel(Model):
         'include_not_seen_since': {'key': 'includeNotSeenSince', 'type': 'bool'},
     }
 
-    def __init__(self, url=None, user_authentication=None, certificate=None, security_mode=None, security_policy=None, activated=None, connected=None, endpoint_state=None, include_not_seen_since=None):
+    def __init__(self, url=None, certificate=None, security_mode=None, security_policy=None, activated=None, connected=None, endpoint_state=None, include_not_seen_since=None):
         super(EndpointRegistrationQueryApiModel, self).__init__()
         self.url = url
-        self.user_authentication = user_authentication
         self.certificate = certificate
         self.security_mode = security_mode
         self.security_policy = security_policy

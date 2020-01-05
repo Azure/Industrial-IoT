@@ -56,7 +56,7 @@ public interface AzureOpcHistoryClient {
     /**
      * The default base URL.
      */
-    String DEFAULT_BASE_URL = "http://localhost";
+    String DEFAULT_BASE_URL = "https:///history";
 
     /**
      * Delete value history at specified times.

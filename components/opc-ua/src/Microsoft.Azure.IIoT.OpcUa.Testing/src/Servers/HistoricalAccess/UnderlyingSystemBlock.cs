@@ -324,7 +324,7 @@ namespace HistoricalAccess {
 
             switch (tag.TagType) {
                 case UnderlyingSystemTagType.Analog: {
-                        if (tag.EuRange != null && tag.EuRange.Length >= 2) {
+                        if (tag.EuRange?.Length >= 2) {
                             high = (int)tag.EuRange[0];
                             low = (int)tag.EuRange[1];
                         }
@@ -339,7 +339,7 @@ namespace HistoricalAccess {
                     }
 
                 case UnderlyingSystemTagType.Enumerated: {
-                        if (tag.Labels != null && tag.Labels.Length > 0) {
+                        if (tag.Labels?.Length > 0) {
                             high = tag.Labels.Length - 1;
                             low = 0;
                         }

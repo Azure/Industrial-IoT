@@ -21,10 +21,6 @@ class EndpointApiModel {
    * @property {array} [alternativeUrls] Alternative endpoint urls that can be
    * used for
    * accessing and validating the server
-   * @property {object} [user] User Authentication
-   * @property {string} [user.type] Type of credential. Possible values
-   * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
-   * @property {object} [user.value] Value to pass to server
    * @property {string} [securityMode] Security Mode to use for communication
    * default to best. Possible values include: 'Best', 'Sign',
    * 'SignAndEncrypt', 'None'. Default value: 'Best' .
@@ -72,14 +68,6 @@ class EndpointApiModel {
                     name: 'String'
                   }
               }
-            }
-          },
-          user: {
-            required: false,
-            serializedName: 'user',
-            type: {
-              name: 'Composite',
-              className: 'CredentialApiModel'
             }
           },
           securityMode: {

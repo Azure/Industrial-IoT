@@ -565,10 +565,10 @@ export interface BrowsePathResponseApiModel {
  */
 export interface MethodMetadataRequestApiModel {
   /**
-   * @member {string} methodId Method id of method to call.
+   * @member {string} [methodId] Method id of method to call.
    * (Required)
    */
-  methodId: string;
+  methodId?: string;
   /**
    * @member {string[]} [methodBrowsePath] An optional component path from the
    * node identified by
@@ -723,161 +723,15 @@ export interface MethodCallResponseApiModel {
 
 /**
  * @interface
- * An interface representing PublishedItemApiModel.
- * A monitored and published item
- *
- */
-export interface PublishedItemApiModel {
-  /**
-   * @member {string} nodeId Node to monitor
-   */
-  nodeId: string;
-  /**
-   * @member {string[]} [browsePath] An optional path from NodeId instance to
-   * the actual node.
-   */
-  browsePath?: string[];
-  /**
-   * @member {NodeAttribute} [nodeAttribute] Attribute to monitor. Possible
-   * values include: 'NodeClass', 'BrowseName', 'DisplayName', 'Description',
-   * 'WriteMask', 'UserWriteMask', 'IsAbstract', 'Symmetric', 'InverseName',
-   * 'ContainsNoLoops', 'EventNotifier', 'Value', 'DataType', 'ValueRank',
-   * 'ArrayDimensions', 'AccessLevel', 'UserAccessLevel',
-   * 'MinimumSamplingInterval', 'Historizing', 'Executable', 'UserExecutable',
-   * 'DataTypeDefinition', 'RolePermissions', 'UserRolePermissions',
-   * 'AccessRestrictions'
-   */
-  nodeAttribute?: NodeAttribute;
-  /**
-   * @member {number} [publishingInterval] Publishing interval to use
-   */
-  publishingInterval?: number;
-  /**
-   * @member {number} [samplingInterval] Sampling interval to use
-   */
-  samplingInterval?: number;
-}
-
-/**
- * @interface
- * An interface representing PublishStartRequestApiModel.
- * Publish request
- *
- */
-export interface PublishStartRequestApiModel {
-  /**
-   * @member {PublishedItemApiModel} item Item to publish
-   */
-  item: PublishedItemApiModel;
-  /**
-   * @member {RequestHeaderApiModel} [header] Optional request header
-   */
-  header?: RequestHeaderApiModel;
-}
-
-/**
- * @interface
- * An interface representing PublishStartResponseApiModel.
- * Result of publish request
- *
- */
-export interface PublishStartResponseApiModel {
-  /**
-   * @member {ServiceResultApiModel} [errorInfo] Service result in case of
-   * error
-   */
-  errorInfo?: ServiceResultApiModel;
-}
-
-/**
- * @interface
- * An interface representing PublishStopRequestApiModel.
- * Unpublish request
- *
- */
-export interface PublishStopRequestApiModel {
-  /**
-   * @member {string} nodeId Node of published item to unpublish
-   */
-  nodeId: string;
-  /**
-   * @member {string[]} [browsePath] An optional path from NodeId instance to
-   * the actual node.
-   */
-  browsePath?: string[];
-  /**
-   * @member {NodeAttribute} [nodeAttribute] Attribute of item to unpublish.
-   * Possible values include: 'NodeClass', 'BrowseName', 'DisplayName',
-   * 'Description', 'WriteMask', 'UserWriteMask', 'IsAbstract', 'Symmetric',
-   * 'InverseName', 'ContainsNoLoops', 'EventNotifier', 'Value', 'DataType',
-   * 'ValueRank', 'ArrayDimensions', 'AccessLevel', 'UserAccessLevel',
-   * 'MinimumSamplingInterval', 'Historizing', 'Executable', 'UserExecutable',
-   * 'DataTypeDefinition', 'RolePermissions', 'UserRolePermissions',
-   * 'AccessRestrictions'
-   */
-  nodeAttribute?: NodeAttribute;
-  /**
-   * @member {DiagnosticsApiModel} [diagnostics] Optional diagnostics
-   * configuration
-   */
-  diagnostics?: DiagnosticsApiModel;
-}
-
-/**
- * @interface
- * An interface representing PublishStopResponseApiModel.
- * Result of unpublish request
- *
- */
-export interface PublishStopResponseApiModel {
-  /**
-   * @member {ServiceResultApiModel} [errorInfo] Service result in case of
-   * error
-   */
-  errorInfo?: ServiceResultApiModel;
-}
-
-/**
- * @interface
- * An interface representing PublishedItemListRequestApiModel.
- * Request list of published items
- *
- */
-export interface PublishedItemListRequestApiModel {
-  /**
-   * @member {string} [continuationToken] Continuation token or null to start
-   */
-  continuationToken?: string;
-}
-
-/**
- * @interface
- * An interface representing PublishedItemListResponseApiModel.
- * List of published nodes
- *
- */
-export interface PublishedItemListResponseApiModel {
-  /**
-   * @member {PublishedItemApiModel[]} [items] Monitored items
-   */
-  items?: PublishedItemApiModel[];
-  /**
-   * @member {string} [continuationToken] Continuation or null if final
-   */
-  continuationToken?: string;
-}
-
-/**
- * @interface
  * An interface representing ValueReadRequestApiModel.
  * Node value read request webservice api model
  *
  */
 export interface ValueReadRequestApiModel {
   /**
-   * @member {string} nodeId Node to read from (mandatory)
+   * @member {string} [nodeId] Node to read from (mandatory)
    */
-  nodeId: string;
+  nodeId?: string;
   /**
    * @member {string[]} [browsePath] An optional path from NodeId instance to
    * the actual node.
@@ -1085,9 +939,9 @@ export interface StatusResponseApiModel {
  */
 export interface ValueWriteRequestApiModel {
   /**
-   * @member {string} nodeId Node id to to write value to.
+   * @member {string} [nodeId] Node id to to write value to.
    */
-  nodeId: string;
+  nodeId?: string;
   /**
    * @member {string[]} [browsePath] An optional path from NodeId instance to
    * the actual node.
@@ -1452,82 +1306,6 @@ export type CallMethodResponse = MethodCallResponseApiModel & {
        * The response body as parsed JSON or XML
        */
       parsedBody: MethodCallResponseApiModel;
-    };
-};
-
-/**
- * Contains response data for the startPublishingValues operation.
- */
-export type StartPublishingValuesResponse = PublishStartResponseApiModel & {
-  /**
-   * The underlying HTTP response.
-   */
-  _response: msRest.HttpResponse & {
-      /**
-       * The response body as text (string format)
-       */
-      bodyAsText: string;
-      /**
-       * The response body as parsed JSON or XML
-       */
-      parsedBody: PublishStartResponseApiModel;
-    };
-};
-
-/**
- * Contains response data for the stopPublishingValues operation.
- */
-export type StopPublishingValuesResponse = PublishStopResponseApiModel & {
-  /**
-   * The underlying HTTP response.
-   */
-  _response: msRest.HttpResponse & {
-      /**
-       * The response body as text (string format)
-       */
-      bodyAsText: string;
-      /**
-       * The response body as parsed JSON or XML
-       */
-      parsedBody: PublishStopResponseApiModel;
-    };
-};
-
-/**
- * Contains response data for the getNextListOfPublishedNodes operation.
- */
-export type GetNextListOfPublishedNodesResponse = PublishedItemListResponseApiModel & {
-  /**
-   * The underlying HTTP response.
-   */
-  _response: msRest.HttpResponse & {
-      /**
-       * The response body as text (string format)
-       */
-      bodyAsText: string;
-      /**
-       * The response body as parsed JSON or XML
-       */
-      parsedBody: PublishedItemListResponseApiModel;
-    };
-};
-
-/**
- * Contains response data for the getFirstListOfPublishedNodes operation.
- */
-export type GetFirstListOfPublishedNodesResponse = PublishedItemListResponseApiModel & {
-  /**
-   * The underlying HTTP response.
-   */
-  _response: msRest.HttpResponse & {
-      /**
-       * The response body as text (string format)
-       */
-      bodyAsText: string;
-      /**
-       * The response body as parsed JSON or XML
-       */
-      parsedBody: PublishedItemListResponseApiModel;
     };
 };
 

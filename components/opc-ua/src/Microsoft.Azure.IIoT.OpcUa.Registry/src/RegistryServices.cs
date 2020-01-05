@@ -34,6 +34,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<PublisherRegistry>()
                 .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<GatewayRegistry>()
+                .AsImplementedInterfaces().SingleInstance();
 
             base.Load(builder);
         }

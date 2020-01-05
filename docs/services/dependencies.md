@@ -28,7 +28,11 @@ Notification backplane is implemented on top of [Service Bus](https://azure.micr
 
 ### Azure KeyVault
 
-Azure [KeyVault](https://azure.microsoft.com/en-us/services/key-vault/) is used to store secrets such as private keys and passwords securely.
+Azure [KeyVault](https://azure.microsoft.com/en-us/services/key-vault/) is used to store configuration secrets such as private keys and passwords securely.
+
+### Azure SignalR Service
+
+Azure SignalR service is used for scalable UI client notifications without the need of hosting a SignalR endpoint.
 
 ### Azure Storage
 

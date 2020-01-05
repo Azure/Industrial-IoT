@@ -276,146 +276,6 @@ class AzureOpcTwinClient extends AzureOpcTwinClientContext {
   }
 
   /**
-   * Start publishing variable node values to IoT Hub.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
-   * @summary Start publishing node values
-   * @param endpointId The identifier of the activated endpoint.
-   * @param request The publish request
-   * @param [options] The optional parameters
-   * @returns Promise<Models.StartPublishingValuesResponse>
-   */
-  startPublishingValues(endpointId: string, request: Models.PublishStartRequestApiModel, options?: msRest.RequestOptionsBase): Promise<Models.StartPublishingValuesResponse>;
-  /**
-   * @param endpointId The identifier of the activated endpoint.
-   * @param request The publish request
-   * @param callback The callback
-   */
-  startPublishingValues(endpointId: string, request: Models.PublishStartRequestApiModel, callback: msRest.ServiceCallback<Models.PublishStartResponseApiModel>): void;
-  /**
-   * @param endpointId The identifier of the activated endpoint.
-   * @param request The publish request
-   * @param options The optional parameters
-   * @param callback The callback
-   */
-  startPublishingValues(endpointId: string, request: Models.PublishStartRequestApiModel, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<Models.PublishStartResponseApiModel>): void;
-  startPublishingValues(endpointId: string, request: Models.PublishStartRequestApiModel, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<Models.PublishStartResponseApiModel>, callback?: msRest.ServiceCallback<Models.PublishStartResponseApiModel>): Promise<Models.StartPublishingValuesResponse> {
-    return this.sendOperationRequest(
-      {
-        endpointId,
-        request,
-        options
-      },
-      startPublishingValuesOperationSpec,
-      callback) as Promise<Models.StartPublishingValuesResponse>;
-  }
-
-  /**
-   * Stop publishing variable node values to IoT Hub.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
-   * @summary Stop publishing node values
-   * @param endpointId The identifier of the activated endpoint.
-   * @param request The unpublish request
-   * @param [options] The optional parameters
-   * @returns Promise<Models.StopPublishingValuesResponse>
-   */
-  stopPublishingValues(endpointId: string, request: Models.PublishStopRequestApiModel, options?: msRest.RequestOptionsBase): Promise<Models.StopPublishingValuesResponse>;
-  /**
-   * @param endpointId The identifier of the activated endpoint.
-   * @param request The unpublish request
-   * @param callback The callback
-   */
-  stopPublishingValues(endpointId: string, request: Models.PublishStopRequestApiModel, callback: msRest.ServiceCallback<Models.PublishStopResponseApiModel>): void;
-  /**
-   * @param endpointId The identifier of the activated endpoint.
-   * @param request The unpublish request
-   * @param options The optional parameters
-   * @param callback The callback
-   */
-  stopPublishingValues(endpointId: string, request: Models.PublishStopRequestApiModel, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<Models.PublishStopResponseApiModel>): void;
-  stopPublishingValues(endpointId: string, request: Models.PublishStopRequestApiModel, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<Models.PublishStopResponseApiModel>, callback?: msRest.ServiceCallback<Models.PublishStopResponseApiModel>): Promise<Models.StopPublishingValuesResponse> {
-    return this.sendOperationRequest(
-      {
-        endpointId,
-        request,
-        options
-      },
-      stopPublishingValuesOperationSpec,
-      callback) as Promise<Models.StopPublishingValuesResponse>;
-  }
-
-  /**
-   * Returns next set of currently published node ids for an endpoint.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
-   * @summary Get next set of published nodes
-   * @param endpointId The identifier of the activated endpoint.
-   * @param continuationToken The continuation token to continue with
-   * @param [options] The optional parameters
-   * @returns Promise<Models.GetNextListOfPublishedNodesResponse>
-   */
-  getNextListOfPublishedNodes(endpointId: string, continuationToken: string, options?: msRest.RequestOptionsBase): Promise<Models.GetNextListOfPublishedNodesResponse>;
-  /**
-   * @param endpointId The identifier of the activated endpoint.
-   * @param continuationToken The continuation token to continue with
-   * @param callback The callback
-   */
-  getNextListOfPublishedNodes(endpointId: string, continuationToken: string, callback: msRest.ServiceCallback<Models.PublishedItemListResponseApiModel>): void;
-  /**
-   * @param endpointId The identifier of the activated endpoint.
-   * @param continuationToken The continuation token to continue with
-   * @param options The optional parameters
-   * @param callback The callback
-   */
-  getNextListOfPublishedNodes(endpointId: string, continuationToken: string, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<Models.PublishedItemListResponseApiModel>): void;
-  getNextListOfPublishedNodes(endpointId: string, continuationToken: string, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<Models.PublishedItemListResponseApiModel>, callback?: msRest.ServiceCallback<Models.PublishedItemListResponseApiModel>): Promise<Models.GetNextListOfPublishedNodesResponse> {
-    return this.sendOperationRequest(
-      {
-        endpointId,
-        continuationToken,
-        options
-      },
-      getNextListOfPublishedNodesOperationSpec,
-      callback) as Promise<Models.GetNextListOfPublishedNodesResponse>;
-  }
-
-  /**
-   * Returns currently published node ids for an endpoint.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
-   * @summary Get currently published nodes
-   * @param endpointId The identifier of the activated endpoint.
-   * @param request The list request
-   * @param [options] The optional parameters
-   * @returns Promise<Models.GetFirstListOfPublishedNodesResponse>
-   */
-  getFirstListOfPublishedNodes(endpointId: string, request: Models.PublishedItemListRequestApiModel, options?: msRest.RequestOptionsBase): Promise<Models.GetFirstListOfPublishedNodesResponse>;
-  /**
-   * @param endpointId The identifier of the activated endpoint.
-   * @param request The list request
-   * @param callback The callback
-   */
-  getFirstListOfPublishedNodes(endpointId: string, request: Models.PublishedItemListRequestApiModel, callback: msRest.ServiceCallback<Models.PublishedItemListResponseApiModel>): void;
-  /**
-   * @param endpointId The identifier of the activated endpoint.
-   * @param request The list request
-   * @param options The optional parameters
-   * @param callback The callback
-   */
-  getFirstListOfPublishedNodes(endpointId: string, request: Models.PublishedItemListRequestApiModel, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<Models.PublishedItemListResponseApiModel>): void;
-  getFirstListOfPublishedNodes(endpointId: string, request: Models.PublishedItemListRequestApiModel, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<Models.PublishedItemListResponseApiModel>, callback?: msRest.ServiceCallback<Models.PublishedItemListResponseApiModel>): Promise<Models.GetFirstListOfPublishedNodesResponse> {
-    return this.sendOperationRequest(
-      {
-        endpointId,
-        request,
-        options
-      },
-      getFirstListOfPublishedNodesOperationSpec,
-      callback) as Promise<Models.GetFirstListOfPublishedNodesResponse>;
-  }
-
-  /**
    * Get a variable node's value using its node id.
    * The endpoint must be activated and connected and the module client
    * and server must trust each other.
@@ -620,7 +480,7 @@ class AzureOpcTwinClient extends AzureOpcTwinClientContext {
 const serializer = new msRest.Serializer(Mappers);
 const getSetOfUniqueNodesOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
-  path: "v2/browse/{endpointId}",
+  path: "twin/v2/browse/{endpointId}",
   urlParameters: [
     Parameters.endpointId
   ],
@@ -639,7 +499,7 @@ const getSetOfUniqueNodesOperationSpec: msRest.OperationSpec = {
 
 const browseOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v2/browse/{endpointId}",
+  path: "twin/v2/browse/{endpointId}",
   urlParameters: [
     Parameters.endpointId
   ],
@@ -661,7 +521,7 @@ const browseOperationSpec: msRest.OperationSpec = {
 
 const getNextSetOfUniqueNodesOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
-  path: "v2/browse/{endpointId}/next",
+  path: "twin/v2/browse/{endpointId}/next",
   urlParameters: [
     Parameters.endpointId
   ],
@@ -680,7 +540,7 @@ const getNextSetOfUniqueNodesOperationSpec: msRest.OperationSpec = {
 
 const browseNextOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v2/browse/{endpointId}/next",
+  path: "twin/v2/browse/{endpointId}/next",
   urlParameters: [
     Parameters.endpointId
   ],
@@ -702,7 +562,7 @@ const browseNextOperationSpec: msRest.OperationSpec = {
 
 const browseUsingPathOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v2/browse/{endpointId}/path",
+  path: "twin/v2/browse/{endpointId}/path",
   urlParameters: [
     Parameters.endpointId
   ],
@@ -724,7 +584,7 @@ const browseUsingPathOperationSpec: msRest.OperationSpec = {
 
 const getCallMetadataOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v2/call/{endpointId}/metadata",
+  path: "twin/v2/call/{endpointId}/metadata",
   urlParameters: [
     Parameters.endpointId
   ],
@@ -746,7 +606,7 @@ const getCallMetadataOperationSpec: msRest.OperationSpec = {
 
 const callMethodOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v2/call/{endpointId}",
+  path: "twin/v2/call/{endpointId}",
   urlParameters: [
     Parameters.endpointId
   ],
@@ -766,94 +626,9 @@ const callMethodOperationSpec: msRest.OperationSpec = {
   serializer
 };
 
-const startPublishingValuesOperationSpec: msRest.OperationSpec = {
-  httpMethod: "POST",
-  path: "v2/publish/{endpointId}/start",
-  urlParameters: [
-    Parameters.endpointId
-  ],
-  requestBody: {
-    parameterPath: "request",
-    mapper: {
-      ...Mappers.PublishStartRequestApiModel,
-      required: true
-    }
-  },
-  responses: {
-    200: {
-      bodyMapper: Mappers.PublishStartResponseApiModel
-    },
-    default: {}
-  },
-  serializer
-};
-
-const stopPublishingValuesOperationSpec: msRest.OperationSpec = {
-  httpMethod: "POST",
-  path: "v2/publish/{endpointId}/stop",
-  urlParameters: [
-    Parameters.endpointId
-  ],
-  requestBody: {
-    parameterPath: "request",
-    mapper: {
-      ...Mappers.PublishStopRequestApiModel,
-      required: true
-    }
-  },
-  responses: {
-    200: {
-      bodyMapper: Mappers.PublishStopResponseApiModel
-    },
-    default: {}
-  },
-  serializer
-};
-
-const getNextListOfPublishedNodesOperationSpec: msRest.OperationSpec = {
-  httpMethod: "GET",
-  path: "v2/publish/{endpointId}",
-  urlParameters: [
-    Parameters.endpointId
-  ],
-  queryParameters: [
-    Parameters.continuationToken
-  ],
-  contentType: "application/json; charset=utf-8",
-  responses: {
-    200: {
-      bodyMapper: Mappers.PublishedItemListResponseApiModel
-    },
-    default: {}
-  },
-  serializer
-};
-
-const getFirstListOfPublishedNodesOperationSpec: msRest.OperationSpec = {
-  httpMethod: "POST",
-  path: "v2/publish/{endpointId}",
-  urlParameters: [
-    Parameters.endpointId
-  ],
-  requestBody: {
-    parameterPath: "request",
-    mapper: {
-      ...Mappers.PublishedItemListRequestApiModel,
-      required: true
-    }
-  },
-  responses: {
-    200: {
-      bodyMapper: Mappers.PublishedItemListResponseApiModel
-    },
-    default: {}
-  },
-  serializer
-};
-
 const getValueOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
-  path: "v2/read/{endpointId}",
+  path: "twin/v2/read/{endpointId}",
   urlParameters: [
     Parameters.endpointId
   ],
@@ -872,7 +647,7 @@ const getValueOperationSpec: msRest.OperationSpec = {
 
 const readValueOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v2/read/{endpointId}",
+  path: "twin/v2/read/{endpointId}",
   urlParameters: [
     Parameters.endpointId
   ],
@@ -894,7 +669,7 @@ const readValueOperationSpec: msRest.OperationSpec = {
 
 const readAttributesOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v2/read/{endpointId}/attributes",
+  path: "twin/v2/read/{endpointId}/attributes",
   urlParameters: [
     Parameters.endpointId
   ],
@@ -916,7 +691,7 @@ const readAttributesOperationSpec: msRest.OperationSpec = {
 
 const getStatusOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
-  path: "v2/status",
+  path: "twin/v2/status",
   contentType: "application/json; charset=utf-8",
   responses: {
     200: {
@@ -929,7 +704,7 @@ const getStatusOperationSpec: msRest.OperationSpec = {
 
 const writeValueOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v2/write/{endpointId}",
+  path: "twin/v2/write/{endpointId}",
   urlParameters: [
     Parameters.endpointId
   ],
@@ -951,7 +726,7 @@ const writeValueOperationSpec: msRest.OperationSpec = {
 
 const writeAttributesOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
-  path: "v2/write/{endpointId}/attributes",
+  path: "twin/v2/write/{endpointId}/attributes",
   urlParameters: [
     Parameters.endpointId
   ],

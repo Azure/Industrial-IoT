@@ -35,7 +35,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Controllers {
                     new HistoryRawAdapter(
                         new HistoryServiceClient(
                            new HttpClient(_factory, log), new TestConfig(client.BaseAddress))),
-                    new JsonVariantEncoder()), "fakeid");
+                    new VariantEncoderFactory()), "fakeid");
         }
 
         public EndpointModel Endpoint => new EndpointModel {

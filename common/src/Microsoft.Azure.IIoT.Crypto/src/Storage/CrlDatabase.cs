@@ -19,15 +19,15 @@ namespace Microsoft.Azure.IIoT.Crypto.Storage {
     /// <summary>
     /// Crl database acting as a cache and endpoint for crl objects.
     /// </summary>
-    public class CrlDatabase : ICrlEndpoint, ICrlRepository, IHost, IDisposable {
+    public class CrlDatabase : ICrlEndpoint, ICrlRepository, IHostProcess, IDisposable {
 
         /// <summary>
         /// Create database
         /// </summary>
         /// <param name="container"></param>
         /// <param name="factory"></param>
-        /// <param name="logger"></param>
         /// <param name="certificates"></param>
+        /// <param name="logger"></param>
         public CrlDatabase(IItemContainerFactory container, ICertificateStore certificates,
             ICrlFactory factory, ILogger logger) {
             _certificates = certificates ?? throw new ArgumentNullException(nameof(certificates));

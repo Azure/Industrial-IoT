@@ -149,8 +149,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery {
         /// <param name="total"></param>
         /// <param name="url"></param>
         /// <param name="address"></param>
-        /// <param name="endpoints"></param>
         /// <param name="discovered"></param>
+        /// <param name="endpoints"></param>
         void OnFindEndpointsFinished(DiscoveryRequestModel request,
             int workers, int progress, int total, int discovered,
             Uri url, IPAddress address, int endpoints);

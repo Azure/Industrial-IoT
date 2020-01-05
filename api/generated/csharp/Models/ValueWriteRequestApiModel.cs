@@ -32,11 +32,11 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         /// <summary>
         /// Initializes a new instance of the ValueWriteRequestApiModel class.
         /// </summary>
-        /// <param name="nodeId">Node id to to write value to.</param>
         /// <param name="value">Value to write. The system tries to convert
         /// the value according to the data type value,
         /// e.g. convert comma seperated value strings
         /// into arrays.  (Mandatory)</param>
+        /// <param name="nodeId">Node id to to write value to.</param>
         /// <param name="browsePath">An optional path from NodeId instance to
         /// the actual node.</param>
         /// <param name="dataType">A built in datatype for the value. This can
@@ -45,7 +45,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         /// (default: best effort)</param>
         /// <param name="indexRange">Index range to write</param>
         /// <param name="header">Optional request header</param>
-        public ValueWriteRequestApiModel(string nodeId, object value, IList<string> browsePath = default(IList<string>), string dataType = default(string), string indexRange = default(string), RequestHeaderApiModel header = default(RequestHeaderApiModel))
+        public ValueWriteRequestApiModel(object value, string nodeId = default(string), IList<string> browsePath = default(IList<string>), string dataType = default(string), string indexRange = default(string), RequestHeaderApiModel header = default(RequestHeaderApiModel))
         {
             NodeId = nodeId;
             BrowsePath = browsePath;
@@ -112,10 +112,6 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         /// </exception>
         public virtual void Validate()
         {
-            if (NodeId == null)
-            {
-                throw new ValidationException(ValidationRules.CannotBeNull, "NodeId");
-            }
             if (Value == null)
             {
                 throw new ValidationException(ValidationRules.CannotBeNull, "Value");

@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
-    using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
@@ -35,7 +34,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="logger"></param>
         /// <param name="maxOpTimeout"></param>
         public ClientServices(ILogger logger, TimeSpan? maxOpTimeout = null) :
-            this (logger, new ClientServicesConfigOld(), maxOpTimeout) {
+            this (logger, new ClientServicesConfig(), maxOpTimeout) {
         }
 
         /// <summary>
@@ -44,7 +43,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="logger"></param>
         /// <param name="configuration"></param>
         /// <param name="maxOpTimeout"></param>
-        public ClientServices(ILogger logger, IClientServicesConfigOld configuration,
+        public ClientServices(ILogger logger, IClientServicesConfig configuration,
             TimeSpan? maxOpTimeout = null) {
 
             _logger = logger ??
@@ -54,7 +53,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             _maxOpTimeout = maxOpTimeout;
 
             // Create discovery config and client certificate
-            _opcApplicationConfig = CreateApplicationConfiguration(
+            _appConfig = CreateApplicationConfiguration(
                 TimeSpan.FromSeconds(15), TimeSpan.FromSeconds(30));
             InitApplicationSecurityAsync().Wait();
 
@@ -76,11 +75,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 _logger.Information("Adding Certificate {Thumbprint}, " +
                     "{Subject} to trust list...", certificate.Thumbprint,
                     certificate.Subject);
-                _opcApplicationConfig.SecurityConfiguration.TrustedPeerCertificates
+                _appConfig.SecurityConfiguration.TrustedPeerCertificates
                     .Add(certificate.YieldReturn());
                 chain.RemoveAt(0);
                 if (chain.Count > 0) {
-                    _opcApplicationConfig.SecurityConfiguration.TrustedIssuerCertificates
+                    _appConfig.SecurityConfiguration.TrustedIssuerCertificates
                         .Add(chain);
                 }
                 return Task.CompletedTask;
@@ -111,7 +110,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 _logger.Information("Removing Certificate {Thumbprint}, " +
                     "{Subject} from trust list...", certificate.Thumbprint,
                     certificate.Subject);
-                _opcApplicationConfig.SecurityConfiguration.TrustedPeerCertificates
+                _appConfig.SecurityConfiguration.TrustedPeerCertificates
                     .Remove(certificate.YieldReturn());
 
                 // Remove only from trusted peers
@@ -129,30 +128,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         }
 
         /// <inheritdoc/>
-        public async Task RegisterAsync(EndpointModel endpoint,
-            Func<EndpointConnectivityState, Task> callback) {
-            if (endpoint == null) {
-                throw new ArgumentNullException(nameof(endpoint));
+        public ISessionHandle GetSessionHandle(ConnectionModel connection) {
+            if (connection?.Endpoint == null) {
+                throw new ArgumentNullException(nameof(connection));
             }
-            if (callback == null) {
-                throw new ArgumentNullException(nameof(callback));
-            }
-            var id = new EndpointIdentifier(endpoint);
-
-            if (!_callbacks.TryAdd(id, callback)) {
-                _callbacks.AddOrUpdate(id, callback, (k, v) => callback);
-            }
-
-            await _lock.WaitAsync();
+            var id = new ConnectionIdentifier(connection);
+            _lock.Wait();
             try {
                 // Add a persistent session
-                if (!_clients.TryGetValue(id, out var _)) {
-                    _clients.Add(id, new ClientSession(
-                        _opcApplicationConfig, id.Endpoint.Clone(), _logger,
-                        NotifyStateChangeAsync, true, _maxOpTimeout));
-                    _logger.Debug("Open session for endpoint {id} ({endpoint}).",
-                        id, endpoint.Url);
+                if (!_clients.TryGetValue(id, out var client)) {
+                    var tuple = ClientSession.CreateWithHandle(_appConfig,
+                        id.Connection, _logger, NotifyStateChangeAsync, _maxOpTimeout);
+                    _clients.Add(id, tuple.Item1);
+                    _logger.Debug("Opened session for endpoint {id} ({endpoint}).",
+                        id, connection.Endpoint.Url);
+                    return tuple.Item2;
                 }
+                return client.GetSafeHandle();
             }
             finally {
                 _lock.Release();
@@ -160,33 +152,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         }
 
         /// <inheritdoc/>
-        public async Task UnregisterAsync(EndpointModel endpoint) {
-            if (endpoint == null) {
-                throw new ArgumentNullException(nameof(endpoint));
+        public IDisposable RegisterCallback(ConnectionModel connection,
+            Func<EndpointConnectivityState, Task> callback) {
+            if (connection?.Endpoint == null) {
+                throw new ArgumentNullException(nameof(connection));
             }
-            var id = new EndpointIdentifier(endpoint);
-            _callbacks.TryRemove(id, out _);
-
-            await _lock.WaitAsync();
-            try {
-                // Remove any session
-                if (_clients.TryGetValue(id, out var client)) {
-                    await Try.Async(client.CloseAsync);
-                    Try.Op(client.Dispose);
-
-                    _clients.Remove(id);
-                    _logger.Debug("Endpoint {id} ({endpoint}) closed.",
-                        id, endpoint.Url);
-                }
-                else {
-                    _logger.Debug(
-                        "Session for endpoint {id} ({endpoint}) not found.",
-                        endpoint.Url, id);
-                }
+            if (callback == null) {
+                throw new ArgumentNullException(nameof(callback));
             }
-            finally {
-                _lock.Release();
-            }
+            return new CallbackHandle(this, connection, callback);
         }
 
         /// <inheritdoc/>
@@ -241,16 +215,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         }
 
         /// <inheritdoc/>
-        public Task<T> ExecuteServiceAsync<T>(EndpointModel endpoint,
+        public Task<T> ExecuteServiceAsync<T>(ConnectionModel connection,
             CredentialModel elevation, int priority, Func<Session, Task<T>> service,
             TimeSpan? timeout, CancellationToken ct, Func<Exception, bool> handler) {
-            if (endpoint == null) {
-                throw new ArgumentNullException(nameof(endpoint));
+            if (connection.Endpoint == null) {
+                throw new ArgumentNullException(nameof(connection));
             }
-            if (string.IsNullOrEmpty(endpoint.Url)) {
-                throw new ArgumentNullException(nameof(endpoint.Url));
+            if (string.IsNullOrEmpty(connection.Endpoint?.Url)) {
+                throw new ArgumentNullException(nameof(connection.Endpoint.Url));
             }
-            var key = new EndpointIdentifier(endpoint);
+            var key = new ConnectionIdentifier(connection);
             while (!_cts.IsCancellationRequested) {
                 var client = GetOrCreateSession(key);
                 if (!client.Inactive) {
@@ -274,14 +248,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="localeIds"></param>
         /// <param name="caps"></param>
         /// <param name="timeout"></param>
-        /// <param name="result"></param>
         /// <param name="visitedUris"></param>
         /// <param name="queue"></param>
+        /// <param name="result"></param>
         private async Task DiscoverAsync(Uri discoveryUrl, StringCollection localeIds,
             IEnumerable<string> caps, int timeout, HashSet<string> visitedUris,
             Queue<Tuple<Uri, List<string>>> queue, HashSet<DiscoveredEndpointModel> result) {
 
-            var configuration = EndpointConfiguration.Create(_opcApplicationConfig);
+            var configuration = EndpointConfiguration.Create(_appConfig);
             configuration.OperationTimeout = timeout;
             using (var client = DiscoveryClient.Create(discoveryUrl, configuration)) {
                 //
@@ -353,13 +327,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        private IClientSession GetOrCreateSession(EndpointIdentifier id) {
+        private IClientSession GetOrCreateSession(ConnectionIdentifier id) {
             _lock.Wait();
             try {
                 if (!_clients.TryGetValue(id, out var session)) {
-                    session = new ClientSession(
-                        _opcApplicationConfig, id.Endpoint.Clone(), _logger,
-                        NotifyStateChangeAsync, false, _maxOpTimeout);
+                    session = ClientSession.Create(
+                        _appConfig, id.Connection, _logger,
+                        NotifyStateChangeAsync, _maxOpTimeout);
                     _clients.Add(id, session);
                     _logger.Debug("Add new session to session cache.");
                 }
@@ -406,7 +380,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        private void EvictIfInactive(EndpointIdentifier id) {
+        private void EvictIfInactive(ConnectionIdentifier id) {
             _lock.Wait();
             try {
                 if (_clients.TryGetValue(id, out var item)) {
@@ -486,13 +460,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         private async Task InitApplicationSecurityAsync() {
 
             // update certificates validator
-            _opcApplicationConfig.CertificateValidator.CertificateValidation +=
+            _appConfig.CertificateValidator.CertificateValidation +=
                 new CertificateValidationEventHandler(VerifyCertificate);
-            await _opcApplicationConfig.CertificateValidator
-                .Update(_opcApplicationConfig).ConfigureAwait(false);
+            await _appConfig.CertificateValidator
+                .Update(_appConfig).ConfigureAwait(false);
 
             // lookup for an existing certificate in the configured store
-            var ownCertificate = await _opcApplicationConfig.SecurityConfiguration
+            var ownCertificate = await _appConfig.SecurityConfiguration
                 .ApplicationCertificate.Find(true).ConfigureAwait(false);
             if (ownCertificate == null) {
                 //
@@ -506,7 +480,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     var ownCertificateIdentifier = new CertificateIdentifier {
                         StoreType = _configuration.AppCertStoreType,
                         StorePath = _configuration.OwnCertPath,
-                        SubjectName = _opcApplicationConfig.SecurityConfiguration
+                        SubjectName = _appConfig.SecurityConfiguration
                             .ApplicationCertificate.SubjectName
                     };
                     ownCertificate = await ownCertificateIdentifier.Find(true)
@@ -532,17 +506,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 _logger.Information("Application own certificate not found. " +
                     "Creating a new self-signed certificate with default settings...");
                 ownCertificate = CertificateFactory.CreateCertificate(
-                    _opcApplicationConfig.SecurityConfiguration.ApplicationCertificate.StoreType,
-                    _opcApplicationConfig.SecurityConfiguration.ApplicationCertificate.StorePath,
+                    _appConfig.SecurityConfiguration.ApplicationCertificate.StoreType,
+                    _appConfig.SecurityConfiguration.ApplicationCertificate.StorePath,
                     null,
-                    _opcApplicationConfig.ApplicationUri, _opcApplicationConfig.ApplicationName,
-                    _opcApplicationConfig.SecurityConfiguration.ApplicationCertificate.SubjectName,
+                    _appConfig.ApplicationUri, _appConfig.ApplicationName,
+                    _appConfig.SecurityConfiguration.ApplicationCertificate.SubjectName,
                     null, CertificateFactory.defaultKeySize,
                     DateTime.UtcNow - TimeSpan.FromDays(1),
                     CertificateFactory.defaultLifeTime, CertificateFactory.defaultHashSize,
                     false, null, null);
 
-                _opcApplicationConfig.SecurityConfiguration.ApplicationCertificate.Certificate =
+                _appConfig.SecurityConfiguration.ApplicationCertificate.Certificate =
                     ownCertificate;
                 _logger.Information(
                     "New application certificate with {Thumbprint}, {Subject} created",
@@ -555,7 +529,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             }
             // Set the Certificate as the newly created certificate
             await SetOwnCertificateAsync(ownCertificate);
-            if (_opcApplicationConfig.SecurityConfiguration.AutoAcceptUntrustedCertificates) {
+            if (_appConfig.SecurityConfiguration.AutoAcceptUntrustedCertificates) {
                 _logger.Warning(
                     "WARNING: Automatically accepting certificates. This is a security risk.");
             }
@@ -572,7 +546,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             }
 
             //  attempt to replace the old certificate from the various trust lists
-            var oldCertificate = _opcApplicationConfig.SecurityConfiguration
+            var oldCertificate = _appConfig.SecurityConfiguration
                 .ApplicationCertificate.Certificate;
             if (oldCertificate?.Thumbprint != newCertificate.Thumbprint) {
                 return;
@@ -585,7 +559,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             // copy the certificate, public key only into the trusted certificates list
             using (var publicKey = new X509Certificate2(newCertificate.RawData)) {
                 var trustList =
-                    _opcApplicationConfig.SecurityConfiguration.TrustedPeerCertificates;
+                    _appConfig.SecurityConfiguration.TrustedPeerCertificates;
                 if (oldCertificate != null) {
                     trustList.Remove(oldCertificate.YieldReturn());
                 }
@@ -594,7 +568,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
             // add the certificate to the own store
             try {
-                var applicationCertificate = _opcApplicationConfig.SecurityConfiguration
+                var applicationCertificate = _appConfig.SecurityConfiguration
                     .ApplicationCertificate;
                 _logger.Information(
                     "Adding own certificate to configured certificate store");
@@ -635,10 +609,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
             }
 
-            _opcApplicationConfig.SecurityConfiguration.ApplicationCertificate
+            _appConfig.SecurityConfiguration.ApplicationCertificate
                 .Certificate = newCertificate;
-            await _opcApplicationConfig.CertificateValidator.UpdateCertificate(
-                _opcApplicationConfig.SecurityConfiguration);
+            await _appConfig.CertificateValidator.UpdateCertificate(
+                _appConfig.SecurityConfiguration);
         }
 
         /// <summary>
@@ -652,7 +626,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 return;
             }
             if (e.Error.StatusCode == StatusCodes.BadCertificateUntrusted) {
-                e.Accept = _opcApplicationConfig.SecurityConfiguration
+                e.Accept = _appConfig.SecurityConfiguration
                     .AutoAcceptUntrustedCertificates;
                 if (e.Accept) {
                     _logger.Warning("Trusting Peer Certificate {Thumbprint}, {Subject} " +
@@ -685,28 +659,80 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <summary>
         /// Notify about session/endpoint state changes
         /// </summary>
-        /// <param name="ep"></param>
+        /// <param name="connection"></param>
         /// <param name="state"></param>
         /// <returns></returns>
-        private Task NotifyStateChangeAsync(EndpointModel ep, EndpointConnectivityState state) {
-            var id = new EndpointIdentifier(ep);
-            if (_callbacks.TryGetValue(id, out var cb)) {
-                return cb(state);
+        private Task NotifyStateChangeAsync(ConnectionModel connection,
+            EndpointConnectivityState state) {
+            var id = new ConnectionIdentifier(connection);
+            if (_callbacks.TryGetValue(id, out var list)) {
+                lock (list) {
+                    if (list.Count > 0) {
+                        return Task.WhenAll(list.Select(cb => cb.Callback.Invoke(state)))
+                            .ContinueWith(_ => Task.CompletedTask);
+                    }
+                }
             }
             return Task.CompletedTask;
         }
 
+        /// <summary>
+        /// Disposable callback handle
+        /// </summary>
+        private class CallbackHandle : IDisposable {
+
+            /// <summary>
+            /// Callback
+            /// </summary>
+            public Func<EndpointConnectivityState, Task> Callback { get; }
+
+            /// <summary>
+            /// Create handle
+            /// </summary>
+            /// <param name="outer"></param>
+            /// <param name="connection"></param>
+            /// <param name="callback"></param>
+            public CallbackHandle(ClientServices outer, ConnectionModel connection,
+                Func<EndpointConnectivityState, Task> callback) {
+                Callback = callback;
+                _outer = outer;
+                _connection = new ConnectionIdentifier(connection);
+                _outer._callbacks.AddOrUpdate(_connection,
+                    new HashSet<CallbackHandle> { this },
+                    (id, list) => {
+                        lock (list) {
+                            list.Add(this);
+                            return list;
+                        }
+                    });
+            }
+
+            /// <inheritdoc/>
+            public void Dispose() {
+                _outer._callbacks.AddOrUpdate(_connection,
+                    new HashSet<CallbackHandle>(),
+                    (id, list) => {
+                        lock (list) {
+                            list.Remove(this);
+                            return list;
+                        }
+                    });
+            }
+
+            private readonly ClientServices _outer;
+            private readonly ConnectionIdentifier _connection;
+        }
 
         private static readonly TimeSpan kEvictionCheck = TimeSpan.FromSeconds(10);
         private const int kMaxDiscoveryAttempts = 3;
         private readonly ILogger _logger;
         private readonly TimeSpan? _maxOpTimeout;
-        private readonly IClientServicesConfigOld _configuration;
-        private readonly ApplicationConfiguration _opcApplicationConfig;
-        private readonly Dictionary<EndpointIdentifier, IClientSession> _clients =
-            new Dictionary<EndpointIdentifier, IClientSession>();
-        private readonly ConcurrentDictionary<EndpointIdentifier, Func<EndpointConnectivityState, Task>> _callbacks =
-            new ConcurrentDictionary<EndpointIdentifier, Func<EndpointConnectivityState, Task>>();
+        private readonly IClientServicesConfig _configuration;
+        private readonly ApplicationConfiguration _appConfig;
+        private readonly Dictionary<ConnectionIdentifier, IClientSession> _clients =
+            new Dictionary<ConnectionIdentifier, IClientSession>();
+        private readonly ConcurrentDictionary<ConnectionIdentifier, HashSet<CallbackHandle>> _callbacks =
+            new ConcurrentDictionary<ConnectionIdentifier, HashSet<CallbackHandle>>();
         private readonly SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
 #pragma warning disable IDE0069 // Disposable fields should be disposed
         private readonly CancellationTokenSource _cts =

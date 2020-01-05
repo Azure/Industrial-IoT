@@ -5,8 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using System;
-    using System.Linq;
 
     /// <summary>
     /// Data set extensions
@@ -22,6 +22,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
             this DataSetWriterModel dataSetWriter) {
             if (dataSetWriter == null) {
                 return null;
+            }
+            if (dataSetWriter.DataSetWriterId == null) {
+                throw new ArgumentNullException(nameof(dataSetWriter.DataSetWriterId));
             }
             if (dataSetWriter.DataSet == null) {
                 throw new ArgumentNullException(nameof(dataSetWriter.DataSet));
@@ -44,59 +47,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                 ExtensionFields = dataSetWriter.DataSet.ExtensionFields,
                 Configuration = dataSetWriter.DataSet.DataSetSource
                     .ToSubscriptionConfigurationModel()
-            };
-        }
-
-        /// <summary>
-        /// Read monitored item job from reader
-        /// </summary>
-        /// <param name="subscription"></param>
-        /// <returns></returns>
-        public static DataSetWriterModel ToDataSetWriterModel(this SubscriptionModel subscription) {
-            return new DataSetWriterModel {
-                DataSetWriterId = subscription.Id,
-                DataSet = new PublishedDataSetModel {
-                    Name = subscription.Id,
-                    ExtensionFields = null,
-                    DataSetMetaData = new DataSetMetaDataModel {
-                        ConfigurationVersion = new ConfigurationVersionModel {
-                            MajorVersion = 1,
-                            MinorVersion = 0
-                        },
-                        DataSetClassId = Guid.NewGuid()
-                    },
-                    DataSetSource = new PublishedDataSetSourceModel {
-                        Connection = subscription.Connection,
-                        SubscriptionSettings = new PublishedDataSetSettingsModel {
-                            PublishingInterval = subscription.Configuration.PublishingInterval,
-                            LifeTimeCount = subscription.Configuration.LifetimeCount,
-                            MaxKeepAliveCount = subscription.Configuration.KeepAliveCount,
-                            MaxNotificationsPerPublish = subscription.Configuration.MaxNotificationsPerPublish,
-                            Priority = subscription.Configuration.Priority
-                        },
-                        PublishedVariables = new PublishedDataItemsModel {
-                            PublishedData = subscription.MonitoredItems.Select(m =>
-                                new PublishedDataSetVariableModel {
-                                    PublishedVariableNodeId = m.StartNodeId,
-                                    MonitoringMode = m.MonitoringMode,
-                                    BrowsePath = m.RelativePath,
-                                    QueueSize = m.QueueSize,
-                                    SamplingInterval = m.SamplingInterval,
-                                  //  DataChangeFilter = m.DataChangeTrigger,
-                                  //  DeadbandType = m.DeadBandType,
-                                  //  DeadbandValue = m.DeadBandValue,
-                                    DiscardNew = m.DiscardNew,
-                                    IndexRange = m.IndexRange,
-                                    Attribute = m.AttributeId,
-                                    Id = m.Id,
-                                    TriggerId = m.TriggerId,
-                                    MetaDataProperties = null,
-                                    SubstituteValue = null
-                                }).ToList()
-                        },
-                        PublishedEvents = null
-                    }
-                }
             };
         }
     }

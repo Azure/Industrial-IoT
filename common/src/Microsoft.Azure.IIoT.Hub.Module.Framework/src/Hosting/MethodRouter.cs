@@ -7,7 +7,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
     using Microsoft.Azure.IIoT.Module.Framework.Services;
     using Microsoft.Azure.IIoT.Module.Models;
     using Microsoft.Azure.IIoT.Module.Default;
-    using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.Hub;
     using Serilog;
     using Microsoft.Azure.IIoT.Exceptions;

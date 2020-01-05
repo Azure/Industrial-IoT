@@ -4,21 +4,25 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.All {
-    using Microsoft.AspNetCore;
+    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.AspNetCore.Hosting;
+    using Microsoft.Extensions.Hosting;
+    using Autofac.Extensions.Hosting;
     using Serilog;
 
     /// <summary>
-    /// All in one services host
+    /// Main entry point
     /// </summary>
-    public class Program {
+    public static class Program {
 
         /// <summary>
-        /// Main entry point for all in one services host
+        /// Main entry point
         /// </summary>
         /// <param name="args"></param>
         public static void Main(string[] args) {
-            CreateWebHostBuilder(args).Build().Run();
+            Log.Logger = ConsoleLogger.Create();
+            LogControl.Level.MinimumLevel = Serilog.Events.LogEventLevel.Debug;
+            CreateHostBuilder(args).Build().Run();
         }
 
         /// <summary>
@@ -26,11 +30,14 @@ namespace Microsoft.Azure.IIoT.Services.All {
         /// </summary>
         /// <param name="args"></param>
         /// <returns></returns>
-        public static IWebHostBuilder CreateWebHostBuilder(string[] args) {
-            return WebHost.CreateDefaultBuilder<Startup>(args)
-                .UseUrls("http://*:9080")
-                .UseIIS()
-                .UseSerilog();
+        public static IHostBuilder CreateHostBuilder(string[] args) {
+            return Host.CreateDefaultBuilder(args)
+                .UseAutofac()
+                .ConfigureWebHostDefaults(builder => builder
+                    .UseUrls("http://*:9080")
+                    .UseSerilog()
+                    .UseStartup<Startup>()
+                    .UseKestrel(o => o.AddServerHeader = false));
         }
     }
 }

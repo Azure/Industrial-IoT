@@ -150,6 +150,17 @@ app {
     visibility: hidden;
 }
 
+.events {
+    max-height: 150px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    margin-top: 10px;
+}
+
+.results {
+    margin-top: 80px;
+}
+
 @media (max-width: 767.98px) {
     .main .top-row {
         display: none;

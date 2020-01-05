@@ -39,8 +39,8 @@ namespace Microsoft.Azure.IIoT.Services.Auth.Clients {
             /// <summary>
             /// Create token cache entry in provided distributed cache
             /// </summary>
-            /// <param name="cacheKey">Key in cache</param>
             /// <param name="store">cache to create entry in</param>
+            /// <param name="cacheKey">Key in cache</param>
             public DistributedTokenCacheEntry(DistributedTokenCache store,
                 string cacheKey) {
                 var protector = store._dp.CreateProtector(GetType().FullName);

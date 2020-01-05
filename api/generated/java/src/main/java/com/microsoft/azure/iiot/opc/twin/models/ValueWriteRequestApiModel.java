@@ -20,7 +20,7 @@ public class ValueWriteRequestApiModel {
     /**
      * Node id to to write value to.
      */
-    @JsonProperty(value = "nodeId", required = true)
+    @JsonProperty(value = "nodeId")
     private String nodeId;
 
     /**

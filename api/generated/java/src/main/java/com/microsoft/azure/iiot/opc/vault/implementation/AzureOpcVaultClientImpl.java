@@ -67,7 +67,7 @@ public class AzureOpcVaultClientImpl extends ServiceClient implements AzureOpcVa
      * Initializes an instance of AzureOpcVaultClient client.
      */
     public AzureOpcVaultClientImpl() {
-        this("http://localhost");
+        this("https:///vault");
     }
 
     /**
@@ -87,7 +87,7 @@ public class AzureOpcVaultClientImpl extends ServiceClient implements AzureOpcVa
      * @param restBuilder the builder for building an Retrofit client, bundled with user configurations
      */
     public AzureOpcVaultClientImpl(OkHttpClient.Builder clientBuilder, Retrofit.Builder restBuilder) {
-        this("http://localhost", clientBuilder, restBuilder);
+        this("https:///vault", clientBuilder, restBuilder);
         initialize();
     }
 

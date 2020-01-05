@@ -95,8 +95,8 @@ namespace Microsoft.Azure.IIoT.Services.Auth.Clients {
         /// Helper to create authentication context
         /// </summary>
         /// <param name="tenantId"></param>
-        /// <param name="cache"></param>
         /// <param name="authorityUrl"></param>
+        /// <param name="cache"></param>
         /// <returns></returns>
         private static AuthenticationContext CreateAuthenticationContext(
             string authorityUrl, string tenantId, TokenCache cache) {

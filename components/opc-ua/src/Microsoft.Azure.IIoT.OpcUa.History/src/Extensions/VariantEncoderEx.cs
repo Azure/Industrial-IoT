@@ -166,7 +166,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
             return codec.Encode(new ExtensionObject(new UpdateEventDetails {
                 NodeId = NodeId.Null,
                 PerformInsertReplace = PerformUpdateType.Replace,
-                Filter = details.Filter.ToStackModel(codec),
+                Filter = codec.Decode(details.Filter),
                 EventData = new HistoryEventFieldListCollection(details.Events
                     .Select(d => new HistoryEventFieldList {
                         EventFields = new VariantCollection(d.EventFields
@@ -191,7 +191,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
             return codec.Encode(new ExtensionObject(new UpdateEventDetails {
                 NodeId = NodeId.Null,
                 PerformInsertReplace = PerformUpdateType.Insert,
-                Filter = details.Filter.ToStackModel(codec),
+                Filter = codec.Decode(details.Filter),
                 EventData = new HistoryEventFieldListCollection(details.Events
                     .Select(d => new HistoryEventFieldList {
                         EventFields = new VariantCollection(d.EventFields
@@ -238,7 +238,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
             return codec.Encode(new ExtensionObject(new ReadEventDetails {
                 EndTime = details.EndTime ?? DateTime.MinValue,
                 StartTime = details.StartTime ?? DateTime.MinValue,
-                Filter = details.Filter.ToStackModel(codec),
+                Filter = codec.Decode(details.Filter),
                 NumValuesPerNode = details.NumEvents ?? 0
             }));
         }
@@ -256,28 +256,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
             if (details.EndTime == null && details.StartTime == null) {
                 throw new ArgumentException("Start time and end time cannot both be null", nameof(details));
             }
-            // Convert aggregate id with a temporary namespace table that will contain the aggregate namespace
-            var context = new ServiceMessageContext();
-            var aggregate = details.AggregateTypeId?.ToNodeId(context);
+            var aggregate = details.AggregateTypeId?.ToNodeId(codec.Context);
             return codec.Encode(new ExtensionObject(new ReadProcessedDetails {
                 EndTime = details.EndTime ?? DateTime.MinValue,
                 StartTime = details.StartTime ?? DateTime.MinValue,
                 AggregateType = aggregate == null ? null : new NodeIdCollection(aggregate.YieldReturn()),
                 ProcessingInterval = details.ProcessingInterval ?? 0,
-                AggregateConfiguration = details.AggregateConfiguration == null ? null :
-                    new AggregateConfiguration {
-                        PercentDataBad =
-                            details.AggregateConfiguration.PercentDataBad ?? 0,
-                        PercentDataGood =
-                            details.AggregateConfiguration.PercentDataGood ?? 0,
-                        TreatUncertainAsBad =
-                            details.AggregateConfiguration.TreatUncertainAsBad ?? false,
-                        UseServerCapabilitiesDefaults =
-                            details.AggregateConfiguration.UseServerCapabilitiesDefaults ?? false,
-                        UseSlopedExtrapolation =
-                            details.AggregateConfiguration.UseSlopedExtrapolation ?? false
-                    }
-            }), context); // Reapplies the aggregate namespace uri during encoding using the context's table
+                AggregateConfiguration = details.AggregateConfiguration.ToStackModel()
+            })); // Reapplies the aggregate namespace uri during encoding using the context's table
         }
 
         /// <summary>
@@ -332,8 +318,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <summary>
         /// Convert to results
         /// </summary>
-        /// <param name="result"></param>
         /// <param name="codec"></param>
+        /// <param name="result"></param>
         /// <returns></returns>
         public static HistoricValueModel[] DecodeValues(this IVariantEncoder codec, JToken result) {
             var extensionObject = codec.DecodeExtensionObject(result);
@@ -369,8 +355,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <summary>
         /// Convert to results
         /// </summary>
-        /// <param name="result"></param>
         /// <param name="codec"></param>
+        /// <param name="result"></param>
         /// <returns></returns>
         public static HistoricEventModel[] DecodeEvents(this IVariantEncoder codec, JToken result) {
             var extensionObject = codec.DecodeExtensionObject(result);
@@ -389,12 +375,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// </summary>
         /// <param name="codec"></param>
         /// <param name="o"></param>
-        /// <param name="context"></param>
         /// <returns></returns>
-        internal static JToken Encode(this IVariantEncoder codec,
-            ExtensionObject o, ServiceMessageContext context = null) {
+        internal static JToken Encode(this IVariantEncoder codec, ExtensionObject o) {
             var variant = o == null ? Variant.Null : new Variant(o);
-            return codec.Encode(variant, out _, context);
+            return codec.Encode(variant);
         }
 
         /// <summary>
@@ -402,14 +386,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// </summary>
         /// <param name="codec"></param>
         /// <param name="result"></param>
-        /// <param name="context"></param>
         /// <returns></returns>
         internal static ExtensionObject DecodeExtensionObject(this IVariantEncoder codec,
-            JToken result, ServiceMessageContext context = null) {
+            JToken result) {
             if (result == null) {
                 return null;
             }
-            var variant = codec.Decode(result, BuiltInType.ExtensionObject, context);
+            var variant = codec.Decode(result, BuiltInType.ExtensionObject);
             return variant.Value as ExtensionObject;
         }
     }

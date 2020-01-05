@@ -10,13 +10,13 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Controllers {
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.Http;
     using Microsoft.Azure.IIoT.Messaging;
+    using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using System.Linq;
     using System.Threading.Tasks;
     using System.ComponentModel.DataAnnotations;
     using System;
-    using Swashbuckle.AspNetCore.Swagger;
 
     /// <summary>
     /// Read, Update and Query supervisor resources
@@ -118,10 +118,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Controllers {
         /// available.
         /// Call this operation again using the token to retrieve more results.
         /// </remarks>
-        /// <param name="pageSize">Optional number of results to return</param>
-        /// <param name="continuationToken">Optional Continuation token</param>
         /// <param name="onlyServerState">Whether to include only server
         /// state, or display current client state of the endpoint if available</param>
+        /// <param name="continuationToken">Optional Continuation token</param>
+        /// <param name="pageSize">Optional number of results to return</param>
         /// <returns>
         /// List of supervisors and continuation token to use for next request
         /// in x-ms-continuation header.
@@ -156,10 +156,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Controllers {
         /// more results.
         /// </remarks>
         /// <param name="query">Supervisors query model</param>
-        /// <param name="pageSize">Number of results to return</param>
         /// <param name="onlyServerState">Whether to include only server
         /// state, or display current client state of the endpoint if
         /// available</param>
+        /// <param name="pageSize">Number of results to return</param>
         /// <returns>Supervisors</returns>
         [HttpPost("query")]
         public async Task<SupervisorListApiModel> QuerySupervisorsAsync(
@@ -192,10 +192,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Controllers {
         /// more results.
         /// </remarks>
         /// <param name="query">Supervisors Query model</param>
-        /// <param name="pageSize">Number of results to return</param>
         /// <param name="onlyServerState">Whether to include only server
         /// state, or display current client state of the endpoint if
         /// available</param>
+        /// <param name="pageSize">Number of results to return</param>
         /// <returns>Supervisors</returns>
         [HttpGet("query")]
         public async Task<SupervisorListApiModel> GetFilteredListOfSupervisorsAsync(

@@ -26,7 +26,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
             }
             return new MonitoredItemModel {
                 Id = publishedVariable.Id,
-                NodeClass = NodeClass.Variable,
                 DisplayName = displayName,
                 DataChangeFilter = ToDataChangeFilter(publishedVariable),
                 EventFilter = null,

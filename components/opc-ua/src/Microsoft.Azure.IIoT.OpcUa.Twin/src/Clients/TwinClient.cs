@@ -5,11 +5,9 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Microsoft.Azure.IIoT.OpcUa.History.Models;
     using Microsoft.Azure.IIoT.OpcUa.History;
     using Microsoft.Azure.IIoT.Module;
-    using Microsoft.Azure.IIoT.Hub;
     using Serilog;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;

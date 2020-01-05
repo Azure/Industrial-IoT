@@ -50,7 +50,7 @@ module azure.iiot.opc.history
     autoload :InsertValuesDetailsApiModel,                        'generated/swagger/models/insert_values_details_api_model.rb'
     autoload :HistoryReadRequestApiModelReadValuesAtTimesDetailsApiModel, 'generated/swagger/models/history_read_request_api_model_read_values_at_times_details_api_model.rb'
     autoload :CredentialApiModel,                                 'generated/swagger/models/credential_api_model.rb'
-    autoload :AggregateConfigApiModel,                            'generated/swagger/models/aggregate_config_api_model.rb'
+    autoload :AggregateConfigurationApiModel,                     'generated/swagger/models/aggregate_configuration_api_model.rb'
     autoload :ServiceResultApiModel,                              'generated/swagger/models/service_result_api_model.rb'
     autoload :ReadProcessedValuesDetailsApiModel,                 'generated/swagger/models/read_processed_values_details_api_model.rb'
     autoload :DeleteModifiedValuesDetailsApiModel,                'generated/swagger/models/delete_modified_values_details_api_model.rb'

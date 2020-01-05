@@ -6,7 +6,7 @@
 namespace Microsoft.Azure.IIoT.App {
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Hosting;
-    using Autofac.Extensions.DependencyInjection;
+    using Autofac.Extensions.Hosting;
     using System.IO;
 
     public class Program {
@@ -26,11 +26,12 @@ namespace Microsoft.Azure.IIoT.App {
         /// <returns></returns>
         public static IHostBuilder CreateHostBuilder(string[] args) {
             return Host.CreateDefaultBuilder(args)
-                .UseServiceProviderFactory(new AutofacServiceProviderFactory())
-                .ConfigureWebHostDefaults(webHostBuilder => webHostBuilder
+                .UseAutofac()
+                .ConfigureWebHostDefaults(builder => builder
                     .UseContentRoot(Directory.GetCurrentDirectory())
                     .UseStartup<Startup>()
-                    .UseKestrel(o => o.AddServerHeader = false));
+                    .UseKestrel(o => o.AddServerHeader = false)
+                    .UseIISIntegration());
         }
     }
 }

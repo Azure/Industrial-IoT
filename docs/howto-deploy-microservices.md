@@ -1,35 +1,39 @@
-# Deploying Azure Industrial IoT Microservices and dependencies
+# Deploying Azure Industrial IoT Platform and dependencies
 
 [Home](readme.md)
 
-This article explains how to deploy the Azure Industrial IoT Microservices in Azure.  
+This article explains how to deploy the Azure Industrial IoT Platform in Azure.  
 
-## Deploy Industrial IoT Microservices to Azure using the Azure Portal
+## Deploy Industrial IoT Microservices to AKS using the deployment tool
+
+To deploy the Industrial IoT platform to Azure Kubernetes Service (AKS) follow the steps outlined [here](industrial_iot_deployment.md).
+
+## Deploy Industrial IoT Platform to Azure using the Azure Portal
 
 You can deploy from the *master* branch using the Deploy to Azure button:
 
 <a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Findustrial-iot%2Fmaster%2Fdeploy%2Fscripts%2Ftemplates%2Fazuredeploy.json" target="_blank">
-    <img src="http://azuredeploy.net/deploybutton.png"/>
-</a>
+    <img src="http://azuredeploy.net/deploybutton.png"/></a> <a href="http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Findustrial-iot%2Fmaster%2Fdeploy%2Fscripts%2Ftemplates%2Fazuredeploy.json" target="_blank"> <img src="http://armviz.io/visualizebutton.png"/></a>
 
-<a href="http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Findustrial-iot%2Fmaster%2Fdeploy%2Fscripts%2Ftemplates%2Fazuredeploy.json" target="_blank">
-    <img src="http://armviz.io/visualizebutton.png"/>
-</a>
+## Deploy Industrial IoT Platform using deployment script
 
-## Deploy Industrial IoT Microservices to Azure using deployment script
+The deployment script deploys an entire simulation environment consisting of
+
+* Linux and Windows IoT Edge simulation running all required modules
+* A PLC server simulation
+* All required Azure infrastructure
+* The Industrial IoT Platform
+* The Industrial IoT Sample Engineering tool.
 
 ### Prerequisites
 
-> [!NOTE]
-> Note: Due to the dependency on the AzureRM module, deployment currently is only supported on Windows.  We will add support for Linux soon.
+Make sure you have PowerShell and [Az PowerShell](https://docs.microsoft.com/en-us/powershell/azure/install-az-ps) extensions installed.  If not, first install PowerShell, then open PowerShell as Administrator and run
 
-1. Make sure you have PowerShell and [Az PowerShell](https://docs.microsoft.com/en-us/powershell/azure/install-az-ps) extensions installed.  If not, first install PowerShell, then open PowerShell as Administrator and run
-
-   ```powershell
-   Install-Module -Name Az -AllowClobber
+1. ```powershell
+Install-Module -Name Az -AllowClobber
    Install-Module -Name AzureAD -AllowClobber
    ```
-
+   
 2. If you have not done so yet, clone this GitHub repository.  Open a command prompt or terminal and run:
 
    ```bash
@@ -45,7 +49,7 @@ You can deploy from the *master* branch using the Deploy to Azure button:
    deploy
    ```
 
-   The supported parameters can be found at [below options](#deployment-script-options).
+   The supported parameters can be found [below](#deployment-script-options).
 
 2. Follow the prompts to assign a name to the resource group of the deployment and a name to the website. The script deploys the Microservices and their Azure platform dependencies into the resource group in your Azure subscription.  The script also registers an Application in your Azure Active Directory (AAD) tenant to support OAUTH based authentication.  Deployment will take several minutes.  An example of what you'd see once the solution is successfully deployed:
 
@@ -55,7 +59,7 @@ You can deploy from the *master* branch using the Deploy to Azure button:
 
    In case you run into issues please follow the steps [below](#troubleshooting-deployment-failures).
 
-3. Once the script completes successfully, select whether you want to save the .env file.  You need the .env environment file if you want to connect to the cloud endpoint using tools such as the [Console](services/howto-use-cli.md) or [deploy modules](howto-deploy-modules.md) for development and debugging.
+3. Once the script completes successfully, select whether you want to save the .env file.  You need the .env environment file if you want to connect to the cloud endpoint using tools such as the [Console](howto-use-cli.md) or [deploy modules](howto-deploy-modules.md) for development and debugging.
 
 ## Troubleshooting deployment failures
 
@@ -69,61 +73,53 @@ It is possible that the name of the website is already in use.  If you run into 
 
 ### Azure Active Directory (AAD) Registration
 
-The deployment script tries to register 2 AAD applications in Azure Active Directory.  Depending on your rights to the selected AAD tenant, this might fail.   There are 2 options:
+The deployment script tries to register 2 AAD applications in Azure Active Directory.  Depending on your rights to the selected AAD tenant, this might fail.   
 
-1. If you chose a AAD tenant from a list of tenants, restart the script and choose a different one from the list.
-2. Alternatively, deploy a private AAD tenant in another subscription, restart the script and select to use it.
-
-**WARNING**:  NEVER continue without Authentication.  If you choose to do so, anyone can access your OPC Device Management endpoints from the Internet unauthenticated.   You can always choose the ["local" deployment option](howto-deploy-dependencies.md) to kick the tires.
+An administrator with the relevant rights to the tenant can create the AAD applications for you.  The `deploy/scripts` folder contains the `aad-register.ps1` script to perform the AAD registration separately from deploying.  The output of the script is an object containing the relevant information to be used as part of deployment and must be passed to the `deploy.ps1` script in the same folder using the `-aadConfig` argument.
 
 ## Deployment script options
 
-To support automation scenarios, the script takes the following parameters:
+Using the  `deploy/scripts/deploy.ps1`  script you can deploy several configurations including deploying images from your private Azure Container Registry (ACR).
+
+To support these scenarios, the `deploy.ps1` takes the following parameters:
 
 ```bash
--type
-```
 
-The type of deployment (vm, local)
+ .PARAMETER type
+    The type of deployment (local, services, app, all)
 
-```bash
--resourceGroupName
-```
+ .PARAMETER resourceGroupName
+    Can be the name of an existing or a new resource group
 
-Can be the name of an existing or a new resource group.
+ .PARAMETER resourceGroupLocation
+    Optional, a resource group location. If specified, will try to create a new resource group in this location.
 
-```bash
--subscriptionId
-```
+ .PARAMETER subscriptionId
+    Optional, the subscription id where resources will be deployed.
 
-Optional, the subscription id where resources will be deployed.
+ .PARAMETER subscriptionName
+    Or alternatively the subscription name.
 
-```bash
--subscriptionName
-```
+ .PARAMETER accountName
+    The account name to use if not to use default.
 
-Or alternatively the subscription name.
+ .PARAMETER applicationName
+    The name of the application if not local deployment. 
 
-```bash
--resourceGroupLocation
-```
+ .PARAMETER aadConfig
+    The aad configuration object (use aad-register.ps1 to create object).  If not provides calls aad-register.ps1.
 
-Optional, a resource group location. If specified, will try to create a new resource group in this location.
+ .PARAMETER context
+    A previously created az context to be used as authentication.
 
-```bash
--aadApplicationName
-```
+ .PARAMETER aadApplicationName
+    The application name to use when registering aad application.  If not set, uses applicationName
 
-A name for the AAD application to register under.
+ .PARAMETER acrRegistryName
+    An optional name of a Azure container registry to deploy containers from.
 
-```bash
--tenantId
-```
-
-AAD tenant to use.
-
-```bash
--credentials
+ .PARAMETER acrSubscriptionName
+    The subscription of the container registry if differemt from the specified subscription.
 ```
 
 ## Next steps

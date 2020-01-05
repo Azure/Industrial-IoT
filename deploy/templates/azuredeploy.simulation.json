@@ -8,6 +8,18 @@
                 "description": "Name of the IoT Edge virtual machine."
             }
         },
+        "dpsIdScope": {
+            "type": "string",
+            "metadata": {
+                "description": "Device provisioning service id scope."
+            }
+        },
+        "dpsConnString": {
+            "type": "secureString",
+            "metadata": {
+                "description": "Azure Device Provisioning service connection string."
+            }
+        },
         "edgeOs": {
             "type": "string",
             "allowedValues": [
@@ -77,11 +89,11 @@
                 "description": "Specifies the image version tag to use for all images."
             }
         },
-        "repoUrl": {
+        "templateUrl": {
             "type": "string",
-            "defaultValue": "https://github.com/Azure/Industrial-IoT",
+            "defaultValue": "https://raw.githubusercontent.com/Azure/Industrial-IoT",
             "metadata": {
-                "description": "The repository url from which to deploy services and application.  Default is official repository."
+                "description": "The artifacts url from which to pull all linked templates.  Default is official repository."
             }
         },
         "branchName": {
@@ -89,26 +101,6 @@
             "defaultValue": "master",
             "metadata": {
                 "description": "The branch from which to deploy deploy services and application.  Default to master."
-            }
-        },
-        "keyVaultUri": {
-            "type": "string",
-            "metadata": {
-                "description": "A user created keyvault containing service and client configuration."
-            }
-        },
-        "keyVaultAppId": {
-            "type": "string",
-            "defaultValue": "",
-            "metadata": {
-                "description": "Specifies the registered application identifier (GUID) to access keyvault."
-            }
-        },
-        "keyVaultAppSecret": {
-            "type": "securestring",
-            "defaultValue": "",
-            "metadata": {
-                "description": "The registered application secret used to authenticate against KeyVault."
             }
         },
         "managedIdentityResourceId": {
@@ -122,7 +114,7 @@
     "variables": {
         "instanceId": "[take(uniqueString(subscription().subscriptionId, resourceGroup().id, parameters('edgeName'), parameters('edgeOs')), 7)]",
         "vmPrefix": "[if(equals(parameters('edgeOs'), 'windows'), take(parameters('edgeName'), 6), parameters('edgeName'))]",
-        "vmName": "[concat(variables('vmPrefix'), '-', variables('instanceId'))]",
+        "vmName": "[tolower(concat(variables('vmPrefix'), '-', variables('instanceId')))]",
         "vmResourceId": "[resourceId('Microsoft.Compute/virtualMachines', variables('vmName'))]",
         "nicResourceName": "[concat(variables('vmName'), '-nic')]",
         "nicResourceId": "[resourceId(resourceGroup().name,'Microsoft.Network/networkInterfaces', variables('nicResourceName'))]",
@@ -145,24 +137,62 @@
                 }
             }
         },
-        "windowsSetupCommand": "[concat('powershell ./vm-setup.ps1 -KeyVaultUri \"', parameters('keyVaultUri'), '\" -AppId \"', parameters('keyVaultAppId'), '\" -AppSecret \"', parameters('keyVaultAppSecret'), '\" -ImageVersion \"', parameters('imageVersion'), '\" -ImageNamespace \"', parameters('imageNamespace'), '\" -DockerUrl \"', parameters('dockerServer'), '\" -DockerUser \"', parameters('dockerUser'), '\" -DockerPassword \"', parameters('dockerPassword'), '\"')]",
+        "windowsOsProfile": {
+            "computerName": "[variables('vmName')]",
+            "adminUsername": "[parameters('edgeUsername')]",
+            "adminPassword": "[if(not(empty(parameters('edgePassword'))), parameters('edgePassword'), json('null'))]",
+            "windowsConfiguration": {
+                "enableAutomaticUpdates": true,
+                "provisionVmAgent": true
+            }
+        },
+        "windowsVmExtension": {
+            "publisher": "Microsoft.Compute",
+            "type": "CustomScriptExtension",
+            "typeHandlerVersion": "1.9",
+            "autoUpgradeMinorVersion": true,
+            "settings": {
+                "fileUris": [
+                    "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/vm-enroll.ps1')]",
+                    "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/vm-setup.ps1')]"
+                ]
+            },
+            "protectedSettings": {
+                "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File ./vm-setup.ps1 -idScope \"', parameters('dpsIdScope'), '\" -dpsConnString \"', parameters('dpsConnString'), '\"')]"
+            }
+        },
         "windowsImage": {
             "publisher": "MicrosoftWindowsServer",
             "offer": "WindowsServer",
-            "sku": "2019-datacenter",
+            "sku": "2019-Datacenter-Core-with-Containers",
             "version": "latest"
         },
-        "linuxSetupCommand": "[concat('sh vm-setup.sh --keyVaultUri \"', parameters('keyVaultUri'), '\" --appId \"', parameters('keyVaultAppId'), '\" --appSecret \"', parameters('keyVaultAppSecret'), '\" --imageVersion \"', parameters('imageVersion'), '\" --imageNamespace \"', parameters('imageNamespace'), '\" --dockerUrl \"', parameters('dockerServer'), '\" -dockerUser \"', parameters('dockerUser'), '\" --dockerPassword \"', parameters('dockerPassword'), '\"')]",
         "linuxImage": {
-            "publisher": "microsoft_iot_edge",
-            "offer": "iot_edge_vm_ubuntu",
-            "sku": "ubuntu_1604_edgeruntimeonly",
-            "version": "1.0.1"
+            "publisher": "Canonical",
+            "offer": "UbuntuServer",
+            "sku": "16.04.0-LTS",
+            "version": "latest"
         },
-        "linuxPlan": {
-            "name": "ubuntu_1604_edgeruntimeonly",
-            "publisher": "microsoft_iot_edge",
-            "product": "iot_edge_vm_ubuntu"
+        "linuxOsProfile": {
+            "computerName": "[variables('vmName')]",
+            "adminUsername": "[parameters('edgeUsername')]",
+            "adminPassword": "[if(not(empty(parameters('edgePassword'))), parameters('edgePassword'), json('null'))]"
+        },
+        "linuxVmExtension": {
+            "publisher": "Microsoft.Azure.Extensions",
+            "type": "CustomScript",
+            "typeHandlerVersion": "2.0",
+            "autoUpgradeMinorVersion": true,
+            "settings": {
+                "fileUris": [
+                    "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/vm-enroll.ps1')]",
+                    "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/vm-setup.ps1')]",
+                    "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/vm-setup.sh')]"
+                ]
+            },
+            "protectedSettings": {
+                "commandToExecute": "[concat('sudo bash vm-setup.sh --idScope \"', parameters('dpsIdScope'), '\" --dpsConnString \"', parameters('dpsConnString'), '\"')]"
+            }
         }
     },
     "resources": [
@@ -234,16 +264,11 @@
             "apiVersion": "2019-03-01",
             "location": "[resourceGroup().location]",
             "identity": "[if(not(empty(parameters('managedIdentityResourceId'))), variables('identity'), '')]",
-            "plan": "[if(equals(parameters('edgeOs'), 'linux'), variables('linuxPlan'), json('null'))]",
             "properties": {
                 "hardwareProfile": {
                     "vmSize": "Standard_B2s"
                 },
-                "osProfile": {
-                    "computerName": "[variables('vmName')]",
-                    "adminUsername": "[parameters('edgeUsername')]",
-                    "adminPassword": "[if(not(empty(parameters('edgePassword'))), parameters('edgePassword'), json('null'))]"
-                },
+                "osProfile": "[if(equals(parameters('edgeOs'), 'linux'), variables('linuxOsProfile'), variables('windowsOsProfile'))]",
                 "storageProfile": {
                     "imageReference": "[if(equals(parameters('edgeOs'), 'linux'), variables('linuxImage'), variables('windowsImage'))]",
                     "osDisk": {
@@ -268,20 +293,7 @@
             "name": "[concat(variables('vmName'), '/', 'scriptextensions')]",
             "apiVersion": "2019-03-01",
             "location": "[resourceGroup().location]",
-            "properties": {
-                "publisher": "Microsoft.Azure.Extensions",
-                "type": "CustomScript",
-                "typeHandlerVersion": "2.0",
-                "autoUpgradeMinorVersion": true,
-                "settings": {
-                    "fileUris": [
-                        "[concat(parameters('repoUrl'), parameters('branchName'), '/tools/scripts/', if (equals(parameters('edgeOs'), 'linux'), 'vm-setup.sh', 'vm-setup.ps1'))]"
-                    ]
-                },
-                "protectedSettings": {
-                    "commandToExecute": "[if (equals(parameters('edgeOs'), 'linux'), variables('linuxSetupCommand'), variables('windowsSetupCommand'))]"
-                }
-            },
+            "properties": "[if (equals(parameters('edgeOs'), 'linux'), variables('linuxVmExtension'), variables('windowsVmExtension'))]",
             "dependsOn": [
                 "[variables('vmResourceId')]"
             ]
@@ -331,11 +343,11 @@
                             "name": "[concat('opc-ua-test-server-container', copyIndex('containers'))]",
                             "properties": {
                                 "image": "[concat(parameters('dockerServer'), '/', if(empty(parameters('imageNamespace')), '', concat(parameters('imageNamespace'), '/')), 'iot/opc-ua-test-server', ':', parameters('imageVersion'))]",
-                                "command": [
-                                    "--sample",
-                                    "--autoaccept",
-                                    "--port",
-                                    "[add(50000, copyIndex('containers'))]"
+                                "environmentVariables": [
+                                    {
+                                        "name": "SERVER_PORT",
+                                        "value": "[add(50000, copyIndex('containers'))]"
+                                    }
                                 ],
                                 "ports": [
                                     {
@@ -345,7 +357,7 @@
                                 ],
                                 "resources": {
                                     "requests": {
-                                        "memoryInGB": 0.5,
+                                        "memoryInGB": 1,
                                         "cpu": 1
                                     }
                                 }

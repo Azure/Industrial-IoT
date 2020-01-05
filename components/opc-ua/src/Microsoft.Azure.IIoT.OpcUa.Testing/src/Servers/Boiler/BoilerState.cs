@@ -252,6 +252,8 @@ namespace Boiler {
         private ISystemContext _simulationContext;
         private Timer _simulationTimer;
         private Random _random;
+#pragma warning disable IDE0052 // Remove unread private members
         private long _simulationCounter;
+#pragma warning restore IDE0052 // Remove unread private members
     }
 }

@@ -25,11 +25,15 @@ import com.microsoft.azure.iiot.opc.registry.models.ApplicationRegistrationReque
 import com.microsoft.azure.iiot.opc.registry.models.ApplicationRegistrationResponseApiModel;
 import com.microsoft.azure.iiot.opc.registry.models.ApplicationRegistrationUpdateApiModel;
 import com.microsoft.azure.iiot.opc.registry.models.ApplicationSiteListApiModel;
+import com.microsoft.azure.iiot.opc.registry.models.DiscoveryConfigApiModel;
 import com.microsoft.azure.iiot.opc.registry.models.DiscoveryRequestApiModel;
 import com.microsoft.azure.iiot.opc.registry.models.EndpointInfoApiModel;
 import com.microsoft.azure.iiot.opc.registry.models.EndpointInfoListApiModel;
 import com.microsoft.azure.iiot.opc.registry.models.EndpointRegistrationQueryApiModel;
-import com.microsoft.azure.iiot.opc.registry.models.EndpointRegistrationUpdateApiModel;
+import com.microsoft.azure.iiot.opc.registry.models.PublisherApiModel;
+import com.microsoft.azure.iiot.opc.registry.models.PublisherListApiModel;
+import com.microsoft.azure.iiot.opc.registry.models.PublisherQueryApiModel;
+import com.microsoft.azure.iiot.opc.registry.models.PublisherUpdateApiModel;
 import com.microsoft.azure.iiot.opc.registry.models.ServerRegistrationRequestApiModel;
 import com.microsoft.azure.iiot.opc.registry.models.StatusResponseApiModel;
 import com.microsoft.azure.iiot.opc.registry.models.SupervisorApiModel;
@@ -71,7 +75,7 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
      * Initializes an instance of AzureOpcRegistryClient client.
      */
     public AzureOpcRegistryClientImpl() {
-        this("http://localhost");
+        this("https:///registry");
     }
 
     /**
@@ -91,7 +95,7 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
      * @param restBuilder the builder for building an Retrofit client, bundled with user configurations
      */
     public AzureOpcRegistryClientImpl(OkHttpClient.Builder clientBuilder, Retrofit.Builder restBuilder) {
-        this("http://localhost", clientBuilder, restBuilder);
+        this("https:///registry", clientBuilder, restBuilder);
         initialize();
     }
 
@@ -158,6 +162,10 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
         @POST("v2/applications/discover")
         Observable<Response<ResponseBody>> discoverServer(@Body DiscoveryRequestApiModel request);
 
+        @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient cancel" })
+        @HTTP(path = "v2/applications/discover/{requestId}", method = "DELETE", hasBody = true)
+        Observable<Response<ResponseBody>> cancel(@Path("requestId") String requestId);
+
         @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient getApplicationRegistration" })
         @GET("v2/applications/{applicationId}")
         Observable<Response<ResponseBody>> getApplicationRegistration(@Path("applicationId") String applicationId);
@@ -186,6 +194,34 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
         @POST("v2/applications/querybyid")
         Observable<Response<ResponseBody>> queryApplicationsById(@Body ApplicationRecordQueryApiModel query);
 
+        @Headers({ "Content-Type: application/json-patch+json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient subscribe" })
+        @PUT("v2/applications/events")
+        Observable<Response<ResponseBody>> subscribe(@Body String userId);
+
+        @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient unsubscribe" })
+        @HTTP(path = "v2/applications/events/{userId}", method = "DELETE", hasBody = true)
+        Observable<Response<ResponseBody>> unsubscribe(@Path("userId") String userId);
+
+        @Headers({ "Content-Type: application/json-patch+json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient subscribeBySupervisorId" })
+        @PUT("v2/discovery/{supervisorId}/events")
+        Observable<Response<ResponseBody>> subscribeBySupervisorId(@Path("supervisorId") String supervisorId, @Body String userId);
+
+        @Headers({ "Content-Type: application/json-patch+json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient subscribeByRequestId" })
+        @PUT("v2/discovery/requests/{requestId}/events")
+        Observable<Response<ResponseBody>> subscribeByRequestId(@Path("requestId") String requestId, @Body String userId);
+
+        @Headers({ "Content-Type: application/json-patch+json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient setDiscoveryMode" })
+        @POST("v2/discovery/{supervisorId}")
+        Observable<Response<ResponseBody>> setDiscoveryMode(@Path("supervisorId") String supervisorId, @Query("mode") String mode, @Body DiscoveryConfigApiModel config);
+
+        @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient unsubscribeByRequestId" })
+        @HTTP(path = "v2/discovery/requests/{requestId}/events/{userId}", method = "DELETE", hasBody = true)
+        Observable<Response<ResponseBody>> unsubscribeByRequestId(@Path("requestId") String requestId, @Path("userId") String userId);
+
+        @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient unsubscribeBySupervisorId" })
+        @HTTP(path = "v2/discovery/{supervisorId}/events/{userId}", method = "DELETE", hasBody = true)
+        Observable<Response<ResponseBody>> unsubscribeBySupervisorId(@Path("supervisorId") String supervisorId, @Path("userId") String userId);
+
         @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient activateEndpoint" })
         @POST("v2/endpoints/{endpointId}/activate")
         Observable<Response<ResponseBody>> activateEndpoint(@Path("endpointId") String endpointId);
@@ -194,17 +230,13 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
         @GET("v2/endpoints/{endpointId}")
         Observable<Response<ResponseBody>> getEndpoint(@Path("endpointId") String endpointId, @Query("onlyServerState") Boolean onlyServerState);
 
-        @Headers({ "Content-Type: application/json-patch+json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient updateEndpoint" })
-        @PATCH("v2/endpoints/{endpointId}")
-        Observable<Response<ResponseBody>> updateEndpoint(@Path("endpointId") String endpointId, @Body EndpointRegistrationUpdateApiModel request);
-
         @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient getListOfEndpoints" })
         @GET("v2/endpoints")
         Observable<Response<ResponseBody>> getListOfEndpoints(@Query("onlyServerState") Boolean onlyServerState, @Query("continuationToken") String continuationToken, @Query("pageSize") Integer pageSize);
 
         @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient getFilteredListOfEndpoints" })
         @GET("v2/endpoints/query")
-        Observable<Response<ResponseBody>> getFilteredListOfEndpoints(@Query("Url") String url, @Query("UserAuthentication") String userAuthentication, @Query("Certificate") String certificate, @Query("SecurityMode") String securityMode, @Query("SecurityPolicy") String securityPolicy, @Query("Activated") Boolean activated, @Query("Connected") Boolean connected, @Query("EndpointState") String endpointState, @Query("IncludeNotSeenSince") Boolean includeNotSeenSince, @Query("onlyServerState") Boolean onlyServerState, @Query("pageSize") Integer pageSize);
+        Observable<Response<ResponseBody>> getFilteredListOfEndpoints(@Query("Url") String url, @Query("Certificate") String certificate, @Query("SecurityMode") String securityMode, @Query("SecurityPolicy") String securityPolicy, @Query("Activated") Boolean activated, @Query("Connected") Boolean connected, @Query("EndpointState") String endpointState, @Query("IncludeNotSeenSince") Boolean includeNotSeenSince, @Query("onlyServerState") Boolean onlyServerState, @Query("pageSize") Integer pageSize);
 
         @Headers({ "Content-Type: application/json-patch+json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient queryEndpoints" })
         @POST("v2/endpoints/query")
@@ -213,6 +245,42 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
         @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient deactivateEndpoint" })
         @POST("v2/endpoints/{endpointId}/deactivate")
         Observable<Response<ResponseBody>> deactivateEndpoint(@Path("endpointId") String endpointId);
+
+        @Headers({ "Content-Type: application/json-patch+json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient subscribe1" })
+        @PUT("v2/endpoints/events")
+        Observable<Response<ResponseBody>> subscribe1(@Body String userId);
+
+        @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient unsubscribe1" })
+        @HTTP(path = "v2/endpoints/events/{userId}", method = "DELETE", hasBody = true)
+        Observable<Response<ResponseBody>> unsubscribe1(@Path("userId") String userId);
+
+        @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient getPublisher" })
+        @GET("v2/publishers/{publisherId}")
+        Observable<Response<ResponseBody>> getPublisher(@Path("publisherId") String publisherId, @Query("onlyServerState") Boolean onlyServerState);
+
+        @Headers({ "Content-Type: application/json-patch+json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient updatePublisher" })
+        @PATCH("v2/publishers/{publisherId}")
+        Observable<Response<ResponseBody>> updatePublisher(@Path("publisherId") String publisherId, @Body PublisherUpdateApiModel request);
+
+        @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient getListOfPublisher" })
+        @GET("v2/publishers")
+        Observable<Response<ResponseBody>> getListOfPublisher(@Query("onlyServerState") Boolean onlyServerState, @Query("continuationToken") String continuationToken, @Query("pageSize") Integer pageSize);
+
+        @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient getFilteredListOfPublisher" })
+        @GET("v2/publishers/query")
+        Observable<Response<ResponseBody>> getFilteredListOfPublisher(@Query("SiteId") String siteId, @Query("Connected") Boolean connected, @Query("onlyServerState") Boolean onlyServerState, @Query("pageSize") Integer pageSize);
+
+        @Headers({ "Content-Type: application/json-patch+json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient queryPublisher" })
+        @POST("v2/publishers/query")
+        Observable<Response<ResponseBody>> queryPublisher(@Body PublisherQueryApiModel query, @Query("onlyServerState") Boolean onlyServerState, @Query("pageSize") Integer pageSize);
+
+        @Headers({ "Content-Type: application/json-patch+json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient subscribe2" })
+        @PUT("v2/publishers/events")
+        Observable<Response<ResponseBody>> subscribe2(@Body String userId);
+
+        @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient unsubscribe2" })
+        @HTTP(path = "v2/publishers/events/{userId}", method = "DELETE", hasBody = true)
+        Observable<Response<ResponseBody>> unsubscribe2(@Path("userId") String userId);
 
         @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient getStatus" })
         @GET("v2/status")
@@ -245,6 +313,14 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
         @Headers({ "Content-Type: application/json-patch+json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient querySupervisors" })
         @POST("v2/supervisors/query")
         Observable<Response<ResponseBody>> querySupervisors(@Body SupervisorQueryApiModel query, @Query("onlyServerState") Boolean onlyServerState, @Query("pageSize") Integer pageSize);
+
+        @Headers({ "Content-Type: application/json-patch+json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient subscribe3" })
+        @PUT("v2/supervisors/events")
+        Observable<Response<ResponseBody>> subscribe3(@Body String userId);
+
+        @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient unsubscribe3" })
+        @HTTP(path = "v2/supervisors/events/{userId}", method = "DELETE", hasBody = true)
+        Observable<Response<ResponseBody>> unsubscribe3(@Path("userId") String userId);
 
     }
 
@@ -955,6 +1031,81 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     }
 
     private ServiceResponse<Void> discoverServerDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
+        return this.restClient().responseBuilderFactory().<Void, RestException>newInstance(this.serializerAdapter())
+                .register(200, new TypeToken<Void>() { }.getType())
+                .build(response);
+    }
+
+    /**
+     * Cancel discovery.
+     * Cancels a discovery request using the request identifier.
+     *
+     * @param requestId Discovery request
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     */
+    public void cancel(String requestId) {
+        cancelWithServiceResponseAsync(requestId).toBlocking().single().body();
+    }
+
+    /**
+     * Cancel discovery.
+     * Cancels a discovery request using the request identifier.
+     *
+     * @param requestId Discovery request
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    public ServiceFuture<Void> cancelAsync(String requestId, final ServiceCallback<Void> serviceCallback) {
+        return ServiceFuture.fromResponse(cancelWithServiceResponseAsync(requestId), serviceCallback);
+    }
+
+    /**
+     * Cancel discovery.
+     * Cancels a discovery request using the request identifier.
+     *
+     * @param requestId Discovery request
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<Void> cancelAsync(String requestId) {
+        return cancelWithServiceResponseAsync(requestId).map(new Func1<ServiceResponse<Void>, Void>() {
+            @Override
+            public Void call(ServiceResponse<Void> response) {
+                return response.body();
+            }
+        });
+    }
+
+    /**
+     * Cancel discovery.
+     * Cancels a discovery request using the request identifier.
+     *
+     * @param requestId Discovery request
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<ServiceResponse<Void>> cancelWithServiceResponseAsync(String requestId) {
+        if (requestId == null) {
+            throw new IllegalArgumentException("Parameter requestId is required and cannot be null.");
+        }
+        return service.cancel(requestId)
+            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<Void>>>() {
+                @Override
+                public Observable<ServiceResponse<Void>> call(Response<ResponseBody> response) {
+                    try {
+                        ServiceResponse<Void> clientResponse = cancelDelegate(response);
+                        return Observable.just(clientResponse);
+                    } catch (Throwable t) {
+                        return Observable.error(t);
+                    }
+                }
+            });
+    }
+
+    private ServiceResponse<Void> cancelDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<Void, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<Void>() { }.getType())
                 .build(response);
@@ -1861,6 +2012,894 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     }
 
     /**
+     * Subscribe for application events.
+     * Register a client to receive application events through SignalR.
+     *
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     */
+    public void subscribe() {
+        subscribeWithServiceResponseAsync().toBlocking().single().body();
+    }
+
+    /**
+     * Subscribe for application events.
+     * Register a client to receive application events through SignalR.
+     *
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    public ServiceFuture<Void> subscribeAsync(final ServiceCallback<Void> serviceCallback) {
+        return ServiceFuture.fromResponse(subscribeWithServiceResponseAsync(), serviceCallback);
+    }
+
+    /**
+     * Subscribe for application events.
+     * Register a client to receive application events through SignalR.
+     *
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<Void> subscribeAsync() {
+        return subscribeWithServiceResponseAsync().map(new Func1<ServiceResponse<Void>, Void>() {
+            @Override
+            public Void call(ServiceResponse<Void> response) {
+                return response.body();
+            }
+        });
+    }
+
+    /**
+     * Subscribe for application events.
+     * Register a client to receive application events through SignalR.
+     *
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<ServiceResponse<Void>> subscribeWithServiceResponseAsync() {
+        final String userId = null;
+        return service.subscribe(userId)
+            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<Void>>>() {
+                @Override
+                public Observable<ServiceResponse<Void>> call(Response<ResponseBody> response) {
+                    try {
+                        ServiceResponse<Void> clientResponse = subscribeDelegate(response);
+                        return Observable.just(clientResponse);
+                    } catch (Throwable t) {
+                        return Observable.error(t);
+                    }
+                }
+            });
+    }
+
+    /**
+     * Subscribe for application events.
+     * Register a client to receive application events through SignalR.
+     *
+     * @param userId The user that will receive application
+                 events.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     */
+    public void subscribe(String userId) {
+        subscribeWithServiceResponseAsync(userId).toBlocking().single().body();
+    }
+
+    /**
+     * Subscribe for application events.
+     * Register a client to receive application events through SignalR.
+     *
+     * @param userId The user that will receive application
+                 events.
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    public ServiceFuture<Void> subscribeAsync(String userId, final ServiceCallback<Void> serviceCallback) {
+        return ServiceFuture.fromResponse(subscribeWithServiceResponseAsync(userId), serviceCallback);
+    }
+
+    /**
+     * Subscribe for application events.
+     * Register a client to receive application events through SignalR.
+     *
+     * @param userId The user that will receive application
+                 events.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<Void> subscribeAsync(String userId) {
+        return subscribeWithServiceResponseAsync(userId).map(new Func1<ServiceResponse<Void>, Void>() {
+            @Override
+            public Void call(ServiceResponse<Void> response) {
+                return response.body();
+            }
+        });
+    }
+
+    /**
+     * Subscribe for application events.
+     * Register a client to receive application events through SignalR.
+     *
+     * @param userId The user that will receive application
+                 events.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<ServiceResponse<Void>> subscribeWithServiceResponseAsync(String userId) {
+        return service.subscribe(userId)
+            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<Void>>>() {
+                @Override
+                public Observable<ServiceResponse<Void>> call(Response<ResponseBody> response) {
+                    try {
+                        ServiceResponse<Void> clientResponse = subscribeDelegate(response);
+                        return Observable.just(clientResponse);
+                    } catch (Throwable t) {
+                        return Observable.error(t);
+                    }
+                }
+            });
+    }
+
+    private ServiceResponse<Void> subscribeDelegate(Response<ResponseBody> response) throws RestException, IOException {
+        return this.restClient().responseBuilderFactory().<Void, RestException>newInstance(this.serializerAdapter())
+                .register(200, new TypeToken<Void>() { }.getType())
+                .build(response);
+    }
+
+    /**
+     * Unsubscribe from application events.
+     * Unregister a user and stop it from receiving events.
+     *
+     * @param userId The user id that will not receive
+                 any more events
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     */
+    public void unsubscribe(String userId) {
+        unsubscribeWithServiceResponseAsync(userId).toBlocking().single().body();
+    }
+
+    /**
+     * Unsubscribe from application events.
+     * Unregister a user and stop it from receiving events.
+     *
+     * @param userId The user id that will not receive
+                 any more events
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    public ServiceFuture<Void> unsubscribeAsync(String userId, final ServiceCallback<Void> serviceCallback) {
+        return ServiceFuture.fromResponse(unsubscribeWithServiceResponseAsync(userId), serviceCallback);
+    }
+
+    /**
+     * Unsubscribe from application events.
+     * Unregister a user and stop it from receiving events.
+     *
+     * @param userId The user id that will not receive
+                 any more events
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<Void> unsubscribeAsync(String userId) {
+        return unsubscribeWithServiceResponseAsync(userId).map(new Func1<ServiceResponse<Void>, Void>() {
+            @Override
+            public Void call(ServiceResponse<Void> response) {
+                return response.body();
+            }
+        });
+    }
+
+    /**
+     * Unsubscribe from application events.
+     * Unregister a user and stop it from receiving events.
+     *
+     * @param userId The user id that will not receive
+                 any more events
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<ServiceResponse<Void>> unsubscribeWithServiceResponseAsync(String userId) {
+        if (userId == null) {
+            throw new IllegalArgumentException("Parameter userId is required and cannot be null.");
+        }
+        return service.unsubscribe(userId)
+            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<Void>>>() {
+                @Override
+                public Observable<ServiceResponse<Void>> call(Response<ResponseBody> response) {
+                    try {
+                        ServiceResponse<Void> clientResponse = unsubscribeDelegate(response);
+                        return Observable.just(clientResponse);
+                    } catch (Throwable t) {
+                        return Observable.error(t);
+                    }
+                }
+            });
+    }
+
+    private ServiceResponse<Void> unsubscribeDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
+        return this.restClient().responseBuilderFactory().<Void, RestException>newInstance(this.serializerAdapter())
+                .register(200, new TypeToken<Void>() { }.getType())
+                .build(response);
+    }
+
+    /**
+     * Subscribe to discovery progress from supervisor.
+     * Register a client to receive discovery progress events
+     through SignalR from a particular supervisor.
+     *
+     * @param supervisorId The supervisor to subscribe to
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     */
+    public void subscribeBySupervisorId(String supervisorId) {
+        subscribeBySupervisorIdWithServiceResponseAsync(supervisorId).toBlocking().single().body();
+    }
+
+    /**
+     * Subscribe to discovery progress from supervisor.
+     * Register a client to receive discovery progress events
+     through SignalR from a particular supervisor.
+     *
+     * @param supervisorId The supervisor to subscribe to
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    public ServiceFuture<Void> subscribeBySupervisorIdAsync(String supervisorId, final ServiceCallback<Void> serviceCallback) {
+        return ServiceFuture.fromResponse(subscribeBySupervisorIdWithServiceResponseAsync(supervisorId), serviceCallback);
+    }
+
+    /**
+     * Subscribe to discovery progress from supervisor.
+     * Register a client to receive discovery progress events
+     through SignalR from a particular supervisor.
+     *
+     * @param supervisorId The supervisor to subscribe to
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<Void> subscribeBySupervisorIdAsync(String supervisorId) {
+        return subscribeBySupervisorIdWithServiceResponseAsync(supervisorId).map(new Func1<ServiceResponse<Void>, Void>() {
+            @Override
+            public Void call(ServiceResponse<Void> response) {
+                return response.body();
+            }
+        });
+    }
+
+    /**
+     * Subscribe to discovery progress from supervisor.
+     * Register a client to receive discovery progress events
+     through SignalR from a particular supervisor.
+     *
+     * @param supervisorId The supervisor to subscribe to
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<ServiceResponse<Void>> subscribeBySupervisorIdWithServiceResponseAsync(String supervisorId) {
+        if (supervisorId == null) {
+            throw new IllegalArgumentException("Parameter supervisorId is required and cannot be null.");
+        }
+        final String userId = null;
+        return service.subscribeBySupervisorId(supervisorId, userId)
+            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<Void>>>() {
+                @Override
+                public Observable<ServiceResponse<Void>> call(Response<ResponseBody> response) {
+                    try {
+                        ServiceResponse<Void> clientResponse = subscribeBySupervisorIdDelegate(response);
+                        return Observable.just(clientResponse);
+                    } catch (Throwable t) {
+                        return Observable.error(t);
+                    }
+                }
+            });
+    }
+
+    /**
+     * Subscribe to discovery progress from supervisor.
+     * Register a client to receive discovery progress events
+     through SignalR from a particular supervisor.
+     *
+     * @param supervisorId The supervisor to subscribe to
+     * @param userId The user id that will receive discovery
+                 events.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     */
+    public void subscribeBySupervisorId(String supervisorId, String userId) {
+        subscribeBySupervisorIdWithServiceResponseAsync(supervisorId, userId).toBlocking().single().body();
+    }
+
+    /**
+     * Subscribe to discovery progress from supervisor.
+     * Register a client to receive discovery progress events
+     through SignalR from a particular supervisor.
+     *
+     * @param supervisorId The supervisor to subscribe to
+     * @param userId The user id that will receive discovery
+                 events.
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    public ServiceFuture<Void> subscribeBySupervisorIdAsync(String supervisorId, String userId, final ServiceCallback<Void> serviceCallback) {
+        return ServiceFuture.fromResponse(subscribeBySupervisorIdWithServiceResponseAsync(supervisorId, userId), serviceCallback);
+    }
+
+    /**
+     * Subscribe to discovery progress from supervisor.
+     * Register a client to receive discovery progress events
+     through SignalR from a particular supervisor.
+     *
+     * @param supervisorId The supervisor to subscribe to
+     * @param userId The user id that will receive discovery
+                 events.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<Void> subscribeBySupervisorIdAsync(String supervisorId, String userId) {
+        return subscribeBySupervisorIdWithServiceResponseAsync(supervisorId, userId).map(new Func1<ServiceResponse<Void>, Void>() {
+            @Override
+            public Void call(ServiceResponse<Void> response) {
+                return response.body();
+            }
+        });
+    }
+
+    /**
+     * Subscribe to discovery progress from supervisor.
+     * Register a client to receive discovery progress events
+     through SignalR from a particular supervisor.
+     *
+     * @param supervisorId The supervisor to subscribe to
+     * @param userId The user id that will receive discovery
+                 events.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<ServiceResponse<Void>> subscribeBySupervisorIdWithServiceResponseAsync(String supervisorId, String userId) {
+        if (supervisorId == null) {
+            throw new IllegalArgumentException("Parameter supervisorId is required and cannot be null.");
+        }
+        return service.subscribeBySupervisorId(supervisorId, userId)
+            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<Void>>>() {
+                @Override
+                public Observable<ServiceResponse<Void>> call(Response<ResponseBody> response) {
+                    try {
+                        ServiceResponse<Void> clientResponse = subscribeBySupervisorIdDelegate(response);
+                        return Observable.just(clientResponse);
+                    } catch (Throwable t) {
+                        return Observable.error(t);
+                    }
+                }
+            });
+    }
+
+    private ServiceResponse<Void> subscribeBySupervisorIdDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
+        return this.restClient().responseBuilderFactory().<Void, RestException>newInstance(this.serializerAdapter())
+                .register(200, new TypeToken<Void>() { }.getType())
+                .build(response);
+    }
+
+    /**
+     * Subscribe to discovery progress for a request.
+     * Register a client to receive discovery progress events
+     through SignalR for a particular request.
+     *
+     * @param requestId The request to monitor
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     */
+    public void subscribeByRequestId(String requestId) {
+        subscribeByRequestIdWithServiceResponseAsync(requestId).toBlocking().single().body();
+    }
+
+    /**
+     * Subscribe to discovery progress for a request.
+     * Register a client to receive discovery progress events
+     through SignalR for a particular request.
+     *
+     * @param requestId The request to monitor
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    public ServiceFuture<Void> subscribeByRequestIdAsync(String requestId, final ServiceCallback<Void> serviceCallback) {
+        return ServiceFuture.fromResponse(subscribeByRequestIdWithServiceResponseAsync(requestId), serviceCallback);
+    }
+
+    /**
+     * Subscribe to discovery progress for a request.
+     * Register a client to receive discovery progress events
+     through SignalR for a particular request.
+     *
+     * @param requestId The request to monitor
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<Void> subscribeByRequestIdAsync(String requestId) {
+        return subscribeByRequestIdWithServiceResponseAsync(requestId).map(new Func1<ServiceResponse<Void>, Void>() {
+            @Override
+            public Void call(ServiceResponse<Void> response) {
+                return response.body();
+            }
+        });
+    }
+
+    /**
+     * Subscribe to discovery progress for a request.
+     * Register a client to receive discovery progress events
+     through SignalR for a particular request.
+     *
+     * @param requestId The request to monitor
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<ServiceResponse<Void>> subscribeByRequestIdWithServiceResponseAsync(String requestId) {
+        if (requestId == null) {
+            throw new IllegalArgumentException("Parameter requestId is required and cannot be null.");
+        }
+        final String userId = null;
+        return service.subscribeByRequestId(requestId, userId)
+            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<Void>>>() {
+                @Override
+                public Observable<ServiceResponse<Void>> call(Response<ResponseBody> response) {
+                    try {
+                        ServiceResponse<Void> clientResponse = subscribeByRequestIdDelegate(response);
+                        return Observable.just(clientResponse);
+                    } catch (Throwable t) {
+                        return Observable.error(t);
+                    }
+                }
+            });
+    }
+
+    /**
+     * Subscribe to discovery progress for a request.
+     * Register a client to receive discovery progress events
+     through SignalR for a particular request.
+     *
+     * @param requestId The request to monitor
+     * @param userId The user id that will receive discovery
+                 events.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     */
+    public void subscribeByRequestId(String requestId, String userId) {
+        subscribeByRequestIdWithServiceResponseAsync(requestId, userId).toBlocking().single().body();
+    }
+
+    /**
+     * Subscribe to discovery progress for a request.
+     * Register a client to receive discovery progress events
+     through SignalR for a particular request.
+     *
+     * @param requestId The request to monitor
+     * @param userId The user id that will receive discovery
+                 events.
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    public ServiceFuture<Void> subscribeByRequestIdAsync(String requestId, String userId, final ServiceCallback<Void> serviceCallback) {
+        return ServiceFuture.fromResponse(subscribeByRequestIdWithServiceResponseAsync(requestId, userId), serviceCallback);
+    }
+
+    /**
+     * Subscribe to discovery progress for a request.
+     * Register a client to receive discovery progress events
+     through SignalR for a particular request.
+     *
+     * @param requestId The request to monitor
+     * @param userId The user id that will receive discovery
+                 events.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<Void> subscribeByRequestIdAsync(String requestId, String userId) {
+        return subscribeByRequestIdWithServiceResponseAsync(requestId, userId).map(new Func1<ServiceResponse<Void>, Void>() {
+            @Override
+            public Void call(ServiceResponse<Void> response) {
+                return response.body();
+            }
+        });
+    }
+
+    /**
+     * Subscribe to discovery progress for a request.
+     * Register a client to receive discovery progress events
+     through SignalR for a particular request.
+     *
+     * @param requestId The request to monitor
+     * @param userId The user id that will receive discovery
+                 events.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<ServiceResponse<Void>> subscribeByRequestIdWithServiceResponseAsync(String requestId, String userId) {
+        if (requestId == null) {
+            throw new IllegalArgumentException("Parameter requestId is required and cannot be null.");
+        }
+        return service.subscribeByRequestId(requestId, userId)
+            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<Void>>>() {
+                @Override
+                public Observable<ServiceResponse<Void>> call(Response<ResponseBody> response) {
+                    try {
+                        ServiceResponse<Void> clientResponse = subscribeByRequestIdDelegate(response);
+                        return Observable.just(clientResponse);
+                    } catch (Throwable t) {
+                        return Observable.error(t);
+                    }
+                }
+            });
+    }
+
+    private ServiceResponse<Void> subscribeByRequestIdDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
+        return this.restClient().responseBuilderFactory().<Void, RestException>newInstance(this.serializerAdapter())
+                .register(200, new TypeToken<Void>() { }.getType())
+                .build(response);
+    }
+
+    /**
+     * Enable server discovery.
+     * Allows a caller to configure recurring discovery runs on the
+     discovery module identified by the module id.
+     *
+     * @param supervisorId supervisor identifier
+     * @param mode Discovery mode. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     */
+    public void setDiscoveryMode(String supervisorId, String mode) {
+        setDiscoveryModeWithServiceResponseAsync(supervisorId, mode).toBlocking().single().body();
+    }
+
+    /**
+     * Enable server discovery.
+     * Allows a caller to configure recurring discovery runs on the
+     discovery module identified by the module id.
+     *
+     * @param supervisorId supervisor identifier
+     * @param mode Discovery mode. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    public ServiceFuture<Void> setDiscoveryModeAsync(String supervisorId, String mode, final ServiceCallback<Void> serviceCallback) {
+        return ServiceFuture.fromResponse(setDiscoveryModeWithServiceResponseAsync(supervisorId, mode), serviceCallback);
+    }
+
+    /**
+     * Enable server discovery.
+     * Allows a caller to configure recurring discovery runs on the
+     discovery module identified by the module id.
+     *
+     * @param supervisorId supervisor identifier
+     * @param mode Discovery mode. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<Void> setDiscoveryModeAsync(String supervisorId, String mode) {
+        return setDiscoveryModeWithServiceResponseAsync(supervisorId, mode).map(new Func1<ServiceResponse<Void>, Void>() {
+            @Override
+            public Void call(ServiceResponse<Void> response) {
+                return response.body();
+            }
+        });
+    }
+
+    /**
+     * Enable server discovery.
+     * Allows a caller to configure recurring discovery runs on the
+     discovery module identified by the module id.
+     *
+     * @param supervisorId supervisor identifier
+     * @param mode Discovery mode. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<ServiceResponse<Void>> setDiscoveryModeWithServiceResponseAsync(String supervisorId, String mode) {
+        if (supervisorId == null) {
+            throw new IllegalArgumentException("Parameter supervisorId is required and cannot be null.");
+        }
+        if (mode == null) {
+            throw new IllegalArgumentException("Parameter mode is required and cannot be null.");
+        }
+        final DiscoveryConfigApiModel config = null;
+        return service.setDiscoveryMode(supervisorId, mode, config)
+            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<Void>>>() {
+                @Override
+                public Observable<ServiceResponse<Void>> call(Response<ResponseBody> response) {
+                    try {
+                        ServiceResponse<Void> clientResponse = setDiscoveryModeDelegate(response);
+                        return Observable.just(clientResponse);
+                    } catch (Throwable t) {
+                        return Observable.error(t);
+                    }
+                }
+            });
+    }
+
+    /**
+     * Enable server discovery.
+     * Allows a caller to configure recurring discovery runs on the
+     discovery module identified by the module id.
+     *
+     * @param supervisorId supervisor identifier
+     * @param mode Discovery mode. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
+     * @param config Discovery configuration
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     */
+    public void setDiscoveryMode(String supervisorId, String mode, DiscoveryConfigApiModel config) {
+        setDiscoveryModeWithServiceResponseAsync(supervisorId, mode, config).toBlocking().single().body();
+    }
+
+    /**
+     * Enable server discovery.
+     * Allows a caller to configure recurring discovery runs on the
+     discovery module identified by the module id.
+     *
+     * @param supervisorId supervisor identifier
+     * @param mode Discovery mode. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
+     * @param config Discovery configuration
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    public ServiceFuture<Void> setDiscoveryModeAsync(String supervisorId, String mode, DiscoveryConfigApiModel config, final ServiceCallback<Void> serviceCallback) {
+        return ServiceFuture.fromResponse(setDiscoveryModeWithServiceResponseAsync(supervisorId, mode, config), serviceCallback);
+    }
+
+    /**
+     * Enable server discovery.
+     * Allows a caller to configure recurring discovery runs on the
+     discovery module identified by the module id.
+     *
+     * @param supervisorId supervisor identifier
+     * @param mode Discovery mode. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
+     * @param config Discovery configuration
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<Void> setDiscoveryModeAsync(String supervisorId, String mode, DiscoveryConfigApiModel config) {
+        return setDiscoveryModeWithServiceResponseAsync(supervisorId, mode, config).map(new Func1<ServiceResponse<Void>, Void>() {
+            @Override
+            public Void call(ServiceResponse<Void> response) {
+                return response.body();
+            }
+        });
+    }
+
+    /**
+     * Enable server discovery.
+     * Allows a caller to configure recurring discovery runs on the
+     discovery module identified by the module id.
+     *
+     * @param supervisorId supervisor identifier
+     * @param mode Discovery mode. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
+     * @param config Discovery configuration
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<ServiceResponse<Void>> setDiscoveryModeWithServiceResponseAsync(String supervisorId, String mode, DiscoveryConfigApiModel config) {
+        if (supervisorId == null) {
+            throw new IllegalArgumentException("Parameter supervisorId is required and cannot be null.");
+        }
+        if (mode == null) {
+            throw new IllegalArgumentException("Parameter mode is required and cannot be null.");
+        }
+        Validator.validate(config);
+        return service.setDiscoveryMode(supervisorId, mode, config)
+            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<Void>>>() {
+                @Override
+                public Observable<ServiceResponse<Void>> call(Response<ResponseBody> response) {
+                    try {
+                        ServiceResponse<Void> clientResponse = setDiscoveryModeDelegate(response);
+                        return Observable.just(clientResponse);
+                    } catch (Throwable t) {
+                        return Observable.error(t);
+                    }
+                }
+            });
+    }
+
+    private ServiceResponse<Void> setDiscoveryModeDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
+        return this.restClient().responseBuilderFactory().<Void, RestException>newInstance(this.serializerAdapter())
+                .register(200, new TypeToken<Void>() { }.getType())
+                .build(response);
+    }
+
+    /**
+     * Unsubscribe from discovery progress for a request.
+     * Unregister a client and stop it from receiving discovery
+     events for a particular request.
+     *
+     * @param requestId The request to unsubscribe from
+     * @param userId The user id that will not receive
+                 any more discovery progress
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     */
+    public void unsubscribeByRequestId(String requestId, String userId) {
+        unsubscribeByRequestIdWithServiceResponseAsync(requestId, userId).toBlocking().single().body();
+    }
+
+    /**
+     * Unsubscribe from discovery progress for a request.
+     * Unregister a client and stop it from receiving discovery
+     events for a particular request.
+     *
+     * @param requestId The request to unsubscribe from
+     * @param userId The user id that will not receive
+                 any more discovery progress
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    public ServiceFuture<Void> unsubscribeByRequestIdAsync(String requestId, String userId, final ServiceCallback<Void> serviceCallback) {
+        return ServiceFuture.fromResponse(unsubscribeByRequestIdWithServiceResponseAsync(requestId, userId), serviceCallback);
+    }
+
+    /**
+     * Unsubscribe from discovery progress for a request.
+     * Unregister a client and stop it from receiving discovery
+     events for a particular request.
+     *
+     * @param requestId The request to unsubscribe from
+     * @param userId The user id that will not receive
+                 any more discovery progress
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<Void> unsubscribeByRequestIdAsync(String requestId, String userId) {
+        return unsubscribeByRequestIdWithServiceResponseAsync(requestId, userId).map(new Func1<ServiceResponse<Void>, Void>() {
+            @Override
+            public Void call(ServiceResponse<Void> response) {
+                return response.body();
+            }
+        });
+    }
+
+    /**
+     * Unsubscribe from discovery progress for a request.
+     * Unregister a client and stop it from receiving discovery
+     events for a particular request.
+     *
+     * @param requestId The request to unsubscribe from
+     * @param userId The user id that will not receive
+                 any more discovery progress
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<ServiceResponse<Void>> unsubscribeByRequestIdWithServiceResponseAsync(String requestId, String userId) {
+        if (requestId == null) {
+            throw new IllegalArgumentException("Parameter requestId is required and cannot be null.");
+        }
+        if (userId == null) {
+            throw new IllegalArgumentException("Parameter userId is required and cannot be null.");
+        }
+        return service.unsubscribeByRequestId(requestId, userId)
+            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<Void>>>() {
+                @Override
+                public Observable<ServiceResponse<Void>> call(Response<ResponseBody> response) {
+                    try {
+                        ServiceResponse<Void> clientResponse = unsubscribeByRequestIdDelegate(response);
+                        return Observable.just(clientResponse);
+                    } catch (Throwable t) {
+                        return Observable.error(t);
+                    }
+                }
+            });
+    }
+
+    private ServiceResponse<Void> unsubscribeByRequestIdDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
+        return this.restClient().responseBuilderFactory().<Void, RestException>newInstance(this.serializerAdapter())
+                .register(200, new TypeToken<Void>() { }.getType())
+                .build(response);
+    }
+
+    /**
+     * Unsubscribe from discovery progress from supervisor.
+     * Unregister a client and stop it from receiving discovery events.
+     *
+     * @param supervisorId The supervisor to unsubscribe from
+     * @param userId The user id that will not receive
+                 any more discovery progress
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     */
+    public void unsubscribeBySupervisorId(String supervisorId, String userId) {
+        unsubscribeBySupervisorIdWithServiceResponseAsync(supervisorId, userId).toBlocking().single().body();
+    }
+
+    /**
+     * Unsubscribe from discovery progress from supervisor.
+     * Unregister a client and stop it from receiving discovery events.
+     *
+     * @param supervisorId The supervisor to unsubscribe from
+     * @param userId The user id that will not receive
+                 any more discovery progress
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    public ServiceFuture<Void> unsubscribeBySupervisorIdAsync(String supervisorId, String userId, final ServiceCallback<Void> serviceCallback) {
+        return ServiceFuture.fromResponse(unsubscribeBySupervisorIdWithServiceResponseAsync(supervisorId, userId), serviceCallback);
+    }
+
+    /**
+     * Unsubscribe from discovery progress from supervisor.
+     * Unregister a client and stop it from receiving discovery events.
+     *
+     * @param supervisorId The supervisor to unsubscribe from
+     * @param userId The user id that will not receive
+                 any more discovery progress
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<Void> unsubscribeBySupervisorIdAsync(String supervisorId, String userId) {
+        return unsubscribeBySupervisorIdWithServiceResponseAsync(supervisorId, userId).map(new Func1<ServiceResponse<Void>, Void>() {
+            @Override
+            public Void call(ServiceResponse<Void> response) {
+                return response.body();
+            }
+        });
+    }
+
+    /**
+     * Unsubscribe from discovery progress from supervisor.
+     * Unregister a client and stop it from receiving discovery events.
+     *
+     * @param supervisorId The supervisor to unsubscribe from
+     * @param userId The user id that will not receive
+                 any more discovery progress
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<ServiceResponse<Void>> unsubscribeBySupervisorIdWithServiceResponseAsync(String supervisorId, String userId) {
+        if (supervisorId == null) {
+            throw new IllegalArgumentException("Parameter supervisorId is required and cannot be null.");
+        }
+        if (userId == null) {
+            throw new IllegalArgumentException("Parameter userId is required and cannot be null.");
+        }
+        return service.unsubscribeBySupervisorId(supervisorId, userId)
+            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<Void>>>() {
+                @Override
+                public Observable<ServiceResponse<Void>> call(Response<ResponseBody> response) {
+                    try {
+                        ServiceResponse<Void> clientResponse = unsubscribeBySupervisorIdDelegate(response);
+                        return Observable.just(clientResponse);
+                    } catch (Throwable t) {
+                        return Observable.error(t);
+                    }
+                }
+            });
+    }
+
+    private ServiceResponse<Void> unsubscribeBySupervisorIdDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
+        return this.restClient().responseBuilderFactory().<Void, RestException>newInstance(this.serializerAdapter())
+                .register(200, new TypeToken<Void>() { }.getType())
+                .build(response);
+    }
+
+    /**
      * Activate endpoint.
      * Activates an endpoint for subsequent use in twin service.
      All endpoints must be activated using this API or through a
@@ -2099,85 +3138,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     private ServiceResponse<EndpointInfoApiModel> getEndpointDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<EndpointInfoApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<EndpointInfoApiModel>() { }.getType())
-                .build(response);
-    }
-
-    /**
-     * Update endpoint information.
-     *
-     * @param endpointId endpoint identifier
-     * @param request Endpoint update request
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     */
-    public void updateEndpoint(String endpointId, EndpointRegistrationUpdateApiModel request) {
-        updateEndpointWithServiceResponseAsync(endpointId, request).toBlocking().single().body();
-    }
-
-    /**
-     * Update endpoint information.
-     *
-     * @param endpointId endpoint identifier
-     * @param request Endpoint update request
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    public ServiceFuture<Void> updateEndpointAsync(String endpointId, EndpointRegistrationUpdateApiModel request, final ServiceCallback<Void> serviceCallback) {
-        return ServiceFuture.fromResponse(updateEndpointWithServiceResponseAsync(endpointId, request), serviceCallback);
-    }
-
-    /**
-     * Update endpoint information.
-     *
-     * @param endpointId endpoint identifier
-     * @param request Endpoint update request
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceResponse} object if successful.
-     */
-    public Observable<Void> updateEndpointAsync(String endpointId, EndpointRegistrationUpdateApiModel request) {
-        return updateEndpointWithServiceResponseAsync(endpointId, request).map(new Func1<ServiceResponse<Void>, Void>() {
-            @Override
-            public Void call(ServiceResponse<Void> response) {
-                return response.body();
-            }
-        });
-    }
-
-    /**
-     * Update endpoint information.
-     *
-     * @param endpointId endpoint identifier
-     * @param request Endpoint update request
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceResponse} object if successful.
-     */
-    public Observable<ServiceResponse<Void>> updateEndpointWithServiceResponseAsync(String endpointId, EndpointRegistrationUpdateApiModel request) {
-        if (endpointId == null) {
-            throw new IllegalArgumentException("Parameter endpointId is required and cannot be null.");
-        }
-        if (request == null) {
-            throw new IllegalArgumentException("Parameter request is required and cannot be null.");
-        }
-        Validator.validate(request);
-        return service.updateEndpoint(endpointId, request)
-            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<Void>>>() {
-                @Override
-                public Observable<ServiceResponse<Void>> call(Response<ResponseBody> response) {
-                    try {
-                        ServiceResponse<Void> clientResponse = updateEndpointDelegate(response);
-                        return Observable.just(clientResponse);
-                    } catch (Throwable t) {
-                        return Observable.error(t);
-                    }
-                }
-            });
-    }
-
-    private ServiceResponse<Void> updateEndpointDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
-        return this.restClient().responseBuilderFactory().<Void, RestException>newInstance(this.serializerAdapter())
-                .register(200, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 
@@ -2422,7 +3382,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
      */
     public Observable<ServiceResponse<EndpointInfoListApiModel>> getFilteredListOfEndpointsWithServiceResponseAsync() {
         final String url = null;
-        final String userAuthentication = null;
         final byte[] certificate = new byte[0];
         final String securityMode = null;
         final String securityPolicy = null;
@@ -2433,7 +3392,7 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
         final Boolean onlyServerState = null;
         final Integer pageSize = null;
         String certificateConverted = Base64.encodeBase64String(certificate);
-        return service.getFilteredListOfEndpoints(url, userAuthentication, certificateConverted, securityMode, securityPolicy, activated, connected, endpointState, includeNotSeenSince, onlyServerState, pageSize)
+        return service.getFilteredListOfEndpoints(url, certificateConverted, securityMode, securityPolicy, activated, connected, endpointState, includeNotSeenSince, onlyServerState, pageSize)
             .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<EndpointInfoListApiModel>>>() {
                 @Override
                 public Observable<ServiceResponse<EndpointInfoListApiModel>> call(Response<ResponseBody> response) {
@@ -2456,7 +3415,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
      more results.
      *
      * @param url Endoint url for direct server access
-     * @param userAuthentication Type of credential selected for authentication. Possible values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
      * @param certificate Certificate of the endpoint
      * @param securityMode Security Mode. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
      * @param securityPolicy Security policy uri
@@ -2473,8 +3431,8 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
      * @return the EndpointInfoListApiModel object if successful.
      */
-    public EndpointInfoListApiModel getFilteredListOfEndpoints(String url, String userAuthentication, byte[] certificate, String securityMode, String securityPolicy, Boolean activated, Boolean connected, String endpointState, Boolean includeNotSeenSince, Boolean onlyServerState, Integer pageSize) {
-        return getFilteredListOfEndpointsWithServiceResponseAsync(url, userAuthentication, certificate, securityMode, securityPolicy, activated, connected, endpointState, includeNotSeenSince, onlyServerState, pageSize).toBlocking().single().body();
+    public EndpointInfoListApiModel getFilteredListOfEndpoints(String url, byte[] certificate, String securityMode, String securityPolicy, Boolean activated, Boolean connected, String endpointState, Boolean includeNotSeenSince, Boolean onlyServerState, Integer pageSize) {
+        return getFilteredListOfEndpointsWithServiceResponseAsync(url, certificate, securityMode, securityPolicy, activated, connected, endpointState, includeNotSeenSince, onlyServerState, pageSize).toBlocking().single().body();
     }
 
     /**
@@ -2486,7 +3444,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
      more results.
      *
      * @param url Endoint url for direct server access
-     * @param userAuthentication Type of credential selected for authentication. Possible values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
      * @param certificate Certificate of the endpoint
      * @param securityMode Security Mode. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
      * @param securityPolicy Security policy uri
@@ -2502,8 +3459,8 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    public ServiceFuture<EndpointInfoListApiModel> getFilteredListOfEndpointsAsync(String url, String userAuthentication, byte[] certificate, String securityMode, String securityPolicy, Boolean activated, Boolean connected, String endpointState, Boolean includeNotSeenSince, Boolean onlyServerState, Integer pageSize, final ServiceCallback<EndpointInfoListApiModel> serviceCallback) {
-        return ServiceFuture.fromResponse(getFilteredListOfEndpointsWithServiceResponseAsync(url, userAuthentication, certificate, securityMode, securityPolicy, activated, connected, endpointState, includeNotSeenSince, onlyServerState, pageSize), serviceCallback);
+    public ServiceFuture<EndpointInfoListApiModel> getFilteredListOfEndpointsAsync(String url, byte[] certificate, String securityMode, String securityPolicy, Boolean activated, Boolean connected, String endpointState, Boolean includeNotSeenSince, Boolean onlyServerState, Integer pageSize, final ServiceCallback<EndpointInfoListApiModel> serviceCallback) {
+        return ServiceFuture.fromResponse(getFilteredListOfEndpointsWithServiceResponseAsync(url, certificate, securityMode, securityPolicy, activated, connected, endpointState, includeNotSeenSince, onlyServerState, pageSize), serviceCallback);
     }
 
     /**
@@ -2515,7 +3472,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
      more results.
      *
      * @param url Endoint url for direct server access
-     * @param userAuthentication Type of credential selected for authentication. Possible values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
      * @param certificate Certificate of the endpoint
      * @param securityMode Security Mode. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
      * @param securityPolicy Security policy uri
@@ -2530,8 +3486,8 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the EndpointInfoListApiModel object
      */
-    public Observable<EndpointInfoListApiModel> getFilteredListOfEndpointsAsync(String url, String userAuthentication, byte[] certificate, String securityMode, String securityPolicy, Boolean activated, Boolean connected, String endpointState, Boolean includeNotSeenSince, Boolean onlyServerState, Integer pageSize) {
-        return getFilteredListOfEndpointsWithServiceResponseAsync(url, userAuthentication, certificate, securityMode, securityPolicy, activated, connected, endpointState, includeNotSeenSince, onlyServerState, pageSize).map(new Func1<ServiceResponse<EndpointInfoListApiModel>, EndpointInfoListApiModel>() {
+    public Observable<EndpointInfoListApiModel> getFilteredListOfEndpointsAsync(String url, byte[] certificate, String securityMode, String securityPolicy, Boolean activated, Boolean connected, String endpointState, Boolean includeNotSeenSince, Boolean onlyServerState, Integer pageSize) {
+        return getFilteredListOfEndpointsWithServiceResponseAsync(url, certificate, securityMode, securityPolicy, activated, connected, endpointState, includeNotSeenSince, onlyServerState, pageSize).map(new Func1<ServiceResponse<EndpointInfoListApiModel>, EndpointInfoListApiModel>() {
             @Override
             public EndpointInfoListApiModel call(ServiceResponse<EndpointInfoListApiModel> response) {
                 return response.body();
@@ -2548,7 +3504,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
      more results.
      *
      * @param url Endoint url for direct server access
-     * @param userAuthentication Type of credential selected for authentication. Possible values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
      * @param certificate Certificate of the endpoint
      * @param securityMode Security Mode. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
      * @param securityPolicy Security policy uri
@@ -2563,9 +3518,9 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the EndpointInfoListApiModel object
      */
-    public Observable<ServiceResponse<EndpointInfoListApiModel>> getFilteredListOfEndpointsWithServiceResponseAsync(String url, String userAuthentication, byte[] certificate, String securityMode, String securityPolicy, Boolean activated, Boolean connected, String endpointState, Boolean includeNotSeenSince, Boolean onlyServerState, Integer pageSize) {
+    public Observable<ServiceResponse<EndpointInfoListApiModel>> getFilteredListOfEndpointsWithServiceResponseAsync(String url, byte[] certificate, String securityMode, String securityPolicy, Boolean activated, Boolean connected, String endpointState, Boolean includeNotSeenSince, Boolean onlyServerState, Integer pageSize) {
         String certificateConverted = Base64.encodeBase64String(certificate);
-        return service.getFilteredListOfEndpoints(url, userAuthentication, certificateConverted, securityMode, securityPolicy, activated, connected, endpointState, includeNotSeenSince, onlyServerState, pageSize)
+        return service.getFilteredListOfEndpoints(url, certificateConverted, securityMode, securityPolicy, activated, connected, endpointState, includeNotSeenSince, onlyServerState, pageSize)
             .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<EndpointInfoListApiModel>>>() {
                 @Override
                 public Observable<ServiceResponse<EndpointInfoListApiModel>> call(Response<ResponseBody> response) {
@@ -2849,6 +3804,1261 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     }
 
     private ServiceResponse<Void> deactivateEndpointDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
+        return this.restClient().responseBuilderFactory().<Void, RestException>newInstance(this.serializerAdapter())
+                .register(200, new TypeToken<Void>() { }.getType())
+                .build(response);
+    }
+
+    /**
+     * Subscribe for endpoint events.
+     * Register a user to receive endpoint events through SignalR.
+     *
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     */
+    public void subscribe1() {
+        subscribe1WithServiceResponseAsync().toBlocking().single().body();
+    }
+
+    /**
+     * Subscribe for endpoint events.
+     * Register a user to receive endpoint events through SignalR.
+     *
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    public ServiceFuture<Void> subscribe1Async(final ServiceCallback<Void> serviceCallback) {
+        return ServiceFuture.fromResponse(subscribe1WithServiceResponseAsync(), serviceCallback);
+    }
+
+    /**
+     * Subscribe for endpoint events.
+     * Register a user to receive endpoint events through SignalR.
+     *
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<Void> subscribe1Async() {
+        return subscribe1WithServiceResponseAsync().map(new Func1<ServiceResponse<Void>, Void>() {
+            @Override
+            public Void call(ServiceResponse<Void> response) {
+                return response.body();
+            }
+        });
+    }
+
+    /**
+     * Subscribe for endpoint events.
+     * Register a user to receive endpoint events through SignalR.
+     *
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<ServiceResponse<Void>> subscribe1WithServiceResponseAsync() {
+        final String userId = null;
+        return service.subscribe1(userId)
+            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<Void>>>() {
+                @Override
+                public Observable<ServiceResponse<Void>> call(Response<ResponseBody> response) {
+                    try {
+                        ServiceResponse<Void> clientResponse = subscribe1Delegate(response);
+                        return Observable.just(clientResponse);
+                    } catch (Throwable t) {
+                        return Observable.error(t);
+                    }
+                }
+            });
+    }
+
+    /**
+     * Subscribe for endpoint events.
+     * Register a user to receive endpoint events through SignalR.
+     *
+     * @param userId The user id that will receive endpoint
+                 events.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     */
+    public void subscribe1(String userId) {
+        subscribe1WithServiceResponseAsync(userId).toBlocking().single().body();
+    }
+
+    /**
+     * Subscribe for endpoint events.
+     * Register a user to receive endpoint events through SignalR.
+     *
+     * @param userId The user id that will receive endpoint
+                 events.
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    public ServiceFuture<Void> subscribe1Async(String userId, final ServiceCallback<Void> serviceCallback) {
+        return ServiceFuture.fromResponse(subscribe1WithServiceResponseAsync(userId), serviceCallback);
+    }
+
+    /**
+     * Subscribe for endpoint events.
+     * Register a user to receive endpoint events through SignalR.
+     *
+     * @param userId The user id that will receive endpoint
+                 events.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<Void> subscribe1Async(String userId) {
+        return subscribe1WithServiceResponseAsync(userId).map(new Func1<ServiceResponse<Void>, Void>() {
+            @Override
+            public Void call(ServiceResponse<Void> response) {
+                return response.body();
+            }
+        });
+    }
+
+    /**
+     * Subscribe for endpoint events.
+     * Register a user to receive endpoint events through SignalR.
+     *
+     * @param userId The user id that will receive endpoint
+                 events.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<ServiceResponse<Void>> subscribe1WithServiceResponseAsync(String userId) {
+        return service.subscribe1(userId)
+            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<Void>>>() {
+                @Override
+                public Observable<ServiceResponse<Void>> call(Response<ResponseBody> response) {
+                    try {
+                        ServiceResponse<Void> clientResponse = subscribe1Delegate(response);
+                        return Observable.just(clientResponse);
+                    } catch (Throwable t) {
+                        return Observable.error(t);
+                    }
+                }
+            });
+    }
+
+    private ServiceResponse<Void> subscribe1Delegate(Response<ResponseBody> response) throws RestException, IOException {
+        return this.restClient().responseBuilderFactory().<Void, RestException>newInstance(this.serializerAdapter())
+                .register(200, new TypeToken<Void>() { }.getType())
+                .build(response);
+    }
+
+    /**
+     * Unsubscribe from endpoint events.
+     * Unregister a user and stop it from receiving endpoint events.
+     *
+     * @param userId The user id that will not receive
+                 any more endpoint events
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     */
+    public void unsubscribe1(String userId) {
+        unsubscribe1WithServiceResponseAsync(userId).toBlocking().single().body();
+    }
+
+    /**
+     * Unsubscribe from endpoint events.
+     * Unregister a user and stop it from receiving endpoint events.
+     *
+     * @param userId The user id that will not receive
+                 any more endpoint events
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    public ServiceFuture<Void> unsubscribe1Async(String userId, final ServiceCallback<Void> serviceCallback) {
+        return ServiceFuture.fromResponse(unsubscribe1WithServiceResponseAsync(userId), serviceCallback);
+    }
+
+    /**
+     * Unsubscribe from endpoint events.
+     * Unregister a user and stop it from receiving endpoint events.
+     *
+     * @param userId The user id that will not receive
+                 any more endpoint events
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<Void> unsubscribe1Async(String userId) {
+        return unsubscribe1WithServiceResponseAsync(userId).map(new Func1<ServiceResponse<Void>, Void>() {
+            @Override
+            public Void call(ServiceResponse<Void> response) {
+                return response.body();
+            }
+        });
+    }
+
+    /**
+     * Unsubscribe from endpoint events.
+     * Unregister a user and stop it from receiving endpoint events.
+     *
+     * @param userId The user id that will not receive
+                 any more endpoint events
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<ServiceResponse<Void>> unsubscribe1WithServiceResponseAsync(String userId) {
+        if (userId == null) {
+            throw new IllegalArgumentException("Parameter userId is required and cannot be null.");
+        }
+        return service.unsubscribe1(userId)
+            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<Void>>>() {
+                @Override
+                public Observable<ServiceResponse<Void>> call(Response<ResponseBody> response) {
+                    try {
+                        ServiceResponse<Void> clientResponse = unsubscribe1Delegate(response);
+                        return Observable.just(clientResponse);
+                    } catch (Throwable t) {
+                        return Observable.error(t);
+                    }
+                }
+            });
+    }
+
+    private ServiceResponse<Void> unsubscribe1Delegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
+        return this.restClient().responseBuilderFactory().<Void, RestException>newInstance(this.serializerAdapter())
+                .register(200, new TypeToken<Void>() { }.getType())
+                .build(response);
+    }
+
+    /**
+     * Get publisher registration information.
+     * Returns a publisher's registration and connectivity information.
+     A publisher id corresponds to the twin modules module identity.
+     *
+     * @param publisherId Publisher identifier
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     * @return the PublisherApiModel object if successful.
+     */
+    public PublisherApiModel getPublisher(String publisherId) {
+        return getPublisherWithServiceResponseAsync(publisherId).toBlocking().single().body();
+    }
+
+    /**
+     * Get publisher registration information.
+     * Returns a publisher's registration and connectivity information.
+     A publisher id corresponds to the twin modules module identity.
+     *
+     * @param publisherId Publisher identifier
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    public ServiceFuture<PublisherApiModel> getPublisherAsync(String publisherId, final ServiceCallback<PublisherApiModel> serviceCallback) {
+        return ServiceFuture.fromResponse(getPublisherWithServiceResponseAsync(publisherId), serviceCallback);
+    }
+
+    /**
+     * Get publisher registration information.
+     * Returns a publisher's registration and connectivity information.
+     A publisher id corresponds to the twin modules module identity.
+     *
+     * @param publisherId Publisher identifier
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the PublisherApiModel object
+     */
+    public Observable<PublisherApiModel> getPublisherAsync(String publisherId) {
+        return getPublisherWithServiceResponseAsync(publisherId).map(new Func1<ServiceResponse<PublisherApiModel>, PublisherApiModel>() {
+            @Override
+            public PublisherApiModel call(ServiceResponse<PublisherApiModel> response) {
+                return response.body();
+            }
+        });
+    }
+
+    /**
+     * Get publisher registration information.
+     * Returns a publisher's registration and connectivity information.
+     A publisher id corresponds to the twin modules module identity.
+     *
+     * @param publisherId Publisher identifier
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the PublisherApiModel object
+     */
+    public Observable<ServiceResponse<PublisherApiModel>> getPublisherWithServiceResponseAsync(String publisherId) {
+        if (publisherId == null) {
+            throw new IllegalArgumentException("Parameter publisherId is required and cannot be null.");
+        }
+        final Boolean onlyServerState = null;
+        return service.getPublisher(publisherId, onlyServerState)
+            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<PublisherApiModel>>>() {
+                @Override
+                public Observable<ServiceResponse<PublisherApiModel>> call(Response<ResponseBody> response) {
+                    try {
+                        ServiceResponse<PublisherApiModel> clientResponse = getPublisherDelegate(response);
+                        return Observable.just(clientResponse);
+                    } catch (Throwable t) {
+                        return Observable.error(t);
+                    }
+                }
+            });
+    }
+
+    /**
+     * Get publisher registration information.
+     * Returns a publisher's registration and connectivity information.
+     A publisher id corresponds to the twin modules module identity.
+     *
+     * @param publisherId Publisher identifier
+     * @param onlyServerState Whether to include only server
+                 state, or display current client state of the endpoint if
+                 available
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     * @return the PublisherApiModel object if successful.
+     */
+    public PublisherApiModel getPublisher(String publisherId, Boolean onlyServerState) {
+        return getPublisherWithServiceResponseAsync(publisherId, onlyServerState).toBlocking().single().body();
+    }
+
+    /**
+     * Get publisher registration information.
+     * Returns a publisher's registration and connectivity information.
+     A publisher id corresponds to the twin modules module identity.
+     *
+     * @param publisherId Publisher identifier
+     * @param onlyServerState Whether to include only server
+                 state, or display current client state of the endpoint if
+                 available
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    public ServiceFuture<PublisherApiModel> getPublisherAsync(String publisherId, Boolean onlyServerState, final ServiceCallback<PublisherApiModel> serviceCallback) {
+        return ServiceFuture.fromResponse(getPublisherWithServiceResponseAsync(publisherId, onlyServerState), serviceCallback);
+    }
+
+    /**
+     * Get publisher registration information.
+     * Returns a publisher's registration and connectivity information.
+     A publisher id corresponds to the twin modules module identity.
+     *
+     * @param publisherId Publisher identifier
+     * @param onlyServerState Whether to include only server
+                 state, or display current client state of the endpoint if
+                 available
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the PublisherApiModel object
+     */
+    public Observable<PublisherApiModel> getPublisherAsync(String publisherId, Boolean onlyServerState) {
+        return getPublisherWithServiceResponseAsync(publisherId, onlyServerState).map(new Func1<ServiceResponse<PublisherApiModel>, PublisherApiModel>() {
+            @Override
+            public PublisherApiModel call(ServiceResponse<PublisherApiModel> response) {
+                return response.body();
+            }
+        });
+    }
+
+    /**
+     * Get publisher registration information.
+     * Returns a publisher's registration and connectivity information.
+     A publisher id corresponds to the twin modules module identity.
+     *
+     * @param publisherId Publisher identifier
+     * @param onlyServerState Whether to include only server
+                 state, or display current client state of the endpoint if
+                 available
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the PublisherApiModel object
+     */
+    public Observable<ServiceResponse<PublisherApiModel>> getPublisherWithServiceResponseAsync(String publisherId, Boolean onlyServerState) {
+        if (publisherId == null) {
+            throw new IllegalArgumentException("Parameter publisherId is required and cannot be null.");
+        }
+        return service.getPublisher(publisherId, onlyServerState)
+            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<PublisherApiModel>>>() {
+                @Override
+                public Observable<ServiceResponse<PublisherApiModel>> call(Response<ResponseBody> response) {
+                    try {
+                        ServiceResponse<PublisherApiModel> clientResponse = getPublisherDelegate(response);
+                        return Observable.just(clientResponse);
+                    } catch (Throwable t) {
+                        return Observable.error(t);
+                    }
+                }
+            });
+    }
+
+    private ServiceResponse<PublisherApiModel> getPublisherDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
+        return this.restClient().responseBuilderFactory().<PublisherApiModel, RestException>newInstance(this.serializerAdapter())
+                .register(200, new TypeToken<PublisherApiModel>() { }.getType())
+                .build(response);
+    }
+
+    /**
+     * Update publisher configuration.
+     * Allows a caller to configure operations on the publisher module
+     identified by the publisher id.
+     *
+     * @param publisherId Publisher identifier
+     * @param request Patch request
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     */
+    public void updatePublisher(String publisherId, PublisherUpdateApiModel request) {
+        updatePublisherWithServiceResponseAsync(publisherId, request).toBlocking().single().body();
+    }
+
+    /**
+     * Update publisher configuration.
+     * Allows a caller to configure operations on the publisher module
+     identified by the publisher id.
+     *
+     * @param publisherId Publisher identifier
+     * @param request Patch request
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    public ServiceFuture<Void> updatePublisherAsync(String publisherId, PublisherUpdateApiModel request, final ServiceCallback<Void> serviceCallback) {
+        return ServiceFuture.fromResponse(updatePublisherWithServiceResponseAsync(publisherId, request), serviceCallback);
+    }
+
+    /**
+     * Update publisher configuration.
+     * Allows a caller to configure operations on the publisher module
+     identified by the publisher id.
+     *
+     * @param publisherId Publisher identifier
+     * @param request Patch request
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<Void> updatePublisherAsync(String publisherId, PublisherUpdateApiModel request) {
+        return updatePublisherWithServiceResponseAsync(publisherId, request).map(new Func1<ServiceResponse<Void>, Void>() {
+            @Override
+            public Void call(ServiceResponse<Void> response) {
+                return response.body();
+            }
+        });
+    }
+
+    /**
+     * Update publisher configuration.
+     * Allows a caller to configure operations on the publisher module
+     identified by the publisher id.
+     *
+     * @param publisherId Publisher identifier
+     * @param request Patch request
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<ServiceResponse<Void>> updatePublisherWithServiceResponseAsync(String publisherId, PublisherUpdateApiModel request) {
+        if (publisherId == null) {
+            throw new IllegalArgumentException("Parameter publisherId is required and cannot be null.");
+        }
+        if (request == null) {
+            throw new IllegalArgumentException("Parameter request is required and cannot be null.");
+        }
+        Validator.validate(request);
+        return service.updatePublisher(publisherId, request)
+            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<Void>>>() {
+                @Override
+                public Observable<ServiceResponse<Void>> call(Response<ResponseBody> response) {
+                    try {
+                        ServiceResponse<Void> clientResponse = updatePublisherDelegate(response);
+                        return Observable.just(clientResponse);
+                    } catch (Throwable t) {
+                        return Observable.error(t);
+                    }
+                }
+            });
+    }
+
+    private ServiceResponse<Void> updatePublisherDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
+        return this.restClient().responseBuilderFactory().<Void, RestException>newInstance(this.serializerAdapter())
+                .register(200, new TypeToken<Void>() { }.getType())
+                .build(response);
+    }
+
+    /**
+     * Get list of publishers.
+     * Get all registered publishers and therefore twin modules in paged form.
+     The returned model can contain a continuation token if more results are
+     available.
+     Call this operation again using the token to retrieve more results.
+     *
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     * @return the PublisherListApiModel object if successful.
+     */
+    public PublisherListApiModel getListOfPublisher() {
+        return getListOfPublisherWithServiceResponseAsync().toBlocking().single().body();
+    }
+
+    /**
+     * Get list of publishers.
+     * Get all registered publishers and therefore twin modules in paged form.
+     The returned model can contain a continuation token if more results are
+     available.
+     Call this operation again using the token to retrieve more results.
+     *
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    public ServiceFuture<PublisherListApiModel> getListOfPublisherAsync(final ServiceCallback<PublisherListApiModel> serviceCallback) {
+        return ServiceFuture.fromResponse(getListOfPublisherWithServiceResponseAsync(), serviceCallback);
+    }
+
+    /**
+     * Get list of publishers.
+     * Get all registered publishers and therefore twin modules in paged form.
+     The returned model can contain a continuation token if more results are
+     available.
+     Call this operation again using the token to retrieve more results.
+     *
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the PublisherListApiModel object
+     */
+    public Observable<PublisherListApiModel> getListOfPublisherAsync() {
+        return getListOfPublisherWithServiceResponseAsync().map(new Func1<ServiceResponse<PublisherListApiModel>, PublisherListApiModel>() {
+            @Override
+            public PublisherListApiModel call(ServiceResponse<PublisherListApiModel> response) {
+                return response.body();
+            }
+        });
+    }
+
+    /**
+     * Get list of publishers.
+     * Get all registered publishers and therefore twin modules in paged form.
+     The returned model can contain a continuation token if more results are
+     available.
+     Call this operation again using the token to retrieve more results.
+     *
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the PublisherListApiModel object
+     */
+    public Observable<ServiceResponse<PublisherListApiModel>> getListOfPublisherWithServiceResponseAsync() {
+        final Boolean onlyServerState = null;
+        final String continuationToken = null;
+        final Integer pageSize = null;
+        return service.getListOfPublisher(onlyServerState, continuationToken, pageSize)
+            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<PublisherListApiModel>>>() {
+                @Override
+                public Observable<ServiceResponse<PublisherListApiModel>> call(Response<ResponseBody> response) {
+                    try {
+                        ServiceResponse<PublisherListApiModel> clientResponse = getListOfPublisherDelegate(response);
+                        return Observable.just(clientResponse);
+                    } catch (Throwable t) {
+                        return Observable.error(t);
+                    }
+                }
+            });
+    }
+
+    /**
+     * Get list of publishers.
+     * Get all registered publishers and therefore twin modules in paged form.
+     The returned model can contain a continuation token if more results are
+     available.
+     Call this operation again using the token to retrieve more results.
+     *
+     * @param onlyServerState Whether to include only server
+                 state, or display current client state of the endpoint if available
+     * @param continuationToken Optional Continuation token
+     * @param pageSize Optional number of results to return
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     * @return the PublisherListApiModel object if successful.
+     */
+    public PublisherListApiModel getListOfPublisher(Boolean onlyServerState, String continuationToken, Integer pageSize) {
+        return getListOfPublisherWithServiceResponseAsync(onlyServerState, continuationToken, pageSize).toBlocking().single().body();
+    }
+
+    /**
+     * Get list of publishers.
+     * Get all registered publishers and therefore twin modules in paged form.
+     The returned model can contain a continuation token if more results are
+     available.
+     Call this operation again using the token to retrieve more results.
+     *
+     * @param onlyServerState Whether to include only server
+                 state, or display current client state of the endpoint if available
+     * @param continuationToken Optional Continuation token
+     * @param pageSize Optional number of results to return
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    public ServiceFuture<PublisherListApiModel> getListOfPublisherAsync(Boolean onlyServerState, String continuationToken, Integer pageSize, final ServiceCallback<PublisherListApiModel> serviceCallback) {
+        return ServiceFuture.fromResponse(getListOfPublisherWithServiceResponseAsync(onlyServerState, continuationToken, pageSize), serviceCallback);
+    }
+
+    /**
+     * Get list of publishers.
+     * Get all registered publishers and therefore twin modules in paged form.
+     The returned model can contain a continuation token if more results are
+     available.
+     Call this operation again using the token to retrieve more results.
+     *
+     * @param onlyServerState Whether to include only server
+                 state, or display current client state of the endpoint if available
+     * @param continuationToken Optional Continuation token
+     * @param pageSize Optional number of results to return
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the PublisherListApiModel object
+     */
+    public Observable<PublisherListApiModel> getListOfPublisherAsync(Boolean onlyServerState, String continuationToken, Integer pageSize) {
+        return getListOfPublisherWithServiceResponseAsync(onlyServerState, continuationToken, pageSize).map(new Func1<ServiceResponse<PublisherListApiModel>, PublisherListApiModel>() {
+            @Override
+            public PublisherListApiModel call(ServiceResponse<PublisherListApiModel> response) {
+                return response.body();
+            }
+        });
+    }
+
+    /**
+     * Get list of publishers.
+     * Get all registered publishers and therefore twin modules in paged form.
+     The returned model can contain a continuation token if more results are
+     available.
+     Call this operation again using the token to retrieve more results.
+     *
+     * @param onlyServerState Whether to include only server
+                 state, or display current client state of the endpoint if available
+     * @param continuationToken Optional Continuation token
+     * @param pageSize Optional number of results to return
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the PublisherListApiModel object
+     */
+    public Observable<ServiceResponse<PublisherListApiModel>> getListOfPublisherWithServiceResponseAsync(Boolean onlyServerState, String continuationToken, Integer pageSize) {
+        return service.getListOfPublisher(onlyServerState, continuationToken, pageSize)
+            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<PublisherListApiModel>>>() {
+                @Override
+                public Observable<ServiceResponse<PublisherListApiModel>> call(Response<ResponseBody> response) {
+                    try {
+                        ServiceResponse<PublisherListApiModel> clientResponse = getListOfPublisherDelegate(response);
+                        return Observable.just(clientResponse);
+                    } catch (Throwable t) {
+                        return Observable.error(t);
+                    }
+                }
+            });
+    }
+
+    private ServiceResponse<PublisherListApiModel> getListOfPublisherDelegate(Response<ResponseBody> response) throws RestException, IOException {
+        return this.restClient().responseBuilderFactory().<PublisherListApiModel, RestException>newInstance(this.serializerAdapter())
+                .register(200, new TypeToken<PublisherListApiModel>() { }.getType())
+                .build(response);
+    }
+
+    /**
+     * Get filtered list of publishers.
+     * Get a list of publishers filtered using the specified query parameters.
+     The returned model can contain a continuation token if more results are
+     available.
+     Call the GetListOfPublisher operation using the token to retrieve
+     more results.
+     *
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     * @return the PublisherListApiModel object if successful.
+     */
+    public PublisherListApiModel getFilteredListOfPublisher() {
+        return getFilteredListOfPublisherWithServiceResponseAsync().toBlocking().single().body();
+    }
+
+    /**
+     * Get filtered list of publishers.
+     * Get a list of publishers filtered using the specified query parameters.
+     The returned model can contain a continuation token if more results are
+     available.
+     Call the GetListOfPublisher operation using the token to retrieve
+     more results.
+     *
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    public ServiceFuture<PublisherListApiModel> getFilteredListOfPublisherAsync(final ServiceCallback<PublisherListApiModel> serviceCallback) {
+        return ServiceFuture.fromResponse(getFilteredListOfPublisherWithServiceResponseAsync(), serviceCallback);
+    }
+
+    /**
+     * Get filtered list of publishers.
+     * Get a list of publishers filtered using the specified query parameters.
+     The returned model can contain a continuation token if more results are
+     available.
+     Call the GetListOfPublisher operation using the token to retrieve
+     more results.
+     *
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the PublisherListApiModel object
+     */
+    public Observable<PublisherListApiModel> getFilteredListOfPublisherAsync() {
+        return getFilteredListOfPublisherWithServiceResponseAsync().map(new Func1<ServiceResponse<PublisherListApiModel>, PublisherListApiModel>() {
+            @Override
+            public PublisherListApiModel call(ServiceResponse<PublisherListApiModel> response) {
+                return response.body();
+            }
+        });
+    }
+
+    /**
+     * Get filtered list of publishers.
+     * Get a list of publishers filtered using the specified query parameters.
+     The returned model can contain a continuation token if more results are
+     available.
+     Call the GetListOfPublisher operation using the token to retrieve
+     more results.
+     *
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the PublisherListApiModel object
+     */
+    public Observable<ServiceResponse<PublisherListApiModel>> getFilteredListOfPublisherWithServiceResponseAsync() {
+        final String siteId = null;
+        final Boolean connected = null;
+        final Boolean onlyServerState = null;
+        final Integer pageSize = null;
+        return service.getFilteredListOfPublisher(siteId, connected, onlyServerState, pageSize)
+            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<PublisherListApiModel>>>() {
+                @Override
+                public Observable<ServiceResponse<PublisherListApiModel>> call(Response<ResponseBody> response) {
+                    try {
+                        ServiceResponse<PublisherListApiModel> clientResponse = getFilteredListOfPublisherDelegate(response);
+                        return Observable.just(clientResponse);
+                    } catch (Throwable t) {
+                        return Observable.error(t);
+                    }
+                }
+            });
+    }
+
+    /**
+     * Get filtered list of publishers.
+     * Get a list of publishers filtered using the specified query parameters.
+     The returned model can contain a continuation token if more results are
+     available.
+     Call the GetListOfPublisher operation using the token to retrieve
+     more results.
+     *
+     * @param siteId Site of the publisher
+     * @param connected Included connected or disconnected
+     * @param onlyServerState Whether to include only server
+                 state, or display current client state of the endpoint if
+                 available
+     * @param pageSize Number of results to return
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     * @return the PublisherListApiModel object if successful.
+     */
+    public PublisherListApiModel getFilteredListOfPublisher(String siteId, Boolean connected, Boolean onlyServerState, Integer pageSize) {
+        return getFilteredListOfPublisherWithServiceResponseAsync(siteId, connected, onlyServerState, pageSize).toBlocking().single().body();
+    }
+
+    /**
+     * Get filtered list of publishers.
+     * Get a list of publishers filtered using the specified query parameters.
+     The returned model can contain a continuation token if more results are
+     available.
+     Call the GetListOfPublisher operation using the token to retrieve
+     more results.
+     *
+     * @param siteId Site of the publisher
+     * @param connected Included connected or disconnected
+     * @param onlyServerState Whether to include only server
+                 state, or display current client state of the endpoint if
+                 available
+     * @param pageSize Number of results to return
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    public ServiceFuture<PublisherListApiModel> getFilteredListOfPublisherAsync(String siteId, Boolean connected, Boolean onlyServerState, Integer pageSize, final ServiceCallback<PublisherListApiModel> serviceCallback) {
+        return ServiceFuture.fromResponse(getFilteredListOfPublisherWithServiceResponseAsync(siteId, connected, onlyServerState, pageSize), serviceCallback);
+    }
+
+    /**
+     * Get filtered list of publishers.
+     * Get a list of publishers filtered using the specified query parameters.
+     The returned model can contain a continuation token if more results are
+     available.
+     Call the GetListOfPublisher operation using the token to retrieve
+     more results.
+     *
+     * @param siteId Site of the publisher
+     * @param connected Included connected or disconnected
+     * @param onlyServerState Whether to include only server
+                 state, or display current client state of the endpoint if
+                 available
+     * @param pageSize Number of results to return
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the PublisherListApiModel object
+     */
+    public Observable<PublisherListApiModel> getFilteredListOfPublisherAsync(String siteId, Boolean connected, Boolean onlyServerState, Integer pageSize) {
+        return getFilteredListOfPublisherWithServiceResponseAsync(siteId, connected, onlyServerState, pageSize).map(new Func1<ServiceResponse<PublisherListApiModel>, PublisherListApiModel>() {
+            @Override
+            public PublisherListApiModel call(ServiceResponse<PublisherListApiModel> response) {
+                return response.body();
+            }
+        });
+    }
+
+    /**
+     * Get filtered list of publishers.
+     * Get a list of publishers filtered using the specified query parameters.
+     The returned model can contain a continuation token if more results are
+     available.
+     Call the GetListOfPublisher operation using the token to retrieve
+     more results.
+     *
+     * @param siteId Site of the publisher
+     * @param connected Included connected or disconnected
+     * @param onlyServerState Whether to include only server
+                 state, or display current client state of the endpoint if
+                 available
+     * @param pageSize Number of results to return
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the PublisherListApiModel object
+     */
+    public Observable<ServiceResponse<PublisherListApiModel>> getFilteredListOfPublisherWithServiceResponseAsync(String siteId, Boolean connected, Boolean onlyServerState, Integer pageSize) {
+        return service.getFilteredListOfPublisher(siteId, connected, onlyServerState, pageSize)
+            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<PublisherListApiModel>>>() {
+                @Override
+                public Observable<ServiceResponse<PublisherListApiModel>> call(Response<ResponseBody> response) {
+                    try {
+                        ServiceResponse<PublisherListApiModel> clientResponse = getFilteredListOfPublisherDelegate(response);
+                        return Observable.just(clientResponse);
+                    } catch (Throwable t) {
+                        return Observable.error(t);
+                    }
+                }
+            });
+    }
+
+    private ServiceResponse<PublisherListApiModel> getFilteredListOfPublisherDelegate(Response<ResponseBody> response) throws RestException, IOException {
+        return this.restClient().responseBuilderFactory().<PublisherListApiModel, RestException>newInstance(this.serializerAdapter())
+                .register(200, new TypeToken<PublisherListApiModel>() { }.getType())
+                .build(response);
+    }
+
+    /**
+     * Query publishers.
+     * Get all publishers that match a specified query.
+     The returned model can contain a continuation token if more results are
+     available.
+     Call the GetListOfPublisher operation using the token to retrieve
+     more results.
+     *
+     * @param query Publisher query model
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     * @return the PublisherListApiModel object if successful.
+     */
+    public PublisherListApiModel queryPublisher(PublisherQueryApiModel query) {
+        return queryPublisherWithServiceResponseAsync(query).toBlocking().single().body();
+    }
+
+    /**
+     * Query publishers.
+     * Get all publishers that match a specified query.
+     The returned model can contain a continuation token if more results are
+     available.
+     Call the GetListOfPublisher operation using the token to retrieve
+     more results.
+     *
+     * @param query Publisher query model
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    public ServiceFuture<PublisherListApiModel> queryPublisherAsync(PublisherQueryApiModel query, final ServiceCallback<PublisherListApiModel> serviceCallback) {
+        return ServiceFuture.fromResponse(queryPublisherWithServiceResponseAsync(query), serviceCallback);
+    }
+
+    /**
+     * Query publishers.
+     * Get all publishers that match a specified query.
+     The returned model can contain a continuation token if more results are
+     available.
+     Call the GetListOfPublisher operation using the token to retrieve
+     more results.
+     *
+     * @param query Publisher query model
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the PublisherListApiModel object
+     */
+    public Observable<PublisherListApiModel> queryPublisherAsync(PublisherQueryApiModel query) {
+        return queryPublisherWithServiceResponseAsync(query).map(new Func1<ServiceResponse<PublisherListApiModel>, PublisherListApiModel>() {
+            @Override
+            public PublisherListApiModel call(ServiceResponse<PublisherListApiModel> response) {
+                return response.body();
+            }
+        });
+    }
+
+    /**
+     * Query publishers.
+     * Get all publishers that match a specified query.
+     The returned model can contain a continuation token if more results are
+     available.
+     Call the GetListOfPublisher operation using the token to retrieve
+     more results.
+     *
+     * @param query Publisher query model
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the PublisherListApiModel object
+     */
+    public Observable<ServiceResponse<PublisherListApiModel>> queryPublisherWithServiceResponseAsync(PublisherQueryApiModel query) {
+        if (query == null) {
+            throw new IllegalArgumentException("Parameter query is required and cannot be null.");
+        }
+        Validator.validate(query);
+        final Boolean onlyServerState = null;
+        final Integer pageSize = null;
+        return service.queryPublisher(query, onlyServerState, pageSize)
+            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<PublisherListApiModel>>>() {
+                @Override
+                public Observable<ServiceResponse<PublisherListApiModel>> call(Response<ResponseBody> response) {
+                    try {
+                        ServiceResponse<PublisherListApiModel> clientResponse = queryPublisherDelegate(response);
+                        return Observable.just(clientResponse);
+                    } catch (Throwable t) {
+                        return Observable.error(t);
+                    }
+                }
+            });
+    }
+
+    /**
+     * Query publishers.
+     * Get all publishers that match a specified query.
+     The returned model can contain a continuation token if more results are
+     available.
+     Call the GetListOfPublisher operation using the token to retrieve
+     more results.
+     *
+     * @param query Publisher query model
+     * @param onlyServerState Whether to include only server
+                 state, or display current client state of the endpoint if
+                 available
+     * @param pageSize Number of results to return
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     * @return the PublisherListApiModel object if successful.
+     */
+    public PublisherListApiModel queryPublisher(PublisherQueryApiModel query, Boolean onlyServerState, Integer pageSize) {
+        return queryPublisherWithServiceResponseAsync(query, onlyServerState, pageSize).toBlocking().single().body();
+    }
+
+    /**
+     * Query publishers.
+     * Get all publishers that match a specified query.
+     The returned model can contain a continuation token if more results are
+     available.
+     Call the GetListOfPublisher operation using the token to retrieve
+     more results.
+     *
+     * @param query Publisher query model
+     * @param onlyServerState Whether to include only server
+                 state, or display current client state of the endpoint if
+                 available
+     * @param pageSize Number of results to return
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    public ServiceFuture<PublisherListApiModel> queryPublisherAsync(PublisherQueryApiModel query, Boolean onlyServerState, Integer pageSize, final ServiceCallback<PublisherListApiModel> serviceCallback) {
+        return ServiceFuture.fromResponse(queryPublisherWithServiceResponseAsync(query, onlyServerState, pageSize), serviceCallback);
+    }
+
+    /**
+     * Query publishers.
+     * Get all publishers that match a specified query.
+     The returned model can contain a continuation token if more results are
+     available.
+     Call the GetListOfPublisher operation using the token to retrieve
+     more results.
+     *
+     * @param query Publisher query model
+     * @param onlyServerState Whether to include only server
+                 state, or display current client state of the endpoint if
+                 available
+     * @param pageSize Number of results to return
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the PublisherListApiModel object
+     */
+    public Observable<PublisherListApiModel> queryPublisherAsync(PublisherQueryApiModel query, Boolean onlyServerState, Integer pageSize) {
+        return queryPublisherWithServiceResponseAsync(query, onlyServerState, pageSize).map(new Func1<ServiceResponse<PublisherListApiModel>, PublisherListApiModel>() {
+            @Override
+            public PublisherListApiModel call(ServiceResponse<PublisherListApiModel> response) {
+                return response.body();
+            }
+        });
+    }
+
+    /**
+     * Query publishers.
+     * Get all publishers that match a specified query.
+     The returned model can contain a continuation token if more results are
+     available.
+     Call the GetListOfPublisher operation using the token to retrieve
+     more results.
+     *
+     * @param query Publisher query model
+     * @param onlyServerState Whether to include only server
+                 state, or display current client state of the endpoint if
+                 available
+     * @param pageSize Number of results to return
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the PublisherListApiModel object
+     */
+    public Observable<ServiceResponse<PublisherListApiModel>> queryPublisherWithServiceResponseAsync(PublisherQueryApiModel query, Boolean onlyServerState, Integer pageSize) {
+        if (query == null) {
+            throw new IllegalArgumentException("Parameter query is required and cannot be null.");
+        }
+        Validator.validate(query);
+        return service.queryPublisher(query, onlyServerState, pageSize)
+            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<PublisherListApiModel>>>() {
+                @Override
+                public Observable<ServiceResponse<PublisherListApiModel>> call(Response<ResponseBody> response) {
+                    try {
+                        ServiceResponse<PublisherListApiModel> clientResponse = queryPublisherDelegate(response);
+                        return Observable.just(clientResponse);
+                    } catch (Throwable t) {
+                        return Observable.error(t);
+                    }
+                }
+            });
+    }
+
+    private ServiceResponse<PublisherListApiModel> queryPublisherDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
+        return this.restClient().responseBuilderFactory().<PublisherListApiModel, RestException>newInstance(this.serializerAdapter())
+                .register(200, new TypeToken<PublisherListApiModel>() { }.getType())
+                .build(response);
+    }
+
+    /**
+     * Subscribe to publisher registry events.
+     * Register a user to receive publisher events through SignalR.
+     *
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     */
+    public void subscribe2() {
+        subscribe2WithServiceResponseAsync().toBlocking().single().body();
+    }
+
+    /**
+     * Subscribe to publisher registry events.
+     * Register a user to receive publisher events through SignalR.
+     *
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    public ServiceFuture<Void> subscribe2Async(final ServiceCallback<Void> serviceCallback) {
+        return ServiceFuture.fromResponse(subscribe2WithServiceResponseAsync(), serviceCallback);
+    }
+
+    /**
+     * Subscribe to publisher registry events.
+     * Register a user to receive publisher events through SignalR.
+     *
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<Void> subscribe2Async() {
+        return subscribe2WithServiceResponseAsync().map(new Func1<ServiceResponse<Void>, Void>() {
+            @Override
+            public Void call(ServiceResponse<Void> response) {
+                return response.body();
+            }
+        });
+    }
+
+    /**
+     * Subscribe to publisher registry events.
+     * Register a user to receive publisher events through SignalR.
+     *
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<ServiceResponse<Void>> subscribe2WithServiceResponseAsync() {
+        final String userId = null;
+        return service.subscribe2(userId)
+            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<Void>>>() {
+                @Override
+                public Observable<ServiceResponse<Void>> call(Response<ResponseBody> response) {
+                    try {
+                        ServiceResponse<Void> clientResponse = subscribe2Delegate(response);
+                        return Observable.just(clientResponse);
+                    } catch (Throwable t) {
+                        return Observable.error(t);
+                    }
+                }
+            });
+    }
+
+    /**
+     * Subscribe to publisher registry events.
+     * Register a user to receive publisher events through SignalR.
+     *
+     * @param userId The user id that will receive publisher
+                 events.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     */
+    public void subscribe2(String userId) {
+        subscribe2WithServiceResponseAsync(userId).toBlocking().single().body();
+    }
+
+    /**
+     * Subscribe to publisher registry events.
+     * Register a user to receive publisher events through SignalR.
+     *
+     * @param userId The user id that will receive publisher
+                 events.
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    public ServiceFuture<Void> subscribe2Async(String userId, final ServiceCallback<Void> serviceCallback) {
+        return ServiceFuture.fromResponse(subscribe2WithServiceResponseAsync(userId), serviceCallback);
+    }
+
+    /**
+     * Subscribe to publisher registry events.
+     * Register a user to receive publisher events through SignalR.
+     *
+     * @param userId The user id that will receive publisher
+                 events.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<Void> subscribe2Async(String userId) {
+        return subscribe2WithServiceResponseAsync(userId).map(new Func1<ServiceResponse<Void>, Void>() {
+            @Override
+            public Void call(ServiceResponse<Void> response) {
+                return response.body();
+            }
+        });
+    }
+
+    /**
+     * Subscribe to publisher registry events.
+     * Register a user to receive publisher events through SignalR.
+     *
+     * @param userId The user id that will receive publisher
+                 events.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<ServiceResponse<Void>> subscribe2WithServiceResponseAsync(String userId) {
+        return service.subscribe2(userId)
+            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<Void>>>() {
+                @Override
+                public Observable<ServiceResponse<Void>> call(Response<ResponseBody> response) {
+                    try {
+                        ServiceResponse<Void> clientResponse = subscribe2Delegate(response);
+                        return Observable.just(clientResponse);
+                    } catch (Throwable t) {
+                        return Observable.error(t);
+                    }
+                }
+            });
+    }
+
+    private ServiceResponse<Void> subscribe2Delegate(Response<ResponseBody> response) throws RestException, IOException {
+        return this.restClient().responseBuilderFactory().<Void, RestException>newInstance(this.serializerAdapter())
+                .register(200, new TypeToken<Void>() { }.getType())
+                .build(response);
+    }
+
+    /**
+     * Unsubscribe registry events.
+     * Unregister a user and stop it from receiving publisher events.
+     *
+     * @param userId The user id that will not receive
+                 any more publisher events
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     */
+    public void unsubscribe2(String userId) {
+        unsubscribe2WithServiceResponseAsync(userId).toBlocking().single().body();
+    }
+
+    /**
+     * Unsubscribe registry events.
+     * Unregister a user and stop it from receiving publisher events.
+     *
+     * @param userId The user id that will not receive
+                 any more publisher events
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    public ServiceFuture<Void> unsubscribe2Async(String userId, final ServiceCallback<Void> serviceCallback) {
+        return ServiceFuture.fromResponse(unsubscribe2WithServiceResponseAsync(userId), serviceCallback);
+    }
+
+    /**
+     * Unsubscribe registry events.
+     * Unregister a user and stop it from receiving publisher events.
+     *
+     * @param userId The user id that will not receive
+                 any more publisher events
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<Void> unsubscribe2Async(String userId) {
+        return unsubscribe2WithServiceResponseAsync(userId).map(new Func1<ServiceResponse<Void>, Void>() {
+            @Override
+            public Void call(ServiceResponse<Void> response) {
+                return response.body();
+            }
+        });
+    }
+
+    /**
+     * Unsubscribe registry events.
+     * Unregister a user and stop it from receiving publisher events.
+     *
+     * @param userId The user id that will not receive
+                 any more publisher events
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<ServiceResponse<Void>> unsubscribe2WithServiceResponseAsync(String userId) {
+        if (userId == null) {
+            throw new IllegalArgumentException("Parameter userId is required and cannot be null.");
+        }
+        return service.unsubscribe2(userId)
+            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<Void>>>() {
+                @Override
+                public Observable<ServiceResponse<Void>> call(Response<ResponseBody> response) {
+                    try {
+                        ServiceResponse<Void> clientResponse = unsubscribe2Delegate(response);
+                        return Observable.just(clientResponse);
+                    } catch (Throwable t) {
+                        return Observable.error(t);
+                    }
+                }
+            });
+    }
+
+    private ServiceResponse<Void> unsubscribe2Delegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<Void, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<Void>() { }.getType())
                 .build(response);
@@ -3899,6 +6109,224 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     private ServiceResponse<SupervisorListApiModel> querySupervisorsDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<SupervisorListApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<SupervisorListApiModel>() { }.getType())
+                .build(response);
+    }
+
+    /**
+     * Subscribe to supervisor registry events.
+     * Register a user to receive supervisor events through SignalR.
+     *
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     */
+    public void subscribe3() {
+        subscribe3WithServiceResponseAsync().toBlocking().single().body();
+    }
+
+    /**
+     * Subscribe to supervisor registry events.
+     * Register a user to receive supervisor events through SignalR.
+     *
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    public ServiceFuture<Void> subscribe3Async(final ServiceCallback<Void> serviceCallback) {
+        return ServiceFuture.fromResponse(subscribe3WithServiceResponseAsync(), serviceCallback);
+    }
+
+    /**
+     * Subscribe to supervisor registry events.
+     * Register a user to receive supervisor events through SignalR.
+     *
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<Void> subscribe3Async() {
+        return subscribe3WithServiceResponseAsync().map(new Func1<ServiceResponse<Void>, Void>() {
+            @Override
+            public Void call(ServiceResponse<Void> response) {
+                return response.body();
+            }
+        });
+    }
+
+    /**
+     * Subscribe to supervisor registry events.
+     * Register a user to receive supervisor events through SignalR.
+     *
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<ServiceResponse<Void>> subscribe3WithServiceResponseAsync() {
+        final String userId = null;
+        return service.subscribe3(userId)
+            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<Void>>>() {
+                @Override
+                public Observable<ServiceResponse<Void>> call(Response<ResponseBody> response) {
+                    try {
+                        ServiceResponse<Void> clientResponse = subscribe3Delegate(response);
+                        return Observable.just(clientResponse);
+                    } catch (Throwable t) {
+                        return Observable.error(t);
+                    }
+                }
+            });
+    }
+
+    /**
+     * Subscribe to supervisor registry events.
+     * Register a user to receive supervisor events through SignalR.
+     *
+     * @param userId The user id that will receive supervisor
+                 events.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     */
+    public void subscribe3(String userId) {
+        subscribe3WithServiceResponseAsync(userId).toBlocking().single().body();
+    }
+
+    /**
+     * Subscribe to supervisor registry events.
+     * Register a user to receive supervisor events through SignalR.
+     *
+     * @param userId The user id that will receive supervisor
+                 events.
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    public ServiceFuture<Void> subscribe3Async(String userId, final ServiceCallback<Void> serviceCallback) {
+        return ServiceFuture.fromResponse(subscribe3WithServiceResponseAsync(userId), serviceCallback);
+    }
+
+    /**
+     * Subscribe to supervisor registry events.
+     * Register a user to receive supervisor events through SignalR.
+     *
+     * @param userId The user id that will receive supervisor
+                 events.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<Void> subscribe3Async(String userId) {
+        return subscribe3WithServiceResponseAsync(userId).map(new Func1<ServiceResponse<Void>, Void>() {
+            @Override
+            public Void call(ServiceResponse<Void> response) {
+                return response.body();
+            }
+        });
+    }
+
+    /**
+     * Subscribe to supervisor registry events.
+     * Register a user to receive supervisor events through SignalR.
+     *
+     * @param userId The user id that will receive supervisor
+                 events.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<ServiceResponse<Void>> subscribe3WithServiceResponseAsync(String userId) {
+        return service.subscribe3(userId)
+            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<Void>>>() {
+                @Override
+                public Observable<ServiceResponse<Void>> call(Response<ResponseBody> response) {
+                    try {
+                        ServiceResponse<Void> clientResponse = subscribe3Delegate(response);
+                        return Observable.just(clientResponse);
+                    } catch (Throwable t) {
+                        return Observable.error(t);
+                    }
+                }
+            });
+    }
+
+    private ServiceResponse<Void> subscribe3Delegate(Response<ResponseBody> response) throws RestException, IOException {
+        return this.restClient().responseBuilderFactory().<Void, RestException>newInstance(this.serializerAdapter())
+                .register(200, new TypeToken<Void>() { }.getType())
+                .build(response);
+    }
+
+    /**
+     * Unsubscribe registry events.
+     * Unregister a user and stop it from receiving supervisor events.
+     *
+     * @param userId The user id that will not receive
+                 any more supervisor events
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     */
+    public void unsubscribe3(String userId) {
+        unsubscribe3WithServiceResponseAsync(userId).toBlocking().single().body();
+    }
+
+    /**
+     * Unsubscribe registry events.
+     * Unregister a user and stop it from receiving supervisor events.
+     *
+     * @param userId The user id that will not receive
+                 any more supervisor events
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    public ServiceFuture<Void> unsubscribe3Async(String userId, final ServiceCallback<Void> serviceCallback) {
+        return ServiceFuture.fromResponse(unsubscribe3WithServiceResponseAsync(userId), serviceCallback);
+    }
+
+    /**
+     * Unsubscribe registry events.
+     * Unregister a user and stop it from receiving supervisor events.
+     *
+     * @param userId The user id that will not receive
+                 any more supervisor events
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<Void> unsubscribe3Async(String userId) {
+        return unsubscribe3WithServiceResponseAsync(userId).map(new Func1<ServiceResponse<Void>, Void>() {
+            @Override
+            public Void call(ServiceResponse<Void> response) {
+                return response.body();
+            }
+        });
+    }
+
+    /**
+     * Unsubscribe registry events.
+     * Unregister a user and stop it from receiving supervisor events.
+     *
+     * @param userId The user id that will not receive
+                 any more supervisor events
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    public Observable<ServiceResponse<Void>> unsubscribe3WithServiceResponseAsync(String userId) {
+        if (userId == null) {
+            throw new IllegalArgumentException("Parameter userId is required and cannot be null.");
+        }
+        return service.unsubscribe3(userId)
+            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<Void>>>() {
+                @Override
+                public Observable<ServiceResponse<Void>> call(Response<ResponseBody> response) {
+                    try {
+                        ServiceResponse<Void> clientResponse = unsubscribe3Delegate(response);
+                        return Observable.just(clientResponse);
+                    } catch (Throwable t) {
+                        return Observable.error(t);
+                    }
+                }
+            });
+    }
+
+    private ServiceResponse<Void> unsubscribe3Delegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
+        return this.restClient().responseBuilderFactory().<Void, RestException>newInstance(this.serializerAdapter())
+                .register(200, new TypeToken<Void>() { }.getType())
                 .build(response);
     }
 

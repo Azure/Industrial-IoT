@@ -40,8 +40,6 @@ class DiscoveryRequestApiModel {
    * urls to use
    * @property {array} [configuration.locales] List of locales to filter with
    * during discovery
-   * @property {array} [configuration.callbacks] Callbacks to invoke once
-   * onboarding finishes
    * @property {object} [configuration.activationFilter] Activate all twins
    * with this filter during onboarding.
    * @property {array} [configuration.activationFilter.trustLists] Certificate
@@ -54,8 +52,8 @@ class DiscoveryRequestApiModel {
    * If set to null, all policies are in scope.
    * @property {string} [configuration.activationFilter.securityMode] Security
    * mode level to activate. If null,
-   * then Microsoft.Azure.IIoT.OpcUa.Registry.Models.SecurityMode.Best is
-   * assumed. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
+   * then Microsoft.Azure.IIoT.OpcUa.Core.Models.SecurityMode.Best is assumed.
+   * Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
    */
   constructor() {
   }

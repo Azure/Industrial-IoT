@@ -5,6 +5,7 @@
     "title": "Opc-History-Service",
     "description": "Azure Industrial IoT OPC UA Historic Access Service"
   },
+  "basePath": "/history",
   "schemes": [
     "https",
     "http"
@@ -1845,12 +1846,12 @@
           "type": "string"
         },
         "aggregateConfiguration": {
-          "$ref": "#/definitions/AggregateConfigApiModel",
+          "$ref": "#/definitions/AggregateConfigurationApiModel",
           "description": "A configuration for the aggregate"
         }
       }
     },
-    "AggregateConfigApiModel": {
+    "AggregateConfigurationApiModel": {
       "description": "Aggregate configuration",
       "type": "object",
       "properties": {

@@ -17,7 +17,7 @@
 class ValueReadRequestApiModel {
   /**
    * Create a ValueReadRequestApiModel.
-   * @property {string} nodeId Node to read from (mandatory)
+   * @property {string} [nodeId] Node to read from (mandatory)
    * @property {array} [browsePath] An optional path from NodeId instance to
    * the actual node.
    * @property {string} [indexRange] Index range to read, e.g. 1:2,0:1 for 2
@@ -60,7 +60,7 @@ class ValueReadRequestApiModel {
         className: 'ValueReadRequestApiModel',
         modelProperties: {
           nodeId: {
-            required: true,
+            required: false,
             serializedName: 'nodeId',
             type: {
               name: 'String'

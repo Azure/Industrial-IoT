@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using System;
 
     /// <summary>
@@ -20,6 +20,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         public ConnectionIdentifier(ConnectionModel connection) {
             Connection = connection?.Clone() ??
                 throw new ArgumentNullException(nameof(connection));
+            _hash = Connection.CreateConsistentHash();
+        }
+
+        /// <summary>
+        /// Create new key
+        /// </summary>
+        /// <param name="endpoint"></param>
+        public ConnectionIdentifier(EndpointModel endpoint) {
+            if (endpoint == null) {
+                throw new ArgumentNullException(nameof(endpoint));
+            }
+            Connection = new ConnectionModel {
+                Endpoint = endpoint.Clone()
+            };
             _hash = Connection.CreateConsistentHash();
         }
 

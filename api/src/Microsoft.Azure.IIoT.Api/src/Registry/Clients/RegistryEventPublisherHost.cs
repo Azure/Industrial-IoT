@@ -16,15 +16,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
     /// <summary>
     /// Application registry event publisher
     /// </summary>
-    public class RegistryEventPublisherHost : IHost, IDisposable,
+    public class RegistryEventPublisherHost : IHostProcess, IDisposable,
         IEventHandler<ApplicationEventModel>, IEventHandler<EndpointEventModel> {
 
         /// <summary>
         /// Create event publisher
         /// </summary>
         /// <param name="bus"></param>
-        /// <param name="logger"></param>
         /// <param name="callback"></param>
+        /// <param name="logger"></param>
         public RegistryEventPublisherHost(IEventBus bus, ICallbackInvoker callback, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _bus = bus ?? throw new ArgumentNullException(nameof(bus));

@@ -100,8 +100,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// <param name="operation"></param>
         /// <param name="results"></param>
         /// <param name="diagnostics"></param>
-        /// <param name="requested"></param>
         /// <param name="operations"></param>
+        /// <param name="requested"></param>
         /// <param name="traceOnly"></param>
         public static void Validate<T>(string operation,
             List<OperationResultModel> operations, IEnumerable<StatusCode> results,

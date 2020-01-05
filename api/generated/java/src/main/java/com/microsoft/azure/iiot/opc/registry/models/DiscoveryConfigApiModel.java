@@ -78,12 +78,6 @@ public class DiscoveryConfigApiModel {
     private List<String> locales;
 
     /**
-     * Callbacks to invoke once onboarding finishes.
-     */
-    @JsonProperty(value = "callbacks")
-    private List<CallbackApiModel> callbacks;
-
-    /**
      * Activate all twins with this filter during onboarding.
      */
     @JsonProperty(value = "activationFilter")
@@ -286,26 +280,6 @@ public class DiscoveryConfigApiModel {
      */
     public DiscoveryConfigApiModel withLocales(List<String> locales) {
         this.locales = locales;
-        return this;
-    }
-
-    /**
-     * Get callbacks to invoke once onboarding finishes.
-     *
-     * @return the callbacks value
-     */
-    public List<CallbackApiModel> callbacks() {
-        return this.callbacks;
-    }
-
-    /**
-     * Set callbacks to invoke once onboarding finishes.
-     *
-     * @param callbacks the callbacks value to set
-     * @return the DiscoveryConfigApiModel object itself.
-     */
-    public DiscoveryConfigApiModel withCallbacks(List<CallbackApiModel> callbacks) {
-        this.callbacks = callbacks;
         return this;
     }
 

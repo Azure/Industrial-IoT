@@ -10,11 +10,16 @@
 @using Microsoft.AspNetCore.Components
 @using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models
 @using System.Collections.Generic
+@using Microsoft.Azure.IIoT.OpcUa.Api.Publisher
+@using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models
 
 
 @inject NavigationManager NavigationManager
 @inject Services.Browser BrowseManager
 @inject Services.Publisher Publisher
+@inject PublisherServiceEvents PublisherServiceEvents
+
+@implements IDisposable
 
 <h1>Browser</h1>
 
@@ -90,16 +95,16 @@
 	            {
 	                <td>N/A</td>
 	            }
-		
+
 		        @if (node.NodeClass == NodeClass.Variable)
                 {
-	                <td>
-	                    <input type="checkbox" @bind="@node.Publishing" @onclick="@(() => SetPublishing(endpointId, node) )" />
-	                    <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node))">
-	                        @{string output = (node.Publishing == true && node.PublishedItem != null) ? $"On, sampling {node.PublishedItem?.SamplingInterval.Value.TotalMilliseconds} ms" : "Off";}
-	                        @output
-	                    </a>
-	                </td>
+                    <td>
+                        <input type="checkbox" checked=@node.Publishing @onchange="@((EventArgs) => SetPublishing(endpointId, node, EventArgs))" />
+                        <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node))">
+                            @{string output = (node.Publishing == true && node.PublishedItem != null) ? $"On, sampling {node.PublishedItem?.SamplingInterval.Value.TotalMilliseconds} ms" : "Off";}
+                            @output
+                        </a>
+                    </td>
                 }
                 else
                 {
@@ -122,7 +127,7 @@
     [Parameter]
     public string supervisorId { get; set; } = string.Empty;
 
-    [Parameter]    
+    [Parameter]
     public string endpointId { get; set; }
 
     [Parameter]
@@ -133,7 +138,8 @@
     public bool IsOpened { get; set; } = false;
     public ListNode NodeData { get; set; }
     public const int PageLength = 10;
-    
+    private IAsyncDisposable _publishEvent { get; set; }
+
 
     /// <summary>
     /// Notify page change
@@ -159,6 +165,15 @@
     protected override async Task OnInitializedAsync()
     {
         await BrowseTreeAsync(string.Empty, new List<string>(), BrowseDirection.Forward);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // call after the node list is rendered
+        if (!firstRender)
+        {
+            _publishEvent = await PublisherServiceEvents.NodePublishSubscribeByEndpointAsync(endpointId, null, PublishEvent);
+        }
     }
 
     /// <summary>
@@ -227,16 +242,17 @@
     /// </summary>
     /// <param name="endpointId"></param>
     /// <param name="node"></param>
-    private async Task SetPublishing(string endpointId, ListNode node)
+    private async Task SetPublishing(string endpointId, ListNode node, ChangeEventArgs ev)
     {
-        if (!node.Publishing)
+        if ((bool)ev.Value)
         {
             var result = await Publisher.StartPublishing(endpointId, node.Id, 1000, 1000);
             if (result)
             {
-                node.PublishedItem = new OpcUa.Api.Publisher.Models.PublishedItemApiModel() { 
-                    NodeId = node.Id, 
-                    PublishingInterval = TimeSpan.FromMilliseconds(1000), 
+                node.PublishedItem = new OpcUa.Api.Publisher.Models.PublishedItemApiModel()
+                {
+                    NodeId = node.Id,
+                    PublishingInterval = TimeSpan.FromMilliseconds(1000),
                     SamplingInterval = TimeSpan.FromMilliseconds(1000)
                 };
                 node.Publishing = true;
@@ -276,5 +292,27 @@
         IsOpened = false;
         BrowseManager.MethodCallResponse = null;
         this.StateHasChanged();
+    }
+
+    private Task PublishEvent(MonitoredItemMessageApiModel samples)
+    {
+        foreach (var node in PagedNodeList.Results)
+        {
+            if (node.Id == samples.NodeId)
+            {
+                node.Value = samples.Value.ToObject<string>();
+                this.StateHasChanged();
+            }
+        }
+        return Task.CompletedTask;
+    }
+
+
+    public async void Dispose()
+    {
+        if (_publishEvent != null)
+        {
+            await _publishEvent.DisposeAsync();
+        }
     }
 }

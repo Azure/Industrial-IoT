@@ -15,7 +15,7 @@ from msrest.serialization import Model
 class AuthenticationMethodApiModel(Model):
     """Authentication Method model.
 
-    :param id: Method id
+    :param id: Authentication method id
     :type id: str
     :param credential_type: Type of credential. Possible values include:
      'None', 'UserName', 'X509Certificate', 'JwtToken'. Default value: "None" .

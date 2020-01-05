@@ -30,8 +30,8 @@ module azure.iiot.opc.registry
       # @return [Array<Integer>] Supervisor public client cert
       attr_accessor :certificate
 
-      # @return [SupervisorLogLevel] Current log level. Possible values
-      # include: 'Error', 'Information', 'Debug', 'Verbose'. Default value:
+      # @return [TraceLogLevel] Current log level. Possible values include:
+      # 'Error', 'Information', 'Debug', 'Verbose'. Default value:
       # 'Information' .
       attr_accessor :log_level
 
@@ -106,7 +106,7 @@ module azure.iiot.opc.registry
                 default_value: 'Information',
                 type: {
                   name: 'Enum',
-                  module: 'SupervisorLogLevel'
+                  module: 'TraceLogLevel'
                 }
               },
               out_of_sync: {

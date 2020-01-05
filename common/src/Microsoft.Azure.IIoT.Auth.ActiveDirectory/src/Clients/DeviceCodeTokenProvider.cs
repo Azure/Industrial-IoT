@@ -21,8 +21,8 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         /// <summary>
         /// Create console output device code based token provider
         /// </summary>
-        /// <param name="logger"></param>
         /// <param name="config"></param>
+        /// <param name="logger"></param>
         public DeviceCodeTokenProvider(IClientConfig config, ILogger logger) :
             this((c, exp, msg) => Console.WriteLine(msg), config, null, logger) {
         }
@@ -31,8 +31,8 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         /// Create console output device code based token provider
         /// </summary>
         /// <param name="store"></param>
-        /// <param name="logger"></param>
         /// <param name="config"></param>
+        /// <param name="logger"></param>
         public DeviceCodeTokenProvider(IClientConfig config, ITokenCacheProvider store,
             ILogger logger) :
             this((c, exp, msg) => Console.WriteLine(msg), config, store, logger) {
@@ -42,9 +42,9 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         /// Create device code provider with callback
         /// </summary>
         /// <param name="store"></param>
-        /// <param name="logger"></param>
         /// <param name="callback"></param>
         /// <param name="config"></param>
+        /// <param name="logger"></param>
         public DeviceCodeTokenProvider(Action<string, DateTimeOffset, string> callback,
             IClientConfig config, ITokenCacheProvider store, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));

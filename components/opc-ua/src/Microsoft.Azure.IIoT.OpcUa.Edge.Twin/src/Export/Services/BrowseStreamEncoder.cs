@@ -37,9 +37,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Export.Services {
         /// </summary>
         /// <param name="client"></param>
         /// <param name="endpoint"></param>
-        /// <param name="diagnostics"></param>
         /// <param name="stream"></param>
         /// <param name="contentType"></param>
+        /// <param name="diagnostics"></param>
         /// <param name="logger"></param>
         /// <param name="elevation"></param>
         /// <param name="priority"></param>
@@ -55,10 +55,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Export.Services {
         /// </summary>
         /// <param name="client"></param>
         /// <param name="endpoint"></param>
-        /// <param name="diagnostics"></param>
         /// <param name="encoder"></param>
-        /// <param name="elevation"></param>
+        /// <param name="diagnostics"></param>
         /// <param name="logger"></param>
+        /// <param name="elevation"></param>
         /// <param name="priority"></param>
         public BrowseStreamEncoder(IEndpointServices client, EndpointModel endpoint,
             IEncoder encoder, DiagnosticsModel diagnostics, ILogger logger, CredentialModel elevation = null,

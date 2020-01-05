@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
-    using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
@@ -32,7 +31,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// </summary>
         /// <param name="clientConfig"></param>
         /// <param name="logger"></param>
-        public DefaultSessionManager(IClientServicesConfig clientConfig, ILogger logger) {
+        public DefaultSessionManager(IClientServicesConfig2 clientConfig, ILogger logger) {
             _logger = logger;
             _clientConfig = clientConfig;
             _lock = new SemaphoreSlim(1, 1);
@@ -196,7 +195,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         }
 
         private readonly ILogger _logger;
-        private readonly IClientServicesConfig _clientConfig;
+        private readonly IClientServicesConfig2 _clientConfig;
         private readonly Dictionary<ConnectionIdentifier, SessionWrapper> _sessions =
             new Dictionary<ConnectionIdentifier, SessionWrapper>();
         private readonly SemaphoreSlim _lock;

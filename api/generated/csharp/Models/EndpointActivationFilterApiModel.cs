@@ -43,9 +43,9 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         /// If set to null, all policies are in scope.</param>
         /// <param name="securityMode">Security mode level to activate. If
         /// null,
-        /// then Microsoft.Azure.IIoT.OpcUa.Registry.Models.SecurityMode.Best
-        /// is assumed. Possible values include: 'Best', 'Sign',
-        /// 'SignAndEncrypt', 'None'</param>
+        /// then Microsoft.Azure.IIoT.OpcUa.Core.Models.SecurityMode.Best is
+        /// assumed. Possible values include: 'Best', 'Sign', 'SignAndEncrypt',
+        /// 'None'</param>
         public EndpointActivationFilterApiModel(IList<string> trustLists = default(IList<string>), IList<string> securityPolicies = default(IList<string>), SecurityMode? securityMode = default(SecurityMode?))
         {
             TrustLists = trustLists;
@@ -77,9 +77,9 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
 
         /// <summary>
         /// Gets or sets security mode level to activate. If null,
-        /// then Microsoft.Azure.IIoT.OpcUa.Registry.Models.SecurityMode.Best
-        /// is assumed. Possible values include: 'Best', 'Sign',
-        /// 'SignAndEncrypt', 'None'
+        /// then Microsoft.Azure.IIoT.OpcUa.Core.Models.SecurityMode.Best is
+        /// assumed. Possible values include: 'Best', 'Sign', 'SignAndEncrypt',
+        /// 'None'
         /// </summary>
         [JsonProperty(PropertyName = "securityMode")]
         public SecurityMode? SecurityMode { get; set; }

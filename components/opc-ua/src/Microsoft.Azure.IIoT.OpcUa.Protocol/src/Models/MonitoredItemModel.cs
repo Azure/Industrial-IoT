@@ -34,11 +34,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         public string[] RelativePath { get; set; }
 
         /// <summary>
-        /// Node class
-        /// </summary>
-        public NodeClass? NodeClass { get; set; }
-
-        /// <summary>
         /// Attribute
         /// </summary>
         public NodeAttribute? AttributeId { get; set; }

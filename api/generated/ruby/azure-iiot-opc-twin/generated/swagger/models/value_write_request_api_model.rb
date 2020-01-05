@@ -54,7 +54,7 @@ module azure.iiot.opc.twin
             model_properties: {
               node_id: {
                 client_side_validation: true,
-                required: true,
+                required: false,
                 serialized_name: 'nodeId',
                 type: {
                   name: 'String'

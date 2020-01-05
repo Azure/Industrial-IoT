@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace System.Security.Claims {
-    using System;
 
     /// <summary>
     /// Model extensions

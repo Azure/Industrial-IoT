@@ -6,7 +6,6 @@
 namespace Opc.Ua.Models {
     using Opc.Ua.Extensions;
     using Opc.Ua.Nodeset;
-    using Opc.Ua;
     using System;
     using System.Linq;
     using System.Collections.Generic;

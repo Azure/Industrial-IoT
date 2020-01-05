@@ -29,12 +29,6 @@ public class ServerRegistrationRequestApiModel {
     private String id;
 
     /**
-     * An optional callback hook to register.
-     */
-    @JsonProperty(value = "callback")
-    private CallbackApiModel callback;
-
-    /**
      * Upon discovery, activate all endpoints with this filter.
      */
     @JsonProperty(value = "activationFilter")
@@ -77,26 +71,6 @@ public class ServerRegistrationRequestApiModel {
      */
     public ServerRegistrationRequestApiModel withId(String id) {
         this.id = id;
-        return this;
-    }
-
-    /**
-     * Get an optional callback hook to register.
-     *
-     * @return the callback value
-     */
-    public CallbackApiModel callback() {
-        return this.callback;
-    }
-
-    /**
-     * Set an optional callback hook to register.
-     *
-     * @param callback the callback value to set
-     * @return the ServerRegistrationRequestApiModel object itself.
-     */
-    public ServerRegistrationRequestApiModel withCallback(CallbackApiModel callback) {
-        this.callback = callback;
         return this;
     }
 

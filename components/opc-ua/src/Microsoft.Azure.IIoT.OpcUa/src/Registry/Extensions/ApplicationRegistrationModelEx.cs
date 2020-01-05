@@ -71,8 +71,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <summary>
         /// Add or update a server list
         /// </summary>
-        /// <param name="server"></param>
         /// <param name="discovered"></param>
+        /// <param name="server"></param>
         public static void AddOrUpdate(this List<ApplicationRegistrationModel> discovered,
             ApplicationRegistrationModel server) {
             var actual = discovered
@@ -89,8 +89,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <summary>
         /// Create Union with server
         /// </summary>
-        /// <param name="server"></param>
         /// <param name="model"></param>
+        /// <param name="server"></param>
         public static void UnionWith(this ApplicationRegistrationModel model,
             ApplicationRegistrationModel server) {
 

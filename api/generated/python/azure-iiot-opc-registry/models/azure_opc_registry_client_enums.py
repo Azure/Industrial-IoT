@@ -12,14 +12,6 @@
 from enum import Enum
 
 
-class CallbackMethodType(Enum):
-
-    get = "Get"
-    post = "Post"
-    put = "Put"
-    delete = "Delete"
-
-
 class SecurityMode(Enum):
 
     best = "Best"
@@ -79,7 +71,7 @@ class EndpointConnectivityState(Enum):
     error = "Error"
 
 
-class SupervisorLogLevel(Enum):
+class TraceLogLevel(Enum):
 
     error = "Error"
     information = "Information"

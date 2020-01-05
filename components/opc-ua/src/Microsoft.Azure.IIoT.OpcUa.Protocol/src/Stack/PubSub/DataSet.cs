@@ -6,7 +6,6 @@
 namespace Opc.Ua.PubSub {
     using System;
     using System.Collections.Generic;
-    using Opc.Ua;
     using Opc.Ua.Encoders;
 
     /// <summary>
@@ -78,7 +77,7 @@ namespace Opc.Ua.PubSub {
         }
 
         /// <inheritdoc/>
-        public override bool Equals(Object value) {
+        public override bool Equals(object value) {
             return IsEqual(value as IEncodeable);
         }
 
@@ -169,9 +168,7 @@ namespace Opc.Ua.PubSub {
         /// </summary>
         /// <param name="decoder"></param>
         private void DecodeJson(IDecoder decoder) {
-
-            var jsonDecoder = decoder as JsonDecoderEx;
-            if (jsonDecoder == null) {
+            if (!(decoder is JsonDecoderEx jsonDecoder)) {
                 // report failure
                 return;
             }
@@ -181,10 +178,9 @@ namespace Opc.Ua.PubSub {
             if (payload == null) {
                 return;
             }
-            
+
             foreach (var value in payload) {
-                
-                this.Add(value.Key, value.Value);
+                Add(value.Key, value.Value);
                 if (value.Value != null) {
                     if (value.Value.StatusCode != null) {
                         FieldContentMask |= (uint)DataSetFieldContentMask.StatusCode;
@@ -204,7 +200,7 @@ namespace Opc.Ua.PubSub {
                 }
             }
         }
-        
+
 #pragma warning disable IDE0060 // Remove unused parameter
         /// <summary>
         /// Decode as binary

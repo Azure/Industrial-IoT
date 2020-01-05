@@ -5,6 +5,7 @@
     "title": "Opc-Twin-Service",
     "description": "Azure Industrial IoT OPC UA Twin Service"
   },
+  "basePath": "/twin",
   "schemes": [
     "https",
     "http"
@@ -347,208 +348,6 @@
             "description": "Success",
             "schema": {
               "$ref": "#/definitions/MethodCallResponseApiModel"
-            }
-          }
-        },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ]
-      }
-    },
-    "/v2/publish/{endpointId}/start": {
-      "post": {
-        "tags": [
-          "Publish"
-        ],
-        "summary": "Start publishing node values",
-        "description": "Start publishing variable node values to IoT Hub.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
-        "operationId": "StartPublishingValues",
-        "consumes": [
-          "application/json-patch+json",
-          "application/json",
-          "text/json",
-          "application/*+json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "endpointId",
-            "in": "path",
-            "description": "The identifier of the activated endpoint.",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "request",
-            "in": "body",
-            "description": "The publish request",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/PublishStartRequestApiModel"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/PublishStartResponseApiModel"
-            }
-          }
-        },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ]
-      }
-    },
-    "/v2/publish/{endpointId}/stop": {
-      "post": {
-        "tags": [
-          "Publish"
-        ],
-        "summary": "Stop publishing node values",
-        "description": "Stop publishing variable node values to IoT Hub.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
-        "operationId": "StopPublishingValues",
-        "consumes": [
-          "application/json-patch+json",
-          "application/json",
-          "text/json",
-          "application/*+json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "endpointId",
-            "in": "path",
-            "description": "The identifier of the activated endpoint.",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "request",
-            "in": "body",
-            "description": "The unpublish request",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/PublishStopRequestApiModel"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/PublishStopResponseApiModel"
-            }
-          }
-        },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ]
-      }
-    },
-    "/v2/publish/{endpointId}": {
-      "get": {
-        "tags": [
-          "Publish"
-        ],
-        "summary": "Get next set of published nodes",
-        "description": "Returns next set of currently published node ids for an endpoint.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
-        "operationId": "GetNextListOfPublishedNodes",
-        "consumes": [],
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "endpointId",
-            "in": "path",
-            "description": "The identifier of the activated endpoint.",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "continuationToken",
-            "in": "query",
-            "description": "The continuation token to continue with",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/PublishedItemListResponseApiModel"
-            }
-          }
-        },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ],
-        "x-ms-pageable": {
-          "nextLinkName": "continuationToken"
-        }
-      },
-      "post": {
-        "tags": [
-          "Publish"
-        ],
-        "summary": "Get currently published nodes",
-        "description": "Returns currently published node ids for an endpoint.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
-        "operationId": "GetFirstListOfPublishedNodes",
-        "consumes": [
-          "application/json-patch+json",
-          "application/json",
-          "text/json",
-          "application/*+json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "endpointId",
-            "in": "path",
-            "description": "The identifier of the activated endpoint.",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "request",
-            "in": "body",
-            "description": "The list request",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/PublishedItemListRequestApiModel"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/PublishedItemListResponseApiModel"
             }
           }
         },
@@ -1450,9 +1249,6 @@
     },
     "MethodMetadataRequestApiModel": {
       "description": "Method metadata request model",
-      "required": [
-        "methodId"
-      ],
       "type": "object",
       "properties": {
         "methodId": {
@@ -1624,202 +1420,8 @@
         }
       }
     },
-    "PublishStartRequestApiModel": {
-      "description": "Publish request",
-      "required": [
-        "item"
-      ],
-      "type": "object",
-      "properties": {
-        "item": {
-          "$ref": "#/definitions/PublishedItemApiModel",
-          "description": "Item to publish"
-        },
-        "header": {
-          "$ref": "#/definitions/RequestHeaderApiModel",
-          "description": "Optional request header"
-        }
-      }
-    },
-    "PublishedItemApiModel": {
-      "description": "A monitored and published item",
-      "required": [
-        "nodeId"
-      ],
-      "type": "object",
-      "properties": {
-        "nodeId": {
-          "description": "Node to monitor",
-          "type": "string"
-        },
-        "browsePath": {
-          "description": "An optional path from NodeId instance to\r\nthe actual node.",
-          "uniqueItems": false,
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "nodeAttribute": {
-          "description": "Attribute to monitor",
-          "enum": [
-            "NodeClass",
-            "BrowseName",
-            "DisplayName",
-            "Description",
-            "WriteMask",
-            "UserWriteMask",
-            "IsAbstract",
-            "Symmetric",
-            "InverseName",
-            "ContainsNoLoops",
-            "EventNotifier",
-            "Value",
-            "DataType",
-            "ValueRank",
-            "ArrayDimensions",
-            "AccessLevel",
-            "UserAccessLevel",
-            "MinimumSamplingInterval",
-            "Historizing",
-            "Executable",
-            "UserExecutable",
-            "DataTypeDefinition",
-            "RolePermissions",
-            "UserRolePermissions",
-            "AccessRestrictions"
-          ],
-          "type": "string",
-          "x-ms-enum": {
-            "name": "NodeAttribute",
-            "modelAsString": false
-          }
-        },
-        "publishingInterval": {
-          "format": "int32",
-          "description": "Publishing interval to use",
-          "type": "integer"
-        },
-        "samplingInterval": {
-          "format": "int32",
-          "description": "Sampling interval to use",
-          "type": "integer"
-        }
-      }
-    },
-    "PublishStartResponseApiModel": {
-      "description": "Result of publish request",
-      "type": "object",
-      "properties": {
-        "errorInfo": {
-          "$ref": "#/definitions/ServiceResultApiModel",
-          "description": "Service result in case of error"
-        }
-      }
-    },
-    "PublishStopRequestApiModel": {
-      "description": "Unpublish request",
-      "required": [
-        "nodeId"
-      ],
-      "type": "object",
-      "properties": {
-        "nodeId": {
-          "description": "Node of published item to unpublish",
-          "type": "string"
-        },
-        "browsePath": {
-          "description": "An optional path from NodeId instance to\r\nthe actual node.",
-          "uniqueItems": false,
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "nodeAttribute": {
-          "description": "Attribute of item to unpublish",
-          "enum": [
-            "NodeClass",
-            "BrowseName",
-            "DisplayName",
-            "Description",
-            "WriteMask",
-            "UserWriteMask",
-            "IsAbstract",
-            "Symmetric",
-            "InverseName",
-            "ContainsNoLoops",
-            "EventNotifier",
-            "Value",
-            "DataType",
-            "ValueRank",
-            "ArrayDimensions",
-            "AccessLevel",
-            "UserAccessLevel",
-            "MinimumSamplingInterval",
-            "Historizing",
-            "Executable",
-            "UserExecutable",
-            "DataTypeDefinition",
-            "RolePermissions",
-            "UserRolePermissions",
-            "AccessRestrictions"
-          ],
-          "type": "string",
-          "x-ms-enum": {
-            "name": "NodeAttribute",
-            "modelAsString": false
-          }
-        },
-        "diagnostics": {
-          "$ref": "#/definitions/DiagnosticsApiModel",
-          "description": "Optional diagnostics configuration"
-        }
-      }
-    },
-    "PublishStopResponseApiModel": {
-      "description": "Result of unpublish request",
-      "type": "object",
-      "properties": {
-        "errorInfo": {
-          "$ref": "#/definitions/ServiceResultApiModel",
-          "description": "Service result in case of error"
-        }
-      }
-    },
-    "PublishedItemListRequestApiModel": {
-      "description": "Request list of published items",
-      "type": "object",
-      "properties": {
-        "continuationToken": {
-          "description": "Continuation token or null to start",
-          "type": "string"
-        }
-      }
-    },
-    "PublishedItemListResponseApiModel": {
-      "description": "List of published nodes",
-      "type": "object",
-      "properties": {
-        "items": {
-          "description": "Monitored items",
-          "uniqueItems": false,
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/PublishedItemApiModel"
-          }
-        },
-        "continuationToken": {
-          "description": "Continuation or null if final",
-          "type": "string"
-        }
-      }
-    },
     "ValueReadRequestApiModel": {
       "description": "Node value read request webservice api model",
-      "required": [
-        "nodeId"
-      ],
       "type": "object",
       "properties": {
         "nodeId": {
@@ -2042,7 +1644,6 @@
     "ValueWriteRequestApiModel": {
       "description": "Value write request model",
       "required": [
-        "nodeId",
         "value"
       ],
       "type": "object",
@@ -2206,10 +1807,6 @@
     {
       "name": "Call",
       "description": "Call node method services"
-    },
-    {
-      "name": "Publish",
-      "description": "Value and Event publishing services"
     },
     {
       "name": "Read",

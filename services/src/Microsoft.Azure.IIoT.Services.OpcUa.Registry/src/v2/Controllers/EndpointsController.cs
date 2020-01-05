@@ -10,13 +10,13 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Controllers {
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.Http;
+    using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using System;
     using System.Linq;
     using System.Threading.Tasks;
     using System.ComponentModel.DataAnnotations;
-    using Swashbuckle.AspNetCore.Swagger;
 
     /// <summary>
     /// Activate, Deactivate and Query endpoint resources
@@ -84,10 +84,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Controllers {
         /// available.
         /// Call this operation again using the token to retrieve more results.
         /// </remarks>
-        /// <param name="pageSize">Optional number of results to return</param>
-        /// <param name="continuationToken">Optional Continuation token</param>
         /// <param name="onlyServerState">Whether to include only server
         /// state, or display current client state of the endpoint if available</param>
+        /// <param name="continuationToken">Optional Continuation token</param>
+        /// <param name="pageSize">Optional number of results to return</param>
         /// <returns>List of endpoints and continuation token to use for next request</returns>
         [HttpGet]
         [AutoRestExtension(NextPageLinkName = "continuationToken")]
@@ -121,9 +121,9 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Controllers {
         /// Call the GetListOfEndpoints operation using the token to retrieve
         /// more results.
         /// </remarks>
+        /// <param name="query">Query to match</param>
         /// <param name="onlyServerState">Whether to include only server
         /// state, or display current client state of the endpoint if available</param>
-        /// <param name="query">Query to match</param>
         /// <param name="pageSize">Optional number of results to return</param>
         /// <returns>List of endpoints and continuation token to use for next request</returns>
         [HttpPost("query")]
@@ -154,9 +154,9 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Controllers {
         /// Call the GetListOfEndpoints operation using the token to retrieve
         /// more results.
         /// </remarks>
+        /// <param name="query">Query to match</param>
         /// <param name="onlyServerState">Whether to include only server state, or display
         /// current client state of the endpoint if available</param>
-        /// <param name="query">Query to match</param>
         /// <param name="pageSize">Optional number of results to
         /// return</param>
         /// <returns>List of endpoints and continuation token to use for next request</returns>

@@ -4,15 +4,17 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Cdm.Services {
-    using Microsoft.Azure.IIoT.Cdm;
     using Microsoft.Azure.IIoT.Cdm.Models;
+    using Microsoft.Azure.IIoT.Utils;
     using Microsoft.CommonDataModel.ObjectModel.Cdm;
     using Microsoft.CommonDataModel.ObjectModel.Enums;
     using Microsoft.CommonDataModel.ObjectModel.Storage;
     using Microsoft.CommonDataModel.ObjectModel.Utilities;
     using Serilog;
     using System;
+    using System.Diagnostics;
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -31,6 +33,13 @@ namespace Microsoft.Azure.IIoT.Cdm.Services {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _storage = storage ?? throw new ArgumentNullException(nameof(storage));
+
+            _lock = new SemaphoreSlim(1, 1);
+            _cacheListSize = 5000;
+            _cacheUploadTimer = new Timer(CacheTimer_ElapesedAsync);
+            _cacheUploadInterval = TimeSpan.FromSeconds(20);
+            _cacheList = new List<SubscriberCdmSampleModel>(_cacheListSize);
+
             _cdmCorpus = new CdmCorpusDefinition();
             _cdmCorpus.SetEventCallback(new EventCallback {
                 Invoke = (level, msg) => {
@@ -78,6 +87,7 @@ namespace Microsoft.Azure.IIoT.Cdm.Services {
         /// <returns></returns>
         public async Task OpenAsync() {
 
+            _logger.Information($"Open CDM Processor ...");
             // Load the model.json file from file system
             Manifest = await _cdmCorpus.FetchObjectAsync<CdmManifestDefinition>(
                 "adls:/model.json");
@@ -116,6 +126,7 @@ namespace Microsoft.Azure.IIoT.Cdm.Services {
                     await Manifest.SaveAsAsync("model.json", true);
                 }
             }
+            Try.Op(() => _cacheUploadTimer.Change(_cacheUploadInterval, Timeout.InfiniteTimeSpan));
         }
 
         /// <summary>
@@ -123,42 +134,93 @@ namespace Microsoft.Azure.IIoT.Cdm.Services {
         /// </summary>
         /// <returns></returns>
         public async Task CloseAsync() {
+            _logger.Information($"Closing CDM Processor ...");
+            Try.Op(() => _cacheUploadTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan));
+            await PerformWriteCache();
             if (Manifest != null) {
                 await Manifest.SaveAsAsync("model.json", true);
+                Manifest = null;
             }
         }
 
         /// <inheritdoc/>
         public void Dispose() {
             _adapter.Dispose();
+            _cacheUploadTimer.Dispose();
+            _lock.Dispose();
+        }
+
+        /// <summary>
+        /// PerformWriteCache
+        /// </summary>
+
+        private async Task PerformWriteCache() {
+            var sw = Stopwatch.StartNew();
+            _logger.Information("Sending processed CDM data ...");
+            try {
+                await _lock.WaitAsync();
+                if (_cacheList.Count == 0) {
+                    return;
+                }
+                if (Manifest == null) {
+                    _logger.Warning("Manifest is not assigned yet. Retry ... ");
+                    await OpenAsync();
+                }
+                var entityDeclaration = Manifest.Entities.Item(kPublisherSampleEntityName);
+                if (entityDeclaration == null) {
+                    // failed to load the cdm model
+                    _logger.Error("Failed to load the entity declaration");
+                }
+                else {
+                    var partition = entityDeclaration.DataPartitions[0];
+                    var csvTrait = partition.ExhibitsTraits.Item("is.partition.format.CSV");
+                    var partitionLocation = _cdmCorpus.Storage.CorpusPathToAdapterPath(partition.Location);
+
+                    await _storage.WriteInCsvPartition<SubscriberCdmSampleModel>(
+                        partitionLocation,
+                        _cacheList,
+                        csvTrait?.Arguments?.FetchValue("delimiter") ?? kCsvPartitionsDelimiter);
+                }
+                _logger.Information("Successfully sent processed CDM data {count} records (took {elapsed}).", 
+                    _cacheList.Count, sw.Elapsed);
+                _cacheList.Clear();
+            }
+            catch (Exception e) {
+                var errorMessage = e.Message;
+                if (e.InnerException != null) {
+                    errorMessage += " - " + e.InnerException.Message;
+                }
+                _logger.Warning("Failed to send processed CDM data after {elapsed} : {message}",
+                     sw.Elapsed, errorMessage);
+            }
+            finally {
+                _lock.Release();
+            }
+        }
+
+        /// <summary>
+        /// Cache Timer Elapesed handler 
+        /// </summary>
+        /// <param name="sender"></param>
+        private async void CacheTimer_ElapesedAsync(object sender) {
+            await PerformWriteCache();
+            Try.Op(() => _cacheUploadTimer.Change(_cacheUploadInterval, Timeout.InfiniteTimeSpan));
         }
 
         private async Task ProcessCdmSampleAsync(SubscriberCdmSampleModel payload) {
-
-            if (Manifest == null) {
-                _logger.Warning("Manifest is not assigned yet. Retry ... ");
-                await OpenAsync();
+            try {
+                await _lock.WaitAsync();
+                _cacheList.Add(payload);
+                if (_cacheList.Count >= _cacheListSize) {
+                    Try.Op(() => _cacheUploadTimer.Change(TimeSpan.Zero, Timeout.InfiniteTimeSpan));
+                }
             }
-
-            var entityDeclaration = Manifest.Entities.Item(kPublisherSampleEntityName);
-            if (entityDeclaration == null) {
-                // failed to load the cdm model
-                _logger.Error("Failed to load the entity declaration");
-                return;
+            finally {
+                _lock.Release();
             }
-
-            var partition = entityDeclaration.DataPartitions[0];
-            var csvTrait = partition.ExhibitsTraits.Item("is.partition.format.CSV");
-            var partitionLocation = _cdmCorpus.Storage.CorpusPathToAdapterPath(partition.Location);
-
-            await _storage.WriteInCsvPartition<SubscriberCdmSampleModel>(
-                partitionLocation,
-                new List<SubscriberCdmSampleModel>() { payload },
-                csvTrait?.Arguments?.FetchValue("delimiter") ?? kCsvPartitionsDelimiter);
         }
 
         private bool AddPublisherSampleModelEntityToModel() {
-
             // check if the enetity was aleready added
             foreach (var entity in Manifest.Entities) {
                 if (entity.EntityName == kPublisherSampleEntityName) {
@@ -212,8 +274,8 @@ namespace Microsoft.Azure.IIoT.Cdm.Services {
             value.Purpose = _cdmCorpus.MakeRef<CdmPurposeReference>(
                 CdmObjectType.PurposeRef, "hasA", true);
             value.DataType = _cdmCorpus.MakeRef<CdmDataTypeReference>(
-                CdmObjectType.DataTypeRef, "string", true);
-            value.DataFormat = CdmDataFormat.String;
+                CdmObjectType.DataTypeRef, "integer", true);
+            value.DataFormat = CdmDataFormat.Int64;
             publisherSampleEntity.Attributes.Add(value);
 
             var timestamp = _cdmCorpus.MakeObject<CdmTypeAttributeDefinition>(
@@ -234,6 +296,15 @@ namespace Microsoft.Azure.IIoT.Cdm.Services {
             sourceTimestamp.DataFormat = CdmDataFormat.DateTime;
             publisherSampleEntity.Attributes.Add(sourceTimestamp);
 
+            var sourcePicoseconds = _cdmCorpus.MakeObject<CdmTypeAttributeDefinition>(
+                CdmObjectType.TypeAttributeDef, "SourcePicoseconds", false);
+            sourcePicoseconds.Purpose = _cdmCorpus.MakeRef<CdmPurposeReference>(
+                CdmObjectType.PurposeRef, "hasA", true);
+            sourcePicoseconds.DataType = _cdmCorpus.MakeRef<CdmDataTypeReference>(
+                CdmObjectType.DataTypeRef, "integer", true);
+            sourcePicoseconds.DataFormat = CdmDataFormat.Int16;
+            publisherSampleEntity.Attributes.Add(sourcePicoseconds);
+
             var serverTimestamp = _cdmCorpus.MakeObject<CdmTypeAttributeDefinition>(
                 CdmObjectType.TypeAttributeDef, "ServerTimestamp", false);
             serverTimestamp.Purpose = _cdmCorpus.MakeRef<CdmPurposeReference>(
@@ -242,6 +313,15 @@ namespace Microsoft.Azure.IIoT.Cdm.Services {
                 CdmObjectType.DataTypeRef, "dateTime", true);
             serverTimestamp.DataFormat = CdmDataFormat.DateTime;
             publisherSampleEntity.Attributes.Add(serverTimestamp);
+
+            var serverPicoseconds = _cdmCorpus.MakeObject<CdmTypeAttributeDefinition>(
+                CdmObjectType.TypeAttributeDef, "ServerPicoseconds", false);
+            serverPicoseconds.Purpose = _cdmCorpus.MakeRef<CdmPurposeReference>(
+                CdmObjectType.PurposeRef, "hasA", true);
+            serverPicoseconds.DataType = _cdmCorpus.MakeRef<CdmDataTypeReference>(
+                CdmObjectType.DataTypeRef, "integer", true);
+            serverPicoseconds.DataFormat = CdmDataFormat.Int16;
+            publisherSampleEntity.Attributes.Add(serverPicoseconds);
 
             publisherSampleEntity.DisplayName = kPublisherSampleEntityName;
             publisherSampleEntity.Version = "0.0.1";
@@ -282,6 +362,12 @@ namespace Microsoft.Azure.IIoT.Cdm.Services {
         private readonly CdmCorpusDefinition _cdmCorpus = null;
         private readonly ILogger _logger;
         private readonly ICdmClientConfig _config;
+
+        private readonly SemaphoreSlim _lock;
+        private readonly Timer _cacheUploadTimer;
+        private readonly TimeSpan _cacheUploadInterval;
+        private readonly int _cacheListSize;
+        private readonly List<SubscriberCdmSampleModel> _cacheList;
 
         private static readonly string kPublisherSampleEntityName = "PublisherSampleModel";
         private static readonly string kCsvPartitionsDelimiter = ",";

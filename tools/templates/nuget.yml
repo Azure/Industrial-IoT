@@ -9,6 +9,20 @@ jobs:
   pool:
     name: Hosted Windows 2019 with VS2019
   steps:
+  - task: UseDotNet@2
+    displayName: 'Install .NET Core SDK for signing'
+    inputs:
+      packageType: sdk
+      version: 2.0.x
+      includePreviewVersions: false
+      installationPath: $(Agent.ToolsDirectory)/dotnet
+  - task: UseDotNet@2
+    displayName: 'Install .NET Core SDK for building'
+    inputs:
+      packageType: sdk
+      version: 3.1.x
+      includePreviewVersions: false
+      installationPath: $(Agent.ToolsDirectory)/dotnet
   - task: PowerShell@2
     displayName: Versioning
     inputs:

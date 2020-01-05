@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway {
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Twin.Clients;
-    using Microsoft.Azure.IIoT.Services;
     using Microsoft.Azure.IIoT.Services.Auth;
     using Microsoft.Azure.IIoT.Services.Auth.Clients;
     using Microsoft.Azure.IIoT.Http.Auth;
@@ -28,6 +27,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway {
     using Autofac.Extensions.DependencyInjection;
     using System;
     using ILogger = Serilog.ILogger;
+    using Microsoft.Extensions.Hosting;
 
     /// <summary>
     /// Webservice startup
@@ -47,21 +47,18 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway {
         /// <summary>
         /// Current hosting environment - Initialized in constructor
         /// </summary>
-        public IHostingEnvironment Environment { get; }
-
-        /// <summary>
-        /// Di container - Initialized in `ConfigureServices`
-        /// </summary>
-        public IContainer ApplicationContainer { get; private set; }
+        public IWebHostEnvironment Environment { get; }
 
         /// <summary>
         /// Create startup
         /// </summary>
         /// <param name="env"></param>
         /// <param name="configuration"></param>
-        public Startup(IHostingEnvironment env, IConfiguration configuration) :
+        public Startup(IWebHostEnvironment env, IConfiguration configuration) :
             this(env, new Config(new ConfigurationBuilder()
                 .AddConfiguration(configuration)
+                .AddEnvironmentVariables()
+                .AddEnvironmentVariables(EnvironmentVariableTarget.User)
                 .AddFromDotEnvFile()
                 .AddFromKeyVault()
                 .Build())) {
@@ -72,7 +69,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway {
         /// </summary>
         /// <param name="env"></param>
         /// <param name="configuration"></param>
-        public Startup(IHostingEnvironment env, Config configuration) {
+        public Startup(IWebHostEnvironment env, Config configuration) {
             Environment = env;
             Config = configuration;
         }
@@ -84,12 +81,14 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway {
         /// </summary>
         /// <param name="services"></param>
         /// <returns></returns>
-        public IServiceProvider ConfigureServices(IServiceCollection services) {
+        public void ConfigureServices(IServiceCollection services) {
 
             services.AddLogging(o => o.AddConsole().AddDebug());
 
             // Setup (not enabling yet) CORS
             services.AddCors();
+            services.AddHealthChecks();
+            services.AddDistributedMemoryCache();
 
             // Add authentication
             services.AddJwtBearerAuthentication(Config, Environment.IsDevelopment());
@@ -98,16 +97,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway {
             // services.AddHttpClient();
 
             // Add controllers as services so they'll be resolved.
-            services.AddMvc()
-                .AddApplicationPart(GetType().Assembly)
-                .AddControllersAsServices();
-
-            // Prepare DI container
-            var builder = new ContainerBuilder();
-            builder.Populate(services);
-            ConfigureContainer(builder);
-            ApplicationContainer = builder.Build();
-            return new AutofacServiceProvider(ApplicationContainer);
+            services.AddControllers();
         }
 
         /// <summary>
@@ -116,26 +106,31 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway {
         /// </summary>
         /// <param name="app"></param>
         /// <param name="appLifetime"></param>
-        public void Configure(IApplicationBuilder app, IApplicationLifetime appLifetime) {
+        public void Configure(IApplicationBuilder app, IHostApplicationLifetime appLifetime) {
+            var applicationContainer = app.ApplicationServices.GetAutofacRoot();
+            var log = applicationContainer.Resolve<ILogger>();
 
-            var log = ApplicationContainer.Resolve<ILogger>();
+            app.UseRouting();
+            app.EnableCors();
 
             if (Config.AuthRequired) {
                 app.UseAuthentication();
             }
+            app.UseAuthorization();
             if (Config.HttpsRedirectPort > 0) {
-                // app.UseHsts();
+                app.UseHsts();
                 app.UseHttpsRedirection();
             }
 
-            app.EnableCors();
-            app.UseCorrelation();
-            app.UseMvc();
+            app.UseEndpoints(endpoints => {
+                endpoints.MapControllers();
+                endpoints.MapHealthChecks("/healthz");
+            });
             app.UseOpcUaTransport();
 
             // If you want to dispose of resources that have been resolved in the
             // application container, register for the "ApplicationStopped" event.
-            appLifetime.ApplicationStopped.Register(ApplicationContainer.Dispose);
+            appLifetime.ApplicationStopped.Register(applicationContainer.Dispose);
 
             // Print some useful information at bootstrap time
             log.Information("{service} web service started with id {id}", ServiceInfo.Name,
@@ -189,7 +184,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway {
 
             // Auto start listeners
             builder.RegisterType<TcpChannelListener>()
-                .AutoActivate()
+               // .AutoActivate()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<WebSocketChannelListener>()
                 .AutoActivate()
@@ -205,7 +200,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway {
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<MessageSerializer>()
                 .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<JsonVariantEncoder>()
+            builder.RegisterType<VariantEncoderFactory>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<GatewayServer>()
                 .AsImplementedInterfaces().SingleInstance();

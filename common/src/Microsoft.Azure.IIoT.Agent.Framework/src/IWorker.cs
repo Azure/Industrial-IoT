@@ -30,7 +30,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework {
     /// <summary>
     /// Worker
     /// </summary>
-    public interface IWorker : IHost {
+    public interface IWorker : IHostProcess {
 
         /// <summary>
         /// Worker id

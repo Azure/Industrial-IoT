@@ -6,8 +6,8 @@
 namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge.Runtime {
     using Microsoft.Azure.IIoT.Services.Cors;
     using Microsoft.Azure.IIoT.Services.Cors.Runtime;
-    using Microsoft.Azure.IIoT.Services.Swagger;
-    using Microsoft.Azure.IIoT.Services.Swagger.Runtime;
+    using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
+    using Microsoft.Azure.IIoT.AspNetCore.OpenApi.Runtime;
     using Microsoft.Azure.IIoT.Agent.Framework;
     using Microsoft.Azure.IIoT.Agent.Framework.Jobs;
     using Microsoft.Azure.IIoT.Agent.Framework.Jobs.Runtime;
@@ -27,7 +27,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge.Runtime {
     /// Common web service configuration aggregation
     /// </summary>
     public class Config : DiagnosticsConfig, IAuthConfig, IIoTHubConfig,
-        ICorsConfig, IClientConfig, ISwaggerConfig, IJobOrchestratorConfig,
+        ICorsConfig, IClientConfig, IOpenApiConfig, IJobOrchestratorConfig,
         ICosmosDbConfig, IJobDatabaseConfig, IWorkerDatabaseConfig,
         IJobOrchestratorEndpoint {
 
@@ -78,15 +78,15 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge.Runtime {
         public bool CorsEnabled => _cors.CorsEnabled;
 
         /// <inheritdoc/>
-        public bool UIEnabled => _swagger.UIEnabled;
+        public bool UIEnabled => _openApi.UIEnabled;
         /// <inheritdoc/>
-        public bool WithAuth => _swagger.WithAuth;
+        public bool WithAuth => _openApi.WithAuth;
         /// <inheritdoc/>
-        public bool WithHttpScheme => _swagger.WithHttpScheme;
+        public string OpenApiAppId => _openApi.OpenApiAppId;
         /// <inheritdoc/>
-        public string SwaggerAppId => _swagger.SwaggerAppId;
+        public string OpenApiAppSecret => _openApi.OpenApiAppSecret;
         /// <inheritdoc/>
-        public string SwaggerAppSecret => _swagger.SwaggerAppSecret;
+        public bool UseV2 => _openApi.UseV2;
 
         /// <summary>
         /// Whether to use role based access
@@ -100,7 +100,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge.Runtime {
         public Config(IConfiguration configuration) :
             base(configuration) {
 
-            _swagger = new SwaggerConfig(configuration);
+            _openApi = new OpenApiConfig(configuration);
             _auth = new AuthConfig(configuration);
             _host = new HostConfig(configuration);
             _hub = new IoTHubConfig(configuration);
@@ -110,7 +110,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge.Runtime {
             _edge = new JobOrchestratorApiConfig(configuration);
         }
 
-        private readonly SwaggerConfig _swagger;
+        private readonly OpenApiConfig _openApi;
         private readonly AuthConfig _auth;
         private readonly HostConfig _host;
         private readonly CorsConfig _cors;

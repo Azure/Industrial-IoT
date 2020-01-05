@@ -4,11 +4,11 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Hub.Client {
-    using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Http;
     using Microsoft.Azure.IIoT.Utils;
+    using Microsoft.Extensions.Diagnostics.HealthChecks;
     using Newtonsoft.Json.Linq;
     using Serilog;
     using System;
@@ -23,12 +23,12 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
     /// in the Hub.Client nuget package that can also be used.
     /// </summary>
     public sealed class IoTHubServiceHttpClient : IoTHubHttpClientBase,
-        IIoTHubTwinServices, IIoTHubJobServices {
+        IIoTHubTwinServices, IIoTHubJobServices, IHealthCheck {
 
         /// <summary>
         /// The host name the client is talking to
         /// </summary>
-        public string HostName => _hubConnectionString.HostName;
+        public string HostName => HubConnectionString.HostName;
 
         /// <summary>
         /// Create service client
@@ -39,6 +39,19 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
         public IoTHubServiceHttpClient(IHttpClient httpClient,
             IIoTHubConfig config, ILogger logger) :
             base(httpClient, config, logger) {
+        }
+
+        /// <inheritdoc/>
+        public async Task<HealthCheckResult> CheckHealthAsync(
+            HealthCheckContext context, CancellationToken ct) {
+            try {
+                await QueryAsync("SELECT * FROM devices", null, 1, ct);
+                return HealthCheckResult.Healthy();
+            }
+            catch (Exception ex) {
+                return new HealthCheckResult(context.Registration.FailureStatus,
+                    exception: ex);
+            }
         }
 
         /// <inheritdoc/>

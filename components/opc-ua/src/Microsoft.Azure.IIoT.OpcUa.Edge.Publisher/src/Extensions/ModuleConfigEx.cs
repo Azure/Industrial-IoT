@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.Module.Framework.Client {
     using Microsoft.Azure.IIoT.Exceptions;
-    using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.Utils;
     using System;
     using System.Linq;

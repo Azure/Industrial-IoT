@@ -8,11 +8,11 @@
  .PARAMETER type
     The type of deployment (local, services, app, all)
 
- .PARAMETER applicationName
-    The name of the application if not local deployment. 
-
  .PARAMETER resourceGroupName
     Can be the name of an existing or a new resource group
+
+ .PARAMETER resourceGroupLocation
+    Optional, a resource group location. If specified, will try to create a new resource group in this location.
 
  .PARAMETER subscriptionId
     Optional, the subscription id where resources will be deployed.
@@ -23,22 +23,28 @@
  .PARAMETER accountName
     The account name to use if not to use default.
 
- .PARAMETER resourceGroupLocation
-    Optional, a resource group location. If specified, will try to create a new resource group in this location.
+ .PARAMETER applicationName
+    The name of the application if not local deployment. 
 
  .PARAMETER aadConfig
     The aad configuration object (use aad-register.ps1 to create object).  If not provides calls aad-register.ps1.
 
  .PARAMETER context
-    The a previously created az context
+    A previously created az context to be used as authentication.
 
  .PARAMETER aadApplicationName
     The application name to use when registering aad application.  If not set, uses applicationName
 
+ .PARAMETER acrRegistryName
+    An optional name of a Azure container registry to deploy containers from.
+
+ .PARAMETER acrSubscriptionName
+    The subscription of the container registry if differemt from the specified subscription.
+
 #>
 
 param(
-    [ValidateSet("local", "services", "app", "all")] [string] $type = "services",
+    [ValidateSet("local", "services", "app", "all")] [string] $type = "app",
     [string] $applicationName,
     [string] $resourceGroupName,
     [string] $resourceGroupLocation,
@@ -146,6 +152,71 @@ Function Select-Context() {
 
     Write-Host "Azure subscription $($context.Subscription.Name) ($($context.Subscription.Id)) selected."
     return $context
+}
+
+#*******************************************************************************************************
+# Get private registry credentials
+#*******************************************************************************************************
+Function Select-RegistryCredentials() {
+    # set private container registry source if provided at command line
+    if ([string]::IsNullOrEmpty($script:acrRegistryName) `
+            -and [string]::IsNullOrEmpty($script:acrSubscriptionName)) {
+        return $null
+    }
+
+    if (![string]::IsNullOrEmpty($script:acrSubscriptionName) `
+            -and ($context.Subscription.Name -ne $script:acrSubscriptionName)) {
+        $acrSubscription = Get-AzSubscription -SubscriptionName $script:acrSubscriptionName 
+        if (!$acrSubscription) {
+            Write-Warning "Specified container registry subscription $($script:acrSubscriptionName) not found."
+        }
+        $containerContext = Get-AzContext -ListAvailable | Where-Object { 
+            $_.Subscription.Name -eq $script:acrSubscriptionName 
+        }
+    }
+
+    if (!$containerContext) {
+        # use current context
+        $containerContext = $context
+        Write-Host "Try using current authentication context to access container registry."
+    }
+    if ($containerContext.Length -gt 1) {
+        $containerContext = $containerContext[0]
+    }
+    if ([string]::IsNullOrEmpty($script:acrRegistryName)) {
+        # use default dev images repository name - see acr-build.ps1
+        $script:acrRegistryName = "industrialiotdev"
+    }
+
+    Write-Host "Looking up credentials for $($script:acrRegistryName) registry."
+    
+    try {
+        $registry = Get-AzContainerRegistry -DefaultProfile $containerContext `
+            | Where-Object { $_.Name -eq $script:acrRegistryName }
+    }
+    catch {
+        $registry = $null
+    }
+    if (!$registry) {
+        Write-Warning "$($script:acrRegistryName) registry not found."
+        return $null
+    }
+    try {
+        $creds = Get-AzContainerRegistryCredential -Registry $registry `
+            -DefaultProfile $containerContext
+    }
+    catch {
+        $creds = $null
+    }
+    if (!$creds) {
+        Write-Warning "Failed to get credentials for $($script:acrRegistryName)."
+        return $null
+    }
+    return @{
+        dockerServer = $registry.LoginServer
+        dockerUser =  $creds.Username
+        dockerPassword = $creds.Password
+    }
 }
 
 #*******************************************************************************************************
@@ -266,6 +337,10 @@ Function Get-EnvironmentVariables() {
     $var = $deployment.Outputs["serviceUrl"].Value
     if (![string]::IsNullOrEmpty($var)) {
         Write-Output "PCS_SERVICE_URL=$($var)"
+    }
+    $var = $deployment.Outputs["appUrl"].Value
+    if (![string]::IsNullOrEmpty($var)) {
+        Write-Output "PCS_APP_URL=$($var)"
     }
 }
 
@@ -407,52 +482,21 @@ Function New-Deployment() {
             }
         }
 
-        # set private container registry source if provided at command line
-        if (![string]::IsNullOrEmpty($script:acrRegistryName) `
-                -or ![string]::IsNullOrEmpty($script:acrSubscriptionName)) {
-            if (![string]::IsNullOrEmpty($script:acrSubscriptionName) `
-                    -and ($context.Subscription.Name -ne $script:acrSubscriptionName)) {
-                $containerContext = Get-AzContext -ListAvailable | Where-Object { 
-                    $_.Subscription.Name -eq $script:acrSubscriptionName 
-                }
+        $creds = Select-RegistryCredentials
+        if ($creds) {
+            $templateParameters.Add("dockerServer", $creds.dockerServer)
+            $templateParameters.Add("dockerUser", $creds.dockerUser)
+            $templateParameters.Add("dockerPassword", $creds.dockerPassword)
+            $namespace = $branchName
+            if ($namespace.StartsWith("feature/")) {
+                $namespace = $namespace.Replace("feature/", "")
             }
-            if (!$containerContext) {
-                # use current context
-                $containerContext = $context
+            elseif ($namespace.StartsWith("release/")) {
+                $namespace = "master"
             }
-            if ([string]::IsNullOrEmpty($script:acrRegistryName)) {
-                # use default dev images repository name - see acr-build.ps1
-                $script:acrRegistryName = "industrialiotdev"
-            }
-            Write-Host "Looking up credentials for $($script:acrRegistryName) registry."
-            
-            $registry = Get-AzContainerRegistry -DefaultProfile $containerContext `
-                | Where-Object { $_.Name -eq $script:acrRegistryName }
-            if (!$registry) {
-                Write-Warning "$($script:acrRegistryName) registry not found - using default."
-            }
-            else {
-                $creds = Get-AzContainerRegistryCredential -Registry $registry `
-                    -DefaultProfile $containerContext
-                if (!$creds) {
-                    Write-Warning "Failed to get credentials for $($script:acrRegistryName)."
-                }
-                else {
-                    $templateParameters.Add("dockerServer", $registry.LoginServer)
-                    $templateParameters.Add("dockerUser", $creds.Username)
-                    $templateParameters.Add("dockerPassword", $creds.Password)
-                    $namespace = $branchName
-                    if ($namespace.StartsWith("feature/")) {
-                        $namespace = $namespace.Replace("feature/", "")
-                    }
-                    elseif ($namespace.StartsWith("release/")) {
-                        $namespace = "master"
-                    }
-                    $namespace = $namespace.Substring(0, [Math]::Min($namespace.Length, 24))        
-                    $templateParameters.Add("imageNamespace", $namespace)
-                    Write-Host "Using latest $($namespace) images from $($registry.LoginServer)."
-                }
-            }
+            $namespace = $namespace.Replace("_", "/").Substring(0, [Math]::Min($namespace.Length, 24))
+            $templateParameters.Add("imageNamespace", $namespace)
+            Write-Host "Using latest $($namespace) images from $($creds.dockerServer)."
         }
 
         if ($script:type -eq "all") {
@@ -461,7 +505,7 @@ Function New-Deployment() {
             $templateParameters.Add("numberOfWindowsGateways", 1)
             $templateParameters.Add("numberOfServers", 1)
 
-            $adminUser = "sandboxUser"
+            $adminUser = "sandboxuser"
             $adminPassword = New-Password
             $templateParameters.Add("edgePassword", $adminPassword)
             $templateParameters.Add("edgeUserName", $adminUser)
@@ -488,9 +532,13 @@ Function New-Deployment() {
         }
         
         # register aad application
+        Write-Host 
         Write-Host "Registering client and services AAD applications in your tenant..."
         $script:aadConfig = & (Join-Path $script:ScriptDir "aad-register.ps1") `
             -Context $context -Name $script:aadApplicationName
+
+        Write-Host "Client and services AAD applications registered..."
+        Write-Host 
         $aadAddReplyUrls = $true
     }
     
@@ -540,7 +588,14 @@ Function New-Deployment() {
             # Add reply urls
             #
             $replyUrls = New-Object System.Collections.Generic.List[System.String]
-            $website = $deployment.Outputs["azureWebsite"].Value
+            if ($aadAddReplyUrls) {
+                # retrieve existing urls
+                $app = Get-AzureADApplication -ObjectId $aadConfig.ClientPrincipalId
+                if ($app.ReplyUrls -and ($app.ReplyUrls.Count -ne 0)) {
+                    $replyUrls = $app.ReplyUrls;
+                }
+            }
+            $website = $deployment.Outputs["appUrl"].Value
             if (![string]::IsNullOrEmpty($website)) {
                 Write-Host
                 Write-Host "The deployed application can be found at:"
@@ -553,40 +608,51 @@ Function New-Deployment() {
                         Write-Host "$($website)/signin-oidc"
                     }
                     else {
-                        $replyUrls.Add($website + "/signin-oidc")
+                        $replyUrls.Add("$($website)/signin-oidc")
                     }
                 }
             }
+            elseif ($aadAddReplyUrls) {
+                $replyUrls.Add("http://localhost:5000/signin-oidc")
+            }
 
             if ($aadAddReplyUrls -and ![string]::IsNullOrEmpty($script:aadConfig.ClientPrincipalId)) {
-                $serviceUri = $deployment.Outputs["PCS_SERVICE_URL"].Value
+                $serviceUri = $deployment.Outputs["serviceUrl"].Value
 
                 if (![string]::IsNullOrEmpty($serviceUri)) {
                     $replyUrls.Add($serviceUri + "/twin/oauth2-redirect.html")
                     $replyUrls.Add($serviceUri + "/registry/oauth2-redirect.html")
                     $replyUrls.Add($serviceUri + "/history/oauth2-redirect.html")
                     $replyUrls.Add($serviceUri + "/vault/oauth2-redirect.html")
-                    $replyUrls.Add($serviceUri + "/ua/oauth2-redirect.html")
+                    $replyUrls.Add($serviceUri + "/publisher/oauth2-redirect.html")
                 }
-                else {
-                    $replyUrls.Add("http://localhost/oauth2-redirect.html")
-                    $replyUrls.Add("https://localhost/oauth2-redirect.html")
-                    $replyUrls.Add("http://localhost:44314/signin-oidc")
-                    $replyUrls.Add("https://localhost:44314/signin-oidc")
-                }
-
+                
+                $replyUrls.Add("http://localhost:9080/twin/oauth2-redirect.html")
+                $replyUrls.Add("http://localhost:9080/registry/oauth2-redirect.html")
+                $replyUrls.Add("http://localhost:9080/history/oauth2-redirect.html")
+                $replyUrls.Add("http://localhost:9080/vault/oauth2-redirect.html")
+                $replyUrls.Add("http://localhost:9080/publisher/oauth2-redirect.html")
+            }
+            
+            if ($aadAddReplyUrls) {            
                 # register reply urls in client application registration
+                Write-Host 
                 Write-Host "Registering reply urls for $($aadConfig.ClientPrincipalId)..."
 
                 try {
                     # assumes we are still connected
                     $replyUrls.Add("urn:ietf:wg:oauth:2.0:oob")
+                    $replyUrls = ($replyUrls | sort-object –Unique)
                     Set-AzureADApplication -ObjectId $aadConfig.ClientPrincipalId -ReplyUrls $replyUrls
 
+                    $replyUrls | ForEach-Object { Write-Host $_ }
                     # TODO
                     #    & (Join-Path $script:ScriptDir "aad-update.ps1") `
                     #        $context `
                     #        -ObjectId $aadConfig.ClientPrincipalId -ReplyUrls $replyUrls
+
+                    Write-Host "Reply urls registered in client app $($aadConfig.ClientPrincipalId)..."
+                    Write-Host 
                 }
                 catch {
                     Write-Host $_.Exception.Message

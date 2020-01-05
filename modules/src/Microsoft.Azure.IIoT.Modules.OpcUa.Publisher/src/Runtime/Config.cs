@@ -15,7 +15,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
     /// <summary>
     /// Wraps a configuration root
     /// </summary>
-    public class Config : DiagnosticsConfig, IModuleConfig, IClientServicesConfig,
+    public class Config : DiagnosticsConfig, IModuleConfig, IClientServicesConfig2,
         ISecurityConfig, ITransportQuotaConfig {
 
         /// <inheritdoc/>
@@ -75,11 +75,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// <param name="configuration"></param>
         public Config(IConfiguration configuration) :
             base(configuration) {
-            _opc = new ClientServicesConfig(configuration);
+            _opc = new ClientServicesConfig2(configuration);
             _module = new ModuleConfig(configuration);
         }
 
-        private readonly ClientServicesConfig _opc;
+        private readonly ClientServicesConfig2 _opc;
         private readonly ModuleConfig _module;
     }
 }

@@ -22,7 +22,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
 
             //sanBuilder.AddIpAddress(IPAddress.Loopback);
             //sanBuilder.AddIpAddress(IPAddress.IPv6Loopback);
-            
+
             sanBuilder.AddDnsName(dnsName);
 
             var distinguishedName = new X500DistinguishedName($"CN={certificateName}");

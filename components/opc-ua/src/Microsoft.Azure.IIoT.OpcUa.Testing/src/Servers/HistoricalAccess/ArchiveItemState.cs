@@ -525,7 +525,7 @@ namespace HistoricalAccess {
                 ModificationTime = DateTime.UtcNow
             };
 
-            if (context.OperationContext != null && context.OperationContext.UserIdentity != null) {
+            if (context.OperationContext?.UserIdentity != null) {
                 info.UserName = context.OperationContext.UserIdentity.DisplayName;
             }
 

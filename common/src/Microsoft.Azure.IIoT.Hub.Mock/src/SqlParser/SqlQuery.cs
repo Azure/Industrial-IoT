@@ -294,8 +294,8 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser {
         /// Parse target
         /// </summary>
         /// <param name="context"></param>
-        /// <param name="aggregateResultColumnNames"></param>
         /// <param name="parameter"></param>
+        /// <param name="aggregateResultColumnNames"></param>
         /// <returns></returns>
         private Expression ParseParameterBinding(ParameterExpression parameter,
             SqlSelectParser.ColumnNameContext context, List<string> aggregateResultColumnNames = null) {

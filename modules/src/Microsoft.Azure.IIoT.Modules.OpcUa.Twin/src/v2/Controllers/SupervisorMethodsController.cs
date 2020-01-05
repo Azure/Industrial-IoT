@@ -27,11 +27,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
         /// Create controller with service
         /// </summary>
         /// <param name="supervisor"></param>
-        /// <param name="browse"></param>
         /// <param name="discover"></param>
         /// <param name="activator"></param>
         /// <param name="nodes"></param>
         /// <param name="historian"></param>
+        /// <param name="browse"></param>
         public SupervisorMethodsController(ISupervisorServices supervisor,
             IDiscoveryServices discover, IActivationServices<string> activator,
             INodeServices<EndpointModel> nodes, IHistoricAccessServices<EndpointModel> historian,

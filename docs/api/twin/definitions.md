@@ -223,7 +223,7 @@ Method metadata request model
 |---|---|---|
 |**header**  <br>*optional*|Optional request header|[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
 |**methodBrowsePath**  <br>*optional*|An optional component path from the node identified by<br>MethodId to the actual method node.|< string > array|
-|**methodId**  <br>*required*|Method id of method to call.<br>(Required)|string|
+|**methodId**  <br>*optional*|Method id of method to call.<br>(Required)|string|
 
 
 <a name="methodmetadataresponseapimodel"></a>
@@ -298,85 +298,6 @@ reference model
 |**direction**  <br>*optional*|Browse direction of reference|enum (Forward, Backward, Both)|
 |**referenceTypeId**  <br>*optional*|Reference Type identifier|string|
 |**target**  <br>*required*|Target node|[NodeApiModel](definitions.md#nodeapimodel)|
-
-
-<a name="publishstartrequestapimodel"></a>
-### PublishStartRequestApiModel
-Publish request
-
-
-|Name|Description|Schema|
-|---|---|---|
-|**header**  <br>*optional*|Optional request header|[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
-|**item**  <br>*required*|Item to publish|[PublishedItemApiModel](definitions.md#publisheditemapimodel)|
-
-
-<a name="publishstartresponseapimodel"></a>
-### PublishStartResponseApiModel
-Result of publish request
-
-
-|Name|Description|Schema|
-|---|---|---|
-|**errorInfo**  <br>*optional*|Service result in case of error|[ServiceResultApiModel](definitions.md#serviceresultapimodel)|
-
-
-<a name="publishstoprequestapimodel"></a>
-### PublishStopRequestApiModel
-Unpublish request
-
-
-|Name|Description|Schema|
-|---|---|---|
-|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.|< string > array|
-|**diagnostics**  <br>*optional*|Optional diagnostics configuration|[DiagnosticsApiModel](definitions.md#diagnosticsapimodel)|
-|**nodeAttribute**  <br>*optional*|Attribute of item to unpublish|enum (NodeClass, BrowseName, DisplayName, Description, WriteMask, UserWriteMask, IsAbstract, Symmetric, InverseName, ContainsNoLoops, EventNotifier, Value, DataType, ValueRank, ArrayDimensions, AccessLevel, UserAccessLevel, MinimumSamplingInterval, Historizing, Executable, UserExecutable, DataTypeDefinition, RolePermissions, UserRolePermissions, AccessRestrictions)|
-|**nodeId**  <br>*required*|Node of published item to unpublish|string|
-
-
-<a name="publishstopresponseapimodel"></a>
-### PublishStopResponseApiModel
-Result of unpublish request
-
-
-|Name|Description|Schema|
-|---|---|---|
-|**errorInfo**  <br>*optional*|Service result in case of error|[ServiceResultApiModel](definitions.md#serviceresultapimodel)|
-
-
-<a name="publisheditemapimodel"></a>
-### PublishedItemApiModel
-A monitored and published item
-
-
-|Name|Description|Schema|
-|---|---|---|
-|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.|< string > array|
-|**nodeAttribute**  <br>*optional*|Attribute to monitor|enum (NodeClass, BrowseName, DisplayName, Description, WriteMask, UserWriteMask, IsAbstract, Symmetric, InverseName, ContainsNoLoops, EventNotifier, Value, DataType, ValueRank, ArrayDimensions, AccessLevel, UserAccessLevel, MinimumSamplingInterval, Historizing, Executable, UserExecutable, DataTypeDefinition, RolePermissions, UserRolePermissions, AccessRestrictions)|
-|**nodeId**  <br>*required*|Node to monitor|string|
-|**publishingInterval**  <br>*optional*|Publishing interval to use|integer (int32)|
-|**samplingInterval**  <br>*optional*|Sampling interval to use|integer (int32)|
-
-
-<a name="publisheditemlistrequestapimodel"></a>
-### PublishedItemListRequestApiModel
-Request list of published items
-
-
-|Name|Description|Schema|
-|---|---|---|
-|**continuationToken**  <br>*optional*|Continuation token or null to start|string|
-
-
-<a name="publisheditemlistresponseapimodel"></a>
-### PublishedItemListResponseApiModel
-List of published nodes
-
-
-|Name|Description|Schema|
-|---|---|---|
-|**continuationToken**  <br>*optional*|Continuation or null if final|string|
-|**items**  <br>*optional*|Monitored items|< [PublishedItemApiModel](definitions.md#publisheditemapimodel) > array|
 
 
 <a name="readrequestapimodel"></a>
@@ -463,7 +384,7 @@ Node value read request webservice api model
 |**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.|< string > array|
 |**header**  <br>*optional*|Optional request header|[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
 |**indexRange**  <br>*optional*|Index range to read, e.g. 1:2,0:1 for 2 slices<br>out of a matrix or 0:1 for the first item in<br>an array, string or bytestring.<br>See 7.22 of part 4: NumericRange.|string|
-|**nodeId**  <br>*required*|Node to read from (mandatory)|string|
+|**nodeId**  <br>*optional*|Node to read from (mandatory)|string|
 
 
 <a name="valuereadresponseapimodel"></a>
@@ -493,7 +414,7 @@ Value write request model
 |**dataType**  <br>*optional*|A built in datatype for the value. This can<br>be a data type from browse, or a built in<br>type.<br>(default: best effort)|string|
 |**header**  <br>*optional*|Optional request header|[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
 |**indexRange**  <br>*optional*|Index range to write|string|
-|**nodeId**  <br>*required*|Node id to to write value to.|string|
+|**nodeId**  <br>*optional*|Node id to to write value to.|string|
 |**value**  <br>*required*|Value to write. The system tries to convert<br>the value according to the data type value,<br>e.g. convert comma seperated value strings<br>into arrays.  (Mandatory)|object|
 
 

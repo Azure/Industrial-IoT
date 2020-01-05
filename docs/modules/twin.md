@@ -49,22 +49,9 @@ Payloads that are larger than the Azure IoT Hub supported Device Method payload 
 
 A single session is opened on demand per endpoint (same as in the existing OPC Publisher codebase) the actual OPC UA server is not overburdened with 100’s of simultaneous requests.  
 
-## OPC Publisher Module Integration
-
-The [OPC Publisher](publisher.md) module is responsible for maintaining durable Subscriptions to Variables and Events on an endpoint.  On startup, the twin module locates the OPC Publisher module in its Edge environment.  It then forwards requests to it that it receives by way of the OPC Twin Microservice REST API.  This includes requests to
-
-* **`Publish`** a variable on an endpoint to IoT Hub.
-* Disable publishing (**`Unpublish`**)
-* **`List`** all currently published nodes
-
-If no OPC Publisher module is deployed alongside OPC Twin module, OPC Twin publishing REST calls will fail.
-
-For more information about OPC Publisher, see [here](publisher.md).
-
 ## Command line options
 
 The command line options of aplicable for OPC Twin Module are as follows:
-        
         Usage: dotnet Microsoft.Azure.IIoT.Modules.OpcUa.Twin.dll
         
         The configuration of the twin can be made either by command line options or environment variables. 
@@ -120,6 +107,10 @@ The command line options of aplicable for OPC Twin Module are as follows:
                 Defines the Windows Certificate Store location where the Own certificate is placed
                 Advanced setting applicable only when certificate store type is X509Store under Windows.
                 default: CurrentUser\\UA_MachineDefault
+
+## Licensing
+
+All OPC UA components use the OPC Foundation's OPC UA reference stack as nuget packages and therefore licensing of their nuget packages apply. Visit https://opcfoundation.org/license/redistributables/1.3/ for the licensing terms.
 
 ## Next steps
 

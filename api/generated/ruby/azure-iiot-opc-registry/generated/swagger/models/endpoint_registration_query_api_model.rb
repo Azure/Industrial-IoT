@@ -16,11 +16,6 @@ module azure.iiot.opc.registry
       # @return [String] Endoint url for direct server access
       attr_accessor :url
 
-      # @return [CredentialType] Type of credential selected for
-      # authentication. Possible values include: 'None', 'UserName',
-      # 'X509Certificate', 'JwtToken'
-      attr_accessor :user_authentication
-
       # @return [Array<Integer>] Certificate of the endpoint
       attr_accessor :certificate
 
@@ -65,15 +60,6 @@ module azure.iiot.opc.registry
                 serialized_name: 'url',
                 type: {
                   name: 'String'
-                }
-              },
-              user_authentication: {
-                client_side_validation: true,
-                required: false,
-                serialized_name: 'userAuthentication',
-                type: {
-                  name: 'Enum',
-                  module: 'CredentialType'
                 }
               },
               certificate: {

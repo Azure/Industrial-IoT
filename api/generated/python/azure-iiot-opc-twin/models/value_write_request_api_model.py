@@ -37,7 +37,6 @@ class ValueWriteRequestApiModel(Model):
     """
 
     _validation = {
-        'node_id': {'required': True},
         'value': {'required': True},
     }
 
@@ -50,7 +49,7 @@ class ValueWriteRequestApiModel(Model):
         'header': {'key': 'header', 'type': 'RequestHeaderApiModel'},
     }
 
-    def __init__(self, node_id, value, browse_path=None, data_type=None, index_range=None, header=None):
+    def __init__(self, value, node_id=None, browse_path=None, data_type=None, index_range=None, header=None):
         super(ValueWriteRequestApiModel, self).__init__()
         self.node_id = node_id
         self.browse_path = browse_path

@@ -25,8 +25,8 @@ namespace Microsoft.Azure.IIoT.Api.Jobs.Clients {
         /// Create connector
         /// </summary>
         /// <param name="config"></param>
-        /// <param name="tokenProvider"></param>
         /// <param name="httpClient"></param>
+        /// <param name="tokenProvider"></param>
         public JobOrchestratorClient(IHttpClient httpClient,
             IAgentConfigProvider config, IIdentityTokenProvider tokenProvider) {
             _tokenProvider = tokenProvider ?? throw new ArgumentNullException(nameof(tokenProvider));

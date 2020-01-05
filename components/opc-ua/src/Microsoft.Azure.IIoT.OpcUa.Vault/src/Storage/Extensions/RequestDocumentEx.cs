@@ -43,8 +43,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Vault.Models {
         /// <summary>
         /// Create document
         /// </summary>
-        /// <param name="etag"></param>
         /// <param name="record"></param>
+        /// <param name="etag"></param>
         public static RequestDocument ToDocument(
             this CertificateRequestModel record, string etag = null) {
             return new RequestDocument {

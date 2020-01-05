@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Tasks.Default {
-    using Microsoft.Azure.IIoT.Tasks;
     using System.Threading.Tasks;
     using System;
 

@@ -301,9 +301,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
                 .AsImplementedInterfaces();
             builder.RegisterType<DiscoveryClient>()
                 .AsImplementedInterfaces();
-            builder.RegisterType<JsonVariantEncoder>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<JsonVariantEncoder>()
+            builder.RegisterType<VariantEncoderFactory>()
                 .AsImplementedInterfaces();
 
             // Add services

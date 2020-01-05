@@ -101,10 +101,10 @@ namespace Microsoft.Azure.IIoT.Deployment {
         private ServicePrincipal _aksApplicationSP;
         private string _aksApplicationPasswordCredentialRbacSecret;
 
-        private const string WEB_APP_CN = "webapp.services.net"; // ToDo: Assign meaningfull value.
+        private const string kWEB_APP_CN = "webapp.services.net"; // ToDo: Assign meaningfull value.
         private X509Certificate2 _webAppX509Certificate;
 
-        private const string AKS_CLUSTER_CN = "aks.cluster.net"; // ToDo: Assign meaningfull value.
+        private const string kAKS_CLUSTER_CN = "aks.cluster.net"; // ToDo: Assign meaningfull value.
         private X509Certificate2 _aksClusterX509Certificate;
 
         private string _aksKubeConfig;
@@ -176,8 +176,6 @@ namespace Microsoft.Azure.IIoT.Deployment {
             _azureResourceManager.Init(_subscription);
 
             // Select existing ResourceGroup or create a new one.
-            var defaultResourceGroupName = _applicationName;
-
             var useExisting = _configurationProvider.CheckIfUseExistingResourceGroup();
 
             if (useExisting) {
@@ -201,8 +199,10 @@ namespace Microsoft.Azure.IIoT.Deployment {
                     return _resourceGroupExists;
                 }
 
-                if (checkIfResourceGroupExists(defaultResourceGroupName)) {
-                    defaultResourceGroupName = null;
+                string defaultResourceGroupName = null;
+
+                if (!checkIfResourceGroupExists(_applicationName)) {
+                    defaultResourceGroupName = _applicationName;
                 }
 
                 var newResourceGroupName = _configurationProvider
@@ -695,7 +695,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
             using (var iiotKeyVaultClient = new IIoTKeyVaultClient(keyVaultAuthenticationCallback, keyVault)) {
                 await iiotKeyVaultClient.CreateCertificateAsync(
                     IIoTKeyVaultClient.WEB_APP_CERT_NAME,
-                    WEB_APP_CN,
+                    kWEB_APP_CN,
                     _defaultTagsDict,
                     cancellationToken
                 );
@@ -707,7 +707,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
 
                 await iiotKeyVaultClient.CreateCertificateAsync(
                     IIoTKeyVaultClient.AKS_CLUSTER_CERT_NAME,
-                    AKS_CLUSTER_CN,
+                    kAKS_CLUSTER_CN,
                     _defaultTagsDict,
                     cancellationToken
                 );
@@ -1055,7 +1055,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
         }
 
         public void Dispose() {
-            void disposeIfNotNull(IDisposable disposable) {
+            static void disposeIfNotNull(IDisposable disposable) {
                 if (null != disposable) {
                     disposable.Dispose();
                 }

@@ -32,7 +32,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         /// Initializes a new instance of the AuthenticationMethodApiModel
         /// class.
         /// </summary>
-        /// <param name="id">Method id</param>
+        /// <param name="id">Authentication method id</param>
         /// <param name="credentialType">Type of credential. Possible values
         /// include: 'None', 'UserName', 'X509Certificate', 'JwtToken'</param>
         /// <param name="securityPolicy">Security policy to use when passing
@@ -53,7 +53,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         partial void CustomInit();
 
         /// <summary>
-        /// Gets or sets method id
+        /// Gets or sets authentication method id
         /// </summary>
         [JsonProperty(PropertyName = "id")]
         public string Id { get; set; }

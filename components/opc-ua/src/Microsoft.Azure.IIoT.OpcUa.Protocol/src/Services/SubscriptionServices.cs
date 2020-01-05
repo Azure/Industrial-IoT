@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
-    using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
@@ -32,10 +31,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// Create subscription manager
         /// </summary>
         /// <param name="sessionManager"></param>
+        /// <param name="codec"></param>
         /// <param name="logger"></param>
-        public SubscriptionServices(ISessionManager sessionManager, ILogger logger) {
-            _sessionManager = sessionManager;
-            _logger = logger;
+        public SubscriptionServices(ISessionManager sessionManager, IVariantEncoderFactory codec,
+            ILogger logger) {
+            _sessionManager = sessionManager ?? throw new ArgumentNullException(nameof(sessionManager));
+            _codec = codec ?? throw new ArgumentNullException(nameof(codec));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <inheritdoc/>
@@ -188,7 +190,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 var modifySubscription = false;
                 if ((configuration?.PublishingInterval ?? TimeSpan.Zero) !=
                         (_subscription.Configuration?.PublishingInterval ?? TimeSpan.Zero)) {
-                    _logger.Debug("{subscription} Changing publishing interval from {old} to {new}",
+                    _logger.Debug(
+                        "{subscription} Changing publishing interval from {old} to {new}",
                         _subscription.Id,
                         _subscription.Configuration?.PublishingInterval ?? TimeSpan.Zero,
                         configuration?.PublishingInterval ?? TimeSpan.Zero);
@@ -198,15 +201,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
                 if ((configuration?.KeepAliveCount ?? 0) !=
                         (_subscription.Configuration?.KeepAliveCount ?? 0)) {
-                    _logger.Debug("{subscription} Changing KeepAlive Count from {old} to {new}",
+                    _logger.Debug(
+                        "{subscription} Changing KeepAlive Count from {old} to {new}",
                         _subscription.Id, _subscription.Configuration?.KeepAliveCount ?? 0,
                         configuration?.KeepAliveCount ?? 0);
                     rawSubscription.KeepAliveCount = configuration?.KeepAliveCount ?? 0;
                     modifySubscription = true;
                 }
-                if ((configuration?.LifetimeCount ?? 0)  !=
-                        (_subscription.Configuration?.LifetimeCount ?? 0) ) {
-                    _logger.Debug("{subscription} Changing Lifetime Count from {old} to {new}",
+                if ((configuration?.LifetimeCount ?? 0) !=
+                        (_subscription.Configuration?.LifetimeCount ?? 0)) {
+                    _logger.Debug(
+                        "{subscription} Changing Lifetime Count from {old} to {new}",
                         _subscription.Id, _subscription.Configuration?.LifetimeCount ?? 0,
                         configuration?.LifetimeCount ?? 0);
                     rawSubscription.LifetimeCount = configuration?.LifetimeCount ?? 0;
@@ -214,7 +219,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
                 if ((configuration?.MaxNotificationsPerPublish ?? 0) !=
                         (_subscription.Configuration?.MaxNotificationsPerPublish ?? 0)) {
-                    _logger.Debug("{subscription} Changing Max NotificationsPerPublish from {old} to {new}",
+                    _logger.Debug(
+                        "{subscription} Changing Max NotificationsPerPublish from {old} to {new}",
                         _subscription.Id, _subscription.Configuration?.MaxNotificationsPerPublish ?? 0,
                         configuration?.MaxNotificationsPerPublish ?? 0);
                     rawSubscription.MaxNotificationsPerPublish =
@@ -222,7 +228,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     modifySubscription = true;
                 }
                 if ((configuration?.Priority ?? 0) !=
-                        (_subscription.Configuration?.Priority ?? 0) ) {
+                        (_subscription.Configuration?.Priority ?? 0)) {
                     _logger.Debug("{subscription} Changing Priority from {old} to {new}",
                         _subscription.Id, _subscription.Configuration?.Priority ?? 0,
                         configuration?.Priority ?? 0);
@@ -284,12 +290,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
                 var nowMonitored = new List<MonitoredItemWrapper>();
 
+                var codec = _outer._codec.Create(rawSubscription.Session.MessageContext);
+
                 // Add new monitored items not in current state
                 foreach (var toAdd in desiredState.Except(currentState)) {
                     _logger.Debug("Adding new monitored item '{item}'...", toAdd);
 
                     // Create monitored item
-                    toAdd.Create(rawSubscription.Session);
+                    toAdd.Create(rawSubscription.Session, codec);
                     toAdd.Item.Notification += OnMonitoredItemChanged;
 
                     rawSubscription.AddItem(toAdd.Item);
@@ -366,7 +374,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             }
 
             /// <summary>
-            /// Create subscription
+            /// Retrieve a raw subscription with all settings applied (no lock)
             /// </summary>
             /// <param name="configuration"></param>
             /// <returns></returns>
@@ -393,13 +401,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         LifetimeCount = _subscription.Configuration.LifetimeCount ?? 2400,
                         TimestampsToReturn = TimestampsToReturn.Both,
                         FastDataChangeCallback = OnSubscriptionDataChanged
+
                         // MaxMessageCount = 10,
                     };
 
                     session.AddSubscription(subscription);
                     subscription.Create();
+
                     _logger.Debug("Added subscription '{name}' to session '{session}'.",
                          Id, session.SessionName);
+                }
+                else {
+                    // Set configuration on original subscription
+                    ReviseConfiguration(subscription, configuration);
                 }
                 return subscription;
             }
@@ -558,15 +572,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// Create new
             /// </summary>
             /// <param name="session"></param>
+            /// <param name="codec"></param>
             /// <returns></returns>
-            internal void Create(Session session) {
+            internal void Create(Session session, IVariantEncoder codec) {
                 Item = new MonitoredItem {
                     Handle = this,
 
                     DisplayName = Template.DisplayName,
                     AttributeId = ((uint?)Template.AttributeId) ?? Attributes.Value,
-                    NodeClass = (Template.NodeClass ?? Core.Models.NodeClass.Variable)
-                                .ToStackType(),
                     IndexRange = Template.IndexRange,
                     RelativePath = Template.RelativePath?
                                 .ToRelativePath(session.MessageContext)?
@@ -577,9 +590,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     QueueSize = Template.QueueSize ?? 0,
                     SamplingInterval =
                         (int?)Template.SamplingInterval?.TotalMilliseconds ?? -1,
-                    DiscardOldest = !(Template.DiscardNew ?? false)
-
-                    //  Filter = monitoredItemInfo.Filter?.ToStackType(),
+                    DiscardOldest = !(Template.DiscardNew ?? false),
+                    Filter =
+                        Template.DataChangeFilter.ToStackModel() ??
+                        codec.Decode(Template.EventFilter, true) ??
+                        ((MonitoringFilter)Template.AggregateFilter
+                            .ToStackModel(session.MessageContext))
                 };
             }
 
@@ -625,7 +641,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     changes = true;
                 }
 
-                if ((Template.QueueSize ?? 0 ) != (model.Template.QueueSize ?? 0)) {
+                if ((Template.QueueSize ?? 0) != (model.Template.QueueSize ?? 0)) {
                     _logger.Debug("{item}: Changing queue size from {old} to {new}",
                         this, Template.QueueSize ?? 0, model.Template.QueueSize ?? 0);
                     Template.QueueSize = model.Template.QueueSize;
@@ -691,5 +707,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         private readonly ConcurrentDictionary<string, SubscriptionWrapper> _subscriptions =
             new ConcurrentDictionary<string, SubscriptionWrapper>();
         private readonly ISessionManager _sessionManager;
+        private readonly IVariantEncoderFactory _codec;
     }
 }

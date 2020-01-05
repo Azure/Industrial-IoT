@@ -261,9 +261,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// endpoint.
         /// </summary>
         /// <param name="twin"></param>
-        /// <param name="connected"></param>
         /// <param name="onlyServerState">Only desired endpoint should be returned
         /// this means that you will look at stale information.</param>
+        /// <param name="connected"></param>
         /// <returns></returns>
         public static SupervisorRegistration ToSupervisorRegistration(this DeviceTwinModel twin,
             bool onlyServerState, out bool connected) {

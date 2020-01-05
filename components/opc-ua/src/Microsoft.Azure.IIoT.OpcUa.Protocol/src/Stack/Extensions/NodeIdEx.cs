@@ -5,7 +5,6 @@
 
 namespace Opc.Ua.Extensions {
     using Opc.Ua.Models;
-    using Opc.Ua;
     using System;
     using System.Globalization;
     using System.Linq;
@@ -336,8 +335,8 @@ namespace Opc.Ua.Extensions {
         /// <summary>
         /// Parse identfier from string
         /// </summary>
-        /// <param name="text"></param>
         /// <param name="type"></param>
+        /// <param name="text"></param>
         /// <returns></returns>
         private static object ParseIdentifier(char type, string text) {
             switch (type) {

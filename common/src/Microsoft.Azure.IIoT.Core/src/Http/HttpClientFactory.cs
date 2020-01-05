@@ -109,8 +109,8 @@ namespace Microsoft.Azure.IIoT.Http.Default {
             /// <summary>
             /// Create handler entry
             /// </summary>
-            /// <param name="name"></param>
             /// <param name="factory"></param>
+            /// <param name="name"></param>
             /// <param name="expirationCallback"></param>
             /// <returns></returns>
             public static ActiveHandlerEntry Create(IHttpHandlerFactory factory,

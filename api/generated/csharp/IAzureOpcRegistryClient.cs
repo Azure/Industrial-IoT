@@ -184,6 +184,23 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
         Task<HttpOperationResponse> DiscoverServerWithHttpMessagesAsync(DiscoveryRequestApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
+        /// Cancel discovery
+        /// </summary>
+        /// <remarks>
+        /// Cancels a discovery request using the request identifier.
+        /// </remarks>
+        /// <param name='requestId'>
+        /// Discovery request
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse> CancelWithHttpMessagesAsync(string requestId, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
         /// Get application registration
         /// </summary>
         /// <param name='applicationId'>
@@ -333,6 +350,154 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
         Task<HttpOperationResponse<ApplicationRecordListApiModel>> QueryApplicationsByIdWithHttpMessagesAsync(ApplicationRecordQueryApiModel query = default(ApplicationRecordQueryApiModel), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
+        /// Subscribe for application events
+        /// </summary>
+        /// <remarks>
+        /// Register a client to receive application events through SignalR.
+        /// </remarks>
+        /// <param name='userId'>
+        /// The user that will receive application
+        /// events.
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse> SubscribeWithHttpMessagesAsync(string userId = default(string), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Unsubscribe from application events
+        /// </summary>
+        /// <remarks>
+        /// Unregister a user and stop it from receiving events.
+        /// </remarks>
+        /// <param name='userId'>
+        /// The user id that will not receive
+        /// any more events
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse> UnsubscribeWithHttpMessagesAsync(string userId, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Subscribe to discovery progress from supervisor
+        /// </summary>
+        /// <remarks>
+        /// Register a client to receive discovery progress events
+        /// through SignalR from a particular supervisor.
+        /// </remarks>
+        /// <param name='supervisorId'>
+        /// The supervisor to subscribe to
+        /// </param>
+        /// <param name='userId'>
+        /// The user id that will receive discovery
+        /// events.
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse> SubscribeBySupervisorIdWithHttpMessagesAsync(string supervisorId, string userId = default(string), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Subscribe to discovery progress for a request
+        /// </summary>
+        /// <remarks>
+        /// Register a client to receive discovery progress events
+        /// through SignalR for a particular request.
+        /// </remarks>
+        /// <param name='requestId'>
+        /// The request to monitor
+        /// </param>
+        /// <param name='userId'>
+        /// The user id that will receive discovery
+        /// events.
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse> SubscribeByRequestIdWithHttpMessagesAsync(string requestId, string userId = default(string), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Enable server discovery
+        /// </summary>
+        /// <remarks>
+        /// Allows a caller to configure recurring discovery runs on the
+        /// discovery module identified by the module id.
+        /// </remarks>
+        /// <param name='supervisorId'>
+        /// supervisor identifier
+        /// </param>
+        /// <param name='mode'>
+        /// Discovery mode. Possible values include: 'Off', 'Local', 'Network',
+        /// 'Fast', 'Scan'
+        /// </param>
+        /// <param name='config'>
+        /// Discovery configuration
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse> SetDiscoveryModeWithHttpMessagesAsync(string supervisorId, string mode, DiscoveryConfigApiModel config = default(DiscoveryConfigApiModel), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Unsubscribe from discovery progress for a request.
+        /// </summary>
+        /// <remarks>
+        /// Unregister a client and stop it from receiving discovery
+        /// events for a particular request.
+        /// </remarks>
+        /// <param name='requestId'>
+        /// The request to unsubscribe from
+        /// </param>
+        /// <param name='userId'>
+        /// The user id that will not receive
+        /// any more discovery progress
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse> UnsubscribeByRequestIdWithHttpMessagesAsync(string requestId, string userId, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Unsubscribe from discovery progress from supervisor.
+        /// </summary>
+        /// <remarks>
+        /// Unregister a client and stop it from receiving discovery events.
+        /// </remarks>
+        /// <param name='supervisorId'>
+        /// The supervisor to unsubscribe from
+        /// </param>
+        /// <param name='userId'>
+        /// The user id that will not receive
+        /// any more discovery progress
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse> UnsubscribeBySupervisorIdWithHttpMessagesAsync(string supervisorId, string userId, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
         /// Activate endpoint
         /// </summary>
         /// <remarks>
@@ -372,23 +537,6 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
         /// The cancellation token.
         /// </param>
         Task<HttpOperationResponse<EndpointInfoApiModel>> GetEndpointWithHttpMessagesAsync(string endpointId, bool? onlyServerState = default(bool?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
-
-        /// <summary>
-        /// Update endpoint information
-        /// </summary>
-        /// <param name='endpointId'>
-        /// endpoint identifier
-        /// </param>
-        /// <param name='request'>
-        /// Endpoint update request
-        /// </param>
-        /// <param name='customHeaders'>
-        /// The headers that will be added to request.
-        /// </param>
-        /// <param name='cancellationToken'>
-        /// The cancellation token.
-        /// </param>
-        Task<HttpOperationResponse> UpdateEndpointWithHttpMessagesAsync(string endpointId, EndpointRegistrationUpdateApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Get list of endpoints
@@ -433,10 +581,6 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
         /// <param name='url'>
         /// Endoint url for direct server access
         /// </param>
-        /// <param name='userAuthentication'>
-        /// Type of credential selected for authentication. Possible values
-        /// include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
-        /// </param>
         /// <param name='certificate'>
         /// Certificate of the endpoint
         /// </param>
@@ -475,7 +619,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
         /// <param name='cancellationToken'>
         /// The cancellation token.
         /// </param>
-        Task<HttpOperationResponse<EndpointInfoListApiModel>> GetFilteredListOfEndpointsWithHttpMessagesAsync(string url = default(string), string userAuthentication = default(string), byte[] certificate = default(byte[]), string securityMode = default(string), string securityPolicy = default(string), bool? activated = default(bool?), bool? connected = default(bool?), string endpointState = default(string), bool? includeNotSeenSince = default(bool?), bool? onlyServerState = default(bool?), int? pageSize = default(int?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+        Task<HttpOperationResponse<EndpointInfoListApiModel>> GetFilteredListOfEndpointsWithHttpMessagesAsync(string url = default(string), byte[] certificate = default(byte[]), string securityMode = default(string), string securityPolicy = default(string), bool? activated = default(bool?), bool? connected = default(bool?), string endpointState = default(string), bool? includeNotSeenSince = default(bool?), bool? onlyServerState = default(bool?), int? pageSize = default(int?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Query endpoints
@@ -522,6 +666,215 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
         /// The cancellation token.
         /// </param>
         Task<HttpOperationResponse> DeactivateEndpointWithHttpMessagesAsync(string endpointId, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Subscribe for endpoint events
+        /// </summary>
+        /// <remarks>
+        /// Register a user to receive endpoint events through SignalR.
+        /// </remarks>
+        /// <param name='userId'>
+        /// The user id that will receive endpoint
+        /// events.
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse> Subscribe1WithHttpMessagesAsync(string userId = default(string), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Unsubscribe from endpoint events
+        /// </summary>
+        /// <remarks>
+        /// Unregister a user and stop it from receiving endpoint events.
+        /// </remarks>
+        /// <param name='userId'>
+        /// The user id that will not receive
+        /// any more endpoint events
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse> Unsubscribe1WithHttpMessagesAsync(string userId, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Get publisher registration information
+        /// </summary>
+        /// <remarks>
+        /// Returns a publisher's registration and connectivity information.
+        /// A publisher id corresponds to the twin modules module identity.
+        /// </remarks>
+        /// <param name='publisherId'>
+        /// Publisher identifier
+        /// </param>
+        /// <param name='onlyServerState'>
+        /// Whether to include only server
+        /// state, or display current client state of the endpoint if
+        /// available
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse<PublisherApiModel>> GetPublisherWithHttpMessagesAsync(string publisherId, bool? onlyServerState = default(bool?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Update publisher configuration
+        /// </summary>
+        /// <remarks>
+        /// Allows a caller to configure operations on the publisher module
+        /// identified by the publisher id.
+        /// </remarks>
+        /// <param name='publisherId'>
+        /// Publisher identifier
+        /// </param>
+        /// <param name='request'>
+        /// Patch request
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse> UpdatePublisherWithHttpMessagesAsync(string publisherId, PublisherUpdateApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Get list of publishers
+        /// </summary>
+        /// <remarks>
+        /// Get all registered publishers and therefore twin modules in paged
+        /// form.
+        /// The returned model can contain a continuation token if more results
+        /// are
+        /// available.
+        /// Call this operation again using the token to retrieve more results.
+        /// </remarks>
+        /// <param name='onlyServerState'>
+        /// Whether to include only server
+        /// state, or display current client state of the endpoint if available
+        /// </param>
+        /// <param name='continuationToken'>
+        /// Optional Continuation token
+        /// </param>
+        /// <param name='pageSize'>
+        /// Optional number of results to return
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse<PublisherListApiModel>> GetListOfPublisherWithHttpMessagesAsync(bool? onlyServerState = default(bool?), string continuationToken = default(string), int? pageSize = default(int?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Get filtered list of publishers
+        /// </summary>
+        /// <remarks>
+        /// Get a list of publishers filtered using the specified query
+        /// parameters.
+        /// The returned model can contain a continuation token if more results
+        /// are
+        /// available.
+        /// Call the GetListOfPublisher operation using the token to retrieve
+        /// more results.
+        /// </remarks>
+        /// <param name='siteId'>
+        /// Site of the publisher
+        /// </param>
+        /// <param name='connected'>
+        /// Included connected or disconnected
+        /// </param>
+        /// <param name='onlyServerState'>
+        /// Whether to include only server
+        /// state, or display current client state of the endpoint if
+        /// available
+        /// </param>
+        /// <param name='pageSize'>
+        /// Number of results to return
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse<PublisherListApiModel>> GetFilteredListOfPublisherWithHttpMessagesAsync(string siteId = default(string), bool? connected = default(bool?), bool? onlyServerState = default(bool?), int? pageSize = default(int?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Query publishers
+        /// </summary>
+        /// <remarks>
+        /// Get all publishers that match a specified query.
+        /// The returned model can contain a continuation token if more results
+        /// are
+        /// available.
+        /// Call the GetListOfPublisher operation using the token to retrieve
+        /// more results.
+        /// </remarks>
+        /// <param name='query'>
+        /// Publisher query model
+        /// </param>
+        /// <param name='onlyServerState'>
+        /// Whether to include only server
+        /// state, or display current client state of the endpoint if
+        /// available
+        /// </param>
+        /// <param name='pageSize'>
+        /// Number of results to return
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse<PublisherListApiModel>> QueryPublisherWithHttpMessagesAsync(PublisherQueryApiModel query, bool? onlyServerState = default(bool?), int? pageSize = default(int?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Subscribe to publisher registry events
+        /// </summary>
+        /// <remarks>
+        /// Register a user to receive publisher events through SignalR.
+        /// </remarks>
+        /// <param name='userId'>
+        /// The user id that will receive publisher
+        /// events.
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse> Subscribe2WithHttpMessagesAsync(string userId = default(string), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Unsubscribe registry events
+        /// </summary>
+        /// <remarks>
+        /// Unregister a user and stop it from receiving publisher events.
+        /// </remarks>
+        /// <param name='userId'>
+        /// The user id that will not receive
+        /// any more publisher events
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse> Unsubscribe2WithHttpMessagesAsync(string userId, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Return the service status in the form of the service status
@@ -711,6 +1064,42 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
         /// The cancellation token.
         /// </param>
         Task<HttpOperationResponse<SupervisorListApiModel>> QuerySupervisorsWithHttpMessagesAsync(SupervisorQueryApiModel query, bool? onlyServerState = default(bool?), int? pageSize = default(int?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Subscribe to supervisor registry events
+        /// </summary>
+        /// <remarks>
+        /// Register a user to receive supervisor events through SignalR.
+        /// </remarks>
+        /// <param name='userId'>
+        /// The user id that will receive supervisor
+        /// events.
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse> Subscribe3WithHttpMessagesAsync(string userId = default(string), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Unsubscribe registry events
+        /// </summary>
+        /// <remarks>
+        /// Unregister a user and stop it from receiving supervisor events.
+        /// </remarks>
+        /// <param name='userId'>
+        /// The user id that will not receive
+        /// any more supervisor events
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse> Unsubscribe3WithHttpMessagesAsync(string userId, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
     }
 }
