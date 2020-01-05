@@ -6,7 +6,7 @@
 
 The following diagram shows the twin service in relationship to the other components.
 
-![](media/architecture.PNG)
+![](../media/architecture.PNG)
 
 OPC Twin Microservice in cloud exposes a [REST API](../api/twin/readme.md) to call the following OPC UA services on activated endpoints in an OPC Twin edge module.
 
