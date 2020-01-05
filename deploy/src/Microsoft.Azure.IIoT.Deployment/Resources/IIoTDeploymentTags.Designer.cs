@@ -70,7 +70,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to managed-by.
+        ///   Looks up a localized string similar to managed_by.
         /// </summary>
         internal static string KEY_MANAGED_BY {
             get {
