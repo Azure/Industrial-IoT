@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Deployment {
+namespace Microsoft.Azure.IIoT.Deployment.Deployment {
 
     using Serilog;
     using System;
@@ -13,17 +13,20 @@ namespace Microsoft.Azure.IIoT.Deployment {
     using System.Threading;
     using System.Threading.Tasks;
 
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Converters;
+
+    using Authentication;
     using Infrastructure;
+    using Configuration;
 
     using Microsoft.Azure.Management.ResourceManager.Fluent;
-    using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
     using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
     using Microsoft.Azure.Management.KeyVault.Fluent.Models;
     using Microsoft.Azure.Management.Storage.Fluent.Models;
     using Microsoft.Azure.Management.IotHub.Models;
     using Microsoft.Azure.Management.EventHub.Fluent.Models;
     using Microsoft.Azure.Management.Network.Fluent.Models;
-    using Microsoft.Identity.Client;
     using Microsoft.Graph;
 
     class DeploymentExecutor : IDisposable {
@@ -33,25 +36,21 @@ namespace Microsoft.Azure.IIoT.Deployment {
         private List<string> _defaultTagsList;
         private Dictionary<string, string> _defaultTagsDict;
 
-        private readonly Configuration.IConfigurationProvider _configurationProvider;
+        private readonly IConfigurationProvider _configurationProvider;
 
-        private AzureEnvironment _azureEnvironment;
-        private IAccount _account;
-        private string _tenantName;
-        private Guid _tenantId;
+        private AuthenticationConfiguration _authConf;
         private ISubscription _subscription;
-        private AzureCredentials _azureCredentials;
         private string _applicationName;
+        private string _applicationURL;
         private IResourceGroup _resourceGroup;
 
-        private AuthenticationManager _authenticationManager;
+        private IAuthenticationManager _authenticationManager;
         private AzureResourceManager _azureResourceManager;
 
         // Resource management clients
         private RestClient _restClient;
 
-        private MicrosoftGraphServiceClient _msGraphServiceClient;
-        private ResourceMgmtClient _resourceMgmtClient;
+        private ApplicationsManager _applicationsManager;
         private KeyVaultMgmtClient _keyVaultManagementClient;
         private StorageMgmtClient _storageManagementClient;
         private IotHubMgmtClient _iotHubManagementClient;
@@ -67,9 +66,6 @@ namespace Microsoft.Azure.IIoT.Deployment {
         private SignalRMgmtClient _signalRManagementClient;
 
         // Resource names
-        private string _servicesApplicationName;
-        private string _clientsApplicationName;
-        private string _aksApplicationName;
         private string _keyVaultName;
         private string _storageAccountName;
         private string _iotHubName;
@@ -91,15 +87,8 @@ namespace Microsoft.Azure.IIoT.Deployment {
         private string _signalRName;
 
         // Resources
-        private Application _serviceApplication;
-        private ServicePrincipal _serviceApplicationSP;
-
-        private Application _clientApplication;
-        private ServicePrincipal _clientApplicationSP;
-
-        private Application _aksApplication;
-        private ServicePrincipal _aksApplicationSP;
-        private string _aksApplicationPasswordCredentialRbacSecret;
+        private DirectoryObject _owner;
+        private bool _ownedApplications = false;
 
         private const string kWEB_APP_CN = "webapp.services.net"; // ToDo: Assign meaningfull value.
         private X509Certificate2 _webAppX509Certificate;
@@ -107,88 +96,254 @@ namespace Microsoft.Azure.IIoT.Deployment {
         private const string kAKS_CLUSTER_CN = "aks.cluster.net"; // ToDo: Assign meaningfull value.
         private X509Certificate2 _aksClusterX509Certificate;
 
-        private string _aksKubeConfig;
-
         public DeploymentExecutor(
-            Configuration.IConfigurationProvider configurationProvider
+            IConfigurationProvider configurationProvider
         ) {
             _configurationProvider = configurationProvider;
         }
 
-        public async Task InitializeAuthenticationAsync(
+        public async Task RunAsync(
             CancellationToken cancellationToken = default
         ) {
-            // Select Azure environment
-            _azureEnvironment = _configurationProvider.SelectEnvironment(AzureEnvironment.KnownEnvironments);
+            var runMode = _configurationProvider.GetRunMode();
 
-            // ToDo: Figure out how to sign-in without tenantId.
-            _tenantName = _configurationProvider.GetTenant();
+            switch (runMode) {
+                case RunMode.Full:
+                    await RunFullDeploymentAsync(cancellationToken);
+                    break;
+                case RunMode.ApplicationRegistration:
+                    await RunApplicationRegistrationOnlyAsync(cancellationToken);
+                    break;
+                case RunMode.ResourceDeployment:
+                    await RunResourceDeploymentOnlyAsync(cancellationToken);
+                    break;
+                default:
+                    throw new Exception($"Unknown RunMode: {runMode}");
+            }
+        }
 
-            _authenticationManager = new AuthenticationManager(_azureEnvironment, _tenantName);
+        protected async Task RunFullDeploymentAsync(
+            CancellationToken cancellationToken = default
+        ) {
+            try {
+                Log.Information("Starting full deployment of Industrial IoT solution.");
+
+                await AuthenticateAsync(cancellationToken);
+                await GetSubscriptionAsync(cancellationToken);
+                GetApplicationName();
+
+                InitializeResourceManagementClients();
+
+                await InitializeResourceGroupSelectionAsync(cancellationToken);
+                await RegisterResourceProvidersAsync(cancellationToken);
+                await SetupApplicationsAsync(cancellationToken);
+                await GenerateAzureResourceNamesAsync(cancellationToken);
+                await CreateAzureResourcesAsync(cancellationToken);
+                await UpdateClientApplicationRedirectUrisAsync(cancellationToken);
+
+                Log.Information("Done.");
+            }
+            catch (Exception ex) {
+                Log.Error(ex, "Failed to deploy Industrial IoT solution.");
+
+                if (_configurationProvider.IfPerformCleanup()) {
+                    await BeginDeleteResourceGroupAsync(cancellationToken);
+                    await DeleteApplicationsAsync(cancellationToken);
+                }
+
+                throw;
+            }
+        }
+
+        protected async Task RunApplicationRegistrationOnlyAsync(
+            CancellationToken cancellationToken = default
+        ) {
+            try {
+                Log.Information("Starting application registration for Industrial IoT solution.");
+
+                await AuthenticateAsync(cancellationToken);
+                await GetSubscriptionAsync(cancellationToken);
+                GetApplicationName();
+
+                InitializeResourceManagementClients();
+
+                await SetupApplicationsAsync(cancellationToken);
+                await UpdateClientApplicationRedirectUrisAsync(cancellationToken);
+                OutputApplicationRegistrationDefinition();
+
+                Log.Information("Done.");
+            }
+            catch (Exception ex) {
+                Log.Error(ex, "Failed to register applications for Industrial IoT solution.");
+
+                if (_configurationProvider.IfPerformCleanup()) {
+                    await DeleteApplicationsAsync(cancellationToken);
+                }
+
+                throw;
+            }
+        }
+
+        protected async Task RunResourceDeploymentOnlyAsync(
+            CancellationToken cancellationToken = default
+        ) {
+            try {
+                Log.Information("Starting resource deployment of Industrial IoT solution.");
+
+                await AuthenticateAsync(cancellationToken);
+                await GetSubscriptionAsync(cancellationToken);
+                GetApplicationName();
+
+                InitializeResourceManagementClients();
+
+                await InitializeResourceGroupSelectionAsync(cancellationToken);
+                await RegisterResourceProvidersAsync(cancellationToken);
+                await SetupApplicationsAsync(cancellationToken);
+                await GenerateAzureResourceNamesAsync(cancellationToken);
+                await CreateAzureResourcesAsync(cancellationToken);
+
+                Log.Information("Done.");
+            }
+            catch (Exception ex) {
+                Log.Error(ex, "Failed to deploy resources of Industrial IoT solution.");
+
+                if (_configurationProvider.IfPerformCleanup()) {
+                    await BeginDeleteResourceGroupAsync(cancellationToken);
+                }
+
+                throw;
+            }
+        }
+
+        protected async Task AuthenticateAsync(
+            CancellationToken cancellationToken = default
+        ) {
+            // ToDo: Figure out how to sign-in without TenantId.
+            _authConf = _configurationProvider
+                .GetAuthenticationConfiguration(
+                    AzureEnvironment.KnownEnvironments
+                );
+
+            _authenticationManager = AuthenticationManagerFactory
+                .GetAuthenticationManager(
+                    _authConf.AzureEnvironment,
+                    _authConf.TenantId,
+                    _authConf.ClientId,
+                    _authConf.ClientSecret
+                );
+
             await _authenticationManager
                 .AuthenticateAsync(cancellationToken);
-
-            _account = _authenticationManager.GetAccount();
-            _tenantId = _authenticationManager.GetTenantId();
-            //_azureCredentials = _authenticationManager
-            //    .GetAzureCredentialsAsync(cancellationToken)
-            //    .Result;
-            _azureCredentials = _authenticationManager.GetDelegatingAzureCredentials();
-
-            InitializeDefaultTags(_account.Username);
         }
 
         /// <summary>
         /// Initialize default tags (list and dictionary) that will be added to
         /// resources created by the application.
         /// </summary>
-        /// <param name="username"></param>
-        private void InitializeDefaultTags(string username) {
+        /// <param name="owner"></param>
+        protected void InitializeDefaultTags(string owner = null) {
             _defaultTagsList = new List<string> {
-                username,
                 Resources.IIoTDeploymentTags.VALUE_APPLICATION_IIOT,
                 Resources.IIoTDeploymentTags.VALUE_VERSION_IIOT,
                 Resources.IIoTDeploymentTags.VALUE_MANAGED_BY_IIOT
             };
 
             _defaultTagsDict = new Dictionary<string, string> {
-                { Resources.IIoTDeploymentTags.KEY_OWNER, username },
                 { Resources.IIoTDeploymentTags.KEY_APPLICATION, Resources.IIoTDeploymentTags.VALUE_APPLICATION_IIOT },
                 { Resources.IIoTDeploymentTags.KEY_VERSION, Resources.IIoTDeploymentTags.VALUE_VERSION_IIOT},
                 { Resources.IIoTDeploymentTags.KEY_MANAGED_BY, Resources.IIoTDeploymentTags.VALUE_MANAGED_BY_IIOT}
             };
+
+            if (null != owner) {
+                _defaultTagsList.Add(owner);
+                _defaultTagsDict.Add(Resources.IIoTDeploymentTags.KEY_OWNER, owner);
+            }
         }
 
-        public void GetApplicationName() {
-            // Select application name.
+        protected void GetApplicationName() {
             _applicationName = _configurationProvider.GetApplicationName();
         }
 
-        public async Task InitializeResourceGroupSelectionAsync(
+        protected async Task SetOwnerAsync(
             CancellationToken cancellationToken = default
         ) {
-            _azureResourceManager = new AzureResourceManager(_azureCredentials);
+            // Initialization of MicrosoftGraphServiceClient
+            var microsoftGraphTokenCredentials = _authenticationManager
+                .GetMicrosoftGraphDelegatingTokenCredentials();
+
+            var msGraphServiceClient = new MicrosoftGraphServiceClient(
+                microsoftGraphTokenCredentials,
+                cancellationToken
+            );
+
+            if (_authenticationManager.IsUserAuthenticationFlow()) {
+                // If this is user authentication flow then authenticated user
+                // will be used as owner of the deployment.
+                var me = await msGraphServiceClient
+                    .GetMeAsync(cancellationToken);
+
+                _owner = me;
+
+                if (null != me.Mail) {
+                    InitializeDefaultTags(me.Mail);
+                }
+                else {
+                    var account = _authenticationManager.GetAccount();
+                    InitializeDefaultTags(account?.Username);
+                }
+            }
+            else {
+                // If this is not user authentication flow then service principal
+                // of the application will be used as owner of the deployment.
+                var ownerSP = await msGraphServiceClient
+                    .GetServicePrincipalByAppIdAsync(
+                        _authConf.ClientId.ToString(),
+                        cancellationToken
+                    );
+
+                _owner = ownerSP;
+
+                InitializeDefaultTags(ownerSP.DisplayName);
+            }
+        }
+
+        protected async Task GetSubscriptionAsync(
+            CancellationToken cancellationToken = default
+        ) {
+            // Initialization of MicrosoftGraphServiceClient
+            var microsoftGraphTokenCredentials = _authenticationManager
+                .GetMicrosoftGraphDelegatingTokenCredentials();
+
+            _applicationsManager = new ApplicationsManager(
+                _authConf.TenantId,
+                microsoftGraphTokenCredentials,
+                cancellationToken
+            );
+
+            await SetOwnerAsync(cancellationToken);
+
+            // Initialization of AzureResourceManager
+            var azureCredentials = _authenticationManager
+                .GetDelegatingAzureCredentials();
+
+            _azureResourceManager = new AzureResourceManager(azureCredentials);
 
             // Select subscription to use.
             var subscriptionsList = _azureResourceManager.GetSubscriptions();
-            _subscription = _configurationProvider.SelectSubscription(subscriptionsList);
-
+            _subscription = _configurationProvider.GetSubscription(subscriptionsList);
             _azureResourceManager.Init(_subscription);
+        }
 
+        protected async Task InitializeResourceGroupSelectionAsync(
+            CancellationToken cancellationToken = default
+        ) {
             // Select existing ResourceGroup or create a new one.
-            var useExisting = _configurationProvider.CheckIfUseExistingResourceGroup();
-
-            if (useExisting) {
+            if (_configurationProvider.IfUseExistingResourceGroup()) {
                 var resourceGroups = _azureResourceManager.GetResourceGroups();
-                _resourceGroup = _configurationProvider.SelectExistingResourceGroup(resourceGroups);
+                _resourceGroup = _configurationProvider.GetExistingResourceGroup(resourceGroups);
             }
             else {
-                var region = _configurationProvider
-                    .SelectResourceGroupRegion(
-                        AzureResourceManager.FunctionalRegions
-                    );
-
-                bool checkIfResourceGroupExists(string _resourceGroupName) {
+                bool ifResourceGroupExists(string _resourceGroupName) {
                     var _resourceGroupExists = _azureResourceManager
                         .CheckIfResourceGroupExistsAsync(
                             _resourceGroupName,
@@ -199,29 +354,26 @@ namespace Microsoft.Azure.IIoT.Deployment {
                     return _resourceGroupExists;
                 }
 
-                string defaultResourceGroupName = null;
+                var defaultResourceGroupName =
+                    ifResourceGroupExists(_applicationName) ? null : _applicationName;
 
-                if (!checkIfResourceGroupExists(_applicationName)) {
-                    defaultResourceGroupName = _applicationName;
-                }
-
-                var newResourceGroupName = _configurationProvider
-                    .SelectResourceGroupName(
-                        checkIfResourceGroupExists,
+                var newRGParams = _configurationProvider.GetNewResourceGroup(
+                        AzureResourceManager.FunctionalRegions,
+                        ifResourceGroupExists,
                         defaultResourceGroupName
                     );
 
                 _resourceGroup = await _azureResourceManager
                     .CreateResourceGroupAsync(
-                        region,
-                        newResourceGroupName,
+                        newRGParams.Item1,
+                        newRGParams.Item2,
                         _defaultTagsDict,
                         cancellationToken
                     );
             }
         }
 
-        public async Task BeginDeleteResourceGroupAsync(
+        protected async Task BeginDeleteResourceGroupAsync(
             CancellationToken cancellationToken = default
         ) {
             if (null != _resourceGroup) {
@@ -239,32 +391,20 @@ namespace Microsoft.Azure.IIoT.Deployment {
 
         }
 
-        public void InitializeResourceManagementClients(
-            CancellationToken cancellationToken = default
-        ) {
-            // Microsoft Graph 
-            var microsoftGraphTokenProvider = _authenticationManager
-                .GenerateDelegatingTokenProvider(
-                    _authenticationManager.AcquireMicrosoftGraphTokenAsync
-                );
-
-            _msGraphServiceClient = new MicrosoftGraphServiceClient(
-                _tenantId,
-                microsoftGraphTokenProvider,
-                cancellationToken
-            );
+        protected void InitializeResourceManagementClients() {
+            var azureCredentials = _authenticationManager
+                .GetDelegatingAzureCredentials();
 
             // Create generic RestClient for services
             _restClient = RestClient
                 .Configure()
-                .WithEnvironment(_azureEnvironment)
-                .WithCredentials(_azureCredentials)
+                .WithEnvironment(_authConf.AzureEnvironment)
+                .WithCredentials(azureCredentials)
                 //.WithLogLevel(HttpLoggingDelegatingHandler.Level.BodyAndHeaders)
                 .Build();
 
             var subscriptionId = _subscription.SubscriptionId;
 
-            _resourceMgmtClient = new ResourceMgmtClient(subscriptionId, _restClient);
             _keyVaultManagementClient = new KeyVaultMgmtClient(subscriptionId, _restClient);
             _storageManagementClient = new StorageMgmtClient(subscriptionId, _restClient);
             _iotHubManagementClient = new IotHubMgmtClient(subscriptionId, _restClient);
@@ -280,19 +420,140 @@ namespace Microsoft.Azure.IIoT.Deployment {
             _signalRManagementClient = new SignalRMgmtClient(subscriptionId, _restClient);
         }
 
-        public async Task RegisterResourceProvidersAsync(
+        protected async Task RegisterResourceProvidersAsync(
             CancellationToken cancellationToken = default
         ) {
-            await _resourceMgmtClient.RegisterRequiredResourceProvidersAsync(cancellationToken);
+            using var resourceMgmtClient = new ResourceMgmtClient(_subscription.SubscriptionId, _restClient);
+            await resourceMgmtClient.RegisterRequiredResourceProvidersAsync(cancellationToken);
         }
 
-        public async Task GenerateResourceNamesAsync(
+        protected async Task SetupApplicationsAsync(
             CancellationToken cancellationToken = default
         ) {
-            _servicesApplicationName = _applicationName + "-services";
-            _clientsApplicationName = _applicationName + "-clients";
-            _aksApplicationName = _applicationName + "-aks";
+            var runMode = _configurationProvider.GetRunMode();
 
+            var applicationRegistrationDefinition = _configurationProvider
+                .GetApplicationRegistrationDefinition();
+
+            if (RunMode.Full == runMode
+                || RunMode.ApplicationRegistration == runMode
+            ) {
+                if (null != applicationRegistrationDefinition) {
+                    // Load definitions of existing applications.
+                    _applicationsManager.Load(applicationRegistrationDefinition);
+                }
+                else {
+                    // Create new applications.
+                    await _applicationsManager
+                        .RegisterApplicationsAsync(
+                            _applicationName,
+                            _owner,
+                            _defaultTagsList,
+                            cancellationToken
+                        );
+
+                    // Remeber that we have registered applications.
+                    // Required for UpdateClientApplicationRedirectUrisAsync().
+                    _ownedApplications = true;
+
+                    // Assign Service Principal of AKS Application
+                    // "Network Contributor" IAM role for Subscription.
+                    await _authorizationManagementClient
+                        .AssignNetworkContributorRoleForSubscriptionAsync(
+                            _applicationsManager.GetAKSApplicationSP(),
+                            cancellationToken
+                        );
+                }
+            }
+            else if (RunMode.ResourceDeployment == runMode) {
+                if (null != applicationRegistrationDefinition) {
+                    // Load definitions of existing applications.
+                    _applicationsManager.Load(applicationRegistrationDefinition);
+                }
+                else {
+                    // In ResourceDeployment mode, we assume that the application
+                    // does not have enouh permissions to create new Applications
+                    // and Service Principals. So ApplicationRegistration must be configured.
+                    throw new Exception("ApplicationRegistration must be configured.");
+                }
+            }
+        }
+
+        protected async Task UpdateClientApplicationRedirectUrisAsync(
+            CancellationToken cancellationToken = default
+        ) {
+            // Check whether applications have been created or loaded.
+            if (!_ownedApplications) {
+                Log.Information("Client application definition has been loaded through " +
+                    "configuration, so update of RedirectUris will not be performed.");
+                return;
+            }
+
+            var runMode = _configurationProvider.GetRunMode();
+
+            if (RunMode.ApplicationRegistration == runMode) {
+                _applicationURL = _configurationProvider.GetApplicationURL();
+
+                if (!string.IsNullOrEmpty(_applicationURL)) {
+                    await _applicationsManager
+                        .UpdateClientApplicationRedirectUrisAsync(
+                            _applicationURL,
+                            cancellationToken
+                        );
+                }
+                else {
+                    Log.Information("Client application redirectUris will not " +
+                        "be configured since ApplicationURL is not provided.");
+                }
+            }
+            else if (RunMode.Full == runMode) {
+                // _applicationURL will be set up by CreateAzureResourcesAsync() call;
+                await _applicationsManager
+                    .UpdateClientApplicationRedirectUrisAsync(
+                        _applicationURL,
+                        cancellationToken
+                    );
+            } else {
+                // RunMode.ResourceDeployment == runMode
+                // In this mode we assum that the deployment application does not have
+                // enough permissions to change redirectUris of registered application.
+                throw new Exception($"UpdateClientApplicationRedirectUrisAsync() method " +
+                    $"cannot be called in {RunMode.ResourceDeployment} run mode.");
+            }
+        }
+
+        protected async Task DeleteApplicationsAsync(
+            CancellationToken cancellationToken = default
+        ) {
+            await _applicationsManager.DeleteApplicationsAsync(cancellationToken);
+        }
+
+        protected void OutputApplicationRegistrationDefinition() {
+            var appRegDef = new ApplicationRegistrationDefinitionSettings(
+                new ApplicationSettings(_applicationsManager.GetServiceApplication()),
+                new ServicePrincipalSettings(_applicationsManager.GetServiceApplicationSP()),
+                new ApplicationSettings(_applicationsManager.GetClientApplication()),
+                new ServicePrincipalSettings(_applicationsManager.GetClientApplicationSP()),
+                new ApplicationSettings(_applicationsManager.GetAKSApplication()),
+                new ServicePrincipalSettings(_applicationsManager.GetAKSApplicationSP()),
+                _applicationsManager.GetAKSApplicationRbacSecret()
+            );
+
+            var jsonString = JsonConvert
+                .SerializeObject(
+                    appRegDef,
+                    Formatting.Indented,
+                    new JsonConverter[] { new StringEnumConverter() }
+                );
+
+            Log.Information("Use details bellow as ApplicationRegistration " +
+                "for resource deployment of Industrial IoT solution.");
+            Console.WriteLine(jsonString);
+        }
+
+        protected async Task GenerateAzureResourceNamesAsync(
+            CancellationToken cancellationToken = default
+        ) {
             // It might happen that there is no registered resource provider
             // found for specified location and/or api version to perform name
             // availability check. In these cases, we will silently ignore
@@ -393,199 +654,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
             }
         }
 
-        public async Task RegisterApplicationsAsync(
-            CancellationToken cancellationToken = default
-        ) {
-            // Service Application /////////////////////////////////////////////
-            // Register service application
-
-            Log.Information("Creating service application registration...");
-
-            _serviceApplication = await _msGraphServiceClient
-                .RegisterServiceApplicationAsync(
-                    _servicesApplicationName,
-                    _defaultTagsList,
-                    cancellationToken
-                );
-
-            // Find service principal for service application
-            _serviceApplicationSP = await _msGraphServiceClient
-                .GetServicePrincipalAsync(_serviceApplication, cancellationToken);
-
-            // Try to add current user as app owner for service application, if it is not owner already
-            await _msGraphServiceClient
-                .AddMeAsApplicationOwnerAsync(_serviceApplication, cancellationToken);
-
-            // Client Application //////////////////////////////////////////////
-            // Register client application
-
-            Log.Information("Creating client application registration...");
-
-            _clientApplication = await _msGraphServiceClient
-                .RegisterClientApplicationAsync(
-                    _serviceApplication,
-                    _clientsApplicationName,
-                    _defaultTagsList,
-                    cancellationToken
-                );
-
-            // Find service principal for client application
-            _clientApplicationSP = await _msGraphServiceClient
-                .GetServicePrincipalAsync(_clientApplication, cancellationToken);
-
-            // Try to add current user as app owner for client application, if it is not owner already
-            await _msGraphServiceClient
-                .AddMeAsApplicationOwnerAsync(_clientApplication, cancellationToken);
-
-            // Update service application to include client applicatoin as knownClientApplications
-            _serviceApplication = await _msGraphServiceClient
-                .AddAsKnownClientApplicationAsync(
-                    _serviceApplication,
-                    _clientApplication,
-                    cancellationToken
-                );
-
-            // Grant admin consent for service application "user_impersonation" API permissions of client applicatoin
-            // Grant admin consent for Microsoft Graph "User.Read" API permissions of client applicatoin
-            await _msGraphServiceClient
-                .GrantAdminConsentToClientApplicationAsync(
-                    _serviceApplicationSP,
-                    _clientApplicationSP,
-                    cancellationToken
-                );
-
-            // App Registration for AKS ////////////////////////////////////////
-            // Register aks application
-
-            Log.Information("Creating AKS application registration...");
-
-            var registrationResult = await _msGraphServiceClient
-                .RegisterAKSApplicationAsync(
-                    _aksApplicationName,
-                    _defaultTagsList,
-                    cancellationToken
-                );
-
-            _aksApplication = registrationResult.Item1;
-            _aksApplicationPasswordCredentialRbacSecret = registrationResult.Item2;
-
-            // Find service principal for aks application
-            _aksApplicationSP = await _msGraphServiceClient
-                .GetServicePrincipalAsync(_aksApplication, cancellationToken);
-
-            // Try to add current user as app owner for aks application, if it is not owner already
-            await _msGraphServiceClient
-                .AddMeAsApplicationOwnerAsync(_aksApplication, cancellationToken);
-        }
-
-        public async Task DeleteApplicationsAsync(
-            CancellationToken cancellationToken = default
-        ) {
-            // Service Application
-            if (null != _serviceApplicationSP) {
-                try {
-                    await _msGraphServiceClient
-                        .DeleteServicePrincipalAsync(
-                            _serviceApplicationSP,
-                            cancellationToken
-                        );
-                }
-                catch (Exception) {
-                    Log.Warning("Ignoring failure to delete ServicePrincipal of Service Application");
-                }
-            }
-
-            if (null != _serviceApplication) {
-                try {
-                    await _msGraphServiceClient
-                        .DeleteApplicationAsync(
-                            _serviceApplication,
-                            cancellationToken
-                        );
-                } catch (Exception) {
-                    Log.Warning("Ignoring failure to delete Service Application");
-                }
-            }
-
-            // Client Application
-            if (null != _clientApplicationSP) {
-                try {
-                    await _msGraphServiceClient
-                        .DeleteServicePrincipalAsync(
-                            _clientApplicationSP,
-                            cancellationToken
-                        );
-                }
-                catch (Exception) {
-                    Log.Warning("Ignoring failure to delete ServicePrincipal of Client Application");
-                }
-            }
-
-            if (null != _clientApplication) {
-                try {
-                    await _msGraphServiceClient
-                        .DeleteApplicationAsync(
-                            _clientApplication,
-                            cancellationToken
-                        );
-                }
-                catch (Exception) {
-                    Log.Warning("Ignoring failure to delete Client Application");
-                }
-            }
-
-            // AKS Application
-            if (null != _aksApplicationSP) {
-                try {
-                    await _msGraphServiceClient
-                        .DeleteServicePrincipalAsync(
-                            _aksApplicationSP,
-                            cancellationToken
-                        );
-                }
-                catch (Exception) {
-                    Log.Warning("Ignoring failure to delete ServicePrincipal of AKS Application");
-                }
-            }
-
-            if (null != _aksApplication) {
-                try {
-                    await _msGraphServiceClient
-                        .DeleteApplicationAsync(
-                            _aksApplication,
-                            cancellationToken
-                        );
-                }
-                catch (Exception) {
-                    Log.Warning("Ignoring failure to delete AKS Application");
-                }
-            }
-        }
-
-        public async Task CleanupIfAskedAsync(
-            CancellationToken cancellationToken = default
-        ) {
-            if (null == _resourceGroup
-                && null == _serviceApplicationSP
-                && null == _serviceApplication
-                && null == _clientApplicationSP
-                && null == _clientApplication
-                && null == _aksApplicationSP
-                && null == _aksApplication
-            ) {
-                Log.Information("Nothing to cleanup");
-                return;
-            }
-
-            var performCleanup = _configurationProvider.CheckIfPerformCleanup();
-
-            if (performCleanup) {
-                await BeginDeleteResourceGroupAsync(cancellationToken);
-                await DeleteApplicationsAsync(cancellationToken);
-            }
-        }
-
-        public async Task CreateAzureResourcesAsync(
+        protected async Task CreateAzureResourcesAsync(
             CancellationToken cancellationToken = default
         ) {
             // Create Virtual Network
@@ -647,30 +716,15 @@ namespace Microsoft.Azure.IIoT.Deployment {
             //    )
             //    .Result;
 
-            // Assign Service Principal of AKS Application "Network Contributor" IAM role for Virtual Network and its Subnet.
-            await _authorizationManagementClient
-                .AssignNetworkContributorRoleForResourceAsync(
-                    _aksApplicationSP,
-                    virtualNetwork.Id
-                );
-
-            await _authorizationManagementClient
-                .AssignNetworkContributorRoleForResourceAsync(
-                    _aksApplicationSP,
-                    virtualNetworkAksSubnet.Id
-                );
-
             // Create Azure KeyVault
             VaultInner keyVault;
 
-            var me = _msGraphServiceClient.Me(cancellationToken);
-
             var keyVaultParameters = _keyVaultManagementClient
                 .GetCreationParameters(
-                    _tenantId,
+                    _authConf.TenantId,
                     _resourceGroup,
-                    _serviceApplicationSP,
-                    me
+                    _applicationsManager.GetServiceApplicationSP(),
+                    _owner
                 );
 
             keyVault = await _keyVaultManagementClient
@@ -686,7 +740,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 async (authority, resource, scope) => {
                     // Fetch AccessToken from cache.
                     var authenticationResult = await _authenticationManager
-                        .AcquireKeyVaultTokenAsync(cancellationToken);
+                        .AcquireKeyVaultAuthenticationResultAsync(cancellationToken);
 
                     return authenticationResult.AccessToken;
                 }
@@ -741,8 +795,8 @@ namespace Microsoft.Azure.IIoT.Deployment {
 
             var clusterDefinition = _aksManagementClient.GetClusterDefinition(
                 _resourceGroup,
-                _aksApplication,
-                _aksApplicationPasswordCredentialRbacSecret,
+                _applicationsManager.GetAKSApplication(),
+                _applicationsManager.GetAKSApplicationRbacSecret(),
                 _aksClusterName,
                 _aksClusterX509Certificate,
                 virtualNetworkAksSubnet,
@@ -934,8 +988,8 @@ namespace Microsoft.Azure.IIoT.Deployment {
             var webSite = webSiteCreationTask.Result;
 
             var iiotEnvironment = new IIoTEnvironment(
-                _azureEnvironment,
-                _tenantId,
+                _authConf.AzureEnvironment,
+                _authConf.TenantId,
                 iotHub,
                 iotHubOwnerConnectionString,
                 IotHubMgmtClient.IOT_HUB_EVENT_HUB_ONBOARDING_CONSUMER_GROUP_NAME,
@@ -951,8 +1005,8 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 operationalInsightsWorkspace,
                 applicationInsightsComponent,
                 webSite,
-                _serviceApplication,
-                _clientApplication
+                _applicationsManager.GetServiceApplication(),
+                _applicationsManager.GetClientApplication()
             );
 
             // Deploy IIoT services to AKS cluster
@@ -964,14 +1018,14 @@ namespace Microsoft.Azure.IIoT.Deployment {
 
             // Get KubeConfig
             var aksCluster = aksClusterCreationTask.Result;
-            _aksKubeConfig = await _aksManagementClient
+            var aksKubeConfig = await _aksManagementClient
                 .GetClusterAdminCredentialsAsync(
                     _resourceGroup,
                     aksCluster.Name,
                     cancellationToken
                 );
 
-            var iiotK8SClient = new IIoTK8SClient(_aksKubeConfig);
+            var iiotK8SClient = new IIoTK8SClient(aksKubeConfig);
 
             // industrial-iot namespace
             iiotK8SClient.CreateIIoTNamespaceAsync(cancellationToken).Wait();
@@ -1023,29 +1077,14 @@ namespace Microsoft.Azure.IIoT.Deployment {
                     cancellationToken
                 );
 
-            // After we have proxy deployed to App Service, we will update 
+            // After we have deployed proxy to App Service, we will update 
             // client application to have redirect URIs for App Service.
-            var redirectUris = new List<string> {
-                $"https://{webSite.DefaultHostName}/",
-                $"https://{webSite.DefaultHostName}/registry/",
-                $"https://{webSite.DefaultHostName}/twin/",
-                $"https://{webSite.DefaultHostName}/history/",
-                $"https://{webSite.DefaultHostName}/ua/",
-                $"https://{webSite.DefaultHostName}/vault/"
-            };
-
-            _clientApplication = await _msGraphServiceClient
-                .UpdateRedirectUrisAsync(
-                    _clientApplication,
-                    redirectUris,
-                    cancellationToken
-                );
+            // This will be performed in UpdateClientApplicationRedirectUrisAsync() call.
+            _applicationURL = webSite.DefaultHostName;
 
             // Check if we want to save environment to .env file
-            var saveEnvFile = _configurationProvider.CheckIfSaveEnvFile();
-
             try {
-                if (saveEnvFile) {
+                if (_configurationProvider.IfSaveEnvFile()) {
                     iiotEnvironment.WriteToFile(ENV_FILE_PATH);
                 }
             }
@@ -1066,7 +1105,6 @@ namespace Microsoft.Azure.IIoT.Deployment {
             disposeIfNotNull(_aksClusterX509Certificate);
 
             // Resource management classes
-            disposeIfNotNull(_resourceMgmtClient);
             disposeIfNotNull(_keyVaultManagementClient);
             disposeIfNotNull(_storageManagementClient);
             disposeIfNotNull(_iotHubManagementClient);

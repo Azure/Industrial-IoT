@@ -121,7 +121,7 @@
     <value>application</value>
   </data>
   <data name="KEY_MANAGED_BY" xml:space="preserve">
-    <value>managed-by</value>
+    <value>managed_by</value>
   </data>
   <data name="KEY_OWNER" xml:space="preserve">
     <value>owner</value>
