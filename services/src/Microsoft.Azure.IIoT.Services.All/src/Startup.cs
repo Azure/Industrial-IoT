@@ -10,13 +10,14 @@ namespace Microsoft.Azure.IIoT.Services.All {
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Diagnostics.HealthChecks;
+    using Microsoft.Extensions.Hosting;
     using Autofac.Extensions.DependencyInjection;
     using Autofac;
     using System;
     using System.Threading.Tasks;
     using System.Threading;
     using System.Linq;
-    using Microsoft.Extensions.Diagnostics.HealthChecks;
 
     /// <summary>
     /// Mono app startup
@@ -31,14 +32,14 @@ namespace Microsoft.Azure.IIoT.Services.All {
         /// <summary>
         /// Hosting environment
         /// </summary>
-        public IHostingEnvironment Environment { get; }
+        public IWebHostEnvironment Environment { get; }
 
         /// <summary>
         /// Create startup
         /// </summary>
         /// <param name="env"></param>
         /// <param name="configuration"></param>
-        public Startup(IHostingEnvironment env, IConfiguration configuration) :
+        public Startup(IWebHostEnvironment env, IConfiguration configuration) :
             this(env, new Config(new ConfigurationBuilder()
                 .AddConfiguration(configuration)
                 .AddEnvironmentVariables()
@@ -53,7 +54,7 @@ namespace Microsoft.Azure.IIoT.Services.All {
         /// </summary>
         /// <param name="env"></param>
         /// <param name="configuration"></param>
-        public Startup(IHostingEnvironment env, Config configuration) {
+        public Startup(IWebHostEnvironment env, Config configuration) {
             Environment = env;
             Config = configuration;
         }
@@ -64,9 +65,9 @@ namespace Microsoft.Azure.IIoT.Services.All {
         /// <param name="services"></param>
         /// <returns></returns>
         public void ConfigureServices(IServiceCollection services) {
-
             services.AddHttpContextAccessor();
             services.AddHealthChecks();
+            services.AddDistributedMemoryCache();
         }
 
         /// <summary>
@@ -74,7 +75,7 @@ namespace Microsoft.Azure.IIoT.Services.All {
         /// </summary>
         /// <param name="app"></param>
         /// <param name="appLifetime"></param>
-        public void Configure(IApplicationBuilder app, IApplicationLifetime appLifetime) {
+        public void Configure(IApplicationBuilder app, IHostApplicationLifetime appLifetime) {
             var applicationContainer = app.ApplicationServices.GetAutofacRoot();
 
             if (Config.HttpsRedirectPort > 0) {
@@ -100,7 +101,7 @@ namespace Microsoft.Azure.IIoT.Services.All {
             app.UseHealthChecks("/healthz");
 
             // Start processors
-            applicationContainer.Resolve<IHost>().StartAsync().Wait();
+            applicationContainer.Resolve<IHostProcess>().StartAsync().Wait();
 
             // If you want to dispose of resources that have been resolved in the
             // application container, register for the "ApplicationStopped" event.
@@ -124,7 +125,7 @@ namespace Microsoft.Azure.IIoT.Services.All {
         /// <summary>
         /// Injected processor host
         /// </summary>
-        private sealed class ProcessorHost : IHost, IStartable, IDisposable, IHealthCheck {
+        private sealed class ProcessorHost : IHostProcess, IStartable, IDisposable, IHealthCheck {
 
             /// <inheritdoc/>
             public void Start() {

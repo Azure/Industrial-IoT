@@ -9,7 +9,7 @@ namespace Microsoft.Azure.IIoT.Modules.Diagnostic.Services {
     /// <summary>
     /// Test publisher
     /// </summary>
-    public interface ITelemetrySender : IHost {
+    public interface ITelemetrySender : IHostProcess {
 
         /// <summary>
         /// Interval setting

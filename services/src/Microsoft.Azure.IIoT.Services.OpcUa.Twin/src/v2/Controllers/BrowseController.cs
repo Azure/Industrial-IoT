@@ -10,13 +10,13 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.v2.Controllers {
     using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using Microsoft.Azure.IIoT.Http;
+    using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using System;
     using System.Threading.Tasks;
     using System.ComponentModel.DataAnnotations;
     using System.Linq;
-    using Swashbuckle.AspNetCore.Swagger;
 
     /// <summary>
     /// Browse nodes services

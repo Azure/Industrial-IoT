@@ -21,7 +21,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// </summary>
         /// <param name="hosts"></param>
         /// <param name="logger"></param>
-        public HostAutoStart(IEnumerable<IHost> hosts, ILogger logger) {
+        public HostAutoStart(IEnumerable<IHostProcess> hosts, ILogger logger) {
             _host = hosts?.ToList() ?? throw new ArgumentNullException(nameof(hosts));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -51,7 +51,7 @@ namespace Microsoft.Azure.IIoT.Utils {
             }
         }
 
-        private readonly List<IHost> _host;
+        private readonly List<IHostProcess> _host;
         private readonly ILogger _logger;
     }
 }

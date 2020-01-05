@@ -13,7 +13,7 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
     /// <summary>
     /// Default iot hub device event handler implementation
     /// </summary>
-    public sealed class IoTHubEdgeBaseDeployment : IHost {
+    public sealed class IoTHubEdgeBaseDeployment : IHostProcess {
 
         /// <summary>
         /// Create edge base deployer

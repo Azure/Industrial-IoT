@@ -69,11 +69,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             private const string kOpcMaxStringLength =
                 TransportQuotaConfig.MaxStringLengthKey;
             private const string kOpcSessionCreationTimeout =
-                ClientServicesConfig.DefaultSessionTimeoutKey;
+                ClientServicesConfig2.DefaultSessionTimeoutKey;
             private const string kOpcKeepAliveIntervalInSec =
-                ClientServicesConfig.KeepAliveIntervalKey;
+                ClientServicesConfig2.KeepAliveIntervalKey;
             private const string kOpcKeepAliveDisconnectThreshold =
-                ClientServicesConfig.MaxKeepAliveCountKey;
+                ClientServicesConfig2.MaxKeepAliveCountKey;
 
             private const string kTrustMyself =
                 "TrustSelf";

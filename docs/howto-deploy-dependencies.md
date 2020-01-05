@@ -6,9 +6,6 @@ This article explains how to deploy only the Azure Platform Microservices need t
 
 ## Prerequisites
 
-> [!NOTE]
-> Note: Due the dependency on the AzureRM module, deployment currently is only supported on Windows.  We will add support for Linux soon.
-
 1. Make sure you have PowerShell and [Az PowerShell](https://docs.microsoft.com/en-us/powershell/azure/install-az-ps) extensions installed.  If not, first install PowerShell, then open PowerShell as Administrator and run
 
    ```powershell
@@ -23,7 +20,7 @@ This article explains how to deploy only the Azure Platform Microservices need t
    cd Industrial-IoT
    ```
 
-## Deploy Azure Platform Microservices
+## Deploy Azure Dependencies and generate .env file
 
 1. Open a command prompt or terminal in the repository root and run:
 
@@ -43,11 +40,9 @@ Ensure you use a short and simple resource group name.  The name is used also to
 
 ### Azure Active Directory (AAD) Registration
 
-The deployment script tries to register AAD applications in Azure Active Directory. Depending on your rights to the selected AAD tenant, this might fail.   There are 3 options:
+The deployment script tries to register 2 AAD applications in Azure Active Directory.  Depending on your rights to the selected AAD tenant, this might fail.   
 
-1. If you chose a AAD tenant from a list of tenants, restart the script and choose a different one from the list.
-2. Alternatively, deploy a private AAD tenant, restart the script and select to use it.
-3. Continue without Authentication.  Since you are running your Microservices locally, this is acceptable, but does not mimic production environments.  
+An administrator with the relevant rights to the tenant can create the AAD applications for you.  The `deploy/scripts` folder contains the `aad-register.ps1` script to perform the AAD registration separately from deploying.  The output of the script is an object containing the relevant information to be used as part of deployment and must be passed to the `deploy.ps1` script in the same folder using the `-aadConfig` argument.
 
 ## Next steps
 

@@ -38,7 +38,7 @@ $projFile = Get-ChildItem $Path -Filter *.csproj | Select-Object -First 1
 if ($projFile -ne $null) {
 
     $output = (Join-Path $Path (Join-Path "bin" (Join-Path "publish" $configuration)))
-    $runtimes = @("linux-arm", "linux-x64", "win-x64", "win-arm", "win-arm64", "")
+    $runtimes = @("linux-arm", "linux-x64", "win-x64", "win-arm", "")
     if (![string]::IsNullOrEmpty($metadata.base)) {
         # Shortcut - only build portable
         $runtimes = @("")
@@ -86,7 +86,7 @@ ENV PATH="${PATH}:/root/vsdbg/vsdbg"
     $platforms = @{
         "linux/arm/v7" = @{
             runtimeId = "linux-arm"
-            image = "mcr.microsoft.com/dotnet/core/runtime-deps:2.2"
+            image = "mcr.microsoft.com/dotnet/core/runtime-deps:3.1"
             platformTag = "linux-arm32v7"
             runtimeOnly = "RUN chmod +x $($assemblyName)"
             debugger = $installLinuxDebugger
@@ -94,7 +94,7 @@ ENV PATH="${PATH}:/root/vsdbg/vsdbg"
         }
         "linux/amd64" = @{
             runtimeId = "linux-x64"
-            image = "mcr.microsoft.com/dotnet/core/runtime-deps:2.2"
+            image = "mcr.microsoft.com/dotnet/core/runtime-deps:3.1"
             platformTag = "linux-amd64"
             runtimeOnly = "RUN chmod +x $($assemblyName)"
             debugger = $installLinuxDebugger

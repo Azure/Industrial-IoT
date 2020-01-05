@@ -9,7 +9,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework {
     /// <summary>
     /// Worker supervisor
     /// </summary>
-    public interface IWorkerSupervisor : IHost {
+    public interface IWorkerSupervisor : IHostProcess {
 
         /// <summary>
         /// Create worker

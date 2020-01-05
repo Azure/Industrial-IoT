@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Deploy {
     /// <summary>
     /// Deploys twin module
     /// </summary>
-    public sealed class IoTHubSupervisorDeployment : IHost {
+    public sealed class IoTHubSupervisorDeployment : IHostProcess {
 
         /// <summary>
         /// Create edge base deployer

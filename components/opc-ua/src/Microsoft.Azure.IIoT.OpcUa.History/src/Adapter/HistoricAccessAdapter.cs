@@ -19,8 +19,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.History.Clients {
         /// </summary>
         /// <param name="client"></param>
         /// <param name="codec"></param>
-        public HistoricAccessAdapter(IHistoricAccessServices<T> client, IVariantEncoder codec) {
-            _codec = codec ?? throw new ArgumentNullException(nameof(codec));
+        public HistoricAccessAdapter(IHistoricAccessServices<T> client, IVariantEncoderFactory codec) {
+            _codec = codec?.Default ?? throw new ArgumentNullException(nameof(codec));
             _client = client ?? throw new ArgumentNullException(nameof(client));
         }
 

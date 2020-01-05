@@ -6,8 +6,8 @@
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Runtime {
     using Microsoft.Azure.IIoT.Services.Cors;
     using Microsoft.Azure.IIoT.Services.Cors.Runtime;
-    using Microsoft.Azure.IIoT.Services.Swagger;
-    using Microsoft.Azure.IIoT.Services.Swagger.Runtime;
+    using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
+    using Microsoft.Azure.IIoT.AspNetCore.OpenApi.Runtime;
     using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Auth.Server;
@@ -32,7 +32,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Runtime {
     /// Web service configuration
     /// </summary>
     public class Config : DiagnosticsConfig, IAuthConfig, IIoTHubConfig, ICorsConfig,
-        IClientConfig, ISwaggerConfig, IVaultConfig, ICosmosDbConfig,
+        IClientConfig, IOpenApiConfig, IVaultConfig, ICosmosDbConfig,
         IItemContainerConfig, IKeyVaultConfig, IServiceBusConfig, IRegistryConfig {
 
         /// <summary>
@@ -65,13 +65,15 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Runtime {
         public TimeSpan AllowedClockSkew => _auth.AllowedClockSkew;
 
         /// <inheritdoc/>
-        public bool UIEnabled => _swagger.UIEnabled;
+        public bool UIEnabled => _openApi.UIEnabled;
         /// <inheritdoc/>
-        public bool WithAuth => !string.IsNullOrEmpty(_auth.AppId) && _swagger.WithAuth;
+        public bool WithAuth => !string.IsNullOrEmpty(_auth.AppId) && _openApi.WithAuth;
         /// <inheritdoc/>
-        public string SwaggerAppId => _swagger.SwaggerAppId;
+        public string OpenApiAppId => _openApi.OpenApiAppId;
         /// <inheritdoc/>
-        public string SwaggerAppSecret => _swagger.SwaggerAppSecret;
+        public string OpenApiAppSecret => _openApi.OpenApiAppSecret;
+        /// <inheritdoc/>
+        public bool UseV2 => _openApi.UseV2;
 
         /// <inheritdoc/>
         public int HttpsRedirectPort => _host.HttpsRedirectPort;
@@ -117,7 +119,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Runtime {
             _vault = new VaultConfig(configuration);
             _keyVault = new KeyVaultConfig(configuration);
             _cosmos = new CosmosDbConfig(configuration);
-            _swagger = new SwaggerConfig(configuration);
+            _openApi = new OpenApiConfig(configuration);
             _auth = new AuthConfig(configuration);
             _host = new HostConfig(configuration);
             _cors = new CorsConfig(configuration);
@@ -129,7 +131,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Runtime {
         private readonly IVaultConfig _vault;
         private readonly KeyVaultConfig _keyVault;
         private readonly ICosmosDbConfig _cosmos;
-        private readonly SwaggerConfig _swagger;
+        private readonly OpenApiConfig _openApi;
         private readonly AuthConfig _auth;
         private readonly HostConfig _host;
         private readonly CorsConfig _cors;

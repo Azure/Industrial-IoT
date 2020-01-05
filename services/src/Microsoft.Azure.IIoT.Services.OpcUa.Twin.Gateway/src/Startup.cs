@@ -27,6 +27,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway {
     using Autofac.Extensions.DependencyInjection;
     using System;
     using ILogger = Serilog.ILogger;
+    using Microsoft.Extensions.Hosting;
 
     /// <summary>
     /// Webservice startup
@@ -46,14 +47,14 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway {
         /// <summary>
         /// Current hosting environment - Initialized in constructor
         /// </summary>
-        public IHostingEnvironment Environment { get; }
+        public IWebHostEnvironment Environment { get; }
 
         /// <summary>
         /// Create startup
         /// </summary>
         /// <param name="env"></param>
         /// <param name="configuration"></param>
-        public Startup(IHostingEnvironment env, IConfiguration configuration) :
+        public Startup(IWebHostEnvironment env, IConfiguration configuration) :
             this(env, new Config(new ConfigurationBuilder()
                 .AddConfiguration(configuration)
                 .AddEnvironmentVariables()
@@ -68,7 +69,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway {
         /// </summary>
         /// <param name="env"></param>
         /// <param name="configuration"></param>
-        public Startup(IHostingEnvironment env, Config configuration) {
+        public Startup(IWebHostEnvironment env, Config configuration) {
             Environment = env;
             Config = configuration;
         }
@@ -87,6 +88,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway {
             // Setup (not enabling yet) CORS
             services.AddCors();
             services.AddHealthChecks();
+            services.AddDistributedMemoryCache();
 
             // Add authentication
             services.AddJwtBearerAuthentication(Config, Environment.IsDevelopment());
@@ -95,9 +97,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway {
             // services.AddHttpClient();
 
             // Add controllers as services so they'll be resolved.
-            services.AddMvc()
-                .AddApplicationPart(GetType().Assembly)
-                .AddControllersAsServices();
+            services.AddControllers();
         }
 
         /// <summary>
@@ -106,23 +106,26 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway {
         /// </summary>
         /// <param name="app"></param>
         /// <param name="appLifetime"></param>
-        public void Configure(IApplicationBuilder app, IApplicationLifetime appLifetime) {
+        public void Configure(IApplicationBuilder app, IHostApplicationLifetime appLifetime) {
             var applicationContainer = app.ApplicationServices.GetAutofacRoot();
             var log = applicationContainer.Resolve<ILogger>();
+
+            app.UseRouting();
+            app.EnableCors();
 
             if (Config.AuthRequired) {
                 app.UseAuthentication();
             }
+            app.UseAuthorization();
             if (Config.HttpsRedirectPort > 0) {
-                // app.UseHsts();
+                app.UseHsts();
                 app.UseHttpsRedirection();
             }
 
-            app.EnableCors();
-            app.UseCorrelation();
-
-            app.UseMvc();
-            app.UseHealthChecks("/healthz");
+            app.UseEndpoints(endpoints => {
+                endpoints.MapControllers();
+                endpoints.MapHealthChecks("/healthz");
+            });
             app.UseOpcUaTransport();
 
             // If you want to dispose of resources that have been resolved in the
@@ -197,7 +200,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway {
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<MessageSerializer>()
                 .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<JsonVariantEncoder>()
+            builder.RegisterType<VariantEncoderFactory>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<GatewayServer>()
                 .AsImplementedInterfaces().SingleInstance();

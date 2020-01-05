@@ -95,7 +95,7 @@
 	            {
 	                <td>N/A</td>
 	            }
-		
+
 		        @if (node.NodeClass == NodeClass.Variable)
                 {
                     <td>
@@ -127,7 +127,7 @@
     [Parameter]
     public string supervisorId { get; set; } = string.Empty;
 
-    [Parameter]    
+    [Parameter]
     public string endpointId { get; set; }
 
     [Parameter]
@@ -138,7 +138,7 @@
     public bool IsOpened { get; set; } = false;
     public ListNode NodeData { get; set; }
     public const int PageLength = 10;
-    private IIoT.IAsyncDisposable _publishEvent { get; set; }
+    private IAsyncDisposable _publishEvent { get; set; }
 
 
     /// <summary>
@@ -169,7 +169,7 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        // call after the node list is rendered 
+        // call after the node list is rendered
         if (!firstRender)
         {
             _publishEvent = await PublisherServiceEvents.NodePublishSubscribeByEndpointAsync(endpointId, null, PublishEvent);

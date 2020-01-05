@@ -1,8 +1,8 @@
-# OPC Gateway Microservice (Experimental)
+# OPC Gateway Microservice
 
 [Home](../readme.md)
 
-> **The OPC Gateway Microservice is not intended for production use at this point in time !**
+> **This service is not intended for production use at this point in time !**
 
 ## Overview
 

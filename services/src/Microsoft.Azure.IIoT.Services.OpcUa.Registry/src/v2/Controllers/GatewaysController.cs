@@ -10,13 +10,13 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Controllers {
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.Http;
     using Microsoft.Azure.IIoT.Messaging;
+    using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using System.Linq;
     using System.Threading.Tasks;
     using System.ComponentModel.DataAnnotations;
     using System;
-    using Swashbuckle.AspNetCore.Swagger;
 
     /// <summary>
     /// Read, Update and Query Gateway resources
@@ -26,14 +26,14 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Controllers {
     [Produces(ContentMimeType.Json)]
     [Authorize(Policy = Policies.CanQuery)]
     [ApiController]
-    public class GatewayController : ControllerBase {
+    public class GatewaysController : ControllerBase {
 
         /// <summary>
         /// Create controller for Gateway services
         /// </summary>
         /// <param name="Gateways"></param>
         /// <param name="events"></param>
-        public GatewayController(IGatewayRegistry Gateways,
+        public GatewaysController(IGatewayRegistry Gateways,
             IGroupRegistration events) {
             _Gateways = Gateways;
             _events = events;

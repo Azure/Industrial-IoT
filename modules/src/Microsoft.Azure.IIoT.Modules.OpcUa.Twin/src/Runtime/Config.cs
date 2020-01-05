@@ -17,8 +17,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Runtime {
     /// <summary>
     /// Wraps a configuration root
     /// </summary>
-    public class Config : DiagnosticsConfig, IModuleConfig, IClientServicesConfig,
-        ISecurityConfig, ITransportQuotaConfig, IClientServicesConfigOld {
+    public class Config : DiagnosticsConfig, IModuleConfig, IClientServicesConfig2,
+        ISecurityConfig, ITransportQuotaConfig, IClientServicesConfig {
 
         /// <inheritdoc/>
         public string EdgeHubConnectionString => _module.EdgeHubConnectionString;
@@ -72,7 +72,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Runtime {
         public int SecurityTokenLifetime => _opc.SecurityTokenLifetime;
 
         /// <summary>
-        /// ClientServicesConfigOld
+        /// ClientServicesConfig
         /// </summary>
         private const string kAppCertStoreType = "AppCertStoreType";
         private const string kPkiRootPath = "PkiRootPath";
@@ -107,13 +107,13 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Runtime {
         public string OwnCertX509StorePathDefault =>
             GetStringOrDefault(kOwnCertX509StorePathDefault, "CurrentUser\\UA_MachineDefault");
         /// <inheritdoc/>
-        bool IClientServicesConfigOld.AutoAcceptUntrustedCertificates =>
+        bool IClientServicesConfig.AutoAcceptUntrustedCertificates =>
             GetBoolOrDefault(kAutoAccept, false);
         /// <inheritdoc/>
-        TimeSpan? IClientServicesConfigOld.DefaultSessionTimeout =>
+        TimeSpan? IClientServicesConfig.DefaultSessionTimeout =>
             GetDurationOrNull(kSessionTimeout);
         /// <inheritdoc/>
-        TimeSpan? IClientServicesConfigOld.OperationTimeout =>
+        TimeSpan? IClientServicesConfig.OperationTimeout =>
             GetDurationOrNull(kOperationTimeout);
 
         /// <summary>
@@ -123,10 +123,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Runtime {
         public Config(IConfiguration configuration) :
             base(configuration) {
             _module = new ModuleConfig(configuration);
-            _opc = new ClientServicesConfig(configuration);
+            _opc = new ClientServicesConfig2(configuration);
         }
 
-        private readonly ClientServicesConfig _opc;
+        private readonly ClientServicesConfig2 _opc;
         private readonly ModuleConfig _module;
     }
 }

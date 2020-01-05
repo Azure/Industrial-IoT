@@ -3,13 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Swashbuckle.AspNetCore.Swagger {
+namespace Microsoft.AspNetCore.Mvc.Controllers {
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Authorization.Infrastructure;
-    using Microsoft.AspNetCore.Mvc.Controllers;
-    using Microsoft.AspNetCore.Mvc.Infrastructure;
-    using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Extensions.Options;
     using System.Collections.Generic;
     using System.Linq;
     using System.Security.Claims;
@@ -18,23 +14,6 @@ namespace Swashbuckle.AspNetCore.Swagger {
     /// Api descriptor extensions
     /// </summary>
     public static class ApiDescriptorEx {
-
-        /// <summary>
-        /// Collect configured scopes from all controllers registered as services
-        /// </summary>
-        /// <param name="services"></param>
-        /// <returns></returns>
-        public static IEnumerable<string> GetRequiredScopes(
-            this IServiceCollection services) {
-            var provider = services.BuildServiceProvider();
-            var options = provider.GetRequiredService<IOptions<AuthorizationOptions>>();
-            return provider.GetRequiredService<IActionDescriptorCollectionProvider>()
-                .ActionDescriptors.Items
-                .OfType<ControllerActionDescriptor>()
-                .Cast<ControllerActionDescriptor>()
-                .SelectMany(d => d.GetRequiredPolicyGlaims(options.Value))
-                .Distinct();
-        }
 
         /// <summary>
         /// Retrieve claims from descriptor

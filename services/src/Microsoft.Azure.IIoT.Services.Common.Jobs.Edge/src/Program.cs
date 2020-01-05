@@ -4,22 +4,22 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge {
-    using Microsoft.AspNetCore;
     using Microsoft.AspNetCore.Hosting;
+    using Microsoft.Extensions.Hosting;
     using Autofac.Extensions.Hosting;
     using Serilog;
 
     /// <summary>
-    /// Web service host
+    /// Main entry point
     /// </summary>
-    public class Program {
+    public static class Program {
 
         /// <summary>
         /// Main entry point
         /// </summary>
         /// <param name="args"></param>
         public static void Main(string[] args) {
-            CreateWebHostBuilder(args).Build().Run();
+            CreateHostBuilder(args).Build().Run();
         }
 
         /// <summary>
@@ -27,12 +27,14 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge {
         /// </summary>
         /// <param name="args"></param>
         /// <returns></returns>
-        public static IWebHostBuilder CreateWebHostBuilder(string[] args) {
-            return WebHost.CreateDefaultBuilder<Startup>(args)
-                .UseUrls("http://*:9051")
+        public static IHostBuilder CreateHostBuilder(string[] args) {
+            return Host.CreateDefaultBuilder(args)
                 .UseAutofac()
-                .UseSerilog()
-                .UseKestrel(o => o.AddServerHeader = false);
+                .ConfigureWebHostDefaults(builder => builder
+                    .UseUrls("http://*:9051")
+                    .UseSerilog()
+                    .UseStartup<Startup>()
+                    .UseKestrel(o => o.AddServerHeader = false));
         }
     }
 }

@@ -46,11 +46,13 @@ namespace Microsoft.Azure.IIoT.Utils {
         }
 
         /// <inheritdoc/>
-        public Task DisposeAsync() {
+        public async ValueTask DisposeAsync() {
             if (_disposable != null) {
                 Try.Op(_disposable.Dispose);
             }
-            return _disposeAsync?.Invoke() ?? Task.CompletedTask;
+            if (_disposeAsync != null) {
+                await _disposeAsync.Invoke();
+            }
         }
 
         /// <summary>
@@ -80,7 +82,7 @@ namespace Microsoft.Azure.IIoT.Utils {
             catch {
                 foreach (var task in tasks) {
                     if (task.IsCompleted) {
-                        await Try.Async(task.Result.DisposeAsync);
+                        await Try.Async(() => task.Result.DisposeAsync().AsTask());
                     }
                 }
                 throw;
@@ -104,7 +106,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         public static Task DisposeAsync(IEnumerable<IAsyncDisposable> disposables) {
             return Try.Async(() => Task.WhenAll(disposables
                 .Where(d => d != null)
-                .Select(d => d.DisposeAsync())));
+                .Select(d => d.DisposeAsync().AsTask())));
         }
 
         private readonly IDisposable _disposable;

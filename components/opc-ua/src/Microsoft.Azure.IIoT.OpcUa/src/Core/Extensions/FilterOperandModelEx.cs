@@ -4,6 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
+    using Newtonsoft.Json.Linq;
+    using System.Collections.Generic;
+
     /// <summary>
     /// Content filter element extensions
     /// </summary>
@@ -27,6 +30,40 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
                 NodeId = model.NodeId,
                 Value = model.Value
             };
+        }
+
+        /// <summary>
+        /// Compare operands
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="other"></param>
+        /// <returns></returns>
+        public static bool IsSameAs(this FilterOperandModel model, FilterOperandModel other) {
+            if (model == null && other == null) {
+                return true;
+            }
+            if (model == null || other == null) {
+                return false;
+            }
+            if (model.AttributeId != other.AttributeId) {
+                return false;
+            }
+            if (model.Index != other.Index) {
+                return false;
+            }
+            if (!JToken.DeepEquals(model.Value, other.Value)) {
+                return false;
+            }
+            if (!model.BrowsePath.SequenceEqualsSafe(other.BrowsePath)) {
+                return false;
+            }
+            if (model.IndexRange != other.IndexRange) {
+                return false;
+            }
+            if (model.NodeId != other.NodeId) {
+                return false;
+            }
+            return true;
         }
     }
 }

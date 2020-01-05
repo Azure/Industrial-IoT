@@ -3,7 +3,7 @@
     <Product>Azure Industrial IoT Platform</Product>
     <RepositoryUrl>https://github.com/Azure/Industrial-IoT</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <NoWarn>NU5125</NoWarn>
+    <NoWarn>NU5125;RS1022;AD0001</NoWarn>
     <Authors>Microsoft</Authors>
     <Company>Microsoft</Company>
     <Copyright>© Microsoft Corporation.</Copyright>
@@ -15,7 +15,7 @@
     <HighEntropyVA>true</HighEntropyVA>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <NeutralLanguage>en-US</NeutralLanguage>
-    <LangVersion>7.3</LangVersion>
+    <LangVersion>8.0</LangVersion>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup Condition="'$(IsPackable)' != 'false'">
@@ -34,6 +34,9 @@
   <ItemGroup Condition="'$(FX_COP)' != ''">
     <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.3" />
   </ItemGroup>
+  <PropertyGroup>
+    <IncludeOpenAPIAnalyzers>true</IncludeOpenAPIAnalyzers>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(FX_COP)' != ''">
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>

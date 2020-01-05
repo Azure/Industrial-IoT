@@ -21,7 +21,7 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
     /// Publish subscriber service built using signalr
     /// </summary>
     public class SignalRServiceHost : IIdentityTokenGenerator, IEndpoint,
-        ICallbackInvoker, IGroupRegistration, IHost, IHealthCheck, IDisposable {
+        ICallbackInvoker, IGroupRegistration, IHostProcess, IHealthCheck, IDisposable {
 
         /// <inheritdoc/>
         public string Resource { get; }

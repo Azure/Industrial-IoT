@@ -13,7 +13,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Runtime {
     /// <summary>
     /// Client's application configuration implementation
     /// </summary>
-    public class TestClientServicesConfig : IClientServicesConfigOld, IDisposable {
+    public class TestClientServicesConfig : IClientServicesConfig, IDisposable {
 
         /// <summary>
         /// Pki root

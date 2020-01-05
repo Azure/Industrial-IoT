@@ -17,8 +17,10 @@ namespace Microsoft.Azure.IIoT.Services.Common.Configuration {
     using Microsoft.AspNetCore.Mvc;
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
-    using Swashbuckle.AspNetCore.Swagger;
     using System;
+    using Microsoft.OpenApi.Models;
+    using Microsoft.Extensions.Hosting;
+    using Newtonsoft.Json;
 
     /// <summary>
     /// Webservice startup
@@ -38,14 +40,14 @@ namespace Microsoft.Azure.IIoT.Services.Common.Configuration {
         /// <summary>
         /// Current hosting environment - Initialized in constructor
         /// </summary>
-        public IHostingEnvironment Environment { get; }
+        public IWebHostEnvironment Environment { get; }
 
         /// <summary>
         /// Create startup
         /// </summary>
         /// <param name="env"></param>
         /// <param name="configuration"></param>
-        public Startup(IHostingEnvironment env, IConfiguration configuration) :
+        public Startup(IWebHostEnvironment env, IConfiguration configuration) :
             this(env, new Config(new ConfigurationBuilder()
                 .AddConfiguration(configuration)
                 .AddEnvironmentVariables()
@@ -60,7 +62,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Configuration {
         /// </summary>
         /// <param name="env"></param>
         /// <param name="configuration"></param>
-        public Startup(IHostingEnvironment env, Config configuration) {
+        public Startup(IWebHostEnvironment env, Config configuration) {
             Environment = env;
             Config = configuration;
         }
@@ -79,24 +81,28 @@ namespace Microsoft.Azure.IIoT.Services.Common.Configuration {
             // Setup (not enabling yet) CORS
             services.AddCors();
             services.AddHealthChecks();
+            services.AddDistributedMemoryCache();
 
-       //     // Add authentication
-       //     services.AddJwtBearerAuthentication(Config,
-       //         Environment.IsDevelopment());
-       //
-       //     // Add authorization
-       //     services.AddAuthorization(options => {
-       //         options.AddPolicies(Config.AuthRequired,
-       //             Config.UseRoles && !Environment.IsDevelopment());
-       //     });
+            //     // Add authentication
+            //     services.AddJwtBearerAuthentication(Config,
+            //         Environment.IsDevelopment());
+            //
+            //     // Add authorization
+            //     services.AddAuthorization(options => {
+            //         options.AddPolicies(Config.AuthRequired,
+            //             Config.UseRoles && !Environment.IsDevelopment());
+            //     });
 
             // Add controllers as services so they'll be resolved.
-            services.AddMvc()
-                .AddApplicationPart(GetType().Assembly)
-                .AddControllersAsServices()
-                .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            services.AddControllers()
+                .AddNewtonsoftJson(options => {
+                    options.SerializerSettings.Formatting = Formatting.Indented;
+                    options.SerializerSettings.Converters.Add(new ExceptionConverter(
+                        Environment.IsDevelopment()));
+                    options.SerializerSettings.MaxDepth = 10;
+                });
 
-            services.AddSwagger(Config, new Info {
+            services.AddSwagger(Config, new OpenApiInfo {
                 Title = ServiceInfo.Name,
                 Version = VersionInfo.PATH,
                 Description = ServiceInfo.Description,
@@ -109,26 +115,31 @@ namespace Microsoft.Azure.IIoT.Services.Common.Configuration {
         /// </summary>
         /// <param name="app"></param>
         /// <param name="appLifetime"></param>
-        public void Configure(IApplicationBuilder app, IApplicationLifetime appLifetime) {
+        public void Configure(IApplicationBuilder app, IHostApplicationLifetime appLifetime) {
             var applicationContainer = app.ApplicationServices.GetAutofacRoot();
-            //     if (Config.AuthRequired) {
-            //         app.UseAuthentication();
-            //     }
+
+            app.UseRouting();
+            app.EnableCors();
+
+            if (Config.AuthRequired) {
+               // app.UseAuthentication(); // TODO
+            }
+            // app.UseAuthorization();
             if (Config.HttpsRedirectPort > 0) {
-                // app.UseHsts();
+                app.UseHsts();
                 app.UseHttpsRedirection();
             }
 
-            app.EnableCors();
-
-            app.UseSwagger(new Info {
+            app.UseSwagger(new OpenApiInfo {
                 Title = ServiceInfo.Name,
                 Version = VersionInfo.PATH,
                 Description = ServiceInfo.Description,
             });
 
-            app.UseMvc();
-            app.UseHealthChecks("/healthz");
+            app.UseEndpoints(endpoints => {
+                endpoints.MapControllers();
+                endpoints.MapHealthChecks("/healthz");
+            });
 
             // If you want to dispose of resources that have been resolved in the
             // application container, register for the "ApplicationStopped" event.

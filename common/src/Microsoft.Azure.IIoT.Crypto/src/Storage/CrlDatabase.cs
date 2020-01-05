@@ -19,7 +19,7 @@ namespace Microsoft.Azure.IIoT.Crypto.Storage {
     /// <summary>
     /// Crl database acting as a cache and endpoint for crl objects.
     /// </summary>
-    public class CrlDatabase : ICrlEndpoint, ICrlRepository, IHost, IDisposable {
+    public class CrlDatabase : ICrlEndpoint, ICrlRepository, IHostProcess, IDisposable {
 
         /// <summary>
         /// Create database

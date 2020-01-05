@@ -37,8 +37,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
         /// <param name="client"></param>
         /// <param name="codec"></param>
         /// <param name="logger"></param>
-        public AddressSpaceServices(IEndpointServices client, IVariantEncoder codec,
-            ILogger logger) {
+        public AddressSpaceServices(IEndpointServices client,
+            IVariantEncoderFactory codec, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _codec = codec ?? throw new ArgumentNullException(nameof(codec));
             _client = client ?? throw new ArgumentNullException(nameof(client));
@@ -63,6 +63,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
                     excludeReferences = request.MaxReferencesToReturn.HasValue &&
                         request.MaxReferencesToReturn.Value == 0;
                 }
+                var codec = _codec.Create(session.MessageContext);
                 var result = new BrowseResultModel();
                 var diagnostics = new List<OperationResultModel>();
                 if (!excludeReferences) {
@@ -83,13 +84,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
                         response.DiagnosticInfos, false);
                     SessionClientEx.Validate(response.Results, response.DiagnosticInfos);
 
-                    result.ContinuationToken = await AddReferencesToBrowseResultAsync(session,
+                    result.ContinuationToken = await AddReferencesToBrowseResultAsync(session, codec,
                         (request.Header?.Diagnostics).ToStackModel(), request.TargetNodesOnly ?? false,
                         request.ReadVariableValues ?? false, rawMode, result.References, diagnostics,
                         response.Results[0].ContinuationPoint, response.Results[0].References);
                 }
                 // Read root node
-                result.Node = await ReadNodeModelAsync(session,
+                result.Node = await ReadNodeModelAsync(session, codec,
                     (request.Header?.Diagnostics).ToStackModel(), rootId, null, true, rawMode,
                     !excludeReferences ? result.References.Count != 0 : (bool?)null, diagnostics, true);
                 result.ErrorInfo = diagnostics.ToServiceModel(request.Header?.Diagnostics,
@@ -120,7 +121,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
                     diagnostics, response.Results.Select(r => r.StatusCode),
                     response.DiagnosticInfos, false);
 
-                result.ContinuationToken = await AddReferencesToBrowseResultAsync(session,
+                var codec = _codec.Create(session.MessageContext);
+                result.ContinuationToken = await AddReferencesToBrowseResultAsync(session, codec,
                     (request.Header?.Diagnostics).ToStackModel(), request.TargetNodesOnly ?? false,
                     request.ReadVariableValues ?? false, request.NodeIdsOnly ?? false,
                     result.References, diagnostics, response.Results[0].ContinuationPoint,
@@ -160,8 +162,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
                 OperationResultEx.Validate("Translate" + request.NodeId,
                     diagnostics, response.Results.Select(r => r.StatusCode),
                     response.DiagnosticInfos, requests, false);
+                var codec = _codec.Create(session.MessageContext);
                 for (var index = 0; index < response.Results.Count; index++) {
-                    await AddTargetsToBrowseResultAsync(session,
+                    await AddTargetsToBrowseResultAsync(session, codec,
                         (request.Header?.Diagnostics).ToStackModel(),
                         request.ReadVariableValues ?? false, request.NodeIdsOnly ?? false,
                         result.Targets, diagnostics, response.Results[index].Targets,
@@ -195,6 +198,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
                     throw new ArgumentException(nameof(request.MethodId));
                 }
 
+                var codec = _codec.Create(session.MessageContext);
                 var response = await session.BrowseAsync(
                     (request.Header?.Diagnostics).ToStackModel(), null, methodId, 0,
                     Opc.Ua.BrowseDirection.Both, ReferenceTypeIds.Aggregates,
@@ -234,14 +238,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
 
                     var argList = new List<MethodMetadataArgumentModel>();
                     foreach (var argument in argumentsList.Select(a => (Argument)a.Body)) {
-                        var dataTypeIdNode = await ReadNodeModelAsync(session,
+                        var dataTypeIdNode = await ReadNodeModelAsync(session, codec,
                             (request.Header?.Diagnostics).ToStackModel(), argument.DataType, null,
                             false, false, false, diagnostics, false);
                         var arg = new MethodMetadataArgumentModel {
                             Name = argument.Name,
                             DefaultValue = argument.Value == null ? null :
-                                _codec.Encode(new Variant(argument.Value), out var type,
-                                    session.MessageContext),
+                                codec.Encode(new Variant(argument.Value), out var type),
                             ValueRank = argument.ValueRank == ValueRanks.Scalar ?
                                 (NodeValueRank?)null : (NodeValueRank)argument.ValueRank,
                             ArrayDimensions = argument.ArrayDimensions?.ToArray(),
@@ -295,6 +298,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
                 if (NodeId.IsNull(objectId)) {
                     throw new ArgumentException(nameof(request.ObjectId));
                 }
+
                 var methodId = request.MethodId.ToNodeId(session.MessageContext);
                 if (request.MethodBrowsePath != null && request.MethodBrowsePath.Length > 0) {
                     if (NodeId.IsNull(methodId)) {
@@ -353,6 +357,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
                     throw new ArgumentException(nameof(request.Arguments));
                 }
 
+                var codec = _codec.Create(session.MessageContext);
+
                 // Set default input arguments from meta data
                 var requests = new CallMethodRequestCollection {
                     new CallMethodRequest {
@@ -377,8 +383,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
                                 arg.DataType.ToNodeId(session.MessageContext),
                                     session.TypeTree);
                         }
-                        var value = _codec.Decode(arg.Value, builtinType,
-                            session.MessageContext);
+                        var value = codec.Decode(arg.Value, builtinType);
                         requests[0].InputArguments[i] = value;
                     }
                 }
@@ -405,8 +410,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
                             // return default value
                             arg = new Variant(outputs[i].Item2);
                         }
-                        result.Results[i].Value = _codec.Encode(arg, out var type,
-                            session.MessageContext);
+                        result.Results[i].Value = codec.Encode(arg, out var type);
                         if (type == BuiltInType.Null && (outputs?.Count ?? 0) > i) {
                             // return default type from type info
                             type = outputs[i].Item1.BuiltInType;
@@ -465,6 +469,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
 
                 var values = response.Results;
                 var result = new ValueReadResultModel();
+                var codec = _codec.Create(session.MessageContext);
                 if (values != null && values.Count > 0 && values[0] != null) {
                     result.ServerPicoseconds = values[0].ServerPicoseconds != 0 ?
                         values[0].ServerPicoseconds : (ushort?)null;
@@ -474,8 +479,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
                         values[0].SourcePicoseconds : (ushort?)null;
                     result.SourceTimestamp = values[0].SourceTimestamp != DateTime.MinValue ?
                         values[0].SourceTimestamp : (DateTime?)null;
-                    result.Value = _codec.Encode(values[0].WrappedValue, out var type,
-                        session.MessageContext);
+                    result.Value = codec.Encode(values[0].WrappedValue, out var type);
                     result.DataType = type == BuiltInType.Null ? null : type.ToString();
                 }
                 result.ErrorInfo = diagnostics.ToServiceModel(request.Header?.Diagnostics,
@@ -518,9 +522,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
                     }
                     dataTypeId = variable.DataType;
                 }
+                var codec = _codec.Create(session.MessageContext);
                 var builtinType = TypeInfo.GetBuiltInType(dataTypeId, session.TypeTree);
-                var value = _codec.Decode(request.Value, builtinType,
-                    session.MessageContext);
+                var value = codec.Decode(request.Value, builtinType);
                 var nodesToWrite = new WriteValueCollection{
                     new WriteValue {
                         NodeId = writeNode,
@@ -555,6 +559,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
             }
             return _client.ExecuteServiceAsync(endpoint, request.Header?.Elevation,
                 async session => {
+                    var codec = _codec.Create(session.MessageContext);
                     var requests = new ReadValueIdCollection(request.Attributes
                         .Select(a => new ReadValueId {
                             AttributeId = (uint)a.Attribute,
@@ -571,8 +576,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
                                             response.DiagnosticInfos.Count == 0 ? null :
                                     response.DiagnosticInfos[index];
                                 return new AttributeReadResultModel {
-                                    Value = _codec.Encode(value.WrappedValue, out var wellKnown,
-                                        session.MessageContext),
+                                    Value = codec.Encode(value.WrappedValue, out var wellKnown),
                                     ErrorInfo = diagnostics.ToServiceModel(
                                         value.StatusCode, "NodeRead", request.Header?.Diagnostics,
                                         session.MessageContext)
@@ -596,13 +600,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
             }
             return _client.ExecuteServiceAsync(endpoint, request.Header?.Elevation,
                 async session => {
+                    var codec = _codec.Create(session.MessageContext);
                     var requests = new WriteValueCollection(request.Attributes
                         .Select(a => new WriteValue {
                             AttributeId = (uint)a.Attribute,
                             NodeId = a.NodeId.ToNodeId(session.MessageContext),
-                            Value = new DataValue(_codec.Decode(a.Value,
-                                AttributeMap.GetBuiltInType((uint)a.Attribute),
-                                session.MessageContext))
+                            Value = new DataValue(codec.Decode(a.Value,
+                                AttributeMap.GetBuiltInType((uint)a.Attribute)))
                         }));
                     var response = await session.WriteAsync(
                         (request.Header?.Diagnostics).ToStackModel(), requests);
@@ -647,8 +651,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
                 if (NodeId.IsNull(nodeId)) {
                     throw new ArgumentException(nameof(request.NodeId));
                 }
-                var details = _codec.Decode(request.Details,
-                    BuiltInType.ExtensionObject, session.MessageContext);
+                var codec = _codec.Create(session.MessageContext);
+                var details = codec.Decode(request.Details, BuiltInType.ExtensionObject);
                 if (!(details.Value is ExtensionObject readDetails)) {
                     throw new ArgumentNullException(nameof(request.Details));
                 }
@@ -668,8 +672,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
 
                 return new HistoryReadResultModel<JToken> {
                     ContinuationToken = response.Results[0].ContinuationPoint.ToBase64String(),
-                    History = _codec.Encode(new Variant(response.Results[0].HistoryData),
-                        out var tmp, session.MessageContext),
+                    History = codec.Encode(new Variant(response.Results[0].HistoryData), out var tmp),
                     ErrorInfo = diagnostics.ToServiceModel(request.Header?.Diagnostics,
                         session.MessageContext)
                 };
@@ -687,6 +690,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
             }
             return _client.ExecuteServiceAsync(endpoint, request.Header?.Elevation,
                 async session => {
+                    var codec = _codec.Create(session.MessageContext);
                     var diagnostics = new List<OperationResultModel>();
                     var response = await session.HistoryReadAsync(
                         (request.Header?.Diagnostics).ToStackModel(), null, TimestampsToReturn.Both,
@@ -695,15 +699,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
                             ContinuationPoint = request.ContinuationToken.DecodeAsBase64(),
                             DataEncoding = null // TODO
                         }
-                        });
+                    });
                     OperationResultEx.Validate("HistoryReadNext_" + request.ContinuationToken,
                         diagnostics, response.Results.Select(r => r.StatusCode),
                         response.DiagnosticInfos, false);
                     SessionClientEx.Validate(response.Results, response.DiagnosticInfos);
                     return new HistoryReadNextResultModel<JToken> {
                         ContinuationToken = response.Results[0].ContinuationPoint.ToBase64String(),
-                        History = _codec.Encode(new Variant(response.Results[0].HistoryData),
-                            out var tmp, session.MessageContext),
+                        History = codec.Encode(new Variant(response.Results[0].HistoryData),
+                            out var tmp),
                         ErrorInfo = diagnostics.ToServiceModel(request.Header?.Diagnostics,
                             session.MessageContext)
                     };
@@ -720,6 +724,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
                 throw new ArgumentNullException(nameof(request.Details));
             }
             return _client.ExecuteServiceAsync(endpoint, request.Header?.Elevation, async session => {
+                var codec = _codec.Create(session.MessageContext);
                 var diagnostics = new List<OperationResultModel>();
                 var nodeId = request.NodeId.ToNodeId(session.MessageContext);
                 if (request.BrowsePath != null && request.BrowsePath.Length > 0) {
@@ -727,8 +732,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
                         nameof(request.BrowsePath), request.BrowsePath,
                         request.Header?.Diagnostics, diagnostics);
                 }
-                var details = _codec.Decode(request.Details,
-                    BuiltInType.ExtensionObject, session.MessageContext);
+                var details = codec.Decode(request.Details, BuiltInType.ExtensionObject);
                 if (!(details.Value is ExtensionObject extensionObject)) {
                     throw new ArgumentNullException(nameof(request.Details));
                 }
@@ -765,6 +769,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
         /// Read node properties as node model
         /// </summary>
         /// <param name="session"></param>
+        /// <param name="codec"></param>
         /// <param name="header"></param>
         /// <param name="nodeId"></param>
         /// <param name="nodeClass"></param>
@@ -774,7 +779,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
         /// <param name="diagnostics"></param>
         /// <param name="traceOnly"></param>
         /// <returns></returns>
-        private async Task<NodeModel> ReadNodeModelAsync(Session session,
+        private async Task<NodeModel> ReadNodeModelAsync(Session session, IVariantEncoder codec,
             RequestHeader header, NodeId nodeId, Opc.Ua.NodeClass? nodeClass, bool skipValue,
             bool rawMode, bool? children, List<OperationResultModel> diagnostics, bool traceOnly) {
             var id = nodeId.AsString(session.MessageContext);
@@ -806,12 +811,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
                 Historizing = node.Historizing,
                 MinimumSamplingInterval = node.MinimumSamplingInterval,
                 IsAbstract = node.IsAbstract,
-                Value = node.Value == null ? null : _codec.Encode(node.Value.Value, out var type,
-                    session.MessageContext),
+                Value = node.Value == null ? null : codec.Encode(node.Value.Value, out var type),
                 EventNotifier = node.EventNotifier == null || node.EventNotifier == 0x0 ?
                     (NodeEventNotifier?)null : (NodeEventNotifier)node.EventNotifier,
                 DataTypeDefinition = node.DataTypeDefinition == null ? null :
-                    _codec.Encode(new Variant(node.DataTypeDefinition)),
+                    codec.Encode(new Variant(node.DataTypeDefinition)),
                 InverseName = node.InverseName?.ToString(),
                 Symmetric = node.Symmetric,
                 ContainsNoLoops = node.ContainsNoLoops,
@@ -828,6 +832,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
         /// Add references
         /// </summary>
         /// <param name="session"></param>
+        /// <param name="codec"></param>
         /// <param name="header"></param>
         /// <param name="targetNodesOnly"></param>
         /// <param name="readValues"></param>
@@ -838,7 +843,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
         /// <param name="references"></param>
         /// <returns></returns>
         private async Task<string> AddReferencesToBrowseResultAsync(Session session,
-            RequestHeader header, bool targetNodesOnly, bool readValues,
+            IVariantEncoder codec, RequestHeader header, bool targetNodesOnly, bool readValues,
             bool rawMode, List<NodeReferenceModel> result, List<OperationResultModel> diagnostics,
             byte[] continuationPoint, List<ReferenceDescription> references) {
             if (references == null) {
@@ -871,7 +876,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
                             // TODO: Add diagnostics result for diagnostics.
                         }
                     }
-                    var model = await ReadNodeModelAsync(session, header, nodeId,
+                    var model = await ReadNodeModelAsync(session, codec, header, nodeId,
                         reference.NodeClass, !readValues, rawMode, children, diagnostics,
                         true);
                     if (rawMode) {
@@ -906,6 +911,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
         /// Add targets
         /// </summary>
         /// <param name="session"></param>
+        /// <param name="codec"></param>
         /// <param name="header"></param>
         /// <param name="readValues"></param>
         /// <param name="rawMode"></param>
@@ -914,15 +920,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
         /// <param name="targets"></param>
         /// <param name="path"></param>
         /// <returns></returns>
-        private async Task AddTargetsToBrowseResultAsync(Session session, RequestHeader header,
-            bool readValues, bool rawMode, List<NodePathTargetModel> result,
+        private async Task AddTargetsToBrowseResultAsync(Session session, IVariantEncoder codec,
+            RequestHeader header, bool readValues, bool rawMode, List<NodePathTargetModel> result,
             List<OperationResultModel> diagnostics, BrowsePathTargetCollection targets,
             string[] path) {
             if (targets != null) {
                 foreach (var target in targets) {
                     try {
                         var nodeId = target.TargetId.ToNodeId(session.NamespaceUris);
-                        var model = await ReadNodeModelAsync(session, header, nodeId,
+                        var model = await ReadNodeModelAsync(session, codec, header, nodeId,
                             null, !readValues, rawMode, false, diagnostics, true);
                         result.Add(new NodePathTargetModel {
                             BrowsePath = path,
@@ -986,7 +992,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
         }
 
         private readonly ILogger _logger;
-        private readonly IVariantEncoder _codec;
+        private readonly IVariantEncoderFactory _codec;
         private readonly IEndpointServices _client;
     }
 }

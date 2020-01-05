@@ -25,7 +25,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Services {
         /// <param name="factory"></param>
         /// <param name="codec"></param>
         /// <param name="logger"></param>
-        public SourceStreamImporter(IItemContainerFactory factory, IVariantEncoder codec,
+        public SourceStreamImporter(IItemContainerFactory factory, IVariantEncoderFactory codec,
             ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _codec = codec ?? throw new ArgumentNullException(nameof(codec));
@@ -98,7 +98,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Services {
         }
 
         private readonly ILogger _logger;
-        private readonly IVariantEncoder _codec;
+        private readonly IVariantEncoderFactory _codec;
         private readonly IItemContainerFactory _factory;
     }
 }

@@ -10,13 +10,13 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Controllers {
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.Http;
+    using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using System;
     using System.Linq;
     using System.Threading.Tasks;
     using System.ComponentModel.DataAnnotations;
-    using Swashbuckle.AspNetCore.Swagger;
 
     /// <summary>
     /// Activate, Deactivate and Query endpoint resources
