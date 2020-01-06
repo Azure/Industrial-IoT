@@ -2,14 +2,6 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Build Status](https://msazure.visualstudio.com/One/_apis/build/status/Custom/Azure_IOT/Industrial/Components/Azure.Industrial-IoT?branchName=master)](https://msazure.visualstudio.com/One/_build/latest?definitionId=86580&branchName=master)
 
-<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Findustrial-iot%2Fmaster%2Fdeploy%2Fscripts%2Ftemplates%2Fazuredeploy.json" target="_blank">
-    <img src="http://azuredeploy.net/deploybutton.png"/>
-</a>
-
-<a href="http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Findustrial-iot%2Fmaster%2Fdeploy%2Fscripts%2Ftemplates%2Fazuredeploy.json" target="_blank">
-    <img src="http://armviz.io/visualizebutton.png"/>
-</a>
-
 ## Features
 
 ### Discover, register and manage your Industrial Assets with Azure
@@ -41,19 +33,16 @@ Applications can utilize the platform components to enable new Industry 4.0 scen
 The Azure IoT Edge modules included in this repository include:
 
 - [OPC Twin module](docs/modules/twin.md)
-
 - [OPC Publisher module](docs/modules/publisher.md)
 
 They can be [deployed](docs/howto-deploy-modules.md) and used in conjunction with the included cloud services, or with limited functionality standalone connected to Azure IoT Hub.
 
 ## Learn more
 
-* [Deploy Azure Industrial IoT Platform](docs/readme.md)
-* [Read the docs](https://azure.github.io/Industrial-IoT/)
-* Explore the samples
-  * [Connected Factory](https://github.com/Azure/Azure-IoT-Connected-Factory) Solution Accelerator which you can try out [here](https://www.azureiotsolutions.com/Accelerators).
-  * [OPC Vault Dashboard](https://github.com/Azure/azure-iiot-opc-vault-service/tree/master/app)
-  * [OPC Twin Browser](https://github.com/Azure/azure-iiot-opc-twin-webui)
+- [Read the docs](https://azure.github.io/Industrial-IoT/)
+- Explore the samples
+  - [Connected Factory](https://github.com/Azure/Azure-IoT-Connected-Factory) Solution Accelerator which you can try out [here](https://www.azureiotsolutions.com/Accelerators).
+  - [OPC Vault Dashboard](https://github.com/Azure/azure-iiot-opc-vault-service/tree/master/app)
 
 ## Give feedback and report bugs
 

@@ -44,7 +44,7 @@
 #>
 
 param(
-    [ValidateSet("local", "services", "app", "all")] [string] $type = "app",
+    [ValidateSet("local", "services", "app", "all")] [string] $type = "all",
     [string] $applicationName,
     [string] $resourceGroupName,
     [string] $resourceGroupLocation,
@@ -612,26 +612,26 @@ Function New-Deployment() {
                     }
                 }
             }
-            elseif ($aadAddReplyUrls) {
-                $replyUrls.Add("http://localhost:5000/signin-oidc")
-            }
 
             if ($aadAddReplyUrls -and ![string]::IsNullOrEmpty($script:aadConfig.ClientPrincipalId)) {
                 $serviceUri = $deployment.Outputs["serviceUrl"].Value
 
                 if (![string]::IsNullOrEmpty($serviceUri)) {
-                    $replyUrls.Add($serviceUri + "/twin/oauth2-redirect.html")
-                    $replyUrls.Add($serviceUri + "/registry/oauth2-redirect.html")
-                    $replyUrls.Add($serviceUri + "/history/oauth2-redirect.html")
-                    $replyUrls.Add($serviceUri + "/vault/oauth2-redirect.html")
-                    $replyUrls.Add($serviceUri + "/publisher/oauth2-redirect.html")
+                    $replyUrls.Add($serviceUri + "/twin/swagger/oauth2-redirect.html")
+                    $replyUrls.Add($serviceUri + "/registry/swagger/oauth2-redirect.html")
+                    $replyUrls.Add($serviceUri + "/history/swagger/oauth2-redirect.html")
+                    $replyUrls.Add($serviceUri + "/vault/swagger/oauth2-redirect.html")
+                    $replyUrls.Add($serviceUri + "/publisher/swagger/oauth2-redirect.html")
                 }
                 
-                $replyUrls.Add("http://localhost:9080/twin/oauth2-redirect.html")
-                $replyUrls.Add("http://localhost:9080/registry/oauth2-redirect.html")
-                $replyUrls.Add("http://localhost:9080/history/oauth2-redirect.html")
-                $replyUrls.Add("http://localhost:9080/vault/oauth2-redirect.html")
-                $replyUrls.Add("http://localhost:9080/publisher/oauth2-redirect.html")
+                $replyUrls.Add("http://localhost:9080/twin/swagger/oauth2-redirect.html")
+                $replyUrls.Add("http://localhost:9080/registry/swagger/oauth2-redirect.html")
+                $replyUrls.Add("http://localhost:9080/history/swagger/oauth2-redirect.html")
+                $replyUrls.Add("http://localhost:9080/vault/swagger/oauth2-redirect.html")
+                $replyUrls.Add("http://localhost:9080/publisher/swagger/oauth2-redirect.html")
+
+                $replyUrls.Add("http://localhost:5000/signin-oidc")
+                $replyUrls.Add("https://localhost:5001/signin-oidc")
             }
             
             if ($aadAddReplyUrls) {            
@@ -643,13 +643,12 @@ Function New-Deployment() {
                     # assumes we are still connected
                     $replyUrls.Add("urn:ietf:wg:oauth:2.0:oob")
                     $replyUrls = ($replyUrls | sort-object –Unique)
-                    Set-AzureADApplication -ObjectId $aadConfig.ClientPrincipalId -ReplyUrls $replyUrls
 
-                    $replyUrls | ForEach-Object { Write-Host $_ }
                     # TODO
                     #    & (Join-Path $script:ScriptDir "aad-update.ps1") `
                     #        $context `
                     #        -ObjectId $aadConfig.ClientPrincipalId -ReplyUrls $replyUrls
+                    Set-AzureADApplication -ObjectId $aadConfig.ClientPrincipalId -ReplyUrls $replyUrls
 
                     Write-Host "Reply urls registered in client app $($aadConfig.ClientPrincipalId)..."
                     Write-Host 
@@ -657,7 +656,7 @@ Function New-Deployment() {
                 catch {
                     Write-Host $_.Exception.Message
                     Write-Host
-                    Write-Host "Registering reply urls failed.  Please add manually:"
+                    Write-Host "Registering reply urls failed.  Please add the following urls manually:"
                     $replyUrls | ForEach-Object { Write-Host $_ }
                 }
             }

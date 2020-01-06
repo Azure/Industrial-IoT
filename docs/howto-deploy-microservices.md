@@ -10,30 +10,35 @@ To deploy the Industrial IoT platform to Azure Kubernetes Service (AKS) follow t
 
 ## Deploy Industrial IoT Platform to Azure using the Azure Portal
 
-You can deploy from the *master* branch using the Deploy to Azure button:
+The ARM deployment templates included in the repository deploy the platform and an entire simulation environment consisting of
 
-<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Findustrial-iot%2Fmaster%2Fdeploy%2Fscripts%2Ftemplates%2Fazuredeploy.json" target="_blank">
-    <img src="http://azuredeploy.net/deploybutton.png"/></a> <a href="http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Findustrial-iot%2Fmaster%2Fdeploy%2Fscripts%2Ftemplates%2Fazuredeploy.json" target="_blank"> <img src="http://armviz.io/visualizebutton.png"/></a>
+- Linux and Windows IoT Edge simulation running all required modules
+- A PLC server simulation
+- All required Azure infrastructure
+- The Industrial IoT Platform
+- The Industrial IoT Sample Engineering tool.
+
+You can deploy directly from the *master* branch using the deploy button:
+
+<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Findustrial-iot%2Fmaster%2Fazuredeploy.json" target="_blank"><img src="http://azuredeploy.net/deploybutton.png"/></a>
+
+To get the AAD information needed by the template use the `deploy/scripts/aad-register.ps1` script to perform the AAD registration ahead of deploying and use the output as input to the template.
+
+<a href="http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2FIndustrial-IoT%2Fmaster2Fazuredeploy.json" target="_blank"><img src="http://armviz.io/visualizebutton.png"/></a>
 
 ## Deploy Industrial IoT Platform using deployment script
 
-The deployment script deploys an entire simulation environment consisting of
-
-* Linux and Windows IoT Edge simulation running all required modules
-* A PLC server simulation
-* All required Azure infrastructure
-* The Industrial IoT Platform
-* The Industrial IoT Sample Engineering tool.
+The platform can also be deployed using the deploy script.
 
 ### Prerequisites
 
 Make sure you have PowerShell and [Az PowerShell](https://docs.microsoft.com/en-us/powershell/azure/install-az-ps) extensions installed.  If not, first install PowerShell, then open PowerShell as Administrator and run
 
 1. ```powershell
-Install-Module -Name Az -AllowClobber
+   Install-Module -Name Az -AllowClobber
    Install-Module -Name AzureAD -AllowClobber
    ```
-   
+
 2. If you have not done so yet, clone this GitHub repository.  Open a command prompt or terminal and run:
 
    ```bash
@@ -73,7 +78,7 @@ It is possible that the name of the website is already in use.  If you run into 
 
 ### Azure Active Directory (AAD) Registration
 
-The deployment script tries to register 2 AAD applications in Azure Active Directory.  Depending on your rights to the selected AAD tenant, this might fail.   
+The deployment script tries to register 2 AAD applications in Azure Active Directory.  Depending on your rights to the selected AAD tenant, this might fail.
 
 An administrator with the relevant rights to the tenant can create the AAD applications for you.  The `deploy/scripts` folder contains the `aad-register.ps1` script to perform the AAD registration separately from deploying.  The output of the script is an object containing the relevant information to be used as part of deployment and must be passed to the `deploy.ps1` script in the same folder using the `-aadConfig` argument.
 
@@ -126,6 +131,6 @@ To support these scenarios, the `deploy.ps1` takes the following parameters:
 
 Now that you have successfully deployed the Microservices to an existing project, here are the suggested next steps:
 
-* [Deploy Industrial IoT modules to IoT Edge](howto-deploy-modules.md)
-* [Learn more about OPC Twin](services/readme.md)
-* [OPC Twin Dependencies](services/dependencies.md)
+- [Deploy Industrial IoT modules to IoT Edge](howto-deploy-modules.md)
+- [Learn more about OPC Twin](services/readme.md)
+- [OPC Twin Dependencies](services/dependencies.md)

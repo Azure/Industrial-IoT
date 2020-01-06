@@ -18,50 +18,50 @@ The easiest way to deploy the modules to an Azure IoT Edge gateway device is thr
 1. Deploy the OPC Twin [dependencies](services/dependencies.md) and obtained the resulting `.env` file. Note the resource group name in the .env file to find the IoT Hub resource in the portal view.  
 
 2. For a windows Windows IoT Edge runtime deoplyment:
-	* Hyper-V must be active  
-	* Create a new virtual switch named host having attached to an external network interface (e.g. "Ethernet 2").
-	```bash
-	New-VMSwitch -name host -NetAdapterName "<Adapter Name>" -AllowManagementOS $true
-	```
+    - Hyper-V must be active  
+    - Create a new virtual switch named host having attached to an external network interface (e.g. "Ethernet 2").
+    ```bash
+    New-VMSwitch -name host -NetAdapterName "<Adapter Name>" -AllowManagementOS $true
+    ```
 
 3. Register and start a [Linux](https://docs.microsoft.com/azure/iot-edge/how-to-install-iot-edge-linux) or [Windows](https://docs.microsoft.com/azure/iot-edge/how-to-install-iot-edge-windows) IoT Edge gateway and note its `device id`.
 
 4. Validate the presence of `host` network in the docker instance 
-	
-	Linux containers:
-	```bash
-	docker network ls
-		NETWORK ID          NAME                DRIVER              SCOPE
-		beceb3bd61c4        azure-iot-edge      bridge              local
-		97eccb2b9f82        bridge              bridge              local
-		758d949c5343        host                host                local
-		72fb3597ef74        none                null                local
-	```
-	
-	Windows containers:
-	```bash
-	docker -H npipe:////.//pipe//iotedge_moby_engine network ls
-		NETWORK ID          NAME                DRIVER              SCOPE
-		8e0ea888dbd4        host                transparent         local
-		f3390c998f90        nat                 nat                 local
-		6750449db22d        none                null                local
-	```
-	
-	When running the industrial iot edge modules in host (transparent) network, the containers will require IP addresses assignment. There are 2 possibilitues : 
-	* dynamic IP address from a local DHCP server accessible from the host's network interface associated to the container's 'host' network.  
-	* static IP address assigned on the container create options statement
-	
-	Windows Static IP Example:		
-	In order to allow static IP address assignment on a container, the docker network requires to be created having the the subnet speciffied identical to the host's interface
-			
-	```bash 
-	docker -H npipe:////.//pipe//iotedge_moby_engine network create -d transparent -o com.docker.network.windowsshim.interface="Ethernet 2" -o com.docker.network.windowsshim.networkname=host --subnet=192.168.30.0/24 --gateway=192.168.30.1 host
-	```
-	Furthermore, the container's create option will look like:
-	
-	```json 
-	"createOptions": "{\"Hostname\":\"opctwin\",\"NetworkingConfig\":{\"EndpointsConfig\":{\"host\":{\"IPAMConfig\":{\"IPv4Address\":\"192.168.30.100\"}}}},\"HostConfig\":{\"NetworkMode\":\"host\",\"CapAdd\":[\"NET_ADMIN\"]}}"
-	```
+
+    Linux containers:
+    ```bash
+    docker network ls
+        NETWORK ID          NAME                DRIVER              SCOPE
+        beceb3bd61c4        azure-iot-edge      bridge              local
+        97eccb2b9f82        bridge              bridge              local
+        758d949c5343        host                host                local
+        72fb3597ef74        none                null                local
+    ```
+
+    Windows containers:
+    ```bash
+    docker -H npipe:////.//pipe//iotedge_moby_engine network ls
+        NETWORK ID          NAME                DRIVER              SCOPE
+        8e0ea888dbd4        host                transparent         local
+        f3390c998f90        nat                 nat                 local
+        6750449db22d        none                null                local
+    ```
+
+    When running the industrial iot edge modules in host (transparent) network, the containers will require IP addresses assignment. There are 2 possibilitues: 
+    - dynamic IP address from a local DHCP server accessible from the host's network interface associated to the container's 'host' network.  
+    - static IP address assigned on the container create options statement
+
+    Windows Static IP Example:
+    In order to allow static IP address assignment on a container, the docker network requires to be created having the the subnet speciffied identical to the host's interface
+
+    ```bash
+    docker -H npipe:////.//pipe//iotedge_moby_engine network create -d transparent -o com.docker.network.windowsshim.interface="Ethernet 2" -o com.docker.network.windowsshim.networkname=host --subnet=192.168.30.0/24 --gateway=192.168.30.1 host
+    ```
+    Furthermore, the container's create option will look like:
+
+    ```json
+    "createOptions": "{\"Hostname\":\"opctwin\",\"NetworkingConfig\":{\"EndpointsConfig\":{\"host\":{\"IPAMConfig\":{\"IPv4Address\":\"192.168.30.100\"}}}},\"HostConfig\":{\"NetworkMode\":\"host\",\"CapAdd\":[\"NET_ADMIN\"]}}"
+    ```
 
 ### Deploy to Edge device
 
@@ -118,12 +118,12 @@ The easiest way to deploy the modules to an Azure IoT Edge gateway device is thr
 
 12. Once you've deployed modules to your device, you can view all of them in the **Device details** page of the portal. This page displays the name of each deployed module, as well as useful information like the deployment status and exit code.
 
-
 ## Deployment manifest
 
 All modules are deployed using a deployment manifest.  
 
 ### Linux
+
 An example manifest to deploy both [OPC Publisher](publisher.md) and [OPC Twin](twin.md) to a Linux IoT Edge gateway is shown below.
 
 ```json
@@ -198,6 +198,7 @@ An example manifest to deploy both [OPC Publisher](publisher.md) and [OPC Twin](
 ```
 
 ### Windows
+
 An example manifest to deploy to Windows IoT Edge gateway is shown below.
 
 ```json
@@ -308,5 +309,5 @@ An example manifest to deploy to Windows IoT Edge gateway is shown below.
 
 ## Next steps
 
-* [Deploy and monitor Edge modules at scale](https://docs.microsoft.com/azure/iot-edge/how-to-deploy-monitor)
-* [Learn more about Azure IoT Edge for Visual Studio Code](https://github.com/microsoft/vscode-azure-iot-edge)
+- [Deploy and monitor Edge modules at scale](https://docs.microsoft.com/azure/iot-edge/how-to-deploy-monitor)
+- [Learn more about Azure IoT Edge for Visual Studio Code](https://github.com/microsoft/vscode-azure-iot-edge)
