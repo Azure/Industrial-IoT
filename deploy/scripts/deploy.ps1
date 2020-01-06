@@ -44,7 +44,7 @@
 #>
 
 param(
-    [ValidateSet("local", "services", "app", "all")] [string] $type = "app",
+    [ValidateSet("local", "services", "app", "all")] [string] $type = "all",
     [string] $applicationName,
     [string] $resourceGroupName,
     [string] $resourceGroupLocation,
