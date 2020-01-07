@@ -120,7 +120,7 @@
         "nicResourceId": "[resourceId(resourceGroup().name,'Microsoft.Network/networkInterfaces', variables('nicResourceName'))]",
         "vnetResourceName": "[concat(variables('vmName'), '-vnet')]",
         "vnetResourceId": "[resourceId(resourceGroup().name,'Microsoft.Network/virtualNetworks', variables('vnetResourceName'))]",
-        "simulationName": "[tolower(replace(concat(variables('vmName'), 'sim'), '-', ''))]",
+        "simulationName": "[concat(variables('vmName'), '-sim')]",
         "identity": {
             "type": "UserAssigned",
             "userAssignedIdentities": {
@@ -324,7 +324,11 @@
                                 "hardwareProfile": {
                                     "vmSize": "Standard_A1"
                                 },
-                                "osProfile": "[variables('linuxOsProfile')]",
+                                "osProfile": {
+                                    "computerName": "[concat(variables('simulationName'), copyIndex())]",
+                                    "adminUsername": "[parameters('edgeUsername')]",
+                                    "adminPassword": "[if(not(empty(parameters('edgePassword'))), parameters('edgePassword'), json('null'))]"
+                                },
                                 "storageProfile": {
                                     "imageReference": "[variables('linuxImage')]",
                                     "osDisk": {
