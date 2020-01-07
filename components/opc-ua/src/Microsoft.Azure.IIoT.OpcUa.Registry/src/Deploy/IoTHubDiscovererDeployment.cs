@@ -16,14 +16,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
     /// <summary>
     /// Deploys discovery module
     /// </summary>
-    public sealed class IoTHubDiscoveryDeployment : IHostProcess {
+    public sealed class IoTHubDiscovererDeployment : IHostProcess {
 
         /// <summary>
         /// Create deployer
         /// </summary>
         /// <param name="service"></param>
         /// <param name="config"></param>
-        public IoTHubDiscoveryDeployment(IIoTHubConfigurationServices service,
+        public IoTHubDiscovererDeployment(IIoTHubConfigurationServices service,
             IContainerRegistryConfig config) {
             _service = service ?? throw new ArgumentNullException(nameof(service));
             _config = config ?? throw new ArgumentNullException(nameof(service));
@@ -33,7 +33,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
         public async Task StartAsync() {
 
             await _service.CreateOrUpdateConfigurationAsync(new ConfigurationModel {
-                Id = "__default-discovery-linux",
+                Id = "__default-discoverer-linux",
                 Content = new ConfigurationContentModel {
                     ModulesContent = CreateLayeredDeployment(true)
                 },
@@ -43,7 +43,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
             }, true);
 
             await _service.CreateOrUpdateConfigurationAsync(new ConfigurationModel {
-                Id = "__default-discovery-windows",
+                Id = "__default-discoverer-windows",
                 Content = new ConfigurationContentModel {
                     ModulesContent = CreateLayeredDeployment(false)
                 },
@@ -86,7 +86,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
                 // Linux
                 createOptions = @"
                 {
-                    ""Hostname"": ""discovery"",
                     ""NetworkingConfig"":{
                         ""EndpointsConfig"": {
                             ""host"": {
@@ -103,7 +102,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
                 // Windows
                 createOptions = @"
                 {
-                    ""Hostname"":""discovery"",
                     ""HostConfig"": {
                         ""CapAdd"": [ ""NET_ADMIN"" ]
                     }
@@ -122,7 +120,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
             {
                 ""$edgeAgent"": {
                     " + registryCredentials + @"
-                    ""properties.desired.modules.discovery"": {
+                    ""properties.desired.modules.discoverer"": {
                         ""settings"": {
                             ""image"": """ + image + @""",
                             ""createOptions"": """ + createOptions + @"""

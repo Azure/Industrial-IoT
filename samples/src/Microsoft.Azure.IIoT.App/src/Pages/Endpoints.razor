@@ -64,7 +64,7 @@
                             @onchange="async eventArgs => { await SetActivation(endpoint.Registration.Id, eventArgs.Value); }" />
                             @endpoint.ActivationState.ToString()
                     }
-                    
+
                 </td>
                 <td></td>
             </tr>
@@ -136,7 +136,7 @@
         else {
             await RegistryService.ActivateEndpointAsync(endpointId);
         }
-       
+
     }
 
     public PagedResult<EndpointInfoApiModel> endpointList =

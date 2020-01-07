@@ -85,7 +85,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                                 NodeName = nodeReference.Target.DisplayName.ToString(),
                                 Children = (bool)nodeReference.Target.Children,
                                 ParentIdList = parentId,
-                                SupervisorId = supervisorId,
+                               // SupervisorId = supervisorId,
                                 AccessLevel = nodeReference.Target.AccessLevel ?? 0,
                                 ParentName = browseData.Node.DisplayName,
                                 DataType = nodeReference.Target.DataType,

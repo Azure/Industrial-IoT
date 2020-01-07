@@ -8,15 +8,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
     using System.Collections.Generic;
 
     /// <summary>
-    /// Supervisor registration list
+    /// Publisher registration list
     /// </summary>
-    public class SupervisorListApiModel {
+    public class PublisherListApiModel {
 
         /// <summary>
         /// Registrations
         /// </summary>
         [JsonProperty(PropertyName = "items")]
-        public List<SupervisorApiModel> Items { get; set; }
+        public List<PublisherApiModel> Items { get; set; }
 
         /// <summary>
         /// Continuation or null if final

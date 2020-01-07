@@ -330,7 +330,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
         /// <inheritdoc/>
         public async Task ProcessDiscoveryEventsAsync(IEnumerable<EndpointInfoModel> newEndpoints,
-            DiscoveryResultModel result, string supervisorId, string applicationId, bool hardDelete) {
+            DiscoveryResultModel result, string discovererId, string supervisorId,
+            string applicationId, bool hardDelete) {
 
             if (newEndpoints == null) {
                 throw new ArgumentNullException(nameof(newEndpoints));
@@ -339,7 +340,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             var context = result.Context.Validate();
 
             var found = newEndpoints
-                .Select(e => e.ToEndpointRegistration(false))
+                .Select(e => e.ToEndpointRegistration(false, discovererId, supervisorId))
                 .ToList();
 
             var existing = Enumerable.Empty<EndpointRegistration>();
@@ -370,11 +371,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             // Remove or disable an endpoint
             foreach (var item in remove) {
                 try {
-                    // Only touch applications the supervisor owns.
-                    if (item.SupervisorId == supervisorId) {
+                    // Only touch applications the discoverer owns.
+                    if (item.DiscovererId == discovererId) {
                         if (hardDelete) {
                             var device = await _iothub.GetAsync(item.DeviceId);
-                            // First we update any supervisor registration
+                            // First we update any registration
                             var existingEndpoint = device.ToEndpointRegistration(false);
                             if (!string.IsNullOrEmpty(existingEndpoint.SupervisorId)) {
                                 await SetSupervisorTwinSecretAsync(existingEndpoint.SupervisorId,
@@ -412,7 +413,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             // Update endpoints that were disabled
             foreach (var exists in unchange) {
                 try {
-                    if (exists.SupervisorId == null || exists.SupervisorId == supervisorId ||
+                    if (exists.DiscovererId == null || exists.DiscovererId == discovererId ||
                         (exists.IsDisabled ?? false)) {
                         // Get the new one we will patch over the existing one...
                         var patch = change.First(x =>

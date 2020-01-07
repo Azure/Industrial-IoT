@@ -424,6 +424,44 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                                     throw new ArgumentException($"Unknown command {command}.");
                             }
                             break;
+                        case "discoverers":
+                            if (args.Length < 2) {
+                                throw new ArgumentException("Need a command!");
+                            }
+                            command = args[1].ToLowerInvariant();
+                            options = new CliOptions(args, 2);
+                            switch (command) {
+                                case "get":
+                                    await GetDiscovererAsync(options);
+                                    break;
+                                case "update":
+                                    await UpdateDiscovererAsync(options);
+                                    break;
+                                case "scan":
+                                    await DiscovererScanAsync(options);
+                                    break;
+                                case "monitor":
+                                    await MonitorDiscoverersAsync();
+                                    break;
+                                case "list":
+                                    await ListDiscoverersAsync(options);
+                                    break;
+                                case "select":
+                                    await SelectDiscovererAsync(options);
+                                    break;
+                                case "query":
+                                    await QueryDiscoverersAsync(options);
+                                    break;
+                                case "-?":
+                                case "-h":
+                                case "--help":
+                                case "help":
+                                    PrintDiscoverersHelp();
+                                    break;
+                                default:
+                                    throw new ArgumentException($"Unknown command {command}.");
+                            }
+                            break;
                         case "supervisors":
                             if (args.Length < 2) {
                                 throw new ArgumentException("Need a command!");
@@ -439,9 +477,6 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                                     break;
                                 case "update":
                                     await UpdateSupervisorAsync(options);
-                                    break;
-                                case "scan":
-                                    await SupervisorScanAsync(options);
                                     break;
                                 case "monitor":
                                     await MonitorSupervisorsAsync();
@@ -1437,7 +1472,6 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         private async Task QuerySupervisorsAsync(CliOptions options) {
             var query = new SupervisorQueryApiModel {
                 Connected = options.IsProvidedOrNull("-c", "--connected"),
-                Discovery = options.GetValueOrDefault<DiscoveryMode>("-d", "--discovery", null),
                 SiteId = options.GetValueOrDefault<string>("-s", "--siteId", null)
             };
             if (options.IsSet("-A", "--all")) {
@@ -1502,6 +1536,133 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                 new SupervisorUpdateApiModel {
                     SiteId = options.GetValueOrDefault<string>("-s", "--siteId", null),
                     LogLevel = options.GetValueOrDefault<TraceLogLevel>(
+                        "-l", "--log-level", null)
+                });
+        }
+
+        private string _discovererId;
+
+        /// <summary>
+        /// Get discoverer id
+        /// </summary>
+        private string GetDiscovererId(CliOptions options, bool shouldThrow = true) {
+            var id = options.GetValueOrDefault<string>("-i", "--id", null);
+            if (_discovererId != null) {
+                if (id == null) {
+                    return _discovererId;
+                }
+                _discovererId = null;
+            }
+            if (id != null) {
+                return id;
+            }
+            if (!shouldThrow) {
+                return null;
+            }
+            throw new ArgumentException("Missing -i/--id option.");
+        }
+
+        /// <summary>
+        /// Select discoverer registration
+        /// </summary>
+        private async Task SelectDiscovererAsync(CliOptions options) {
+            if (options.IsSet("-c", "--clear")) {
+                _discovererId = null;
+            }
+            else if (options.IsSet("-s", "--show")) {
+                Console.WriteLine(_discovererId);
+            }
+            else {
+                var discovererId = options.GetValueOrDefault<string>("-i", "--id", null);
+                if (string.IsNullOrEmpty(discovererId)) {
+                    var result = await _registry.ListAllDiscoverersAsync();
+                    discovererId = ConsoleEx.Select(result.Select(r => r.Id));
+                    if (string.IsNullOrEmpty(discovererId)) {
+                        Console.WriteLine("Nothing selected - discoverer selection cleared.");
+                    }
+                    else {
+                        Console.WriteLine($"Selected {discovererId}.");
+                    }
+                }
+                _discovererId = discovererId;
+            }
+        }
+
+        /// <summary>
+        /// List discoverer registrations
+        /// </summary>
+        private async Task ListDiscoverersAsync(CliOptions options) {
+            if (options.IsSet("-A", "--all")) {
+                var result = await _registry.ListAllDiscoverersAsync(
+                    options.IsProvidedOrNull("-S", "--server"));
+                PrintResult(options, result);
+                Console.WriteLine($"{result.Count()} item(s) found...");
+            }
+            else {
+                var result = await _registry.ListDiscoverersAsync(
+                    options.GetValueOrDefault<string>("-C", "--continuation", null),
+                    options.IsProvidedOrNull("-S", "--server"),
+                    options.GetValueOrDefault<int>("-P", "--page-size", null));
+                PrintResult(options, result);
+            }
+        }
+
+        /// <summary>
+        /// Query discoverer registrations
+        /// </summary>
+        private async Task QueryDiscoverersAsync(CliOptions options) {
+            var query = new DiscovererQueryApiModel {
+                Connected = options.IsProvidedOrNull("-c", "--connected"),
+                Discovery = options.GetValueOrDefault<DiscoveryMode>("-d", "--discovery", null),
+                SiteId = options.GetValueOrDefault<string>("-s", "--siteId", null)
+            };
+            if (options.IsSet("-A", "--all")) {
+                var result = await _registry.QueryAllDiscoverersAsync(query,
+                    options.IsProvidedOrNull("-S", "--server"));
+                PrintResult(options, result);
+                Console.WriteLine($"{result.Count()} item(s) found...");
+            }
+            else {
+                var result = await _registry.QueryDiscoverersAsync(query,
+                    options.IsProvidedOrNull("-S", "--server"),
+                    options.GetValueOrDefault<int>("-P", "--page-size", null));
+                PrintResult(options, result);
+            }
+        }
+
+        /// <summary>
+        /// Get discoverer
+        /// </summary>
+        private async Task GetDiscovererAsync(CliOptions options) {
+            var result = await _registry.GetDiscovererAsync(GetDiscovererId(options),
+                options.IsProvidedOrNull("-S", "--server"));
+            PrintResult(options, result);
+        }
+
+        /// <summary>
+        /// Monitor discoverers
+        /// </summary>
+        private async Task MonitorDiscoverersAsync() {
+            var events = _scope.Resolve<IRegistryServiceEvents>();
+            Console.WriteLine("Press any key to stop.");
+            var complete = await events.SubscribeDiscovererEventsAsync(null, PrintEvent);
+            try {
+                Console.ReadKey();
+            }
+            finally {
+                await complete.DisposeAsync();
+            }
+        }
+
+        /// <summary>
+        /// Update discoverer
+        /// </summary>
+        private async Task UpdateDiscovererAsync(CliOptions options) {
+            var config = BuildDiscoveryConfig(options);
+            await _registry.UpdateDiscovererAsync(GetDiscovererId(options),
+                new DiscovererUpdateApiModel {
+                    SiteId = options.GetValueOrDefault<string>("-s", "--siteId", null),
+                    LogLevel = options.GetValueOrDefault<TraceLogLevel>(
                         "-l", "--log-level", null),
                     Discovery = options.GetValueOrDefault("-d", "--discovery",
                         config == null ? (DiscoveryMode?)null : DiscoveryMode.Fast),
@@ -1512,13 +1673,13 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         /// <summary>
         /// Start and monitor discovery
         /// </summary>
-        private async Task SupervisorScanAsync(CliOptions options) {
-            var supervisorId = GetSupervisorId(options);
+        private async Task DiscovererScanAsync(CliOptions options) {
+            var discovererId = GetDiscovererId(options);
             var events = _scope.Resolve<IRegistryServiceEvents>();
             Console.WriteLine("Press any key to stop.");
 
-            var discovery = await events.SubscribeDiscoveryProgressBySupervisorsIdAsync(
-                supervisorId, null, PrintProgress);
+            var discovery = await events.SubscribeDiscoveryProgressByDiscovererIdAsync(
+                discovererId, null, PrintProgress);
             try {
                 var config = BuildDiscoveryConfig(options);
                 var mode = options.GetValueOrDefault("-d", "--discovery",
@@ -1526,9 +1687,9 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                 if (mode == DiscoveryMode.Off) {
                     throw new ArgumentException("-d/--discovery Off is not supported");
                 }
-                await _registry.SetDiscoveryModeAsync(supervisorId, mode, config);
+                await _registry.SetDiscoveryModeAsync(discovererId, mode, config);
                 Console.ReadKey();
-                await _registry.SetDiscoveryModeAsync(supervisorId, DiscoveryMode.Off,
+                await _registry.SetDiscoveryModeAsync(discovererId, DiscoveryMode.Off,
                     new DiscoveryConfigApiModel());
             }
             catch {
@@ -1876,15 +2037,21 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                     try {
                         var publisher = await events.SubscribePublisherEventsAsync(null, PrintEvent);
                         try {
-                            var supervisors = await _registry.ListAllSupervisorsAsync();
-                            var discovery = await supervisors
-                                .Select(s => events.SubscribeDiscoveryProgressBySupervisorsIdAsync(
-                                    s.Id, null, PrintProgress)).AsAsyncDisposable();
+                            var discoverers = await events.SubscribeDiscovererEventsAsync(null, PrintEvent);
                             try {
-                                Console.ReadKey();
+                                var supervisors = await _registry.ListAllDiscoverersAsync();
+                                var discovery = await supervisors
+                                    .Select(s => events.SubscribeDiscoveryProgressByDiscovererIdAsync(
+                                        s.Id, null, PrintProgress)).AsAsyncDisposable();
+                                try {
+                                    Console.ReadKey();
+                                }
+                                finally {
+                                    await discovery.DisposeAsync();
+                                }
                             }
                             finally {
-                                await discovery.DisposeAsync();
+                                await discoverers.DisposeAsync();
                             }
                         }
                         finally {
@@ -2324,73 +2491,73 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         private static Task PrintProgress(DiscoveryProgressApiModel ev) {
             switch (ev.EventType) {
                 case DiscoveryProgressType.Pending:
-                    Console.WriteLine($"{ev.SupervisorId}: {ev.Total} waiting...");
+                    Console.WriteLine($"{ev.DiscovererId}: {ev.Total} waiting...");
                     break;
                 case DiscoveryProgressType.Started:
-                    Console.WriteLine($"{ev.SupervisorId}: Started.");
+                    Console.WriteLine($"{ev.DiscovererId}: Started.");
                     Console.WriteLine("==========================================");
                     break;
                 case DiscoveryProgressType.NetworkScanStarted:
-                    Console.WriteLine($"{ev.SupervisorId}: Scanning network...");
+                    Console.WriteLine($"{ev.DiscovererId}: Scanning network...");
                     Console.WriteLine("==========================================");
                     break;
                 case DiscoveryProgressType.NetworkScanResult:
-                    Console.WriteLine($"{ev.SupervisorId}: {ev.Progress}/{ev.Total} :" +
+                    Console.WriteLine($"{ev.DiscovererId}: {ev.Progress}/{ev.Total} :" +
                         $" {ev.Discovered} addresses found - NEW: {ev.Result}...");
                     break;
                 case DiscoveryProgressType.NetworkScanProgress:
-                    Console.WriteLine($"{ev.SupervisorId}: {ev.Progress}/{ev.Total} :" +
+                    Console.WriteLine($"{ev.DiscovererId}: {ev.Progress}/{ev.Total} :" +
                         $" {ev.Discovered} addresses found");
                     break;
                 case DiscoveryProgressType.NetworkScanFinished:
-                    Console.WriteLine($"{ev.SupervisorId}: {ev.Progress}/{ev.Total} :" +
+                    Console.WriteLine($"{ev.DiscovererId}: {ev.Progress}/{ev.Total} :" +
                         $" {ev.Discovered} addresses found - complete!");
                     break;
                 case DiscoveryProgressType.PortScanStarted:
-                    Console.WriteLine($"{ev.SupervisorId}: Scanning ports...");
+                    Console.WriteLine($"{ev.DiscovererId}: Scanning ports...");
                     Console.WriteLine("==========================================");
                     break;
                 case DiscoveryProgressType.PortScanResult:
-                    Console.WriteLine($"{ev.SupervisorId}: {ev.Progress}/{ev.Total} :" +
+                    Console.WriteLine($"{ev.DiscovererId}: {ev.Progress}/{ev.Total} :" +
                         $" {ev.Discovered} ports found - NEW: {ev.Result}...");
                     break;
                 case DiscoveryProgressType.PortScanProgress:
-                    Console.WriteLine($"{ev.SupervisorId}: {ev.Progress}/{ev.Total} :" +
+                    Console.WriteLine($"{ev.DiscovererId}: {ev.Progress}/{ev.Total} :" +
                         $" {ev.Discovered} ports found");
                     break;
                 case DiscoveryProgressType.PortScanFinished:
-                    Console.WriteLine($"{ev.SupervisorId}: {ev.Progress}/{ev.Total} :" +
+                    Console.WriteLine($"{ev.DiscovererId}: {ev.Progress}/{ev.Total} :" +
                         $" {ev.Discovered} ports found - complete!");
                     break;
                 case DiscoveryProgressType.ServerDiscoveryStarted:
-                    Console.WriteLine($"{ev.SupervisorId}: {ev.Progress}/{ev.Total} :" +
+                    Console.WriteLine($"{ev.DiscovererId}: {ev.Progress}/{ev.Total} :" +
                         $" Finding servers...");
                     Console.WriteLine("==========================================");
                     break;
                 case DiscoveryProgressType.EndpointsDiscoveryStarted:
-                    Console.WriteLine($"{ev.SupervisorId}: {ev.Progress}/{ev.Total} :" +
+                    Console.WriteLine($"{ev.DiscovererId}: {ev.Progress}/{ev.Total} :" +
                         $" ... {ev.Discovered} servers found - find " +
                         $"endpoints on {((dynamic)ev.RequestDetails).url}...");
                     break;
                 case DiscoveryProgressType.EndpointsDiscoveryFinished:
-                    Console.WriteLine($"{ev.SupervisorId}: {ev.Progress}/{ev.Total} :" +
+                    Console.WriteLine($"{ev.DiscovererId}: {ev.Progress}/{ev.Total} :" +
                         $" ... {ev.Discovered} servers found - {ev.Result} " +
                         $"endpoints found on {((dynamic)ev.RequestDetails).url}...");
                     break;
                 case DiscoveryProgressType.ServerDiscoveryFinished:
-                    Console.WriteLine($"{ev.SupervisorId}: {ev.Progress}/{ev.Total} :" +
+                    Console.WriteLine($"{ev.DiscovererId}: {ev.Progress}/{ev.Total} :" +
                         $" ... {ev.Discovered} servers found.");
                     break;
                 case DiscoveryProgressType.Cancelled:
-                    Console.WriteLine($"{ev.SupervisorId}: Cancelled.");
+                    Console.WriteLine($"{ev.DiscovererId}: Cancelled.");
                     Console.WriteLine("==========================================");
                     break;
                 case DiscoveryProgressType.Error:
-                    Console.WriteLine($"{ev.SupervisorId}: Failure: {ev.Result}");
+                    Console.WriteLine($"{ev.DiscovererId}: Failure: {ev.Result}");
                     Console.WriteLine("==========================================");
                     break;
                 case DiscoveryProgressType.Finished:
-                    Console.WriteLine($"{ev.SupervisorId}: Completed.");
+                    Console.WriteLine($"{ev.DiscovererId}: Completed.");
                     Console.WriteLine("==========================================");
                     break;
             }
@@ -2417,6 +2584,14 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         /// Print event
         /// </summary>
         private static Task PrintEvent(SupervisorEventApiModel ev) {
+            Console.WriteLine(JsonConvertEx.SerializeObjectPretty(ev));
+            return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Print event
+        /// </summary>
+        private static Task PrintEvent(DiscovererEventApiModel ev) {
             Console.WriteLine(JsonConvertEx.SerializeObjectPretty(ev));
             return Task.CompletedTask;
         }
@@ -2882,7 +3057,7 @@ Commands and Options
         -A, --all       Return all endpoints (unpaged)
         -F, --format    Json format for result
 
-     get         Get gateway
+     get         Get gateway info
         with ...
         -i, --id        Id of gateway to retrieve (mandatory)
         -F, --format    Json format for result
@@ -2983,7 +3158,6 @@ Commands and Options
      query       Find supervisors
         -S, --server    Return only server state (default:false)
         -c, --connected Only return connected or disconnected.
-        -d, --discovery Discovery state.
         -s, --siteId    Site of the supervisors.
         -P, --page-size Size of page
         -A, --all       Return all supervisors (unpaged)
@@ -3004,8 +3178,66 @@ Commands and Options
         with ...
         -i, --id        Id of supervisor to update (mandatory)
         -s, --siteId    Updated site of the supervisor.
-        -d, --discovery Set supervisor discovery mode
         -l, --log-level Set supervisor module logging level
+
+     reset       Reset supervisor
+        with ...
+        -i, --id        Id of supervisor to reset (mandatory)
+
+     help, -h, -? --help
+                 Prints out this help.
+"
+                );
+        }
+
+        /// <summary>
+        /// Print help
+        /// </summary>
+        private void PrintDiscoverersHelp() {
+            Console.WriteLine(
+                @"
+Manage and configure discovery modules
+
+Commands and Options
+
+     select      Select discoverer as -i/--id argument in all calls.
+        with ...
+        -i, --id        Discoverer id to select.
+        -c, --clear     Clear current selection
+        -s, --show      Show current selection
+
+     monitor     Monitor changes to discoverers.
+
+     list        List discoverers
+        with ...
+        -S, --server    Return only server state (default:false)
+        -C, --continuation
+                        Continuation from previous result.
+        -P, --page-size Size of page
+        -A, --all       Return all discoverers (unpaged)
+        -F, --format    Json format for result
+
+     query       Find discoverers
+        -S, --server    Return only server state (default:false)
+        -c, --connected Only return connected or disconnected.
+        -d, --discovery Discovery state.
+        -s, --siteId    Site of the discoverers.
+        -P, --page-size Size of page
+        -A, --all       Return all discoverers (unpaged)
+        -F, --format    Json format for result
+
+     get         Get discoverer
+        with ...
+        -S, --server    Return only server state (default:false)
+        -i, --id        Id of discoverer to retrieve (mandatory)
+        -F, --format    Json format for result
+
+     update      Update discoverer
+        with ...
+        -i, --id        Id of discoverer to update (mandatory)
+        -s, --siteId    Updated site of the discoverer.
+        -d, --discovery Set discoverer discovery mode
+        -l, --log-level Set discoverer module logging level
         -a, --activate  Activate all endpoints during onboarding.
         -p, --port-ranges
                         Port ranges to scan.
@@ -3016,10 +3248,10 @@ Commands and Options
         -R, --address-probes
                         Max networking probes to use.
 
-     scan        Run scan on twin
+     scan        Run a scan
         with ...
-        -i, --id        Id of supervisor to run scanning on (mandatory)
-        -d, --discovery Set supervisor discovery mode
+        -i, --id        Id of discoverer to run scanning on (mandatory)
+        -d, --discovery Set discoverer discovery mode
         -a, --activate  Activate all endpoints during onboarding.
         -I, --idle-time Idle time between scans in seconds
         -p, --port-ranges
@@ -3034,10 +3266,6 @@ Commands and Options
                         Network probe timeout in milliseconds
         -t, --port-probe-timeout
                         Port probe timeout in milliseconds
-
-     reset       Reset supervisor
-        with ...
-        -i, --id        Id of supervisor to reset (mandatory)
 
      help, -h, -? --help
                  Prints out this help.

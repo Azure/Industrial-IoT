@@ -28,6 +28,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <summary>
         /// Discoverer identity if deployed
         /// </summary>
-        public SupervisorModel Discoverer { get; set; }
+        public DiscovererModel Discoverer { get; set; }
     }
 }

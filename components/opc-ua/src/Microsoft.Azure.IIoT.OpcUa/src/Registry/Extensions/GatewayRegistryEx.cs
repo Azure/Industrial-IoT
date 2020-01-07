@@ -23,7 +23,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// <param name="publisherId"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        public static async Task<GatewayModel> FindGatewayAsync(
+        public static async Task<GatewayInfoModel> FindGatewayAsync(
             this IGatewayRegistry service, string publisherId,
             CancellationToken ct = default) {
             try {

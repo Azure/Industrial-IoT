@@ -32,7 +32,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <param name="model"></param>
         /// <returns></returns>
         public static string CreateApplicationId(ApplicationInfoModel model) {
-            return CreateApplicationId(model.SiteId ?? model.SupervisorId, model.ApplicationUri,
+            return CreateApplicationId(model.SiteId ?? model.DiscovererId, model.ApplicationUri,
                 model.ApplicationType);
         }
 
@@ -125,7 +125,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 GatewayServerUri = model.GatewayServerUri,
                 Created = model.Created.Clone(),
                 Updated = model.Updated.Clone(),
-                SupervisorId = model.SupervisorId
+                DiscovererId = model.DiscovererId
             };
         }
 
@@ -180,7 +180,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 Updated = null,
                 Certificate = null,
                 ApplicationId = null,
-                SupervisorId = null,
+                DiscovererId = null,
                 HostAddresses = null,
             };
         }
@@ -226,7 +226,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             application.NotSeenSince = model.NotSeenSince;
             application.ProductUri = model.ProductUri;
             application.SiteId = model.SiteId;
-            application.SupervisorId = model.SupervisorId;
+            application.DiscovererId = model.DiscovererId;
             application.GatewayServerUri = model.GatewayServerUri;
             application.Created = model.Created;
             application.Updated = model.Updated;
@@ -293,9 +293,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static string GetSiteOrSupervisorId(this ApplicationInfoModel model) {
+        public static string GetSiteOrGatewayId(this ApplicationInfoModel model) {
             if (string.IsNullOrEmpty(model.SiteId)) {
-                return model.SupervisorId;
+                return model.DiscovererId;
             }
             return model.SiteId;
         }
@@ -309,7 +309,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             /// <inheritdoc />
             public bool Equals(ApplicationInfoModel x, ApplicationInfoModel y) {
                 return
-                    x.GetSiteOrSupervisorId() == y.GetSiteOrSupervisorId() &&
+                    x.GetSiteOrGatewayId() == y.GetSiteOrGatewayId() &&
                     x.ApplicationType == y.ApplicationType &&
                     x.ApplicationUri.EqualsIgnoreCase(y.ApplicationUri);
             }
@@ -322,7 +322,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 hashCode = (hashCode * -1521134295) +
                     EqualityComparer<string>.Default.GetHashCode(obj.ApplicationUri?.ToLowerInvariant());
                 hashCode = (hashCode * -1521134295) +
-                    EqualityComparer<string>.Default.GetHashCode(obj.GetSiteOrSupervisorId());
+                    EqualityComparer<string>.Default.GetHashCode(obj.GetSiteOrGatewayId());
                 return hashCode;
             }
         }
@@ -336,7 +336,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             /// <inheritdoc />
             public bool Equals(ApplicationInfoModel x, ApplicationInfoModel y) {
                 return
-                    x.GetSiteOrSupervisorId() == y.GetSiteOrSupervisorId() &&
+                    x.GetSiteOrGatewayId() == y.GetSiteOrGatewayId() &&
                     x.ApplicationType == y.ApplicationType &&
                     x.ApplicationUri.EqualsIgnoreCase(y.ApplicationUri) &&
                     x.DiscoveryProfileUri == y.DiscoveryProfileUri &&

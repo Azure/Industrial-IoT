@@ -217,7 +217,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
                 Progress = progress,
                 Total = total,
                 Discovered = discovered,
-                Result = endpoints,
+                Result = JToken.FromObject(endpoints),
                 Request = request
             });
         }

@@ -142,11 +142,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Onboarding.Models {
         public string SiteId { get; set; }
 
         /// <summary>
-        /// Supervisor having registered the application
+        /// Discoverer that registered the application
         /// </summary>
-        [JsonProperty(PropertyName = "supervisorId",
+        [JsonProperty(PropertyName = "discovererId",
             NullValueHandling = NullValueHandling.Ignore)]
-        public string SupervisorId { get; set; }
+        public string DiscovererId { get; set; }
 
         /// <summary>
         /// Last time application was seen

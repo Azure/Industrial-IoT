@@ -75,9 +75,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
                     // Update registration from update request
                     var patched = registration.ToServiceModel();
-                    if (request.Discovery != null) {
-                        patched.Discovery = (DiscoveryMode)request.Discovery;
-                    }
 
                     if (request.SiteId != null) {
                         patched.SiteId = string.IsNullOrEmpty(request.SiteId) ?
@@ -89,60 +86,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                             null : request.LogLevel;
                     }
 
-                    if (request.DiscoveryConfig != null) {
-                        if (patched.DiscoveryConfig == null) {
-                            patched.DiscoveryConfig = new DiscoveryConfigModel();
-                        }
-                        if (request.DiscoveryConfig.AddressRangesToScan != null) {
-                            patched.DiscoveryConfig.AddressRangesToScan =
-                                string.IsNullOrEmpty(
-                                    request.DiscoveryConfig.AddressRangesToScan.Trim()) ?
-                                        null : request.DiscoveryConfig.AddressRangesToScan;
-                        }
-                        if (request.DiscoveryConfig.PortRangesToScan != null) {
-                            patched.DiscoveryConfig.PortRangesToScan =
-                                string.IsNullOrEmpty(
-                                    request.DiscoveryConfig.PortRangesToScan.Trim()) ?
-                                        null : request.DiscoveryConfig.PortRangesToScan;
-                        }
-                        if (request.DiscoveryConfig.IdleTimeBetweenScans != null) {
-                            patched.DiscoveryConfig.IdleTimeBetweenScans =
-                                request.DiscoveryConfig.IdleTimeBetweenScans;
-                        }
-                        if (request.DiscoveryConfig.MaxNetworkProbes != null) {
-                            patched.DiscoveryConfig.MaxNetworkProbes =
-                                request.DiscoveryConfig.MaxNetworkProbes <= 0 ?
-                                    null : request.DiscoveryConfig.MaxNetworkProbes;
-                        }
-                        if (request.DiscoveryConfig.NetworkProbeTimeout != null) {
-                            patched.DiscoveryConfig.NetworkProbeTimeout =
-                                request.DiscoveryConfig.NetworkProbeTimeout.Value.Ticks == 0 ?
-                                    null : request.DiscoveryConfig.NetworkProbeTimeout;
-                        }
-                        if (request.DiscoveryConfig.MaxPortProbes != null) {
-                            patched.DiscoveryConfig.MaxPortProbes =
-                                request.DiscoveryConfig.MaxPortProbes <= 0 ?
-                                    null : request.DiscoveryConfig.MaxPortProbes;
-                        }
-                        if (request.DiscoveryConfig.MinPortProbesPercent != null) {
-                            patched.DiscoveryConfig.MinPortProbesPercent =
-                                request.DiscoveryConfig.MinPortProbesPercent <= 0 ||
-                                request.DiscoveryConfig.MinPortProbesPercent > 100 ?
-                                    null : request.DiscoveryConfig.MinPortProbesPercent;
-                        }
-                        if (request.DiscoveryConfig.PortProbeTimeout != null) {
-                            patched.DiscoveryConfig.PortProbeTimeout =
-                                request.DiscoveryConfig.PortProbeTimeout.Value.Ticks == 0 ?
-                                    null : request.DiscoveryConfig.PortProbeTimeout;
-                        }
-                        if (request.DiscoveryConfig.ActivationFilter != null) {
-                            patched.DiscoveryConfig.ActivationFilter =
-                                request.DiscoveryConfig.ActivationFilter.SecurityMode == null &&
-                                request.DiscoveryConfig.ActivationFilter.SecurityPolicies == null &&
-                                request.DiscoveryConfig.ActivationFilter.TrustLists == null ?
-                                    null : request.DiscoveryConfig.ActivationFilter;
-                        }
-                    }
                     // Patch
                     await _iothub.PatchAsync(registration.Patch(
                         patched.ToSupervisorRegistration()), false, ct);
@@ -178,17 +121,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             var query = "SELECT * FROM devices.modules WHERE " +
                 $"properties.reported.{TwinProperty.Type} = 'supervisor'";
 
-            if (model?.Discovery != null) {
-                // If discovery mode provided, include it in search
-                query += $"AND properties.desired.{nameof(SupervisorRegistration.Discovery)} = " +
-                    $"'{model.Discovery}' ";
-            }
             if (model?.SiteId != null) {
                 // If site id provided, include it in search
                 query += $"AND (properties.reported.{TwinProperty.SiteId} = " +
                     $"'{model.SiteId}' OR properties.desired.{TwinProperty.SiteId} = " +
                     $"'{model.SiteId}')";
             }
+
             if (model?.Connected != null) {
                 // If flag provided, include it in search
                 if (model.Connected.Value) {

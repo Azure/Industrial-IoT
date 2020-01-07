@@ -18,15 +18,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <inheritdoc/>
         public override string DeviceType => "Publisher";
 
-        /// <inheritdoc/>
-        public override string ApplicationId => null;
-
         /// <summary>
-        /// Publisher that owns the twin.
+        /// Device id for registration
         /// </summary>
-        [JsonProperty(PropertyName = "id")]
-        public override string SupervisorId =>
-            SupervisorModelEx.CreateSupervisorId(DeviceId, ModuleId);
+        public string ModuleId { get; set; }
 
         /// <summary>
         /// Current log level

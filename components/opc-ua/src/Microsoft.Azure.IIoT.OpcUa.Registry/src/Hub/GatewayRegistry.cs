@@ -30,7 +30,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         }
 
         /// <inheritdoc/>
-        public async Task<GatewayModel> GetGatewayAsync(string gatewayId,
+        public async Task<GatewayInfoModel> GetGatewayAsync(string gatewayId,
             CancellationToken ct) {
             if (string.IsNullOrEmpty(gatewayId)) {
                 throw new ArgumentException(nameof(gatewayId));
@@ -43,7 +43,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 throw new ResourceNotFoundException(
                     $"{gatewayId} is not a gateway registration.");
             }
-            return registration.ToServiceModel();
+            return new GatewayInfoModel {
+                Gateway = registration.ToServiceModel()
+                // TODO
+            };
         }
 
         /// <inheritdoc/>

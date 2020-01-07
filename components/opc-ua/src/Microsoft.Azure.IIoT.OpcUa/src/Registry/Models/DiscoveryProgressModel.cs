@@ -13,9 +13,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     public class DiscoveryProgressModel {
 
         /// <summary>
-        /// Message source
+        /// Discoverer that found the application
         /// </summary>
-        public string SupervisorId { get; set; }
+        public string DiscovererId { get; set; }
 
         /// <summary>
         /// Original request

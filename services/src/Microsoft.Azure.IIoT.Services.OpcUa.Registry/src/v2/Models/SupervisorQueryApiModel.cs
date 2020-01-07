@@ -24,7 +24,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
         /// <param name="model"></param>
         public SupervisorQueryApiModel(SupervisorQueryModel model) {
             SiteId = model.SiteId;
-            Discovery = model.Discovery;
             Connected = model.Connected;
         }
 
@@ -35,8 +34,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
         public SupervisorQueryModel ToServiceModel() {
             return new SupervisorQueryModel {
                 SiteId = SiteId,
-                Connected = Connected,
-                Discovery = Discovery
+                Connected = Connected
             };
         }
 
@@ -47,14 +45,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
             NullValueHandling = NullValueHandling.Ignore)]
         [DefaultValue(null)]
         public string SiteId { get; set; }
-
-        /// <summary>
-        /// Discovery mode of supervisor
-        /// </summary>
-        [JsonProperty(PropertyName = "discovery",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
-        public DiscoveryMode? Discovery { get; set; }
 
         /// <summary>
         /// Included connected or disconnected

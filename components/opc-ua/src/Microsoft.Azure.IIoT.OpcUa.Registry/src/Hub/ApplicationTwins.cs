@@ -100,10 +100,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                     .ToUpperInvariant();
                 query += $"AND tags.{tag} = true ";
             }
-            if (model?.SiteOrSupervisorId != null) {
-                // If ApplicationUri provided, include it in search
-                query += $"AND tags.{nameof(BaseRegistration.SiteOrSupervisorId)} = " +
-                    $"'{model.SiteOrSupervisorId}' ";
+            if (model?.SiteOrGatewayId != null) {
+                // If site or gateway id search provided, include it in search
+                query += $"AND tags.{nameof(BaseRegistration.SiteOrGatewayId)} = " +
+                    $"'{model.SiteOrGatewayId}' ";
             }
 
             var queryResult = await _iothub.QueryDeviceTwinsAsync(query, null, pageSize);
@@ -119,7 +119,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// <inheritdoc/>
         public async Task<ApplicationSiteListModel> ListSitesAsync(
             string continuation, int? pageSize, CancellationToken ct) {
-            var tag = nameof(BaseRegistration.SiteOrSupervisorId);
+            var tag = nameof(BaseRegistration.SiteOrGatewayId);
             var query = $"SELECT tags.{tag}, COUNT() FROM devices WHERE " +
                 $"tags.{nameof(ApplicationRegistration.DeviceType)} = 'Application' " +
                 $"GROUP BY tags.{tag}";
@@ -167,11 +167,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
         /// <inheritdoc/>
         public async Task<IEnumerable<ApplicationInfoModel>> ListAllAsync(string siteId,
-            string supervisorId, CancellationToken ct) {
+            string discovererId, CancellationToken ct) {
             var query = "SELECT * FROM devices WHERE " +
                 $"tags.{nameof(BaseRegistration.DeviceType)} = 'Application' AND " +
                 $"(tags.{nameof(ApplicationRegistration.SiteId)} = '{siteId}' OR" +
-                $" tags.{nameof(BaseRegistration.SupervisorId)} = '{supervisorId}')";
+                $" tags.{nameof(ApplicationRegistration.DiscovererId)} = '{discovererId}')";
 
             var twins = await _iothub.QueryAllDeviceTwinsAsync(query, ct);
             return twins

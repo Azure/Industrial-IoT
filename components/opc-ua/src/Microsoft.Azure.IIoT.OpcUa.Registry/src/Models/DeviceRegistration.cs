@@ -20,6 +20,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public virtual string DeviceId { get; set; }
 
         /// <summary>
+        /// Site of the registration
+        /// </summary>
+        public virtual string SiteId { get; set; }
+
+        /// <summary>
+        /// Searchable grouping (either device or site id)
+        /// </summary>
+        public virtual string SiteOrGatewayId =>
+            !string.IsNullOrEmpty(SiteId) ? SiteId : DeviceId;
+
+        /// <summary>
         /// Etag id
         /// </summary>
         [JsonProperty(PropertyName = "_etag")]
@@ -49,11 +60,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// The certificate of the endpoint
         /// </summary>
         public virtual Dictionary<string, string> Certificate { get; set; }
-
-        /// <summary>
-        /// Site of the registration
-        /// </summary>
-        public virtual string SiteId { get; set; }
 
         /// <summary>
         /// Type

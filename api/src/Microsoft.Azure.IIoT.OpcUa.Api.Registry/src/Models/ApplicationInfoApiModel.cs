@@ -83,11 +83,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         public string SiteId { get; set; }
 
         /// <summary>
-        /// Supervisor that registered the application
+        /// Discoverer that registered the application
         /// </summary>
-        [JsonProperty(PropertyName = "supervisorId",
+        [JsonProperty(PropertyName = "discovererId",
             NullValueHandling = NullValueHandling.Ignore)]
-        public string SupervisorId { get; set; }
+        public string DiscovererId { get; set; }
 
         /// <summary>
         /// Unique application uri

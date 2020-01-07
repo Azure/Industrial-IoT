@@ -17,11 +17,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// Consolidate any existing applications with the
         /// provided discovery events list from the supervisor.
         /// </summary>
-        /// <param name="supervisorId"></param>
+        /// <param name="discovererId"></param>
         /// <param name="result"></param>
         /// <param name="events"></param>
         /// <returns></returns>
-        Task ProcessDiscoveryResultsAsync(string supervisorId,
+        Task ProcessDiscoveryResultsAsync(string discovererId,
             DiscoveryResultModel result, IEnumerable<DiscoveryEventModel> events);
     }
 }

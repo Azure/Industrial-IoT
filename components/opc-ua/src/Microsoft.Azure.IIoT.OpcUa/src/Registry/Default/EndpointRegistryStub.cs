@@ -50,14 +50,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Default {
 
         /// <inheritdoc/>
         public Task ProcessDiscoveryEventsAsync(IEnumerable<EndpointInfoModel> found,
-            DiscoveryResultModel context, string supervisorId, string applicationId,
-            bool hardDelete) {
+            DiscoveryResultModel context, string discovererId, string supervisorId,
+            string applicationId, bool hardDelete) {
             return Task.CompletedTask;
         }
 
         /// <inheritdoc/>
-        public Task<EndpointInfoListModel> QueryEndpointsAsync(EndpointRegistrationQueryModel query,
-            bool onlyServerState, int? pageSize, CancellationToken ct) {
+        public Task<EndpointInfoListModel> QueryEndpointsAsync(
+            EndpointRegistrationQueryModel query, bool onlyServerState, int? pageSize,
+            CancellationToken ct) {
             return Task.FromResult(new EndpointInfoListModel());
         }
     }

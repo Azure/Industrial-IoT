@@ -54,7 +54,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <summary>
         /// Supervisor or site the application belongs to.
         /// </summary>
-        public string SiteOrSupervisorId { get; set; }
+        public string SiteOrGatewayId { get; set; }
 
         /// <summary>
         /// Whether to include applications that were soft deleted

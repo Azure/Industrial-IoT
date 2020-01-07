@@ -12,6 +12,7 @@
         "Microsoft.Azure.IIoT.App": {},
         "Microsoft.Azure.IIoT.Cli": {},
         "Microsoft.Azure.IIoT.Services.All": {},
+        "Microsoft.Azure.IIoT.Modules.Discovery.Cli": {},
         "Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Cli": {},
         "Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Cli": {}
       }

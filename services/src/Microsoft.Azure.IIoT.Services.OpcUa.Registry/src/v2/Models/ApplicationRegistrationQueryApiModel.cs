@@ -30,7 +30,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
             ApplicationName = model.ApplicationName;
             Locale = model.Locale;
             Capability = model.Capability;
-            SiteOrSupervisorId = model.SiteOrSupervisorId;
+            SiteOrSupervisorId = model.SiteOrGatewayId;
             IncludeNotSeenSince = model.IncludeNotSeenSince;
             DiscoveryProfileUri = model.DiscoveryProfileUri;
             GatewayServerUri = model.GatewayServerUri;
@@ -48,7 +48,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
                 ApplicationName = ApplicationName,
                 Locale = Locale,
                 Capability = Capability,
-                SiteOrSupervisorId = SiteOrSupervisorId,
+                SiteOrGatewayId = SiteOrSupervisorId,
                 IncludeNotSeenSince = IncludeNotSeenSince,
                 GatewayServerUri = GatewayServerUri,
                 DiscoveryProfileUri = DiscoveryProfileUri

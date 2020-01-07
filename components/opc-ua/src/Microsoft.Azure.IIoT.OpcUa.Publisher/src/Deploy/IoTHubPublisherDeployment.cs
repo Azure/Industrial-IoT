@@ -81,37 +81,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy {
             }
 
             // Configure create options per os specified
-            string createOptions;
-            if (isLinux) {
-                // Linux
-                createOptions = @"
-                {
-                    ""Hostname"": ""opcpublisher"",
-                    ""Cmd"": [
-                        ""--aa""
-                    ],
-                    ""NetworkingConfig"":{
-                        ""EndpointsConfig"": {
-                            ""host"": {
-                            }
-                        }
-                    },
-                    ""HostConfig"": {
-                        ""NetworkMode"": ""host"",
-                        ""CapAdd"": [ ""NET_ADMIN"" ]
-                    }
-                }";
-            }
-            else {
-                // Windows
-                createOptions = @"
-                {
-                    ""Hostname"":""opcpublisher"",
-                    ""Cmd"": [
-                        ""--aa""
-                    ]
-                }";
-            }
+            var createOptions = @"
+            {
+                ""Hostname"": ""opcpublisher"",
+                ""Cmd"": [
+                    ""--aa""
+                ]
+            }";
             createOptions = JObject.Parse(createOptions).ToString(Formatting.None).Replace("\"", "\\\"");
 
             var server = string.IsNullOrEmpty(_config.DockerServer) ?

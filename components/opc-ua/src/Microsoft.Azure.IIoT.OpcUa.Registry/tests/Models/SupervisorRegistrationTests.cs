@@ -69,19 +69,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         }
 
         [Fact]
-        public void TestEqualIsNotEqualWithServiceModelConversion() {
-            var r1 = CreateRegistration();
-            var m = r1.ToServiceModel();
-            m.DiscoveryConfig.AddressRangesToScan = "";
-            var r2 = m.ToSupervisorRegistration();
-
-            Assert.NotEqual(r1, r2);
-            Assert.NotEqual(r1.GetHashCode(), r2.GetHashCode());
-            Assert.True(r1 != r2);
-            Assert.False(r1 == r2);
-        }
-
-        [Fact]
         public void TestEqualIsNotEqualWithDeviceModel() {
             var r1 = CreateRegistration();
             var m = r1.ToDeviceTwin();
@@ -133,14 +120,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 .FromFactory(() => new SupervisorRegistration(
                     fix.Create<string>(), fix.Create<string>()))
                 .With(x => x.Certificate, cert.EncodeAsDictionary())
-                .With(x => x.Locales, fix.CreateMany<string>()
-                    .ToList().EncodeAsDictionary())
-                .With(x => x.SecurityPoliciesFilter, fix.CreateMany<string>()
-                    .ToList().EncodeAsDictionary())
-                .With(x => x.TrustListsFilter, fix.CreateMany<string>()
-                    .ToList().EncodeAsDictionary())
-                .With(x => x.DiscoveryUrls, fix.CreateMany<string>()
-                    .ToList().EncodeAsDictionary())
                 .With(x => x.Thumbprint, cert.ToSha1Hash())
                 .Without(x => x.IsDisabled)
                 .Without(x => x.NotSeenSince)

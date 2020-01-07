@@ -7,23 +7,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
     using Newtonsoft.Json;
 
     /// <summary>
-    /// Supervisor registration query
+    /// Publisher registration query
     /// </summary>
-    public class SupervisorQueryApiModel {
+    public class PublisherQueryApiModel {
 
         /// <summary>
-        /// Site for the supervisors
+        /// Site for the publishers
         /// </summary>
         [JsonProperty(PropertyName = "siteId",
             NullValueHandling = NullValueHandling.Ignore)]
         public string SiteId { get; set; }
-
-        /// <summary>
-        /// Discovery mode of supervisor
-        /// </summary>
-        [JsonProperty(PropertyName = "discovery",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public DiscoveryMode? Discovery { get; set; }
 
         /// <summary>
         /// Included connected or disconnected

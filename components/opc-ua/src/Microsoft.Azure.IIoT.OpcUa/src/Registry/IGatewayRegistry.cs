@@ -41,7 +41,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// <param name="id"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<GatewayModel> GetGatewayAsync(string id,
+        Task<GatewayInfoModel> GetGatewayAsync(string id,
             CancellationToken ct = default);
 
         /// <summary>

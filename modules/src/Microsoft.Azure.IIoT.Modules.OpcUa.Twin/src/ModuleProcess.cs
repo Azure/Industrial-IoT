@@ -7,7 +7,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
     using Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Runtime;
     using Microsoft.Azure.IIoT.OpcUa.Edge;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Export.Services;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor.Services;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Services;
@@ -139,12 +138,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<StackLogger>()
                 .AsImplementedInterfaces().SingleInstance().AutoActivate();
-
-            // Register discovery services
-            builder.RegisterType<DiscoveryServices>()
-                .AsImplementedInterfaces().InstancePerLifetimeScope();
-            builder.RegisterType<ProgressPublisher>()
-                .AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<TaskProcessor>()
                 .AsImplementedInterfaces();
 
@@ -152,8 +145,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
             builder.RegisterType<v2.Supervisor.SupervisorMethodsController>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<v2.Supervisor.SupervisorSettingsController>()
-                .AsImplementedInterfaces().InstancePerLifetimeScope();
-            builder.RegisterType<v2.Supervisor.DiscoverySettingsController>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
 
             // Register supervisor services

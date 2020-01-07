@@ -6,12 +6,12 @@
 namespace Microsoft.Azure.IIoT.App.Services {
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
 
-    public class SupervisorInfo {
+    public class DiscovererInfo {
 
         /// <summary>
         /// Supervisor models.
         /// </summary>
-        public SupervisorApiModel SupervisorModel { get; set; }
+        public DiscovererApiModel DiscovererModel { get; set; }
 
         /// <summary>
         /// scan status.

@@ -35,7 +35,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
         /// </summary>
         /// <param name="progress"></param>
         protected override void Send(DiscoveryProgressModel progress) {
-            progress.SupervisorId = SupervisorModelEx.CreateSupervisorId(
+            progress.DiscovererId = DiscovererModelEx.CreateDiscovererId(
                 _events.DeviceId, _events.ModuleId);
             base.Send(progress);
             _processor.TrySchedule(() => SendAsync(progress));

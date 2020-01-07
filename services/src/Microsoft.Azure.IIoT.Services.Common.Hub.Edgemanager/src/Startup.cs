@@ -23,10 +23,10 @@ namespace Microsoft.Azure.IIoT.Services.Common.Hub.Edgemanager {
     using Microsoft.Extensions.Hosting;
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
-    using Swashbuckle.AspNetCore.Swagger;
     using System;
-    using ILogger = Serilog.ILogger;
     using Newtonsoft.Json;
+    using ILogger = Serilog.ILogger;
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Deploy;
 
     /// <summary>
     /// Webservice startup
@@ -191,8 +191,8 @@ namespace Microsoft.Azure.IIoT.Services.Common.Hub.Edgemanager {
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<IoTHubSupervisorDeployment>()
                 .AsImplementedInterfaces().SingleInstance();
-            // builder.RegisterType<IoTHubDiscoveryDeployment>()
-            //     .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<IoTHubDiscovererDeployment>()
+                .AsImplementedInterfaces().SingleInstance();
 
             // ... and auto start
             builder.RegisterType<HostAutoStart>()

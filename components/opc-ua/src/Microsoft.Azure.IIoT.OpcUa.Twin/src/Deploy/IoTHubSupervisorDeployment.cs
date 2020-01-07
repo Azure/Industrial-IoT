@@ -79,38 +79,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Deploy {
                     },
                 ";
             }
-
-            // Configure create options per os specified
-            string createOptions;
-            if (isLinux) {
-                // Linux
-                createOptions = @"
-                {
-                    ""Hostname"": ""opctwin"",
-                    ""NetworkingConfig"":{
-                        ""EndpointsConfig"": {
-                            ""host"": {
-                            }
-                        }
-                    },
-                    ""HostConfig"": {
-                        ""NetworkMode"": ""host"",
-                        ""CapAdd"": [ ""NET_ADMIN"" ]
-                    }
-                }";
-            }
-            else {
-                // Windows
-                createOptions = @"
-                {
-                    ""Hostname"":""opctwin"",
-                    ""HostConfig"": {
-                        ""CapAdd"": [ ""NET_ADMIN"" ]
-                    }
-                }";
-            }
-            createOptions = JObject.Parse(createOptions).ToString(Formatting.None).Replace("\"", "\\\"");
-
             var server = string.IsNullOrEmpty(_config.DockerServer) ?
                 "mcr.microsoft.com" : _config.DockerServer;
             var ns = string.IsNullOrEmpty(_config.ImageNamespace) ? "" :
@@ -124,8 +92,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Deploy {
                     " + registryCredentials + @"
                     ""properties.desired.modules.twin"": {
                         ""settings"": {
-                            ""image"": """ + image + @""",
-                            ""createOptions"": """ + createOptions + @"""
+                            ""image"": """ + image + @"""
                         },
                         ""type"": ""docker"",
                         ""status"": ""running"",

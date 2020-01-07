@@ -23,7 +23,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
         /// Create from service model
         /// </summary>
         /// <param name="model"></param>
-        public DiscovererApiModel(SupervisorModel model) {
+        public DiscovererApiModel(DiscovererModel model) {
             Id = model.Id;
             SiteId = model.SiteId;
             Discovery = model.Discovery;
@@ -38,8 +38,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
         /// Convert back to service model
         /// </summary>
         /// <returns></returns>
-        public SupervisorModel ToServiceModel() {
-            return new SupervisorModel {
+        public DiscovererModel ToServiceModel() {
+            return new DiscovererModel {
                 Id = Id,
                 SiteId = SiteId,
                 LogLevel = LogLevel,

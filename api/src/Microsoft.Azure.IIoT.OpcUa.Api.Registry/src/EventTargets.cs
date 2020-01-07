@@ -41,6 +41,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
         public const string Supervisors = "supervisors";
 
         /// <summary>
+        /// Discoverer event type
+        /// </summary>
+        public const string DiscovererEventTarget = "DiscovererEvent";
+
+        /// <summary>
+        /// Discoverers group
+        /// </summary>
+        public const string Discoverers = "discovery";
+
+        /// <summary>
         /// Publisher event type
         /// </summary>
         public const string PublisherEventTarget = "PublisherEvent";

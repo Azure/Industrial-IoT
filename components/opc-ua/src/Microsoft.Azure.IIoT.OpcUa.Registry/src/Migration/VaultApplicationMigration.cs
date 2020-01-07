@@ -127,7 +127,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Migration {
                 HostAddresses = null,
                 NotSeenSince = null,
                 SiteId = null,
-                SupervisorId = null
+                DiscovererId = null
             };
             app.ApplicationId = ApplicationInfoModelEx.CreateApplicationId(app);
             return app;

@@ -51,9 +51,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     DateTime.UtcNow : (DateTime?)null);
             }
 
-            if (update?.SiteOrSupervisorId != existing?.SiteOrSupervisorId) {
-                twin.Tags.Add(nameof(PublisherRegistration.SiteOrSupervisorId),
-                    update?.SiteOrSupervisorId);
+            if (update?.SiteOrGatewayId != existing?.SiteOrGatewayId) {
+                twin.Tags.Add(nameof(PublisherRegistration.SiteOrGatewayId),
+                    update?.SiteOrGatewayId);
             }
 
 
@@ -250,7 +250,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 out var moduleId);
             return new PublisherRegistration {
                 IsDisabled = disabled,
-                SupervisorId = model.Id,
                 DeviceId = deviceId,
                 ModuleId = moduleId,
                 LogLevel = model.LogLevel,
@@ -274,7 +273,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <returns></returns>
         public static PublisherModel ToServiceModel(this PublisherRegistration registration) {
             return new PublisherModel {
-                Id = registration.SupervisorId,
+                Id = PublisherModelEx.CreatePublisherId(registration.DeviceId, registration.ModuleId),
                 SiteId = registration.SiteId,
                 Certificate = registration.Certificate?.DecodeAsByteArray(),
                 LogLevel = registration.LogLevel,

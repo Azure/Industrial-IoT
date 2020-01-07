@@ -23,10 +23,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
                 EventType = (DiscoveryProgressType)model.EventType,
                 Progress = model.Progress,
                 Total = model.Total,
-                RequestDetails = model.RequestDetails,
+                RequestDetails = model.RequestDetails?.DeepClone(),
                 RequestId = model.Request?.Id,
-                Result = model.Result,
-                SupervisorId = model.SupervisorId,
+                Result = model.Result?.DeepClone(),
+                DiscovererId = model.DiscovererId,
                 TimeStamp = model.TimeStamp,
                 Workers = model.Workers
             };

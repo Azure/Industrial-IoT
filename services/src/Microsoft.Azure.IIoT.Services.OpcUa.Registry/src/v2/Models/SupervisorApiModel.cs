@@ -26,10 +26,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
         public SupervisorApiModel(SupervisorModel model) {
             Id = model.Id;
             SiteId = model.SiteId;
-            Discovery = model.Discovery;
             LogLevel = model.LogLevel;
-            DiscoveryConfig = model.DiscoveryConfig == null ? null :
-                new DiscoveryConfigApiModel(model.DiscoveryConfig);
             Certificate = model.Certificate;
             OutOfSync = model.OutOfSync;
             Connected = model.Connected;
@@ -44,9 +41,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
                 Id = Id,
                 SiteId = SiteId,
                 LogLevel = LogLevel,
-                Discovery = Discovery,
                 Certificate = Certificate,
-                DiscoveryConfig = DiscoveryConfig?.ToServiceModel(),
                 OutOfSync = OutOfSync,
                 Connected = Connected
             };
@@ -66,22 +61,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
             NullValueHandling = NullValueHandling.Ignore)]
         [DefaultValue(null)]
         public string SiteId { get; set; }
-
-        /// <summary>
-        /// Whether the supervisor is in discovery mode
-        /// </summary>
-        [JsonProperty(PropertyName = "discovery",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(DiscoveryMode.Off)]
-        public DiscoveryMode? Discovery { get; set; }
-
-        /// <summary>
-        /// Supervisor configuration
-        /// </summary>
-        [JsonProperty(PropertyName = "discoveryConfig",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
-        public DiscoveryConfigApiModel DiscoveryConfig { get; set; }
 
         /// <summary>
         /// Supervisor public client cert

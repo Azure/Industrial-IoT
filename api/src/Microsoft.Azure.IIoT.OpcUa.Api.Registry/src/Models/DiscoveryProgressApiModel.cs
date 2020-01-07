@@ -120,11 +120,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         public DiscoveryProgressType EventType { get; set; }
 
         /// <summary>
-        /// Source of message
+        /// Discoverer that registered the application
         /// </summary>
-        [JsonProperty(PropertyName = "supervisorId",
+        [JsonProperty(PropertyName = "discovererId",
             NullValueHandling = NullValueHandling.Ignore)]
-        public string SupervisorId { get; set; }
+        public string DiscovererId { get; set; }
 
         /// <summary>
         /// Additional request information as per event
