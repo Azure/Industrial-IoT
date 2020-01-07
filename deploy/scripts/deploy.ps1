@@ -503,7 +503,7 @@ Function New-Deployment() {
             $templateParameters.Add("siteName", $script:applicationName)
             $templateParameters.Add("numberOfLinuxGateways", 1)
             $templateParameters.Add("numberOfWindowsGateways", 1)
-            $templateParameters.Add("numberOfServers", 1)
+            $templateParameters.Add("numberOfSimulations", 1)
 
             $adminUser = "sandboxuser"
             $adminPassword = New-Password
@@ -511,7 +511,7 @@ Function New-Deployment() {
             $templateParameters.Add("edgeUserName", $adminUser)
 
             Write-Host 
-            Write-Host "To trouble shoot simulation use the following User and Password to log on:"
+            Write-Host "To troubleshoot simulation use the following User and Password to log on:"
             Write-Host 
             Write-Host $adminUser
             Write-Host $adminPassword
