@@ -141,6 +141,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
             // Use cloud job manager
             builder.RegisterType<JobOrchestratorClient>()
                 .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<VariantEncoderFactory>()
+                .AsImplementedInterfaces().SingleInstance();
 
             // Opc specific parts
             builder.RegisterType<DefaultSessionManager>()
