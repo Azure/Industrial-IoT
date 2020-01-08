@@ -228,7 +228,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                             _outer.NumberOfInvokedMessages = 0;
                         }
 
-                        _outer.NumberOfInvokedMessages++;
+                        _outer.NumberOfInvokedMessages += message.Notifications.Count();
                         _outer.OnMessage?.Invoke(sender, message);
                     }
                 }
@@ -253,6 +253,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private readonly List<DataSetWriterSubscription> _subscriptions;
         private readonly WriterGroupModel _writerGroup;
         private readonly ISubscriptionManager _subscriptionManager;
-        private const long kNumberOfInvokedMessagesResetThreshold = long.MaxValue - 1000;
+        private const long kNumberOfInvokedMessagesResetThreshold = long.MaxValue - 10000;
     }
 }

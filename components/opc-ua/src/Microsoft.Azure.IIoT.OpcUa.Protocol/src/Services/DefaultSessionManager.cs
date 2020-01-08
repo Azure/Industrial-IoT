@@ -65,8 +65,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
                         _logger.Information($"Session '{sessionName}' created.");
 
+                        _logger.Information("Loading Complex Type System....");
+
                         var complexTypeSystem = new ComplexTypeSystem(session);
                         await complexTypeSystem.Load();
+
+                        _logger.Information("Complex Type system loaded.");
 
                         if (_clientConfig.KeepAliveInterval > 0) {
                             session.KeepAliveInterval = _clientConfig.KeepAliveInterval;

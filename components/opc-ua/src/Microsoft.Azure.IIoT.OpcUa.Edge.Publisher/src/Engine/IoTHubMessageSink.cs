@@ -13,6 +13,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using System.Threading.Tasks;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
 
     /// <summary>
     /// Iot hub client sink
@@ -56,12 +57,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         SentMessagesCount);
                     SentMessagesCount = 0;
                 }
+
+                var sw = new Stopwatch();
+                sw.Start();
+
                 if (messagesCount == 1) {
                     await _client.SendEventAsync(messageObjects.First());
                 }
                 else {
                     await _client.SendEventBatchAsync(messageObjects);
                 }
+
+                sw.Stop();
+
+                _logger.Verbose("Sent {count} messages in {time} to IoTHub.", messagesCount, sw.Elapsed);
 
                 SentMessagesCount += messagesCount;
             }
@@ -101,7 +110,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             return msg;
         }
 
-        private const long kMessageCounterResetThreshold = long.MaxValue - 1000;
+        private const long kMessageCounterResetThreshold = long.MaxValue - 10000;
         private readonly ILogger _logger;
         private readonly IClient _client;
     }
