@@ -188,7 +188,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
             // Assert
             Assert.Equal("connected", twin.ConnectionState);
             Assert.Equal(true, twin.Properties.Reported[TwinProperty.Connected]);
-            Assert.Equal("supervisor", twin.Properties.Reported[TwinProperty.Type]);
+            Assert.Equal(IdentityType.Supervisor, twin.Properties.Reported[TwinProperty.Type]);
             Assert.False(twin.Properties.Reported.ContainsKey(TwinProperty.SiteId));
         }
 

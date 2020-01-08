@@ -19,6 +19,7 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery.Cli {
     using System.Net;
     using System.Diagnostics.Tracing;
     using System.Collections.Generic;
+    using Newtonsoft.Json.Linq;
 
     /// <summary>
     /// Discovery module host process
@@ -145,10 +146,16 @@ Options:
                 config, logger);
             await registry.CreateAsync(new DeviceTwinModel {
                 Id = deviceId,
-                ModuleId = moduleId,
+                Tags = new Dictionary<string, JToken> {
+                    [TwinProperty.Type] = IdentityType.Gateway
+                },
                 Capabilities = new DeviceCapabilitiesModel {
                     IotEdge = true
                 }
+            }, true, CancellationToken.None);
+            await registry.CreateAsync(new DeviceTwinModel {
+                Id = deviceId,
+                ModuleId = moduleId
             }, true, CancellationToken.None);
             var cs = await registry.GetConnectionStringAsync(deviceId, moduleId);
             return cs;

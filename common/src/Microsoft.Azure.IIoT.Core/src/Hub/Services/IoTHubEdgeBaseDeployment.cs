@@ -31,7 +31,7 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
                     ModulesContent = GetEdgeBase()
                 },
                 SchemaVersion = kDefaultSchemaVersion,
-                TargetCondition = "tags.__type__ = 'gateway'",
+                TargetCondition = $"tags.__type__ = '{IdentityType.Gateway}'",
                 Priority = 0
             }, true);
         }

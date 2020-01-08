@@ -52,7 +52,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
             // Query for the publisher in the same edge device
             var query = "SELECT * FROM devices.modules WHERE " +
-                $"properties.reported.{TwinProperty.Type} = 'publisher' " +
+                $"properties.reported.{TwinProperty.Type} = '{IdentityType.Publisher}' " +
                 $"AND deviceId = '{deviceId}'";
             var devices = await _iothub.QueryAllDeviceTwinsAsync(query, ct);
 
@@ -169,7 +169,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         public async Task<PublisherListModel> ListPublishersAsync(
             string continuation, bool onlyServerState, int? pageSize, CancellationToken ct) {
             var query = "SELECT * FROM devices.modules WHERE " +
-                $"properties.reported.{TwinProperty.Type} = 'publisher' " +
+                $"properties.reported.{TwinProperty.Type} = '{IdentityType.Publisher}' " +
                 $"AND NOT IS_DEFINED(tags.{nameof(BaseRegistration.NotSeenSince)})";
             var devices = await _iothub.QueryDeviceTwinsAsync(query, continuation, pageSize, ct);
             return new PublisherListModel {
@@ -186,7 +186,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             PublisherQueryModel model, bool onlyServerState, int? pageSize, CancellationToken ct) {
 
             var query = "SELECT * FROM devices.modules WHERE " +
-                $"properties.reported.{TwinProperty.Type} = 'publisher'";
+                $"properties.reported.{TwinProperty.Type} = '{IdentityType.Publisher}'";
 
             if (model?.SiteId != null) {
                 // If site id provided, include it in search

@@ -32,7 +32,7 @@ echo "Iotedge installed."
 
 echo "Provisioning iotedge..."
 sleep 3
-pwsh -File $curdir/vm-setup.ps1 -dpsConnString $dpsConnString -idScope $idScope
+pwsh -File $curdir/edge-setup.ps1 -dpsConnString $dpsConnString -idScope $idScope
 echo "Iotedge provisioned."
 
 echo "Restarting iotedge runtime..."

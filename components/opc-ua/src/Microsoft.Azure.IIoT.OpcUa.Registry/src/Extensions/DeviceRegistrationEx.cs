@@ -32,15 +32,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 }
             }
             switch (type?.ToLowerInvariant() ?? "") {
-                case "endpoint":
-                    return twin.ToEndpointRegistration(onlyServerState);
-                case "application":
-                    return twin.ToApplicationRegistration();
-                case "gateway":
+                case IdentityType.Gateway:
                     return twin.ToGatewayRegistration();
-                case "supervisor":
+                case IdentityType.Endpoint:
+                    return twin.ToEndpointRegistration(onlyServerState);
+                case IdentityType.Application:
+                    return twin.ToApplicationRegistration();
+                case IdentityType.Supervisor:
                     return twin.ToSupervisorRegistration(onlyServerState);
-                case "publisher":
+                case IdentityType.Publisher:
                     return twin.ToPublisherRegistration(onlyServerState);
             }
             return null;

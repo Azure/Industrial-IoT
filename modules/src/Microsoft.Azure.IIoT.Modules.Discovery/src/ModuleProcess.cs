@@ -11,6 +11,7 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery {
     using Microsoft.Azure.IIoT.Module.Framework.Services;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Microsoft.Azure.IIoT.Tasks.Default;
+    using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Extensions.Configuration;
     using Autofac;
     using System;
@@ -79,7 +80,7 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery {
                     var logger = hostScope.Resolve<ILogger>();
                     try {
                         // Start module
-                        await module.StartAsync("discoverer", SiteId, "Discovery", this);
+                        await module.StartAsync(IdentityType.Discovery, SiteId, "Discovery", this);
                         OnRunning?.Invoke(this, true);
                         await Task.WhenAny(_reset.Task, _exit.Task);
                         if (_exit.Task.IsCompleted) {

@@ -516,7 +516,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
         /// <param name="gatewayId"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<GatewayApiModel> GetGatewayAsync(
+        Task<GatewayInfoApiModel> GetGatewayAsync(
             string gatewayId, CancellationToken ct = default);
 
         /// <summary>

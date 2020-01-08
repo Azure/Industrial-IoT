@@ -15,18 +15,16 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs {
     using Microsoft.Azure.IIoT.Storage.CosmosDb.Services;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
-    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
+    using Microsoft.OpenApi.Models;
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
-    using Swashbuckle.AspNetCore.Swagger;
+    using Newtonsoft.Json;
     using System;
     using ILogger = Serilog.ILogger;
-    using Microsoft.OpenApi.Models;
-    using Microsoft.Extensions.Hosting;
-    using Newtonsoft.Json;
 
     /// <summary>
     /// Webservice Startup

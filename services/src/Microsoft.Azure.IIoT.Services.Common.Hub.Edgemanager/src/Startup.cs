@@ -9,6 +9,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Hub.Edgemanager {
     using Microsoft.Azure.IIoT.Services.Cors;
     using Microsoft.Azure.IIoT.Services.Auth;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy;
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Deploy;
     using Microsoft.Azure.IIoT.OpcUa.Twin.Deploy;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Hub.Services;
@@ -26,7 +27,6 @@ namespace Microsoft.Azure.IIoT.Services.Common.Hub.Edgemanager {
     using System;
     using Newtonsoft.Json;
     using ILogger = Serilog.ILogger;
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Deploy;
 
     /// <summary>
     /// Webservice startup

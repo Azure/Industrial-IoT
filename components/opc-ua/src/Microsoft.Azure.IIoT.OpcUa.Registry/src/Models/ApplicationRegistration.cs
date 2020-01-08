@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     public sealed class ApplicationRegistration : BaseRegistration {
 
         /// <inheritdoc/>
-        public override string DeviceType => "Application";
+        public override string DeviceType => IdentityType.Application;
 
         /// <summary>
         /// Identity that owns the twin.

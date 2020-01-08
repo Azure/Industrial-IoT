@@ -102,7 +102,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         public async Task<SupervisorListModel> ListSupervisorsAsync(
             string continuation, bool onlyServerState, int? pageSize, CancellationToken ct) {
             var query = "SELECT * FROM devices.modules WHERE " +
-                $"properties.reported.{TwinProperty.Type} = 'supervisor' " +
+                $"properties.reported.{TwinProperty.Type} = '{IdentityType.Supervisor}' " +
                 $"AND NOT IS_DEFINED(tags.{nameof(BaseRegistration.NotSeenSince)})";
             var devices = await _iothub.QueryDeviceTwinsAsync(query, continuation, pageSize, ct);
             return new SupervisorListModel {
@@ -119,7 +119,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             SupervisorQueryModel model, bool onlyServerState, int? pageSize, CancellationToken ct) {
 
             var query = "SELECT * FROM devices.modules WHERE " +
-                $"properties.reported.{TwinProperty.Type} = 'supervisor'";
+                $"properties.reported.{TwinProperty.Type} = '{IdentityType.Supervisor}'";
 
             if (model?.SiteId != null) {
                 // If site id provided, include it in search

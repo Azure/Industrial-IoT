@@ -12,14 +12,13 @@ namespace Microsoft.Azure.IIoT.Services.Common.Configuration {
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Hosting;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
-    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.OpenApi.Models;
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
     using System;
-    using Microsoft.OpenApi.Models;
-    using Microsoft.Extensions.Hosting;
     using Newtonsoft.Json;
 
     /// <summary>

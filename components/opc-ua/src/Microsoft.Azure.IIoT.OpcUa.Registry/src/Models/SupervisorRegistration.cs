@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
-    using Newtonsoft.Json;
+    using Microsoft.Azure.IIoT.Hub;
     using System;
     using System.Collections.Generic;
 
@@ -15,7 +15,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     public sealed class SupervisorRegistration : BaseRegistration {
 
         /// <inheritdoc/>
-        public override string DeviceType => "Supervisor";
+        public override string DeviceType => IdentityType.Supervisor;
 
         /// <summary>
         /// Device id for registration

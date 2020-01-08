@@ -69,7 +69,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
             var job = await _jobs.CreateAsync(new JobModel {
                 JobId = jobId,
                 QueryCondition = "FROM devices.modules WHERE " +
-                    $"properties.reported.{TwinProperty.Type} = 'supervisor'",
+                    $"properties.reported.{TwinProperty.Type} = '{IdentityType.Supervisor}'",
                 Type = JobType.ScheduleDeviceMethod,
                 MaxExecutionTimeInSeconds = timeout.Seconds,
                 MethodParameter = new MethodParameterModel {

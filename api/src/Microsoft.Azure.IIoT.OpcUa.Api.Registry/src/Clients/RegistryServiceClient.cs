@@ -775,7 +775,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task<GatewayApiModel> GetGatewayAsync(string gatewayId,
+        public async Task<GatewayInfoApiModel> GetGatewayAsync(string gatewayId,
             CancellationToken ct) {
             if (string.IsNullOrEmpty(gatewayId)) {
                 throw new ArgumentNullException(nameof(gatewayId));
@@ -784,7 +784,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
             var request = _httpClient.NewRequest(uri.Uri, _resourceId);
             var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
             response.Validate();
-            return response.GetContent<GatewayApiModel>();
+            return response.GetContent<GatewayInfoApiModel>();
         }
 
         private readonly IHttpClient _httpClient;

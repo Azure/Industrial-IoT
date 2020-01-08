@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
-    using Newtonsoft.Json;
+    using Microsoft.Azure.IIoT.Hub;
     using System;
     using System.Collections.Generic;
     using System.Threading;
@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     public sealed class PublisherRegistration : BaseRegistration {
 
         /// <inheritdoc/>
-        public override string DeviceType => "Publisher";
+        public override string DeviceType => IdentityType.Publisher;
 
         /// <summary>
         /// Device id for registration

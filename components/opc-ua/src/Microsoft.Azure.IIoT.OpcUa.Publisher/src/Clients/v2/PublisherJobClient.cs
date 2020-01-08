@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2 {
     using Microsoft.Azure.IIoT.Agent.Framework;
     using Microsoft.Azure.IIoT.Agent.Framework.Models;
+    using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
@@ -285,7 +286,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2 {
             var demands = new List<DemandModel> {
                 new DemandModel {
                     Key = "Type",
-                    Value = "Publisher"
+                    Value = IdentityType.Publisher
                 }
             };
             // Add site as demand if available

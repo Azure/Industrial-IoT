@@ -64,7 +64,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             bool onlyServerState, int? pageSize, CancellationToken ct) {
             // Find all devices where endpoint information is configured
             var query = $"SELECT * FROM devices WHERE " +
-                $"tags.{nameof(BaseRegistration.DeviceType)} = 'Endpoint' " +
+                $"tags.{nameof(BaseRegistration.DeviceType)} = '{IdentityType.Endpoint}' " +
                 $"AND NOT IS_DEFINED(tags.{nameof(BaseRegistration.NotSeenSince)})";
             var devices = await _iothub.QueryDeviceTwinsAsync(query, continuation, pageSize, ct);
 
@@ -83,7 +83,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             CancellationToken ct) {
 
             var query = "SELECT * FROM devices WHERE " +
-                $"tags.{nameof(EndpointRegistration.DeviceType)} = 'Endpoint' ";
+                $"tags.{nameof(EndpointRegistration.DeviceType)} = '{IdentityType.Endpoint}' ";
 
             if (!(model?.IncludeNotSeenSince ?? false)) {
                 // Scope to non deleted twins
@@ -479,7 +479,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             var query = $"SELECT * FROM devices WHERE " +
                 $"tags.{nameof(EndpointRegistration.ApplicationId)} = " +
                     $"'{applicationId}' AND " +
-                $"tags.{nameof(BaseRegistration.DeviceType)} = 'Endpoint' ";
+                $"tags.{nameof(BaseRegistration.DeviceType)} = '{IdentityType.Endpoint}' ";
 
             if (!includeDeleted) {
                 query += $"AND NOT IS_DEFINED(tags.{nameof(BaseRegistration.NotSeenSince)})";

@@ -159,7 +159,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         public async Task<DiscovererListModel> ListDiscoverersAsync(
             string continuation, bool onlyServerState, int? pageSize, CancellationToken ct) {
             var query = "SELECT * FROM devices.modules WHERE " +
-                $"properties.reported.{TwinProperty.Type} = 'discoverer' " +
+                $"properties.reported.{TwinProperty.Type} = '{IdentityType.Discovery}' " +
                 $"AND NOT IS_DEFINED(tags.{nameof(BaseRegistration.NotSeenSince)})";
             var devices = await _iothub.QueryDeviceTwinsAsync(query, continuation, pageSize, ct);
             return new DiscovererListModel {
@@ -176,7 +176,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             DiscovererQueryModel model, bool onlyServerState, int? pageSize, CancellationToken ct) {
 
             var query = "SELECT * FROM devices.modules WHERE " +
-                $"properties.reported.{TwinProperty.Type} = 'discoverer'";
+                $"properties.reported.{TwinProperty.Type} = '{IdentityType.Discovery}'";
 
             if (model?.Discovery != null) {
                 // If discovery mode provided, include it in search

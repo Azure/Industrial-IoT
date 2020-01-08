@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.Hub;
-    using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;
 
@@ -17,7 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     public sealed class DiscovererRegistration : BaseRegistration {
 
         /// <inheritdoc/>
-        public override string DeviceType => "Discoverer";
+        public override string DeviceType => IdentityType.Discovery;
 
         /// <summary>
         /// Device id for registration

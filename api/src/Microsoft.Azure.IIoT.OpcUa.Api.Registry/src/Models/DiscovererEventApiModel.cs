@@ -53,7 +53,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// <summary>
         /// Discoverer
         /// </summary>
-        [JsonProperty(PropertyName = "supervisor",
+        [JsonProperty(PropertyName = "discoverer",
             NullValueHandling = NullValueHandling.Ignore)]
         public DiscovererApiModel Discoverer { get; set; }
     }

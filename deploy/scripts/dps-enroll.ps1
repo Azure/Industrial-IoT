@@ -87,7 +87,7 @@ $body = @{
     deviceId = $deviceId
     initialTwin = @{
         tags = @{
-            __type__ = "gateway"
+            __type__ = "iiotedge"
             os = $os
         }
     }

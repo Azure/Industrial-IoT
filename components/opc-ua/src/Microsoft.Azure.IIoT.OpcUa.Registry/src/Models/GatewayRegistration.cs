@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
+    using Microsoft.Azure.IIoT.Hub;
     using System;
     using System.Collections.Generic;
 
@@ -14,7 +15,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     public sealed class GatewayRegistration : DeviceRegistration {
 
         /// <inheritdoc/>
-        public override string DeviceType => "Gateway";
+        public override string DeviceType => IdentityType.Gateway;
 
         /// <inheritdoc/>
         public override string Thumbprint => null;

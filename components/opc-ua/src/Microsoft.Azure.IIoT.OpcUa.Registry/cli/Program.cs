@@ -271,7 +271,7 @@ Operations (Mutually exclusive):
                 config, logger);
 
             var query = "SELECT * FROM devices.modules WHERE " +
-                $"properties.reported.{TwinProperty.Type} = 'supervisor'";
+                $"properties.reported.{TwinProperty.Type} = '{IdentityType.Supervisor}'";
             var supers = await registry.QueryAllDeviceTwinsAsync(query);
             foreach (var item in supers) {
                 foreach (var tag in item.Tags.Keys.ToList()) {

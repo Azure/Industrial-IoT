@@ -36,7 +36,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             ApplicationRegistrationQueryModel model, int? pageSize, CancellationToken ct) {
 
             var query = "SELECT * FROM devices WHERE " +
-                $"tags.{nameof(ApplicationRegistration.DeviceType)} = 'Application' ";
+                $"tags.{nameof(BaseRegistration.DeviceType)} = '{IdentityType.Endpoint}' ";
 
             if (!(model?.IncludeNotSeenSince ?? false)) {
                 // Scope to non deleted applications
@@ -121,7 +121,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             string continuation, int? pageSize, CancellationToken ct) {
             var tag = nameof(BaseRegistration.SiteOrGatewayId);
             var query = $"SELECT tags.{tag}, COUNT() FROM devices WHERE " +
-                $"tags.{nameof(ApplicationRegistration.DeviceType)} = 'Application' " +
+                $"tags.{nameof(BaseRegistration.DeviceType)} = '{IdentityType.Endpoint}' " +
                 $"GROUP BY tags.{tag}";
             var result = await _iothub.QueryAsync(query, continuation, pageSize);
             return new ApplicationSiteListModel {
@@ -144,7 +144,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         public async Task<ApplicationInfoListModel> ListAsync(
             string continuation, int? pageSize, bool? disabled, CancellationToken ct) {
             var query = "SELECT * FROM devices WHERE " +
-                $"tags.{nameof(ApplicationRegistration.DeviceType)} = 'Application' ";
+                $"tags.{nameof(BaseRegistration.DeviceType)} = '{IdentityType.Endpoint}' ";
             if (disabled != null) {
                 if (disabled.Value) {
                     query +=
@@ -169,7 +169,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         public async Task<IEnumerable<ApplicationInfoModel>> ListAllAsync(string siteId,
             string discovererId, CancellationToken ct) {
             var query = "SELECT * FROM devices WHERE " +
-                $"tags.{nameof(BaseRegistration.DeviceType)} = 'Application' AND " +
+                $"tags.{nameof(BaseRegistration.DeviceType)} = '{IdentityType.Endpoint}' AND " +
                 $"(tags.{nameof(ApplicationRegistration.SiteId)} = '{siteId}' OR" +
                 $" tags.{nameof(ApplicationRegistration.DiscovererId)} = '{discovererId}')";
 

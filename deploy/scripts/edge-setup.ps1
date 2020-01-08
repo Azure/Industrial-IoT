@@ -52,7 +52,7 @@ if ($PsVersionTable.Platform -eq "Unix") {
     # add dps setting
     $configyml += "`n"
     $configyml += "`n########################################################################"
-    $configyml += "`n# DPS symmetric key provisioning configuration - added by vm-setup.ps1 #"
+    $configyml += "`n# DPS symmetric key provisioning configuration - added by edge-setup.ps1 #"
     $configyml += "`n########################################################################"
     $configyml += "`n"
     $configyml += "`nprovisioning:"
@@ -70,7 +70,7 @@ if ($PsVersionTable.Platform -eq "Unix") {
     $configyml | Out-File $file -Force
 }
 else {
-    Start-Transcript -path (join-path $path "vm-setup.log")
+    Start-Transcript -path (join-path $path "edge-setup.log")
 
     Write-Host "Create new IoT Edge enrollment."
     $enrollment = & $enrollPath -dpsConnString $dpsConnString -os Windows

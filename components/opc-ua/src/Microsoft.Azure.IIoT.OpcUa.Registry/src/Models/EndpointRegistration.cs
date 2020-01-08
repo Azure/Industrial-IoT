@@ -18,7 +18,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     public sealed class EndpointRegistration : BaseRegistration {
 
         /// <inheritdoc/>
-        public override string DeviceType => "Endpoint";
+        public override string DeviceType => IdentityType.Endpoint;
 
         /// <summary>
         /// Device id is twin id
