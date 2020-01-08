@@ -65,6 +65,10 @@ to your organization administrator. After this, an administrator should also con
 the application requires to run in your Azure AD. The steps to do so are described in
 [Granting Admin Consent](#granting-admin-consent) bellow.
 
+Successful execution of `Microsoft.Azure.IIoT.Deployment` application will be possible only after
+`AzureIndustrialIoTDeployment` Enterprise Application has been added to your Azure AD and consent has been
+granted.
+
 ### Running with Service Principal Credentials
 
 To run `Microsoft.Azure.IIoT.Deployment` with Service Principal credentials, you would first need to
@@ -118,17 +122,14 @@ az ad sp create-for-rbac --name ServicePrincipalName
 
 ### Sample Run
 
-`Microsoft.Azure.IIoT.Deployment` requires permissions to create azure resources on users behalf and as such
-it requires admin consent within the Azure tenant. This entails a few additional manual steps before the
-application can run properly. Those steps are required after first run which will fail if the admin of Azure
-Active Directory has not already consented to use of the Enterprise Application within the directory. **5**th
-step below describes the error that you might get if you are lacking admin consent and
-[Granting Admin Consent](#granting-admin-consent) walks you through steps to mitigate that problem. Please
-note, that you will still need to run the application once before granting the consent and that first run will
-fail.
+Sample run of `Full` deployment without any configuration parameters is described below.
+`Microsoft.Azure.IIoT.Deployment` would interactively prompt for all required parameters that are not
+provided through configuration. And if no authentication configuration is provided, then authentication flow
+with user credentials will be used.
 
-We are working on simplifying this flow, but as of right now these are the steps to run
-`Microsoft.Azure.IIoT.Deployment`:
+> **Note:** **5**th step below describes the error that you might get if you are lacking admin consent
+and [Granting Admin Consent](#granting-admin-consent) walks you through steps to mitigate that problem.
+You will still need to run the application once before granting the consent and that first run will fail.
 
 1. Run `Microsoft.Azure.IIoT.Deployment` application from command line:
 
@@ -147,6 +148,8 @@ We are working on simplifying this flow, but as of right now these are the steps
     Global Cloud or government-specific independent deployments of Microsoft Azure.
 
     ``` bash
+    [13:57:12 INF] Application RunMode is not configured, default will be used: Full
+    [13:57:25 INF] Starting full deployment of Industrial IoT solution.
     Please select Azure environment to use:
 
     Available Azure environments:
@@ -174,8 +177,8 @@ We are working on simplifying this flow, but as of right now these are the steps
     ```
 
 4. Now the application will ask you to login to Azure. During the first run, login flow will also ask your
-    consent to provide permissions to `AzureIndustrialIoTDeployment` application. If you are not an admin in
-    your Azure account, you would be asked to request consent from an admin.
+    consent to provide permissions to `AzureIndustrialIoTDeployment` application if you are an admin in
+    Azure AD. If you are not an admin, you would be asked to request consent from your admin.
 
     * On Windows, an interactive flow will launch a web browser and ask you to login to Azure.
 
@@ -188,8 +191,8 @@ We are working on simplifying this flow, but as of right now these are the steps
         To sign in, use a web browser to open the page https://microsoft.com/devicelogin and enter the code XXXXXXXXX to authenticate.
         ```
 
-5. At this point you might receive an error indicating that the user or administrator has not consented to use
-    of the application, it will look like this:
+5. At this point you might receive an error indicating that your administrator has not consented to use of
+    `AzureIndustrialIoTDeployment` Enterprise Application, it will look like this:
 
     ``` bash
     [10:46:35 ERR] Failed to deploy Industrial IoT solution.
@@ -203,7 +206,16 @@ We are working on simplifying this flow, but as of right now these are the steps
     If you encounter this go to [Granting Admin Consent](#granting-admin-consent) to resolve this issue and
     then try to run the application again.
 
-6. Provide a name for the AAD applications that will be registered. You will be asked for one name, but 3
+6. Select a Subscription within your Azure Account that will be used for creating Azure resources. If just
+    one Subscription exists in your Account, then it will be listed and application will proceed further,
+    otherwise you have to select Subscription from the list of available Subscriptions:
+
+    ``` bash
+    The following subscription will be used:
+    DisplayName: 'Visual Studio Enterprise', SubscriptionId: 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX'
+    ```
+
+7. Provide a name for the AAD applications that will be registered. You will be asked for one name, but 3
     applications will be registered:
 
     * one with `-services` suffix added to provided name
@@ -212,16 +224,7 @@ We are working on simplifying this flow, but as of right now these are the steps
 
     ``` bash
     Please provide a name for the AAD application to register:
-    kkTestApp51
-    ```
-
-7. Select a Subscription within your Azure Account that will be used for creating Azure resources. If just
-    one Subscription exists in your Account, then it will be listed and application will proceed further,
-    otherwise you have to select Subscription from the list of available Subscriptions:
-
-    ``` bash
-    The following subscription will be used:
-    SubscriptionId: XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX, DisplayName: Visual Studio Enterprise
+    kkTest00100
     ```
 
 8. Select Resource Group. You would be presented with options of either using an existing Resource Group or
@@ -230,13 +233,14 @@ We are working on simplifying this flow, but as of right now these are the steps
     Resource Group and provide a name for it. Output for the latter case is below.
 
     > **Note:** If the application encounters an error during execution, it will ask you whether to perform a
-    cleanup or not. Cleanup works by deleting registered Applications and the Resource Group. This means
+    cleanup or not. Cleanup works by deleting registered Applications and the Resource Group. So
     if an existing Resource Group has been selected for the deployment and an error occurs then selecting to
     perform cleanup will also trigger deletion of all resources previously present in the Resource Group. More
     details can be found in [Resource Cleanup](#resource-cleanup).
 
     ``` bash
-    Do you want to create a new ResourceGroup or use an existing one ? Please select N[new] or E[existing]
+    Do you want to use existing Resource Group or create a new one ?
+    Please select E[existing] or N[new]
     n
     Please select region where resource group will be created.
 
@@ -245,15 +249,13 @@ We are working on simplifying this flow, but as of right now these are the steps
     1: westus2
     2: northeurope
     3: westeurope
-    4: canadacentral
-    5: centralindia
-    6: southeastasia
+    4: southeastasia
     Select a region:
-    3
-    Select resource group name, press Enter to use 'kkTestApp51':
+    2
+    Select resource group name, press Enter to use 'kkTest00100':
 
-    [13:36:20 INF] Creating Resource Group: kkTestApp51 ...
-    [13:36:21 INF] Created Resource Group: kkTestApp51
+    [13:58:58 INF] Creating Resource Group: kkTest00100 ...
+    [13:58:59 INF] Created Resource Group: kkTest00100
     ```
 
 9. Now the application will perform application registration, Azure resource deployment and deployment of
@@ -261,48 +263,57 @@ We are working on simplifying this flow, but as of right now these are the steps
     the way, it will log what Azure resources are created. Sample log looks like this:
 
     ``` bash
-    [13:36:21 INF] Registering resource providers ...
-    [13:36:24 INF] Registered resource providers
-    [13:36:25 INF] Creating service application registration...
-    [13:36:29 INF] Creating client application registration...
-    [13:36:36 INF] Creating AKS application registration...
-    [13:36:38 INF] Creating Azure Network Security Group: iiotservices-nsg ...
-    [13:36:41 INF] Created Azure Network Security Group: iiotservices-nsg
-    [13:36:41 INF] Creating Azure Virtual Network: iiotservices-vnet ...
-    [13:36:45 INF] Created Azure Virtual Network: iiotservices-vnet
-    [13:36:46 WRN] ServicePrincipal creation has not propagated correcty. Waiting for 120 seconds before retry.
-    [13:38:48 INF] Creating Azure KeyVault: keyvault-50242 ...
-    [13:39:20 INF] Created Azure KeyVault: keyvault-50242
-    [13:39:20 INF] Adding certificate to Azure KeyVault: webAppCert ...
-    [13:39:21 INF] Added certificate to Azure KeyVault: webAppCert
-    [13:39:30 INF] Adding certificate to Azure KeyVault: aksClusterCert ...
-    [13:39:30 INF] Added certificate to Azure KeyVault: aksClusterCert
-    [13:39:44 INF] Creating Azure Operational Insights Workspace: workspace-72124 ...
-    [13:39:44 INF] Creating Azure Application Insights Component: appinsights-85593 ...
-    [13:39:58 INF] Created Azure Application Insights Component: appinsights-85593
-    [13:40:20 INF] Created Azure Operational Insights Workspace: workspace-72124
-    [13:40:20 INF] Creating Azure AKS cluster: akscluster-39852 ...
-    [13:40:20 INF] Creating Azure Storage Account: storage96291 ...
-    [13:40:38 INF] Created Azure Storage Account: storage96291
-    [13:40:39 INF] Creating Blob Container: iothub-default ...
-    [13:40:39 INF] Created Blob Container: iothub-default
-    [13:40:39 INF] Creating Azure IoT Hub: iothub-13998 ...
-    [13:42:12 INF] Created Azure IoT Hub: iothub-13998
-    [13:42:28 INF] Creating Azure CosmosDB Account: cosmosdb-98554 ...
-    [13:42:28 INF] Creating Azure Service Bus Namespace: sb-32960 ...
-    [13:42:28 INF] Creating Azure Event Hub Namespace: eventhubnamespace-87937 ...
-    [13:43:34 INF] Created Azure Service Bus Namespace: sb-32960
-    [13:43:35 INF] Created Azure Event Hub Namespace: eventhubnamespace-87937
-    [13:43:35 INF] Creating Azure Event Hub: eventhub-65619 ...
-    [13:43:38 INF] Created Azure Event Hub: eventhub-65619
-    [13:43:38 INF] Creating Azure AppService Plan: kktestapp51-42681 ...
-    [13:43:47 INF] Created Azure AppService Plan: kktestapp51-42681
-    [13:43:47 INF] Creating Azure AppService: kkTestApp51 ...
-    [13:47:48 INF] Created Azure AppService: kkTestApp51
-    [13:48:28 INF] Created Azure AKS cluster: akscluster-39852
-    [13:49:07 INF] Created Azure CosmosDB Account: cosmosdb-98554
-    [13:49:10 INF] Deploying Industrial IoT microservices to Azure AKS cluster ...
-    [13:49:11 INF] Deployed Industrial IoT microservices to Azure AKS cluster
+    [13:58:59 INF] Registering resource providers ...
+    [13:59:04 INF] Registered resource providers
+    [13:59:17 INF] Creating service application registration ...
+    [13:59:24 INF] Created service application registration.
+    [13:59:25 INF] Creating client application registration ...
+    [13:59:28 INF] Created client application registration.
+    [13:59:33 INF] Creating AKS application registration ...
+    [13:59:36 INF] Created AKS application registration.
+    [13:59:37 DBG] Assigning NetworkContributor role to Service Principal: kkTest00100-aks ...
+    [13:59:38 DBG] ServicePrincipal creation has not propagated correctly. Waiting for 5 seconds before retry.
+    [13:59:46 DBG] Assigned NetworkContributor role to Service Principal: kkTest00100-aks
+    [13:59:52 INF] Creating Azure Network Security Group: iiotservices-nsg ...
+    [13:59:57 INF] Created Azure Network Security Group: iiotservices-nsg
+    [13:59:57 INF] Creating Azure Virtual Network: iiotservices-vnet ...
+    [14:00:02 INF] Created Azure Virtual Network: iiotservices-vnet
+    [14:00:02 INF] Creating Azure KeyVault: keyvault-16598 ...
+    [14:00:34 INF] Created Azure KeyVault: keyvault-16598
+    [14:00:34 INF] Adding certificate to Azure KeyVault: webAppCert ...
+    [14:00:35 INF] Added certificate to Azure KeyVault: webAppCert
+    [14:00:50 INF] Adding certificate to Azure KeyVault: aksClusterCert ...
+    [14:00:51 INF] Added certificate to Azure KeyVault: aksClusterCert
+    [14:01:06 INF] Creating Azure Operational Insights Workspace: workspace-81485 ...
+    [14:01:06 INF] Creating Azure Application Insights Component: appinsights-14867 ...
+    [14:01:13 INF] Created Azure Application Insights Component: appinsights-14867
+    [14:01:42 INF] Created Azure Operational Insights Workspace: workspace-81485
+    [14:01:42 INF] Creating Azure AKS cluster: akscluster-85960 ...
+    [14:01:42 INF] Creating Azure Storage Account: storage91176 ...
+    [14:02:02 INF] Created Azure Storage Account: storage91176
+    [14:02:02 INF] Creating Blob Container: iothub-default ...
+    [14:02:03 INF] Created Blob Container: iothub-default
+    [14:02:03 INF] Creating Azure IoT Hub: iothub-32072 ...
+    [14:04:10 INF] Created Azure IoT Hub: iothub-32072
+    [14:04:13 INF] Creating Azure CosmosDB Account: cosmosdb-55238 ...
+    [14:04:13 INF] Creating Azure Service Bus Namespace: sb-86372 ...
+    [14:04:13 INF] Creating Azure Event Hub Namespace: eventhubnamespace-13716 ...
+    [14:05:17 INF] Created Azure Service Bus Namespace: sb-86372
+    [14:05:17 INF] Created Azure Event Hub Namespace: eventhubnamespace-13716
+    [14:05:17 INF] Creating Azure Event Hub: eventhub-95041 ...
+    [14:05:23 INF] Created Azure Event Hub: eventhub-95041
+    [14:05:23 INF] Creating Azure AppService Plan: kktest00100-60509 ...
+    [14:05:30 INF] Created Azure AppService Plan: kktest00100-60509
+    [14:05:30 INF] Creating Azure AppService: kkTest00100 ...
+    [14:05:30 INF] Creating SignalR Service: signalr-78951 ...
+    [14:05:50 INF] Created Azure AppService: kkTest00100
+    [14:07:05 INF] Created SignalR Service: signalr-78951
+    [14:07:52 INF] Created Azure AKS cluster: akscluster-85960
+    [14:08:22 INF] Created Azure CosmosDB Account: cosmosdb-55238
+    [14:08:31 INF] Deploying Industrial IoT services to Azure AKS cluster ...
+    [14:08:33 INF] Deployed Industrial IoT services to Azure AKS cluster
+    [14:11:06 INF] Deploying proxy service to AppService: kkTest00100 ...
+    [14:15:16 INF] Deployed proxy service to AppService: kkTest00100
     ```
 
 10. After that you would be provided with an option to save connection details of deployed resources to
@@ -310,16 +321,21 @@ We are working on simplifying this flow, but as of right now these are the steps
     contains sensitive data such as connection string to the resources and some secrets.
 
     ``` bash
-    [13:49:11 INF] Deployed Industrial IoT microservices to Azure AKS cluster
     Do you want to save connection details of deployed resources to '.env' file ? Please select Y[yes] or N[no]
     y
-    [13:49:17 INF] Writing environment to file: '.env' ...
+    [14:30:45 INF] Writing environment to file: '.env' ...
     ```
 
-11. At this point the application should have successfully deployed Industrial IoT solution. One last thing
-    left to do is to manually lower the scale of created CosmosDB containers. This is not a functional issue,
-    but the default size of created containers will cost ~60$ per day. Check [CosmosDB Scale](#cosmosdb-scale)
-    to learn more and lower the cost.
+11. At this point the application should have successfully deployed Industrial IoT solution.
+
+    ``` bash
+    [14:36:27 INF] Updating RedirectUris of client application to point to 'https://kktest00100.azurewebsites.net/'
+    [14:36:30 INF] Done.
+    ```
+
+    One last thing left to do is to manually lower the scale of created CosmosDB containers. This is not a
+    functional issue, but the default size of created containers will cost ~60$ per day. Check
+    [CosmosDB Scale](#cosmosdb-scale) to learn more and lower the cost.
 
 ### Granting Admin Consent
 
@@ -379,9 +395,9 @@ To see state of microservices you can check Kubernetes Dashboard. Follow this tu
 
 You should also be able to access APIs of microservices through URL of App Service. The URL is available
 in overview of App Service. For example, you can access OPC Registry Service by appending `/registry/` to the URL.
-It should look something like the link bellow, where `kktestapp51` is the name of App Service.
+It should look something like the link bellow, where `kktest00100` is the name of App Service.
 
-* `https://kktestapp51.azurewebsites.net/registry/`
+* `https://kktest00100.azurewebsites.net/registry/`
 
 The following microservice endpoints are exposed:
 
