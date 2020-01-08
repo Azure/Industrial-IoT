@@ -51,13 +51,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Onboarding.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task ProcessDiscoveryResultsAsync(string supervisorId,
+        public async Task ProcessDiscoveryResultsAsync(string discovererId,
             DiscoveryResultListApiModel content, CancellationToken ct) {
             if (content == null) {
                 throw new ArgumentNullException(nameof(content));
             }
             var uri = new UriBuilder($"{_serviceUri}/v2/discovery") {
-                Query = $"supervisorId={supervisorId}"
+                Query = $"discovererId={discovererId}"
             };
             var request = _httpClient.NewRequest(uri.Uri, _resourceId);
             request.SetContent(content);

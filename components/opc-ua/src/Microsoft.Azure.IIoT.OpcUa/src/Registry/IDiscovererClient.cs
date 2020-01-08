@@ -9,28 +9,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Client to access discovery services
+    /// Client to access discoverer services
     /// </summary>
-    public interface IDiscoveryClient {
+    public interface IDiscovererClient {
 
         /// <summary>
         /// Discover using discovery request.
         /// </summary>
-        /// <param name="supervisorId"></param>
+        /// <param name="discovererId"></param>
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task DiscoverAsync(string supervisorId,
+        Task DiscoverAsync(string discovererId,
             DiscoveryRequestModel request, CancellationToken ct = default);
 
         /// <summary>
         /// Cancel discovery request
         /// </summary>
-        /// <param name="supervisorId"></param>
+        /// <param name="discovererId"></param>
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task CancelAsync(string supervisorId,
+        Task CancelAsync(string discovererId,
             DiscoveryCancelModel request, CancellationToken ct = default);
     }
 }

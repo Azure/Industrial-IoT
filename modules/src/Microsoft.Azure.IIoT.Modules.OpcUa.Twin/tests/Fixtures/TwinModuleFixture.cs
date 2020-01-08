@@ -299,7 +299,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
                 .AsImplementedInterfaces();
             builder.RegisterType<DiagnosticsClient>()
                 .AsImplementedInterfaces();
-            builder.RegisterType<DiscoveryClient>()
+            builder.RegisterType<DiscovererClient>()
                 .AsImplementedInterfaces();
             builder.RegisterType<VariantEncoderFactory>()
                 .AsImplementedInterfaces();

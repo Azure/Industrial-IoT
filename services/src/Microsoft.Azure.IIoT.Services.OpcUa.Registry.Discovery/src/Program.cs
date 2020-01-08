@@ -142,7 +142,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Discovery {
 #else
             builder.RegisterType<DiscoveryMultiplexer>()
                 .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<DiscoveryClient>()
+            builder.RegisterType<DiscovererClient>()
                 .AsImplementedInterfaces().SingleInstance();
 #endif
 

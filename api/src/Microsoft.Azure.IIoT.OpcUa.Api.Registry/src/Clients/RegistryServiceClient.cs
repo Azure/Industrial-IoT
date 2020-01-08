@@ -176,12 +176,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task SetDiscoveryModeAsync(string supervisorId,
+        public async Task SetDiscoveryModeAsync(string discovererId,
             DiscoveryMode mode, DiscoveryConfigApiModel config, CancellationToken ct) {
-            if (string.IsNullOrEmpty(supervisorId)) {
-                throw new ArgumentNullException(nameof(supervisorId));
+            if (string.IsNullOrEmpty(discovererId)) {
+                throw new ArgumentNullException(nameof(discovererId));
             }
-            var uri = new UriBuilder($"{_serviceUri}/v2/discovery/{supervisorId}") {
+            var uri = new UriBuilder($"{_serviceUri}/v2/discovery/{discovererId}") {
                 Query = $"mode={mode}"
             };
             var request = _httpClient.NewRequest(uri.Uri, _resourceId);

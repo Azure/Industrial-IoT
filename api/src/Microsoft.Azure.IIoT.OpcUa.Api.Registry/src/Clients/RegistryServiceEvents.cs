@@ -152,7 +152,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
 
         /// <inheritdoc/>
         public async Task<IAsyncDisposable> SubscribeDiscoveryProgressByDiscovererIdAsync(
-            string supervisorId, string userId, Func<DiscoveryProgressApiModel, Task> callback) {
+            string discovererId, string userId, Func<DiscoveryProgressApiModel, Task> callback) {
             if (callback == null) {
                 throw new ArgumentNullException(nameof(callback));
             }
@@ -160,10 +160,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
             try {
                 var registration = registrar.Register(EventTargets.DiscoveryProgressTarget, callback);
                 try {
-                    await _api.SubscribeDiscoveryProgressByDiscovererIdAsync(supervisorId,
+                    await _api.SubscribeDiscoveryProgressByDiscovererIdAsync(discovererId,
                         registrar.UserId);
                     return new AsyncDisposable(registration,
-                        () => _api.UnsubscribeDiscoveryProgressByDiscovererIdAsync(supervisorId,
+                        () => _api.UnsubscribeDiscoveryProgressByDiscovererIdAsync(discovererId,
                             registrar.UserId));
                 }
                 catch {

@@ -22,13 +22,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Onboarding {
 
         /// <summary>
         /// Processes discovery events and onboards new entities
-        /// to the opc registry.
+        /// to the registry.
         /// </summary>
-        /// <param name="supervisorId"></param>
+        /// <param name="discovererId"></param>
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task ProcessDiscoveryResultsAsync(string supervisorId,
+        Task ProcessDiscoveryResultsAsync(string discovererId,
             DiscoveryResultListApiModel request, CancellationToken ct = default);
     }
 }

@@ -29,7 +29,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// <param name="client"></param>
         /// <param name="logger"></param>
         public DiscoveryMultiplexer(IDiscovererRegistry registry,
-            IDiscoveryClient client, ILogger logger) {
+            IDiscovererClient client, ILogger logger) {
 
             _registry = registry ??
                 throw new ArgumentNullException(nameof(registry));
@@ -110,6 +110,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
         private readonly ILogger _logger;
         private readonly IDiscovererRegistry _registry;
-        private readonly IDiscoveryClient _client;
+        private readonly IDiscovererClient _client;
     }
 }

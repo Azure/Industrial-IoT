@@ -16,56 +16,56 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
     /// <summary>
     /// Implements discovery through twin supervisor
     /// </summary>
-    public sealed class DiscoveryClient : IDiscoveryClient {
+    public sealed class DiscovererClient : IDiscovererClient {
 
         /// <summary>
         /// Create client
         /// </summary>
         /// <param name="client"></param>
         /// <param name="logger"></param>
-        public DiscoveryClient(IMethodClient client, ILogger logger) {
+        public DiscovererClient(IMethodClient client, ILogger logger) {
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <inhertitdoc/>
-        public async Task DiscoverAsync(string supervisorId,
+        public async Task DiscoverAsync(string discovererId,
             DiscoveryRequestModel request, CancellationToken ct) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            await CallServiceOnSupervisorAsync(supervisorId, "Discover_V2", request, ct);
+            await CallServiceOnDiscovererAsync(discovererId, "Discover_V2", request, ct);
         }
 
         /// <inhertitdoc/>
-        public async Task CancelAsync(string supervisorId,
+        public async Task CancelAsync(string discovererId,
             DiscoveryCancelModel request, CancellationToken ct) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            await CallServiceOnSupervisorAsync(supervisorId, "Cancel_V2", request, ct);
+            await CallServiceOnDiscovererAsync(discovererId, "Cancel_V2", request, ct);
         }
 
         /// <summary>
         /// helper to invoke service
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="supervisorId"></param>
+        /// <param name="discovererId"></param>
         /// <param name="service"></param>
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        private async Task CallServiceOnSupervisorAsync<T>(string supervisorId,
+        private async Task CallServiceOnDiscovererAsync<T>(string discovererId,
             string service, T request, CancellationToken ct) {
-            if (string.IsNullOrEmpty(supervisorId)) {
-                throw new ArgumentNullException(nameof(supervisorId));
+            if (string.IsNullOrEmpty(discovererId)) {
+                throw new ArgumentNullException(nameof(discovererId));
             }
             var sw = Stopwatch.StartNew();
-            var deviceId = SupervisorModelEx.ParseDeviceId(supervisorId,
+            var deviceId = DiscovererModelEx.ParseDeviceId(discovererId,
                 out var moduleId);
             var result = await _client.CallMethodAsync(deviceId, moduleId, service,
                 JsonConvertEx.SerializeObject(request), null, ct);
-            _logger.Debug("Calling supervisor service '{service}' on " +
+            _logger.Debug("Calling discoverer service '{service}' on " +
                 "{deviceId}/{moduleId} took {elapsed} ms.", service,
                 deviceId, moduleId, sw.ElapsedMilliseconds);
         }
