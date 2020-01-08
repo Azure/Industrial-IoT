@@ -318,6 +318,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
                 if (applyChanges) {
                     rawSubscription.ApplyChanges();
+
+                    foreach (var monitoredItem in nowMonitored) {
+                        if (monitoredItem.Item.Status.Error != null && StatusCode.IsBad(monitoredItem.Item.Status.Error.StatusCode)) {
+                            _logger.Error("Error while monitoring node {id} in subscription {subscriptionId}, status code: {code}", monitoredItem.Item.StartNodeId, monitoredItem.Item.Subscription.Id, monitoredItem.Item.Status.Error.StatusCode);
+                        }
+                    }
+
+                    _logger.Information("Now monitoring {count} nodes in subscription {subscriptionId} (Session: {sessionId}).", rawSubscription.MonitoredItems.Count(m => m.Status.Error == null), rawSubscription.Id, rawSubscription.Session.SessionName);
+
                 }
 
                 var map = nowMonitored.ToDictionary(
