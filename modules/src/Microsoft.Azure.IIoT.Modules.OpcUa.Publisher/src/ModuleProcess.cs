@@ -164,6 +164,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                 .SingleInstance().AsImplementedInterfaces();
             builder.RegisterType<SubscriptionServices>()
                 .SingleInstance().AsImplementedInterfaces();
+            builder.RegisterType<VariantEncoderFactory>()
+                .AsImplementedInterfaces().SingleInstance();
 
             return builder.Build();
         }
