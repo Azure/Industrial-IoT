@@ -144,12 +144,12 @@
             "autoUpgradeMinorVersion": true,
             "settings": {
                 "fileUris": [
-                    "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/vm-enroll.ps1')]",
-                    "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/vm-setup.ps1')]"
+                    "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/dps-enroll.ps1')]",
+                    "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/edge-setup.ps1')]"
                 ]
             },
             "protectedSettings": {
-                "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File ./vm-setup.ps1 -idScope \"', parameters('dpsIdScope'), '\" -dpsConnString \"', parameters('dpsConnString'), '\"')]"
+                "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File ./edge-setup.ps1 -idScope \"', parameters('dpsIdScope'), '\" -dpsConnString \"', parameters('dpsConnString'), '\"')]"
             }
         },
         "windowsImage": {
@@ -176,13 +176,13 @@
             "autoUpgradeMinorVersion": true,
             "settings": {
                 "fileUris": [
-                    "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/vm-enroll.ps1')]",
-                    "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/vm-setup.ps1')]",
-                    "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/vm-setup.sh')]"
+                    "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/dps-enroll.ps1')]",
+                    "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/edge-setup.ps1')]",
+                    "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/edge-setup.sh')]"
                 ]
             },
             "protectedSettings": {
-                "commandToExecute": "[concat('sudo bash vm-setup.sh --idScope \"', parameters('dpsIdScope'), '\" --dpsConnString \"', parameters('dpsConnString'), '\"')]"
+                "commandToExecute": "[concat('sudo bash edge-setup.sh --idScope \"', parameters('dpsIdScope'), '\" --dpsConnString \"', parameters('dpsConnString'), '\"')]"
             }
         }
     },

@@ -15,6 +15,7 @@
 param(
     [Parameter(Mandatory = $true)] [string] $Name,
     $Context,
+    [string] $Output = $null,
     [string] $EnvironmentName = "AzureCloud"
 )
 
@@ -308,7 +309,7 @@ Function New-ADApplications() {
         Write-Host "'$($clientDisplayName)' updated with required resource access."  
         # Grant permissions to app
         try {
-            Add-AdminConsentGrant -azureAppId $clientAadApplication.AppId -context $context
+            Add-AdminConsentGrant -azureAppId $clientAadApplication.AppId -context $context | Out-Null
             Write-Host "Admin consent granted to client application."
         }
         catch {
@@ -391,6 +392,12 @@ $script:ScriptDir = Split-Path $script:MyInvocation.MyCommand.Path
 Import-Module Az
 Import-Module AzureAD
 
-return New-ADApplications  `
+$aadConfig = New-ADApplications  `
     -applicationName $script:Name  `
     -context (Select-Context -context $script:Context -environmentName $script:EnvironmentName) 
+
+if ($script:Output) {
+    $aadConfig | ConvertTo-Json | Out-File $script:Output
+    return
+}
+return $aadConfig
