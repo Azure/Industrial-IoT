@@ -4,6 +4,11 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
+    using System;
+    using System.Diagnostics;
+    using System.Runtime.Loader;
+    using System.Threading;
+    using System.Threading.Tasks;
     using Autofac;
     using Microsoft.Azure.IIoT.Agent.Framework;
     using Microsoft.Azure.IIoT.Api.Jobs.Clients;
@@ -14,21 +19,16 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Agent;
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime;
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.v2.Controller;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Extensions.Configuration;
     using Serilog;
-    using System;
-    using System.Diagnostics;
-    using System.Runtime.Loader;
-    using System.Threading;
-    using System.Threading.Tasks;
 
     /// <summary>
     /// Publisher module
     /// </summary>
     public class ModuleProcess : IProcessControl {
-
         /// <summary>
         /// Create process
         /// </summary>
@@ -172,7 +172,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
 
         private readonly IConfigurationRoot _config;
         private readonly TaskCompletionSource<bool> _exit;
-        private TaskCompletionSource<bool> _reset;
         private int _exitCode;
+        private TaskCompletionSource<bool> _reset;
     }
 }

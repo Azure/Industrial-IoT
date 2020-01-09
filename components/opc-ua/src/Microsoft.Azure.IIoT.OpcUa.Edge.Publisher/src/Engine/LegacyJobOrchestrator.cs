@@ -1,22 +1,26 @@
-﻿using Microsoft.Azure.IIoT.Agent.Framework;
-using Microsoft.Azure.IIoT.Agent.Framework.Models;
-using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
-using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
-using Serilog;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Threading;
-using System.Threading.Tasks;
+﻿// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
+namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Security.Cryptography;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Microsoft.Azure.IIoT.Agent.Framework;
+    using Microsoft.Azure.IIoT.Agent.Framework.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
+    using Serilog;
+
     /// <summary>
     /// Job orchestrator the represents the legacy publishednodes.json with legacy command line arguments as job.
     /// </summary>
     public class LegacyJobOrchestrator : IJobOrchestrator {
-
         /// <summary>
         /// Creates a new class of the LegacyJobOrchestrator.
         /// </summary>
@@ -45,7 +49,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         }
 
         /// <summary>
-        /// Gets the next available job - this will always return the job representation of the legacy publishednodes.json along with legacy command line arguments.
+        /// Gets the next available job - this will always return the job representation of the legacy publishednodes.json
+        /// along with legacy command line arguments.
         /// </summary>
         /// <param name="workerId"></param>
         /// <param name="request"></param>
@@ -57,7 +62,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         }
 
         /// <summary>
-        /// Receives the heartbeat from the agent. Lifetime information is not persisted in this implementation. This method is only used if the
+        /// Receives the heartbeat from the agent. Lifetime information is not persisted in this implementation. This method is
+        /// only used if the
         /// publishednodes.json file has changed. Is that the case, the worker is informed to cancel (and restart) processing.
         /// </summary>
         /// <param name="heartbeat"></param>
@@ -69,18 +75,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             if (_updated && heartbeat.Job != null) {
                 _updated = false;
 
-                heartbeatResultModel = new HeartbeatResultModel() {
-                    HeartbeatInstruction = HeartbeatInstruction.CancelProcessing,
-                    LastActiveHeartbeat = DateTime.UtcNow,
-                    UpdatedJob = _jobProcessingInstructionModel
-                };
+                heartbeatResultModel = new HeartbeatResultModel {HeartbeatInstruction = HeartbeatInstruction.CancelProcessing, LastActiveHeartbeat = DateTime.UtcNow, UpdatedJob = _jobProcessingInstructionModel};
             }
             else {
-                heartbeatResultModel = new HeartbeatResultModel() {
-                    HeartbeatInstruction = HeartbeatInstruction.Keep,
-                    LastActiveHeartbeat = DateTime.UtcNow,
-                    UpdatedJob = null
-                };
+                heartbeatResultModel = new HeartbeatResultModel {HeartbeatInstruction = HeartbeatInstruction.Keep, LastActiveHeartbeat = DateTime.UtcNow, UpdatedJob = null};
             }
 
             return Task.FromResult(heartbeatResultModel);
@@ -90,16 +88,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             if (writerGroupJobModels.Count() == 1) {
                 return writerGroupJobModels.Single();
             }
+
             // we use the first item in as template and add the DataSet writers of the subsequent jobs
-            var writerGroupTemplate  = writerGroupJobModels.First().WriterGroup.Clone();
+            var writerGroupTemplate = writerGroupJobModels.First().WriterGroup.Clone();
             writerGroupTemplate.DataSetWriters = writerGroupJobModels.SelectMany(s => s.WriterGroup.DataSetWriters).ToList();
 
-            var mergedModel = new WriterGroupJobModel() {
-                ConnectionString = null,
-                Engine = writerGroupJobModels.First().Engine,
-                MessagingMode = writerGroupJobModels.First().MessagingMode,
-                WriterGroup = writerGroupTemplate
-            };
+            var mergedModel = new WriterGroupJobModel {ConnectionString = null, Engine = writerGroupJobModels.First().Engine, MessagingMode = writerGroupJobModels.First().MessagingMode, WriterGroup = writerGroupTemplate};
 
             return mergedModel;
         }
@@ -109,15 +103,15 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         }
 
         private static string GetChecksum(string file) {
-            using (FileStream stream = File.OpenRead(file)) {
+            using (var stream = File.OpenRead(file)) {
                 var sha = new SHA256Managed();
-                byte[] checksum = sha.ComputeHash(stream);
-                return BitConverter.ToString(checksum).Replace("-", String.Empty);
+                var checksum = sha.ComputeHash(stream);
+                return BitConverter.ToString(checksum).Replace("-", string.Empty);
             }
         }
 
         private void RefreshJobFromFile() {
-            int retryCount = 3;
+            var retryCount = 3;
 
             while (true) {
                 try {
@@ -133,15 +127,15 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
 
                             var serializedJob = _jobSerializer.SerializeJobConfiguration(flattened, out var jobConfigurationType);
 
-                            _jobProcessingInstructionModel = new JobProcessingInstructionModel() {
-                                Job = new JobInfoModel() {
+                            _jobProcessingInstructionModel = new JobProcessingInstructionModel {
+                                Job = new JobInfoModel {
                                     Demands = new List<DemandModel>(),
                                     Id = "LegacyJob",
                                     JobConfiguration = serializedJob,
                                     JobConfigurationType = jobConfigurationType,
                                     LifetimeData = new JobLifetimeDataModel(),
                                     Name = "LegacyJob",
-                                    RedundancyConfig = new RedundancyConfigModel() { DesiredActiveAgents = 1, DesiredPassiveAgents = 0 }
+                                    RedundancyConfig = new RedundancyConfigModel {DesiredActiveAgents = 1, DesiredPassiveAgents = 0}
                                 },
                                 ProcessMode = ProcessMode.Active
                             };
@@ -166,13 +160,14 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             }
         }
 
-        private readonly PublishedNodesJobConverter _publishedNodesJobConverter;
-        private readonly LegacyCliModel _legacyCliModel;
-        private readonly IJobSerializer _jobSerializer;
-        private readonly ILogger _logger;
         private readonly FileSystemWatcher _fileSystemWatcher;
-        private string _lastKnownFileHash;
+        private readonly IJobSerializer _jobSerializer;
+        private readonly LegacyCliModel _legacyCliModel;
+        private readonly ILogger _logger;
+
+        private readonly PublishedNodesJobConverter _publishedNodesJobConverter;
         private JobProcessingInstructionModel _jobProcessingInstructionModel;
-        private bool _updated = false;
+        private string _lastKnownFileHash;
+        private bool _updated;
     }
 }

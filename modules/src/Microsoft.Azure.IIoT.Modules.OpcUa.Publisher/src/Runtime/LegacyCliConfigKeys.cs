@@ -1,13 +1,19 @@
-﻿using Microsoft.Azure.IIoT.Hub.Module.Client.Runtime;
-using Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime;
+﻿// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
+    using Microsoft.Azure.IIoT.Hub.Module.Client.Runtime;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime;
+
     /// <summary>
-    /// Static class that contains the default keys for the legacy command line arguments how they will be represented in the IConfiguration-instance.
+    /// Static class that contains the default keys for the legacy command line arguments how they will be represented in
+    /// the IConfiguration-instance.
     /// </summary>
     public static class LegacyCliConfigKeys {
         /// <summary>
-        /// Key for default published nodes file. 
+        /// Key for default published nodes file.
         /// </summary>
         public const string DefaultPublishedNodesFilename = "publishednodes.json";
 

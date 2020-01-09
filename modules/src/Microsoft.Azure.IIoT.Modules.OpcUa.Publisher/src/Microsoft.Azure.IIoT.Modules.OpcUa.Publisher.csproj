@@ -5,8 +5,10 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <WarningsAsErrors>NU1605</WarningsAsErrors>
-    <NoWarn>NU5125;CS0067</NoWarn>
+    <NoWarn>CS0067</NoWarn>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <NoWarn>CS0067</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="Standalone\**" />

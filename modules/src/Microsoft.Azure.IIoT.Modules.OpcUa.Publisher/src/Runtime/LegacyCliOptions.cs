@@ -1,4 +1,9 @@
-﻿using Microsoft.Azure.IIoT.Agent.Framework;
+﻿// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------
+
+using Microsoft.Azure.IIoT.Agent.Framework;
 using Microsoft.Azure.IIoT.Agent.Framework.Models;
 using Microsoft.Azure.IIoT.Diagnostics;
 using Microsoft.Azure.IIoT.Module.Framework;
@@ -14,6 +19,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine;
 
     /// <summary>
     /// Class that represents a dictionary with all command line arguments from the legacy version of the OPC Publisher
@@ -35,8 +41,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 this[item.Key] = item.Value;
             }
 
-            Config = this.ToAgentConfigModel();
-            LegacyCliModel = this.ToLegacyCliModel();
+            Config = ToAgentConfigModel();
+            LegacyCliModel = ToLegacyCliModel();
         }
 
         // TODO: Figure out which are actually supported in the new publisher implementation
@@ -167,8 +173,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 };
             options.Parse(args);
 
-            Config = this.ToAgentConfigModel();
-            LegacyCliModel = this.ToLegacyCliModel();
+            Config = ToAgentConfigModel();
+            LegacyCliModel = ToLegacyCliModel();
         }
 
         /// <summary>
@@ -180,6 +186,13 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// The AgentConfigModel instance that is based on specified legacy command line arguments.
         /// </summary>
         public AgentConfigModel Config { get; }
+
+        /// <summary>
+        /// OnConfigUpdated-Event - never called as command line arguments don't change while runtime.
+        /// </summary>
+#pragma warning disable 67
+        public event ConfigUpdatedEventHandler OnConfigUpdated;
+#pragma warning restore 67
 
         /// <summary>
         /// The batch size, hardcoded to 1.
@@ -195,11 +208,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// The model of the CLI arguments.
         /// </summary>
         public LegacyCliModel LegacyCliModel { get; }
-
-        /// <summary>
-        /// OnConfigUpdated-Event - never called as command line arguments don't change while runtime.
-        /// </summary>
-        public event ConfigUpdatedEventHandler OnConfigUpdated;
 
         /// <summary>
         /// Gets the additiona loggerConfiguration that represents the command line arguments.
