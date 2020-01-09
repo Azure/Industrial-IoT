@@ -23,13 +23,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     /// Triggers dataset writer messages on subscription changes
     /// </summary>
     public class WriterGroupMessageTrigger : IMessageTrigger {
-
         /// <inheritdoc/>
         public string Id => _writerGroup.WriterGroupId;
 
         /// <inheritdoc/>
-        public long NumberOfConnectionRetries => _subscriptions
+        public long NumberOfConnectionRetries => _subscriptions.Where(sc => sc.Subscription != null)
             .Select(sc => sc.Subscription).Sum(sc => sc.NumberOfConnectionRetries);
+
+        /// <inheritdoc/>
+        public long NumberOfInvokedMessages { get; private set; } = 0;
 
         /// <inheritdoc/>
         public event EventHandler<DataSetMessageModel> OnMessage;
@@ -219,6 +221,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         WriterGroup = _outer._writerGroup
                     };
                     lock (_lock) {
+                        if (_outer.NumberOfInvokedMessages >= kNumberOfInvokedMessagesResetThreshold) {
+                            _outer._logger.Debug("Message counter has been reset to prevent overflow. " +
+                                                 "So far, {NumberOfInvokedMessages} messages has been invoked by message source.",
+                                _outer.NumberOfInvokedMessages);
+                            _outer.NumberOfInvokedMessages = 0;
+                        }
+
+                        _outer.NumberOfInvokedMessages += message.Notifications.Count();
                         _outer.OnMessage?.Invoke(sender, message);
                     }
                 }
@@ -243,5 +253,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private readonly List<DataSetWriterSubscription> _subscriptions;
         private readonly WriterGroupModel _writerGroup;
         private readonly ISubscriptionManager _subscriptionManager;
+        private const long kNumberOfInvokedMessagesResetThreshold = long.MaxValue - 10000;
     }
 }

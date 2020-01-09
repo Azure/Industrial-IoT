@@ -13,6 +13,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using System.Threading.Tasks;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
 
     /// <summary>
     /// Iot hub client sink
@@ -25,18 +26,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <summary>
         /// Create IoT hub message sink
         /// </summary>
-        /// <param name="clientFactory"></param>
+        /// <param name="clientAccessor"></param>
         /// <param name="logger"></param>
-        public IoTHubMessageSink(IClientFactory clientFactory, ILogger logger) {
-            _client = clientFactory.CreateAsync().Result;
+        public IoTHubMessageSink(IClientAccessor clientAccessor, ILogger logger) {
+            _client = clientAccessor.Client;
             // TODO : Use higher level abstraction in module framework to send
             _logger = logger;
         }
 
         /// <inheritdoc/>
         public void Dispose() {
-            // TODO : Use higher level abstraction in module framework to send
-            _client.Dispose();
         }
 
         /// <inheritdoc/>
@@ -58,13 +57,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         SentMessagesCount);
                     SentMessagesCount = 0;
                 }
-                SentMessagesCount += messagesCount;
+
+                var sw = new Stopwatch();
+                sw.Start();
+
                 if (messagesCount == 1) {
                     await _client.SendEventAsync(messageObjects.First());
                 }
                 else {
                     await _client.SendEventBatchAsync(messageObjects);
                 }
+
+                sw.Stop();
+
+                _logger.Verbose("Sent {count} messages in {time} to IoTHub.", messagesCount, sw.Elapsed);
+
+                SentMessagesCount += messagesCount;
+            }
+            catch (Exception ex) {
+                _logger.Error(ex, "Error while sending messages to IoT Hub."); // we do not set the block into a faulted state.
             }
             finally {
                 messageObjects.ForEach(m => m.Dispose());
@@ -99,8 +110,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             return msg;
         }
 
-        private const long kMessageCounterResetThreshold = long.MaxValue - 1000;
-        private readonly IClient _client;
+        private const long kMessageCounterResetThreshold = long.MaxValue - 10000;
         private readonly ILogger _logger;
+        private readonly IClient _client;
     }
 }

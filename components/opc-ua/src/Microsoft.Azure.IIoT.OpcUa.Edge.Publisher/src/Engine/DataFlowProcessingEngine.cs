@@ -81,7 +81,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 IsRunning = true;
 
                 _encodingBlock = new TransformManyBlock<DataSetMessageModel, NetworkMessageModel>(
-                    input => _messageEncoder.EncodeAsync(input),
+                    async input => await _messageEncoder.EncodeAsync(input),
                     new ExecutionDataflowBlockOptions {
                         CancellationToken = cancellationToken
                     });
@@ -92,7 +92,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     });
 
                 _sinkBlock = new ActionBlock<NetworkMessageModel[]>(
-                    input => _messageSink.SendAsync(input),
+                    async input => await _messageSink.SendAsync(input),
                     new ExecutionDataflowBlockOptions {
                         CancellationToken = cancellationToken
                     });
@@ -123,8 +123,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             sb.AppendLine();
             sb.AppendLine("   DIAGNOSTICS INFORMATION");
             sb.AppendLine("   =======================");
+            sb.AppendLine($"   # Messages invoked by the message trigger: {_messageTrigger.NumberOfInvokedMessages}");
             sb.AppendLine($"   # Messages Sent to IoT Hub: {_messageSink.SentMessagesCount}");
             sb.AppendLine($"   # Number of connection retries since last error: {_messageTrigger.NumberOfConnectionRetries}");
+            sb.AppendLine($"   # EncodingBlock input/output count: {_encodingBlock?.InputCount}/{_encodingBlock?.OutputCount}");
+            sb.AppendLine($"   # BatchBlock output count: {_batchBlock?.OutputCount}");
+            sb.AppendLine($"   # SinkBlock input count: {_sinkBlock?.InputCount}");
             sb.AppendLine("   =======================");
             _logger.Information(sb.ToString());
             // TODO: Use structured logging!

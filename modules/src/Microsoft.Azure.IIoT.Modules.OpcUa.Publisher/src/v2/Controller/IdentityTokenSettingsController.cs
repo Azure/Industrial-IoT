@@ -4,10 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.v2.Controller {
-    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.v2.Models;
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Auth.Models;
     using Microsoft.Azure.IIoT.Module.Framework;
+    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.v2.Models;
     using System.Threading.Tasks;
 
     /// <summary>
