@@ -80,7 +80,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 return resultApiModel.ErrorInfo == null;
             }
             catch(Exception e) {
-                var errorMessage = string.Format(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
+                var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
                 Trace.TraceError(errorMessage);
             }
             return false;
@@ -101,7 +101,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 return resultApiModel.ErrorInfo == null;
             }
             catch (Exception e) {
-                var errorMessage = string.Format(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
+                var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
                 Trace.TraceError(errorMessage);
             }
             return false;
