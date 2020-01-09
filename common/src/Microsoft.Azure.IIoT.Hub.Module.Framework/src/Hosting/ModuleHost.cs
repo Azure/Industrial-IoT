@@ -25,7 +25,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
     /// Module host implementation
     /// </summary>
     public sealed class ModuleHost : IModuleHost, ITwinProperties, IEventEmitter,
-        IBlobUpload, IJsonMethodClient {
+        IBlobUpload, IJsonMethodClient, IClientAccessor {
 
         /// <inheritdoc/>
         public int MaxMethodPayloadCharacterCount => 120 * 1024;
@@ -41,6 +41,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
 
         /// <inheritdoc/>
         public string SiteId { get; private set; }
+
+        /// <inheritdoc/>
+        public IClient Client =>  _client;
 
         /// <summary>
         /// Create module host

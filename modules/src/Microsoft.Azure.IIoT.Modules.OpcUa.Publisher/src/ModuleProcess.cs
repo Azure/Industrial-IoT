@@ -4,29 +4,31 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
-    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.v2.Controller;
-    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Agent;
-    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime;
-    using Microsoft.Azure.IIoT.Agent.Framework;
-    using Microsoft.Azure.IIoT.Api.Jobs.Clients;
-    using Microsoft.Azure.IIoT.Module.Framework;
-    using Microsoft.Azure.IIoT.Module.Framework.Client;
-    using Microsoft.Azure.IIoT.Module.Framework.Services;
-    using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
-    using Microsoft.Extensions.Configuration;
-    using Autofac;
-    using Serilog;
     using System;
     using System.Diagnostics;
     using System.Runtime.Loader;
     using System.Threading;
     using System.Threading.Tasks;
+    using Autofac;
+    using Microsoft.Azure.IIoT.Agent.Framework;
+    using Microsoft.Azure.IIoT.Api.Jobs.Clients;
+    using Microsoft.Azure.IIoT.Module.Framework;
+    using Microsoft.Azure.IIoT.Module.Framework.Client;
+    using Microsoft.Azure.IIoT.Module.Framework.Hosting;
+    using Microsoft.Azure.IIoT.Module.Framework.Services;
+    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Agent;
+    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime;
+    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.v2.Controller;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
+    using Microsoft.Extensions.Configuration;
+    using Serilog;
 
     /// <summary>
     /// Publisher module
     /// </summary>
     public class ModuleProcess : IProcessControl {
-
         /// <summary>
         /// Create process
         /// </summary>
@@ -110,9 +112,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
         /// <param name="configuration"></param>
         /// <returns></returns>
         private IContainer ConfigureContainer(IConfiguration configuration) {
-
             var config = new Config(configuration);
             var builder = new ContainerBuilder();
+            var legacyCliOptions = new LegacyCliOptions(configuration);
 
             // Register configuration interfaces
             builder.RegisterInstance(config)
@@ -122,38 +124,55 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
             builder.RegisterInstance(this)
                 .AsImplementedInterfaces().SingleInstance();
 
-            // register logger
-            builder.AddDiagnostics(config);
+            builder.RegisterModule<PublisherJobsConfiguration>();
 
             // Register module and agent framework ...
             builder.RegisterModule<AgentFramework>();
             builder.RegisterModule<ModuleFramework>();
 
-            // ... plus controllers
-            builder.RegisterType<ConfigurationSettingsController>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<IdentityTokenSettingsController>()
-                .AsImplementedInterfaces().SingleInstance();
+            LoggerConfiguration loggerConfiguration = null;
+
+            if (legacyCliOptions.RunInLegacyMode) {
+                loggerConfiguration = legacyCliOptions.ToLoggerConfiguration();
+
+                // we overwrite the ModuleHost registration from PerLifetimeScope (in builder.RegisterModule<ModuleFramework>) to Singleton as
+                // we want to reuse the Client from the ModuleHost in sub-scopes.
+                builder.RegisterType<ModuleHost>().AsImplementedInterfaces().SingleInstance();
+
+                builder.RegisterInstance(legacyCliOptions).AsImplementedInterfaces();
+                builder.RegisterType<PublishedNodesJobConverter>().SingleInstance();
+                builder.RegisterType<LegacyJobOrchestrator>().AsImplementedInterfaces().SingleInstance();
+            }
+            else {
+                // Use cloud job manager
+                builder.RegisterType<JobOrchestratorClient>()
+                    .AsImplementedInterfaces().SingleInstance();
+                // ... plus controllers
+                builder.RegisterType<ConfigurationSettingsController>()
+                    .AsImplementedInterfaces().SingleInstance();
+                builder.RegisterType<IdentityTokenSettingsController>()
+                    .AsImplementedInterfaces().SingleInstance();
+            }
+
+            builder.AddDiagnostics(config, loggerConfiguration);
 
             // Register job types...
             builder.RegisterModule<PublisherJobsConfiguration>();
-
-            // Use cloud job manager
-            builder.RegisterType<JobOrchestratorClient>()
-                .AsImplementedInterfaces().SingleInstance();
 
             // Opc specific parts
             builder.RegisterType<DefaultSessionManager>()
                 .SingleInstance().AsImplementedInterfaces();
             builder.RegisterType<SubscriptionServices>()
                 .SingleInstance().AsImplementedInterfaces();
+            builder.RegisterType<VariantEncoderFactory>()
+                .AsImplementedInterfaces().SingleInstance();
 
             return builder.Build();
         }
 
         private readonly IConfigurationRoot _config;
         private readonly TaskCompletionSource<bool> _exit;
-        private TaskCompletionSource<bool> _reset;
         private int _exitCode;
+        private TaskCompletionSource<bool> _reset;
     }
 }

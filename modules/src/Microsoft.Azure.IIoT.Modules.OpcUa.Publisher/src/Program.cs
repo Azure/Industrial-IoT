@@ -25,8 +25,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                 .AddJsonFile("appsettings.json", true)
                 .AddEnvironmentVariables()
                 .AddEnvironmentVariables(EnvironmentVariableTarget.User)
-                .AddFromDotEnvFile()
-                .AddPublisherCommandLine(args)
+                .AddLegacyPublisherCommandLine(args)
                 .Build();
 
             var module = new ModuleProcess(config);

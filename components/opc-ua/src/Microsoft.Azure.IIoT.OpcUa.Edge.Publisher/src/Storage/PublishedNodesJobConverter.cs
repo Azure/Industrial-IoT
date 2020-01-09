@@ -17,6 +17,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
     using System.Threading.Tasks;
     using Serilog;
     using System.Diagnostics;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
+    using System.Diagnostics.CodeAnalysis;
 
     /// <summary>
     /// Published nodes
@@ -40,8 +42,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// Read monitored item job from reader
         /// </summary>
         /// <param name="publishedNodesFile"></param>
+        /// <param name="legacyCliModel">The legacy command line arguments</param>
         /// <returns></returns>
-        public IEnumerable<WriterGroupJobModel> Read(TextReader publishedNodesFile) {
+        public IEnumerable<WriterGroupJobModel> Read(TextReader publishedNodesFile, LegacyCliModel legacyCliModel) {
             var jsonSerializer = JsonSerializer.CreateDefault();
             var sw = Stopwatch.StartNew();
             using (var reader = new JsonTextReader(publishedNodesFile)) {
@@ -51,7 +54,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                     "Read {count} items from published nodes file in {elapsed}",
                     items.Count, sw.Elapsed);
                 sw.Restart();
-                var jobs = ToWriterGroupJobs(items);
+                var jobs = ToWriterGroupJobs(items, legacyCliModel);
                 _logger.Information("Converted items to jobs in {elapsed}", sw.Elapsed);
                 return jobs;
             }
@@ -61,9 +64,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// Read monitored item job from reader
         /// </summary>
         /// <param name="items"></param>
+        /// <param name="legacyCliModel">The legacy command line arguments</param>
         /// <returns></returns>
         private IEnumerable<WriterGroupJobModel> ToWriterGroupJobs(
-            IEnumerable<PublishedNodesEntryModel> items) {
+            IEnumerable<PublishedNodesEntryModel> items, LegacyCliModel legacyCliModel) {
             if (items == null) {
                 return Enumerable.Empty<WriterGroupJobModel>();
             }
@@ -95,15 +99,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                     .Select(opcNodes => new PublishedDataSetSourceModel {
                         Connection = group.Key.Clone(),
                         SubscriptionSettings = new PublishedDataSetSettingsModel {
-                            PublishingInterval = GetPublishingIntervalFromNodes(opcNodes),
+                            PublishingInterval = GetPublishingIntervalFromNodes(opcNodes, legacyCliModel),
                         },
                         PublishedVariables = new PublishedDataItemsModel {
                             PublishedData = opcNodes
                                 .Select(node => new PublishedDataSetVariableModel {
                                     Id = node.Id,
                                     PublishedVariableNodeId = node.Id,
-                                    SamplingInterval = node.OpcSamplingInterval == null ? (TimeSpan?)null :
-                                        TimeSpan.FromMilliseconds(node.OpcSamplingInterval.Value)
+                                    SamplingInterval = node.OpcSamplingIntervalTimespan ?? legacyCliModel.DefaultSamplingInterval ?? (TimeSpan?)null
 
                                     // TODO: Link all to server time sampled at heartbeat interval
                                     // HeartbeatInterval = opcNode.HeartbeatInterval == null ? (TimeSpan?)null :
@@ -125,7 +128,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                             WriterGroupId = null,
                             DataSetWriters = new List<DataSetWriterModel> {
                                 new DataSetWriterModel {
-                                    DataSetWriterId = null,
+                                    DataSetWriterId = Guid.NewGuid().ToString(),
                                     DataSet = new PublishedDataSetModel {
                                         DataSetSource = dataSetSource.Clone()
                                     }
@@ -160,10 +163,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// Extract publishing interval from nodes
         /// </summary>
         /// <param name="opcNodes"></param>
+        /// <param name="legacyCliModel">The legacy command line arguments</param>
         /// <returns></returns>
-        private static TimeSpan? GetPublishingIntervalFromNodes(IEnumerable<OpcNodeModel> opcNodes) {
-            var interval = opcNodes.FirstOrDefault(x => x.OpcPublishingInterval != null)?.OpcPublishingInterval;
-            return interval == null ? (TimeSpan?)null : TimeSpan.FromMilliseconds(interval.Value);
+        private static TimeSpan? GetPublishingIntervalFromNodes(IEnumerable<OpcNodeModel> opcNodes, LegacyCliModel legacyCliModel) {
+            var interval = opcNodes.FirstOrDefault(x => x.OpcPublishingInterval != null)?.OpcPublishingIntervalTimespan;
+            return interval ?? legacyCliModel.DefaultPublishingInterval;
         }
 
         /// <summary>
@@ -208,9 +212,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
             [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
             public int? OpcSamplingInterval { get; set; }
 
+            /// <summary>
+            /// OpcSamplingInterval as TimeSpan.
+            /// </summary>
+            [JsonIgnore]
+            public TimeSpan? OpcSamplingIntervalTimespan {
+                get => OpcSamplingInterval.HasValue ? TimeSpan.FromMilliseconds(OpcSamplingInterval.Value) : (TimeSpan?)null;
+                set => OpcSamplingInterval = value != null ? (int)value.Value.TotalMilliseconds : (int?)null;
+            }
+
             /// <summary> Publishing interval </summary>
             [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
             public int? OpcPublishingInterval { get; set; }
+
+            /// <summary>
+            /// OpcPublishingInterval as TimeSpan.
+            /// </summary>
+            [JsonIgnore]
+            public TimeSpan? OpcPublishingIntervalTimespan {
+                get => OpcPublishingInterval.HasValue ? TimeSpan.FromMilliseconds(OpcPublishingInterval.Value) : (TimeSpan?)null;
+                set => OpcPublishingInterval = value != null ? (int)value.Value.TotalMilliseconds : (int?)null;
+            }
 
             /// <summary> Display name </summary>
             [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
@@ -219,6 +241,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
             /// <summary> Heartbeat </summary>
             [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
             public int? HeartbeatInterval { get; set; }
+
+            /// <summary>
+            /// Heartbeat interval as TimeSpan.
+            /// </summary>
+            [JsonIgnore]
+            public TimeSpan? HeartbeatIntervalTimespan {
+                get => HeartbeatInterval.HasValue ? TimeSpan.FromSeconds(HeartbeatInterval.Value) : (TimeSpan?)null;
+                set => HeartbeatInterval = value != null ? (int)value.Value.TotalSeconds : (int?)null;
+            }
 
             /// <summary> Skip first value </summary>
             [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
