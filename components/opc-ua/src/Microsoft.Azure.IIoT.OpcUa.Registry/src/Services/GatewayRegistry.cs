@@ -53,18 +53,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
             foreach (var module in modules) {
                 var entity = module.ToEntityRegistration(onlyServerState);
-                switch (entity?.DeviceType ?? "") {
-                    case IdentityType.Supervisor:
-                        info.Supervisor = module
-                            .ToSupervisorRegistration(onlyServerState).ToServiceModel();
+                switch (entity) {
+                    case SupervisorRegistration sr:
+                        info.Supervisor = sr.ToServiceModel();
                         break;
-                    case IdentityType.Publisher:
-                        info.Publisher = module
-                            .ToPublisherRegistration(onlyServerState).ToServiceModel();
+                    case PublisherRegistration pr:
+                        info.Publisher = pr.ToServiceModel();
                         break;
-                    case IdentityType.Discoverer:
-                        info.Discoverer = module
-                            .ToDiscovererRegistration(onlyServerState).ToServiceModel();
+                    case DiscovererRegistration dr:
+                        info.Discoverer = dr.ToServiceModel();
                         break;
                     default:
                         // might add module to dictionary in the future

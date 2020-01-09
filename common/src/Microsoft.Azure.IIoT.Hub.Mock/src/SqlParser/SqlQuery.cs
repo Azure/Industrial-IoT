@@ -250,6 +250,10 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser {
             switch (identifier.ToLowerInvariant()) {
                 case "tags":
                     return (t, s) => SelectTargetToken(t.Tags, s);
+                case "deviceid":
+                    return (t, s) => JToken.FromObject(t.Id);
+                case "moduleid":
+                    return (t, s) => JToken.FromObject(t.ModuleId);
                 case "reported":
                     return (t, s) => SelectTargetToken(t.Properties.Reported, s);
                 case "desired":

@@ -330,7 +330,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 }
                 catch (Exception ex) {
                     unchanged++;
-                    _logger.Error(ex, "Exception during discovery addition.");
+                    _logger.Error(ex, "Exception adding application from discovery.");
                 }
             }
 

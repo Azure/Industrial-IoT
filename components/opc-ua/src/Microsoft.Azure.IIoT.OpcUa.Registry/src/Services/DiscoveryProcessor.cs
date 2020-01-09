@@ -69,7 +69,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
             // Process discovery events
             await _applications.ProcessDiscoveryEventsAsync(siteId, discovererId,
-                gateway.Supervisor.Id, result, events);
+                gateway.Supervisor?.Id, result, events);
         }
 
         private readonly IGatewayRegistry _gateways;

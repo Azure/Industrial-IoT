@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Models;
+    using System;
     using Newtonsoft.Json.Linq;
 
     /// <summary>
@@ -31,21 +32,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     type = twin.Tags.GetValueOrDefault<string>(TwinProperty.Type, null);
                 }
             }
-            switch (type?.ToLowerInvariant() ?? "") {
-                case IdentityType.Gateway:
-                    return twin.ToGatewayRegistration();
-                case IdentityType.Application:
-                    return twin.ToApplicationRegistration();
-                case IdentityType.Endpoint:
-                    return twin.ToEndpointRegistration(onlyServerState);
-                case IdentityType.Supervisor:
-                    return twin.ToSupervisorRegistration(onlyServerState);
-                case IdentityType.Publisher:
-                    return twin.ToPublisherRegistration(onlyServerState);
-                case IdentityType.Discoverer:
-                    return twin.ToDiscovererRegistration(onlyServerState);
-                // ...
+            if (IdentityType.Gateway.EqualsIgnoreCase(type)) {
+                return twin.ToGatewayRegistration();
             }
+            if (IdentityType.Application.EqualsIgnoreCase(type)) {
+                return twin.ToApplicationRegistration();
+            }
+            if (IdentityType.Endpoint.EqualsIgnoreCase(type)) {
+                return twin.ToEndpointRegistration(onlyServerState);
+            }
+            if (IdentityType.Supervisor.EqualsIgnoreCase(type)) {
+                return twin.ToSupervisorRegistration(onlyServerState);
+            }
+            if (IdentityType.Publisher.EqualsIgnoreCase(type)) {
+                return twin.ToPublisherRegistration(onlyServerState);
+            }
+            if (IdentityType.Discoverer.EqualsIgnoreCase(type)) {
+                return twin.ToDiscovererRegistration(onlyServerState);
+            }
+            // ...
             return null;
         }
     }

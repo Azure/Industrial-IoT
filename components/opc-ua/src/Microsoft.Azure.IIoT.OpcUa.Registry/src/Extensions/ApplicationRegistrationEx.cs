@@ -219,8 +219,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             return twin;
         }
 
-
-
         /// <summary>
         /// Patch registration
         /// </summary>

@@ -10,7 +10,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     using System.Linq;
     using Xunit;
 
-    public class SupervisorRegistrationTests {
+    public class DiscovererRegistrationTests {
 
         [Fact]
         public void TestEqualIsEqual() {
@@ -46,7 +46,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
 
             var r1 = CreateRegistration();
             var m = r1.ToServiceModel();
-            var r2 = m.ToSupervisorRegistration();
+            var r2 = m.ToDiscovererRegistration();
 
             Assert.Equal(r1, r2);
             Assert.Equal(r1.GetHashCode(), r2.GetHashCode());
@@ -60,7 +60,33 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
 
             var r1 = CreateRegistration();
             var m = r1.ToServiceModel();
-            var r2 = m.ToSupervisorRegistration(true);
+            var r2 = m.ToDiscovererRegistration(true);
+
+            Assert.NotEqual(r1, r2);
+            Assert.NotEqual(r1.GetHashCode(), r2.GetHashCode());
+            Assert.True(r1 != r2);
+            Assert.False(r1 == r2);
+        }
+
+        [Fact]
+        public void TestEqualIsNotEqualWithServiceModelConversion() {
+            var r1 = CreateRegistration();
+            var m = r1.ToServiceModel();
+            m.DiscoveryConfig.AddressRangesToScan = "";
+            var r2 = m.ToDiscovererRegistration(true);
+
+            Assert.NotEqual(r1, r2);
+            Assert.NotEqual(r1.GetHashCode(), r2.GetHashCode());
+            Assert.True(r1 != r2);
+            Assert.False(r1 == r2);
+        }
+
+        [Fact]
+        public void TestEqualIsNotEqualWithDeviceModel() {
+            var r1 = CreateRegistration();
+            var m = r1.ToDeviceTwin();
+            m.Properties.Desired["AddressRangesToScan"] = null;
+            var r2 = m.ToEntityRegistration();
 
             Assert.NotEqual(r1, r2);
             Assert.NotEqual(r1.GetHashCode(), r2.GetHashCode());
@@ -85,9 +111,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             var fix = new Fixture();
 
             var r1 = CreateRegistration();
-            var r2 = r1.ToServiceModel().ToSupervisorRegistration(true);
+            var r2 = r1.ToServiceModel().ToDiscovererRegistration(true);
             var m1 = r1.Patch(r2);
-            var r3 = r2.ToServiceModel().ToSupervisorRegistration(false);
+            var r3 = r2.ToServiceModel().ToDiscovererRegistration(false);
             var m2 = r2.Patch(r3);
 
             Assert.True((bool)m1.Tags[nameof(EntityRegistration.IsDisabled)]);
@@ -100,14 +126,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// Create registration
         /// </summary>
         /// <returns></returns>
-        private static SupervisorRegistration CreateRegistration() {
+        private static DiscovererRegistration CreateRegistration() {
             var fix = new Fixture();
             var cert = fix.CreateMany<byte>(1000).ToArray();
-            var r = fix.Build<SupervisorRegistration>()
-                .FromFactory(() => new SupervisorRegistration(
+            var r = fix.Build<DiscovererRegistration>()
+                .FromFactory(() => new DiscovererRegistration(
                     fix.Create<string>(), fix.Create<string>()))
-                .With(x => x.Certificate, cert.EncodeAsDictionary())
-                .With(x => x.Thumbprint, cert.ToSha1Hash())
+                .With(x => x.Locales, fix.CreateMany<string>()
+                    .ToList().EncodeAsDictionary())
+                .With(x => x.SecurityPoliciesFilter, fix.CreateMany<string>()
+                    .ToList().EncodeAsDictionary())
+                .With(x => x.TrustListsFilter, fix.CreateMany<string>()
+                    .ToList().EncodeAsDictionary())
+                .With(x => x.DiscoveryUrls, fix.CreateMany<string>()
+                    .ToList().EncodeAsDictionary())
+                .Without(x => x.Certificate)
+                .Without(x => x.Thumbprint)
                 .Without(x => x.IsDisabled)
                 .Without(x => x.NotSeenSince)
                 .Create();

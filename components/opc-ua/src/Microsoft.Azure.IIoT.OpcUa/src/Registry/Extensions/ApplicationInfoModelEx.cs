@@ -32,25 +32,32 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <param name="model"></param>
         /// <returns></returns>
         public static string CreateApplicationId(ApplicationInfoModel model) {
-            return CreateApplicationId(model.SiteId ?? model.DiscovererId, model.ApplicationUri,
+            if (model == null) {
+                throw new ArgumentNullException(nameof(model));
+            }
+            var siteOrGatewayId = model.SiteId;
+            if (siteOrGatewayId == null && model.DiscovererId != null) {
+                siteOrGatewayId = DiscovererModelEx.ParseDeviceId(model.DiscovererId, out _);
+            }
+            return CreateApplicationId(siteOrGatewayId, model.ApplicationUri,
                 model.ApplicationType);
         }
 
         /// <summary>
         /// Create unique application id
         /// </summary>
-        /// <param name="siteOrSupervisorId"></param>
+        /// <param name="siteOrGatewayId"></param>
         /// <param name="applicationUri"></param>
         /// <param name="applicationType"></param>
         /// <returns></returns>
-        public static string CreateApplicationId(string siteOrSupervisorId,
+        public static string CreateApplicationId(string siteOrGatewayId,
             string applicationUri, ApplicationType? applicationType) {
             if (string.IsNullOrEmpty(applicationUri)) {
                 return null;
             }
             applicationUri = applicationUri.ToLowerInvariant();
             var type = applicationType ?? ApplicationType.Server;
-            var id = $"{siteOrSupervisorId ?? ""}-{type}-{applicationUri}";
+            var id = $"{siteOrGatewayId ?? ""}-{type}-{applicationUri}";
             var prefix = applicationType == ApplicationType.Client ? "uac" : "uas";
             return prefix + id.ToSha1Hash();
         }
@@ -147,6 +154,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 DiscoveryUrls = model.DiscoveryUrls,
                 GatewayServerUri = model.GatewayServerUri,
                 LocalizedNames = model.LocalizedNames,
+                Locale = model.Locale,
                 ProductUri = model.ProductUri,
                 SiteId = model.SiteId,
                 Context = context
@@ -172,6 +180,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 DiscoveryProfileUri = request.DiscoveryProfileUri,
                 ApplicationType = request.ApplicationType ?? ApplicationType.Server,
                 ApplicationUri = request.ApplicationUri,
+                Locale = request.Locale,
                 Capabilities = request.Capabilities,
                 GatewayServerUri = request.GatewayServerUri,
                 SiteId = request.SiteId,
@@ -202,6 +211,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 GatewayServerUri = model.GatewayServerUri,
                 LocalizedNames = model.LocalizedNames,
                 ProductUri = model.ProductUri,
+                Locale = model.Locale,
                 Context = context
             };
         }
@@ -230,6 +240,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             application.GatewayServerUri = model.GatewayServerUri;
             application.Created = model.Created;
             application.Updated = model.Updated;
+            application.Locale = model.Locale;
             return application;
         }
 
@@ -267,6 +278,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             if (request.DiscoveryUrls != null) {
                 application.DiscoveryUrls = request.DiscoveryUrls.Count == 0 ?
                     null : request.DiscoveryUrls;
+            }
+            if (request.Locale != null) {
+                application.Locale = string.IsNullOrEmpty(request.Locale) ?
+                    null : request.Locale;
             }
             if (request.DiscoveryProfileUri != null) {
                 application.DiscoveryProfileUri = string.IsNullOrEmpty(request.DiscoveryProfileUri) ?
@@ -342,6 +357,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     x.DiscoveryProfileUri == y.DiscoveryProfileUri &&
                     x.GatewayServerUri == y.GatewayServerUri &&
                     x.ProductUri == y.ProductUri &&
+                    x.Locale == y.Locale &&
                     x.HostAddresses.SetEqualsSafe(y.HostAddresses) &&
                     x.ApplicationName == y.ApplicationName &&
                     x.LocalizedNames.DictionaryEqualsSafe(y.LocalizedNames) &&
@@ -358,6 +374,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                    EqualityComparer<string>.Default.GetHashCode(obj.ApplicationUri?.ToLowerInvariant());
                 hashCode = (hashCode * -1521134295) +
                     EqualityComparer<string>.Default.GetHashCode(obj.ProductUri);
+                hashCode = (hashCode * -1521134295) +
+                    EqualityComparer<string>.Default.GetHashCode(obj.Locale);
                 hashCode = (hashCode * -1521134295) +
                     EqualityComparer<string>.Default.GetHashCode(obj.DiscoveryProfileUri);
                 hashCode = (hashCode * -1521134295) +

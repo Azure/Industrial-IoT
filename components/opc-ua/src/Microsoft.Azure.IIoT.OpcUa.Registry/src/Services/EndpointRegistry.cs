@@ -83,7 +83,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             CancellationToken ct) {
 
             var query = "SELECT * FROM devices WHERE " +
-                $"tags.{nameof(EndpointRegistration.DeviceType)} = '{IdentityType.Endpoint}' ";
+                $"tags.{nameof(EntityRegistration.DeviceType)} = '{IdentityType.Endpoint}' ";
 
             if (!(model?.IncludeNotSeenSince ?? false)) {
                 // Scope to non deleted twins
@@ -455,7 +455,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 }
                 catch (Exception ex) {
                     unchanged++;
-                    _logger.Error(ex, "Exception during discovery addition.");
+                    _logger.Error(ex, "Exception adding endpoint from discovery.");
                 }
             }
 

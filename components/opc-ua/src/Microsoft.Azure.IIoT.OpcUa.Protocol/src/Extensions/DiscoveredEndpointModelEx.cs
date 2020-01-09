@@ -19,19 +19,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// <param name="result"></param>
         /// <param name="hostAddress"></param>
         /// <param name="siteId"></param>
-        /// <param name="discovererId"></param>
+        /// <param name="gatewayId"></param>
+        /// <param name="moduleId"></param>
         /// <returns></returns>
         public static ApplicationRegistrationModel ToServiceModel(this DiscoveredEndpointModel result,
-            string hostAddress, string siteId, string discovererId) {
+            string hostAddress, string siteId, string gatewayId, string moduleId) {
             var type = result.Description.Server.ApplicationType.ToServiceType() ??
                 ApplicationType.Server;
+            var discovererId = DiscovererModelEx.CreateDiscovererId(gatewayId, moduleId);
             return new ApplicationRegistrationModel {
                 Application = new ApplicationInfoModel {
                     SiteId = siteId,
                     DiscovererId = discovererId,
                     ApplicationType = type,
-                    ApplicationId = ApplicationInfoModelEx.CreateApplicationId(
-                        siteId ?? discovererId, result.Description.Server.ApplicationUri, type),
+                    ApplicationId = ApplicationInfoModelEx.CreateApplicationId(siteId ?? gatewayId,
+                        result.Description.Server.ApplicationUri, type), // TODO: Assign at onboarder and leave null
                     ProductUri = result.Description.Server.ProductUri,
                     ApplicationUri = result.Description.Server.ApplicationUri,
                     DiscoveryUrls = new HashSet<string>(result.Description.Server.DiscoveryUrls),
@@ -51,6 +53,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                     new EndpointRegistrationModel {
                         SiteId = siteId,
                         DiscovererId = discovererId,
+                        SupervisorId = null,
+                        Id = null,
                         SecurityLevel = result.Description.SecurityLevel,
                         AuthenticationMethods = result.Description.UserIdentityTokens.ToServiceModel(),
                         EndpointUrl = result.Description.EndpointUrl, // Reported

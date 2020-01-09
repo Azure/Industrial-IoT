@@ -62,7 +62,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public virtual Dictionary<string, string> Certificate { get; set; }
 
         /// <summary>
-        /// Type
+        /// Reported Type
         /// </summary>
         public virtual string Type { get; set; }
 
