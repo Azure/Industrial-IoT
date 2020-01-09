@@ -114,8 +114,13 @@ namespace Microsoft.Azure.IIoT.App.Services {
             catch (Exception e) {
                 // skip this node
                 Trace.TraceError("Can not browse node '{0}'", id);
-                var errorMessage = string.Format(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
+                var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
                 Trace.TraceError(errorMessage);
+                pageResult.Results.Add(new ListNode {
+                    NodeName = e.Message,
+                    SupervisorId = supervisorId,
+                    ParentName = "Root"
+                });
             }
 
             pageResult.PageSize = 10;
@@ -148,7 +153,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
             }
             catch (Exception e) {
                 Trace.TraceError("Can not read value of node '{0}'", nodeId);
-                var errorMessage = string.Format(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
+                var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
                 Trace.TraceError(errorMessage);
                 return errorMessage;
             }
@@ -185,7 +190,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
             }
             catch (Exception e) {
                 Trace.TraceError("Can not write value of node '{0}'", nodeId);
-                var errorMessage = string.Format(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
+                var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
                 Trace.TraceError(errorMessage);
                 return errorMessage;
             }
@@ -220,7 +225,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
             }
             catch (Exception e) {
                 Trace.TraceError("Can not get method parameter from node '{0}'", nodeId);
-                var errorMessage = string.Format(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
+                var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
                 Trace.TraceError(errorMessage);
                 return errorMessage;
             }
@@ -269,7 +274,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
             }
             catch (Exception e) {
                 Trace.TraceError("Can not get method parameter from node '{0}'", nodeId);
-                var errorMessage = string.Format(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
+                var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
                 Trace.TraceError(errorMessage);
                 return errorMessage;
             }

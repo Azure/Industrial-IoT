@@ -50,7 +50,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
             }
             catch (Exception e) {
                 Trace.TraceWarning("Can not get endpoint list");
-                var errorMessage = string.Format(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
+                var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
                 Trace.TraceWarning(errorMessage);
             }
 
@@ -89,8 +89,11 @@ namespace Microsoft.Azure.IIoT.App.Services {
             }
             catch (Exception e) {
                 Trace.TraceWarning("Can not get supervisors list");
-                var errorMessage = string.Format(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
+                var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
                 Trace.TraceWarning(errorMessage);
+                pageResult.Results.Add(new SupervisorInfo {
+                    SupervisorModel = new SupervisorApiModel { Id = e.Message }
+                });
             }
 
             pageResult.PageSize = 10;
@@ -117,8 +120,11 @@ namespace Microsoft.Azure.IIoT.App.Services {
             }
             catch (Exception e) {
                 Trace.TraceWarning("Can not get applications list");
-                var errorMessage = string.Format(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
+                var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
                 Trace.TraceWarning(errorMessage);
+                pageResult.Results.Add(new ApplicationInfoApiModel {
+                    ApplicationId = e.Message
+                });
             }
 
             pageResult.PageSize = 10;
@@ -175,7 +181,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 
             }
             catch (Exception exception) {
-                var errorMessageTrace = string.Format(exception.Message, exception.InnerException?.Message ?? "--", exception?.StackTrace ?? "--");
+                var errorMessageTrace = string.Concat(exception.Message, exception.InnerException?.Message ?? "--", exception?.StackTrace ?? "--");
                 Trace.TraceError(errorMessageTrace);
             }
         }
