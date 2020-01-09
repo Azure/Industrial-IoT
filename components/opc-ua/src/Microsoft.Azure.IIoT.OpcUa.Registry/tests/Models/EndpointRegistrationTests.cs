@@ -80,7 +80,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             var r1 = CreateRegistration();
             var m = r1.ToDeviceTwin();
             m.Properties.Desired["SecurityPolicy"] = "babab";
-            var r2 = m.ToRegistration();
+            var r2 = m.ToEntityRegistration();
 
             Assert.NotEqual(r1, r2);
             Assert.NotEqual(r1.GetHashCode(), r2.GetHashCode());
@@ -93,7 +93,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public void TestEqualIsEqualWithDeviceModel() {
             var r1 = CreateRegistration();
             var m = r1.ToDeviceTwin();
-            var r2 = m.ToRegistration();
+            var r2 = m.ToEntityRegistration();
 
             Assert.Equal(r1, r2);
             Assert.Equal(r1.GetHashCode(), r2.GetHashCode());
@@ -111,10 +111,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             var r3 = r2.ToServiceModel().ToEndpointRegistration(false);
             var m2 = r2.Patch(r3);
 
-            Assert.True((bool?)m1.Tags[nameof(BaseRegistration.IsDisabled)] ?? false);
-            Assert.NotNull((DateTime?)m1.Tags[nameof(BaseRegistration.NotSeenSince)]);
-            Assert.Null((bool?)m2.Tags[nameof(BaseRegistration.IsDisabled)]);
-            Assert.Null((DateTime?)m2.Tags[nameof(BaseRegistration.NotSeenSince)]);
+            Assert.True((bool?)m1.Tags[nameof(EntityRegistration.IsDisabled)] ?? false);
+            Assert.NotNull((DateTime?)m1.Tags[nameof(EntityRegistration.NotSeenSince)]);
+            Assert.Null((bool?)m2.Tags[nameof(EntityRegistration.IsDisabled)]);
+            Assert.Null((DateTime?)m2.Tags[nameof(EntityRegistration.NotSeenSince)]);
         }
 
         /// <summary>

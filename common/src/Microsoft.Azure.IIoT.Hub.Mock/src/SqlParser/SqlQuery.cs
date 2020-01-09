@@ -53,11 +53,6 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser {
                     _hub.Devices.Select(d => d.Twin), context)
                         .Select(JToken.FromObject), context);
             }
-            if (context.collection()?.DEVICES_JOBS() != null) {
-                return Project(Select(
-                    _hub.Jobs, context)
-                        .Select(JToken.FromObject), context);
-            }
             throw new FormatException("Bad format");
         }
 

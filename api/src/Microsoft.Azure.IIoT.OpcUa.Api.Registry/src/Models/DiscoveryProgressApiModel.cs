@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
     using Newtonsoft.Json.Converters;
     using Newtonsoft.Json.Linq;
     using System;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Discovery progress event type
@@ -131,7 +132,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "requestDetails",
             NullValueHandling = NullValueHandling.Ignore)]
-        public JToken RequestDetails { get; set; }
+        public Dictionary<string, string> RequestDetails { get; set; }
 
         /// <summary>
         /// Timestamp of the message
@@ -172,6 +173,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "result",
             NullValueHandling = NullValueHandling.Ignore)]
-        public JToken Result { get; set; }
+        public string Result { get; set; }
+
+        /// <summary>
+        /// Discovery result details
+        /// </summary>
+        [JsonProperty(PropertyName = "resultDetails",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public Dictionary<string, string> ResultDetails { get; set; }
     }
 }

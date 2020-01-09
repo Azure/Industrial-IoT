@@ -57,14 +57,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
 
             if (update?.IsDisabled != null &&
                 update.IsDisabled != existing?.IsDisabled) {
-                twin.Tags.Add(nameof(BaseRegistration.IsDisabled), (update?.IsDisabled ?? false) ?
+                twin.Tags.Add(nameof(EntityRegistration.IsDisabled), (update?.IsDisabled ?? false) ?
                     true : (bool?)null);
-                twin.Tags.Add(nameof(BaseRegistration.NotSeenSince), (update?.IsDisabled ?? false) ?
+                twin.Tags.Add(nameof(EntityRegistration.NotSeenSince), (update?.IsDisabled ?? false) ?
                     DateTime.UtcNow : (DateTime?)null);
             }
 
             if (update?.SiteOrGatewayId != existing?.SiteOrGatewayId) {
-                twin.Tags.Add(nameof(BaseRegistration.SiteOrGatewayId), update?.SiteOrGatewayId);
+                twin.Tags.Add(nameof(EntityRegistration.SiteOrGatewayId), update?.SiteOrGatewayId);
             }
 
             if (update?.DiscovererId != existing?.DiscovererId) {
@@ -72,19 +72,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             }
 
             if (update?.SiteId != existing?.SiteId) {
-                twin.Tags.Add(nameof(BaseRegistration.SiteId), update?.SiteId);
+                twin.Tags.Add(nameof(EntityRegistration.SiteId), update?.SiteId);
             }
 
             var certUpdate = update?.Certificate.DecodeAsByteArray().SequenceEqualsSafe(
                 existing?.Certificate.DecodeAsByteArray());
             if (!(certUpdate ?? true)) {
-                twin.Tags.Add(nameof(BaseRegistration.Certificate), update?.Certificate == null ?
+                twin.Tags.Add(nameof(EntityRegistration.Certificate), update?.Certificate == null ?
                     null : JToken.FromObject(update.Certificate));
-                twin.Tags.Add(nameof(BaseRegistration.Thumbprint),
+                twin.Tags.Add(nameof(EntityRegistration.Thumbprint),
                     update?.Certificate?.DecodeAsByteArray()?.ToSha1Hash());
             }
 
-            twin.Tags.Add(nameof(BaseRegistration.DeviceType), update?.DeviceType);
+            twin.Tags.Add(nameof(EntityRegistration.DeviceType), update?.DeviceType);
 
             if (update?.ApplicationType != null &&
                 update?.ApplicationType != existing?.ApplicationType) {

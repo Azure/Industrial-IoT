@@ -12,7 +12,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     /// <summary>
     /// Device twin registration
     /// </summary>
-    public abstract class DeviceRegistration {
+    public abstract class EntityRegistration {
 
         /// <summary>
         /// Device id for registration
@@ -73,7 +73,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
 
         /// <inheritdoc/>
         public override bool Equals(object obj) {
-            var registration = obj as DeviceRegistration;
+            var registration = obj as EntityRegistration;
             return registration != null &&
                 DeviceId == registration.DeviceId &&
                 DeviceType == registration.DeviceType &&
@@ -85,11 +85,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         }
 
         /// <inheritdoc/>
-        public static bool operator ==(DeviceRegistration r1, DeviceRegistration r2) =>
-            EqualityComparer<DeviceRegistration>.Default.Equals(r1, r2);
+        public static bool operator ==(EntityRegistration r1, EntityRegistration r2) =>
+            EqualityComparer<EntityRegistration>.Default.Equals(r1, r2);
 
         /// <inheritdoc/>
-        public static bool operator !=(DeviceRegistration r1, DeviceRegistration r2) =>
+        public static bool operator !=(EntityRegistration r1, EntityRegistration r2) =>
             !(r1 == r2);
 
         /// <inheritdoc/>

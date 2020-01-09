@@ -9,9 +9,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     using Newtonsoft.Json.Linq;
 
     /// <summary>
-    /// Base device registration
+    /// Entity registration extensions
     /// </summary>
-    public static class DeviceRegistrationEx {
+    public static class EntityRegistrationEx {
 
         /// <summary>
         /// Convert twin to registration information.
@@ -19,12 +19,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <param name="twin"></param>
         /// <param name="onlyServerState"></param>
         /// <returns></returns>
-        public static DeviceRegistration ToRegistration(this DeviceTwinModel twin,
+        public static EntityRegistration ToEntityRegistration(this DeviceTwinModel twin,
             bool onlyServerState = false) {
             if (twin == null) {
                 return null;
             }
-            var type = twin.Tags.GetValueOrDefault<string>(nameof(BaseRegistration.DeviceType), null);
+            var type = twin.Tags.GetValueOrDefault<string>(nameof(EntityRegistration.DeviceType), null);
             if (string.IsNullOrEmpty(type) && twin.Properties.Reported != null) {
                 type = twin.Properties.Reported.GetValueOrDefault<string>(TwinProperty.Type, null);
                 if (string.IsNullOrEmpty(type)) {
@@ -34,14 +34,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             switch (type?.ToLowerInvariant() ?? "") {
                 case IdentityType.Gateway:
                     return twin.ToGatewayRegistration();
-                case IdentityType.Endpoint:
-                    return twin.ToEndpointRegistration(onlyServerState);
                 case IdentityType.Application:
                     return twin.ToApplicationRegistration();
+                case IdentityType.Endpoint:
+                    return twin.ToEndpointRegistration(onlyServerState);
                 case IdentityType.Supervisor:
                     return twin.ToSupervisorRegistration(onlyServerState);
                 case IdentityType.Publisher:
                     return twin.ToPublisherRegistration(onlyServerState);
+                case IdentityType.Discoverer:
+                    return twin.ToDiscovererRegistration(onlyServerState);
+                // ...
             }
             return null;
         }

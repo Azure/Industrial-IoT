@@ -32,7 +32,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     break;
                 case DiscoveryProgressType.Error:
                     _logger.Error("{request}: Error {error} during discovery run.",
-                        ev.Request.Id, ev.Result.ToString());
+                        ev.Request.Id, ev.Result);
                     break;
                 case DiscoveryProgressType.Finished:
                     _logger.Information("{request}: Discovery operation completed.",
@@ -45,7 +45,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     break;
                 case DiscoveryProgressType.NetworkScanResult:
                     _logger.Information("{request}: Found address {address} ({scanned} scanned)...",
-                        ev.Request.Id, ev.Result.ToString(), ev.Progress);
+                        ev.Request.Id, ev.Result, ev.Progress);
                     break;
                 case DiscoveryProgressType.NetworkScanProgress:
                     _logger.Information("{request}: {scanned} addresses scanned - {discovered} " +
@@ -64,7 +64,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     break;
                 case DiscoveryProgressType.PortScanResult:
                     _logger.Information("{request}: Found server {endpoint} ({scanned} scanned)...",
-                        ev.Request.Id, ev.Result.ToString(), ev.Progress);
+                        ev.Request.Id, ev.Result, ev.Progress);
                     break;
                 case DiscoveryProgressType.PortScanProgress:
                     _logger.Information("{request}: {scanned} ports scanned - {discovered} discovered" +
@@ -84,17 +84,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 case DiscoveryProgressType.EndpointsDiscoveryStarted:
                     _logger.Information(
                         "{request}: Trying to find endpoints on {details}...",
-                        ev.Request.Id, ev.RequestDetails);
+                        ev.Request.Id, ev.RequestDetails["url"]);
                     break;
                 case DiscoveryProgressType.EndpointsDiscoveryFinished:
                     if (!ev.Discovered.HasValue || ev.Discovered == 0) {
                         _logger.Information(
                             "{request}: No endpoints ev.Discovered on {details}.",
-                            ev.Request.Id, ev.RequestDetails);
+                            ev.Request.Id, ev.RequestDetails["url"]);
                     }
                     _logger.Information(
                         "{request}: Found {count} endpoints on {details}.",
-                        ev.Request.Id, ev.Discovered, ev.RequestDetails);
+                        ev.Request.Id, ev.Discovered, ev.RequestDetails["url"]);
                     break;
                 case DiscoveryProgressType.ServerDiscoveryFinished:
                     _logger.Information("{request}: Found total of {count} servers ...",

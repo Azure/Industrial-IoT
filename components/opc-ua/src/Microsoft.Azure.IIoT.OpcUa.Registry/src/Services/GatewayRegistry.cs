@@ -31,22 +31,47 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
         /// <inheritdoc/>
         public async Task<GatewayInfoModel> GetGatewayAsync(string gatewayId,
-            CancellationToken ct) {
+            bool onlyServerState, CancellationToken ct) {
             if (string.IsNullOrEmpty(gatewayId)) {
                 throw new ArgumentException(nameof(gatewayId));
             }
             var deviceId = gatewayId;
             var device = await _iothub.GetAsync(deviceId, null, ct);
-            var registration = device.ToRegistration()
+            var registration = device.ToEntityRegistration()
                 as GatewayRegistration;
             if (registration == null) {
                 throw new ResourceNotFoundException(
                     $"{gatewayId} is not a gateway registration.");
             }
-            return new GatewayInfoModel {
+
+            var info = new GatewayInfoModel {
                 Gateway = registration.ToServiceModel()
-                // TODO
             };
+
+            var modules = await _iothub.QueryAllDeviceTwinsAsync(
+                $"SELECT * FROM devices.modules WHERE deviceId = '{device.Id}'", ct);
+
+            foreach (var module in modules) {
+                var entity = module.ToEntityRegistration(onlyServerState);
+                switch (entity?.DeviceType ?? "") {
+                    case IdentityType.Supervisor:
+                        info.Supervisor = module
+                            .ToSupervisorRegistration(onlyServerState).ToServiceModel();
+                        break;
+                    case IdentityType.Publisher:
+                        info.Publisher = module
+                            .ToPublisherRegistration(onlyServerState).ToServiceModel();
+                        break;
+                    case IdentityType.Discoverer:
+                        info.Discoverer = module
+                            .ToDiscovererRegistration(onlyServerState).ToServiceModel();
+                        break;
+                    default:
+                        // might add module to dictionary in the future
+                        break;
+                }
+            }
+            return info;
         }
 
         /// <inheritdoc/>
@@ -70,7 +95,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                             nameof(gatewayId));
                     }
 
-                    var registration = twin.ToRegistration(true) as GatewayRegistration;
+                    var registration = twin.ToEntityRegistration(true) as GatewayRegistration;
                     if (registration == null) {
                         throw new ResourceNotFoundException(
                             $"{gatewayId} is not a gateway registration.");
@@ -100,7 +125,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             string continuation, int? pageSize, CancellationToken ct) {
             var query = "SELECT * FROM devices WHERE " +
                 $"(tags.{TwinProperty.Type} = '{IdentityType.Gateway}' OR tags.iiotedge = true) " +
-                $"AND NOT IS_DEFINED(tags.{nameof(BaseRegistration.NotSeenSince)})";
+                $"AND NOT IS_DEFINED(tags.{nameof(EntityRegistration.NotSeenSince)})";
             var devices = await _iothub.QueryDeviceTwinsAsync(query, continuation, pageSize, ct);
             return new GatewayListModel {
                 ContinuationToken = devices.ContinuationToken,

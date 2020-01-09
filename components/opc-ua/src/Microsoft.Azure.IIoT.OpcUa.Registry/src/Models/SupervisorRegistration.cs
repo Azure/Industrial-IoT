@@ -12,7 +12,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     /// Twin supervisor module registration
     /// </summary>
     [Serializable]
-    public sealed class SupervisorRegistration : BaseRegistration {
+    public sealed class SupervisorRegistration : EntityRegistration {
 
         /// <inheritdoc/>
         public override string DeviceType => IdentityType.Supervisor;

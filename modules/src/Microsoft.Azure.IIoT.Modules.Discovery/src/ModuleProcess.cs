@@ -80,7 +80,7 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery {
                     var logger = hostScope.Resolve<ILogger>();
                     try {
                         // Start module
-                        await module.StartAsync(IdentityType.Discovery, SiteId, "Discovery", this);
+                        await module.StartAsync(IdentityType.Discoverer, SiteId, "Discovery", this);
                         OnRunning?.Invoke(this, true);
                         await Task.WhenAny(_reset.Task, _exit.Task);
                         if (_exit.Task.IsCompleted) {

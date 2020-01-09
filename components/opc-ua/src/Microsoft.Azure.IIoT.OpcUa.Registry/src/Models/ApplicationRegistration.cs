@@ -14,7 +14,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     /// Aapplication registration persisted and comparable
     /// </summary>
     [Serializable]
-    public sealed class ApplicationRegistration : BaseRegistration {
+    public sealed class ApplicationRegistration : EntityRegistration {
 
         /// <inheritdoc/>
         public override string DeviceType => IdentityType.Application;

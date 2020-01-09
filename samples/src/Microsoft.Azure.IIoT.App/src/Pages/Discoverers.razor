@@ -249,10 +249,10 @@
                 _eventResult += string.Format("{0}: {1}/{2}: Finding servers...", ev.DiscovererId, ev.Progress, ev.Total) + System.Environment.NewLine;
                 break;
             case DiscoveryProgressType.EndpointsDiscoveryStarted:
-                _eventResult += string.Format("{0}: {1}/{2}: ... {3} servers found - find endpoints on {4}...", ev.DiscovererId, ev.Progress, ev.Total, ev.Discovered, ((dynamic)ev.RequestDetails).url) + System.Environment.NewLine;
+                _eventResult += string.Format("{0}: {1}/{2}: ... {3} servers found - find endpoints on {4}...", ev.DiscovererId, ev.Progress, ev.Total, ev.Discovered, ev.RequestDetails["url"]) + System.Environment.NewLine;
                 break;
             case DiscoveryProgressType.EndpointsDiscoveryFinished:
-                _eventResult += string.Format("{0}: {1}/{2}: ... {3} servers found - {4} endpoints found on {5}...", ev.DiscovererId, ev.Progress, ev.Total, ev.Discovered, ev.Result, ((dynamic)ev.RequestDetails).url) + System.Environment.NewLine;
+                _eventResult += string.Format("{0}: {1}/{2}: ... {3} servers found - {4} endpoints found on {5}...", ev.DiscovererId, ev.Progress, ev.Total, ev.Discovered, ev.Result, ev.RequestDetails["url"]) + System.Environment.NewLine;
                 break;
             case DiscoveryProgressType.ServerDiscoveryFinished:
                 _eventResult += string.Format("{0}: {1}/{2}: ... {3} servers found.", ev.DiscovererId, ev.Progress, ev.Total, ev.Discovered) + System.Environment.NewLine;

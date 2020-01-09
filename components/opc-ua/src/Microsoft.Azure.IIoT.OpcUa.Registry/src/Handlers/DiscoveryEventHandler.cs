@@ -49,7 +49,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
                 return;
             }
             try {
-                var discovererId = discovererModelEx.CreatediscovererId(
+                var discovererId = DiscovererModelEx.CreateDiscovererId(
                     deviceId, moduleId?.ToString());
 
                 await ProcessServerEndpointDiscoveryAsync(discovererId,

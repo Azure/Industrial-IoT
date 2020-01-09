@@ -37,7 +37,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             }
             var deviceId = SupervisorModelEx.ParseDeviceId(id, out var moduleId);
             var device = await _iothub.GetAsync(deviceId, moduleId, ct);
-            var registration = device.ToRegistration(onlyServerState)
+            var registration = device.ToEntityRegistration(onlyServerState)
                 as SupervisorRegistration;
             if (registration == null) {
                 throw new ResourceNotFoundException(
@@ -67,7 +67,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                             nameof(supervisorId));
                     }
 
-                    var registration = twin.ToRegistration(true) as SupervisorRegistration;
+                    var registration = twin.ToEntityRegistration(true) as SupervisorRegistration;
                     if (registration == null) {
                         throw new ResourceNotFoundException(
                             $"{supervisorId} is not a supervisor registration.");
@@ -103,7 +103,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             string continuation, bool onlyServerState, int? pageSize, CancellationToken ct) {
             var query = "SELECT * FROM devices.modules WHERE " +
                 $"properties.reported.{TwinProperty.Type} = '{IdentityType.Supervisor}' " +
-                $"AND NOT IS_DEFINED(tags.{nameof(BaseRegistration.NotSeenSince)})";
+                $"AND NOT IS_DEFINED(tags.{nameof(EntityRegistration.NotSeenSince)})";
             var devices = await _iothub.QueryDeviceTwinsAsync(query, continuation, pageSize, ct);
             return new SupervisorListModel {
                 ContinuationToken = devices.ContinuationToken,

@@ -15,7 +15,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     /// Twin (endpoint) registration persisted and comparable
     /// </summary>
     [Serializable]
-    public sealed class EndpointRegistration : BaseRegistration {
+    public sealed class EndpointRegistration : EntityRegistration {
 
         /// <inheritdoc/>
         public override string DeviceType => IdentityType.Endpoint;

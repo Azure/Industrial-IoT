@@ -5,9 +5,9 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
-    using Newtonsoft.Json.Linq;
     using Serilog;
     using System;
+    using System.Collections.Generic;
     using System.Net;
 
     /// <summary>
@@ -57,7 +57,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
                 TimeStamp = DateTime.UtcNow,
                 EventType = DiscoveryProgressType.Error,
                 Request = request,
-                Result = JToken.FromObject(ex)
+                Result = ex.Message,
+                ResultDetails = new Dictionary<string, string> {
+                    ["exception"] = ex.ToString()
+                },
             });
         }
 
@@ -93,7 +96,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
                 Progress = progress,
                 Total = total,
                 Discovered = discovered,
-                Result = JToken.FromObject(address.ToString()),
+                Result = address.ToString(),
                 Request = request
             });
         }
@@ -149,7 +152,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
                 Progress = progress,
                 Total = total,
                 Discovered = discovered,
-                Result = JToken.FromObject(result.ToString()),
+                Result = result.ToString(),
                 Request = request
             });
         }
@@ -197,7 +200,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
             int workers, int progress, int total, int discovered, Uri url, IPAddress address) {
             Send(new DiscoveryProgressModel {
                 EventType = DiscoveryProgressType.EndpointsDiscoveryStarted,
-                RequestDetails = JToken.FromObject(new { url, address = address.ToString() }),
+                RequestDetails = new Dictionary<string, string> {
+                    ["url"] = url.ToString(),
+                    ["address"] = address.ToString()
+                },
                 Workers = workers,
                 Progress = progress,
                 Total = total,
@@ -212,12 +218,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
             IPAddress address, int endpoints) {
             Send(new DiscoveryProgressModel {
                 EventType = DiscoveryProgressType.EndpointsDiscoveryFinished,
-                RequestDetails = JToken.FromObject(new { url, address = address.ToString() }),
+                RequestDetails = new Dictionary<string, string> {
+                    ["url"] = url.ToString(),
+                    ["address"] = address.ToString()
+                },
                 Workers = workers,
                 Progress = progress,
                 Total = total,
                 Discovered = discovered,
-                Result = JToken.FromObject(endpoints),
+                Result = endpoints.ToString(),
                 Request = request
             });
         }

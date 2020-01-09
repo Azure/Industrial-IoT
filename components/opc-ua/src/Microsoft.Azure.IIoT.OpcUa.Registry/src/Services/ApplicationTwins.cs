@@ -36,11 +36,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             ApplicationRegistrationQueryModel model, int? pageSize, CancellationToken ct) {
 
             var query = "SELECT * FROM devices WHERE " +
-                $"tags.{nameof(BaseRegistration.DeviceType)} = '{IdentityType.Endpoint}' ";
+                $"tags.{nameof(EntityRegistration.DeviceType)} = '{IdentityType.Endpoint}' ";
 
             if (!(model?.IncludeNotSeenSince ?? false)) {
                 // Scope to non deleted applications
-                query += $"AND NOT IS_DEFINED(tags.{nameof(BaseRegistration.NotSeenSince)}) ";
+                query += $"AND NOT IS_DEFINED(tags.{nameof(EntityRegistration.NotSeenSince)}) ";
             }
 
             if (model?.Locale != null) {
@@ -102,7 +102,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             }
             if (model?.SiteOrGatewayId != null) {
                 // If site or gateway id search provided, include it in search
-                query += $"AND tags.{nameof(BaseRegistration.SiteOrGatewayId)} = " +
+                query += $"AND tags.{nameof(EntityRegistration.SiteOrGatewayId)} = " +
                     $"'{model.SiteOrGatewayId}' ";
             }
 
@@ -119,9 +119,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// <inheritdoc/>
         public async Task<ApplicationSiteListModel> ListSitesAsync(
             string continuation, int? pageSize, CancellationToken ct) {
-            var tag = nameof(BaseRegistration.SiteOrGatewayId);
+            var tag = nameof(EntityRegistration.SiteOrGatewayId);
             var query = $"SELECT tags.{tag}, COUNT() FROM devices WHERE " +
-                $"tags.{nameof(BaseRegistration.DeviceType)} = '{IdentityType.Endpoint}' " +
+                $"tags.{nameof(EntityRegistration.DeviceType)} = '{IdentityType.Endpoint}' " +
                 $"GROUP BY tags.{tag}";
             var result = await _iothub.QueryAsync(query, continuation, pageSize);
             return new ApplicationSiteListModel {
@@ -144,15 +144,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         public async Task<ApplicationInfoListModel> ListAsync(
             string continuation, int? pageSize, bool? disabled, CancellationToken ct) {
             var query = "SELECT * FROM devices WHERE " +
-                $"tags.{nameof(BaseRegistration.DeviceType)} = '{IdentityType.Endpoint}' ";
+                $"tags.{nameof(EntityRegistration.DeviceType)} = '{IdentityType.Endpoint}' ";
             if (disabled != null) {
                 if (disabled.Value) {
                     query +=
-                        $"AND IS_DEFINED(tags.{nameof(BaseRegistration.NotSeenSince)})";
+                        $"AND IS_DEFINED(tags.{nameof(EntityRegistration.NotSeenSince)})";
                 }
                 else {
                     query +=
-                        $"AND NOT IS_DEFINED(tags.{nameof(BaseRegistration.NotSeenSince)})";
+                        $"AND NOT IS_DEFINED(tags.{nameof(EntityRegistration.NotSeenSince)})";
                 }
             }
             var result = await _iothub.QueryDeviceTwinsAsync(query, continuation, pageSize, ct);
@@ -169,7 +169,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         public async Task<IEnumerable<ApplicationInfoModel>> ListAllAsync(string siteId,
             string discovererId, CancellationToken ct) {
             var query = "SELECT * FROM devices WHERE " +
-                $"tags.{nameof(BaseRegistration.DeviceType)} = '{IdentityType.Endpoint}' AND " +
+                $"tags.{nameof(EntityRegistration.DeviceType)} = '{IdentityType.Endpoint}' AND " +
                 $"(tags.{nameof(ApplicationRegistration.SiteId)} = '{siteId}' OR" +
                 $" tags.{nameof(ApplicationRegistration.DiscovererId)} = '{discovererId}')";
 
@@ -261,7 +261,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             }
 
             // Convert to application registration
-            var registration = twin.ToRegistration() as ApplicationRegistration;
+            var registration = twin.ToEntityRegistration() as ApplicationRegistration;
             if (registration == null && throwIfNotFound) {
                 throw new ResourceNotFoundException("Not an application registration");
             }

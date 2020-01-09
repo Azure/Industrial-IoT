@@ -23,7 +23,7 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// <summary>
         /// Discoverer identity
         /// </summary>
-        public const string Discovery = "discoverer";
+        public const string Discoverer = "discoverer";
 
         /// <summary>
         /// Twin module identity

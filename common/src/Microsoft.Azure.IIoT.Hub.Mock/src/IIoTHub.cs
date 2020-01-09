@@ -28,11 +28,6 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
         IEnumerable<IIoTHubDevice> Modules { get; }
 
         /// <summary>
-        /// List of jobs for job queries
-        /// </summary>
-        IEnumerable<DeviceJobModel> Jobs { get; }
-
-        /// <summary>
         /// Connect device/module to hub
         /// </summary>
         /// <param name="deviceId"></param>

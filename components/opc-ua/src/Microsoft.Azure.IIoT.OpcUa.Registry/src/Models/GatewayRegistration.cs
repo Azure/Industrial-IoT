@@ -12,7 +12,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     /// Edge gateway registration
     /// </summary>
     [Serializable]
-    public sealed class GatewayRegistration : DeviceRegistration {
+    public sealed class GatewayRegistration : EntityRegistration {
 
         /// <inheritdoc/>
         public override string DeviceType => IdentityType.Gateway;

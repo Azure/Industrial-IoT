@@ -13,10 +13,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     /// Discoverer module registration
     /// </summary>
     [Serializable]
-    public sealed class DiscovererRegistration : BaseRegistration {
+    public sealed class DiscovererRegistration : EntityRegistration {
 
         /// <inheritdoc/>
-        public override string DeviceType => IdentityType.Discovery;
+        public override string DeviceType => IdentityType.Discoverer;
 
         /// <summary>
         /// Device id for registration

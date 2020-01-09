@@ -64,8 +64,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             bool onlyServerState, int? pageSize, CancellationToken ct) {
             // Find all devices where endpoint information is configured
             var query = $"SELECT * FROM devices WHERE " +
-                $"tags.{nameof(BaseRegistration.DeviceType)} = '{IdentityType.Endpoint}' " +
-                $"AND NOT IS_DEFINED(tags.{nameof(BaseRegistration.NotSeenSince)})";
+                $"tags.{nameof(EntityRegistration.DeviceType)} = '{IdentityType.Endpoint}' " +
+                $"AND NOT IS_DEFINED(tags.{nameof(EntityRegistration.NotSeenSince)})";
             var devices = await _iothub.QueryDeviceTwinsAsync(query, continuation, pageSize, ct);
 
             return new EndpointInfoListModel {
@@ -87,7 +87,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
             if (!(model?.IncludeNotSeenSince ?? false)) {
                 // Scope to non deleted twins
-                query += $"AND NOT IS_DEFINED(tags.{nameof(BaseRegistration.NotSeenSince)}) ";
+                query += $"AND NOT IS_DEFINED(tags.{nameof(EntityRegistration.NotSeenSince)}) ";
             }
             if (model?.Url != null) {
                 // If Url provided, include it in search
@@ -96,7 +96,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             }
             if (model?.Certificate != null) {
                 // If cert provided, include it in search
-                query += $"AND tags.{nameof(BaseRegistration.Thumbprint)} = " +
+                query += $"AND tags.{nameof(EntityRegistration.Thumbprint)} = " +
                     $"{model.Certificate.ToSha1Hash()} ";
             }
             if (model?.SecurityMode != null) {
@@ -164,7 +164,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             }
 
             // Convert to twin registration
-            var registration = twin.ToRegistration(true) as EndpointRegistration;
+            var registration = twin.ToEntityRegistration(true) as EndpointRegistration;
             if (registration == null) {
                 throw new ResourceNotFoundException(
                     $"{endpointId} is not an endpoint registration.");
@@ -199,7 +199,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                     nameof(endpointId));
             }
             // Convert to twin registration
-            var registration = twin.ToRegistration(true) as EndpointRegistration;
+            var registration = twin.ToEntityRegistration(true) as EndpointRegistration;
             if (registration == null) {
                 throw new ResourceNotFoundException(
                     $"{endpointId} is not an endpoint registration.");
@@ -479,10 +479,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             var query = $"SELECT * FROM devices WHERE " +
                 $"tags.{nameof(EndpointRegistration.ApplicationId)} = " +
                     $"'{applicationId}' AND " +
-                $"tags.{nameof(BaseRegistration.DeviceType)} = '{IdentityType.Endpoint}' ";
+                $"tags.{nameof(EntityRegistration.DeviceType)} = '{IdentityType.Endpoint}' ";
 
             if (!includeDeleted) {
-                query += $"AND NOT IS_DEFINED(tags.{nameof(BaseRegistration.NotSeenSince)})";
+                query += $"AND NOT IS_DEFINED(tags.{nameof(EntityRegistration.NotSeenSince)})";
             }
 
             var result = new List<DeviceTwinModel>();
@@ -674,7 +674,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             DeviceTwinModel twin, bool onlyServerState, bool skipInvalid) {
 
             // Convert to twin registration
-            var registration = twin.ToRegistration(onlyServerState) as EndpointRegistration;
+            var registration = twin.ToEntityRegistration(onlyServerState) as EndpointRegistration;
             if (registration == null) {
                 if (skipInvalid) {
                     return null;

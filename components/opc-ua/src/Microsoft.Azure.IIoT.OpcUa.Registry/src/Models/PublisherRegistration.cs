@@ -13,7 +13,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     /// Publisher agent module registration
     /// </summary>
     [Serializable]
-    public sealed class PublisherRegistration : BaseRegistration {
+    public sealed class PublisherRegistration : EntityRegistration {
 
         /// <inheritdoc/>
         public override string DeviceType => IdentityType.Publisher;

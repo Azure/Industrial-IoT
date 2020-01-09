@@ -4,13 +4,11 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
-    using Microsoft.Azure.IIoT.Module.Models;
     using Microsoft.Azure.IIoT.Http;
     using Microsoft.Azure.IIoT.Utils;
     using Newtonsoft.Json;
     using Serilog;
     using System;
-    using System.Collections.Generic;
     using System.Threading;
     using System.Linq;
     using System.Threading.Tasks;
@@ -20,7 +18,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
     /// <summary>
     /// Edgelet client providing discovery and in the future other services
     /// </summary>
-    public sealed class EdgeletClient : IModuleDiscovery, ISecureElement {
+    public sealed class EdgeletClient : ISecureElement {
 
         /// <summary>
         /// Create client
@@ -53,47 +51,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             _moduleGenerationId = genId;
             _moduleId = moduleId;
             _apiVersion = apiVersion ?? "2019-01-30";
-        }
-
-        /// <inheritdoc/>
-        public async Task<List<DiscoveredModuleModel>> GetModulesAsync(
-            string deviceId, CancellationToken ct) {
-
-            if (!string.IsNullOrEmpty(_workloaduri)) {
-                try {
-                    var uri = _workloaduri + "/modules?api-version=" + _apiVersion;
-                    _logger.Debug("Calling GET on {uri} uri...", uri);
-
-                    var request = _client.NewRequest(uri);
-                    var result = await Retry.WithExponentialBackoff(_logger, ct, async () => {
-                        var response = await _client.GetAsync(request, ct);
-                        var payload = response.GetContentAsString();
-                        if (response.StatusCode == System.Net.HttpStatusCode.OK) {
-                            _logger.Debug("... returned {statusCode}.", response.StatusCode);
-                            _logger.Verbose("payload: {payload}.", payload);
-                        }
-                        else {
-                            _logger.Warning("... resulted in {statusCode} with error: {payload}.",
-                                response.StatusCode, payload);
-                        }
-                        response.Validate();
-                        return JsonConvertEx.DeserializeObject<EdgeletModules>(payload);
-                    }, kMaxRetryCount);
-                    return result.Modules?.Select(m => new DiscoveredModuleModel {
-                        Id = m.Name,
-                        ImageName = m.Config?.Settings?.Image,
-                        ImageHash = m.Config?.Settings?.ImageHash,
-                        Version = GetVersionFromImageName(m.Config?.Settings?.Image),
-                        Status = m.Status?.RuntimeStatus?.Status
-                    }).ToList();
-                }
-                catch (Exception ex) {
-                    _logger.Error(ex, "Error during GetModulesAsync");
-                }
-                return new List<DiscoveredModuleModel>();
-            }
-            _logger.Warning("Not running in iotedge context - no modules in scope.");
-            return new List<DiscoveredModuleModel>();
         }
 
         /// <inheritdoc/>
@@ -183,112 +140,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             /// <summary>Base64 encoded PEM formatted byte array</summary>
             [JsonProperty(PropertyName = "bytes")]
             public string Bytes { get; set; }
-        }
-
-        /// <summary>
-        /// Edgelet modules
-        /// </summary>
-        public class EdgeletModules {
-
-            /// <summary> Modules </summary>
-            [JsonProperty(PropertyName = "modules")]
-            public List<EdgeletModuleDetails> Modules { get; set; }
-        }
-
-        /// <summary>
-        /// Edgelet module details model
-        /// </summary>
-        public class EdgeletModuleDetails {
-
-            /// <summary> Module id </summary>
-            [JsonProperty(PropertyName = "id")]
-            public string Id { get; set; }
-
-            /// <summary> Module name </summary>
-            [JsonProperty(PropertyName = "name")]
-            public string Name { get; set; }
-
-            /// <summary> Module type </summary>
-            [JsonProperty(PropertyName = "type")]
-            public string Type { get; set; }
-
-            /// <summary> Module config</summary>
-            [JsonProperty(PropertyName = "config")]
-            public EdgeletModuleConfig Config { get; set; }
-
-            /// <summary> Module status </summary>
-            [JsonProperty(PropertyName = "status")]
-            public EdgeletModuleStatus Status { get; set; }
-        }
-
-        /// <summary>
-        /// Module runtime status
-        /// </summary>
-        public class EdgeletModuleStatus {
-
-            /// <summary> Runtime status </summary>
-            [JsonProperty(PropertyName = "runtimeStatus")]
-            public EdgeletModuleRuntimeStatus RuntimeStatus { get; set; }
-
-            /// <summary> Exit status </summary>
-            [JsonProperty(PropertyName = "exitStatus")]
-            public EdgeletModuleExitStatus ExitStatus { get; set; }
-        }
-
-        /// <summary>
-        /// Module exit status
-        /// </summary>
-        public class EdgeletModuleExitStatus {
-
-            /// <summary> Exit status code </summary>
-            [JsonProperty(PropertyName = "statusCode")]
-            public string StatusCode { get; set; }
-
-            /// <summary> Exit time </summary>
-            [JsonProperty(PropertyName = "exitTime")]
-            public string ExitTime { get; set; }
-        }
-
-        /// <summary>
-        /// Module runtime status
-        /// </summary>
-        public class EdgeletModuleRuntimeStatus {
-
-            /// <summary> Module status </summary>
-            [JsonProperty(PropertyName = "status")]
-            public string Status { get; set; }
-
-            /// <summary> Module status description </summary>
-            [JsonProperty(PropertyName = "description")]
-            public string Description { get; set; }
-        }
-
-        /// <summary>
-        /// Module config
-        /// </summary>
-        public class EdgeletModuleConfig {
-
-            /// <summary> Module settings</summary>
-            [JsonProperty(PropertyName = "settings")]
-            public EdgeletModuleSettings Settings { get; set; }
-        }
-
-        /// <summary>
-        /// Edge agent managed settings
-        /// </summary>
-        public class EdgeletModuleSettings {
-
-            /// <summary> Module image </summary>
-            [JsonProperty(PropertyName = "image")]
-            public string Image { get; set; }
-
-            /// <summary> Image hash </summary>
-            [JsonProperty(PropertyName = "imageHash")]
-            public string ImageHash { get; set; }
-
-            /// <summary> Create Options </summary>
-            [JsonProperty(PropertyName = "createOptions")]
-            public JToken CreateOptions { get; set; }
         }
 
         private readonly IHttpClient _client;

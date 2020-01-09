@@ -2537,12 +2537,12 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                 case DiscoveryProgressType.EndpointsDiscoveryStarted:
                     Console.WriteLine($"{ev.DiscovererId}: {ev.Progress}/{ev.Total} :" +
                         $" ... {ev.Discovered} servers found - find " +
-                        $"endpoints on {((dynamic)ev.RequestDetails).url}...");
+                        $"endpoints on {ev.RequestDetails["url"]}...");
                     break;
                 case DiscoveryProgressType.EndpointsDiscoveryFinished:
                     Console.WriteLine($"{ev.DiscovererId}: {ev.Progress}/{ev.Total} :" +
                         $" ... {ev.Discovered} servers found - {ev.Result} " +
-                        $"endpoints found on {((dynamic)ev.RequestDetails).url}...");
+                        $"endpoints found on {ev.RequestDetails["url"]}...");
                     break;
                 case DiscoveryProgressType.ServerDiscoveryFinished:
                     Console.WriteLine($"{ev.DiscovererId}: {ev.Progress}/{ev.Total} :" +

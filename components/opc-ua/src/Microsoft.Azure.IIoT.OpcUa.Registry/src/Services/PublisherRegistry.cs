@@ -75,7 +75,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             }
             var deviceId = PublisherModelEx.ParseDeviceId(id, out var moduleId);
             var device = await _iothub.GetAsync(deviceId, moduleId, ct);
-            var registration = device.ToRegistration(onlyServerState)
+            var registration = device.ToEntityRegistration(onlyServerState)
                 as PublisherRegistration;
             if (registration == null) {
                 throw new ResourceNotFoundException(
@@ -106,7 +106,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                             nameof(publisherId));
                     }
 
-                    var registration = twin.ToRegistration(true) as PublisherRegistration;
+                    var registration = twin.ToEntityRegistration(true) as PublisherRegistration;
                     if (registration == null) {
                         throw new ResourceNotFoundException(
                             $"{publisherId} is not a publisher registration.");
@@ -170,7 +170,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             string continuation, bool onlyServerState, int? pageSize, CancellationToken ct) {
             var query = "SELECT * FROM devices.modules WHERE " +
                 $"properties.reported.{TwinProperty.Type} = '{IdentityType.Publisher}' " +
-                $"AND NOT IS_DEFINED(tags.{nameof(BaseRegistration.NotSeenSince)})";
+                $"AND NOT IS_DEFINED(tags.{nameof(EntityRegistration.NotSeenSince)})";
             var devices = await _iothub.QueryDeviceTwinsAsync(query, continuation, pageSize, ct);
             return new PublisherListModel {
                 ContinuationToken = devices.ContinuationToken,

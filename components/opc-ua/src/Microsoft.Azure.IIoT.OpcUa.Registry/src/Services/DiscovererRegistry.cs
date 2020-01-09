@@ -37,7 +37,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             }
             var deviceId = DiscovererModelEx.ParseDeviceId(id, out var moduleId);
             var device = await _iothub.GetAsync(deviceId, moduleId, ct);
-            var registration = device.ToRegistration(onlyServerState)
+            var registration = device.ToEntityRegistration(onlyServerState)
                 as DiscovererRegistration;
             if (registration == null) {
                 throw new ResourceNotFoundException(
@@ -67,7 +67,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                             nameof(discovererId));
                     }
 
-                    var registration = twin.ToRegistration(true) as DiscovererRegistration;
+                    var registration = twin.ToEntityRegistration(true) as DiscovererRegistration;
                     if (registration == null) {
                         throw new ResourceNotFoundException(
                             $"{discovererId} is not a discoverer registration.");
@@ -159,8 +159,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         public async Task<DiscovererListModel> ListDiscoverersAsync(
             string continuation, bool onlyServerState, int? pageSize, CancellationToken ct) {
             var query = "SELECT * FROM devices.modules WHERE " +
-                $"properties.reported.{TwinProperty.Type} = '{IdentityType.Discovery}' " +
-                $"AND NOT IS_DEFINED(tags.{nameof(BaseRegistration.NotSeenSince)})";
+                $"properties.reported.{TwinProperty.Type} = '{IdentityType.Discoverer}' " +
+                $"AND NOT IS_DEFINED(tags.{nameof(EntityRegistration.NotSeenSince)})";
             var devices = await _iothub.QueryDeviceTwinsAsync(query, continuation, pageSize, ct);
             return new DiscovererListModel {
                 ContinuationToken = devices.ContinuationToken,
@@ -176,7 +176,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             DiscovererQueryModel model, bool onlyServerState, int? pageSize, CancellationToken ct) {
 
             var query = "SELECT * FROM devices.modules WHERE " +
-                $"properties.reported.{TwinProperty.Type} = '{IdentityType.Discovery}'";
+                $"properties.reported.{TwinProperty.Type} = '{IdentityType.Discoverer}'";
 
             if (model?.Discovery != null) {
                 // If discovery mode provided, include it in search

@@ -20,7 +20,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
     /// <summary>
     /// Implementation of twin and job services using service sdk.
     /// </summary>
-    public sealed class IoTHubServiceClient : IIoTHubTwinServices, IIoTHubJobServices,
+    public sealed class IoTHubServiceClient : IIoTHubTwinServices,
         IIoTHubConfigurationServices {
 
         /// <summary>
@@ -305,63 +305,6 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                 _logger.Verbose(e, "Delete configuration failed");
                 throw e.Rethrow();
             }
-        }
-
-        /// <inheritdoc/>
-        public async Task<JobModel> CreateAsync(JobModel job, CancellationToken ct) {
-            JobResponse response;
-            switch (job.Type) {
-                case Models.JobType.ScheduleUpdateTwin:
-                    response = await _jobs.ScheduleTwinUpdateAsync(job.JobId, job.QueryCondition,
-                        job.UpdateTwin?.ToTwin(),
-                        job.StartTimeUtc ?? DateTime.MinValue,
-                        job.MaxExecutionTimeInSeconds ?? long.MaxValue, ct);
-                    break;
-                case Models.JobType.ScheduleDeviceMethod:
-                    response = await _jobs.ScheduleDeviceMethodAsync(job.JobId, job.QueryCondition,
-                        job.MethodParameter?.ToCloudToDeviceMethod(),
-                        job.StartTimeUtc ?? DateTime.MinValue,
-                        job.MaxExecutionTimeInSeconds ?? long.MaxValue, ct);
-                    break;
-                default:
-                    throw new ArgumentException(nameof(job.Type));
-            }
-            // Get device infos
-            return await QueryDevicesInfoAsync(response.ToModel());
-        }
-
-        /// <inheritdoc/>
-        public async Task<JobModel> RefreshAsync(string jobId, CancellationToken ct) {
-            var response = await _jobs.GetJobAsync(jobId, ct);
-            // Get device infos
-            return await QueryDevicesInfoAsync(response.ToModel());
-        }
-
-        /// <inheritdoc/>
-        public Task CancelAsync(string jobId, CancellationToken ct) {
-            return _jobs.CancelJobAsync(jobId, ct);
-        }
-
-        /// <summary>
-        /// Fill in individual device responses
-        /// </summary>
-        /// <param name="job"></param>
-        /// <returns></returns>
-        private async Task<JobModel> QueryDevicesInfoAsync(JobModel job) {
-            var query = $"SELECT * FROM devices.jobs WHERE devices.jobs.jobId = '{job.JobId}'";
-            var statement = _registry.CreateQuery(query);
-            string continuation = null;
-            var devices = new List<DeviceJobModel>();
-            do {
-                var response = await statement.GetNextAsDeviceJobAsync(new QueryOptions {
-                    ContinuationToken = continuation
-                });
-                devices.AddRange(response.Select(j => j.ToModel()));
-                continuation = response.ContinuationToken;
-            }
-            while (!string.IsNullOrEmpty(continuation));
-            job.Devices = devices;
-            return job;
         }
 
         private readonly ServiceClient _client;
