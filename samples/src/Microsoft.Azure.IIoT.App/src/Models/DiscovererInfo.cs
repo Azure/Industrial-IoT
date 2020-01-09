@@ -9,7 +9,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
     public class DiscovererInfo {
 
         /// <summary>
-        /// Supervisor models.
+        /// Discoverer models.
         /// </summary>
         public DiscovererApiModel DiscovererModel { get; set; }
 
@@ -24,7 +24,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
         public bool IsSearching { get; set; }
 
         /// <summary>
-        /// Supervisor has application children.
+        /// Discoverer has found apps.
         /// </summary>
         public bool HasApplication { get; set; }
     }

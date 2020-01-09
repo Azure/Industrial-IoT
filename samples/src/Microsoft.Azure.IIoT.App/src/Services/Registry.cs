@@ -64,7 +64,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// GetDiscovererListAsync
         /// </summary>
         /// <returns>DiscovererInfo</returns>
-        public async Task<PagedResult<DiscovererInfo>> GetSupervisorListAsync() {
+        public async Task<PagedResult<DiscovererInfo>> GetDiscovererListAsync() {
             var pageResult = new PagedResult<DiscovererInfo>();
 
             try {
@@ -88,7 +88,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 }
             }
             catch (Exception e) {
-                Trace.TraceWarning("Can not get supervisors list");
+                Trace.TraceWarning("Can not get discoverers as list");
                 var errorMessage = string.Format(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
                 Trace.TraceWarning(errorMessage);
             }

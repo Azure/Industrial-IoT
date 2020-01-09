@@ -16,14 +16,14 @@
 @inject RegistryServiceEvents RegistryServiceEvents
 @inject SignalRClient SignalRClientHelper
 
-<h1>Supervisor</h1>
+<h1>Asset Discovery</h1>
 
 <table class="table">
     <thead>
         <tr>
-            <th>DiscovererId</th>
-            <th>ConnectionStatus</th>
-            <th>ScanStatus</th>
+            <th>Discovery Module Id</th>
+            <th>Connection Status</th>
+            <th>Scan Status</th>
             <th>ScanMask</th>
             <th>PortRange</th>
         </tr>
@@ -86,7 +86,7 @@
     </div>
 </div>
 
-<Drawer HeaderText="Scan IP address range" ObjectData="@SupervisorData" IsOpened="@IsOpened" CloseDrawer="@(() => CloseDrawer())">
+<Drawer HeaderText="Scan IP address range" ObjectData="@DiscovererData" IsOpened="@IsOpened" CloseDrawer="@(() => CloseDrawer())">
     <div class="drawer-content list-group">
         <div class="list-group-item text-justify list-group-item-heading">
             <b>Enter address range to scan.</b>
@@ -105,7 +105,7 @@
                 </div>
                 <hr />
                 <div>
-                    <button @onclick="@(() => SetScan(SupervisorData, true, IpMask, PortRange))" type="button" class="btn btn-primary">Apply</button>
+                    <button @onclick="@(() => SetScan(DiscovererData, true, IpMask, PortRange))" type="button" class="btn btn-primary">Apply</button>
                 </div>
             </form>
         </div>
@@ -122,7 +122,7 @@
 
     public bool IsSearching { get; set; } = false;
     public bool IsOpened { get; set; } = false;
-    public DiscovererInfo SupervisorData { get; set; }
+    public DiscovererInfo DiscovererData { get; set; }
     public string IpMask { get; set; }
     public string PortRange { get; set; }
     public PagedResult<DiscovererInfo> discovererList = new PagedResult<DiscovererInfo>();
@@ -148,7 +148,7 @@
     /// </summary>
     protected override async Task OnInitializedAsync()
     {
-        discovererList = await RegistryHelper.GetSupervisorListAsync();
+        discovererList = await RegistryHelper.GetDiscovererListAsync();
         Page = "1";
         pagedDiscovererList = discovererList.GetPaged(Int32.Parse(Page), PageLength);
     }
@@ -179,7 +179,7 @@
         {
             discoverer.IsSearching = true;
             _scanResult = "visible";
-            SupervisorData = discoverer;
+            DiscovererData = discoverer;
         }
         else
         {
@@ -195,7 +195,7 @@
     private void OpenDrawer(DiscovererInfo discoverer)
     {
         IsOpened = true;
-        SupervisorData = discoverer;
+        DiscovererData = discoverer;
     }
 
     /// <summary>
@@ -260,17 +260,17 @@
             case DiscoveryProgressType.Cancelled:
                 _eventResult += "==========================================" + System.Environment.NewLine;
                 _eventResult += string.Format("{0}: Cancelled.", ev.DiscovererId) + System.Environment.NewLine;
-                SupervisorData.IsSearching = false;
+                DiscovererData.IsSearching = false;
                 break;
             case DiscoveryProgressType.Error:
                 _eventResult += "==========================================" + System.Environment.NewLine;
                 _eventResult += string.Format("{0}: Failure.", ev.DiscovererId) + System.Environment.NewLine;
-                SupervisorData.IsSearching = false;
+                DiscovererData.IsSearching = false;
                 break;
             case DiscoveryProgressType.Finished:
                 _eventResult += "==========================================" + System.Environment.NewLine;
                 _eventResult += string.Format("{0}: Completed.", ev.DiscovererId) + System.Environment.NewLine;
-                SupervisorData.IsSearching = false;
+                DiscovererData.IsSearching = false;
                 break;
         }
         StateHasChanged();
