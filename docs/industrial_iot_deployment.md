@@ -10,9 +10,17 @@
   * [Granting Admin Consent](#granting-admin-consent)
   * [Resource Cleanup](#resource-cleanup)
 * [Configuration](#configuration)
+  * [JSON File Configuration Provider](#json-file-configuration-provider)
+  * [Environment Variables Configuration Provider](#environment-variables-configuration-provider)
+  * [Command-line Configuration Provider](#command-line-configuration-provider)
+  * [Parameters](#parameters)
 * [Deployed Resources](#deployed-resources)
+  * [AKS](#aks)
 * [Missing And Planned Features](#missing-and-planned-features)
+  * [Configuring Azure Resources](#configuring-azure-resources)
+  * [User Interface](#user-interface)
 * [Known Issues](#known-issues)
+  * [CosmosDB Scale](#cosmosdb-scale)
 * [Resources](#resources)
 
 `Microsoft.Azure.IIoT.Deployment` is a command line application for deploying Industrial IoT solution.
@@ -376,6 +384,139 @@ y
 
 ## Configuration
 
+For configuration of `Microsoft.Azure.IIoT.Deployment` we are using the following .Net Core configuration
+providers, in the order of increasing priority:
+
+* [JSON File Configuration Provider](https://docs.microsoft.com/aspnet/core/fundamentals/configuration/?view=aspnetcore-3.1#json-configuration-provider)
+* [Environment Variables Configuration Provider](https://docs.microsoft.com/aspnet/core/fundamentals/configuration/?view=aspnetcore-3.1#environment-variables-configuration-provider)
+* [Command-line Configuration Provider](https://docs.microsoft.com/aspnet/core/fundamentals/configuration/?view=aspnetcore-3.1#command-line-configuration-provider)
+
+This means that all of the configuration parameters of the app can be passed from all of those three sources.
+
+You can read more about configuration in .Net Core
+[here](https://docs.microsoft.com/aspnet/core/fundamentals/configuration/?view=aspnetcore-3.1).
+
+### JSON File Configuration Provider
+
+Deployment application will be looking for `appsettings.json` file in the current working directory of the
+application to load configuration from it.
+
+### Environment Variables Configuration Provider
+
+Deployment application will also load configuration from environment variable key-value pairs at runtime.
+It will be expecting `AZURE_IIOT_` prefix before the names of actual keys.
+
+When working with hierarchical keys the sections and keys are flattened with the use of a colon (:) to
+maintain the original structure. But a colon separator (:) may not work on all platforms (for example,
+Bash). A double underscore (__) is supported by all platforms and is automatically replaced by a colon.
+So you can use either `AZURE_IIOT_AUTH:AZUREENVIRONMENT` as environment variable name on supported platforms
+or `AZURE_IIOT_AUTH__AZUREENVIRONMENT` everywhere.
+
+### Command-line Configuration Provider
+
+Deployment application will also load configuration from command-line argument key-value pairs at runtime.
+
+Similar to environment variables, hierarchical sections and keys should be flattened when passing configuration through command-line arguments with the use of a colon (:).
+
+Command line argument key-value pairs can be specified with:
+
+| Key prefix        | Example                                    |
+|-------------------|--------------------------------------------|
+| No prefix         | `RunMode=ApplicationRegistration`          |
+| Two dashes (--)   | `--Auth:AzureEnvironment=AzureGlobalCloud` |
+| Forward slash (/) | `/Auth:AzureEnvironment=AzureGlobalCloud`  |
+
+### Parameters
+
+| Key                       | Value details                                                                                   | Description                                                                                                                                                        |
+|---------------------------|-------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| RunMode                   | Valid value are: `Full`, `ApplicationRegistration`, `ResourceDeployment`                        | Determines which steps of Industrial IoT solution deployment will be executed.                                                                                     |
+| Auth:AzureEnvironment     | Valid value are: `AzureGlobalCloud`, `AzureChinaCloud`, `AzureUSGovernment`, `AzureGermanCloud` | Defines which Azure cloud to use.                                                                                                                                  |
+| Auth:TenantId             | Should be Guid.                                                                                 | Id of the tenant to be used.                                                                                                                                       |
+| Auth:ClientId             | Should be Guid.                                                                                 | ClientId of Service Principal.                                                                                                                                     |
+| Auth:ClientSecret         | String                                                                                          | ClientSecret of Service Principal.                                                                                                                                 |
+| SubscriptionId            | Should be Guid.                                                                                 | Id of Azure Subscription within tenant.                                                                                                                            |
+| ApplicationName           | Should be globally unique name.                                                                 | Name of the application deployment.                                                                                                                                |
+| ApplicationURL            | Used only in `ApplicationRegistration` run mode.                                                | Base URL that will be used for generating RedirectUris for client application. This is required for enabling client authentication to use externally exposed APIs. |
+| ResourceGroup:Name        |                                                                                                 | Name of the Resource Group where Azure resources will be created.                                                                                                  |
+| ResourceGroup:UseExisting | `true` or `false`                                                                               | Determines whether an existing Resource Group should be used or a new one should be created.                                                                       |
+| ResourceGroup:Region      | Supported regions are: `USEast2`, `USWest2`, `EuropeNorth`, `EuropeWest`, `AsiaSouthEast`       | Region where new Resource Group should be created.                                                                                                                 |
+| ApplicationRegistration   | Object, see [Special Notes](#special-notes) bellow.                                             | Provides definitions of existing Applications and Service Principals to be used.                                                                                   |
+
+#### Special Notes
+
+1. **ApplicationName**
+
+    This name will be used as name of App Service resource, thus determining its URL as
+    `<ApplicationName>.azurewebsites.net`. As a result, it should be a globally unique name.
+
+2. **ApplicationURL**
+
+    Base URL that will be used for generating RedirectUris for client application. This is required for
+    enabling client authentication for use of exposed APIs (including access to Swagger). Usually it would
+    look like:
+
+    > `<ApplicationName>.azurewebsites.net`
+
+    This parameter is used only in `ApplicationRegistration` run mode.
+
+3. **ApplicationRegistration**
+
+    Provides definitions of applications and Service Principals to be used. Those definitions will be used
+    instead of creating new application registrations and Service Principals for deployment of Azure
+    resources.
+  
+    This is particularly useful in `ResourceDeployment` mode, where `Microsoft.Azure.IIoT.Deployment` would
+    rely on existing Application Registrations and Service Principals.
+
+    > **Note**: Execution in `ApplicationRegistration` run mode will output JSON object for this property that should be used on consequent `ResourceDeployment`
+    run.
+  
+    Properties correspond to that of application registration and Service Principal manifests. Definition
+    of application properties can be found
+    [here](https://docs.microsoft.com/en-us/azure/active-directory/develop/reference-app-manifest).
+  
+    Application objects should contain the following properties:
+
+    ``` json
+    {
+      "Id": "<guid>",
+      "DisplayName": "<application name string>",
+      "IdentifierUris": [
+        "<unique user-defined URI for the application>"
+      ],
+      "AppId": "<guid>"
+    }
+    ```
+  
+    Service Principal objects should contain the following properties:
+
+    ```json
+    {
+      "Id": "<guid>",
+      "DisplayName": "<service principal name string>",
+    }
+    ```
+  
+    ApplicationRegistration object should have the keys as below. Note that:
+    * Values of `ServiceApplication`, `ClientApplication` and `AksApplication` keys should be Application
+      objects as described above.
+    * Values of `ServiceApplicationSP`, `ClientApplicationSP` and `AksApplicationSP` keys should be Service
+      Principal objects as described above.
+    * `AksApplicationRbacSecret` is client secret (password) of AksApplication.
+
+    ``` json
+    "ApplicationRegistration": {
+      "ServiceApplication": "<Application object>",
+      "ServiceApplicationSP": "<Service Principal object>",
+      "ClientApplication": "<Application object>",
+      "ClientApplicationSP": "<Service Principal object>",
+      "AksApplication": "<Application object>",
+      "AksApplicationSP": "<Service Principal object>",
+      "AksApplicationRbacSecret": "<string>"
+    },
+    ```
+
 ## Deployed Resources
 
 ### AKS
@@ -417,10 +558,10 @@ Currently `Microsoft.Azure.IIoT.Deployment` application deploys predefined Azure
 iterations we will provide a way to re-use existing Azure resources and specifying you own definitions of
 resources.
 
-### UI For Microsoft.Azure.IIoT.Deployment
+### User Interface
 
-We plan to add an interactive UI experience that will guide you through deployment steps. This will be
-available only on Windows.
+We plan to add an interactive UI experience for `Microsoft.Azure.IIoT.Deployment` that will guide you
+through deployment steps. This will be available only on Windows.
 
 ## Known Issues
 
