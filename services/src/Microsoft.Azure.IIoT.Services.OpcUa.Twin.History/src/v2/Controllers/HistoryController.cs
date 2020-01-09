@@ -18,7 +18,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Controllers {
     /// <summary>
     /// History raw access services
     /// </summary>
-    [Route(VersionInfo.PATH + "/history")]
+    [ApiVersion("2")][Route("v{version:apiVersion}/history")]
     [ExceptionsFilter]
     [Produces(ContentMimeType.Json)]
     [Authorize(Policy = Policies.CanUpdate)]

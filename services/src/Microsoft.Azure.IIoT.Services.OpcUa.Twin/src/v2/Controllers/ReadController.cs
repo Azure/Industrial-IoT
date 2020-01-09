@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.v2.Controllers {
     /// <summary>
     /// Node read services
     /// </summary>
-    [Route(VersionInfo.PATH + "/read")]
+    [ApiVersion("2")][Route("v{version:apiVersion}/read")]
     [ExceptionsFilter]
     [Produces(ContentMimeType.Json)]
     [Authorize(Policy = Policies.CanBrowse)]

@@ -196,11 +196,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             }
 
             var siteOrGatewayId = existing?.SiteOrGatewayId;
-            if (siteOrGatewayId != null) {
-                siteOrGatewayId = update?.SiteOrGatewayId;
-            }
             if (siteOrGatewayId == null) {
-                throw new ArgumentException(nameof(ApplicationRegistration.SiteOrGatewayId));
+                siteOrGatewayId = update?.SiteOrGatewayId;
+                if (siteOrGatewayId == null) {
+                    throw new ArgumentException(nameof(ApplicationRegistration.SiteOrGatewayId));
+                }
             }
 
             var applicationType = existing?.ApplicationType;

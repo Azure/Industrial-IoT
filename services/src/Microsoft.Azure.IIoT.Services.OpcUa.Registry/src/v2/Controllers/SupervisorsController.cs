@@ -21,7 +21,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Controllers {
     /// <summary>
     /// Read, Update and Query supervisor resources
     /// </summary>
-    [Route(VersionInfo.PATH + "/supervisors")]
+    [ApiVersion("2")][Route("v{version:apiVersion}/supervisors")]
     [ExceptionsFilter]
     [Produces(ContentMimeType.Json)]
     [Authorize(Policy = Policies.CanQuery)]

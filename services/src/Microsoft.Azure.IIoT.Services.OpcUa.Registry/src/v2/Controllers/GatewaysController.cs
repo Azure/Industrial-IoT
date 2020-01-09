@@ -21,7 +21,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Controllers {
     /// <summary>
     /// Read, Update and Query Gateway resources
     /// </summary>
-    [Route(VersionInfo.PATH + "/Gateways")]
+    [ApiVersion("2")][Route("v{version:apiVersion}/gateways")]
     [ExceptionsFilter]
     [Produces(ContentMimeType.Json)]
     [Authorize(Policy = Policies.CanQuery)]

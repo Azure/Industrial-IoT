@@ -14,7 +14,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge.v2.Controllers {
     /// <summary>
     /// Agent heartbeat controller
     /// </summary>
-    [Route(VersionInfo.PATH + "/heartbeat")]
+    [ApiVersion("2")][Route("v{version:apiVersion}/heartbeat")]
     [ExceptionsFilter]
     [Produces(ContentMimeType.Json)]
     [ApiController]

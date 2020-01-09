@@ -11,9 +11,9 @@ namespace Microsoft.AspNetCore.Mvc.Controllers {
     using System.Security.Claims;
 
     /// <summary>
-    /// Api descriptor extensions
+    /// Controller descriptor extensions
     /// </summary>
-    public static class ApiDescriptorEx {
+    public static class ControllerDescriptorEx {
 
         /// <summary>
         /// Retrieve claims from descriptor
@@ -41,6 +41,39 @@ namespace Microsoft.AspNetCore.Mvc.Controllers {
                 claims = claims.Append(ClaimTypes.Authentication);
             }
             return claims.Distinct();
+        }
+
+        /// <summary>
+        /// Retrieve versions from descriptor
+        /// </summary>
+        /// <param name="descriptor"></param>
+        /// <returns></returns>
+        public static IEnumerable<string> GetApiVersions(
+            this ControllerActionDescriptor descriptor) {
+            var attributes = descriptor.ControllerTypeInfo.GetCustomAttributes(false)
+                .OfType<ApiVersionAttribute>();
+            return attributes
+                .SelectMany(attr => attr.Versions
+                    .Select(v => v.ToString()))
+                .Distinct();
+        }
+
+        /// <summary>
+        /// Matches version string
+        /// </summary>
+        /// <param name="descriptor"></param>
+        /// <param name="version"></param>
+        /// <returns></returns>
+        public static bool MatchesVersion(this ControllerActionDescriptor descriptor,
+            string version) {
+            var versions = descriptor.GetApiVersions();
+            var maps = descriptor.MethodInfo.GetCustomAttributes(false)
+                .OfType<MapToApiVersionAttribute>()
+                .SelectMany(attr => attr.Versions
+                    .Select(v => v.ToString()))
+                .ToArray();
+            return versions.Any(v => $"v{v}" == version) &&
+                (!maps.Any() || maps.Any(v => $"v{v}" == version));
         }
 
         /// <summary>

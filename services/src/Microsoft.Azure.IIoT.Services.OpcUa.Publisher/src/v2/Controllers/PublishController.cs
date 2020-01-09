@@ -20,7 +20,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.v2.Controllers {
     /// <summary>
     /// Value and Event publishing services
     /// </summary>
-    [Route(VersionInfo.PATH + "/publish")]
+    [ApiVersion("2")][Route("v{version:apiVersion}/publish")]
     [ExceptionsFilter]
     [Produces(ContentMimeType.Json)]
     [Authorize(Policy = Policies.CanPublish)]

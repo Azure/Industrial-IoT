@@ -6,14 +6,14 @@
 namespace Microsoft.OpenApi.Models {
     using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
     using Microsoft.Azure.IIoT.Auth.Server;
-    using Microsoft.Azure.IIoT.Http;
     using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Hosting.Server;
+    using Microsoft.AspNetCore.Hosting.Server.Features;
+    using Microsoft.AspNetCore.Mvc.Infrastructure;
     using Microsoft.Extensions.DependencyInjection;
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using Microsoft.AspNetCore.Hosting.Server;
-    using Microsoft.AspNetCore.Hosting.Server.Features;
 
     /// <summary>
     /// Enable OpenApi
@@ -24,12 +24,8 @@ namespace Microsoft.OpenApi.Models {
         /// Use swagger in application
         /// </summary>
         /// <param name="app"></param>
-        /// <param name="infos"></param>
-        public static void UseSwagger(this IApplicationBuilder app, params OpenApiInfo[] infos) {
+        public static void UseSwagger(this IApplicationBuilder app) {
 
-            if (infos == null) {
-                throw new ArgumentNullException(nameof(infos));
-            }
 
             var config = app.ApplicationServices.GetRequiredService<IOpenApiConfig>();
             var server = app.ApplicationServices.GetRequiredService<IServer>();
@@ -68,6 +64,9 @@ namespace Microsoft.OpenApi.Models {
             if (!config.UIEnabled) {
                 return;
             }
+
+            var api = app.ApplicationServices.GetRequiredService<IActionDescriptorCollectionProvider>();
+            var infos = api.GetOpenApiInfos(null, null);
 
             // Where to host the ui
             var basePath = string.IsNullOrEmpty(path) ? "" : "/" + path;

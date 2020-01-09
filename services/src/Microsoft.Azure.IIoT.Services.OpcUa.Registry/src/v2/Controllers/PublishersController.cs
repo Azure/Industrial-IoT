@@ -21,7 +21,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Controllers {
     /// <summary>
     /// Read, Update and Query publisher resources
     /// </summary>
-    [Route(VersionInfo.PATH + "/publishers")]
+    [ApiVersion("2")][Route("v{version:apiVersion}/publishers")]
     [ExceptionsFilter]
     [Produces(ContentMimeType.Json)]
     [Authorize(Policy = Policies.CanQuery)]

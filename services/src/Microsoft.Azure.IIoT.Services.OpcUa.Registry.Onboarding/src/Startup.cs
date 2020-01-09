@@ -111,12 +111,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding {
                         Environment.IsDevelopment()));
                     options.SerializerSettings.MaxDepth = 10;
                 });
-
-            services.AddSwagger(Config, new OpenApiInfo {
-                Title = ServiceInfo.Name,
-                Version = VersionInfo.PATH,
-                Description = ServiceInfo.Description,
-            });
+            services.AddSwagger(Config, ServiceInfo.Name, ServiceInfo.Description);
         }
 
 
@@ -143,11 +138,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding {
             }
 
             app.UseCorrelation();
-            app.UseSwagger(new OpenApiInfo {
-                Title = ServiceInfo.Name,
-                Version = VersionInfo.PATH,
-                Description = ServiceInfo.Description,
-            });
+            app.UseSwagger();
 
             app.UseEndpoints(endpoints => {
                 endpoints.MapControllers();

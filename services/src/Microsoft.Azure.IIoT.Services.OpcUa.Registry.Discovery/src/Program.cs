@@ -136,17 +136,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Discovery {
             builder.RegisterModule<RegistryServices>();
             builder.RegisterType<DiscoveryRequestHandler>()
                 .AsImplementedInterfaces().SingleInstance();
-#if USE_JOBS
-            builder.RegisterType<DiscoveryJobClient>()
-                .AsImplementedInterfaces().SingleInstance();
-#else
             builder.RegisterType<DiscoveryMultiplexer>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<DiscovererClient>()
                 .AsImplementedInterfaces().SingleInstance();
-#endif
-
-            // ... Add more jobs
 
             return builder;
         }

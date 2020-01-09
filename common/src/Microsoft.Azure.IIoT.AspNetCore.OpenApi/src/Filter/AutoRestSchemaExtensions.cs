@@ -14,7 +14,16 @@ namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi {
     /// <summary>
     /// Add extensions for autorest to schemas
     /// </summary>
-    internal class AutoRestSchemaExtensions : ISchemaFilter, IParameterFilter {
+    internal class AutoRestSchemaExtensions : ISchemaFilter, IParameterFilter, IDocumentFilter {
+
+        /// <inheritdoc/>
+        public void Apply(OpenApiDocument doc, DocumentFilterContext context) {
+            var paths = new OpenApiPaths();
+            foreach (var path in doc.Paths) {
+                paths.Add(path.Key.Replace("v{version}", doc.Info.Version), path.Value);
+            }
+            doc.Paths = paths;
+        }
 
         /// <inheritdoc/>
         public void Apply(OpenApiSchema model, SchemaFilterContext context) {

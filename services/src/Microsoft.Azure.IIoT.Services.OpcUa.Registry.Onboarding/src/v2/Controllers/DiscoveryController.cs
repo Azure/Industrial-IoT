@@ -18,7 +18,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding.v2.Controllers
     /// <summary>
     /// Handle discovery events and onboard applications
     /// </summary>
-    [Route(VersionInfo.PATH + "/discovery")]
+    [ApiVersion("2")][Route("v{version:apiVersion}/discovery")]
     [ExceptionsFilter]
     [Produces(ContentMimeType.Json)]
     [Authorize(Policy = Policies.CanOnboard)]

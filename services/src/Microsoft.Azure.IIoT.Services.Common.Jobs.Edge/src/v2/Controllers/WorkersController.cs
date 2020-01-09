@@ -14,7 +14,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge.v2.Controllers {
     /// <summary>
     /// Workers jobs controller
     /// </summary>
-    [Route(VersionInfo.PATH + "/workers")]
+    [ApiVersion("2")][Route("v{version:apiVersion}/workers")]
     [ExceptionsFilter]
     [Produces(ContentMimeType.Json)]
     [ApiController]

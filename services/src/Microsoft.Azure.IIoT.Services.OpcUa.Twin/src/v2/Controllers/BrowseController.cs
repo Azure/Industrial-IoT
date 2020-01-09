@@ -21,7 +21,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.v2.Controllers {
     /// <summary>
     /// Browse nodes services
     /// </summary>
-    [Route(VersionInfo.PATH + "/browse")]
+    [ApiVersion("2")][Route("v{version:apiVersion}/browse")]
     [ExceptionsFilter]
     [Produces(ContentMimeType.Json)]
     [Authorize(Policy = Policies.CanBrowse)]

@@ -21,7 +21,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Controllers {
     /// Trust group services.
     /// </summary>
     [ExceptionsFilter]
-    [Route(VersionInfo.PATH + "/groups")]
+    [ApiVersion("2")]
+    [Route("v{version:apiVersion}/groups")]
     [Produces(ContentMimeType.Json)]
     [Authorize(Policy = Policies.CanRead)]
     [ApiController]

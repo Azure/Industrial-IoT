@@ -19,7 +19,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Controllers {
     /// services.
     /// </summary>
     [ExceptionsFilter]
-    [Route(VersionInfo.PATH)]
+    [ApiVersion("2")]
+    [Route("v{version:apiVersion}")]
     [ApiController]
     public sealed class DistributionController : ControllerBase {
 

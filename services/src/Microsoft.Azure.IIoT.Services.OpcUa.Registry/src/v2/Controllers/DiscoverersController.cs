@@ -22,19 +22,19 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Controllers {
     /// <summary>
     /// Configure discovery
     /// </summary>
-    [Route(VersionInfo.PATH + "/discovery")]
+    [ApiVersion("2")][Route("v{version:apiVersion}/discovery")]
     [ExceptionsFilter]
     [Produces(ContentMimeType.Json)]
     [Authorize(Policy = Policies.CanQuery)]
     [ApiController]
-    public class DiscoveryController : ControllerBase {
+    public class DiscoverersController : ControllerBase {
 
         /// <summary>
         /// Create controller for discovery services
         /// </summary>
         /// <param name="discoverers"></param>
         /// <param name="events"></param>
-        public DiscoveryController(IDiscovererRegistry discoverers,
+        public DiscoverersController(IDiscovererRegistry discoverers,
             IGroupRegistration events) {
             _discoverers = discoverers;
             _events = events;

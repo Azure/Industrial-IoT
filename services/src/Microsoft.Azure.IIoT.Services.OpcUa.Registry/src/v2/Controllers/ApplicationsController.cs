@@ -22,7 +22,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Controllers {
     /// <summary>
     /// CRUD and Query application resources
     /// </summary>
-    [Route(VersionInfo.PATH + "/applications")]
+    [ApiVersion("2")][Route("v{version:apiVersion}/applications")]
     [ExceptionsFilter]
     [Produces(ContentMimeType.Json)]
     [Authorize(Policy = Policies.CanQuery)]

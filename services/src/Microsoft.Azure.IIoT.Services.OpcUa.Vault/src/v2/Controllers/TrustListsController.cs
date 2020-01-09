@@ -19,7 +19,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Controllers {
     /// Trust lists services.
     /// </summary>
     [ExceptionsFilter]
-    [Route(VersionInfo.PATH + "/trustlists")]
+    [ApiVersion("2")]
+    [Route("v{version:apiVersion}/trustlists")]
     [Produces(ContentMimeType.Json)]
     [Authorize(Policy = Policies.CanRead)]
     [ApiController]

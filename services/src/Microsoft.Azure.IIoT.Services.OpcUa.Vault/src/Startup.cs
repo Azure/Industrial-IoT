@@ -120,13 +120,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
                     options.SerializerSettings.MaxDepth = 10;
                 });
 
-            services.AddApplicationInsightsTelemetry(Config.Configuration);
-
-            services.AddSwagger(Config, new OpenApiInfo {
-                Title = ServiceInfo.Name,
-                Version = VersionInfo.PATH,
-                Description = ServiceInfo.Description,
-            });
+            services.AddSwagger(Config, ServiceInfo.Name, ServiceInfo.Description);
         }
 
 
@@ -153,11 +147,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
             }
 
             app.UseCorrelation();
-            app.UseSwagger(new OpenApiInfo {
-                Title = ServiceInfo.Name,
-                Version = VersionInfo.PATH,
-                Description = ServiceInfo.Description,
-            });
+            app.UseSwagger();
 
             app.UseEndpoints(endpoints => {
                 endpoints.MapControllers();

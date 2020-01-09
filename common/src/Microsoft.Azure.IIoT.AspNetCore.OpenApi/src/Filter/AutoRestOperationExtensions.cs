@@ -18,6 +18,10 @@ namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi {
 
         /// <inheritdoc/>
         public virtual void Apply(OpenApiOperation operation, OperationFilterContext context) {
+            var versionParameter = operation.Parameters.SingleOrDefault(p => p.Name == "version");
+            if (versionParameter != null) {
+                operation.Parameters.Remove(versionParameter);
+            }
             var name = context.MethodInfo.Name;
             if (name.EndsWith("Async", StringComparison.InvariantCultureIgnoreCase)) {
                 var autoOperationId = name.Substring(0, name.Length - 5);

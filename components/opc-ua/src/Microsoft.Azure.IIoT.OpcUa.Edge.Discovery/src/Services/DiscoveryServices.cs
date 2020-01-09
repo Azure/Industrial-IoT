@@ -379,7 +379,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
             DiscoveryRequest request, Dictionary<IPEndPoint, Uri> discoveryUrls,
             List<string> locales) {
             var discovered = new List<ApplicationRegistrationModel>();
-            var supervisorId = SupervisorModelEx.CreateSupervisorId(_events.DeviceId,
+            var discovererId = DiscovererModelEx.CreateDiscovererId(_events.DeviceId,
                 _events.ModuleId);
 
             var count = 0;
@@ -400,7 +400,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
                 var endpoints = 0;
                 foreach (var ep in eps) {
                     discovered.AddOrUpdate(ep.ToServiceModel(item.Key.ToString(),
-                        _events.SiteId, supervisorId));
+                        _events.SiteId, discovererId));
                     endpoints++;
                 }
                 _progress.OnFindEndpointsFinished(request.Request, 1, count, discoveryUrls.Count,

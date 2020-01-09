@@ -88,6 +88,14 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge {
             services.AddHealthChecks();
             services.AddDistributedMemoryCache();
 
+            // TODO: Remove http client factory and use
+            // services.AddHttpClient();
+
+            services.AddHttpContextAccessor();
+            services.AddAuthentication("DeviceTokenAuth")
+                .AddScheme<AuthenticationSchemeOptions, IdentityTokenAuthenticationHandler>(
+                    "DeviceTokenAuth", null);
+
             // Add controllers as services so they'll be resolved.
             services.AddControllers()
                 .AddNewtonsoftJson(options => {
@@ -96,21 +104,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge {
                         Environment.IsDevelopment()));
                     options.SerializerSettings.MaxDepth = 10;
                 });
-
-            // TODO: Remove http client factory and use
-            // services.AddHttpClient();
-
-            services.AddHttpContextAccessor();
-            services.AddAuthentication("DeviceTokenAuth")
-                .AddScheme<AuthenticationSchemeOptions, IdentityTokenAuthenticationHandler>(
-                    "DeviceTokenAuth", null);
-            services.AddDistributedMemoryCache();
-
-            services.AddSwagger(Config, new OpenApiInfo {
-                Title = ServiceInfo.Name,
-                Version = VersionInfo.PATH,
-                Description = ServiceInfo.Description,
-            });
+            services.AddSwagger(Config, ServiceInfo.Name, ServiceInfo.Description);
         }
 
         /// <summary>
@@ -136,11 +130,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge {
             }
 
             app.UseCorrelation();
-            app.UseSwagger(new OpenApiInfo {
-                Title = ServiceInfo.Name,
-                Version = VersionInfo.PATH,
-                Description = ServiceInfo.Description,
-            });
+            app.UseSwagger();
 
             app.UseEndpoints(endpoints => {
                 endpoints.MapControllers();

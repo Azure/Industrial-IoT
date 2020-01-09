@@ -42,7 +42,7 @@ namespace Microsoft.Azure.IIoT.Services.Auth {
             }
 
             // Allow access to context from within token providers and other client auth
-            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddHttpContextAccessor();
 
             // Add jwt bearer auth
             services

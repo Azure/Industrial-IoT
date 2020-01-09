@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Controllers {
     /// <summary>
     /// History replace services
     /// </summary>
-    [Route(VersionInfo.PATH + "/replace")]
+    [ApiVersion("2")][Route("v{version:apiVersion}/replace")]
     [ExceptionsFilter]
     [Produces(ContentMimeType.Json)]
     [Authorize(Policy = Policies.CanUpdate)]
