@@ -25,7 +25,8 @@ Azure Industrial IoT manages OPC UA Application Certificates and Trust Lists of 
 Check out the Azure Industrial IoT platform [architecture](architecture.md) and [flow](architecture-flow.md).  The Platform includes several [Azure IoT Edge modules](modules/readme.md), which can be [deployed](howto-deploy-modules.md) and used in conjunction with the included cloud services, or standalone with Azure IoT Hub (but with limited functionality).   These include:
 
 - [OPC Publisher](modules/publisher.md)
-- [OPC Twin](modules/twin.md)
+- [OPC Twin](modules/twin.md) and
+- [Discovery module](modules/discovery.md)
 
 ## Deploying Azure Industrial IoT
 
