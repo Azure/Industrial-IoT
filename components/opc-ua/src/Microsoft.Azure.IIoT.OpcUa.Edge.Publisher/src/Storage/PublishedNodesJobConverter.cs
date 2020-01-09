@@ -247,7 +247,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
             /// </summary>
             [JsonIgnore]
             public TimeSpan? HeartbeatIntervalTimespan {
-                get => HeartbeatInterval.HasValue ? TimeSpan.FromSeconds(OpcPublishingInterval.Value) : (TimeSpan?)null;
+                get => HeartbeatInterval.HasValue ? TimeSpan.FromSeconds(HeartbeatInterval.Value) : (TimeSpan?)null;
                 set => HeartbeatInterval = value != null ? (int)value.Value.TotalSeconds : (int?)null;
             }
 
