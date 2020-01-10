@@ -1989,7 +1989,8 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                 ApplicationType = options.GetValueOrDefault<ApplicationType>("-t", "--type", null),
                 ApplicationName = options.GetValueOrDefault<string>("-n", "--name", null),
                 Locale = options.GetValueOrDefault<string>("-l", "--locale", null),
-                IncludeNotSeenSince = options.IsProvidedOrNull("-d", "--deleted")
+                IncludeNotSeenSince = options.IsProvidedOrNull("-d", "--deleted"),
+                DiscovererId = options.GetValueOrDefault<string>("-D", "--discovererId", null)
             };
             if (options.IsSet("-A", "--all")) {
                 var result = await _registry.QueryAllApplicationsAsync(query);
@@ -2740,13 +2741,16 @@ Commands and Options
 
      console     Run in interactive mode. Enter commands after the >
      exit        Exit interactive mode and thus the cli.
-     status      Print _twin status
+     status      Print status of services
      monitor     Monitor all events from all services
+
+     gateways    Manage edge gateways
+     publishers  Manage publisher modules
+     supervisors Manage twin modules
+     discoverers Manage discovery modules
 
      apps        Manage applications
      endpoints   Manage endpoints
-     supervisors Manage supervisors
-
      nodes       Call twin module services on endpoint
 
      groups      Manage trust groups (Experimental)
@@ -2834,6 +2838,8 @@ Commands and Options
         -s, --state     Application state (default to all)
         -p, --product   Product uri of the application
         -d, --deleted   Include soft deleted applications.
+        -D  --discovererId
+                        Onboarded from specified discoverer.
         -F, --format    Json format for result
 
      get         Get application

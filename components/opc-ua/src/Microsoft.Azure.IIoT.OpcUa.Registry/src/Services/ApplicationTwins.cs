@@ -60,6 +60,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 query += $"AND tags.{nameof(ApplicationRegistration.ApplicationName)} = " +
                     $"'{model.ApplicationName}' ";
             }
+            if (model?.DiscovererId != null) {
+                // If discoverer provided, include it in search
+                query += $"AND tags.{nameof(ApplicationRegistration.DiscovererId)} = " +
+                    $"'{model.DiscovererId}' ";
+            }
             if (model?.ProductUri != null) {
                 // If product uri provided, include it in search
                 query += $"AND tags.{nameof(ApplicationRegistration.ProductUri)} = " +

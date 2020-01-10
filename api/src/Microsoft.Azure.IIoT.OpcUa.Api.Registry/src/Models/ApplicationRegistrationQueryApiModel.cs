@@ -80,6 +80,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         [JsonProperty(PropertyName = "includeNotSeenSince",
             NullValueHandling = NullValueHandling.Ignore)]
         public bool? IncludeNotSeenSince { get; set; }
+
+        /// <summary>
+        /// Discoverer id to filter with
+        /// </summary>
+        [JsonProperty(PropertyName = "discovererId",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public string DiscovererId { get; set; }
     }
 }
 

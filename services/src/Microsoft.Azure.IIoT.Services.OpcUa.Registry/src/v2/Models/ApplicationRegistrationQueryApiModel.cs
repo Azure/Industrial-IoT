@@ -33,6 +33,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
             SiteOrGatewayId = model.SiteOrGatewayId;
             IncludeNotSeenSince = model.IncludeNotSeenSince;
             DiscoveryProfileUri = model.DiscoveryProfileUri;
+            DiscovererId = model.DiscovererId;
             GatewayServerUri = model.GatewayServerUri;
         }
 
@@ -51,6 +52,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
                 SiteOrGatewayId = SiteOrGatewayId,
                 IncludeNotSeenSince = IncludeNotSeenSince,
                 GatewayServerUri = GatewayServerUri,
+                DiscovererId = DiscovererId,
                 DiscoveryProfileUri = DiscoveryProfileUri
             };
         }
@@ -134,6 +136,13 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
             NullValueHandling = NullValueHandling.Ignore)]
         [DefaultValue(null)]
         public bool? IncludeNotSeenSince { get; set; }
+
+        /// <summary>
+        /// Discoverer id to filter with
+        /// </summary>
+        [JsonProperty(PropertyName = "discovererId",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public string DiscovererId { get; set; }
     }
 }
 
