@@ -30,7 +30,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
             ApplicationName = model.ApplicationName;
             Locale = model.Locale;
             Capability = model.Capability;
-            SiteOrSupervisorId = model.SiteOrGatewayId;
+            SiteOrGatewayId = model.SiteOrGatewayId;
             IncludeNotSeenSince = model.IncludeNotSeenSince;
             DiscoveryProfileUri = model.DiscoveryProfileUri;
             GatewayServerUri = model.GatewayServerUri;
@@ -48,7 +48,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
                 ApplicationName = ApplicationName,
                 Locale = Locale,
                 Capability = Capability,
-                SiteOrGatewayId = SiteOrSupervisorId,
+                SiteOrGatewayId = SiteOrGatewayId,
                 IncludeNotSeenSince = IncludeNotSeenSince,
                 GatewayServerUri = GatewayServerUri,
                 DiscoveryProfileUri = DiscoveryProfileUri
@@ -122,10 +122,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
         /// <summary>
         /// Supervisor or site the application belongs to.
         /// </summary>
-        [JsonProperty(PropertyName = "siteOrSupervisorId",
+        [JsonProperty(PropertyName = "siteOrGatewayId",
            NullValueHandling = NullValueHandling.Ignore)]
         [DefaultValue(null)]
-        public string SiteOrSupervisorId { get; set; }
+        public string SiteOrGatewayId { get; set; }
 
         /// <summary>
         /// Whether to include apps that were soft deleted

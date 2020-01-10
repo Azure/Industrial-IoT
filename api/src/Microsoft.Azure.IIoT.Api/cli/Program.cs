@@ -2150,13 +2150,18 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         private async Task QueryEndpointsAsync(CliOptions options) {
             var query = new EndpointRegistrationQueryApiModel {
                 Url = options.GetValueOrDefault<string>("-u", "--uri", null),
-                SecurityMode = options.GetValueOrDefault<OpcUa.Api.Registry.Models.SecurityMode>("-m", "--mode", null),
+                SecurityMode = options
+                    .GetValueOrDefault<OpcUa.Api.Registry.Models.SecurityMode>("-m", "--mode", null),
                 SecurityPolicy = options.GetValueOrDefault<string>("-l", "--policy", null),
                 Connected = options.IsProvidedOrNull("-c", "--connected"),
                 Activated = options.IsProvidedOrNull("-a", "--activated"),
                 EndpointState = options.GetValueOrDefault<EndpointConnectivityState>(
                     "-s", "--state", null),
-                IncludeNotSeenSince = options.IsProvidedOrNull("-d", "--deleted")
+                IncludeNotSeenSince = options.IsProvidedOrNull("-d", "--deleted"),
+                SupervisorId = options.GetValueOrDefault<string>("-T", "--supervisorId", null),
+                ApplicationId = options.GetValueOrDefault<string>("-R", "--applicationId", null),
+                SiteOrGatewayId = options.GetValueOrDefault<string>("-G", "--siteId", null),
+                DiscovererId = options.GetValueOrDefault<string>("-D", "--discovererId", null)
             };
             if (options.IsSet("-A", "--all")) {
                 var result = await _registry.QueryAllEndpointsAsync(query,
@@ -2910,6 +2915,13 @@ Commands and Options
         -c, --connected Only return connected or disconnected.
         -s, --state     Only return endpoints with specified state.
         -d, --deleted   Include soft deleted endpoints.
+        -T  --supervisorId
+                        Return endpoints with provided supervisor.
+        -R  --applicationId
+                        Return endpoints for specified Application.
+        -G  --siteId    Site or Gateway identifier to filter with.
+        -D  --discovererId
+                        Onboarded from specified discoverer.
         -P, --page-size Size of page
         -A, --all       Return all endpoints (unpaged)
         -F, --format    Json format for result

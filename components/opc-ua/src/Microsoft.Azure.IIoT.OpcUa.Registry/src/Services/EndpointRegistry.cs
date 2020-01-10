@@ -94,6 +94,26 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 query += $"AND tags.{nameof(EndpointRegistration.EndpointUrlLC)} = " +
                     $"'{model.Url.ToLowerInvariant()}' ";
             }
+            if (model?.ApplicationId != null) {
+                // If application id provided, include it in search
+                query += $"AND tags.{nameof(EndpointRegistration.ApplicationId)} = " +
+                    $"'{model.ApplicationId}' ";
+            }
+            if (model?.SupervisorId != null) {
+                // If supervisor provided, include it in search
+                query += $"AND tags.{nameof(EndpointRegistration.SupervisorId)} = " +
+                    $"'{model.SupervisorId}' ";
+            }
+            if (model?.DiscovererId != null) {
+                // If discoverer provided, include it in search
+                query += $"AND tags.{nameof(EndpointRegistration.DiscovererId)} = " +
+                    $"'{model.DiscovererId}' ";
+            }
+            if (model?.SiteOrGatewayId != null) {
+                // If site or gateway provided, include it in search
+                query += $"AND tags.{nameof(EntityRegistration.SiteOrGatewayId)} = " +
+                    $"'{model.SiteOrGatewayId}' ";
+            }
             if (model?.Certificate != null) {
                 // If cert provided, include it in search
                 query += $"AND tags.{nameof(EntityRegistration.Thumbprint)} = " +

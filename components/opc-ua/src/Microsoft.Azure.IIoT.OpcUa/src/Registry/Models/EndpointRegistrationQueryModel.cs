@@ -50,6 +50,26 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// Whether to include endpoints that were soft deleted
         /// </summary>
         public bool? IncludeNotSeenSince { get; set; }
+
+        /// <summary>
+        /// Discoverer id to filter with
+        /// </summary>
+        public string DiscovererId { get; set; }
+
+        /// <summary>
+        /// Application id to filter
+        /// </summary>
+        public string ApplicationId { get; set; }
+
+        /// <summary>
+        /// Supervisor id to filter with
+        /// </summary>
+        public string SupervisorId { get; set; }
+
+        /// <summary>
+        /// Site or gateway id to filter with
+        /// </summary>
+        public string SiteOrGatewayId { get; set; }
     }
 }
 
