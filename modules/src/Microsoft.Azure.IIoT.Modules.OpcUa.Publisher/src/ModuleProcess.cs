@@ -30,7 +30,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
     /// Publisher module
     /// </summary>
     public class ModuleProcess : IProcessControl {
-        
+
         /// <summary>
         /// Create process
         /// </summary>
@@ -132,37 +132,41 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
             builder.RegisterModule<AgentFramework>();
             builder.RegisterModule<ModuleFramework>();
 
-            LoggerConfiguration loggerConfiguration = null;
-
             if (legacyCliOptions.RunInLegacyMode) {
-                loggerConfiguration = legacyCliOptions.ToLoggerConfiguration();
+                builder.AddDiagnostics(config,
+                    legacyCliOptions.ToLoggerConfiguration());
+                builder.RegisterInstance(legacyCliOptions)
+                    .AsImplementedInterfaces();
 
-                // we overwrite the ModuleHost registration from PerLifetimeScope 
+                // we overwrite the ModuleHost registration from PerLifetimeScope
                 // (in builder.RegisterModule<ModuleFramework>) to Singleton as
                 // we want to reuse the Client from the ModuleHost in sub-scopes.
                 builder.RegisterType<ModuleHost>()
                     .AsImplementedInterfaces().SingleInstance();
-
-                builder.RegisterInstance(legacyCliOptions)
-                    .AsImplementedInterfaces();
-                builder.RegisterType<PublishedNodesJobConverter>()
-                    .SingleInstance();
+                // Local orchestrator
                 builder.RegisterType<LegacyJobOrchestrator>()
                     .AsImplementedInterfaces().SingleInstance();
+
+                // Create jobs from published nodes file
+                builder.RegisterType<PublishedNodesJobConverter>()
+                    .SingleInstance();
             }
             else {
-                // Use cloud job manager
+                builder.AddDiagnostics(config);
+
+                // Client instance per job
+                builder.RegisterType<PerDependencyClientAccessor>()
+                    .AsImplementedInterfaces().InstancePerLifetimeScope();
+                // Cloud job manager
                 builder.RegisterType<JobOrchestratorClient>()
                     .AsImplementedInterfaces().SingleInstance();
-                    
+
                 // ... plus controllers
                 builder.RegisterType<ConfigurationSettingsController>()
                     .AsImplementedInterfaces().SingleInstance();
                 builder.RegisterType<IdentityTokenSettingsController>()
                     .AsImplementedInterfaces().SingleInstance();
             }
-
-            builder.AddDiagnostics(config, loggerConfiguration);
 
             // Opc specific parts
             builder.RegisterType<DefaultSessionManager>()

@@ -55,7 +55,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
 
         /// <inheritdoc/>
         public Task<IWorker> CreateWorker() {
-            var maxWorkers = _agentConfigProvider.Config?.MaxWorkers ?? 1;
+            var maxWorkers = _agentConfigProvider.Config?.MaxWorkers ?? kDefaultWorkers;
             if (_instances.Count >= maxWorkers) {
                 throw new MaxWorkersReachedException(maxWorkers);
             }
@@ -107,7 +107,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
         private async Task EnsureWorkersAsync() {
             var workerStartTasks = new List<Task>();
 
-            var maxWorkers = _agentConfigProvider.Config?.MaxWorkers ?? 1;
+            var maxWorkers = _agentConfigProvider.Config?.MaxWorkers ?? kDefaultWorkers;
             while (_instances.Count < maxWorkers) {
                 _logger.Information("Creating new worker...");
                 var worker = await CreateWorker();
@@ -120,6 +120,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
             await Task.WhenAll(workerStartTasks);
         }
 
+        private const int kDefaultWorkers = 5; // TODO - single listener, dynamic workers.
         private readonly IAgentConfigProvider _agentConfigProvider;
         private readonly Timer _ensureWorkerRunningTimer;
         private readonly Dictionary<IWorker, ILifetimeScope> _instances = new Dictionary<IWorker, ILifetimeScope>();

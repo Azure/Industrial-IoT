@@ -29,9 +29,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <param name="clientAccessor"></param>
         /// <param name="logger"></param>
         public IoTHubMessageSink(IClientAccessor clientAccessor, ILogger logger) {
-            _client = clientAccessor.Client;
-            // TODO : Use higher level abstraction in module framework to send
-            _logger = logger;
+            _clientAccessor = clientAccessor
+                ?? throw new ArgumentNullException(nameof(clientAccessor));
+            _logger = logger
+                ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <inheritdoc/>
@@ -62,10 +63,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 sw.Start();
 
                 if (messagesCount == 1) {
-                    await _client.SendEventAsync(messageObjects.First());
+                    await _clientAccessor.Client.SendEventAsync(messageObjects.First());
                 }
                 else {
-                    await _client.SendEventBatchAsync(messageObjects);
+                    await _clientAccessor.Client.SendEventBatchAsync(messageObjects);
                 }
 
                 sw.Stop();
@@ -112,6 +113,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
         private const long kMessageCounterResetThreshold = long.MaxValue - 10000;
         private readonly ILogger _logger;
-        private readonly IClient _client;
+        private readonly IClientAccessor _clientAccessor;
     }
 }
