@@ -107,7 +107,7 @@ Application information
 |**includeNotSeenSince**  <br>*optional*|Whether to include apps that were soft deleted|boolean|
 |**locale**  <br>*optional*|Locale of application name - default is "en"|string|
 |**productUri**  <br>*optional*|Product uri|string|
-|**siteOrSupervisorId**  <br>*optional*|Supervisor or site the application belongs to.|string|
+|**siteOrGatewayId**  <br>*optional*|Supervisor or site the application belongs to.|string|
 
 
 <a name="applicationregistrationrequestapimodel"></a>
@@ -389,12 +389,16 @@ Endpoint query
 |Name|Description|Schema|
 |---|---|---|
 |**activated**  <br>*optional*|Whether the endpoint was activated|boolean|
+|**applicationId**  <br>*optional*|Application id to filter|string|
 |**certificate**  <br>*optional*|Certificate of the endpoint  <br>**Pattern** : `"^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==\|[A-Za-z0-9+/]{3}=)?$"`|string (byte)|
 |**connected**  <br>*optional*|Whether the endpoint is connected on supervisor.|boolean|
+|**discovererId**  <br>*optional*|Discoverer id to filter with|string|
 |**endpointState**  <br>*optional*||[EndpointConnectivityStateNullable](definitions.md#endpointconnectivitystatenullable)|
 |**includeNotSeenSince**  <br>*optional*|Whether to include endpoints that were soft deleted|boolean|
 |**securityMode**  <br>*optional*||[SecurityModeNullable](definitions.md#securitymodenullable)|
 |**securityPolicy**  <br>*optional*|Security policy uri|string|
+|**siteOrGatewayId**  <br>*optional*|Site or gateway id to filter with|string|
+|**supervisorId**  <br>*optional*|Supervisor id to filter with|string|
 |**url**  <br>*optional*|Endoint url for direct server access|string|
 
 

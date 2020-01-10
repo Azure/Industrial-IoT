@@ -1506,6 +1506,30 @@
           },
           {
             "in": "query",
+            "name": "discovererId",
+            "description": "Discoverer id to filter with",
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "applicationId",
+            "description": "Application id to filter",
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "supervisorId",
+            "description": "Supervisor id to filter with",
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "siteOrGatewayId",
+            "description": "Site or gateway id to filter with",
+            "type": "string"
+          },
+          {
+            "in": "query",
             "name": "onlyServerState",
             "description": "Whether to include only server state, or display current client state of the endpoint if available",
             "type": "boolean"
@@ -3290,7 +3314,7 @@
           "description": "Gateway server uri",
           "type": "string"
         },
-        "siteOrSupervisorId": {
+        "siteOrGatewayId": {
           "description": "Supervisor or site the application belongs to.",
           "type": "string"
         },
@@ -3608,6 +3632,22 @@
         "includeNotSeenSince": {
           "description": "Whether to include endpoints that were soft deleted",
           "type": "boolean"
+        },
+        "discovererId": {
+          "description": "Discoverer id to filter with",
+          "type": "string"
+        },
+        "applicationId": {
+          "description": "Application id to filter",
+          "type": "string"
+        },
+        "supervisorId": {
+          "description": "Supervisor id to filter with",
+          "type": "string"
+        },
+        "siteOrGatewayId": {
+          "description": "Site or gateway id to filter with",
+          "type": "string"
         }
       }
     },

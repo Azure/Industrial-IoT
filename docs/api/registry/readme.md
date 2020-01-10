@@ -1338,14 +1338,18 @@ Get a list of endpoints filtered using the specified query parameters. The retur
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Query**|**activated**  <br>*optional*|Whether the endpoint was activated|boolean|
+|**Query**|**applicationId**  <br>*optional*|Application id to filter|string|
 |**Query**|**certificate**  <br>*optional*|Certificate of the endpoint|string (byte)|
 |**Query**|**connected**  <br>*optional*|Whether the endpoint is connected on supervisor.|boolean|
+|**Query**|**discovererId**  <br>*optional*|Discoverer id to filter with|string|
 |**Query**|**endpointState**  <br>*optional*|The last state of the the activated endpoint|enum (Connecting, NotReachable, Busy, NoTrust, CertificateInvalid, Ready, Error)|
 |**Query**|**includeNotSeenSince**  <br>*optional*|Whether to include endpoints that were soft deleted|boolean|
 |**Query**|**onlyServerState**  <br>*optional*|Whether to include only server state, or display current client state of the endpoint if available|boolean|
 |**Query**|**pageSize**  <br>*optional*|Optional number of results to return|integer (int32)|
 |**Query**|**securityMode**  <br>*optional*|Security Mode|enum (Best, Sign, SignAndEncrypt, None)|
 |**Query**|**securityPolicy**  <br>*optional*|Security policy uri|string|
+|**Query**|**siteOrGatewayId**  <br>*optional*|Site or gateway id to filter with|string|
+|**Query**|**supervisorId**  <br>*optional*|Supervisor id to filter with|string|
 |**Query**|**url**  <br>*optional*|Endoint url for direct server access|string|
 
 
