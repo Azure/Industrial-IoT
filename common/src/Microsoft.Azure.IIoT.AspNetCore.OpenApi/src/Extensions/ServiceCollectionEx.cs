@@ -55,7 +55,8 @@ namespace Microsoft.OpenApi.Models {
 
                 // Add autorest extensions
                 options.SchemaFilter<AutoRestSchemaExtensions>();
-                options.DocumentFilter<AutoRestSchemaExtensions>();
+                options.ParameterFilter<AutoRestSchemaExtensions>();
+                options.DocumentFilter<ApiVersionExtensions>();
 
                 // Ensure the routes are added to the right Swagger doc
                 options.DocInclusionPredicate((version, descriptor) => {

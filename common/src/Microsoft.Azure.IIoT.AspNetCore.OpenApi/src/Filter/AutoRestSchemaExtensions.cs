@@ -10,20 +10,12 @@ namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi {
     using Microsoft.OpenApi.Models;
     using Microsoft.OpenApi.Interfaces;
     using Microsoft.OpenApi.Any;
+    using System.Linq;
 
     /// <summary>
     /// Add extensions for autorest to schemas
     /// </summary>
-    internal class AutoRestSchemaExtensions : ISchemaFilter, IParameterFilter, IDocumentFilter {
-
-        /// <inheritdoc/>
-        public void Apply(OpenApiDocument doc, DocumentFilterContext context) {
-            var paths = new OpenApiPaths();
-            foreach (var path in doc.Paths) {
-                paths.Add(path.Key.Replace("v{version}", doc.Info.Version), path.Value);
-            }
-            doc.Paths = paths;
-        }
+    internal class AutoRestSchemaExtensions : ISchemaFilter, IParameterFilter {
 
         /// <inheritdoc/>
         public void Apply(OpenApiSchema model, SchemaFilterContext context) {
@@ -32,7 +24,41 @@ namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi {
 
         /// <inheritdoc/>
         public void Apply(OpenApiParameter parameter, ParameterFilterContext context) {
-            AddExtension(context.ParameterInfo.ParameterType, parameter.Extensions);
+            //
+            // fix current bug where properties are not added correctly
+            // Lookup property schema in schema repo
+            //
+            if (context.PropertyInfo != null) {
+                // Query was passed a parameter with properties
+                var propertySchema = context.SchemaRepository.Schemas
+                    .Where(p => p.Key.EqualsIgnoreCase(context.ParameterInfo.ParameterType.Name))
+                    .SelectMany(p => p.Value.Properties)
+                    .Where(p => p.Key.EqualsIgnoreCase(context.PropertyInfo.Name))
+                    .FirstOrDefault();
+                if (propertySchema.Value != null) {
+                    // Replace parameter definition with property schema
+                    parameter.Name = propertySchema.Key;
+                    parameter.Schema = propertySchema.Value;
+                    parameter.Extensions = parameter.Schema.Extensions;
+                    parameter.Reference = parameter.Schema.Reference;
+                }
+            }
+            else if (context.ParameterInfo != null) {
+                // Query was passed a parameter with properties
+                var propertySchema = context.SchemaRepository.Schemas
+                    .Where(p => p.Key.EqualsIgnoreCase(context.ParameterInfo.ParameterType.Name))
+                    .FirstOrDefault();
+                if (propertySchema.Value != null) {
+                    // Replace parameter definition with property schema
+                    parameter.Name = propertySchema.Key;
+                    parameter.Schema = propertySchema.Value;
+                    parameter.Extensions = parameter.Schema.Extensions;
+                    parameter.Reference = parameter.Schema.Reference;
+                    return;
+                }
+                // Simple parameter was passed - lookup from repo
+                AddExtension(context.ParameterInfo.ParameterType, parameter.Extensions);
+            }
         }
 
         /// <summary>
@@ -43,6 +69,9 @@ namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi {
         /// <returns></returns>
         private static void AddExtension(Type paramType,
             IDictionary<string, IOpenApiExtension> extensions) {
+            if (paramType == null) {
+                return;
+            }
             if (paramType.IsGenericType &&
                 paramType.GetGenericTypeDefinition() == typeof(Nullable<>)) {
                 // Most of the model enums are nullable
