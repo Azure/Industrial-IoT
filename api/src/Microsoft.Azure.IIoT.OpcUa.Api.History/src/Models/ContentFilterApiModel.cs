@@ -11,7 +11,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
     /// <summary>
     /// Content filter
     /// </summary>
-    public class ContentFilterApiModel : JObject {
+    public class ContentFilterApiModel {
 
         /// <summary>
         /// The flat list of elements in the filter AST

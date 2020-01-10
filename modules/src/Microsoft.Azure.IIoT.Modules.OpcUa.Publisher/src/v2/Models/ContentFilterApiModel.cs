@@ -14,7 +14,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.v2.Models {
     /// <summary>
     /// Content filter
     /// </summary>
-    public class ContentFilterApiModel : JObject {
+    public class ContentFilterApiModel {
 
         /// <inheritdoc/>
         public ContentFilterApiModel() {

@@ -14,7 +14,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Models {
     /// <summary>
     /// Content filter
     /// </summary>
-    public class ContentFilterApiModel : JObject {
+    public class ContentFilterApiModel {
 
         /// <summary>
         /// Default constructor
