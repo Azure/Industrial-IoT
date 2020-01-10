@@ -29,7 +29,7 @@ class ValueReadResponseApiModel(Model):
     :type server_picoseconds: int
     :param server_timestamp: Timestamp of when value was read at server.
     :type server_timestamp: datetime
-    :param error_info: Service result in case of error
+    :param error_info:
     :type error_info: ~azure-iiot-opc-twin.models.ServiceResultApiModel
     """
 

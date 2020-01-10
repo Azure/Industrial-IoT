@@ -17,8 +17,8 @@ class ApplicationInfoApiModel(Model):
 
     :param application_id: Unique application id
     :type application_id: str
-    :param application_type: Type of application. Possible values include:
-     'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
+    :param application_type: Possible values include: 'Server', 'Client',
+     'ClientAndServer', 'DiscoveryServer'
     :type application_type: str or
      ~azure-iiot-opc-registry.models.ApplicationType
     :param application_uri: Unique application uri
@@ -45,13 +45,13 @@ class ApplicationInfoApiModel(Model):
     :type host_addresses: list[str]
     :param site_id: Site of the application
     :type site_id: str
-    :param supervisor_id: Supervisor having registered the application
-    :type supervisor_id: str
+    :param discoverer_id: Discoverer that registered the application
+    :type discoverer_id: str
     :param not_seen_since: Last time application was seen
     :type not_seen_since: datetime
-    :param created: Created
+    :param created:
     :type created: ~azure-iiot-opc-registry.models.RegistryOperationApiModel
-    :param updated: Updated
+    :param updated:
     :type updated: ~azure-iiot-opc-registry.models.RegistryOperationApiModel
     """
 
@@ -76,13 +76,13 @@ class ApplicationInfoApiModel(Model):
         'gateway_server_uri': {'key': 'gatewayServerUri', 'type': 'str'},
         'host_addresses': {'key': 'hostAddresses', 'type': '[str]'},
         'site_id': {'key': 'siteId', 'type': 'str'},
-        'supervisor_id': {'key': 'supervisorId', 'type': 'str'},
+        'discoverer_id': {'key': 'discovererId', 'type': 'str'},
         'not_seen_since': {'key': 'notSeenSince', 'type': 'iso-8601'},
         'created': {'key': 'created', 'type': 'RegistryOperationApiModel'},
         'updated': {'key': 'updated', 'type': 'RegistryOperationApiModel'},
     }
 
-    def __init__(self, application_id=None, application_type=None, application_uri=None, product_uri=None, application_name=None, locale=None, localized_names=None, certificate=None, capabilities=None, discovery_urls=None, discovery_profile_uri=None, gateway_server_uri=None, host_addresses=None, site_id=None, supervisor_id=None, not_seen_since=None, created=None, updated=None):
+    def __init__(self, application_id=None, application_type=None, application_uri=None, product_uri=None, application_name=None, locale=None, localized_names=None, certificate=None, capabilities=None, discovery_urls=None, discovery_profile_uri=None, gateway_server_uri=None, host_addresses=None, site_id=None, discoverer_id=None, not_seen_since=None, created=None, updated=None):
         super(ApplicationInfoApiModel, self).__init__()
         self.application_id = application_id
         self.application_type = application_type
@@ -98,7 +98,7 @@ class ApplicationInfoApiModel(Model):
         self.gateway_server_uri = gateway_server_uri
         self.host_addresses = host_addresses
         self.site_id = site_id
-        self.supervisor_id = supervisor_id
+        self.discoverer_id = discoverer_id
         self.not_seen_since = not_seen_since
         self.created = created
         self.updated = updated

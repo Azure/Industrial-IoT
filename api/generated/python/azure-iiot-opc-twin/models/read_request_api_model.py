@@ -18,7 +18,7 @@ class ReadRequestApiModel(Model):
     :param attributes: Attributes to read
     :type attributes:
      list[~azure-iiot-opc-twin.models.AttributeReadRequestApiModel]
-    :param header: Optional request header
+    :param header:
     :type header: ~azure-iiot-opc-twin.models.RequestHeaderApiModel
     """
 

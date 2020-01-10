@@ -18,8 +18,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class NodeApiModel {
     /**
-     * Type of node. Possible values include: 'Object', 'Variable', 'Method',
-     * 'ObjectType', 'VariableType', 'ReferenceType', 'DataType', 'View'.
+     * Possible values include: 'Object', 'Variable', 'Method', 'ObjectType',
+     * 'VariableType', 'ReferenceType', 'DataType', 'View'.
      */
     @JsonProperty(value = "nodeClass")
     private NodeClass nodeClass;
@@ -50,9 +50,8 @@ public class NodeApiModel {
     private String browseName;
 
     /**
-     * Node access restrictions if any.
-     * (default: none). Possible values include: 'SigningRequired',
-     * 'EncryptionRequired', 'SessionRequired'.
+     * Possible values include: 'SigningRequired', 'EncryptionRequired',
+     * 'SessionRequired'.
      */
     @JsonProperty(value = "accessRestrictions")
     private NodeAccessRestrictions accessRestrictions;
@@ -87,10 +86,8 @@ public class NodeApiModel {
     private Boolean containsNoLoops;
 
     /**
-     * If object or view and eventing, event notifier
-     * to subscribe to.
-     * (default: no events supported). Possible values include:
-     * 'SubscribeToEvents', 'HistoryRead', 'HistoryWrite'.
+     * Possible values include: 'SubscribeToEvents', 'HistoryRead',
+     * 'HistoryWrite'.
      */
     @JsonProperty(value = "eventNotifier")
     private NodeEventNotifier eventNotifier;
@@ -119,21 +116,17 @@ public class NodeApiModel {
     private Object dataTypeDefinition;
 
     /**
-     * Default access level for variable node.
-     * (default: 0). Possible values include: 'CurrentRead', 'CurrentWrite',
-     * 'HistoryRead', 'HistoryWrite', 'SemanticChange', 'StatusWrite',
-     * 'TimestampWrite', 'NonatomicRead', 'NonatomicWrite',
-     * 'WriteFullArrayOnly'.
+     * Possible values include: 'CurrentRead', 'CurrentWrite', 'HistoryRead',
+     * 'HistoryWrite', 'SemanticChange', 'StatusWrite', 'TimestampWrite',
+     * 'NonatomicRead', 'NonatomicWrite', 'WriteFullArrayOnly'.
      */
     @JsonProperty(value = "accessLevel")
     private NodeAccessLevel accessLevel;
 
     /**
-     * User access level for variable node or null.
-     * (default: 0). Possible values include: 'CurrentRead', 'CurrentWrite',
-     * 'HistoryRead', 'HistoryWrite', 'SemanticChange', 'StatusWrite',
-     * 'TimestampWrite', 'NonatomicRead', 'NonatomicWrite',
-     * 'WriteFullArrayOnly'.
+     * Possible values include: 'CurrentRead', 'CurrentWrite', 'HistoryRead',
+     * 'HistoryWrite', 'SemanticChange', 'StatusWrite', 'TimestampWrite',
+     * 'NonatomicRead', 'NonatomicWrite', 'WriteFullArrayOnly'.
      */
     @JsonProperty(value = "userAccessLevel")
     private NodeAccessLevel userAccessLevel;
@@ -146,10 +139,8 @@ public class NodeApiModel {
     private String dataType;
 
     /**
-     * Value rank of the variable data of a variable
-     * or variable type, otherwise null.
-     * (default: scalar = -1). Possible values include: 'ScalarOrOneDimension',
-     * 'Any', 'Scalar', 'OneOrMoreDimensions', 'OneDimension', 'TwoDimensions'.
+     * Possible values include: 'OneOrMoreDimensions', 'OneDimension',
+     * 'TwoDimensions', 'ScalarOrOneDimension', 'Any', 'Scalar'.
      */
     @JsonProperty(value = "valueRank")
     private NodeValueRank valueRank;
@@ -226,7 +217,7 @@ public class NodeApiModel {
     private Boolean children;
 
     /**
-     * Get type of node. Possible values include: 'Object', 'Variable', 'Method', 'ObjectType', 'VariableType', 'ReferenceType', 'DataType', 'View'.
+     * Get possible values include: 'Object', 'Variable', 'Method', 'ObjectType', 'VariableType', 'ReferenceType', 'DataType', 'View'.
      *
      * @return the nodeClass value
      */
@@ -235,7 +226,7 @@ public class NodeApiModel {
     }
 
     /**
-     * Set type of node. Possible values include: 'Object', 'Variable', 'Method', 'ObjectType', 'VariableType', 'ReferenceType', 'DataType', 'View'.
+     * Set possible values include: 'Object', 'Variable', 'Method', 'ObjectType', 'VariableType', 'ReferenceType', 'DataType', 'View'.
      *
      * @param nodeClass the nodeClass value to set
      * @return the NodeApiModel object itself.
@@ -328,8 +319,7 @@ public class NodeApiModel {
     }
 
     /**
-     * Get node access restrictions if any.
-     (default: none). Possible values include: 'SigningRequired', 'EncryptionRequired', 'SessionRequired'.
+     * Get possible values include: 'SigningRequired', 'EncryptionRequired', 'SessionRequired'.
      *
      * @return the accessRestrictions value
      */
@@ -338,8 +328,7 @@ public class NodeApiModel {
     }
 
     /**
-     * Set node access restrictions if any.
-     (default: none). Possible values include: 'SigningRequired', 'EncryptionRequired', 'SessionRequired'.
+     * Set possible values include: 'SigningRequired', 'EncryptionRequired', 'SessionRequired'.
      *
      * @param accessRestrictions the accessRestrictions value to set
      * @return the NodeApiModel object itself.
@@ -440,9 +429,7 @@ public class NodeApiModel {
     }
 
     /**
-     * Get if object or view and eventing, event notifier
-     to subscribe to.
-     (default: no events supported). Possible values include: 'SubscribeToEvents', 'HistoryRead', 'HistoryWrite'.
+     * Get possible values include: 'SubscribeToEvents', 'HistoryRead', 'HistoryWrite'.
      *
      * @return the eventNotifier value
      */
@@ -451,9 +438,7 @@ public class NodeApiModel {
     }
 
     /**
-     * Set if object or view and eventing, event notifier
-     to subscribe to.
-     (default: no events supported). Possible values include: 'SubscribeToEvents', 'HistoryRead', 'HistoryWrite'.
+     * Set possible values include: 'SubscribeToEvents', 'HistoryRead', 'HistoryWrite'.
      *
      * @param eventNotifier the eventNotifier value to set
      * @return the NodeApiModel object itself.
@@ -534,8 +519,7 @@ public class NodeApiModel {
     }
 
     /**
-     * Get default access level for variable node.
-     (default: 0). Possible values include: 'CurrentRead', 'CurrentWrite', 'HistoryRead', 'HistoryWrite', 'SemanticChange', 'StatusWrite', 'TimestampWrite', 'NonatomicRead', 'NonatomicWrite', 'WriteFullArrayOnly'.
+     * Get possible values include: 'CurrentRead', 'CurrentWrite', 'HistoryRead', 'HistoryWrite', 'SemanticChange', 'StatusWrite', 'TimestampWrite', 'NonatomicRead', 'NonatomicWrite', 'WriteFullArrayOnly'.
      *
      * @return the accessLevel value
      */
@@ -544,8 +528,7 @@ public class NodeApiModel {
     }
 
     /**
-     * Set default access level for variable node.
-     (default: 0). Possible values include: 'CurrentRead', 'CurrentWrite', 'HistoryRead', 'HistoryWrite', 'SemanticChange', 'StatusWrite', 'TimestampWrite', 'NonatomicRead', 'NonatomicWrite', 'WriteFullArrayOnly'.
+     * Set possible values include: 'CurrentRead', 'CurrentWrite', 'HistoryRead', 'HistoryWrite', 'SemanticChange', 'StatusWrite', 'TimestampWrite', 'NonatomicRead', 'NonatomicWrite', 'WriteFullArrayOnly'.
      *
      * @param accessLevel the accessLevel value to set
      * @return the NodeApiModel object itself.
@@ -556,8 +539,7 @@ public class NodeApiModel {
     }
 
     /**
-     * Get user access level for variable node or null.
-     (default: 0). Possible values include: 'CurrentRead', 'CurrentWrite', 'HistoryRead', 'HistoryWrite', 'SemanticChange', 'StatusWrite', 'TimestampWrite', 'NonatomicRead', 'NonatomicWrite', 'WriteFullArrayOnly'.
+     * Get possible values include: 'CurrentRead', 'CurrentWrite', 'HistoryRead', 'HistoryWrite', 'SemanticChange', 'StatusWrite', 'TimestampWrite', 'NonatomicRead', 'NonatomicWrite', 'WriteFullArrayOnly'.
      *
      * @return the userAccessLevel value
      */
@@ -566,8 +548,7 @@ public class NodeApiModel {
     }
 
     /**
-     * Set user access level for variable node or null.
-     (default: 0). Possible values include: 'CurrentRead', 'CurrentWrite', 'HistoryRead', 'HistoryWrite', 'SemanticChange', 'StatusWrite', 'TimestampWrite', 'NonatomicRead', 'NonatomicWrite', 'WriteFullArrayOnly'.
+     * Set possible values include: 'CurrentRead', 'CurrentWrite', 'HistoryRead', 'HistoryWrite', 'SemanticChange', 'StatusWrite', 'TimestampWrite', 'NonatomicRead', 'NonatomicWrite', 'WriteFullArrayOnly'.
      *
      * @param userAccessLevel the userAccessLevel value to set
      * @return the NodeApiModel object itself.
@@ -600,9 +581,7 @@ public class NodeApiModel {
     }
 
     /**
-     * Get value rank of the variable data of a variable
-     or variable type, otherwise null.
-     (default: scalar = -1). Possible values include: 'ScalarOrOneDimension', 'Any', 'Scalar', 'OneOrMoreDimensions', 'OneDimension', 'TwoDimensions'.
+     * Get possible values include: 'OneOrMoreDimensions', 'OneDimension', 'TwoDimensions', 'ScalarOrOneDimension', 'Any', 'Scalar'.
      *
      * @return the valueRank value
      */
@@ -611,9 +590,7 @@ public class NodeApiModel {
     }
 
     /**
-     * Set value rank of the variable data of a variable
-     or variable type, otherwise null.
-     (default: scalar = -1). Possible values include: 'ScalarOrOneDimension', 'Any', 'Scalar', 'OneOrMoreDimensions', 'OneDimension', 'TwoDimensions'.
+     * Set possible values include: 'OneOrMoreDimensions', 'OneDimension', 'TwoDimensions', 'ScalarOrOneDimension', 'Any', 'Scalar'.
      *
      * @param valueRank the valueRank value to set
      * @return the NodeApiModel object itself.

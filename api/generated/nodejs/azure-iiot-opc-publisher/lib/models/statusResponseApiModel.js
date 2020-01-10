@@ -30,7 +30,7 @@ class StatusResponseApiModel {
    * service
    * @property {object} [dependencies] A property bag with details about the
    * internal dependencies
-   * @property {object} [metadata] Optional meta data.
+   * @property {object} [metadata]
    */
   constructor() {
   }

@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
+ #if BULK
     using Serilog;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.CosmosDB.BulkExecutor;
@@ -132,4 +133,5 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
         private readonly JsonSerializer _serializer;
         private readonly IBulkExecutor _executor;
     }
+#endif
 }

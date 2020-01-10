@@ -15,9 +15,8 @@ from msrest.serialization import Model
 class DiagnosticsApiModel(Model):
     """Diagnostics configuration.
 
-    :param level: Requested level of response diagnostics.
-     (default: Status). Possible values include: 'None', 'Status',
-     'Operations', 'Diagnostics', 'Verbose'
+    :param level: Possible values include: 'None', 'Status', 'Operations',
+     'Diagnostics', 'Verbose'
     :type level: str or ~azure-iiot-opc-twin.models.DiagnosticsLevel
     :param audit_id: Client audit log entry.
      (default: client generated)

@@ -34,15 +34,14 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         /// </summary>
         /// <param name="nodeId">Id of node.
         /// (Mandatory).</param>
-        /// <param name="nodeClass">Type of node. Possible values include:
-        /// 'Object', 'Variable', 'Method', 'ObjectType', 'VariableType',
+        /// <param name="nodeClass">Possible values include: 'Object',
+        /// 'Variable', 'Method', 'ObjectType', 'VariableType',
         /// 'ReferenceType', 'DataType', 'View'</param>
         /// <param name="displayName">Display name</param>
         /// <param name="description">Description if any</param>
         /// <param name="browseName">Browse name</param>
-        /// <param name="accessRestrictions">Node access restrictions if any.
-        /// (default: none). Possible values include: 'SigningRequired',
-        /// 'EncryptionRequired', 'SessionRequired'</param>
+        /// <param name="accessRestrictions">Possible values include:
+        /// 'SigningRequired', 'EncryptionRequired', 'SessionRequired'</param>
         /// <param name="writeMask">Default write mask for the node
         /// (default: 0)</param>
         /// <param name="userWriteMask">User write mask for the node
@@ -53,10 +52,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         /// <param name="containsNoLoops">Whether a view contains loops. Null
         /// if
         /// not a view.</param>
-        /// <param name="eventNotifier">If object or view and eventing, event
-        /// notifier
-        /// to subscribe to.
-        /// (default: no events supported). Possible values include:
+        /// <param name="eventNotifier">Possible values include:
         /// 'SubscribeToEvents', 'HistoryRead', 'HistoryWrite'</param>
         /// <param name="executable">If method node class, whether method can
         /// be called.</param>
@@ -68,25 +64,19 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         /// is a
         /// data type node and definition is available,
         /// otherwise null.</param>
-        /// <param name="accessLevel">Default access level for variable node.
-        /// (default: 0). Possible values include: 'CurrentRead',
+        /// <param name="accessLevel">Possible values include: 'CurrentRead',
         /// 'CurrentWrite', 'HistoryRead', 'HistoryWrite', 'SemanticChange',
         /// 'StatusWrite', 'TimestampWrite', 'NonatomicRead', 'NonatomicWrite',
         /// 'WriteFullArrayOnly'</param>
-        /// <param name="userAccessLevel">User access level for variable node
-        /// or null.
-        /// (default: 0). Possible values include: 'CurrentRead',
-        /// 'CurrentWrite', 'HistoryRead', 'HistoryWrite', 'SemanticChange',
-        /// 'StatusWrite', 'TimestampWrite', 'NonatomicRead', 'NonatomicWrite',
-        /// 'WriteFullArrayOnly'</param>
+        /// <param name="userAccessLevel">Possible values include:
+        /// 'CurrentRead', 'CurrentWrite', 'HistoryRead', 'HistoryWrite',
+        /// 'SemanticChange', 'StatusWrite', 'TimestampWrite', 'NonatomicRead',
+        /// 'NonatomicWrite', 'WriteFullArrayOnly'</param>
         /// <param name="dataType">If variable the datatype of the variable.
         /// (default: null)</param>
-        /// <param name="valueRank">Value rank of the variable data of a
-        /// variable
-        /// or variable type, otherwise null.
-        /// (default: scalar = -1). Possible values include:
-        /// 'ScalarOrOneDimension', 'Any', 'Scalar', 'OneOrMoreDimensions',
-        /// 'OneDimension', 'TwoDimensions'</param>
+        /// <param name="valueRank">Possible values include:
+        /// 'OneOrMoreDimensions', 'OneDimension', 'TwoDimensions',
+        /// 'ScalarOrOneDimension', 'Any', 'Scalar'</param>
         /// <param name="arrayDimensions">Array dimensions of variable or
         /// variable type.
         /// (default: empty array)</param>
@@ -153,9 +143,9 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         partial void CustomInit();
 
         /// <summary>
-        /// Gets or sets type of node. Possible values include: 'Object',
-        /// 'Variable', 'Method', 'ObjectType', 'VariableType',
-        /// 'ReferenceType', 'DataType', 'View'
+        /// Gets or sets possible values include: 'Object', 'Variable',
+        /// 'Method', 'ObjectType', 'VariableType', 'ReferenceType',
+        /// 'DataType', 'View'
         /// </summary>
         [JsonProperty(PropertyName = "nodeClass")]
         public NodeClass? NodeClass { get; set; }
@@ -186,8 +176,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         public string BrowseName { get; set; }
 
         /// <summary>
-        /// Gets or sets node access restrictions if any.
-        /// (default: none). Possible values include: 'SigningRequired',
+        /// Gets or sets possible values include: 'SigningRequired',
         /// 'EncryptionRequired', 'SessionRequired'
         /// </summary>
         [JsonProperty(PropertyName = "accessRestrictions")]
@@ -223,10 +212,8 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         public bool? ContainsNoLoops { get; set; }
 
         /// <summary>
-        /// Gets or sets if object or view and eventing, event notifier
-        /// to subscribe to.
-        /// (default: no events supported). Possible values include:
-        /// 'SubscribeToEvents', 'HistoryRead', 'HistoryWrite'
+        /// Gets or sets possible values include: 'SubscribeToEvents',
+        /// 'HistoryRead', 'HistoryWrite'
         /// </summary>
         [JsonProperty(PropertyName = "eventNotifier")]
         public NodeEventNotifier? EventNotifier { get; set; }
@@ -255,8 +242,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         public object DataTypeDefinition { get; set; }
 
         /// <summary>
-        /// Gets or sets default access level for variable node.
-        /// (default: 0). Possible values include: 'CurrentRead',
+        /// Gets or sets possible values include: 'CurrentRead',
         /// 'CurrentWrite', 'HistoryRead', 'HistoryWrite', 'SemanticChange',
         /// 'StatusWrite', 'TimestampWrite', 'NonatomicRead', 'NonatomicWrite',
         /// 'WriteFullArrayOnly'
@@ -265,8 +251,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         public NodeAccessLevel? AccessLevel { get; set; }
 
         /// <summary>
-        /// Gets or sets user access level for variable node or null.
-        /// (default: 0). Possible values include: 'CurrentRead',
+        /// Gets or sets possible values include: 'CurrentRead',
         /// 'CurrentWrite', 'HistoryRead', 'HistoryWrite', 'SemanticChange',
         /// 'StatusWrite', 'TimestampWrite', 'NonatomicRead', 'NonatomicWrite',
         /// 'WriteFullArrayOnly'
@@ -282,11 +267,9 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         public string DataType { get; set; }
 
         /// <summary>
-        /// Gets or sets value rank of the variable data of a variable
-        /// or variable type, otherwise null.
-        /// (default: scalar = -1). Possible values include:
-        /// 'ScalarOrOneDimension', 'Any', 'Scalar', 'OneOrMoreDimensions',
-        /// 'OneDimension', 'TwoDimensions'
+        /// Gets or sets possible values include: 'OneOrMoreDimensions',
+        /// 'OneDimension', 'TwoDimensions', 'ScalarOrOneDimension', 'Any',
+        /// 'Scalar'
         /// </summary>
         [JsonProperty(PropertyName = "valueRank")]
         public NodeValueRank? ValueRank { get; set; }

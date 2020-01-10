@@ -16,8 +16,8 @@ module azure.iiot.opc.history
       # @return [DateTime] Modification time
       attr_accessor :modification_time
 
-      # @return [HistoryUpdateOperation] Operation. Possible values include:
-      # 'Insert', 'Replace', 'Update', 'Delete'
+      # @return [HistoryUpdateOperation] Possible values include: 'Insert',
+      # 'Replace', 'Update', 'Delete'
       attr_accessor :update_type
 
       # @return [String] User who made the change

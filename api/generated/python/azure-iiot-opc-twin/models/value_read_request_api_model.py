@@ -25,7 +25,7 @@ class ValueReadRequestApiModel(Model):
      an array, string or bytestring.
      See 7.22 of part 4: NumericRange.
     :type index_range: str
-    :param header: Optional request header
+    :param header:
     :type header: ~azure-iiot-opc-twin.models.RequestHeaderApiModel
     """
 

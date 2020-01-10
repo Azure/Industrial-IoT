@@ -30,19 +30,11 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         /// Initializes a new instance of the SupervisorUpdateApiModel class.
         /// </summary>
         /// <param name="siteId">Site of the supervisor</param>
-        /// <param name="discovery">Whether the supervisor is in discovery
-        /// mode.
-        /// If null, does not change. Possible values include: 'Off', 'Local',
-        /// 'Network', 'Fast', 'Scan'</param>
-        /// <param name="discoveryConfig">Supervisor discovery
-        /// configuration</param>
-        /// <param name="logLevel">Current log level. Possible values include:
-        /// 'Error', 'Information', 'Debug', 'Verbose'</param>
-        public SupervisorUpdateApiModel(string siteId = default(string), DiscoveryMode? discovery = default(DiscoveryMode?), DiscoveryConfigApiModel discoveryConfig = default(DiscoveryConfigApiModel), TraceLogLevel? logLevel = default(TraceLogLevel?))
+        /// <param name="logLevel">Possible values include: 'Error',
+        /// 'Information', 'Debug', 'Verbose'</param>
+        public SupervisorUpdateApiModel(string siteId = default(string), TraceLogLevel? logLevel = default(TraceLogLevel?))
         {
             SiteId = siteId;
-            Discovery = discovery;
-            DiscoveryConfig = discoveryConfig;
             LogLevel = logLevel;
             CustomInit();
         }
@@ -59,22 +51,8 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         public string SiteId { get; set; }
 
         /// <summary>
-        /// Gets or sets whether the supervisor is in discovery mode.
-        /// If null, does not change. Possible values include: 'Off', 'Local',
-        /// 'Network', 'Fast', 'Scan'
-        /// </summary>
-        [JsonProperty(PropertyName = "discovery")]
-        public DiscoveryMode? Discovery { get; set; }
-
-        /// <summary>
-        /// Gets or sets supervisor discovery configuration
-        /// </summary>
-        [JsonProperty(PropertyName = "discoveryConfig")]
-        public DiscoveryConfigApiModel DiscoveryConfig { get; set; }
-
-        /// <summary>
-        /// Gets or sets current log level. Possible values include: 'Error',
-        /// 'Information', 'Debug', 'Verbose'
+        /// Gets or sets possible values include: 'Error', 'Information',
+        /// 'Debug', 'Verbose'
         /// </summary>
         [JsonProperty(PropertyName = "logLevel")]
         public TraceLogLevel? LogLevel { get; set; }

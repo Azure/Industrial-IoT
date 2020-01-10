@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.CosmosDB.BulkExecutor.Graph {
+#if BULK
     using Microsoft.Azure.CosmosDB.BulkExecutor.Graph.Element;
     using Microsoft.Azure.IIoT.Storage;
     using Microsoft.Azure.IIoT.Storage.Annotations;
@@ -113,4 +114,5 @@ namespace Microsoft.Azure.CosmosDB.BulkExecutor.Graph {
         internal static ConcurrentDictionary<Type, string> LabelCache { get; } =
             new ConcurrentDictionary<Type, string>();
     }
+#endif
 }

@@ -31,9 +31,7 @@ public class EndpointApiModel {
     private List<String> alternativeUrls;
 
     /**
-     * Security Mode to use for communication
-     * default to best. Possible values include: 'Best', 'Sign',
-     * 'SignAndEncrypt', 'None'.
+     * Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'.
      */
     @JsonProperty(value = "securityMode")
     private SecurityMode securityMode;
@@ -94,8 +92,7 @@ public class EndpointApiModel {
     }
 
     /**
-     * Get security Mode to use for communication
-     default to best. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'.
+     * Get possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'.
      *
      * @return the securityMode value
      */
@@ -104,8 +101,7 @@ public class EndpointApiModel {
     }
 
     /**
-     * Set security Mode to use for communication
-     default to best. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'.
+     * Set possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'.
      *
      * @param securityMode the securityMode value to set
      * @return the EndpointApiModel object itself.

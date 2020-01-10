@@ -17,8 +17,8 @@ class ApplicationRegistrationRequestApiModel(Model):
 
     :param application_uri: Unique application uri
     :type application_uri: str
-    :param application_type: Type of application. Possible values include:
-     'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
+    :param application_type: Possible values include: 'Server', 'Client',
+     'ClientAndServer', 'DiscoveryServer'
     :type application_type: str or
      ~azure-iiot-opc-registry.models.ApplicationType
     :param product_uri: Product uri of the application.

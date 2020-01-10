@@ -32,7 +32,6 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         /// class.
         /// </summary>
         /// <param name="value">Attribute value</param>
-        /// <param name="errorInfo">Service result in case of error</param>
         public AttributeReadResponseApiModel(object value = default(object), ServiceResultApiModel errorInfo = default(ServiceResultApiModel))
         {
             Value = value;
@@ -52,7 +51,6 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         public object Value { get; set; }
 
         /// <summary>
-        /// Gets or sets service result in case of error
         /// </summary>
         [JsonProperty(PropertyName = "errorInfo")]
         public ServiceResultApiModel ErrorInfo { get; set; }

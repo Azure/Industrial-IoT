@@ -20,7 +20,7 @@ class BrowseNextResponseApiModel {
    * @property {array} [references] References, if included, otherwise null.
    * @property {string} [continuationToken] Continuation token if more results
    * pending.
-   * @property {object} [errorInfo] Service result in case of error
+   * @property {object} [errorInfo]
    * @property {number} [errorInfo.statusCode] Error code - if null operation
    * succeeded.
    * @property {string} [errorInfo.errorMessage] Error message in case of error

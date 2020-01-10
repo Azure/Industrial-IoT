@@ -24,7 +24,7 @@ public class MethodCallResponseApiModel {
     private List<MethodCallArgumentApiModel> results;
 
     /**
-     * Service result in case of error.
+     * The errorInfo property.
      */
     @JsonProperty(value = "errorInfo")
     private ServiceResultApiModel errorInfo;
@@ -50,7 +50,7 @@ public class MethodCallResponseApiModel {
     }
 
     /**
-     * Get service result in case of error.
+     * Get the errorInfo value.
      *
      * @return the errorInfo value
      */
@@ -59,7 +59,7 @@ public class MethodCallResponseApiModel {
     }
 
     /**
-     * Set service result in case of error.
+     * Set the errorInfo value.
      *
      * @param errorInfo the errorInfo value to set
      * @return the MethodCallResponseApiModel object itself.

@@ -13,8 +13,8 @@ module azure.iiot.opc.registry
     # Application information
     #
     class ApplicationRegistrationQueryApiModel
-      # @return [ApplicationType] Type of application. Possible values include:
-      # 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
+      # @return [ApplicationType] Possible values include: 'Server', 'Client',
+      # 'ClientAndServer', 'DiscoveryServer'
       attr_accessor :application_type
 
       # @return [String] Application uri

@@ -33,7 +33,6 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         /// Initializes a new instance of the ReadRequestApiModel class.
         /// </summary>
         /// <param name="attributes">Attributes to read</param>
-        /// <param name="header">Optional request header</param>
         public ReadRequestApiModel(IList<AttributeReadRequestApiModel> attributes, RequestHeaderApiModel header = default(RequestHeaderApiModel))
         {
             Attributes = attributes;
@@ -53,7 +52,6 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         public IList<AttributeReadRequestApiModel> Attributes { get; set; }
 
         /// <summary>
-        /// Gets or sets optional request header
         /// </summary>
         [JsonProperty(PropertyName = "header")]
         public RequestHeaderApiModel Header { get; set; }

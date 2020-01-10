@@ -20,9 +20,8 @@ module azure.iiot.opc.registry
       # accessing and validating the server
       attr_accessor :alternative_urls
 
-      # @return [SecurityMode] Security Mode to use for communication
-      # default to best. Possible values include: 'Best', 'Sign',
-      # 'SignAndEncrypt', 'None'. Default value: 'Best' .
+      # @return [SecurityMode] Possible values include: 'Best', 'Sign',
+      # 'SignAndEncrypt', 'None'
       attr_accessor :security_mode
 
       # @return [String] Security policy uri to use for communication
@@ -77,7 +76,6 @@ module azure.iiot.opc.registry
                 client_side_validation: true,
                 required: false,
                 serialized_name: 'securityMode',
-                default_value: 'Best',
                 type: {
                   name: 'Enum',
                   module: 'SecurityMode'

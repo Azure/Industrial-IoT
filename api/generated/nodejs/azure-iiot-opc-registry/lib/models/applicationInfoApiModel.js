@@ -18,8 +18,8 @@ class ApplicationInfoApiModel {
   /**
    * Create a ApplicationInfoApiModel.
    * @property {string} [applicationId] Unique application id
-   * @property {string} [applicationType] Type of application. Possible values
-   * include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
+   * @property {string} [applicationType] Possible values include: 'Server',
+   * 'Client', 'ClientAndServer', 'DiscoveryServer'
    * @property {string} [applicationUri] Unique application uri
    * @property {string} [productUri] Product uri
    * @property {string} [applicationName] Default name of application
@@ -35,13 +35,13 @@ class ApplicationInfoApiModel {
    * @property {array} [hostAddresses] Host addresses of server application or
    * null
    * @property {string} [siteId] Site of the application
-   * @property {string} [supervisorId] Supervisor having registered the
+   * @property {string} [discovererId] Discoverer that registered the
    * application
    * @property {date} [notSeenSince] Last time application was seen
-   * @property {object} [created] Created
+   * @property {object} [created]
    * @property {string} [created.authorityId] Operation User
    * @property {date} [created.time] Operation time
-   * @property {object} [updated] Updated
+   * @property {object} [updated]
    * @property {string} [updated.authorityId] Operation User
    * @property {date} [updated.time] Operation time
    */
@@ -198,9 +198,9 @@ class ApplicationInfoApiModel {
               name: 'String'
             }
           },
-          supervisorId: {
+          discovererId: {
             required: false,
-            serializedName: 'supervisorId',
+            serializedName: 'discovererId',
             type: {
               name: 'String'
             }

@@ -18,7 +18,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class RequestHeaderApiModel {
     /**
-     * Optional User elevation.
+     * The elevation property.
      */
     @JsonProperty(value = "elevation")
     private CredentialApiModel elevation;
@@ -30,13 +30,13 @@ public class RequestHeaderApiModel {
     private List<String> locales;
 
     /**
-     * Optional diagnostics configuration.
+     * The diagnostics property.
      */
     @JsonProperty(value = "diagnostics")
     private DiagnosticsApiModel diagnostics;
 
     /**
-     * Get optional User elevation.
+     * Get the elevation value.
      *
      * @return the elevation value
      */
@@ -45,7 +45,7 @@ public class RequestHeaderApiModel {
     }
 
     /**
-     * Set optional User elevation.
+     * Set the elevation value.
      *
      * @param elevation the elevation value to set
      * @return the RequestHeaderApiModel object itself.
@@ -76,7 +76,7 @@ public class RequestHeaderApiModel {
     }
 
     /**
-     * Get optional diagnostics configuration.
+     * Get the diagnostics value.
      *
      * @return the diagnostics value
      */
@@ -85,7 +85,7 @@ public class RequestHeaderApiModel {
     }
 
     /**
-     * Set optional diagnostics configuration.
+     * Set the diagnostics value.
      *
      * @param diagnostics the diagnostics value to set
      * @return the RequestHeaderApiModel object itself.

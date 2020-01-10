@@ -13,9 +13,9 @@ module azure.iiot.opc.twin
     # Node model
     #
     class NodeApiModel
-      # @return [NodeClass] Type of node. Possible values include: 'Object',
-      # 'Variable', 'Method', 'ObjectType', 'VariableType', 'ReferenceType',
-      # 'DataType', 'View'
+      # @return [NodeClass] Possible values include: 'Object', 'Variable',
+      # 'Method', 'ObjectType', 'VariableType', 'ReferenceType', 'DataType',
+      # 'View'
       attr_accessor :node_class
 
       # @return [String] Display name
@@ -31,9 +31,8 @@ module azure.iiot.opc.twin
       # @return [String] Browse name
       attr_accessor :browse_name
 
-      # @return [NodeAccessRestrictions] Node access restrictions if any.
-      # (default: none). Possible values include: 'SigningRequired',
-      # 'EncryptionRequired', 'SessionRequired'
+      # @return [NodeAccessRestrictions] Possible values include:
+      # 'SigningRequired', 'EncryptionRequired', 'SessionRequired'
       attr_accessor :access_restrictions
 
       # @return [Integer] Default write mask for the node
@@ -53,10 +52,7 @@ module azure.iiot.opc.twin
       # not a view.
       attr_accessor :contains_no_loops
 
-      # @return [NodeEventNotifier] If object or view and eventing, event
-      # notifier
-      # to subscribe to.
-      # (default: no events supported). Possible values include:
+      # @return [NodeEventNotifier] Possible values include:
       # 'SubscribeToEvents', 'HistoryRead', 'HistoryWrite'
       attr_accessor :event_notifier
 
@@ -74,17 +70,15 @@ module azure.iiot.opc.twin
       # otherwise null.
       attr_accessor :data_type_definition
 
-      # @return [NodeAccessLevel] Default access level for variable node.
-      # (default: 0). Possible values include: 'CurrentRead', 'CurrentWrite',
-      # 'HistoryRead', 'HistoryWrite', 'SemanticChange', 'StatusWrite',
-      # 'TimestampWrite', 'NonatomicRead', 'NonatomicWrite',
+      # @return [NodeAccessLevel] Possible values include: 'CurrentRead',
+      # 'CurrentWrite', 'HistoryRead', 'HistoryWrite', 'SemanticChange',
+      # 'StatusWrite', 'TimestampWrite', 'NonatomicRead', 'NonatomicWrite',
       # 'WriteFullArrayOnly'
       attr_accessor :access_level
 
-      # @return [NodeAccessLevel] User access level for variable node or null.
-      # (default: 0). Possible values include: 'CurrentRead', 'CurrentWrite',
-      # 'HistoryRead', 'HistoryWrite', 'SemanticChange', 'StatusWrite',
-      # 'TimestampWrite', 'NonatomicRead', 'NonatomicWrite',
+      # @return [NodeAccessLevel] Possible values include: 'CurrentRead',
+      # 'CurrentWrite', 'HistoryRead', 'HistoryWrite', 'SemanticChange',
+      # 'StatusWrite', 'TimestampWrite', 'NonatomicRead', 'NonatomicWrite',
       # 'WriteFullArrayOnly'
       attr_accessor :user_access_level
 
@@ -92,11 +86,9 @@ module azure.iiot.opc.twin
       # (default: null)
       attr_accessor :data_type
 
-      # @return [NodeValueRank] Value rank of the variable data of a variable
-      # or variable type, otherwise null.
-      # (default: scalar = -1). Possible values include:
-      # 'ScalarOrOneDimension', 'Any', 'Scalar', 'OneOrMoreDimensions',
-      # 'OneDimension', 'TwoDimensions'
+      # @return [NodeValueRank] Possible values include: 'OneOrMoreDimensions',
+      # 'OneDimension', 'TwoDimensions', 'ScalarOrOneDimension', 'Any',
+      # 'Scalar'
       attr_accessor :value_rank
 
       # @return [Array<Integer>] Array dimensions of variable or variable type.

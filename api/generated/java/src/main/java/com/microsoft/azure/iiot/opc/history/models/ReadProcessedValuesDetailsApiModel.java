@@ -42,7 +42,7 @@ public class ReadProcessedValuesDetailsApiModel {
     private String aggregateTypeId;
 
     /**
-     * A configuration for the aggregate.
+     * The aggregateConfiguration property.
      */
     @JsonProperty(value = "aggregateConfiguration")
     private AggregateConfigurationApiModel aggregateConfiguration;
@@ -128,7 +128,7 @@ public class ReadProcessedValuesDetailsApiModel {
     }
 
     /**
-     * Get a configuration for the aggregate.
+     * Get the aggregateConfiguration value.
      *
      * @return the aggregateConfiguration value
      */
@@ -137,7 +137,7 @@ public class ReadProcessedValuesDetailsApiModel {
     }
 
     /**
-     * Set a configuration for the aggregate.
+     * Set the aggregateConfiguration value.
      *
      * @param aggregateConfiguration the aggregateConfiguration value to set
      * @return the ReadProcessedValuesDetailsApiModel object itself.

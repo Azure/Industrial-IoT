@@ -19,15 +19,26 @@ import com.microsoft.azure.iiot.opc.registry.models.ApplicationRegistrationReque
 import com.microsoft.azure.iiot.opc.registry.models.ApplicationRegistrationResponseApiModel;
 import com.microsoft.azure.iiot.opc.registry.models.ApplicationRegistrationUpdateApiModel;
 import com.microsoft.azure.iiot.opc.registry.models.ApplicationSiteListApiModel;
+import com.microsoft.azure.iiot.opc.registry.models.DiscovererApiModel;
+import com.microsoft.azure.iiot.opc.registry.models.DiscovererListApiModel;
+import com.microsoft.azure.iiot.opc.registry.models.DiscovererQueryApiModel;
+import com.microsoft.azure.iiot.opc.registry.models.DiscovererUpdateApiModel;
 import com.microsoft.azure.iiot.opc.registry.models.DiscoveryConfigApiModel;
+import com.microsoft.azure.iiot.opc.registry.models.DiscoveryMode;
 import com.microsoft.azure.iiot.opc.registry.models.DiscoveryRequestApiModel;
+import com.microsoft.azure.iiot.opc.registry.models.EndpointConnectivityState;
 import com.microsoft.azure.iiot.opc.registry.models.EndpointInfoApiModel;
 import com.microsoft.azure.iiot.opc.registry.models.EndpointInfoListApiModel;
 import com.microsoft.azure.iiot.opc.registry.models.EndpointRegistrationQueryApiModel;
+import com.microsoft.azure.iiot.opc.registry.models.GatewayInfoApiModel;
+import com.microsoft.azure.iiot.opc.registry.models.GatewayListApiModel;
+import com.microsoft.azure.iiot.opc.registry.models.GatewayQueryApiModel;
+import com.microsoft.azure.iiot.opc.registry.models.GatewayUpdateApiModel;
 import com.microsoft.azure.iiot.opc.registry.models.PublisherApiModel;
 import com.microsoft.azure.iiot.opc.registry.models.PublisherListApiModel;
 import com.microsoft.azure.iiot.opc.registry.models.PublisherQueryApiModel;
 import com.microsoft.azure.iiot.opc.registry.models.PublisherUpdateApiModel;
+import com.microsoft.azure.iiot.opc.registry.models.SecurityMode;
 import com.microsoft.azure.iiot.opc.registry.models.ServerRegistrationRequestApiModel;
 import com.microsoft.azure.iiot.opc.registry.models.StatusResponseApiModel;
 import com.microsoft.azure.iiot.opc.registry.models.SupervisorApiModel;
@@ -57,229 +68,92 @@ public interface AzureOpcRegistryClient {
     /**
      * The default base URL.
      */
-    String DEFAULT_BASE_URL = "https:///registry";
+    String DEFAULT_BASE_URL = "http://localhost:9080";
 
     /**
-     * Get list of applications.
-     * Get all registered applications in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
+     * Register new server.
+     * Registers a server solely using a discovery url. Requires that the onboarding agent service is running and the server can be located by a supervisor in its network using the discovery url.
      *
+     * @param body Server registration request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the ApplicationInfoListApiModel object if successful.
      */
-    ApplicationInfoListApiModel getListOfApplications();
+    void registerServer(ServerRegistrationRequestApiModel body);
 
     /**
-     * Get list of applications.
-     * Get all registered applications in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
+     * Register new server.
+     * Registers a server solely using a discovery url. Requires that the onboarding agent service is running and the server can be located by a supervisor in its network using the discovery url.
      *
+     * @param body Server registration request
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    ServiceFuture<ApplicationInfoListApiModel> getListOfApplicationsAsync(final ServiceCallback<ApplicationInfoListApiModel> serviceCallback);
+    ServiceFuture<Void> registerServerAsync(ServerRegistrationRequestApiModel body, final ServiceCallback<Void> serviceCallback);
 
     /**
-     * Get list of applications.
-     * Get all registered applications in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
+     * Register new server.
+     * Registers a server solely using a discovery url. Requires that the onboarding agent service is running and the server can be located by a supervisor in its network using the discovery url.
      *
+     * @param body Server registration request
      * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the ApplicationInfoListApiModel object
+     * @return the {@link ServiceResponse} object if successful.
      */
-    Observable<ApplicationInfoListApiModel> getListOfApplicationsAsync();
+    Observable<Void> registerServerAsync(ServerRegistrationRequestApiModel body);
 
     /**
-     * Get list of applications.
-     * Get all registered applications in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
+     * Register new server.
+     * Registers a server solely using a discovery url. Requires that the onboarding agent service is running and the server can be located by a supervisor in its network using the discovery url.
      *
+     * @param body Server registration request
      * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the ApplicationInfoListApiModel object
+     * @return the {@link ServiceResponse} object if successful.
      */
-    Observable<ServiceResponse<ApplicationInfoListApiModel>> getListOfApplicationsWithServiceResponseAsync();
-    /**
-     * Get list of applications.
-     * Get all registered applications in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
-     *
-     * @param continuationToken Optional Continuation
-                 token
-     * @param pageSize Optional number of results to
-                 return
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the ApplicationInfoListApiModel object if successful.
-     */
-    ApplicationInfoListApiModel getListOfApplications(String continuationToken, Integer pageSize);
-
-    /**
-     * Get list of applications.
-     * Get all registered applications in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
-     *
-     * @param continuationToken Optional Continuation
-                 token
-     * @param pageSize Optional number of results to
-                 return
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    ServiceFuture<ApplicationInfoListApiModel> getListOfApplicationsAsync(String continuationToken, Integer pageSize, final ServiceCallback<ApplicationInfoListApiModel> serviceCallback);
-
-    /**
-     * Get list of applications.
-     * Get all registered applications in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
-     *
-     * @param continuationToken Optional Continuation
-                 token
-     * @param pageSize Optional number of results to
-                 return
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the ApplicationInfoListApiModel object
-     */
-    Observable<ApplicationInfoListApiModel> getListOfApplicationsAsync(String continuationToken, Integer pageSize);
-
-    /**
-     * Get list of applications.
-     * Get all registered applications in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
-     *
-     * @param continuationToken Optional Continuation
-                 token
-     * @param pageSize Optional number of results to
-                 return
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the ApplicationInfoListApiModel object
-     */
-    Observable<ServiceResponse<ApplicationInfoListApiModel>> getListOfApplicationsWithServiceResponseAsync(String continuationToken, Integer pageSize);
+    Observable<ServiceResponse<Void>> registerServerWithServiceResponseAsync(ServerRegistrationRequestApiModel body);
 
     /**
      * Create new application.
-     * The application is registered using the provided information, but it
-     is not associated with a supervisor.  This is useful for when you need
-     to register clients or you want to register a server that is located
-     in a network not reachable through a Twin module.
+     * The application is registered using the provided information, but it is not associated with a supervisor. This is useful for when you need to register clients or you want to register a server that is located in a network not reachable through a Twin module.
      *
-     * @param request Application registration request
+     * @param body Application registration request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
      * @return the ApplicationRegistrationResponseApiModel object if successful.
      */
-    ApplicationRegistrationResponseApiModel createApplication(ApplicationRegistrationRequestApiModel request);
+    ApplicationRegistrationResponseApiModel createApplication(ApplicationRegistrationRequestApiModel body);
 
     /**
      * Create new application.
-     * The application is registered using the provided information, but it
-     is not associated with a supervisor.  This is useful for when you need
-     to register clients or you want to register a server that is located
-     in a network not reachable through a Twin module.
+     * The application is registered using the provided information, but it is not associated with a supervisor. This is useful for when you need to register clients or you want to register a server that is located in a network not reachable through a Twin module.
      *
-     * @param request Application registration request
+     * @param body Application registration request
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    ServiceFuture<ApplicationRegistrationResponseApiModel> createApplicationAsync(ApplicationRegistrationRequestApiModel request, final ServiceCallback<ApplicationRegistrationResponseApiModel> serviceCallback);
+    ServiceFuture<ApplicationRegistrationResponseApiModel> createApplicationAsync(ApplicationRegistrationRequestApiModel body, final ServiceCallback<ApplicationRegistrationResponseApiModel> serviceCallback);
 
     /**
      * Create new application.
-     * The application is registered using the provided information, but it
-     is not associated with a supervisor.  This is useful for when you need
-     to register clients or you want to register a server that is located
-     in a network not reachable through a Twin module.
+     * The application is registered using the provided information, but it is not associated with a supervisor. This is useful for when you need to register clients or you want to register a server that is located in a network not reachable through a Twin module.
      *
-     * @param request Application registration request
+     * @param body Application registration request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the ApplicationRegistrationResponseApiModel object
      */
-    Observable<ApplicationRegistrationResponseApiModel> createApplicationAsync(ApplicationRegistrationRequestApiModel request);
+    Observable<ApplicationRegistrationResponseApiModel> createApplicationAsync(ApplicationRegistrationRequestApiModel body);
 
     /**
      * Create new application.
-     * The application is registered using the provided information, but it
-     is not associated with a supervisor.  This is useful for when you need
-     to register clients or you want to register a server that is located
-     in a network not reachable through a Twin module.
+     * The application is registered using the provided information, but it is not associated with a supervisor. This is useful for when you need to register clients or you want to register a server that is located in a network not reachable through a Twin module.
      *
-     * @param request Application registration request
+     * @param body Application registration request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the ApplicationRegistrationResponseApiModel object
      */
-    Observable<ServiceResponse<ApplicationRegistrationResponseApiModel>> createApplicationWithServiceResponseAsync(ApplicationRegistrationRequestApiModel request);
-
-    /**
-     * Register new server.
-     * Registers a server solely using a discovery url. Requires that
-     the onboarding agent service is running and the server can be
-     located by a supervisor in its network using the discovery url.
-     *
-     * @param request Server registration request
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     */
-    void registerServer(ServerRegistrationRequestApiModel request);
-
-    /**
-     * Register new server.
-     * Registers a server solely using a discovery url. Requires that
-     the onboarding agent service is running and the server can be
-     located by a supervisor in its network using the discovery url.
-     *
-     * @param request Server registration request
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    ServiceFuture<Void> registerServerAsync(ServerRegistrationRequestApiModel request, final ServiceCallback<Void> serviceCallback);
-
-    /**
-     * Register new server.
-     * Registers a server solely using a discovery url. Requires that
-     the onboarding agent service is running and the server can be
-     located by a supervisor in its network using the discovery url.
-     *
-     * @param request Server registration request
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceResponse} object if successful.
-     */
-    Observable<Void> registerServerAsync(ServerRegistrationRequestApiModel request);
-
-    /**
-     * Register new server.
-     * Registers a server solely using a discovery url. Requires that
-     the onboarding agent service is running and the server can be
-     located by a supervisor in its network using the discovery url.
-     *
-     * @param request Server registration request
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceResponse} object if successful.
-     */
-    Observable<ServiceResponse<Void>> registerServerWithServiceResponseAsync(ServerRegistrationRequestApiModel request);
+    Observable<ServiceResponse<ApplicationRegistrationResponseApiModel>> createApplicationWithServiceResponseAsync(ApplicationRegistrationRequestApiModel body);
 
     /**
      * Purge applications.
@@ -359,6 +233,91 @@ public interface AzureOpcRegistryClient {
      * @return the {@link ServiceResponse} object if successful.
      */
     Observable<ServiceResponse<Void>> deleteAllDisabledApplicationsWithServiceResponseAsync(String notSeenFor);
+
+    /**
+     * Get list of applications.
+     * Get all registered applications in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.
+     *
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     * @return the ApplicationInfoListApiModel object if successful.
+     */
+    ApplicationInfoListApiModel getListOfApplications();
+
+    /**
+     * Get list of applications.
+     * Get all registered applications in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.
+     *
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    ServiceFuture<ApplicationInfoListApiModel> getListOfApplicationsAsync(final ServiceCallback<ApplicationInfoListApiModel> serviceCallback);
+
+    /**
+     * Get list of applications.
+     * Get all registered applications in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.
+     *
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the ApplicationInfoListApiModel object
+     */
+    Observable<ApplicationInfoListApiModel> getListOfApplicationsAsync();
+
+    /**
+     * Get list of applications.
+     * Get all registered applications in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.
+     *
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the ApplicationInfoListApiModel object
+     */
+    Observable<ServiceResponse<ApplicationInfoListApiModel>> getListOfApplicationsWithServiceResponseAsync();
+    /**
+     * Get list of applications.
+     * Get all registered applications in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.
+     *
+     * @param continuationToken Optional Continuation token
+     * @param pageSize Optional number of results to return
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     * @return the ApplicationInfoListApiModel object if successful.
+     */
+    ApplicationInfoListApiModel getListOfApplications(String continuationToken, Integer pageSize);
+
+    /**
+     * Get list of applications.
+     * Get all registered applications in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.
+     *
+     * @param continuationToken Optional Continuation token
+     * @param pageSize Optional number of results to return
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    ServiceFuture<ApplicationInfoListApiModel> getListOfApplicationsAsync(String continuationToken, Integer pageSize, final ServiceCallback<ApplicationInfoListApiModel> serviceCallback);
+
+    /**
+     * Get list of applications.
+     * Get all registered applications in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.
+     *
+     * @param continuationToken Optional Continuation token
+     * @param pageSize Optional number of results to return
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the ApplicationInfoListApiModel object
+     */
+    Observable<ApplicationInfoListApiModel> getListOfApplicationsAsync(String continuationToken, Integer pageSize);
+
+    /**
+     * Get list of applications.
+     * Get all registered applications in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.
+     *
+     * @param continuationToken Optional Continuation token
+     * @param pageSize Optional number of results to return
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the ApplicationInfoListApiModel object
+     */
+    Observable<ServiceResponse<ApplicationInfoListApiModel>> getListOfApplicationsWithServiceResponseAsync(String continuationToken, Integer pageSize);
 
     /**
      * Disable an enabled application.
@@ -446,49 +405,45 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Discover servers.
-     * Registers servers by running a discovery scan in a supervisor's
-     network. Requires that the onboarding agent service is running.
+     * Registers servers by running a discovery scan in a supervisor's network. Requires that the onboarding agent service is running.
      *
-     * @param request Discovery request
+     * @param body Discovery request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
      */
-    void discoverServer(DiscoveryRequestApiModel request);
+    void discoverServer(DiscoveryRequestApiModel body);
 
     /**
      * Discover servers.
-     * Registers servers by running a discovery scan in a supervisor's
-     network. Requires that the onboarding agent service is running.
+     * Registers servers by running a discovery scan in a supervisor's network. Requires that the onboarding agent service is running.
      *
-     * @param request Discovery request
+     * @param body Discovery request
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    ServiceFuture<Void> discoverServerAsync(DiscoveryRequestApiModel request, final ServiceCallback<Void> serviceCallback);
+    ServiceFuture<Void> discoverServerAsync(DiscoveryRequestApiModel body, final ServiceCallback<Void> serviceCallback);
 
     /**
      * Discover servers.
-     * Registers servers by running a discovery scan in a supervisor's
-     network. Requires that the onboarding agent service is running.
+     * Registers servers by running a discovery scan in a supervisor's network. Requires that the onboarding agent service is running.
      *
-     * @param request Discovery request
+     * @param body Discovery request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
-    Observable<Void> discoverServerAsync(DiscoveryRequestApiModel request);
+    Observable<Void> discoverServerAsync(DiscoveryRequestApiModel body);
 
     /**
      * Discover servers.
-     * Registers servers by running a discovery scan in a supervisor's
-     network. Requires that the onboarding agent service is running.
+     * Registers servers by running a discovery scan in a supervisor's network. Requires that the onboarding agent service is running.
      *
-     * @param request Discovery request
+     * @param body Discovery request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
-    Observable<ServiceResponse<Void>> discoverServerWithServiceResponseAsync(DiscoveryRequestApiModel request);
+    Observable<ServiceResponse<Void>> discoverServerWithServiceResponseAsync(DiscoveryRequestApiModel body);
 
     /**
      * Cancel discovery.
@@ -572,6 +527,52 @@ public interface AzureOpcRegistryClient {
     Observable<ServiceResponse<ApplicationRegistrationApiModel>> getApplicationRegistrationWithServiceResponseAsync(String applicationId);
 
     /**
+     * Update application registration.
+     * The application information is updated with new properties. Note that this information might be overridden if the application is re-discovered during a discovery run (recurring or one-time).
+     *
+     * @param applicationId The identifier of the application
+     * @param body Application update request
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     */
+    void updateApplicationRegistration(String applicationId, ApplicationRegistrationUpdateApiModel body);
+
+    /**
+     * Update application registration.
+     * The application information is updated with new properties. Note that this information might be overridden if the application is re-discovered during a discovery run (recurring or one-time).
+     *
+     * @param applicationId The identifier of the application
+     * @param body Application update request
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    ServiceFuture<Void> updateApplicationRegistrationAsync(String applicationId, ApplicationRegistrationUpdateApiModel body, final ServiceCallback<Void> serviceCallback);
+
+    /**
+     * Update application registration.
+     * The application information is updated with new properties. Note that this information might be overridden if the application is re-discovered during a discovery run (recurring or one-time).
+     *
+     * @param applicationId The identifier of the application
+     * @param body Application update request
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    Observable<Void> updateApplicationRegistrationAsync(String applicationId, ApplicationRegistrationUpdateApiModel body);
+
+    /**
+     * Update application registration.
+     * The application information is updated with new properties. Note that this information might be overridden if the application is re-discovered during a discovery run (recurring or one-time).
+     *
+     * @param applicationId The identifier of the application
+     * @param body Application update request
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    Observable<ServiceResponse<Void>> updateApplicationRegistrationWithServiceResponseAsync(String applicationId, ApplicationRegistrationUpdateApiModel body);
+
+    /**
      * Unregister application.
      * Unregisters and deletes application and all its associated endpoints.
      *
@@ -612,60 +613,6 @@ public interface AzureOpcRegistryClient {
      * @return the {@link ServiceResponse} object if successful.
      */
     Observable<ServiceResponse<Void>> deleteApplicationWithServiceResponseAsync(String applicationId);
-
-    /**
-     * Update application registration.
-     * The application information is updated with new properties.  Note that
-     this information might be overridden if the application is re-discovered
-     during a discovery run (recurring or one-time).
-     *
-     * @param applicationId The identifier of the application
-     * @param request Application update request
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     */
-    void updateApplicationRegistration(String applicationId, ApplicationRegistrationUpdateApiModel request);
-
-    /**
-     * Update application registration.
-     * The application information is updated with new properties.  Note that
-     this information might be overridden if the application is re-discovered
-     during a discovery run (recurring or one-time).
-     *
-     * @param applicationId The identifier of the application
-     * @param request Application update request
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    ServiceFuture<Void> updateApplicationRegistrationAsync(String applicationId, ApplicationRegistrationUpdateApiModel request, final ServiceCallback<Void> serviceCallback);
-
-    /**
-     * Update application registration.
-     * The application information is updated with new properties.  Note that
-     this information might be overridden if the application is re-discovered
-     during a discovery run (recurring or one-time).
-     *
-     * @param applicationId The identifier of the application
-     * @param request Application update request
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceResponse} object if successful.
-     */
-    Observable<Void> updateApplicationRegistrationAsync(String applicationId, ApplicationRegistrationUpdateApiModel request);
-
-    /**
-     * Update application registration.
-     * The application information is updated with new properties.  Note that
-     this information might be overridden if the application is re-discovered
-     during a discovery run (recurring or one-time).
-     *
-     * @param applicationId The identifier of the application
-     * @param request Application update request
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceResponse} object if successful.
-     */
-    Observable<ServiceResponse<Void>> updateApplicationRegistrationWithServiceResponseAsync(String applicationId, ApplicationRegistrationUpdateApiModel request);
 
     /**
      * Get list of sites.
@@ -709,10 +656,8 @@ public interface AzureOpcRegistryClient {
      * Get list of sites.
      * List all sites applications are registered in.
      *
-     * @param continuationToken Optional Continuation
-                 token
-     * @param pageSize Optional number of results to
-                 return
+     * @param continuationToken Optional Continuation token
+     * @param pageSize Optional number of results to return
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
@@ -724,10 +669,8 @@ public interface AzureOpcRegistryClient {
      * Get list of sites.
      * List all sites applications are registered in.
      *
-     * @param continuationToken Optional Continuation
-                 token
-     * @param pageSize Optional number of results to
-                 return
+     * @param continuationToken Optional Continuation token
+     * @param pageSize Optional number of results to return
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
@@ -738,10 +681,8 @@ public interface AzureOpcRegistryClient {
      * Get list of sites.
      * List all sites applications are registered in.
      *
-     * @param continuationToken Optional Continuation
-                 token
-     * @param pageSize Optional number of results to
-                 return
+     * @param continuationToken Optional Continuation token
+     * @param pageSize Optional number of results to return
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the ApplicationSiteListApiModel object
      */
@@ -751,260 +692,190 @@ public interface AzureOpcRegistryClient {
      * Get list of sites.
      * List all sites applications are registered in.
      *
-     * @param continuationToken Optional Continuation
-                 token
-     * @param pageSize Optional number of results to
-                 return
+     * @param continuationToken Optional Continuation token
+     * @param pageSize Optional number of results to return
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the ApplicationSiteListApiModel object
      */
     Observable<ServiceResponse<ApplicationSiteListApiModel>> getListOfSitesWithServiceResponseAsync(String continuationToken, Integer pageSize);
 
     /**
-     * Get filtered list of applications.
-     * Get a list of applications filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfApplications operation using the token to retrieve
-     more results.
+     * Query applications.
+     * List applications that match a query model. The returned model can contain a continuation token if more results are available. Call the GetListOfApplications operation using the token to retrieve more results.
      *
-     * @param query Applications Query model
+     * @param body Application query
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
      * @return the ApplicationInfoListApiModel object if successful.
      */
-    ApplicationInfoListApiModel getFilteredListOfApplications(ApplicationRegistrationQueryApiModel query);
+    ApplicationInfoListApiModel queryApplications(ApplicationRegistrationQueryApiModel body);
 
     /**
-     * Get filtered list of applications.
-     * Get a list of applications filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfApplications operation using the token to retrieve
-     more results.
+     * Query applications.
+     * List applications that match a query model. The returned model can contain a continuation token if more results are available. Call the GetListOfApplications operation using the token to retrieve more results.
      *
-     * @param query Applications Query model
+     * @param body Application query
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    ServiceFuture<ApplicationInfoListApiModel> getFilteredListOfApplicationsAsync(ApplicationRegistrationQueryApiModel query, final ServiceCallback<ApplicationInfoListApiModel> serviceCallback);
+    ServiceFuture<ApplicationInfoListApiModel> queryApplicationsAsync(ApplicationRegistrationQueryApiModel body, final ServiceCallback<ApplicationInfoListApiModel> serviceCallback);
 
     /**
-     * Get filtered list of applications.
-     * Get a list of applications filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfApplications operation using the token to retrieve
-     more results.
+     * Query applications.
+     * List applications that match a query model. The returned model can contain a continuation token if more results are available. Call the GetListOfApplications operation using the token to retrieve more results.
      *
-     * @param query Applications Query model
+     * @param body Application query
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the ApplicationInfoListApiModel object
      */
-    Observable<ApplicationInfoListApiModel> getFilteredListOfApplicationsAsync(ApplicationRegistrationQueryApiModel query);
+    Observable<ApplicationInfoListApiModel> queryApplicationsAsync(ApplicationRegistrationQueryApiModel body);
 
     /**
-     * Get filtered list of applications.
-     * Get a list of applications filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfApplications operation using the token to retrieve
-     more results.
+     * Query applications.
+     * List applications that match a query model. The returned model can contain a continuation token if more results are available. Call the GetListOfApplications operation using the token to retrieve more results.
      *
-     * @param query Applications Query model
+     * @param body Application query
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the ApplicationInfoListApiModel object
      */
-    Observable<ServiceResponse<ApplicationInfoListApiModel>> getFilteredListOfApplicationsWithServiceResponseAsync(ApplicationRegistrationQueryApiModel query);
+    Observable<ServiceResponse<ApplicationInfoListApiModel>> queryApplicationsWithServiceResponseAsync(ApplicationRegistrationQueryApiModel body);
+    /**
+     * Query applications.
+     * List applications that match a query model. The returned model can contain a continuation token if more results are available. Call the GetListOfApplications operation using the token to retrieve more results.
+     *
+     * @param body Application query
+     * @param pageSize Optional number of results to return
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     * @return the ApplicationInfoListApiModel object if successful.
+     */
+    ApplicationInfoListApiModel queryApplications(ApplicationRegistrationQueryApiModel body, Integer pageSize);
+
+    /**
+     * Query applications.
+     * List applications that match a query model. The returned model can contain a continuation token if more results are available. Call the GetListOfApplications operation using the token to retrieve more results.
+     *
+     * @param body Application query
+     * @param pageSize Optional number of results to return
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    ServiceFuture<ApplicationInfoListApiModel> queryApplicationsAsync(ApplicationRegistrationQueryApiModel body, Integer pageSize, final ServiceCallback<ApplicationInfoListApiModel> serviceCallback);
+
+    /**
+     * Query applications.
+     * List applications that match a query model. The returned model can contain a continuation token if more results are available. Call the GetListOfApplications operation using the token to retrieve more results.
+     *
+     * @param body Application query
+     * @param pageSize Optional number of results to return
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the ApplicationInfoListApiModel object
+     */
+    Observable<ApplicationInfoListApiModel> queryApplicationsAsync(ApplicationRegistrationQueryApiModel body, Integer pageSize);
+
+    /**
+     * Query applications.
+     * List applications that match a query model. The returned model can contain a continuation token if more results are available. Call the GetListOfApplications operation using the token to retrieve more results.
+     *
+     * @param body Application query
+     * @param pageSize Optional number of results to return
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the ApplicationInfoListApiModel object
+     */
+    Observable<ServiceResponse<ApplicationInfoListApiModel>> queryApplicationsWithServiceResponseAsync(ApplicationRegistrationQueryApiModel body, Integer pageSize);
+
     /**
      * Get filtered list of applications.
-     * Get a list of applications filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfApplications operation using the token to retrieve
-     more results.
+     * Get a list of applications filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfApplications operation using the token to retrieve more results.
      *
-     * @param query Applications Query model
+     * @param body Applications Query model
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     * @return the ApplicationInfoListApiModel object if successful.
+     */
+    ApplicationInfoListApiModel getFilteredListOfApplications(ApplicationRegistrationQueryApiModel body);
+
+    /**
+     * Get filtered list of applications.
+     * Get a list of applications filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfApplications operation using the token to retrieve more results.
+     *
+     * @param body Applications Query model
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    ServiceFuture<ApplicationInfoListApiModel> getFilteredListOfApplicationsAsync(ApplicationRegistrationQueryApiModel body, final ServiceCallback<ApplicationInfoListApiModel> serviceCallback);
+
+    /**
+     * Get filtered list of applications.
+     * Get a list of applications filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfApplications operation using the token to retrieve more results.
+     *
+     * @param body Applications Query model
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the ApplicationInfoListApiModel object
+     */
+    Observable<ApplicationInfoListApiModel> getFilteredListOfApplicationsAsync(ApplicationRegistrationQueryApiModel body);
+
+    /**
+     * Get filtered list of applications.
+     * Get a list of applications filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfApplications operation using the token to retrieve more results.
+     *
+     * @param body Applications Query model
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the ApplicationInfoListApiModel object
+     */
+    Observable<ServiceResponse<ApplicationInfoListApiModel>> getFilteredListOfApplicationsWithServiceResponseAsync(ApplicationRegistrationQueryApiModel body);
+    /**
+     * Get filtered list of applications.
+     * Get a list of applications filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfApplications operation using the token to retrieve more results.
+     *
+     * @param body Applications Query model
      * @param pageSize Number of results to return
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
      * @return the ApplicationInfoListApiModel object if successful.
      */
-    ApplicationInfoListApiModel getFilteredListOfApplications(ApplicationRegistrationQueryApiModel query, Integer pageSize);
+    ApplicationInfoListApiModel getFilteredListOfApplications(ApplicationRegistrationQueryApiModel body, Integer pageSize);
 
     /**
      * Get filtered list of applications.
-     * Get a list of applications filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfApplications operation using the token to retrieve
-     more results.
+     * Get a list of applications filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfApplications operation using the token to retrieve more results.
      *
-     * @param query Applications Query model
+     * @param body Applications Query model
      * @param pageSize Number of results to return
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    ServiceFuture<ApplicationInfoListApiModel> getFilteredListOfApplicationsAsync(ApplicationRegistrationQueryApiModel query, Integer pageSize, final ServiceCallback<ApplicationInfoListApiModel> serviceCallback);
+    ServiceFuture<ApplicationInfoListApiModel> getFilteredListOfApplicationsAsync(ApplicationRegistrationQueryApiModel body, Integer pageSize, final ServiceCallback<ApplicationInfoListApiModel> serviceCallback);
 
     /**
      * Get filtered list of applications.
-     * Get a list of applications filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfApplications operation using the token to retrieve
-     more results.
+     * Get a list of applications filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfApplications operation using the token to retrieve more results.
      *
-     * @param query Applications Query model
+     * @param body Applications Query model
      * @param pageSize Number of results to return
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the ApplicationInfoListApiModel object
      */
-    Observable<ApplicationInfoListApiModel> getFilteredListOfApplicationsAsync(ApplicationRegistrationQueryApiModel query, Integer pageSize);
+    Observable<ApplicationInfoListApiModel> getFilteredListOfApplicationsAsync(ApplicationRegistrationQueryApiModel body, Integer pageSize);
 
     /**
      * Get filtered list of applications.
-     * Get a list of applications filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfApplications operation using the token to retrieve
-     more results.
+     * Get a list of applications filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfApplications operation using the token to retrieve more results.
      *
-     * @param query Applications Query model
+     * @param body Applications Query model
      * @param pageSize Number of results to return
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the ApplicationInfoListApiModel object
      */
-    Observable<ServiceResponse<ApplicationInfoListApiModel>> getFilteredListOfApplicationsWithServiceResponseAsync(ApplicationRegistrationQueryApiModel query, Integer pageSize);
-
-    /**
-     * Query applications.
-     * List applications that match a query model.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfApplications operation using the token to retrieve
-     more results.
-     *
-     * @param query Application query
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the ApplicationInfoListApiModel object if successful.
-     */
-    ApplicationInfoListApiModel queryApplications(ApplicationRegistrationQueryApiModel query);
-
-    /**
-     * Query applications.
-     * List applications that match a query model.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfApplications operation using the token to retrieve
-     more results.
-     *
-     * @param query Application query
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    ServiceFuture<ApplicationInfoListApiModel> queryApplicationsAsync(ApplicationRegistrationQueryApiModel query, final ServiceCallback<ApplicationInfoListApiModel> serviceCallback);
-
-    /**
-     * Query applications.
-     * List applications that match a query model.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfApplications operation using the token to retrieve
-     more results.
-     *
-     * @param query Application query
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the ApplicationInfoListApiModel object
-     */
-    Observable<ApplicationInfoListApiModel> queryApplicationsAsync(ApplicationRegistrationQueryApiModel query);
-
-    /**
-     * Query applications.
-     * List applications that match a query model.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfApplications operation using the token to retrieve
-     more results.
-     *
-     * @param query Application query
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the ApplicationInfoListApiModel object
-     */
-    Observable<ServiceResponse<ApplicationInfoListApiModel>> queryApplicationsWithServiceResponseAsync(ApplicationRegistrationQueryApiModel query);
-    /**
-     * Query applications.
-     * List applications that match a query model.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfApplications operation using the token to retrieve
-     more results.
-     *
-     * @param query Application query
-     * @param pageSize Optional number of results to
-                 return
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the ApplicationInfoListApiModel object if successful.
-     */
-    ApplicationInfoListApiModel queryApplications(ApplicationRegistrationQueryApiModel query, Integer pageSize);
-
-    /**
-     * Query applications.
-     * List applications that match a query model.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfApplications operation using the token to retrieve
-     more results.
-     *
-     * @param query Application query
-     * @param pageSize Optional number of results to
-                 return
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    ServiceFuture<ApplicationInfoListApiModel> queryApplicationsAsync(ApplicationRegistrationQueryApiModel query, Integer pageSize, final ServiceCallback<ApplicationInfoListApiModel> serviceCallback);
-
-    /**
-     * Query applications.
-     * List applications that match a query model.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfApplications operation using the token to retrieve
-     more results.
-     *
-     * @param query Application query
-     * @param pageSize Optional number of results to
-                 return
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the ApplicationInfoListApiModel object
-     */
-    Observable<ApplicationInfoListApiModel> queryApplicationsAsync(ApplicationRegistrationQueryApiModel query, Integer pageSize);
-
-    /**
-     * Query applications.
-     * List applications that match a query model.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfApplications operation using the token to retrieve
-     more results.
-     *
-     * @param query Application query
-     * @param pageSize Optional number of results to
-                 return
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the ApplicationInfoListApiModel object
-     */
-    Observable<ServiceResponse<ApplicationInfoListApiModel>> queryApplicationsWithServiceResponseAsync(ApplicationRegistrationQueryApiModel query, Integer pageSize);
+    Observable<ServiceResponse<ApplicationInfoListApiModel>> getFilteredListOfApplicationsWithServiceResponseAsync(ApplicationRegistrationQueryApiModel body, Integer pageSize);
 
     /**
      * Query applications by id.
@@ -1048,44 +919,44 @@ public interface AzureOpcRegistryClient {
      * Query applications by id.
      * A query model which supports the OPC UA Global Discovery Server query.
      *
-     * @param query the ApplicationRecordQueryApiModel value
+     * @param body the ApplicationRecordQueryApiModel value
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
      * @return the ApplicationRecordListApiModel object if successful.
      */
-    ApplicationRecordListApiModel queryApplicationsById(ApplicationRecordQueryApiModel query);
+    ApplicationRecordListApiModel queryApplicationsById(ApplicationRecordQueryApiModel body);
 
     /**
      * Query applications by id.
      * A query model which supports the OPC UA Global Discovery Server query.
      *
-     * @param query the ApplicationRecordQueryApiModel value
+     * @param body the ApplicationRecordQueryApiModel value
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    ServiceFuture<ApplicationRecordListApiModel> queryApplicationsByIdAsync(ApplicationRecordQueryApiModel query, final ServiceCallback<ApplicationRecordListApiModel> serviceCallback);
+    ServiceFuture<ApplicationRecordListApiModel> queryApplicationsByIdAsync(ApplicationRecordQueryApiModel body, final ServiceCallback<ApplicationRecordListApiModel> serviceCallback);
 
     /**
      * Query applications by id.
      * A query model which supports the OPC UA Global Discovery Server query.
      *
-     * @param query the ApplicationRecordQueryApiModel value
+     * @param body the ApplicationRecordQueryApiModel value
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the ApplicationRecordListApiModel object
      */
-    Observable<ApplicationRecordListApiModel> queryApplicationsByIdAsync(ApplicationRecordQueryApiModel query);
+    Observable<ApplicationRecordListApiModel> queryApplicationsByIdAsync(ApplicationRecordQueryApiModel body);
 
     /**
      * Query applications by id.
      * A query model which supports the OPC UA Global Discovery Server query.
      *
-     * @param query the ApplicationRecordQueryApiModel value
+     * @param body the ApplicationRecordQueryApiModel value
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the ApplicationRecordListApiModel object
      */
-    Observable<ServiceResponse<ApplicationRecordListApiModel>> queryApplicationsByIdWithServiceResponseAsync(ApplicationRecordQueryApiModel query);
+    Observable<ServiceResponse<ApplicationRecordListApiModel>> queryApplicationsByIdWithServiceResponseAsync(ApplicationRecordQueryApiModel body);
 
     /**
      * Subscribe for application events.
@@ -1128,54 +999,53 @@ public interface AzureOpcRegistryClient {
      * Subscribe for application events.
      * Register a client to receive application events through SignalR.
      *
-     * @param userId The user that will receive application
+     * @param body The user that will receive application
                  events.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
      */
-    void subscribe(String userId);
+    void subscribe(String body);
 
     /**
      * Subscribe for application events.
      * Register a client to receive application events through SignalR.
      *
-     * @param userId The user that will receive application
+     * @param body The user that will receive application
                  events.
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    ServiceFuture<Void> subscribeAsync(String userId, final ServiceCallback<Void> serviceCallback);
+    ServiceFuture<Void> subscribeAsync(String body, final ServiceCallback<Void> serviceCallback);
 
     /**
      * Subscribe for application events.
      * Register a client to receive application events through SignalR.
      *
-     * @param userId The user that will receive application
+     * @param body The user that will receive application
                  events.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
-    Observable<Void> subscribeAsync(String userId);
+    Observable<Void> subscribeAsync(String body);
 
     /**
      * Subscribe for application events.
      * Register a client to receive application events through SignalR.
      *
-     * @param userId The user that will receive application
+     * @param body The user that will receive application
                  events.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
-    Observable<ServiceResponse<Void>> subscribeWithServiceResponseAsync(String userId);
+    Observable<ServiceResponse<Void>> subscribeWithServiceResponseAsync(String body);
 
     /**
      * Unsubscribe from application events.
      * Unregister a user and stop it from receiving events.
      *
-     * @param userId The user id that will not receive
-                 any more events
+     * @param userId The user id that will not receive any more events
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
@@ -1186,8 +1056,7 @@ public interface AzureOpcRegistryClient {
      * Unsubscribe from application events.
      * Unregister a user and stop it from receiving events.
      *
-     * @param userId The user id that will not receive
-                 any more events
+     * @param userId The user id that will not receive any more events
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
@@ -1198,8 +1067,7 @@ public interface AzureOpcRegistryClient {
      * Unsubscribe from application events.
      * Unregister a user and stop it from receiving events.
      *
-     * @param userId The user id that will not receive
-                 any more events
+     * @param userId The user id that will not receive any more events
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
@@ -1209,116 +1077,740 @@ public interface AzureOpcRegistryClient {
      * Unsubscribe from application events.
      * Unregister a user and stop it from receiving events.
      *
-     * @param userId The user id that will not receive
-                 any more events
+     * @param userId The user id that will not receive any more events
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
     Observable<ServiceResponse<Void>> unsubscribeWithServiceResponseAsync(String userId);
 
     /**
-     * Subscribe to discovery progress from supervisor.
-     * Register a client to receive discovery progress events
-     through SignalR from a particular supervisor.
+     * Get discoverer registration information.
+     * Returns a discoverer's registration and connectivity information. A discoverer id corresponds to the twin modules module identity.
      *
-     * @param supervisorId The supervisor to subscribe to
+     * @param discovererId Discoverer identifier
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     * @return the DiscovererApiModel object if successful.
      */
-    void subscribeBySupervisorId(String supervisorId);
+    DiscovererApiModel getDiscoverer(String discovererId);
 
     /**
-     * Subscribe to discovery progress from supervisor.
-     * Register a client to receive discovery progress events
-     through SignalR from a particular supervisor.
+     * Get discoverer registration information.
+     * Returns a discoverer's registration and connectivity information. A discoverer id corresponds to the twin modules module identity.
      *
-     * @param supervisorId The supervisor to subscribe to
+     * @param discovererId Discoverer identifier
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    ServiceFuture<Void> subscribeBySupervisorIdAsync(String supervisorId, final ServiceCallback<Void> serviceCallback);
+    ServiceFuture<DiscovererApiModel> getDiscovererAsync(String discovererId, final ServiceCallback<DiscovererApiModel> serviceCallback);
 
     /**
-     * Subscribe to discovery progress from supervisor.
-     * Register a client to receive discovery progress events
-     through SignalR from a particular supervisor.
+     * Get discoverer registration information.
+     * Returns a discoverer's registration and connectivity information. A discoverer id corresponds to the twin modules module identity.
      *
-     * @param supervisorId The supervisor to subscribe to
+     * @param discovererId Discoverer identifier
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the DiscovererApiModel object
+     */
+    Observable<DiscovererApiModel> getDiscovererAsync(String discovererId);
+
+    /**
+     * Get discoverer registration information.
+     * Returns a discoverer's registration and connectivity information. A discoverer id corresponds to the twin modules module identity.
+     *
+     * @param discovererId Discoverer identifier
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the DiscovererApiModel object
+     */
+    Observable<ServiceResponse<DiscovererApiModel>> getDiscovererWithServiceResponseAsync(String discovererId);
+    /**
+     * Get discoverer registration information.
+     * Returns a discoverer's registration and connectivity information. A discoverer id corresponds to the twin modules module identity.
+     *
+     * @param discovererId Discoverer identifier
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     * @return the DiscovererApiModel object if successful.
+     */
+    DiscovererApiModel getDiscoverer(String discovererId, Boolean onlyServerState);
+
+    /**
+     * Get discoverer registration information.
+     * Returns a discoverer's registration and connectivity information. A discoverer id corresponds to the twin modules module identity.
+     *
+     * @param discovererId Discoverer identifier
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    ServiceFuture<DiscovererApiModel> getDiscovererAsync(String discovererId, Boolean onlyServerState, final ServiceCallback<DiscovererApiModel> serviceCallback);
+
+    /**
+     * Get discoverer registration information.
+     * Returns a discoverer's registration and connectivity information. A discoverer id corresponds to the twin modules module identity.
+     *
+     * @param discovererId Discoverer identifier
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the DiscovererApiModel object
+     */
+    Observable<DiscovererApiModel> getDiscovererAsync(String discovererId, Boolean onlyServerState);
+
+    /**
+     * Get discoverer registration information.
+     * Returns a discoverer's registration and connectivity information. A discoverer id corresponds to the twin modules module identity.
+     *
+     * @param discovererId Discoverer identifier
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the DiscovererApiModel object
+     */
+    Observable<ServiceResponse<DiscovererApiModel>> getDiscovererWithServiceResponseAsync(String discovererId, Boolean onlyServerState);
+
+    /**
+     * Update discoverer information.
+     * Allows a caller to configure recurring discovery runs on the twin module identified by the discoverer id or update site information.
+     *
+     * @param discovererId discoverer identifier
+     * @param body Patch request
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     */
+    void updateDiscoverer(String discovererId, DiscovererUpdateApiModel body);
+
+    /**
+     * Update discoverer information.
+     * Allows a caller to configure recurring discovery runs on the twin module identified by the discoverer id or update site information.
+     *
+     * @param discovererId discoverer identifier
+     * @param body Patch request
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    ServiceFuture<Void> updateDiscovererAsync(String discovererId, DiscovererUpdateApiModel body, final ServiceCallback<Void> serviceCallback);
+
+    /**
+     * Update discoverer information.
+     * Allows a caller to configure recurring discovery runs on the twin module identified by the discoverer id or update site information.
+     *
+     * @param discovererId discoverer identifier
+     * @param body Patch request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
-    Observable<Void> subscribeBySupervisorIdAsync(String supervisorId);
+    Observable<Void> updateDiscovererAsync(String discovererId, DiscovererUpdateApiModel body);
 
     /**
-     * Subscribe to discovery progress from supervisor.
-     * Register a client to receive discovery progress events
-     through SignalR from a particular supervisor.
+     * Update discoverer information.
+     * Allows a caller to configure recurring discovery runs on the twin module identified by the discoverer id or update site information.
      *
-     * @param supervisorId The supervisor to subscribe to
+     * @param discovererId discoverer identifier
+     * @param body Patch request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
-    Observable<ServiceResponse<Void>> subscribeBySupervisorIdWithServiceResponseAsync(String supervisorId);
+    Observable<ServiceResponse<Void>> updateDiscovererWithServiceResponseAsync(String discovererId, DiscovererUpdateApiModel body);
+
     /**
-     * Subscribe to discovery progress from supervisor.
-     * Register a client to receive discovery progress events
-     through SignalR from a particular supervisor.
+     * Enable server discovery.
+     * Allows a caller to configure recurring discovery runs on the discovery module identified by the module id.
      *
-     * @param supervisorId The supervisor to subscribe to
-     * @param userId The user id that will receive discovery
+     * @param discovererId discoverer identifier
+     * @param mode Discovery mode. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     */
+    void setDiscoveryMode(String discovererId, DiscoveryMode mode);
+
+    /**
+     * Enable server discovery.
+     * Allows a caller to configure recurring discovery runs on the discovery module identified by the module id.
+     *
+     * @param discovererId discoverer identifier
+     * @param mode Discovery mode. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    ServiceFuture<Void> setDiscoveryModeAsync(String discovererId, DiscoveryMode mode, final ServiceCallback<Void> serviceCallback);
+
+    /**
+     * Enable server discovery.
+     * Allows a caller to configure recurring discovery runs on the discovery module identified by the module id.
+     *
+     * @param discovererId discoverer identifier
+     * @param mode Discovery mode. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    Observable<Void> setDiscoveryModeAsync(String discovererId, DiscoveryMode mode);
+
+    /**
+     * Enable server discovery.
+     * Allows a caller to configure recurring discovery runs on the discovery module identified by the module id.
+     *
+     * @param discovererId discoverer identifier
+     * @param mode Discovery mode. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    Observable<ServiceResponse<Void>> setDiscoveryModeWithServiceResponseAsync(String discovererId, DiscoveryMode mode);
+    /**
+     * Enable server discovery.
+     * Allows a caller to configure recurring discovery runs on the discovery module identified by the module id.
+     *
+     * @param discovererId discoverer identifier
+     * @param mode Discovery mode. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
+     * @param body Discovery configuration
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     */
+    void setDiscoveryMode(String discovererId, DiscoveryMode mode, DiscoveryConfigApiModel body);
+
+    /**
+     * Enable server discovery.
+     * Allows a caller to configure recurring discovery runs on the discovery module identified by the module id.
+     *
+     * @param discovererId discoverer identifier
+     * @param mode Discovery mode. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
+     * @param body Discovery configuration
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    ServiceFuture<Void> setDiscoveryModeAsync(String discovererId, DiscoveryMode mode, DiscoveryConfigApiModel body, final ServiceCallback<Void> serviceCallback);
+
+    /**
+     * Enable server discovery.
+     * Allows a caller to configure recurring discovery runs on the discovery module identified by the module id.
+     *
+     * @param discovererId discoverer identifier
+     * @param mode Discovery mode. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
+     * @param body Discovery configuration
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    Observable<Void> setDiscoveryModeAsync(String discovererId, DiscoveryMode mode, DiscoveryConfigApiModel body);
+
+    /**
+     * Enable server discovery.
+     * Allows a caller to configure recurring discovery runs on the discovery module identified by the module id.
+     *
+     * @param discovererId discoverer identifier
+     * @param mode Discovery mode. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
+     * @param body Discovery configuration
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    Observable<ServiceResponse<Void>> setDiscoveryModeWithServiceResponseAsync(String discovererId, DiscoveryMode mode, DiscoveryConfigApiModel body);
+
+    /**
+     * Get list of discoverers.
+     * Get all registered discoverers and therefore twin modules in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.
+     *
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     * @return the DiscovererListApiModel object if successful.
+     */
+    DiscovererListApiModel getListOfDiscoverers();
+
+    /**
+     * Get list of discoverers.
+     * Get all registered discoverers and therefore twin modules in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.
+     *
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    ServiceFuture<DiscovererListApiModel> getListOfDiscoverersAsync(final ServiceCallback<DiscovererListApiModel> serviceCallback);
+
+    /**
+     * Get list of discoverers.
+     * Get all registered discoverers and therefore twin modules in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.
+     *
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the DiscovererListApiModel object
+     */
+    Observable<DiscovererListApiModel> getListOfDiscoverersAsync();
+
+    /**
+     * Get list of discoverers.
+     * Get all registered discoverers and therefore twin modules in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.
+     *
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the DiscovererListApiModel object
+     */
+    Observable<ServiceResponse<DiscovererListApiModel>> getListOfDiscoverersWithServiceResponseAsync();
+    /**
+     * Get list of discoverers.
+     * Get all registered discoverers and therefore twin modules in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.
+     *
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
+     * @param continuationToken Optional Continuation token
+     * @param pageSize Optional number of results to return
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     * @return the DiscovererListApiModel object if successful.
+     */
+    DiscovererListApiModel getListOfDiscoverers(Boolean onlyServerState, String continuationToken, Integer pageSize);
+
+    /**
+     * Get list of discoverers.
+     * Get all registered discoverers and therefore twin modules in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.
+     *
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
+     * @param continuationToken Optional Continuation token
+     * @param pageSize Optional number of results to return
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    ServiceFuture<DiscovererListApiModel> getListOfDiscoverersAsync(Boolean onlyServerState, String continuationToken, Integer pageSize, final ServiceCallback<DiscovererListApiModel> serviceCallback);
+
+    /**
+     * Get list of discoverers.
+     * Get all registered discoverers and therefore twin modules in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.
+     *
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
+     * @param continuationToken Optional Continuation token
+     * @param pageSize Optional number of results to return
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the DiscovererListApiModel object
+     */
+    Observable<DiscovererListApiModel> getListOfDiscoverersAsync(Boolean onlyServerState, String continuationToken, Integer pageSize);
+
+    /**
+     * Get list of discoverers.
+     * Get all registered discoverers and therefore twin modules in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.
+     *
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
+     * @param continuationToken Optional Continuation token
+     * @param pageSize Optional number of results to return
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the DiscovererListApiModel object
+     */
+    Observable<ServiceResponse<DiscovererListApiModel>> getListOfDiscoverersWithServiceResponseAsync(Boolean onlyServerState, String continuationToken, Integer pageSize);
+
+    /**
+     * Query discoverers.
+     * Get all discoverers that match a specified query. The returned model can contain a continuation token if more results are available. Call the GetListOfDiscoverers operation using the token to retrieve more results.
+     *
+     * @param body Discoverers query model
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     * @return the DiscovererListApiModel object if successful.
+     */
+    DiscovererListApiModel queryDiscoverers(DiscovererQueryApiModel body);
+
+    /**
+     * Query discoverers.
+     * Get all discoverers that match a specified query. The returned model can contain a continuation token if more results are available. Call the GetListOfDiscoverers operation using the token to retrieve more results.
+     *
+     * @param body Discoverers query model
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    ServiceFuture<DiscovererListApiModel> queryDiscoverersAsync(DiscovererQueryApiModel body, final ServiceCallback<DiscovererListApiModel> serviceCallback);
+
+    /**
+     * Query discoverers.
+     * Get all discoverers that match a specified query. The returned model can contain a continuation token if more results are available. Call the GetListOfDiscoverers operation using the token to retrieve more results.
+     *
+     * @param body Discoverers query model
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the DiscovererListApiModel object
+     */
+    Observable<DiscovererListApiModel> queryDiscoverersAsync(DiscovererQueryApiModel body);
+
+    /**
+     * Query discoverers.
+     * Get all discoverers that match a specified query. The returned model can contain a continuation token if more results are available. Call the GetListOfDiscoverers operation using the token to retrieve more results.
+     *
+     * @param body Discoverers query model
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the DiscovererListApiModel object
+     */
+    Observable<ServiceResponse<DiscovererListApiModel>> queryDiscoverersWithServiceResponseAsync(DiscovererQueryApiModel body);
+    /**
+     * Query discoverers.
+     * Get all discoverers that match a specified query. The returned model can contain a continuation token if more results are available. Call the GetListOfDiscoverers operation using the token to retrieve more results.
+     *
+     * @param body Discoverers query model
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
+     * @param pageSize Number of results to return
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     * @return the DiscovererListApiModel object if successful.
+     */
+    DiscovererListApiModel queryDiscoverers(DiscovererQueryApiModel body, Boolean onlyServerState, Integer pageSize);
+
+    /**
+     * Query discoverers.
+     * Get all discoverers that match a specified query. The returned model can contain a continuation token if more results are available. Call the GetListOfDiscoverers operation using the token to retrieve more results.
+     *
+     * @param body Discoverers query model
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
+     * @param pageSize Number of results to return
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    ServiceFuture<DiscovererListApiModel> queryDiscoverersAsync(DiscovererQueryApiModel body, Boolean onlyServerState, Integer pageSize, final ServiceCallback<DiscovererListApiModel> serviceCallback);
+
+    /**
+     * Query discoverers.
+     * Get all discoverers that match a specified query. The returned model can contain a continuation token if more results are available. Call the GetListOfDiscoverers operation using the token to retrieve more results.
+     *
+     * @param body Discoverers query model
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
+     * @param pageSize Number of results to return
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the DiscovererListApiModel object
+     */
+    Observable<DiscovererListApiModel> queryDiscoverersAsync(DiscovererQueryApiModel body, Boolean onlyServerState, Integer pageSize);
+
+    /**
+     * Query discoverers.
+     * Get all discoverers that match a specified query. The returned model can contain a continuation token if more results are available. Call the GetListOfDiscoverers operation using the token to retrieve more results.
+     *
+     * @param body Discoverers query model
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
+     * @param pageSize Number of results to return
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the DiscovererListApiModel object
+     */
+    Observable<ServiceResponse<DiscovererListApiModel>> queryDiscoverersWithServiceResponseAsync(DiscovererQueryApiModel body, Boolean onlyServerState, Integer pageSize);
+
+    /**
+     * Get filtered list of discoverers.
+     * Get a list of discoverers filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfDiscoverers operation using the token to retrieve more results.
+     *
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     * @return the DiscovererListApiModel object if successful.
+     */
+    DiscovererListApiModel getFilteredListOfDiscoverers();
+
+    /**
+     * Get filtered list of discoverers.
+     * Get a list of discoverers filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfDiscoverers operation using the token to retrieve more results.
+     *
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    ServiceFuture<DiscovererListApiModel> getFilteredListOfDiscoverersAsync(final ServiceCallback<DiscovererListApiModel> serviceCallback);
+
+    /**
+     * Get filtered list of discoverers.
+     * Get a list of discoverers filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfDiscoverers operation using the token to retrieve more results.
+     *
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the DiscovererListApiModel object
+     */
+    Observable<DiscovererListApiModel> getFilteredListOfDiscoverersAsync();
+
+    /**
+     * Get filtered list of discoverers.
+     * Get a list of discoverers filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfDiscoverers operation using the token to retrieve more results.
+     *
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the DiscovererListApiModel object
+     */
+    Observable<ServiceResponse<DiscovererListApiModel>> getFilteredListOfDiscoverersWithServiceResponseAsync();
+    /**
+     * Get filtered list of discoverers.
+     * Get a list of discoverers filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfDiscoverers operation using the token to retrieve more results.
+     *
+     * @param siteId Site of the discoverer
+     * @param discovery Discovery mode of discoverer. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
+     * @param connected Included connected or disconnected
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
+     * @param pageSize Number of results to return
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     * @return the DiscovererListApiModel object if successful.
+     */
+    DiscovererListApiModel getFilteredListOfDiscoverers(String siteId, DiscoveryMode discovery, Boolean connected, Boolean onlyServerState, Integer pageSize);
+
+    /**
+     * Get filtered list of discoverers.
+     * Get a list of discoverers filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfDiscoverers operation using the token to retrieve more results.
+     *
+     * @param siteId Site of the discoverer
+     * @param discovery Discovery mode of discoverer. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
+     * @param connected Included connected or disconnected
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
+     * @param pageSize Number of results to return
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    ServiceFuture<DiscovererListApiModel> getFilteredListOfDiscoverersAsync(String siteId, DiscoveryMode discovery, Boolean connected, Boolean onlyServerState, Integer pageSize, final ServiceCallback<DiscovererListApiModel> serviceCallback);
+
+    /**
+     * Get filtered list of discoverers.
+     * Get a list of discoverers filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfDiscoverers operation using the token to retrieve more results.
+     *
+     * @param siteId Site of the discoverer
+     * @param discovery Discovery mode of discoverer. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
+     * @param connected Included connected or disconnected
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
+     * @param pageSize Number of results to return
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the DiscovererListApiModel object
+     */
+    Observable<DiscovererListApiModel> getFilteredListOfDiscoverersAsync(String siteId, DiscoveryMode discovery, Boolean connected, Boolean onlyServerState, Integer pageSize);
+
+    /**
+     * Get filtered list of discoverers.
+     * Get a list of discoverers filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfDiscoverers operation using the token to retrieve more results.
+     *
+     * @param siteId Site of the discoverer
+     * @param discovery Discovery mode of discoverer. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
+     * @param connected Included connected or disconnected
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
+     * @param pageSize Number of results to return
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the DiscovererListApiModel object
+     */
+    Observable<ServiceResponse<DiscovererListApiModel>> getFilteredListOfDiscoverersWithServiceResponseAsync(String siteId, DiscoveryMode discovery, Boolean connected, Boolean onlyServerState, Integer pageSize);
+
+    /**
+     * Subscribe to discoverer registry events.
+     * Register a user to receive discoverer events through SignalR.
+     *
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     */
+    void subscribe1();
+
+    /**
+     * Subscribe to discoverer registry events.
+     * Register a user to receive discoverer events through SignalR.
+     *
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    ServiceFuture<Void> subscribe1Async(final ServiceCallback<Void> serviceCallback);
+
+    /**
+     * Subscribe to discoverer registry events.
+     * Register a user to receive discoverer events through SignalR.
+     *
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    Observable<Void> subscribe1Async();
+
+    /**
+     * Subscribe to discoverer registry events.
+     * Register a user to receive discoverer events through SignalR.
+     *
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    Observable<ServiceResponse<Void>> subscribe1WithServiceResponseAsync();
+    /**
+     * Subscribe to discoverer registry events.
+     * Register a user to receive discoverer events through SignalR.
+     *
+     * @param body The user id that will receive discoverer
                  events.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
      */
-    void subscribeBySupervisorId(String supervisorId, String userId);
+    void subscribe1(String body);
 
     /**
-     * Subscribe to discovery progress from supervisor.
-     * Register a client to receive discovery progress events
-     through SignalR from a particular supervisor.
+     * Subscribe to discoverer registry events.
+     * Register a user to receive discoverer events through SignalR.
      *
-     * @param supervisorId The supervisor to subscribe to
-     * @param userId The user id that will receive discovery
+     * @param body The user id that will receive discoverer
                  events.
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    ServiceFuture<Void> subscribeBySupervisorIdAsync(String supervisorId, String userId, final ServiceCallback<Void> serviceCallback);
+    ServiceFuture<Void> subscribe1Async(String body, final ServiceCallback<Void> serviceCallback);
 
     /**
-     * Subscribe to discovery progress from supervisor.
-     * Register a client to receive discovery progress events
-     through SignalR from a particular supervisor.
+     * Subscribe to discoverer registry events.
+     * Register a user to receive discoverer events through SignalR.
      *
-     * @param supervisorId The supervisor to subscribe to
-     * @param userId The user id that will receive discovery
+     * @param body The user id that will receive discoverer
                  events.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
-    Observable<Void> subscribeBySupervisorIdAsync(String supervisorId, String userId);
+    Observable<Void> subscribe1Async(String body);
 
     /**
-     * Subscribe to discovery progress from supervisor.
-     * Register a client to receive discovery progress events
-     through SignalR from a particular supervisor.
+     * Subscribe to discoverer registry events.
+     * Register a user to receive discoverer events through SignalR.
      *
-     * @param supervisorId The supervisor to subscribe to
-     * @param userId The user id that will receive discovery
+     * @param body The user id that will receive discoverer
                  events.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
-    Observable<ServiceResponse<Void>> subscribeBySupervisorIdWithServiceResponseAsync(String supervisorId, String userId);
+    Observable<ServiceResponse<Void>> subscribe1WithServiceResponseAsync(String body);
+
+    /**
+     * Unsubscribe registry events.
+     * Unregister a user and stop it from receiving discoverer events.
+     *
+     * @param userId The user id that will not receive any more discoverer events
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     */
+    void unsubscribe1(String userId);
+
+    /**
+     * Unsubscribe registry events.
+     * Unregister a user and stop it from receiving discoverer events.
+     *
+     * @param userId The user id that will not receive any more discoverer events
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    ServiceFuture<Void> unsubscribe1Async(String userId, final ServiceCallback<Void> serviceCallback);
+
+    /**
+     * Unsubscribe registry events.
+     * Unregister a user and stop it from receiving discoverer events.
+     *
+     * @param userId The user id that will not receive any more discoverer events
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    Observable<Void> unsubscribe1Async(String userId);
+
+    /**
+     * Unsubscribe registry events.
+     * Unregister a user and stop it from receiving discoverer events.
+     *
+     * @param userId The user id that will not receive any more discoverer events
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    Observable<ServiceResponse<Void>> unsubscribe1WithServiceResponseAsync(String userId);
+
+    /**
+     * Subscribe to discovery progress from discoverer.
+     * Register a client to receive discovery progress events through SignalR from a particular discoverer.
+     *
+     * @param discovererId The discoverer to subscribe to
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     */
+    void subscribeByDiscovererId(String discovererId);
+
+    /**
+     * Subscribe to discovery progress from discoverer.
+     * Register a client to receive discovery progress events through SignalR from a particular discoverer.
+     *
+     * @param discovererId The discoverer to subscribe to
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    ServiceFuture<Void> subscribeByDiscovererIdAsync(String discovererId, final ServiceCallback<Void> serviceCallback);
+
+    /**
+     * Subscribe to discovery progress from discoverer.
+     * Register a client to receive discovery progress events through SignalR from a particular discoverer.
+     *
+     * @param discovererId The discoverer to subscribe to
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    Observable<Void> subscribeByDiscovererIdAsync(String discovererId);
+
+    /**
+     * Subscribe to discovery progress from discoverer.
+     * Register a client to receive discovery progress events through SignalR from a particular discoverer.
+     *
+     * @param discovererId The discoverer to subscribe to
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    Observable<ServiceResponse<Void>> subscribeByDiscovererIdWithServiceResponseAsync(String discovererId);
+    /**
+     * Subscribe to discovery progress from discoverer.
+     * Register a client to receive discovery progress events through SignalR from a particular discoverer.
+     *
+     * @param discovererId The discoverer to subscribe to
+     * @param body The user id that will receive discovery
+                 events.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     */
+    void subscribeByDiscovererId(String discovererId, String body);
+
+    /**
+     * Subscribe to discovery progress from discoverer.
+     * Register a client to receive discovery progress events through SignalR from a particular discoverer.
+     *
+     * @param discovererId The discoverer to subscribe to
+     * @param body The user id that will receive discovery
+                 events.
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    ServiceFuture<Void> subscribeByDiscovererIdAsync(String discovererId, String body, final ServiceCallback<Void> serviceCallback);
+
+    /**
+     * Subscribe to discovery progress from discoverer.
+     * Register a client to receive discovery progress events through SignalR from a particular discoverer.
+     *
+     * @param discovererId The discoverer to subscribe to
+     * @param body The user id that will receive discovery
+                 events.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    Observable<Void> subscribeByDiscovererIdAsync(String discovererId, String body);
+
+    /**
+     * Subscribe to discovery progress from discoverer.
+     * Register a client to receive discovery progress events through SignalR from a particular discoverer.
+     *
+     * @param discovererId The discoverer to subscribe to
+     * @param body The user id that will receive discovery
+                 events.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    Observable<ServiceResponse<Void>> subscribeByDiscovererIdWithServiceResponseAsync(String discovererId, String body);
 
     /**
      * Subscribe to discovery progress for a request.
-     * Register a client to receive discovery progress events
-     through SignalR for a particular request.
+     * Register a client to receive discovery progress events through SignalR for a particular request.
      *
      * @param requestId The request to monitor
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -1329,8 +1821,7 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Subscribe to discovery progress for a request.
-     * Register a client to receive discovery progress events
-     through SignalR for a particular request.
+     * Register a client to receive discovery progress events through SignalR for a particular request.
      *
      * @param requestId The request to monitor
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
@@ -1341,8 +1832,7 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Subscribe to discovery progress for a request.
-     * Register a client to receive discovery progress events
-     through SignalR for a particular request.
+     * Register a client to receive discovery progress events through SignalR for a particular request.
      *
      * @param requestId The request to monitor
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -1352,8 +1842,7 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Subscribe to discovery progress for a request.
-     * Register a client to receive discovery progress events
-     through SignalR for a particular request.
+     * Register a client to receive discovery progress events through SignalR for a particular request.
      *
      * @param requestId The request to monitor
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -1362,169 +1851,60 @@ public interface AzureOpcRegistryClient {
     Observable<ServiceResponse<Void>> subscribeByRequestIdWithServiceResponseAsync(String requestId);
     /**
      * Subscribe to discovery progress for a request.
-     * Register a client to receive discovery progress events
-     through SignalR for a particular request.
+     * Register a client to receive discovery progress events through SignalR for a particular request.
      *
      * @param requestId The request to monitor
-     * @param userId The user id that will receive discovery
+     * @param body The user id that will receive discovery
                  events.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
      */
-    void subscribeByRequestId(String requestId, String userId);
+    void subscribeByRequestId(String requestId, String body);
 
     /**
      * Subscribe to discovery progress for a request.
-     * Register a client to receive discovery progress events
-     through SignalR for a particular request.
+     * Register a client to receive discovery progress events through SignalR for a particular request.
      *
      * @param requestId The request to monitor
-     * @param userId The user id that will receive discovery
+     * @param body The user id that will receive discovery
                  events.
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    ServiceFuture<Void> subscribeByRequestIdAsync(String requestId, String userId, final ServiceCallback<Void> serviceCallback);
+    ServiceFuture<Void> subscribeByRequestIdAsync(String requestId, String body, final ServiceCallback<Void> serviceCallback);
 
     /**
      * Subscribe to discovery progress for a request.
-     * Register a client to receive discovery progress events
-     through SignalR for a particular request.
+     * Register a client to receive discovery progress events through SignalR for a particular request.
      *
      * @param requestId The request to monitor
-     * @param userId The user id that will receive discovery
+     * @param body The user id that will receive discovery
                  events.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
-    Observable<Void> subscribeByRequestIdAsync(String requestId, String userId);
+    Observable<Void> subscribeByRequestIdAsync(String requestId, String body);
 
     /**
      * Subscribe to discovery progress for a request.
-     * Register a client to receive discovery progress events
-     through SignalR for a particular request.
+     * Register a client to receive discovery progress events through SignalR for a particular request.
      *
      * @param requestId The request to monitor
-     * @param userId The user id that will receive discovery
+     * @param body The user id that will receive discovery
                  events.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
-    Observable<ServiceResponse<Void>> subscribeByRequestIdWithServiceResponseAsync(String requestId, String userId);
-
-    /**
-     * Enable server discovery.
-     * Allows a caller to configure recurring discovery runs on the
-     discovery module identified by the module id.
-     *
-     * @param supervisorId supervisor identifier
-     * @param mode Discovery mode. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     */
-    void setDiscoveryMode(String supervisorId, String mode);
-
-    /**
-     * Enable server discovery.
-     * Allows a caller to configure recurring discovery runs on the
-     discovery module identified by the module id.
-     *
-     * @param supervisorId supervisor identifier
-     * @param mode Discovery mode. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    ServiceFuture<Void> setDiscoveryModeAsync(String supervisorId, String mode, final ServiceCallback<Void> serviceCallback);
-
-    /**
-     * Enable server discovery.
-     * Allows a caller to configure recurring discovery runs on the
-     discovery module identified by the module id.
-     *
-     * @param supervisorId supervisor identifier
-     * @param mode Discovery mode. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceResponse} object if successful.
-     */
-    Observable<Void> setDiscoveryModeAsync(String supervisorId, String mode);
-
-    /**
-     * Enable server discovery.
-     * Allows a caller to configure recurring discovery runs on the
-     discovery module identified by the module id.
-     *
-     * @param supervisorId supervisor identifier
-     * @param mode Discovery mode. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceResponse} object if successful.
-     */
-    Observable<ServiceResponse<Void>> setDiscoveryModeWithServiceResponseAsync(String supervisorId, String mode);
-    /**
-     * Enable server discovery.
-     * Allows a caller to configure recurring discovery runs on the
-     discovery module identified by the module id.
-     *
-     * @param supervisorId supervisor identifier
-     * @param mode Discovery mode. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
-     * @param config Discovery configuration
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     */
-    void setDiscoveryMode(String supervisorId, String mode, DiscoveryConfigApiModel config);
-
-    /**
-     * Enable server discovery.
-     * Allows a caller to configure recurring discovery runs on the
-     discovery module identified by the module id.
-     *
-     * @param supervisorId supervisor identifier
-     * @param mode Discovery mode. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
-     * @param config Discovery configuration
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    ServiceFuture<Void> setDiscoveryModeAsync(String supervisorId, String mode, DiscoveryConfigApiModel config, final ServiceCallback<Void> serviceCallback);
-
-    /**
-     * Enable server discovery.
-     * Allows a caller to configure recurring discovery runs on the
-     discovery module identified by the module id.
-     *
-     * @param supervisorId supervisor identifier
-     * @param mode Discovery mode. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
-     * @param config Discovery configuration
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceResponse} object if successful.
-     */
-    Observable<Void> setDiscoveryModeAsync(String supervisorId, String mode, DiscoveryConfigApiModel config);
-
-    /**
-     * Enable server discovery.
-     * Allows a caller to configure recurring discovery runs on the
-     discovery module identified by the module id.
-     *
-     * @param supervisorId supervisor identifier
-     * @param mode Discovery mode. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
-     * @param config Discovery configuration
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceResponse} object if successful.
-     */
-    Observable<ServiceResponse<Void>> setDiscoveryModeWithServiceResponseAsync(String supervisorId, String mode, DiscoveryConfigApiModel config);
+    Observable<ServiceResponse<Void>> subscribeByRequestIdWithServiceResponseAsync(String requestId, String body);
 
     /**
      * Unsubscribe from discovery progress for a request.
-     * Unregister a client and stop it from receiving discovery
-     events for a particular request.
+     * Unregister a client and stop it from receiving discovery events for a particular request.
      *
      * @param requestId The request to unsubscribe from
-     * @param userId The user id that will not receive
-                 any more discovery progress
+     * @param userId The user id that will not receive any more discovery progress
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
@@ -1533,12 +1913,10 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Unsubscribe from discovery progress for a request.
-     * Unregister a client and stop it from receiving discovery
-     events for a particular request.
+     * Unregister a client and stop it from receiving discovery events for a particular request.
      *
      * @param requestId The request to unsubscribe from
-     * @param userId The user id that will not receive
-                 any more discovery progress
+     * @param userId The user id that will not receive any more discovery progress
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
@@ -1547,12 +1925,10 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Unsubscribe from discovery progress for a request.
-     * Unregister a client and stop it from receiving discovery
-     events for a particular request.
+     * Unregister a client and stop it from receiving discovery events for a particular request.
      *
      * @param requestId The request to unsubscribe from
-     * @param userId The user id that will not receive
-                 any more discovery progress
+     * @param userId The user id that will not receive any more discovery progress
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
@@ -1560,72 +1936,64 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Unsubscribe from discovery progress for a request.
-     * Unregister a client and stop it from receiving discovery
-     events for a particular request.
+     * Unregister a client and stop it from receiving discovery events for a particular request.
      *
      * @param requestId The request to unsubscribe from
-     * @param userId The user id that will not receive
-                 any more discovery progress
+     * @param userId The user id that will not receive any more discovery progress
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
     Observable<ServiceResponse<Void>> unsubscribeByRequestIdWithServiceResponseAsync(String requestId, String userId);
 
     /**
-     * Unsubscribe from discovery progress from supervisor.
+     * Unsubscribe from discovery progress from discoverer.
      * Unregister a client and stop it from receiving discovery events.
      *
-     * @param supervisorId The supervisor to unsubscribe from
-     * @param userId The user id that will not receive
-                 any more discovery progress
+     * @param discovererId The discoverer to unsubscribe from
+     * @param userId The user id that will not receive any more discovery progress
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
      */
-    void unsubscribeBySupervisorId(String supervisorId, String userId);
+    void unsubscribeByDiscovererId(String discovererId, String userId);
 
     /**
-     * Unsubscribe from discovery progress from supervisor.
+     * Unsubscribe from discovery progress from discoverer.
      * Unregister a client and stop it from receiving discovery events.
      *
-     * @param supervisorId The supervisor to unsubscribe from
-     * @param userId The user id that will not receive
-                 any more discovery progress
+     * @param discovererId The discoverer to unsubscribe from
+     * @param userId The user id that will not receive any more discovery progress
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    ServiceFuture<Void> unsubscribeBySupervisorIdAsync(String supervisorId, String userId, final ServiceCallback<Void> serviceCallback);
+    ServiceFuture<Void> unsubscribeByDiscovererIdAsync(String discovererId, String userId, final ServiceCallback<Void> serviceCallback);
 
     /**
-     * Unsubscribe from discovery progress from supervisor.
+     * Unsubscribe from discovery progress from discoverer.
      * Unregister a client and stop it from receiving discovery events.
      *
-     * @param supervisorId The supervisor to unsubscribe from
-     * @param userId The user id that will not receive
-                 any more discovery progress
+     * @param discovererId The discoverer to unsubscribe from
+     * @param userId The user id that will not receive any more discovery progress
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
-    Observable<Void> unsubscribeBySupervisorIdAsync(String supervisorId, String userId);
+    Observable<Void> unsubscribeByDiscovererIdAsync(String discovererId, String userId);
 
     /**
-     * Unsubscribe from discovery progress from supervisor.
+     * Unsubscribe from discovery progress from discoverer.
      * Unregister a client and stop it from receiving discovery events.
      *
-     * @param supervisorId The supervisor to unsubscribe from
-     * @param userId The user id that will not receive
-                 any more discovery progress
+     * @param discovererId The discoverer to unsubscribe from
+     * @param userId The user id that will not receive any more discovery progress
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
-    Observable<ServiceResponse<Void>> unsubscribeBySupervisorIdWithServiceResponseAsync(String supervisorId, String userId);
+    Observable<ServiceResponse<Void>> unsubscribeByDiscovererIdWithServiceResponseAsync(String discovererId, String userId);
 
     /**
      * Activate endpoint.
-     * Activates an endpoint for subsequent use in twin service.
-     All endpoints must be activated using this API or through a
-     activation filter during application registration or discovery.
+     * Activates an endpoint for subsequent use in twin service. All endpoints must be activated using this API or through a activation filter during application registration or discovery.
      *
      * @param endpointId endpoint identifier
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -1636,9 +2004,7 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Activate endpoint.
-     * Activates an endpoint for subsequent use in twin service.
-     All endpoints must be activated using this API or through a
-     activation filter during application registration or discovery.
+     * Activates an endpoint for subsequent use in twin service. All endpoints must be activated using this API or through a activation filter during application registration or discovery.
      *
      * @param endpointId endpoint identifier
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
@@ -1649,9 +2015,7 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Activate endpoint.
-     * Activates an endpoint for subsequent use in twin service.
-     All endpoints must be activated using this API or through a
-     activation filter during application registration or discovery.
+     * Activates an endpoint for subsequent use in twin service. All endpoints must be activated using this API or through a activation filter during application registration or discovery.
      *
      * @param endpointId endpoint identifier
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -1661,9 +2025,7 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Activate endpoint.
-     * Activates an endpoint for subsequent use in twin service.
-     All endpoints must be activated using this API or through a
-     activation filter during application registration or discovery.
+     * Activates an endpoint for subsequent use in twin service. All endpoints must be activated using this API or through a activation filter during application registration or discovery.
      *
      * @param endpointId endpoint identifier
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -1718,9 +2080,7 @@ public interface AzureOpcRegistryClient {
      * Gets information about an endpoint.
      *
      * @param endpointId endpoint identifier
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if
-                 available
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
@@ -1733,9 +2093,7 @@ public interface AzureOpcRegistryClient {
      * Gets information about an endpoint.
      *
      * @param endpointId endpoint identifier
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if
-                 available
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
@@ -1747,9 +2105,7 @@ public interface AzureOpcRegistryClient {
      * Gets information about an endpoint.
      *
      * @param endpointId endpoint identifier
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if
-                 available
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the EndpointInfoApiModel object
      */
@@ -1760,9 +2116,7 @@ public interface AzureOpcRegistryClient {
      * Gets information about an endpoint.
      *
      * @param endpointId endpoint identifier
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if
-                 available
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the EndpointInfoApiModel object
      */
@@ -1770,10 +2124,7 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Get list of endpoints.
-     * Get all registered endpoints in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
+     * Get all registered endpoints in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.
      *
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
@@ -1784,10 +2135,7 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Get list of endpoints.
-     * Get all registered endpoints in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
+     * Get all registered endpoints in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.
      *
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -1797,10 +2145,7 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Get list of endpoints.
-     * Get all registered endpoints in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
+     * Get all registered endpoints in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.
      *
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the EndpointInfoListApiModel object
@@ -1809,10 +2154,7 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Get list of endpoints.
-     * Get all registered endpoints in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
+     * Get all registered endpoints in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.
      *
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the EndpointInfoListApiModel object
@@ -1820,13 +2162,9 @@ public interface AzureOpcRegistryClient {
     Observable<ServiceResponse<EndpointInfoListApiModel>> getListOfEndpointsWithServiceResponseAsync();
     /**
      * Get list of endpoints.
-     * Get all registered endpoints in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
+     * Get all registered endpoints in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.
      *
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if available
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @param continuationToken Optional Continuation token
      * @param pageSize Optional number of results to return
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -1838,13 +2176,9 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Get list of endpoints.
-     * Get all registered endpoints in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
+     * Get all registered endpoints in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.
      *
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if available
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @param continuationToken Optional Continuation token
      * @param pageSize Optional number of results to return
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
@@ -1855,13 +2189,9 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Get list of endpoints.
-     * Get all registered endpoints in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
+     * Get all registered endpoints in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.
      *
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if available
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @param continuationToken Optional Continuation token
      * @param pageSize Optional number of results to return
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -1871,13 +2201,9 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Get list of endpoints.
-     * Get all registered endpoints in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
+     * Get all registered endpoints in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.
      *
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if available
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @param continuationToken Optional Continuation token
      * @param pageSize Optional number of results to return
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -1886,12 +2212,101 @@ public interface AzureOpcRegistryClient {
     Observable<ServiceResponse<EndpointInfoListApiModel>> getListOfEndpointsWithServiceResponseAsync(Boolean onlyServerState, String continuationToken, Integer pageSize);
 
     /**
+     * Query endpoints.
+     * Return endpoints that match the specified query. The returned model can contain a continuation token if more results are available. Call the GetListOfEndpoints operation using the token to retrieve more results.
+     *
+     * @param body Query to match
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     * @return the EndpointInfoListApiModel object if successful.
+     */
+    EndpointInfoListApiModel queryEndpoints(EndpointRegistrationQueryApiModel body);
+
+    /**
+     * Query endpoints.
+     * Return endpoints that match the specified query. The returned model can contain a continuation token if more results are available. Call the GetListOfEndpoints operation using the token to retrieve more results.
+     *
+     * @param body Query to match
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    ServiceFuture<EndpointInfoListApiModel> queryEndpointsAsync(EndpointRegistrationQueryApiModel body, final ServiceCallback<EndpointInfoListApiModel> serviceCallback);
+
+    /**
+     * Query endpoints.
+     * Return endpoints that match the specified query. The returned model can contain a continuation token if more results are available. Call the GetListOfEndpoints operation using the token to retrieve more results.
+     *
+     * @param body Query to match
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the EndpointInfoListApiModel object
+     */
+    Observable<EndpointInfoListApiModel> queryEndpointsAsync(EndpointRegistrationQueryApiModel body);
+
+    /**
+     * Query endpoints.
+     * Return endpoints that match the specified query. The returned model can contain a continuation token if more results are available. Call the GetListOfEndpoints operation using the token to retrieve more results.
+     *
+     * @param body Query to match
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the EndpointInfoListApiModel object
+     */
+    Observable<ServiceResponse<EndpointInfoListApiModel>> queryEndpointsWithServiceResponseAsync(EndpointRegistrationQueryApiModel body);
+    /**
+     * Query endpoints.
+     * Return endpoints that match the specified query. The returned model can contain a continuation token if more results are available. Call the GetListOfEndpoints operation using the token to retrieve more results.
+     *
+     * @param body Query to match
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
+     * @param pageSize Optional number of results to return
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     * @return the EndpointInfoListApiModel object if successful.
+     */
+    EndpointInfoListApiModel queryEndpoints(EndpointRegistrationQueryApiModel body, Boolean onlyServerState, Integer pageSize);
+
+    /**
+     * Query endpoints.
+     * Return endpoints that match the specified query. The returned model can contain a continuation token if more results are available. Call the GetListOfEndpoints operation using the token to retrieve more results.
+     *
+     * @param body Query to match
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
+     * @param pageSize Optional number of results to return
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    ServiceFuture<EndpointInfoListApiModel> queryEndpointsAsync(EndpointRegistrationQueryApiModel body, Boolean onlyServerState, Integer pageSize, final ServiceCallback<EndpointInfoListApiModel> serviceCallback);
+
+    /**
+     * Query endpoints.
+     * Return endpoints that match the specified query. The returned model can contain a continuation token if more results are available. Call the GetListOfEndpoints operation using the token to retrieve more results.
+     *
+     * @param body Query to match
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
+     * @param pageSize Optional number of results to return
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the EndpointInfoListApiModel object
+     */
+    Observable<EndpointInfoListApiModel> queryEndpointsAsync(EndpointRegistrationQueryApiModel body, Boolean onlyServerState, Integer pageSize);
+
+    /**
+     * Query endpoints.
+     * Return endpoints that match the specified query. The returned model can contain a continuation token if more results are available. Call the GetListOfEndpoints operation using the token to retrieve more results.
+     *
+     * @param body Query to match
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
+     * @param pageSize Optional number of results to return
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the EndpointInfoListApiModel object
+     */
+    Observable<ServiceResponse<EndpointInfoListApiModel>> queryEndpointsWithServiceResponseAsync(EndpointRegistrationQueryApiModel body, Boolean onlyServerState, Integer pageSize);
+
+    /**
      * Get filtered list of endpoints.
-     * Get a list of endpoints filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfEndpoints operation using the token to retrieve
-     more results.
+     * Get a list of endpoints filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfEndpoints operation using the token to retrieve more results.
      *
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
@@ -1902,11 +2317,7 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Get filtered list of endpoints.
-     * Get a list of endpoints filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfEndpoints operation using the token to retrieve
-     more results.
+     * Get a list of endpoints filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfEndpoints operation using the token to retrieve more results.
      *
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -1916,11 +2327,7 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Get filtered list of endpoints.
-     * Get a list of endpoints filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfEndpoints operation using the token to retrieve
-     more results.
+     * Get a list of endpoints filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfEndpoints operation using the token to retrieve more results.
      *
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the EndpointInfoListApiModel object
@@ -1929,11 +2336,7 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Get filtered list of endpoints.
-     * Get a list of endpoints filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfEndpoints operation using the token to retrieve
-     more results.
+     * Get a list of endpoints filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfEndpoints operation using the token to retrieve more results.
      *
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the EndpointInfoListApiModel object
@@ -1941,11 +2344,7 @@ public interface AzureOpcRegistryClient {
     Observable<ServiceResponse<EndpointInfoListApiModel>> getFilteredListOfEndpointsWithServiceResponseAsync();
     /**
      * Get filtered list of endpoints.
-     * Get a list of endpoints filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfEndpoints operation using the token to retrieve
-     more results.
+     * Get a list of endpoints filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfEndpoints operation using the token to retrieve more results.
      *
      * @param url Endoint url for direct server access
      * @param certificate Certificate of the endpoint
@@ -1955,221 +2354,72 @@ public interface AzureOpcRegistryClient {
      * @param connected Whether the endpoint is connected on supervisor.
      * @param endpointState The last state of the the activated endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
      * @param includeNotSeenSince Whether to include endpoints that were soft deleted
-     * @param onlyServerState Whether to include only server state, or display
-                 current client state of the endpoint if available
-     * @param pageSize Optional number of results to
-                 return
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the EndpointInfoListApiModel object if successful.
-     */
-    EndpointInfoListApiModel getFilteredListOfEndpoints(String url, byte[] certificate, String securityMode, String securityPolicy, Boolean activated, Boolean connected, String endpointState, Boolean includeNotSeenSince, Boolean onlyServerState, Integer pageSize);
-
-    /**
-     * Get filtered list of endpoints.
-     * Get a list of endpoints filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfEndpoints operation using the token to retrieve
-     more results.
-     *
-     * @param url Endoint url for direct server access
-     * @param certificate Certificate of the endpoint
-     * @param securityMode Security Mode. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
-     * @param securityPolicy Security policy uri
-     * @param activated Whether the endpoint was activated
-     * @param connected Whether the endpoint is connected on supervisor.
-     * @param endpointState The last state of the the activated endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
-     * @param includeNotSeenSince Whether to include endpoints that were soft deleted
-     * @param onlyServerState Whether to include only server state, or display
-                 current client state of the endpoint if available
-     * @param pageSize Optional number of results to
-                 return
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    ServiceFuture<EndpointInfoListApiModel> getFilteredListOfEndpointsAsync(String url, byte[] certificate, String securityMode, String securityPolicy, Boolean activated, Boolean connected, String endpointState, Boolean includeNotSeenSince, Boolean onlyServerState, Integer pageSize, final ServiceCallback<EndpointInfoListApiModel> serviceCallback);
-
-    /**
-     * Get filtered list of endpoints.
-     * Get a list of endpoints filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfEndpoints operation using the token to retrieve
-     more results.
-     *
-     * @param url Endoint url for direct server access
-     * @param certificate Certificate of the endpoint
-     * @param securityMode Security Mode. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
-     * @param securityPolicy Security policy uri
-     * @param activated Whether the endpoint was activated
-     * @param connected Whether the endpoint is connected on supervisor.
-     * @param endpointState The last state of the the activated endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
-     * @param includeNotSeenSince Whether to include endpoints that were soft deleted
-     * @param onlyServerState Whether to include only server state, or display
-                 current client state of the endpoint if available
-     * @param pageSize Optional number of results to
-                 return
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the EndpointInfoListApiModel object
-     */
-    Observable<EndpointInfoListApiModel> getFilteredListOfEndpointsAsync(String url, byte[] certificate, String securityMode, String securityPolicy, Boolean activated, Boolean connected, String endpointState, Boolean includeNotSeenSince, Boolean onlyServerState, Integer pageSize);
-
-    /**
-     * Get filtered list of endpoints.
-     * Get a list of endpoints filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfEndpoints operation using the token to retrieve
-     more results.
-     *
-     * @param url Endoint url for direct server access
-     * @param certificate Certificate of the endpoint
-     * @param securityMode Security Mode. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
-     * @param securityPolicy Security policy uri
-     * @param activated Whether the endpoint was activated
-     * @param connected Whether the endpoint is connected on supervisor.
-     * @param endpointState The last state of the the activated endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
-     * @param includeNotSeenSince Whether to include endpoints that were soft deleted
-     * @param onlyServerState Whether to include only server state, or display
-                 current client state of the endpoint if available
-     * @param pageSize Optional number of results to
-                 return
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the EndpointInfoListApiModel object
-     */
-    Observable<ServiceResponse<EndpointInfoListApiModel>> getFilteredListOfEndpointsWithServiceResponseAsync(String url, byte[] certificate, String securityMode, String securityPolicy, Boolean activated, Boolean connected, String endpointState, Boolean includeNotSeenSince, Boolean onlyServerState, Integer pageSize);
-
-    /**
-     * Query endpoints.
-     * Return endpoints that match the specified query.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfEndpoints operation using the token to retrieve
-     more results.
-     *
-     * @param query Query to match
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the EndpointInfoListApiModel object if successful.
-     */
-    EndpointInfoListApiModel queryEndpoints(EndpointRegistrationQueryApiModel query);
-
-    /**
-     * Query endpoints.
-     * Return endpoints that match the specified query.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfEndpoints operation using the token to retrieve
-     more results.
-     *
-     * @param query Query to match
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    ServiceFuture<EndpointInfoListApiModel> queryEndpointsAsync(EndpointRegistrationQueryApiModel query, final ServiceCallback<EndpointInfoListApiModel> serviceCallback);
-
-    /**
-     * Query endpoints.
-     * Return endpoints that match the specified query.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfEndpoints operation using the token to retrieve
-     more results.
-     *
-     * @param query Query to match
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the EndpointInfoListApiModel object
-     */
-    Observable<EndpointInfoListApiModel> queryEndpointsAsync(EndpointRegistrationQueryApiModel query);
-
-    /**
-     * Query endpoints.
-     * Return endpoints that match the specified query.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfEndpoints operation using the token to retrieve
-     more results.
-     *
-     * @param query Query to match
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the EndpointInfoListApiModel object
-     */
-    Observable<ServiceResponse<EndpointInfoListApiModel>> queryEndpointsWithServiceResponseAsync(EndpointRegistrationQueryApiModel query);
-    /**
-     * Query endpoints.
-     * Return endpoints that match the specified query.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfEndpoints operation using the token to retrieve
-     more results.
-     *
-     * @param query Query to match
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if available
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @param pageSize Optional number of results to return
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
      * @return the EndpointInfoListApiModel object if successful.
      */
-    EndpointInfoListApiModel queryEndpoints(EndpointRegistrationQueryApiModel query, Boolean onlyServerState, Integer pageSize);
+    EndpointInfoListApiModel getFilteredListOfEndpoints(String url, byte[] certificate, SecurityMode securityMode, String securityPolicy, Boolean activated, Boolean connected, EndpointConnectivityState endpointState, Boolean includeNotSeenSince, Boolean onlyServerState, Integer pageSize);
 
     /**
-     * Query endpoints.
-     * Return endpoints that match the specified query.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfEndpoints operation using the token to retrieve
-     more results.
+     * Get filtered list of endpoints.
+     * Get a list of endpoints filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfEndpoints operation using the token to retrieve more results.
      *
-     * @param query Query to match
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if available
+     * @param url Endoint url for direct server access
+     * @param certificate Certificate of the endpoint
+     * @param securityMode Security Mode. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
+     * @param securityPolicy Security policy uri
+     * @param activated Whether the endpoint was activated
+     * @param connected Whether the endpoint is connected on supervisor.
+     * @param endpointState The last state of the the activated endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
+     * @param includeNotSeenSince Whether to include endpoints that were soft deleted
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @param pageSize Optional number of results to return
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    ServiceFuture<EndpointInfoListApiModel> queryEndpointsAsync(EndpointRegistrationQueryApiModel query, Boolean onlyServerState, Integer pageSize, final ServiceCallback<EndpointInfoListApiModel> serviceCallback);
+    ServiceFuture<EndpointInfoListApiModel> getFilteredListOfEndpointsAsync(String url, byte[] certificate, SecurityMode securityMode, String securityPolicy, Boolean activated, Boolean connected, EndpointConnectivityState endpointState, Boolean includeNotSeenSince, Boolean onlyServerState, Integer pageSize, final ServiceCallback<EndpointInfoListApiModel> serviceCallback);
 
     /**
-     * Query endpoints.
-     * Return endpoints that match the specified query.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfEndpoints operation using the token to retrieve
-     more results.
+     * Get filtered list of endpoints.
+     * Get a list of endpoints filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfEndpoints operation using the token to retrieve more results.
      *
-     * @param query Query to match
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if available
+     * @param url Endoint url for direct server access
+     * @param certificate Certificate of the endpoint
+     * @param securityMode Security Mode. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
+     * @param securityPolicy Security policy uri
+     * @param activated Whether the endpoint was activated
+     * @param connected Whether the endpoint is connected on supervisor.
+     * @param endpointState The last state of the the activated endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
+     * @param includeNotSeenSince Whether to include endpoints that were soft deleted
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @param pageSize Optional number of results to return
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the EndpointInfoListApiModel object
      */
-    Observable<EndpointInfoListApiModel> queryEndpointsAsync(EndpointRegistrationQueryApiModel query, Boolean onlyServerState, Integer pageSize);
+    Observable<EndpointInfoListApiModel> getFilteredListOfEndpointsAsync(String url, byte[] certificate, SecurityMode securityMode, String securityPolicy, Boolean activated, Boolean connected, EndpointConnectivityState endpointState, Boolean includeNotSeenSince, Boolean onlyServerState, Integer pageSize);
 
     /**
-     * Query endpoints.
-     * Return endpoints that match the specified query.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfEndpoints operation using the token to retrieve
-     more results.
+     * Get filtered list of endpoints.
+     * Get a list of endpoints filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfEndpoints operation using the token to retrieve more results.
      *
-     * @param query Query to match
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if available
+     * @param url Endoint url for direct server access
+     * @param certificate Certificate of the endpoint
+     * @param securityMode Security Mode. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
+     * @param securityPolicy Security policy uri
+     * @param activated Whether the endpoint was activated
+     * @param connected Whether the endpoint is connected on supervisor.
+     * @param endpointState The last state of the the activated endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
+     * @param includeNotSeenSince Whether to include endpoints that were soft deleted
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @param pageSize Optional number of results to return
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the EndpointInfoListApiModel object
      */
-    Observable<ServiceResponse<EndpointInfoListApiModel>> queryEndpointsWithServiceResponseAsync(EndpointRegistrationQueryApiModel query, Boolean onlyServerState, Integer pageSize);
+    Observable<ServiceResponse<EndpointInfoListApiModel>> getFilteredListOfEndpointsWithServiceResponseAsync(String url, byte[] certificate, SecurityMode securityMode, String securityPolicy, Boolean activated, Boolean connected, EndpointConnectivityState endpointState, Boolean includeNotSeenSince, Boolean onlyServerState, Integer pageSize);
 
     /**
      * Deactivate endpoint.
@@ -2221,7 +2471,7 @@ public interface AzureOpcRegistryClient {
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
      */
-    void subscribe1();
+    void subscribe2();
 
     /**
      * Subscribe for endpoint events.
@@ -2231,7 +2481,7 @@ public interface AzureOpcRegistryClient {
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    ServiceFuture<Void> subscribe1Async(final ServiceCallback<Void> serviceCallback);
+    ServiceFuture<Void> subscribe2Async(final ServiceCallback<Void> serviceCallback);
 
     /**
      * Subscribe for endpoint events.
@@ -2240,7 +2490,7 @@ public interface AzureOpcRegistryClient {
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
-    Observable<Void> subscribe1Async();
+    Observable<Void> subscribe2Async();
 
     /**
      * Subscribe for endpoint events.
@@ -2249,103 +2499,575 @@ public interface AzureOpcRegistryClient {
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
-    Observable<ServiceResponse<Void>> subscribe1WithServiceResponseAsync();
+    Observable<ServiceResponse<Void>> subscribe2WithServiceResponseAsync();
     /**
      * Subscribe for endpoint events.
      * Register a user to receive endpoint events through SignalR.
      *
-     * @param userId The user id that will receive endpoint
+     * @param body The user id that will receive endpoint
                  events.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
      */
-    void subscribe1(String userId);
+    void subscribe2(String body);
 
     /**
      * Subscribe for endpoint events.
      * Register a user to receive endpoint events through SignalR.
      *
-     * @param userId The user id that will receive endpoint
+     * @param body The user id that will receive endpoint
                  events.
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    ServiceFuture<Void> subscribe1Async(String userId, final ServiceCallback<Void> serviceCallback);
+    ServiceFuture<Void> subscribe2Async(String body, final ServiceCallback<Void> serviceCallback);
 
     /**
      * Subscribe for endpoint events.
      * Register a user to receive endpoint events through SignalR.
      *
-     * @param userId The user id that will receive endpoint
+     * @param body The user id that will receive endpoint
                  events.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
-    Observable<Void> subscribe1Async(String userId);
+    Observable<Void> subscribe2Async(String body);
 
     /**
      * Subscribe for endpoint events.
      * Register a user to receive endpoint events through SignalR.
      *
-     * @param userId The user id that will receive endpoint
+     * @param body The user id that will receive endpoint
                  events.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
-    Observable<ServiceResponse<Void>> subscribe1WithServiceResponseAsync(String userId);
+    Observable<ServiceResponse<Void>> subscribe2WithServiceResponseAsync(String body);
 
     /**
      * Unsubscribe from endpoint events.
      * Unregister a user and stop it from receiving endpoint events.
      *
-     * @param userId The user id that will not receive
-                 any more endpoint events
+     * @param userId The user id that will not receive any more endpoint events
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
      */
-    void unsubscribe1(String userId);
+    void unsubscribe2(String userId);
 
     /**
      * Unsubscribe from endpoint events.
      * Unregister a user and stop it from receiving endpoint events.
      *
-     * @param userId The user id that will not receive
-                 any more endpoint events
+     * @param userId The user id that will not receive any more endpoint events
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    ServiceFuture<Void> unsubscribe1Async(String userId, final ServiceCallback<Void> serviceCallback);
+    ServiceFuture<Void> unsubscribe2Async(String userId, final ServiceCallback<Void> serviceCallback);
 
     /**
      * Unsubscribe from endpoint events.
      * Unregister a user and stop it from receiving endpoint events.
      *
-     * @param userId The user id that will not receive
-                 any more endpoint events
+     * @param userId The user id that will not receive any more endpoint events
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
-    Observable<Void> unsubscribe1Async(String userId);
+    Observable<Void> unsubscribe2Async(String userId);
 
     /**
      * Unsubscribe from endpoint events.
      * Unregister a user and stop it from receiving endpoint events.
      *
-     * @param userId The user id that will not receive
-                 any more endpoint events
+     * @param userId The user id that will not receive any more endpoint events
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
-    Observable<ServiceResponse<Void>> unsubscribe1WithServiceResponseAsync(String userId);
+    Observable<ServiceResponse<Void>> unsubscribe2WithServiceResponseAsync(String userId);
+
+    /**
+     * Get Gateway registration information.
+     * Returns a Gateway's registration and connectivity information. A Gateway id corresponds to the twin modules module identity.
+     *
+     * @param gatewayId Gateway identifier
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     * @return the GatewayInfoApiModel object if successful.
+     */
+    GatewayInfoApiModel getGateway(String gatewayId);
+
+    /**
+     * Get Gateway registration information.
+     * Returns a Gateway's registration and connectivity information. A Gateway id corresponds to the twin modules module identity.
+     *
+     * @param gatewayId Gateway identifier
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    ServiceFuture<GatewayInfoApiModel> getGatewayAsync(String gatewayId, final ServiceCallback<GatewayInfoApiModel> serviceCallback);
+
+    /**
+     * Get Gateway registration information.
+     * Returns a Gateway's registration and connectivity information. A Gateway id corresponds to the twin modules module identity.
+     *
+     * @param gatewayId Gateway identifier
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the GatewayInfoApiModel object
+     */
+    Observable<GatewayInfoApiModel> getGatewayAsync(String gatewayId);
+
+    /**
+     * Get Gateway registration information.
+     * Returns a Gateway's registration and connectivity information. A Gateway id corresponds to the twin modules module identity.
+     *
+     * @param gatewayId Gateway identifier
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the GatewayInfoApiModel object
+     */
+    Observable<ServiceResponse<GatewayInfoApiModel>> getGatewayWithServiceResponseAsync(String gatewayId);
+
+    /**
+     * Update Gateway configuration.
+     * Allows a caller to configure operations on the Gateway module identified by the Gateway id.
+     *
+     * @param gatewayId Gateway identifier
+     * @param body Patch request
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     */
+    void updateGateway(String gatewayId, GatewayUpdateApiModel body);
+
+    /**
+     * Update Gateway configuration.
+     * Allows a caller to configure operations on the Gateway module identified by the Gateway id.
+     *
+     * @param gatewayId Gateway identifier
+     * @param body Patch request
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    ServiceFuture<Void> updateGatewayAsync(String gatewayId, GatewayUpdateApiModel body, final ServiceCallback<Void> serviceCallback);
+
+    /**
+     * Update Gateway configuration.
+     * Allows a caller to configure operations on the Gateway module identified by the Gateway id.
+     *
+     * @param gatewayId Gateway identifier
+     * @param body Patch request
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    Observable<Void> updateGatewayAsync(String gatewayId, GatewayUpdateApiModel body);
+
+    /**
+     * Update Gateway configuration.
+     * Allows a caller to configure operations on the Gateway module identified by the Gateway id.
+     *
+     * @param gatewayId Gateway identifier
+     * @param body Patch request
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    Observable<ServiceResponse<Void>> updateGatewayWithServiceResponseAsync(String gatewayId, GatewayUpdateApiModel body);
+
+    /**
+     * Get list of Gateways.
+     * Get all registered Gateways and therefore twin modules in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.
+     *
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     * @return the GatewayListApiModel object if successful.
+     */
+    GatewayListApiModel getListOfGateway();
+
+    /**
+     * Get list of Gateways.
+     * Get all registered Gateways and therefore twin modules in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.
+     *
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    ServiceFuture<GatewayListApiModel> getListOfGatewayAsync(final ServiceCallback<GatewayListApiModel> serviceCallback);
+
+    /**
+     * Get list of Gateways.
+     * Get all registered Gateways and therefore twin modules in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.
+     *
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the GatewayListApiModel object
+     */
+    Observable<GatewayListApiModel> getListOfGatewayAsync();
+
+    /**
+     * Get list of Gateways.
+     * Get all registered Gateways and therefore twin modules in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.
+     *
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the GatewayListApiModel object
+     */
+    Observable<ServiceResponse<GatewayListApiModel>> getListOfGatewayWithServiceResponseAsync();
+    /**
+     * Get list of Gateways.
+     * Get all registered Gateways and therefore twin modules in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.
+     *
+     * @param continuationToken Optional Continuation token
+     * @param pageSize Optional number of results to return
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     * @return the GatewayListApiModel object if successful.
+     */
+    GatewayListApiModel getListOfGateway(String continuationToken, Integer pageSize);
+
+    /**
+     * Get list of Gateways.
+     * Get all registered Gateways and therefore twin modules in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.
+     *
+     * @param continuationToken Optional Continuation token
+     * @param pageSize Optional number of results to return
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    ServiceFuture<GatewayListApiModel> getListOfGatewayAsync(String continuationToken, Integer pageSize, final ServiceCallback<GatewayListApiModel> serviceCallback);
+
+    /**
+     * Get list of Gateways.
+     * Get all registered Gateways and therefore twin modules in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.
+     *
+     * @param continuationToken Optional Continuation token
+     * @param pageSize Optional number of results to return
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the GatewayListApiModel object
+     */
+    Observable<GatewayListApiModel> getListOfGatewayAsync(String continuationToken, Integer pageSize);
+
+    /**
+     * Get list of Gateways.
+     * Get all registered Gateways and therefore twin modules in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.
+     *
+     * @param continuationToken Optional Continuation token
+     * @param pageSize Optional number of results to return
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the GatewayListApiModel object
+     */
+    Observable<ServiceResponse<GatewayListApiModel>> getListOfGatewayWithServiceResponseAsync(String continuationToken, Integer pageSize);
+
+    /**
+     * Query Gateways.
+     * Get all Gateways that match a specified query. The returned model can contain a continuation token if more results are available. Call the GetListOfGateway operation using the token to retrieve more results.
+     *
+     * @param body Gateway query model
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     * @return the GatewayListApiModel object if successful.
+     */
+    GatewayListApiModel queryGateway(GatewayQueryApiModel body);
+
+    /**
+     * Query Gateways.
+     * Get all Gateways that match a specified query. The returned model can contain a continuation token if more results are available. Call the GetListOfGateway operation using the token to retrieve more results.
+     *
+     * @param body Gateway query model
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    ServiceFuture<GatewayListApiModel> queryGatewayAsync(GatewayQueryApiModel body, final ServiceCallback<GatewayListApiModel> serviceCallback);
+
+    /**
+     * Query Gateways.
+     * Get all Gateways that match a specified query. The returned model can contain a continuation token if more results are available. Call the GetListOfGateway operation using the token to retrieve more results.
+     *
+     * @param body Gateway query model
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the GatewayListApiModel object
+     */
+    Observable<GatewayListApiModel> queryGatewayAsync(GatewayQueryApiModel body);
+
+    /**
+     * Query Gateways.
+     * Get all Gateways that match a specified query. The returned model can contain a continuation token if more results are available. Call the GetListOfGateway operation using the token to retrieve more results.
+     *
+     * @param body Gateway query model
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the GatewayListApiModel object
+     */
+    Observable<ServiceResponse<GatewayListApiModel>> queryGatewayWithServiceResponseAsync(GatewayQueryApiModel body);
+    /**
+     * Query Gateways.
+     * Get all Gateways that match a specified query. The returned model can contain a continuation token if more results are available. Call the GetListOfGateway operation using the token to retrieve more results.
+     *
+     * @param body Gateway query model
+     * @param pageSize Number of results to return
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     * @return the GatewayListApiModel object if successful.
+     */
+    GatewayListApiModel queryGateway(GatewayQueryApiModel body, Integer pageSize);
+
+    /**
+     * Query Gateways.
+     * Get all Gateways that match a specified query. The returned model can contain a continuation token if more results are available. Call the GetListOfGateway operation using the token to retrieve more results.
+     *
+     * @param body Gateway query model
+     * @param pageSize Number of results to return
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    ServiceFuture<GatewayListApiModel> queryGatewayAsync(GatewayQueryApiModel body, Integer pageSize, final ServiceCallback<GatewayListApiModel> serviceCallback);
+
+    /**
+     * Query Gateways.
+     * Get all Gateways that match a specified query. The returned model can contain a continuation token if more results are available. Call the GetListOfGateway operation using the token to retrieve more results.
+     *
+     * @param body Gateway query model
+     * @param pageSize Number of results to return
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the GatewayListApiModel object
+     */
+    Observable<GatewayListApiModel> queryGatewayAsync(GatewayQueryApiModel body, Integer pageSize);
+
+    /**
+     * Query Gateways.
+     * Get all Gateways that match a specified query. The returned model can contain a continuation token if more results are available. Call the GetListOfGateway operation using the token to retrieve more results.
+     *
+     * @param body Gateway query model
+     * @param pageSize Number of results to return
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the GatewayListApiModel object
+     */
+    Observable<ServiceResponse<GatewayListApiModel>> queryGatewayWithServiceResponseAsync(GatewayQueryApiModel body, Integer pageSize);
+
+    /**
+     * Get filtered list of Gateways.
+     * Get a list of Gateways filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfGateway operation using the token to retrieve more results.
+     *
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     * @return the GatewayListApiModel object if successful.
+     */
+    GatewayListApiModel getFilteredListOfGateway();
+
+    /**
+     * Get filtered list of Gateways.
+     * Get a list of Gateways filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfGateway operation using the token to retrieve more results.
+     *
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    ServiceFuture<GatewayListApiModel> getFilteredListOfGatewayAsync(final ServiceCallback<GatewayListApiModel> serviceCallback);
+
+    /**
+     * Get filtered list of Gateways.
+     * Get a list of Gateways filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfGateway operation using the token to retrieve more results.
+     *
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the GatewayListApiModel object
+     */
+    Observable<GatewayListApiModel> getFilteredListOfGatewayAsync();
+
+    /**
+     * Get filtered list of Gateways.
+     * Get a list of Gateways filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfGateway operation using the token to retrieve more results.
+     *
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the GatewayListApiModel object
+     */
+    Observable<ServiceResponse<GatewayListApiModel>> getFilteredListOfGatewayWithServiceResponseAsync();
+    /**
+     * Get filtered list of Gateways.
+     * Get a list of Gateways filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfGateway operation using the token to retrieve more results.
+     *
+     * @param siteId Site of the Gateway
+     * @param connected Included connected or disconnected
+     * @param pageSize Number of results to return
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     * @return the GatewayListApiModel object if successful.
+     */
+    GatewayListApiModel getFilteredListOfGateway(String siteId, Boolean connected, Integer pageSize);
+
+    /**
+     * Get filtered list of Gateways.
+     * Get a list of Gateways filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfGateway operation using the token to retrieve more results.
+     *
+     * @param siteId Site of the Gateway
+     * @param connected Included connected or disconnected
+     * @param pageSize Number of results to return
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    ServiceFuture<GatewayListApiModel> getFilteredListOfGatewayAsync(String siteId, Boolean connected, Integer pageSize, final ServiceCallback<GatewayListApiModel> serviceCallback);
+
+    /**
+     * Get filtered list of Gateways.
+     * Get a list of Gateways filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfGateway operation using the token to retrieve more results.
+     *
+     * @param siteId Site of the Gateway
+     * @param connected Included connected or disconnected
+     * @param pageSize Number of results to return
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the GatewayListApiModel object
+     */
+    Observable<GatewayListApiModel> getFilteredListOfGatewayAsync(String siteId, Boolean connected, Integer pageSize);
+
+    /**
+     * Get filtered list of Gateways.
+     * Get a list of Gateways filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfGateway operation using the token to retrieve more results.
+     *
+     * @param siteId Site of the Gateway
+     * @param connected Included connected or disconnected
+     * @param pageSize Number of results to return
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the GatewayListApiModel object
+     */
+    Observable<ServiceResponse<GatewayListApiModel>> getFilteredListOfGatewayWithServiceResponseAsync(String siteId, Boolean connected, Integer pageSize);
+
+    /**
+     * Subscribe to Gateway registry events.
+     * Register a user to receive Gateway events through SignalR.
+     *
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     */
+    void subscribe3();
+
+    /**
+     * Subscribe to Gateway registry events.
+     * Register a user to receive Gateway events through SignalR.
+     *
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    ServiceFuture<Void> subscribe3Async(final ServiceCallback<Void> serviceCallback);
+
+    /**
+     * Subscribe to Gateway registry events.
+     * Register a user to receive Gateway events through SignalR.
+     *
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    Observable<Void> subscribe3Async();
+
+    /**
+     * Subscribe to Gateway registry events.
+     * Register a user to receive Gateway events through SignalR.
+     *
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    Observable<ServiceResponse<Void>> subscribe3WithServiceResponseAsync();
+    /**
+     * Subscribe to Gateway registry events.
+     * Register a user to receive Gateway events through SignalR.
+     *
+     * @param body The user id that will receive Gateway
+                 events.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     */
+    void subscribe3(String body);
+
+    /**
+     * Subscribe to Gateway registry events.
+     * Register a user to receive Gateway events through SignalR.
+     *
+     * @param body The user id that will receive Gateway
+                 events.
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    ServiceFuture<Void> subscribe3Async(String body, final ServiceCallback<Void> serviceCallback);
+
+    /**
+     * Subscribe to Gateway registry events.
+     * Register a user to receive Gateway events through SignalR.
+     *
+     * @param body The user id that will receive Gateway
+                 events.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    Observable<Void> subscribe3Async(String body);
+
+    /**
+     * Subscribe to Gateway registry events.
+     * Register a user to receive Gateway events through SignalR.
+     *
+     * @param body The user id that will receive Gateway
+                 events.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    Observable<ServiceResponse<Void>> subscribe3WithServiceResponseAsync(String body);
+
+    /**
+     * Unsubscribe registry events.
+     * Unregister a user and stop it from receiving Gateway events.
+     *
+     * @param userId The user id that will not receive any more Gateway events
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     */
+    void unsubscribe3(String userId);
+
+    /**
+     * Unsubscribe registry events.
+     * Unregister a user and stop it from receiving Gateway events.
+     *
+     * @param userId The user id that will not receive any more Gateway events
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    ServiceFuture<Void> unsubscribe3Async(String userId, final ServiceCallback<Void> serviceCallback);
+
+    /**
+     * Unsubscribe registry events.
+     * Unregister a user and stop it from receiving Gateway events.
+     *
+     * @param userId The user id that will not receive any more Gateway events
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    Observable<Void> unsubscribe3Async(String userId);
+
+    /**
+     * Unsubscribe registry events.
+     * Unregister a user and stop it from receiving Gateway events.
+     *
+     * @param userId The user id that will not receive any more Gateway events
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    Observable<ServiceResponse<Void>> unsubscribe3WithServiceResponseAsync(String userId);
 
     /**
      * Get publisher registration information.
-     * Returns a publisher's registration and connectivity information.
-     A publisher id corresponds to the twin modules module identity.
+     * Returns a publisher's registration and connectivity information. A publisher id corresponds to the twin modules module identity.
      *
      * @param publisherId Publisher identifier
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -2357,8 +3079,7 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Get publisher registration information.
-     * Returns a publisher's registration and connectivity information.
-     A publisher id corresponds to the twin modules module identity.
+     * Returns a publisher's registration and connectivity information. A publisher id corresponds to the twin modules module identity.
      *
      * @param publisherId Publisher identifier
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
@@ -2369,8 +3090,7 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Get publisher registration information.
-     * Returns a publisher's registration and connectivity information.
-     A publisher id corresponds to the twin modules module identity.
+     * Returns a publisher's registration and connectivity information. A publisher id corresponds to the twin modules module identity.
      *
      * @param publisherId Publisher identifier
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -2380,8 +3100,7 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Get publisher registration information.
-     * Returns a publisher's registration and connectivity information.
-     A publisher id corresponds to the twin modules module identity.
+     * Returns a publisher's registration and connectivity information. A publisher id corresponds to the twin modules module identity.
      *
      * @param publisherId Publisher identifier
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -2390,13 +3109,10 @@ public interface AzureOpcRegistryClient {
     Observable<ServiceResponse<PublisherApiModel>> getPublisherWithServiceResponseAsync(String publisherId);
     /**
      * Get publisher registration information.
-     * Returns a publisher's registration and connectivity information.
-     A publisher id corresponds to the twin modules module identity.
+     * Returns a publisher's registration and connectivity information. A publisher id corresponds to the twin modules module identity.
      *
      * @param publisherId Publisher identifier
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if
-                 available
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
@@ -2406,13 +3122,10 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Get publisher registration information.
-     * Returns a publisher's registration and connectivity information.
-     A publisher id corresponds to the twin modules module identity.
+     * Returns a publisher's registration and connectivity information. A publisher id corresponds to the twin modules module identity.
      *
      * @param publisherId Publisher identifier
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if
-                 available
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
@@ -2421,13 +3134,10 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Get publisher registration information.
-     * Returns a publisher's registration and connectivity information.
-     A publisher id corresponds to the twin modules module identity.
+     * Returns a publisher's registration and connectivity information. A publisher id corresponds to the twin modules module identity.
      *
      * @param publisherId Publisher identifier
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if
-                 available
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the PublisherApiModel object
      */
@@ -2435,13 +3145,10 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Get publisher registration information.
-     * Returns a publisher's registration and connectivity information.
-     A publisher id corresponds to the twin modules module identity.
+     * Returns a publisher's registration and connectivity information. A publisher id corresponds to the twin modules module identity.
      *
      * @param publisherId Publisher identifier
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if
-                 available
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the PublisherApiModel object
      */
@@ -2449,60 +3156,53 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Update publisher configuration.
-     * Allows a caller to configure operations on the publisher module
-     identified by the publisher id.
+     * Allows a caller to configure operations on the publisher module identified by the publisher id.
      *
      * @param publisherId Publisher identifier
-     * @param request Patch request
+     * @param body Patch request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
      */
-    void updatePublisher(String publisherId, PublisherUpdateApiModel request);
+    void updatePublisher(String publisherId, PublisherUpdateApiModel body);
 
     /**
      * Update publisher configuration.
-     * Allows a caller to configure operations on the publisher module
-     identified by the publisher id.
+     * Allows a caller to configure operations on the publisher module identified by the publisher id.
      *
      * @param publisherId Publisher identifier
-     * @param request Patch request
+     * @param body Patch request
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    ServiceFuture<Void> updatePublisherAsync(String publisherId, PublisherUpdateApiModel request, final ServiceCallback<Void> serviceCallback);
+    ServiceFuture<Void> updatePublisherAsync(String publisherId, PublisherUpdateApiModel body, final ServiceCallback<Void> serviceCallback);
 
     /**
      * Update publisher configuration.
-     * Allows a caller to configure operations on the publisher module
-     identified by the publisher id.
+     * Allows a caller to configure operations on the publisher module identified by the publisher id.
      *
      * @param publisherId Publisher identifier
-     * @param request Patch request
+     * @param body Patch request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
-    Observable<Void> updatePublisherAsync(String publisherId, PublisherUpdateApiModel request);
+    Observable<Void> updatePublisherAsync(String publisherId, PublisherUpdateApiModel body);
 
     /**
      * Update publisher configuration.
-     * Allows a caller to configure operations on the publisher module
-     identified by the publisher id.
+     * Allows a caller to configure operations on the publisher module identified by the publisher id.
      *
      * @param publisherId Publisher identifier
-     * @param request Patch request
+     * @param body Patch request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
-    Observable<ServiceResponse<Void>> updatePublisherWithServiceResponseAsync(String publisherId, PublisherUpdateApiModel request);
+    Observable<ServiceResponse<Void>> updatePublisherWithServiceResponseAsync(String publisherId, PublisherUpdateApiModel body);
 
     /**
      * Get list of publishers.
-     * Get all registered publishers and therefore twin modules in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
+     * Get all registered publishers and therefore twin modules in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.
      *
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
@@ -2513,10 +3213,7 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Get list of publishers.
-     * Get all registered publishers and therefore twin modules in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
+     * Get all registered publishers and therefore twin modules in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.
      *
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -2526,10 +3223,7 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Get list of publishers.
-     * Get all registered publishers and therefore twin modules in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
+     * Get all registered publishers and therefore twin modules in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.
      *
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the PublisherListApiModel object
@@ -2538,10 +3232,7 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Get list of publishers.
-     * Get all registered publishers and therefore twin modules in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
+     * Get all registered publishers and therefore twin modules in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.
      *
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the PublisherListApiModel object
@@ -2549,13 +3240,9 @@ public interface AzureOpcRegistryClient {
     Observable<ServiceResponse<PublisherListApiModel>> getListOfPublisherWithServiceResponseAsync();
     /**
      * Get list of publishers.
-     * Get all registered publishers and therefore twin modules in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
+     * Get all registered publishers and therefore twin modules in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.
      *
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if available
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @param continuationToken Optional Continuation token
      * @param pageSize Optional number of results to return
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -2567,13 +3254,9 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Get list of publishers.
-     * Get all registered publishers and therefore twin modules in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
+     * Get all registered publishers and therefore twin modules in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.
      *
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if available
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @param continuationToken Optional Continuation token
      * @param pageSize Optional number of results to return
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
@@ -2584,13 +3267,9 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Get list of publishers.
-     * Get all registered publishers and therefore twin modules in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
+     * Get all registered publishers and therefore twin modules in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.
      *
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if available
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @param continuationToken Optional Continuation token
      * @param pageSize Optional number of results to return
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -2600,13 +3279,9 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Get list of publishers.
-     * Get all registered publishers and therefore twin modules in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
+     * Get all registered publishers and therefore twin modules in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.
      *
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if available
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @param continuationToken Optional Continuation token
      * @param pageSize Optional number of results to return
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -2615,12 +3290,101 @@ public interface AzureOpcRegistryClient {
     Observable<ServiceResponse<PublisherListApiModel>> getListOfPublisherWithServiceResponseAsync(Boolean onlyServerState, String continuationToken, Integer pageSize);
 
     /**
+     * Query publishers.
+     * Get all publishers that match a specified query. The returned model can contain a continuation token if more results are available. Call the GetListOfPublisher operation using the token to retrieve more results.
+     *
+     * @param body Publisher query model
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     * @return the PublisherListApiModel object if successful.
+     */
+    PublisherListApiModel queryPublisher(PublisherQueryApiModel body);
+
+    /**
+     * Query publishers.
+     * Get all publishers that match a specified query. The returned model can contain a continuation token if more results are available. Call the GetListOfPublisher operation using the token to retrieve more results.
+     *
+     * @param body Publisher query model
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    ServiceFuture<PublisherListApiModel> queryPublisherAsync(PublisherQueryApiModel body, final ServiceCallback<PublisherListApiModel> serviceCallback);
+
+    /**
+     * Query publishers.
+     * Get all publishers that match a specified query. The returned model can contain a continuation token if more results are available. Call the GetListOfPublisher operation using the token to retrieve more results.
+     *
+     * @param body Publisher query model
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the PublisherListApiModel object
+     */
+    Observable<PublisherListApiModel> queryPublisherAsync(PublisherQueryApiModel body);
+
+    /**
+     * Query publishers.
+     * Get all publishers that match a specified query. The returned model can contain a continuation token if more results are available. Call the GetListOfPublisher operation using the token to retrieve more results.
+     *
+     * @param body Publisher query model
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the PublisherListApiModel object
+     */
+    Observable<ServiceResponse<PublisherListApiModel>> queryPublisherWithServiceResponseAsync(PublisherQueryApiModel body);
+    /**
+     * Query publishers.
+     * Get all publishers that match a specified query. The returned model can contain a continuation token if more results are available. Call the GetListOfPublisher operation using the token to retrieve more results.
+     *
+     * @param body Publisher query model
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
+     * @param pageSize Number of results to return
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     * @return the PublisherListApiModel object if successful.
+     */
+    PublisherListApiModel queryPublisher(PublisherQueryApiModel body, Boolean onlyServerState, Integer pageSize);
+
+    /**
+     * Query publishers.
+     * Get all publishers that match a specified query. The returned model can contain a continuation token if more results are available. Call the GetListOfPublisher operation using the token to retrieve more results.
+     *
+     * @param body Publisher query model
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
+     * @param pageSize Number of results to return
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    ServiceFuture<PublisherListApiModel> queryPublisherAsync(PublisherQueryApiModel body, Boolean onlyServerState, Integer pageSize, final ServiceCallback<PublisherListApiModel> serviceCallback);
+
+    /**
+     * Query publishers.
+     * Get all publishers that match a specified query. The returned model can contain a continuation token if more results are available. Call the GetListOfPublisher operation using the token to retrieve more results.
+     *
+     * @param body Publisher query model
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
+     * @param pageSize Number of results to return
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the PublisherListApiModel object
+     */
+    Observable<PublisherListApiModel> queryPublisherAsync(PublisherQueryApiModel body, Boolean onlyServerState, Integer pageSize);
+
+    /**
+     * Query publishers.
+     * Get all publishers that match a specified query. The returned model can contain a continuation token if more results are available. Call the GetListOfPublisher operation using the token to retrieve more results.
+     *
+     * @param body Publisher query model
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
+     * @param pageSize Number of results to return
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the PublisherListApiModel object
+     */
+    Observable<ServiceResponse<PublisherListApiModel>> queryPublisherWithServiceResponseAsync(PublisherQueryApiModel body, Boolean onlyServerState, Integer pageSize);
+
+    /**
      * Get filtered list of publishers.
-     * Get a list of publishers filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfPublisher operation using the token to retrieve
-     more results.
+     * Get a list of publishers filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfPublisher operation using the token to retrieve more results.
      *
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
@@ -2631,11 +3395,7 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Get filtered list of publishers.
-     * Get a list of publishers filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfPublisher operation using the token to retrieve
-     more results.
+     * Get a list of publishers filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfPublisher operation using the token to retrieve more results.
      *
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -2645,11 +3405,7 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Get filtered list of publishers.
-     * Get a list of publishers filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfPublisher operation using the token to retrieve
-     more results.
+     * Get a list of publishers filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfPublisher operation using the token to retrieve more results.
      *
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the PublisherListApiModel object
@@ -2658,11 +3414,7 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Get filtered list of publishers.
-     * Get a list of publishers filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfPublisher operation using the token to retrieve
-     more results.
+     * Get a list of publishers filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfPublisher operation using the token to retrieve more results.
      *
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the PublisherListApiModel object
@@ -2670,17 +3422,11 @@ public interface AzureOpcRegistryClient {
     Observable<ServiceResponse<PublisherListApiModel>> getFilteredListOfPublisherWithServiceResponseAsync();
     /**
      * Get filtered list of publishers.
-     * Get a list of publishers filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfPublisher operation using the token to retrieve
-     more results.
+     * Get a list of publishers filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfPublisher operation using the token to retrieve more results.
      *
      * @param siteId Site of the publisher
      * @param connected Included connected or disconnected
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if
-                 available
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @param pageSize Number of results to return
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
@@ -2691,17 +3437,11 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Get filtered list of publishers.
-     * Get a list of publishers filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfPublisher operation using the token to retrieve
-     more results.
+     * Get a list of publishers filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfPublisher operation using the token to retrieve more results.
      *
      * @param siteId Site of the publisher
      * @param connected Included connected or disconnected
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if
-                 available
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @param pageSize Number of results to return
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -2711,17 +3451,11 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Get filtered list of publishers.
-     * Get a list of publishers filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfPublisher operation using the token to retrieve
-     more results.
+     * Get a list of publishers filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfPublisher operation using the token to retrieve more results.
      *
      * @param siteId Site of the publisher
      * @param connected Included connected or disconnected
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if
-                 available
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @param pageSize Number of results to return
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the PublisherListApiModel object
@@ -2730,17 +3464,11 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Get filtered list of publishers.
-     * Get a list of publishers filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfPublisher operation using the token to retrieve
-     more results.
+     * Get a list of publishers filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfPublisher operation using the token to retrieve more results.
      *
      * @param siteId Site of the publisher
      * @param connected Included connected or disconnected
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if
-                 available
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @param pageSize Number of results to return
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the PublisherListApiModel object
@@ -2748,139 +3476,6 @@ public interface AzureOpcRegistryClient {
     Observable<ServiceResponse<PublisherListApiModel>> getFilteredListOfPublisherWithServiceResponseAsync(String siteId, Boolean connected, Boolean onlyServerState, Integer pageSize);
 
     /**
-     * Query publishers.
-     * Get all publishers that match a specified query.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfPublisher operation using the token to retrieve
-     more results.
-     *
-     * @param query Publisher query model
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the PublisherListApiModel object if successful.
-     */
-    PublisherListApiModel queryPublisher(PublisherQueryApiModel query);
-
-    /**
-     * Query publishers.
-     * Get all publishers that match a specified query.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfPublisher operation using the token to retrieve
-     more results.
-     *
-     * @param query Publisher query model
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    ServiceFuture<PublisherListApiModel> queryPublisherAsync(PublisherQueryApiModel query, final ServiceCallback<PublisherListApiModel> serviceCallback);
-
-    /**
-     * Query publishers.
-     * Get all publishers that match a specified query.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfPublisher operation using the token to retrieve
-     more results.
-     *
-     * @param query Publisher query model
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the PublisherListApiModel object
-     */
-    Observable<PublisherListApiModel> queryPublisherAsync(PublisherQueryApiModel query);
-
-    /**
-     * Query publishers.
-     * Get all publishers that match a specified query.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfPublisher operation using the token to retrieve
-     more results.
-     *
-     * @param query Publisher query model
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the PublisherListApiModel object
-     */
-    Observable<ServiceResponse<PublisherListApiModel>> queryPublisherWithServiceResponseAsync(PublisherQueryApiModel query);
-    /**
-     * Query publishers.
-     * Get all publishers that match a specified query.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfPublisher operation using the token to retrieve
-     more results.
-     *
-     * @param query Publisher query model
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if
-                 available
-     * @param pageSize Number of results to return
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the PublisherListApiModel object if successful.
-     */
-    PublisherListApiModel queryPublisher(PublisherQueryApiModel query, Boolean onlyServerState, Integer pageSize);
-
-    /**
-     * Query publishers.
-     * Get all publishers that match a specified query.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfPublisher operation using the token to retrieve
-     more results.
-     *
-     * @param query Publisher query model
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if
-                 available
-     * @param pageSize Number of results to return
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    ServiceFuture<PublisherListApiModel> queryPublisherAsync(PublisherQueryApiModel query, Boolean onlyServerState, Integer pageSize, final ServiceCallback<PublisherListApiModel> serviceCallback);
-
-    /**
-     * Query publishers.
-     * Get all publishers that match a specified query.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfPublisher operation using the token to retrieve
-     more results.
-     *
-     * @param query Publisher query model
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if
-                 available
-     * @param pageSize Number of results to return
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the PublisherListApiModel object
-     */
-    Observable<PublisherListApiModel> queryPublisherAsync(PublisherQueryApiModel query, Boolean onlyServerState, Integer pageSize);
-
-    /**
-     * Query publishers.
-     * Get all publishers that match a specified query.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfPublisher operation using the token to retrieve
-     more results.
-     *
-     * @param query Publisher query model
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if
-                 available
-     * @param pageSize Number of results to return
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the PublisherListApiModel object
-     */
-    Observable<ServiceResponse<PublisherListApiModel>> queryPublisherWithServiceResponseAsync(PublisherQueryApiModel query, Boolean onlyServerState, Integer pageSize);
-
-    /**
      * Subscribe to publisher registry events.
      * Register a user to receive publisher events through SignalR.
      *
@@ -2888,7 +3483,7 @@ public interface AzureOpcRegistryClient {
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
      */
-    void subscribe2();
+    void subscribe4();
 
     /**
      * Subscribe to publisher registry events.
@@ -2898,7 +3493,7 @@ public interface AzureOpcRegistryClient {
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    ServiceFuture<Void> subscribe2Async(final ServiceCallback<Void> serviceCallback);
+    ServiceFuture<Void> subscribe4Async(final ServiceCallback<Void> serviceCallback);
 
     /**
      * Subscribe to publisher registry events.
@@ -2907,7 +3502,7 @@ public interface AzureOpcRegistryClient {
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
-    Observable<Void> subscribe2Async();
+    Observable<Void> subscribe4Async();
 
     /**
      * Subscribe to publisher registry events.
@@ -2916,98 +3511,94 @@ public interface AzureOpcRegistryClient {
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
-    Observable<ServiceResponse<Void>> subscribe2WithServiceResponseAsync();
+    Observable<ServiceResponse<Void>> subscribe4WithServiceResponseAsync();
     /**
      * Subscribe to publisher registry events.
      * Register a user to receive publisher events through SignalR.
      *
-     * @param userId The user id that will receive publisher
+     * @param body The user id that will receive publisher
                  events.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
      */
-    void subscribe2(String userId);
+    void subscribe4(String body);
 
     /**
      * Subscribe to publisher registry events.
      * Register a user to receive publisher events through SignalR.
      *
-     * @param userId The user id that will receive publisher
+     * @param body The user id that will receive publisher
                  events.
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    ServiceFuture<Void> subscribe2Async(String userId, final ServiceCallback<Void> serviceCallback);
+    ServiceFuture<Void> subscribe4Async(String body, final ServiceCallback<Void> serviceCallback);
 
     /**
      * Subscribe to publisher registry events.
      * Register a user to receive publisher events through SignalR.
      *
-     * @param userId The user id that will receive publisher
+     * @param body The user id that will receive publisher
                  events.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
-    Observable<Void> subscribe2Async(String userId);
+    Observable<Void> subscribe4Async(String body);
 
     /**
      * Subscribe to publisher registry events.
      * Register a user to receive publisher events through SignalR.
      *
-     * @param userId The user id that will receive publisher
+     * @param body The user id that will receive publisher
                  events.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
-    Observable<ServiceResponse<Void>> subscribe2WithServiceResponseAsync(String userId);
+    Observable<ServiceResponse<Void>> subscribe4WithServiceResponseAsync(String body);
 
     /**
      * Unsubscribe registry events.
      * Unregister a user and stop it from receiving publisher events.
      *
-     * @param userId The user id that will not receive
-                 any more publisher events
+     * @param userId The user id that will not receive any more publisher events
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
      */
-    void unsubscribe2(String userId);
+    void unsubscribe4(String userId);
 
     /**
      * Unsubscribe registry events.
      * Unregister a user and stop it from receiving publisher events.
      *
-     * @param userId The user id that will not receive
-                 any more publisher events
+     * @param userId The user id that will not receive any more publisher events
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    ServiceFuture<Void> unsubscribe2Async(String userId, final ServiceCallback<Void> serviceCallback);
+    ServiceFuture<Void> unsubscribe4Async(String userId, final ServiceCallback<Void> serviceCallback);
 
     /**
      * Unsubscribe registry events.
      * Unregister a user and stop it from receiving publisher events.
      *
-     * @param userId The user id that will not receive
-                 any more publisher events
+     * @param userId The user id that will not receive any more publisher events
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
-    Observable<Void> unsubscribe2Async(String userId);
+    Observable<Void> unsubscribe4Async(String userId);
 
     /**
      * Unsubscribe registry events.
      * Unregister a user and stop it from receiving publisher events.
      *
-     * @param userId The user id that will not receive
-                 any more publisher events
+     * @param userId The user id that will not receive any more publisher events
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
-    Observable<ServiceResponse<Void>> unsubscribe2WithServiceResponseAsync(String userId);
+    Observable<ServiceResponse<Void>> unsubscribe4WithServiceResponseAsync(String userId);
 
     /**
      * Return the service status in the form of the service status
@@ -3050,8 +3641,7 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Get supervisor registration information.
-     * Returns a supervisor's registration and connectivity information.
-     A supervisor id corresponds to the twin modules module identity.
+     * Returns a supervisor's registration and connectivity information. A supervisor id corresponds to the twin modules module identity.
      *
      * @param supervisorId Supervisor identifier
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -3063,8 +3653,7 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Get supervisor registration information.
-     * Returns a supervisor's registration and connectivity information.
-     A supervisor id corresponds to the twin modules module identity.
+     * Returns a supervisor's registration and connectivity information. A supervisor id corresponds to the twin modules module identity.
      *
      * @param supervisorId Supervisor identifier
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
@@ -3075,8 +3664,7 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Get supervisor registration information.
-     * Returns a supervisor's registration and connectivity information.
-     A supervisor id corresponds to the twin modules module identity.
+     * Returns a supervisor's registration and connectivity information. A supervisor id corresponds to the twin modules module identity.
      *
      * @param supervisorId Supervisor identifier
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -3086,8 +3674,7 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Get supervisor registration information.
-     * Returns a supervisor's registration and connectivity information.
-     A supervisor id corresponds to the twin modules module identity.
+     * Returns a supervisor's registration and connectivity information. A supervisor id corresponds to the twin modules module identity.
      *
      * @param supervisorId Supervisor identifier
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -3096,13 +3683,10 @@ public interface AzureOpcRegistryClient {
     Observable<ServiceResponse<SupervisorApiModel>> getSupervisorWithServiceResponseAsync(String supervisorId);
     /**
      * Get supervisor registration information.
-     * Returns a supervisor's registration and connectivity information.
-     A supervisor id corresponds to the twin modules module identity.
+     * Returns a supervisor's registration and connectivity information. A supervisor id corresponds to the twin modules module identity.
      *
      * @param supervisorId Supervisor identifier
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if
-                 available
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
@@ -3112,13 +3696,10 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Get supervisor registration information.
-     * Returns a supervisor's registration and connectivity information.
-     A supervisor id corresponds to the twin modules module identity.
+     * Returns a supervisor's registration and connectivity information. A supervisor id corresponds to the twin modules module identity.
      *
      * @param supervisorId Supervisor identifier
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if
-                 available
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
@@ -3127,13 +3708,10 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Get supervisor registration information.
-     * Returns a supervisor's registration and connectivity information.
-     A supervisor id corresponds to the twin modules module identity.
+     * Returns a supervisor's registration and connectivity information. A supervisor id corresponds to the twin modules module identity.
      *
      * @param supervisorId Supervisor identifier
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if
-                 available
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the SupervisorApiModel object
      */
@@ -3141,13 +3719,10 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Get supervisor registration information.
-     * Returns a supervisor's registration and connectivity information.
-     A supervisor id corresponds to the twin modules module identity.
+     * Returns a supervisor's registration and connectivity information. A supervisor id corresponds to the twin modules module identity.
      *
      * @param supervisorId Supervisor identifier
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if
-                 available
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the SupervisorApiModel object
      */
@@ -3155,53 +3730,49 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Update supervisor information.
-     * Allows a caller to configure recurring discovery runs on the twin module
-     identified by the supervisor id or update site information.
+     * Allows a caller to configure recurring discovery runs on the twin module identified by the supervisor id or update site information.
      *
      * @param supervisorId supervisor identifier
-     * @param request Patch request
+     * @param body Patch request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
      */
-    void updateSupervisor(String supervisorId, SupervisorUpdateApiModel request);
+    void updateSupervisor(String supervisorId, SupervisorUpdateApiModel body);
 
     /**
      * Update supervisor information.
-     * Allows a caller to configure recurring discovery runs on the twin module
-     identified by the supervisor id or update site information.
+     * Allows a caller to configure recurring discovery runs on the twin module identified by the supervisor id or update site information.
      *
      * @param supervisorId supervisor identifier
-     * @param request Patch request
+     * @param body Patch request
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    ServiceFuture<Void> updateSupervisorAsync(String supervisorId, SupervisorUpdateApiModel request, final ServiceCallback<Void> serviceCallback);
+    ServiceFuture<Void> updateSupervisorAsync(String supervisorId, SupervisorUpdateApiModel body, final ServiceCallback<Void> serviceCallback);
 
     /**
      * Update supervisor information.
-     * Allows a caller to configure recurring discovery runs on the twin module
-     identified by the supervisor id or update site information.
+     * Allows a caller to configure recurring discovery runs on the twin module identified by the supervisor id or update site information.
      *
      * @param supervisorId supervisor identifier
-     * @param request Patch request
+     * @param body Patch request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
-    Observable<Void> updateSupervisorAsync(String supervisorId, SupervisorUpdateApiModel request);
+    Observable<Void> updateSupervisorAsync(String supervisorId, SupervisorUpdateApiModel body);
 
     /**
      * Update supervisor information.
-     * Allows a caller to configure recurring discovery runs on the twin module
-     identified by the supervisor id or update site information.
+     * Allows a caller to configure recurring discovery runs on the twin module identified by the supervisor id or update site information.
      *
      * @param supervisorId supervisor identifier
-     * @param request Patch request
+     * @param body Patch request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
-    Observable<ServiceResponse<Void>> updateSupervisorWithServiceResponseAsync(String supervisorId, SupervisorUpdateApiModel request);
+    Observable<ServiceResponse<Void>> updateSupervisorWithServiceResponseAsync(String supervisorId, SupervisorUpdateApiModel body);
 
     /**
      * Get runtime status of supervisor.
@@ -3248,8 +3819,7 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Reset supervisor.
-     * Allows a caller to reset the twin module using its supervisor
-     identity identifier.
+     * Allows a caller to reset the twin module using its supervisor identity identifier.
      *
      * @param supervisorId supervisor identifier
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -3260,8 +3830,7 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Reset supervisor.
-     * Allows a caller to reset the twin module using its supervisor
-     identity identifier.
+     * Allows a caller to reset the twin module using its supervisor identity identifier.
      *
      * @param supervisorId supervisor identifier
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
@@ -3272,8 +3841,7 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Reset supervisor.
-     * Allows a caller to reset the twin module using its supervisor
-     identity identifier.
+     * Allows a caller to reset the twin module using its supervisor identity identifier.
      *
      * @param supervisorId supervisor identifier
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -3283,8 +3851,7 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Reset supervisor.
-     * Allows a caller to reset the twin module using its supervisor
-     identity identifier.
+     * Allows a caller to reset the twin module using its supervisor identity identifier.
      *
      * @param supervisorId supervisor identifier
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -3294,10 +3861,7 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Get list of supervisors.
-     * Get all registered supervisors and therefore twin modules in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
+     * Get all registered supervisors and therefore twin modules in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.
      *
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
@@ -3308,10 +3872,7 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Get list of supervisors.
-     * Get all registered supervisors and therefore twin modules in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
+     * Get all registered supervisors and therefore twin modules in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.
      *
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -3321,10 +3882,7 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Get list of supervisors.
-     * Get all registered supervisors and therefore twin modules in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
+     * Get all registered supervisors and therefore twin modules in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.
      *
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the SupervisorListApiModel object
@@ -3333,10 +3891,7 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Get list of supervisors.
-     * Get all registered supervisors and therefore twin modules in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
+     * Get all registered supervisors and therefore twin modules in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.
      *
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the SupervisorListApiModel object
@@ -3344,13 +3899,9 @@ public interface AzureOpcRegistryClient {
     Observable<ServiceResponse<SupervisorListApiModel>> getListOfSupervisorsWithServiceResponseAsync();
     /**
      * Get list of supervisors.
-     * Get all registered supervisors and therefore twin modules in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
+     * Get all registered supervisors and therefore twin modules in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.
      *
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if available
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @param continuationToken Optional Continuation token
      * @param pageSize Optional number of results to return
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -3362,13 +3913,9 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Get list of supervisors.
-     * Get all registered supervisors and therefore twin modules in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
+     * Get all registered supervisors and therefore twin modules in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.
      *
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if available
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @param continuationToken Optional Continuation token
      * @param pageSize Optional number of results to return
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
@@ -3379,13 +3926,9 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Get list of supervisors.
-     * Get all registered supervisors and therefore twin modules in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
+     * Get all registered supervisors and therefore twin modules in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.
      *
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if available
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @param continuationToken Optional Continuation token
      * @param pageSize Optional number of results to return
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -3395,13 +3938,9 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Get list of supervisors.
-     * Get all registered supervisors and therefore twin modules in paged form.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call this operation again using the token to retrieve more results.
+     * Get all registered supervisors and therefore twin modules in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.
      *
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if available
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @param continuationToken Optional Continuation token
      * @param pageSize Optional number of results to return
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -3410,12 +3949,101 @@ public interface AzureOpcRegistryClient {
     Observable<ServiceResponse<SupervisorListApiModel>> getListOfSupervisorsWithServiceResponseAsync(Boolean onlyServerState, String continuationToken, Integer pageSize);
 
     /**
+     * Query supervisors.
+     * Get all supervisors that match a specified query. The returned model can contain a continuation token if more results are available. Call the GetListOfSupervisors operation using the token to retrieve more results.
+     *
+     * @param body Supervisors query model
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     * @return the SupervisorListApiModel object if successful.
+     */
+    SupervisorListApiModel querySupervisors(SupervisorQueryApiModel body);
+
+    /**
+     * Query supervisors.
+     * Get all supervisors that match a specified query. The returned model can contain a continuation token if more results are available. Call the GetListOfSupervisors operation using the token to retrieve more results.
+     *
+     * @param body Supervisors query model
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    ServiceFuture<SupervisorListApiModel> querySupervisorsAsync(SupervisorQueryApiModel body, final ServiceCallback<SupervisorListApiModel> serviceCallback);
+
+    /**
+     * Query supervisors.
+     * Get all supervisors that match a specified query. The returned model can contain a continuation token if more results are available. Call the GetListOfSupervisors operation using the token to retrieve more results.
+     *
+     * @param body Supervisors query model
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the SupervisorListApiModel object
+     */
+    Observable<SupervisorListApiModel> querySupervisorsAsync(SupervisorQueryApiModel body);
+
+    /**
+     * Query supervisors.
+     * Get all supervisors that match a specified query. The returned model can contain a continuation token if more results are available. Call the GetListOfSupervisors operation using the token to retrieve more results.
+     *
+     * @param body Supervisors query model
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the SupervisorListApiModel object
+     */
+    Observable<ServiceResponse<SupervisorListApiModel>> querySupervisorsWithServiceResponseAsync(SupervisorQueryApiModel body);
+    /**
+     * Query supervisors.
+     * Get all supervisors that match a specified query. The returned model can contain a continuation token if more results are available. Call the GetListOfSupervisors operation using the token to retrieve more results.
+     *
+     * @param body Supervisors query model
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
+     * @param pageSize Number of results to return
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     * @return the SupervisorListApiModel object if successful.
+     */
+    SupervisorListApiModel querySupervisors(SupervisorQueryApiModel body, Boolean onlyServerState, Integer pageSize);
+
+    /**
+     * Query supervisors.
+     * Get all supervisors that match a specified query. The returned model can contain a continuation token if more results are available. Call the GetListOfSupervisors operation using the token to retrieve more results.
+     *
+     * @param body Supervisors query model
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
+     * @param pageSize Number of results to return
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    ServiceFuture<SupervisorListApiModel> querySupervisorsAsync(SupervisorQueryApiModel body, Boolean onlyServerState, Integer pageSize, final ServiceCallback<SupervisorListApiModel> serviceCallback);
+
+    /**
+     * Query supervisors.
+     * Get all supervisors that match a specified query. The returned model can contain a continuation token if more results are available. Call the GetListOfSupervisors operation using the token to retrieve more results.
+     *
+     * @param body Supervisors query model
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
+     * @param pageSize Number of results to return
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the SupervisorListApiModel object
+     */
+    Observable<SupervisorListApiModel> querySupervisorsAsync(SupervisorQueryApiModel body, Boolean onlyServerState, Integer pageSize);
+
+    /**
+     * Query supervisors.
+     * Get all supervisors that match a specified query. The returned model can contain a continuation token if more results are available. Call the GetListOfSupervisors operation using the token to retrieve more results.
+     *
+     * @param body Supervisors query model
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
+     * @param pageSize Number of results to return
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the SupervisorListApiModel object
+     */
+    Observable<ServiceResponse<SupervisorListApiModel>> querySupervisorsWithServiceResponseAsync(SupervisorQueryApiModel body, Boolean onlyServerState, Integer pageSize);
+
+    /**
      * Get filtered list of supervisors.
-     * Get a list of supervisors filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfSupervisors operation using the token to retrieve
-     more results.
+     * Get a list of supervisors filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfSupervisors operation using the token to retrieve more results.
      *
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
@@ -3426,11 +4054,7 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Get filtered list of supervisors.
-     * Get a list of supervisors filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfSupervisors operation using the token to retrieve
-     more results.
+     * Get a list of supervisors filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfSupervisors operation using the token to retrieve more results.
      *
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -3440,11 +4064,7 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Get filtered list of supervisors.
-     * Get a list of supervisors filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfSupervisors operation using the token to retrieve
-     more results.
+     * Get a list of supervisors filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfSupervisors operation using the token to retrieve more results.
      *
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the SupervisorListApiModel object
@@ -3453,11 +4073,7 @@ public interface AzureOpcRegistryClient {
 
     /**
      * Get filtered list of supervisors.
-     * Get a list of supervisors filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfSupervisors operation using the token to retrieve
-     more results.
+     * Get a list of supervisors filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfSupervisors operation using the token to retrieve more results.
      *
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the SupervisorListApiModel object
@@ -3465,219 +4081,58 @@ public interface AzureOpcRegistryClient {
     Observable<ServiceResponse<SupervisorListApiModel>> getFilteredListOfSupervisorsWithServiceResponseAsync();
     /**
      * Get filtered list of supervisors.
-     * Get a list of supervisors filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfSupervisors operation using the token to retrieve
-     more results.
+     * Get a list of supervisors filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfSupervisors operation using the token to retrieve more results.
      *
      * @param siteId Site of the supervisor
-     * @param discovery Discovery mode of supervisor. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
      * @param connected Included connected or disconnected
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if
-                 available
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @param pageSize Number of results to return
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
      * @return the SupervisorListApiModel object if successful.
      */
-    SupervisorListApiModel getFilteredListOfSupervisors(String siteId, String discovery, Boolean connected, Boolean onlyServerState, Integer pageSize);
+    SupervisorListApiModel getFilteredListOfSupervisors(String siteId, Boolean connected, Boolean onlyServerState, Integer pageSize);
 
     /**
      * Get filtered list of supervisors.
-     * Get a list of supervisors filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfSupervisors operation using the token to retrieve
-     more results.
+     * Get a list of supervisors filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfSupervisors operation using the token to retrieve more results.
      *
      * @param siteId Site of the supervisor
-     * @param discovery Discovery mode of supervisor. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
      * @param connected Included connected or disconnected
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if
-                 available
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @param pageSize Number of results to return
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    ServiceFuture<SupervisorListApiModel> getFilteredListOfSupervisorsAsync(String siteId, String discovery, Boolean connected, Boolean onlyServerState, Integer pageSize, final ServiceCallback<SupervisorListApiModel> serviceCallback);
+    ServiceFuture<SupervisorListApiModel> getFilteredListOfSupervisorsAsync(String siteId, Boolean connected, Boolean onlyServerState, Integer pageSize, final ServiceCallback<SupervisorListApiModel> serviceCallback);
 
     /**
      * Get filtered list of supervisors.
-     * Get a list of supervisors filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfSupervisors operation using the token to retrieve
-     more results.
+     * Get a list of supervisors filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfSupervisors operation using the token to retrieve more results.
      *
      * @param siteId Site of the supervisor
-     * @param discovery Discovery mode of supervisor. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
      * @param connected Included connected or disconnected
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if
-                 available
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @param pageSize Number of results to return
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the SupervisorListApiModel object
      */
-    Observable<SupervisorListApiModel> getFilteredListOfSupervisorsAsync(String siteId, String discovery, Boolean connected, Boolean onlyServerState, Integer pageSize);
+    Observable<SupervisorListApiModel> getFilteredListOfSupervisorsAsync(String siteId, Boolean connected, Boolean onlyServerState, Integer pageSize);
 
     /**
      * Get filtered list of supervisors.
-     * Get a list of supervisors filtered using the specified query parameters.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfSupervisors operation using the token to retrieve
-     more results.
+     * Get a list of supervisors filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfSupervisors operation using the token to retrieve more results.
      *
      * @param siteId Site of the supervisor
-     * @param discovery Discovery mode of supervisor. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
      * @param connected Included connected or disconnected
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if
-                 available
+     * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @param pageSize Number of results to return
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the SupervisorListApiModel object
      */
-    Observable<ServiceResponse<SupervisorListApiModel>> getFilteredListOfSupervisorsWithServiceResponseAsync(String siteId, String discovery, Boolean connected, Boolean onlyServerState, Integer pageSize);
-
-    /**
-     * Query supervisors.
-     * Get all supervisors that match a specified query.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfSupervisors operation using the token to retrieve
-     more results.
-     *
-     * @param query Supervisors query model
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the SupervisorListApiModel object if successful.
-     */
-    SupervisorListApiModel querySupervisors(SupervisorQueryApiModel query);
-
-    /**
-     * Query supervisors.
-     * Get all supervisors that match a specified query.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfSupervisors operation using the token to retrieve
-     more results.
-     *
-     * @param query Supervisors query model
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    ServiceFuture<SupervisorListApiModel> querySupervisorsAsync(SupervisorQueryApiModel query, final ServiceCallback<SupervisorListApiModel> serviceCallback);
-
-    /**
-     * Query supervisors.
-     * Get all supervisors that match a specified query.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfSupervisors operation using the token to retrieve
-     more results.
-     *
-     * @param query Supervisors query model
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the SupervisorListApiModel object
-     */
-    Observable<SupervisorListApiModel> querySupervisorsAsync(SupervisorQueryApiModel query);
-
-    /**
-     * Query supervisors.
-     * Get all supervisors that match a specified query.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfSupervisors operation using the token to retrieve
-     more results.
-     *
-     * @param query Supervisors query model
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the SupervisorListApiModel object
-     */
-    Observable<ServiceResponse<SupervisorListApiModel>> querySupervisorsWithServiceResponseAsync(SupervisorQueryApiModel query);
-    /**
-     * Query supervisors.
-     * Get all supervisors that match a specified query.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfSupervisors operation using the token to retrieve
-     more results.
-     *
-     * @param query Supervisors query model
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if
-                 available
-     * @param pageSize Number of results to return
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the SupervisorListApiModel object if successful.
-     */
-    SupervisorListApiModel querySupervisors(SupervisorQueryApiModel query, Boolean onlyServerState, Integer pageSize);
-
-    /**
-     * Query supervisors.
-     * Get all supervisors that match a specified query.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfSupervisors operation using the token to retrieve
-     more results.
-     *
-     * @param query Supervisors query model
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if
-                 available
-     * @param pageSize Number of results to return
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    ServiceFuture<SupervisorListApiModel> querySupervisorsAsync(SupervisorQueryApiModel query, Boolean onlyServerState, Integer pageSize, final ServiceCallback<SupervisorListApiModel> serviceCallback);
-
-    /**
-     * Query supervisors.
-     * Get all supervisors that match a specified query.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfSupervisors operation using the token to retrieve
-     more results.
-     *
-     * @param query Supervisors query model
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if
-                 available
-     * @param pageSize Number of results to return
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the SupervisorListApiModel object
-     */
-    Observable<SupervisorListApiModel> querySupervisorsAsync(SupervisorQueryApiModel query, Boolean onlyServerState, Integer pageSize);
-
-    /**
-     * Query supervisors.
-     * Get all supervisors that match a specified query.
-     The returned model can contain a continuation token if more results are
-     available.
-     Call the GetListOfSupervisors operation using the token to retrieve
-     more results.
-     *
-     * @param query Supervisors query model
-     * @param onlyServerState Whether to include only server
-                 state, or display current client state of the endpoint if
-                 available
-     * @param pageSize Number of results to return
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the SupervisorListApiModel object
-     */
-    Observable<ServiceResponse<SupervisorListApiModel>> querySupervisorsWithServiceResponseAsync(SupervisorQueryApiModel query, Boolean onlyServerState, Integer pageSize);
+    Observable<ServiceResponse<SupervisorListApiModel>> getFilteredListOfSupervisorsWithServiceResponseAsync(String siteId, Boolean connected, Boolean onlyServerState, Integer pageSize);
 
     /**
      * Subscribe to supervisor registry events.
@@ -3687,7 +4142,7 @@ public interface AzureOpcRegistryClient {
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
      */
-    void subscribe3();
+    void subscribe5();
 
     /**
      * Subscribe to supervisor registry events.
@@ -3697,7 +4152,7 @@ public interface AzureOpcRegistryClient {
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    ServiceFuture<Void> subscribe3Async(final ServiceCallback<Void> serviceCallback);
+    ServiceFuture<Void> subscribe5Async(final ServiceCallback<Void> serviceCallback);
 
     /**
      * Subscribe to supervisor registry events.
@@ -3706,7 +4161,7 @@ public interface AzureOpcRegistryClient {
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
-    Observable<Void> subscribe3Async();
+    Observable<Void> subscribe5Async();
 
     /**
      * Subscribe to supervisor registry events.
@@ -3715,97 +4170,93 @@ public interface AzureOpcRegistryClient {
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
-    Observable<ServiceResponse<Void>> subscribe3WithServiceResponseAsync();
+    Observable<ServiceResponse<Void>> subscribe5WithServiceResponseAsync();
     /**
      * Subscribe to supervisor registry events.
      * Register a user to receive supervisor events through SignalR.
      *
-     * @param userId The user id that will receive supervisor
+     * @param body The user id that will receive supervisor
                  events.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
      */
-    void subscribe3(String userId);
+    void subscribe5(String body);
 
     /**
      * Subscribe to supervisor registry events.
      * Register a user to receive supervisor events through SignalR.
      *
-     * @param userId The user id that will receive supervisor
+     * @param body The user id that will receive supervisor
                  events.
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    ServiceFuture<Void> subscribe3Async(String userId, final ServiceCallback<Void> serviceCallback);
+    ServiceFuture<Void> subscribe5Async(String body, final ServiceCallback<Void> serviceCallback);
 
     /**
      * Subscribe to supervisor registry events.
      * Register a user to receive supervisor events through SignalR.
      *
-     * @param userId The user id that will receive supervisor
+     * @param body The user id that will receive supervisor
                  events.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
-    Observable<Void> subscribe3Async(String userId);
+    Observable<Void> subscribe5Async(String body);
 
     /**
      * Subscribe to supervisor registry events.
      * Register a user to receive supervisor events through SignalR.
      *
-     * @param userId The user id that will receive supervisor
+     * @param body The user id that will receive supervisor
                  events.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
-    Observable<ServiceResponse<Void>> subscribe3WithServiceResponseAsync(String userId);
+    Observable<ServiceResponse<Void>> subscribe5WithServiceResponseAsync(String body);
 
     /**
      * Unsubscribe registry events.
      * Unregister a user and stop it from receiving supervisor events.
      *
-     * @param userId The user id that will not receive
-                 any more supervisor events
+     * @param userId The user id that will not receive any more supervisor events
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
      */
-    void unsubscribe3(String userId);
+    void unsubscribe5(String userId);
 
     /**
      * Unsubscribe registry events.
      * Unregister a user and stop it from receiving supervisor events.
      *
-     * @param userId The user id that will not receive
-                 any more supervisor events
+     * @param userId The user id that will not receive any more supervisor events
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    ServiceFuture<Void> unsubscribe3Async(String userId, final ServiceCallback<Void> serviceCallback);
+    ServiceFuture<Void> unsubscribe5Async(String userId, final ServiceCallback<Void> serviceCallback);
 
     /**
      * Unsubscribe registry events.
      * Unregister a user and stop it from receiving supervisor events.
      *
-     * @param userId The user id that will not receive
-                 any more supervisor events
+     * @param userId The user id that will not receive any more supervisor events
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
-    Observable<Void> unsubscribe3Async(String userId);
+    Observable<Void> unsubscribe5Async(String userId);
 
     /**
      * Unsubscribe registry events.
      * Unregister a user and stop it from receiving supervisor events.
      *
-     * @param userId The user id that will not receive
-                 any more supervisor events
+     * @param userId The user id that will not receive any more supervisor events
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
-    Observable<ServiceResponse<Void>> unsubscribe3WithServiceResponseAsync(String userId);
+    Observable<ServiceResponse<Void>> unsubscribe5WithServiceResponseAsync(String userId);
 
 }

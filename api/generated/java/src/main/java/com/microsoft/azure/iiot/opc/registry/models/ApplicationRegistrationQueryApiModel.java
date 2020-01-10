@@ -17,8 +17,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class ApplicationRegistrationQueryApiModel {
     /**
-     * Type of application. Possible values include: 'Server', 'Client',
-     * 'ClientAndServer', 'DiscoveryServer'.
+     * Possible values include: 'Server', 'Client', 'ClientAndServer',
+     * 'DiscoveryServer'.
      */
     @JsonProperty(value = "applicationType")
     private ApplicationType applicationType;
@@ -78,7 +78,7 @@ public class ApplicationRegistrationQueryApiModel {
     private Boolean includeNotSeenSince;
 
     /**
-     * Get type of application. Possible values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'.
+     * Get possible values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'.
      *
      * @return the applicationType value
      */
@@ -87,7 +87,7 @@ public class ApplicationRegistrationQueryApiModel {
     }
 
     /**
-     * Set type of application. Possible values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'.
+     * Set possible values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'.
      *
      * @param applicationType the applicationType value to set
      * @return the ApplicationRegistrationQueryApiModel object itself.

@@ -33,8 +33,8 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         /// class.
         /// </summary>
         /// <param name="id">Authentication method id</param>
-        /// <param name="credentialType">Type of credential. Possible values
-        /// include: 'None', 'UserName', 'X509Certificate', 'JwtToken'</param>
+        /// <param name="credentialType">Possible values include: 'None',
+        /// 'UserName', 'X509Certificate', 'JwtToken'</param>
         /// <param name="securityPolicy">Security policy to use when passing
         /// credential.</param>
         /// <param name="configuration">Method specific configuration</param>
@@ -59,8 +59,8 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         public string Id { get; set; }
 
         /// <summary>
-        /// Gets or sets type of credential. Possible values include: 'None',
-        /// 'UserName', 'X509Certificate', 'JwtToken'
+        /// Gets or sets possible values include: 'None', 'UserName',
+        /// 'X509Certificate', 'JwtToken'
         /// </summary>
         [JsonProperty(PropertyName = "credentialType")]
         public CredentialType? CredentialType { get; set; }

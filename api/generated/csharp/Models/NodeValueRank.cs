@@ -21,18 +21,18 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
     [JsonConverter(typeof(StringEnumConverter))]
     public enum NodeValueRank
     {
-        [EnumMember(Value = "ScalarOrOneDimension")]
-        ScalarOrOneDimension,
-        [EnumMember(Value = "Any")]
-        Any,
-        [EnumMember(Value = "Scalar")]
-        Scalar,
         [EnumMember(Value = "OneOrMoreDimensions")]
         OneOrMoreDimensions,
         [EnumMember(Value = "OneDimension")]
         OneDimension,
         [EnumMember(Value = "TwoDimensions")]
-        TwoDimensions
+        TwoDimensions,
+        [EnumMember(Value = "ScalarOrOneDimension")]
+        ScalarOrOneDimension,
+        [EnumMember(Value = "Any")]
+        Any,
+        [EnumMember(Value = "Scalar")]
+        Scalar
     }
     internal static class NodeValueRankEnumExtension
     {
@@ -45,18 +45,18 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         {
             switch( value )
             {
-                case NodeValueRank.ScalarOrOneDimension:
-                    return "ScalarOrOneDimension";
-                case NodeValueRank.Any:
-                    return "Any";
-                case NodeValueRank.Scalar:
-                    return "Scalar";
                 case NodeValueRank.OneOrMoreDimensions:
                     return "OneOrMoreDimensions";
                 case NodeValueRank.OneDimension:
                     return "OneDimension";
                 case NodeValueRank.TwoDimensions:
                     return "TwoDimensions";
+                case NodeValueRank.ScalarOrOneDimension:
+                    return "ScalarOrOneDimension";
+                case NodeValueRank.Any:
+                    return "Any";
+                case NodeValueRank.Scalar:
+                    return "Scalar";
             }
             return null;
         }
@@ -65,18 +65,18 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         {
             switch( value )
             {
-                case "ScalarOrOneDimension":
-                    return NodeValueRank.ScalarOrOneDimension;
-                case "Any":
-                    return NodeValueRank.Any;
-                case "Scalar":
-                    return NodeValueRank.Scalar;
                 case "OneOrMoreDimensions":
                     return NodeValueRank.OneOrMoreDimensions;
                 case "OneDimension":
                     return NodeValueRank.OneDimension;
                 case "TwoDimensions":
                     return NodeValueRank.TwoDimensions;
+                case "ScalarOrOneDimension":
+                    return NodeValueRank.ScalarOrOneDimension;
+                case "Any":
+                    return NodeValueRank.Any;
+                case "Scalar":
+                    return NodeValueRank.Scalar;
             }
             return null;
         }

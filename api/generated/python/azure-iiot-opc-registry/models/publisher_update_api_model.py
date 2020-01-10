@@ -17,11 +17,11 @@ class PublisherUpdateApiModel(Model):
 
     :param site_id: Site of the publisher
     :type site_id: str
-    :param configuration: Publisher discovery configuration
+    :param configuration:
     :type configuration:
      ~azure-iiot-opc-registry.models.PublisherConfigApiModel
-    :param log_level: Current log level. Possible values include: 'Error',
-     'Information', 'Debug', 'Verbose'
+    :param log_level: Possible values include: 'Error', 'Information',
+     'Debug', 'Verbose'
     :type log_level: str or ~azure-iiot-opc-registry.models.TraceLogLevel
     """
 

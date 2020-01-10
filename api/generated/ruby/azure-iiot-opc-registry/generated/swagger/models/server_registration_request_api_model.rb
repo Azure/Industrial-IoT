@@ -19,8 +19,7 @@ module azure.iiot.opc.registry
       # @return [String] Registration id
       attr_accessor :id
 
-      # @return [EndpointActivationFilterApiModel] Upon discovery, activate all
-      # endpoints with this filter.
+      # @return [EndpointActivationFilterApiModel]
       attr_accessor :activation_filter
 
 

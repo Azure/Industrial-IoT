@@ -28,16 +28,25 @@ from .application_registration_query_api_model import ApplicationRegistrationQue
 from .application_record_query_api_model import ApplicationRecordQueryApiModel
 from .application_record_api_model import ApplicationRecordApiModel
 from .application_record_list_api_model import ApplicationRecordListApiModel
+from .discoverer_api_model import DiscovererApiModel
+from .discoverer_update_api_model import DiscovererUpdateApiModel
+from .discoverer_list_api_model import DiscovererListApiModel
+from .discoverer_query_api_model import DiscovererQueryApiModel
 from .endpoint_info_api_model import EndpointInfoApiModel
 from .endpoint_info_list_api_model import EndpointInfoListApiModel
 from .endpoint_registration_query_api_model import EndpointRegistrationQueryApiModel
+from .gateway_api_model import GatewayApiModel
+from .supervisor_api_model import SupervisorApiModel
 from .publisher_config_api_model import PublisherConfigApiModel
 from .publisher_api_model import PublisherApiModel
+from .gateway_info_api_model import GatewayInfoApiModel
+from .gateway_update_api_model import GatewayUpdateApiModel
+from .gateway_list_api_model import GatewayListApiModel
+from .gateway_query_api_model import GatewayQueryApiModel
 from .publisher_update_api_model import PublisherUpdateApiModel
 from .publisher_list_api_model import PublisherListApiModel
 from .publisher_query_api_model import PublisherQueryApiModel
 from .status_response_api_model import StatusResponseApiModel
-from .supervisor_api_model import SupervisorApiModel
 from .supervisor_update_api_model import SupervisorUpdateApiModel
 from .endpoint_activation_status_api_model import EndpointActivationStatusApiModel
 from .supervisor_status_api_model import SupervisorStatusApiModel
@@ -49,9 +58,9 @@ from .azure_opc_registry_client_enums import (
     DiscoveryMode,
     CredentialType,
     SecurityAssessment,
+    TraceLogLevel,
     EndpointActivationState,
     EndpointConnectivityState,
-    TraceLogLevel,
 )
 
 __all__ = [
@@ -74,16 +83,25 @@ __all__ = [
     'ApplicationRecordQueryApiModel',
     'ApplicationRecordApiModel',
     'ApplicationRecordListApiModel',
+    'DiscovererApiModel',
+    'DiscovererUpdateApiModel',
+    'DiscovererListApiModel',
+    'DiscovererQueryApiModel',
     'EndpointInfoApiModel',
     'EndpointInfoListApiModel',
     'EndpointRegistrationQueryApiModel',
+    'GatewayApiModel',
+    'SupervisorApiModel',
     'PublisherConfigApiModel',
     'PublisherApiModel',
+    'GatewayInfoApiModel',
+    'GatewayUpdateApiModel',
+    'GatewayListApiModel',
+    'GatewayQueryApiModel',
     'PublisherUpdateApiModel',
     'PublisherListApiModel',
     'PublisherQueryApiModel',
     'StatusResponseApiModel',
-    'SupervisorApiModel',
     'SupervisorUpdateApiModel',
     'EndpointActivationStatusApiModel',
     'SupervisorStatusApiModel',
@@ -94,7 +112,7 @@ __all__ = [
     'DiscoveryMode',
     'CredentialType',
     'SecurityAssessment',
+    'TraceLogLevel',
     'EndpointActivationState',
     'EndpointConnectivityState',
-    'TraceLogLevel',
 ]

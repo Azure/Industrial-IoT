@@ -32,8 +32,6 @@ namespace Microsoft.Azure.IIoT.Opc.Publisher.Models
         /// Initializes a new instance of the PublishStartRequestApiModel
         /// class.
         /// </summary>
-        /// <param name="item">Item to publish</param>
-        /// <param name="header">Optional request header</param>
         public PublishStartRequestApiModel(PublishedItemApiModel item, RequestHeaderApiModel header = default(RequestHeaderApiModel))
         {
             Item = item;
@@ -47,13 +45,11 @@ namespace Microsoft.Azure.IIoT.Opc.Publisher.Models
         partial void CustomInit();
 
         /// <summary>
-        /// Gets or sets item to publish
         /// </summary>
         [JsonProperty(PropertyName = "item")]
         public PublishedItemApiModel Item { get; set; }
 
         /// <summary>
-        /// Gets or sets optional request header
         /// </summary>
         [JsonProperty(PropertyName = "header")]
         public RequestHeaderApiModel Header { get; set; }

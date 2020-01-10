@@ -23,14 +23,13 @@ public class PublisherUpdateApiModel {
     private String siteId;
 
     /**
-     * Publisher discovery configuration.
+     * The configuration property.
      */
     @JsonProperty(value = "configuration")
     private PublisherConfigApiModel configuration;
 
     /**
-     * Current log level. Possible values include: 'Error', 'Information',
-     * 'Debug', 'Verbose'.
+     * Possible values include: 'Error', 'Information', 'Debug', 'Verbose'.
      */
     @JsonProperty(value = "logLevel")
     private TraceLogLevel logLevel;
@@ -56,7 +55,7 @@ public class PublisherUpdateApiModel {
     }
 
     /**
-     * Get publisher discovery configuration.
+     * Get the configuration value.
      *
      * @return the configuration value
      */
@@ -65,7 +64,7 @@ public class PublisherUpdateApiModel {
     }
 
     /**
-     * Set publisher discovery configuration.
+     * Set the configuration value.
      *
      * @param configuration the configuration value to set
      * @return the PublisherUpdateApiModel object itself.
@@ -76,7 +75,7 @@ public class PublisherUpdateApiModel {
     }
 
     /**
-     * Get current log level. Possible values include: 'Error', 'Information', 'Debug', 'Verbose'.
+     * Get possible values include: 'Error', 'Information', 'Debug', 'Verbose'.
      *
      * @return the logLevel value
      */
@@ -85,7 +84,7 @@ public class PublisherUpdateApiModel {
     }
 
     /**
-     * Set current log level. Possible values include: 'Error', 'Information', 'Debug', 'Verbose'.
+     * Set possible values include: 'Error', 'Information', 'Debug', 'Verbose'.
      *
      * @param logLevel the logLevel value to set
      * @return the PublisherUpdateApiModel object itself.

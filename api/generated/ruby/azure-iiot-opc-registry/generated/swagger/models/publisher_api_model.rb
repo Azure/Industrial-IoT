@@ -22,12 +22,11 @@ module azure.iiot.opc.registry
       # @return [Array<Integer>] Publisher public client cert
       attr_accessor :certificate
 
-      # @return [TraceLogLevel] Current log level. Possible values include:
-      # 'Error', 'Information', 'Debug', 'Verbose'. Default value:
-      # 'Information' .
+      # @return [TraceLogLevel] Possible values include: 'Error',
+      # 'Information', 'Debug', 'Verbose'
       attr_accessor :log_level
 
-      # @return [PublisherConfigApiModel] Publisher agent configuration
+      # @return [PublisherConfigApiModel]
       attr_accessor :configuration
 
       # @return [Boolean] Whether the registration is out of sync between
@@ -79,7 +78,6 @@ module azure.iiot.opc.registry
                 client_side_validation: true,
                 required: false,
                 serialized_name: 'logLevel',
-                default_value: 'Information',
                 type: {
                   name: 'Enum',
                   module: 'TraceLogLevel'

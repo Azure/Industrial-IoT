@@ -19,13 +19,12 @@ class MethodMetadataArgumentApiModel(Model):
     :type name: str
     :param description: Optional description
     :type description: str
-    :param type: Data type node of the argument
+    :param type:
     :type type: ~azure-iiot-opc-twin.models.NodeApiModel
     :param default_value: Default value
     :type default_value: object
-    :param value_rank: Optional, scalar if not set. Possible values include:
-     'ScalarOrOneDimension', 'Any', 'Scalar', 'OneOrMoreDimensions',
-     'OneDimension', 'TwoDimensions'
+    :param value_rank: Possible values include: 'OneOrMoreDimensions',
+     'OneDimension', 'TwoDimensions', 'ScalarOrOneDimension', 'Any', 'Scalar'
     :type value_rank: str or ~azure-iiot-opc-twin.models.NodeValueRank
     :param array_dimensions: Optional, array dimension
     :type array_dimensions: list[int]

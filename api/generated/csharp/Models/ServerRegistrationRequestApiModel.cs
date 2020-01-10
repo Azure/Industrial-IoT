@@ -35,8 +35,6 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         /// <param name="discoveryUrl">Discovery url to use for
         /// registration</param>
         /// <param name="id">Registration id</param>
-        /// <param name="activationFilter">Upon discovery, activate all
-        /// endpoints with this filter.</param>
         public ServerRegistrationRequestApiModel(string discoveryUrl, string id = default(string), EndpointActivationFilterApiModel activationFilter = default(EndpointActivationFilterApiModel))
         {
             DiscoveryUrl = discoveryUrl;
@@ -63,8 +61,6 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         public string Id { get; set; }
 
         /// <summary>
-        /// Gets or sets upon discovery, activate all endpoints with this
-        /// filter.
         /// </summary>
         [JsonProperty(PropertyName = "activationFilter")]
         public EndpointActivationFilterApiModel ActivationFilter { get; set; }

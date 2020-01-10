@@ -55,7 +55,7 @@ public class ValueWriteRequestApiModel {
     private String indexRange;
 
     /**
-     * Optional request header.
+     * The headerProperty property.
      */
     @JsonProperty(value = "header")
     private RequestHeaderApiModel headerProperty;
@@ -175,7 +175,7 @@ public class ValueWriteRequestApiModel {
     }
 
     /**
-     * Get optional request header.
+     * Get the headerProperty value.
      *
      * @return the headerProperty value
      */
@@ -184,7 +184,7 @@ public class ValueWriteRequestApiModel {
     }
 
     /**
-     * Set optional request header.
+     * Set the headerProperty value.
      *
      * @param headerProperty the headerProperty value to set
      * @return the ValueWriteRequestApiModel object itself.

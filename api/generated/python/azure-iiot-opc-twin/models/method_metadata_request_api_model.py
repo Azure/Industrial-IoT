@@ -22,7 +22,7 @@ class MethodMetadataRequestApiModel(Model):
      identified by
      MethodId to the actual method node.
     :type method_browse_path: list[str]
-    :param header: Optional request header
+    :param header:
     :type header: ~azure-iiot-opc-twin.models.RequestHeaderApiModel
     """
 

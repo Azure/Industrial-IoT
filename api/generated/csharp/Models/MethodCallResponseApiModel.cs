@@ -32,7 +32,6 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         /// Initializes a new instance of the MethodCallResponseApiModel class.
         /// </summary>
         /// <param name="results">Output results</param>
-        /// <param name="errorInfo">Service result in case of error</param>
         public MethodCallResponseApiModel(IList<MethodCallArgumentApiModel> results = default(IList<MethodCallArgumentApiModel>), ServiceResultApiModel errorInfo = default(ServiceResultApiModel))
         {
             Results = results;
@@ -52,7 +51,6 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         public IList<MethodCallArgumentApiModel> Results { get; set; }
 
         /// <summary>
-        /// Gets or sets service result in case of error
         /// </summary>
         [JsonProperty(PropertyName = "errorInfo")]
         public ServiceResultApiModel ErrorInfo { get; set; }

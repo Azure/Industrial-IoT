@@ -33,15 +33,15 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         /// </summary>
         /// <param name="url">Endoint url for direct server access</param>
         /// <param name="certificate">Certificate of the endpoint</param>
-        /// <param name="securityMode">Security Mode. Possible values include:
-        /// 'Best', 'Sign', 'SignAndEncrypt', 'None'</param>
+        /// <param name="securityMode">Possible values include: 'Best', 'Sign',
+        /// 'SignAndEncrypt', 'None'</param>
         /// <param name="securityPolicy">Security policy uri</param>
         /// <param name="activated">Whether the endpoint was activated</param>
         /// <param name="connected">Whether the endpoint is connected on
         /// supervisor.</param>
-        /// <param name="endpointState">The last state of the the activated
-        /// endpoint. Possible values include: 'Connecting', 'NotReachable',
-        /// 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'</param>
+        /// <param name="endpointState">Possible values include: 'Connecting',
+        /// 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready',
+        /// 'Error'</param>
         /// <param name="includeNotSeenSince">Whether to include endpoints that
         /// were soft deleted</param>
         public EndpointRegistrationQueryApiModel(string url = default(string), byte[] certificate = default(byte[]), SecurityMode? securityMode = default(SecurityMode?), string securityPolicy = default(string), bool? activated = default(bool?), bool? connected = default(bool?), EndpointConnectivityState? endpointState = default(EndpointConnectivityState?), bool? includeNotSeenSince = default(bool?))
@@ -75,8 +75,8 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         public byte[] Certificate { get; set; }
 
         /// <summary>
-        /// Gets or sets security Mode. Possible values include: 'Best',
-        /// 'Sign', 'SignAndEncrypt', 'None'
+        /// Gets or sets possible values include: 'Best', 'Sign',
+        /// 'SignAndEncrypt', 'None'
         /// </summary>
         [JsonProperty(PropertyName = "securityMode")]
         public SecurityMode? SecurityMode { get; set; }
@@ -100,9 +100,8 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         public bool? Connected { get; set; }
 
         /// <summary>
-        /// Gets or sets the last state of the the activated endpoint. Possible
-        /// values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust',
-        /// 'CertificateInvalid', 'Ready', 'Error'
+        /// Gets or sets possible values include: 'Connecting', 'NotReachable',
+        /// 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
         /// </summary>
         [JsonProperty(PropertyName = "endpointState")]
         public EndpointConnectivityState? EndpointState { get; set; }

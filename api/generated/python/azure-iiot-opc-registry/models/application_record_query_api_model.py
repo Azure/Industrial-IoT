@@ -23,8 +23,8 @@ class ApplicationRecordQueryApiModel(Model):
     :type application_name: str
     :param application_uri: Application uri
     :type application_uri: str
-    :param application_type: Application type. Possible values include:
-     'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
+    :param application_type: Possible values include: 'Server', 'Client',
+     'ClientAndServer', 'DiscoveryServer'
     :type application_type: str or
      ~azure-iiot-opc-registry.models.ApplicationType
     :param product_uri: Product uri

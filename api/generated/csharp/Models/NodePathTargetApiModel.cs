@@ -32,7 +32,6 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         /// Initializes a new instance of the NodePathTargetApiModel class.
         /// </summary>
         /// <param name="browsePath">The target browse path</param>
-        /// <param name="target">Target node</param>
         /// <param name="remainingPathIndex">Remaining index in path</param>
         public NodePathTargetApiModel(IList<string> browsePath = default(IList<string>), NodeApiModel target = default(NodeApiModel), int? remainingPathIndex = default(int?))
         {
@@ -54,7 +53,6 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         public IList<string> BrowsePath { get; set; }
 
         /// <summary>
-        /// Gets or sets target node
         /// </summary>
         [JsonProperty(PropertyName = "target")]
         public NodeApiModel Target { get; set; }

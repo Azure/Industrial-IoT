@@ -15,13 +15,13 @@ from msrest.serialization import Model
 class ApplicationRegistrationApiModel(Model):
     """Application with list of endpoints.
 
-    :param application: Application information
+    :param application:
     :type application: ~azure-iiot-opc-registry.models.ApplicationInfoApiModel
     :param endpoints: List of endpoint twins
     :type endpoints:
      list[~azure-iiot-opc-registry.models.EndpointRegistrationApiModel]
-    :param security_assessment: Application security assessment. Possible
-     values include: 'Unknown', 'Low', 'Medium', 'High'
+    :param security_assessment: Possible values include: 'Unknown', 'Low',
+     'Medium', 'High'
     :type security_assessment: str or
      ~azure-iiot-opc-registry.models.SecurityAssessment
     """

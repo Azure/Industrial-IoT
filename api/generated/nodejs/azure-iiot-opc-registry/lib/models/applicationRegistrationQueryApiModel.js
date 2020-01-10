@@ -17,8 +17,8 @@
 class ApplicationRegistrationQueryApiModel {
   /**
    * Create a ApplicationRegistrationQueryApiModel.
-   * @property {string} [applicationType] Type of application. Possible values
-   * include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
+   * @property {string} [applicationType] Possible values include: 'Server',
+   * 'Client', 'ClientAndServer', 'DiscoveryServer'
    * @property {string} [applicationUri] Application uri
    * @property {string} [productUri] Product uri
    * @property {string} [applicationName] Name of application

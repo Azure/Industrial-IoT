@@ -17,8 +17,8 @@ class ModificationInfoApiModel(Model):
 
     :param modification_time: Modification time
     :type modification_time: datetime
-    :param update_type: Operation. Possible values include: 'Insert',
-     'Replace', 'Update', 'Delete'
+    :param update_type: Possible values include: 'Insert', 'Replace',
+     'Update', 'Delete'
     :type update_type: str or
      ~azure-iiot-opc-history.models.HistoryUpdateOperation
     :param user_name: User who made the change

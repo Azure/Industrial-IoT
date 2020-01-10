@@ -23,22 +23,7 @@ public class SupervisorUpdateApiModel {
     private String siteId;
 
     /**
-     * Whether the supervisor is in discovery mode.
-     * If null, does not change. Possible values include: 'Off', 'Local',
-     * 'Network', 'Fast', 'Scan'.
-     */
-    @JsonProperty(value = "discovery")
-    private DiscoveryMode discovery;
-
-    /**
-     * Supervisor discovery configuration.
-     */
-    @JsonProperty(value = "discoveryConfig")
-    private DiscoveryConfigApiModel discoveryConfig;
-
-    /**
-     * Current log level. Possible values include: 'Error', 'Information',
-     * 'Debug', 'Verbose'.
+     * Possible values include: 'Error', 'Information', 'Debug', 'Verbose'.
      */
     @JsonProperty(value = "logLevel")
     private TraceLogLevel logLevel;
@@ -64,49 +49,7 @@ public class SupervisorUpdateApiModel {
     }
 
     /**
-     * Get whether the supervisor is in discovery mode.
-     If null, does not change. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'.
-     *
-     * @return the discovery value
-     */
-    public DiscoveryMode discovery() {
-        return this.discovery;
-    }
-
-    /**
-     * Set whether the supervisor is in discovery mode.
-     If null, does not change. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'.
-     *
-     * @param discovery the discovery value to set
-     * @return the SupervisorUpdateApiModel object itself.
-     */
-    public SupervisorUpdateApiModel withDiscovery(DiscoveryMode discovery) {
-        this.discovery = discovery;
-        return this;
-    }
-
-    /**
-     * Get supervisor discovery configuration.
-     *
-     * @return the discoveryConfig value
-     */
-    public DiscoveryConfigApiModel discoveryConfig() {
-        return this.discoveryConfig;
-    }
-
-    /**
-     * Set supervisor discovery configuration.
-     *
-     * @param discoveryConfig the discoveryConfig value to set
-     * @return the SupervisorUpdateApiModel object itself.
-     */
-    public SupervisorUpdateApiModel withDiscoveryConfig(DiscoveryConfigApiModel discoveryConfig) {
-        this.discoveryConfig = discoveryConfig;
-        return this;
-    }
-
-    /**
-     * Get current log level. Possible values include: 'Error', 'Information', 'Debug', 'Verbose'.
+     * Get possible values include: 'Error', 'Information', 'Debug', 'Verbose'.
      *
      * @return the logLevel value
      */
@@ -115,7 +58,7 @@ public class SupervisorUpdateApiModel {
     }
 
     /**
-     * Set current log level. Possible values include: 'Error', 'Information', 'Debug', 'Verbose'.
+     * Set possible values include: 'Error', 'Information', 'Debug', 'Verbose'.
      *
      * @param logLevel the logLevel value to set
      * @return the SupervisorUpdateApiModel object itself.

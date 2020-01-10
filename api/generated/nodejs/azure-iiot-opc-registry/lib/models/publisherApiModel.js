@@ -20,9 +20,9 @@ class PublisherApiModel {
    * @property {string} id Publisher id
    * @property {string} [siteId] Site of the publisher
    * @property {buffer} [certificate] Publisher public client cert
-   * @property {string} [logLevel] Current log level. Possible values include:
-   * 'Error', 'Information', 'Debug', 'Verbose'. Default value: 'Information' .
-   * @property {object} [configuration] Publisher agent configuration
+   * @property {string} [logLevel] Possible values include: 'Error',
+   * 'Information', 'Debug', 'Verbose'
+   * @property {object} [configuration]
    * @property {object} [configuration.capabilities] Capabilities
    * @property {string} [configuration.jobCheckInterval] Interval to check job
    * @property {string} [configuration.heartbeatInterval] Heartbeat interval
@@ -76,7 +76,6 @@ class PublisherApiModel {
           logLevel: {
             required: false,
             serializedName: 'logLevel',
-            defaultValue: 'Information',
             type: {
               name: 'Enum',
               allowedValues: [ 'Error', 'Information', 'Debug', 'Verbose' ]

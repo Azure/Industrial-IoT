@@ -16,9 +16,8 @@ module azure.iiot.opc.registry
       # @return [String] Authentication method id
       attr_accessor :id
 
-      # @return [CredentialType] Type of credential. Possible values include:
-      # 'None', 'UserName', 'X509Certificate', 'JwtToken'. Default value:
-      # 'None' .
+      # @return [CredentialType] Possible values include: 'None', 'UserName',
+      # 'X509Certificate', 'JwtToken'
       attr_accessor :credential_type
 
       # @return [String] Security policy to use when passing credential.
@@ -53,7 +52,6 @@ module azure.iiot.opc.registry
                 client_side_validation: true,
                 required: false,
                 serialized_name: 'credentialType',
-                default_value: 'None',
                 type: {
                   name: 'Enum',
                   module: 'CredentialType'

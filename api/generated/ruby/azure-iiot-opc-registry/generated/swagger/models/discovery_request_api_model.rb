@@ -16,11 +16,11 @@ module azure.iiot.opc.registry
       # @return [String] Id of discovery request
       attr_accessor :id
 
-      # @return [DiscoveryMode] Discovery mode to use. Possible values include:
-      # 'Off', 'Local', 'Network', 'Fast', 'Scan'
+      # @return [DiscoveryMode] Possible values include: 'Off', 'Local',
+      # 'Network', 'Fast', 'Scan'
       attr_accessor :discovery
 
-      # @return [DiscoveryConfigApiModel] Scan configuration to use
+      # @return [DiscoveryConfigApiModel]
       attr_accessor :configuration
 
 

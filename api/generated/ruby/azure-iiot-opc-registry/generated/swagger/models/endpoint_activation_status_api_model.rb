@@ -16,8 +16,8 @@ module azure.iiot.opc.registry
       # @return [String] Identifier of the endoint
       attr_accessor :id
 
-      # @return [EndpointActivationState] Activation state. Possible values
-      # include: 'Deactivated', 'Activated', 'ActivatedAndConnected'
+      # @return [EndpointActivationState] Possible values include:
+      # 'Deactivated', 'Activated', 'ActivatedAndConnected'
       attr_accessor :activation_state
 
 

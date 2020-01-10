@@ -24,7 +24,7 @@ public class NodePathTargetApiModel {
     private List<String> browsePath;
 
     /**
-     * Target node.
+     * The target property.
      */
     @JsonProperty(value = "target")
     private NodeApiModel target;
@@ -56,7 +56,7 @@ public class NodePathTargetApiModel {
     }
 
     /**
-     * Get target node.
+     * Get the target value.
      *
      * @return the target value
      */
@@ -65,7 +65,7 @@ public class NodePathTargetApiModel {
     }
 
     /**
-     * Set target node.
+     * Set the target value.
      *
      * @param target the target value to set
      * @return the NodePathTargetApiModel object itself.

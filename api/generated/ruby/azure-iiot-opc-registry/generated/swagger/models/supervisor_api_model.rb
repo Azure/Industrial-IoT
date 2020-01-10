@@ -19,20 +19,11 @@ module azure.iiot.opc.registry
       # @return [String] Site of the supervisor
       attr_accessor :site_id
 
-      # @return [DiscoveryMode] Whether the supervisor is in discovery mode.
-      # Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'.
-      # Default value: 'Off' .
-      attr_accessor :discovery
-
-      # @return [DiscoveryConfigApiModel] Supervisor configuration
-      attr_accessor :discovery_config
-
       # @return [Array<Integer>] Supervisor public client cert
       attr_accessor :certificate
 
-      # @return [TraceLogLevel] Current log level. Possible values include:
-      # 'Error', 'Information', 'Debug', 'Verbose'. Default value:
-      # 'Information' .
+      # @return [TraceLogLevel] Possible values include: 'Error',
+      # 'Information', 'Debug', 'Verbose'
       attr_accessor :log_level
 
       # @return [Boolean] Whether the registration is out of sync between
@@ -72,25 +63,6 @@ module azure.iiot.opc.registry
                   name: 'String'
                 }
               },
-              discovery: {
-                client_side_validation: true,
-                required: false,
-                serialized_name: 'discovery',
-                default_value: 'Off',
-                type: {
-                  name: 'Enum',
-                  module: 'DiscoveryMode'
-                }
-              },
-              discovery_config: {
-                client_side_validation: true,
-                required: false,
-                serialized_name: 'discoveryConfig',
-                type: {
-                  name: 'Composite',
-                  class_name: 'DiscoveryConfigApiModel'
-                }
-              },
               certificate: {
                 client_side_validation: true,
                 required: false,
@@ -103,7 +75,6 @@ module azure.iiot.opc.registry
                 client_side_validation: true,
                 required: false,
                 serialized_name: 'logLevel',
-                default_value: 'Information',
                 type: {
                   name: 'Enum',
                   module: 'TraceLogLevel'

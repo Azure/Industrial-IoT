@@ -31,7 +31,6 @@ namespace Microsoft.Azure.IIoT.Opc.Publisher.Models
         /// Initializes a new instance of the PublishStopRequestApiModel class.
         /// </summary>
         /// <param name="nodeId">Node of published item to unpublish</param>
-        /// <param name="header">Optional request header</param>
         public PublishStopRequestApiModel(string nodeId, RequestHeaderApiModel header = default(RequestHeaderApiModel))
         {
             NodeId = nodeId;
@@ -51,7 +50,6 @@ namespace Microsoft.Azure.IIoT.Opc.Publisher.Models
         public string NodeId { get; set; }
 
         /// <summary>
-        /// Gets or sets optional request header
         /// </summary>
         [JsonProperty(PropertyName = "header")]
         public RequestHeaderApiModel Header { get; set; }

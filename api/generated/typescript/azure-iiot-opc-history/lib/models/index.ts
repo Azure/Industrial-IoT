@@ -33,9 +33,8 @@ export interface DeleteValuesAtTimesDetailsApiModel {
  */
 export interface CredentialApiModel {
   /**
-   * @member {CredentialType} [type] Type of credential. Possible values
-   * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'. Default value:
-   * 'None' .
+   * @member {CredentialType} [type] Possible values include: 'None',
+   * 'UserName', 'X509Certificate', 'JwtToken'
    */
   type?: CredentialType;
   /**
@@ -52,10 +51,8 @@ export interface CredentialApiModel {
  */
 export interface DiagnosticsApiModel {
   /**
-   * @member {DiagnosticsLevel} [level] Requested level of response
-   * diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status',
-   * 'Operations', 'Diagnostics', 'Verbose'
+   * @member {DiagnosticsLevel} [level] Possible values include: 'None',
+   * 'Status', 'Operations', 'Diagnostics', 'Verbose'
    */
   level?: DiagnosticsLevel;
   /**
@@ -78,7 +75,7 @@ export interface DiagnosticsApiModel {
  */
 export interface RequestHeaderApiModel {
   /**
-   * @member {CredentialApiModel} [elevation] Optional User elevation
+   * @member {CredentialApiModel} [elevation]
    */
   elevation?: CredentialApiModel;
   /**
@@ -86,10 +83,35 @@ export interface RequestHeaderApiModel {
    */
   locales?: string[];
   /**
-   * @member {DiagnosticsApiModel} [diagnostics] Optional diagnostics
-   * configuration
+   * @member {DiagnosticsApiModel} [diagnostics]
    */
   diagnostics?: DiagnosticsApiModel;
+}
+
+/**
+ * @interface
+ * An interface representing DeleteValuesAtTimesDetailsApiModelHistoryUpdateRequestApiModel.
+ * Request node history update
+ *
+ */
+export interface DeleteValuesAtTimesDetailsApiModelHistoryUpdateRequestApiModel {
+  /**
+   * @member {string} [nodeId] Node to update
+   */
+  nodeId?: string;
+  /**
+   * @member {string[]} [browsePath] An optional path from NodeId instance to
+   * the actual node.
+   */
+  browsePath?: string[];
+  /**
+   * @member {DeleteValuesAtTimesDetailsApiModel} details
+   */
+  details: DeleteValuesAtTimesDetailsApiModel;
+  /**
+   * @member {RequestHeaderApiModel} [header]
+   */
+  header?: RequestHeaderApiModel;
 }
 
 /**
@@ -126,8 +148,7 @@ export interface HistoryUpdateResponseApiModel {
    */
   results?: ServiceResultApiModel[];
   /**
-   * @member {ServiceResultApiModel} [errorInfo] Service result in case of
-   * service call error
+   * @member {ServiceResultApiModel} [errorInfo]
    */
   errorInfo?: ServiceResultApiModel;
 }
@@ -151,6 +172,32 @@ export interface DeleteValuesDetailsApiModel {
 
 /**
  * @interface
+ * An interface representing DeleteValuesDetailsApiModelHistoryUpdateRequestApiModel.
+ * Request node history update
+ *
+ */
+export interface DeleteValuesDetailsApiModelHistoryUpdateRequestApiModel {
+  /**
+   * @member {string} [nodeId] Node to update
+   */
+  nodeId?: string;
+  /**
+   * @member {string[]} [browsePath] An optional path from NodeId instance to
+   * the actual node.
+   */
+  browsePath?: string[];
+  /**
+   * @member {DeleteValuesDetailsApiModel} details
+   */
+  details: DeleteValuesDetailsApiModel;
+  /**
+   * @member {RequestHeaderApiModel} [header]
+   */
+  header?: RequestHeaderApiModel;
+}
+
+/**
+ * @interface
  * An interface representing DeleteModifiedValuesDetailsApiModel.
  * Delete raw modified data
  *
@@ -168,6 +215,32 @@ export interface DeleteModifiedValuesDetailsApiModel {
 
 /**
  * @interface
+ * An interface representing DeleteModifiedValuesDetailsApiModelHistoryUpdateRequestApiModel.
+ * Request node history update
+ *
+ */
+export interface DeleteModifiedValuesDetailsApiModelHistoryUpdateRequestApiModel {
+  /**
+   * @member {string} [nodeId] Node to update
+   */
+  nodeId?: string;
+  /**
+   * @member {string[]} [browsePath] An optional path from NodeId instance to
+   * the actual node.
+   */
+  browsePath?: string[];
+  /**
+   * @member {DeleteModifiedValuesDetailsApiModel} details
+   */
+  details: DeleteModifiedValuesDetailsApiModel;
+  /**
+   * @member {RequestHeaderApiModel} [header]
+   */
+  header?: RequestHeaderApiModel;
+}
+
+/**
+ * @interface
  * An interface representing DeleteEventsDetailsApiModel.
  * The events to delete
  *
@@ -177,6 +250,90 @@ export interface DeleteEventsDetailsApiModel {
    * @member {Uint8Array[]} eventIds Events to delete
    */
   eventIds: Uint8Array[];
+}
+
+/**
+ * @interface
+ * An interface representing DeleteEventsDetailsApiModelHistoryUpdateRequestApiModel.
+ * Request node history update
+ *
+ */
+export interface DeleteEventsDetailsApiModelHistoryUpdateRequestApiModel {
+  /**
+   * @member {string} [nodeId] Node to update
+   */
+  nodeId?: string;
+  /**
+   * @member {string[]} [browsePath] An optional path from NodeId instance to
+   * the actual node.
+   */
+  browsePath?: string[];
+  /**
+   * @member {DeleteEventsDetailsApiModel} details
+   */
+  details: DeleteEventsDetailsApiModel;
+  /**
+   * @member {RequestHeaderApiModel} [header]
+   */
+  header?: RequestHeaderApiModel;
+}
+
+/**
+ * @interface
+ * An interface representing JTokenHistoryReadRequestApiModel.
+ * Request node history read
+ *
+ */
+export interface JTokenHistoryReadRequestApiModel {
+  /**
+   * @member {string} [nodeId] Node to read from (mandatory)
+   */
+  nodeId?: string;
+  /**
+   * @member {string[]} [browsePath] An optional path from NodeId instance to
+   * the actual node.
+   */
+  browsePath?: string[];
+  /**
+   * @member {any} [details] The HistoryReadDetailsType extension object
+   * encoded in json and containing the tunneled
+   * Historian reader request.
+   */
+  details?: any;
+  /**
+   * @member {string} [indexRange] Index range to read, e.g. 1:2,0:1 for 2
+   * slices
+   * out of a matrix or 0:1 for the first item in
+   * an array, string or bytestring.
+   * See 7.22 of part 4: NumericRange.
+   */
+  indexRange?: string;
+  /**
+   * @member {RequestHeaderApiModel} [header]
+   */
+  header?: RequestHeaderApiModel;
+}
+
+/**
+ * @interface
+ * An interface representing JTokenHistoryReadResponseApiModel.
+ * History read results
+ *
+ */
+export interface JTokenHistoryReadResponseApiModel {
+  /**
+   * @member {any} [history] History as json encoded extension object
+   */
+  history?: any;
+  /**
+   * @member {string} [continuationToken] Continuation token if more results
+   * pending.
+   */
+  continuationToken?: string;
+  /**
+   * @member {ServiceResultApiModel} [errorInfo]
+   */
+  errorInfo?: ServiceResultApiModel;
 }
 
 /**
@@ -198,7 +355,58 @@ export interface HistoryReadNextRequestApiModel {
    */
   abort?: boolean;
   /**
-   * @member {RequestHeaderApiModel} [header] Optional request header
+   * @member {RequestHeaderApiModel} [header]
+   */
+  header?: RequestHeaderApiModel;
+}
+
+/**
+ * @interface
+ * An interface representing JTokenHistoryReadNextResponseApiModel.
+ * History read continuation result
+ *
+ */
+export interface JTokenHistoryReadNextResponseApiModel {
+  /**
+   * @member {any} [history] History as json encoded extension object
+   */
+  history?: any;
+  /**
+   * @member {string} [continuationToken] Continuation token if more results
+   * pending.
+   */
+  continuationToken?: string;
+  /**
+   * @member {ServiceResultApiModel} [errorInfo]
+   */
+  errorInfo?: ServiceResultApiModel;
+}
+
+/**
+ * @interface
+ * An interface representing JTokenHistoryUpdateRequestApiModel.
+ * Request node history update
+ *
+ */
+export interface JTokenHistoryUpdateRequestApiModel {
+  /**
+   * @member {string} [nodeId] Node to update
+   */
+  nodeId?: string;
+  /**
+   * @member {string[]} [browsePath] An optional path from NodeId instance to
+   * the actual node.
+   */
+  browsePath?: string[];
+  /**
+   * @member {any} details The HistoryUpdateDetailsType extension object
+   * encoded as json Variant and containing the tunneled
+   * update request for the Historian server. The value
+   * is updated at edge using above node address.
+   */
+  details: any;
+  /**
+   * @member {RequestHeaderApiModel} [header]
    */
   header?: RequestHeaderApiModel;
 }
@@ -215,8 +423,8 @@ export interface ModificationInfoApiModel {
    */
   modificationTime?: Date;
   /**
-   * @member {HistoryUpdateOperation} [updateType] Operation. Possible values
-   * include: 'Insert', 'Replace', 'Update', 'Delete'
+   * @member {HistoryUpdateOperation} [updateType] Possible values include:
+   * 'Insert', 'Replace', 'Update', 'Delete'
    */
   updateType?: HistoryUpdateOperation;
   /**
@@ -262,8 +470,7 @@ export interface HistoricValueApiModel {
    */
   serverPicoseconds?: number;
   /**
-   * @member {ModificationInfoApiModel} [modificationInfo] modification
-   * information when reading modifications.
+   * @member {ModificationInfoApiModel} [modificationInfo]
    */
   modificationInfo?: ModificationInfoApiModel;
 }
@@ -279,6 +486,165 @@ export interface InsertValuesDetailsApiModel {
    * @member {HistoricValueApiModel[]} values Values to insert
    */
   values: HistoricValueApiModel[];
+}
+
+/**
+ * @interface
+ * An interface representing InsertValuesDetailsApiModelHistoryUpdateRequestApiModel.
+ * Request node history update
+ *
+ */
+export interface InsertValuesDetailsApiModelHistoryUpdateRequestApiModel {
+  /**
+   * @member {string} [nodeId] Node to update
+   */
+  nodeId?: string;
+  /**
+   * @member {string[]} [browsePath] An optional path from NodeId instance to
+   * the actual node.
+   */
+  browsePath?: string[];
+  /**
+   * @member {InsertValuesDetailsApiModel} details
+   */
+  details: InsertValuesDetailsApiModel;
+  /**
+   * @member {RequestHeaderApiModel} [header]
+   */
+  header?: RequestHeaderApiModel;
+}
+
+/**
+ * @interface
+ * An interface representing SimpleAttributeOperandApiModel.
+ * Simple attribute operand model
+ *
+ */
+export interface SimpleAttributeOperandApiModel {
+  /**
+   * @member {string} [nodeId] Type definition node id if operand is
+   * simple or full attribute operand.
+   */
+  nodeId?: string;
+  /**
+   * @member {string[]} [browsePath] Browse path of attribute operand
+   */
+  browsePath?: string[];
+  /**
+   * @member {NodeAttribute} [attributeId] Possible values include:
+   * 'NodeClass', 'BrowseName', 'DisplayName', 'Description', 'WriteMask',
+   * 'UserWriteMask', 'IsAbstract', 'Symmetric', 'InverseName',
+   * 'ContainsNoLoops', 'EventNotifier', 'Value', 'DataType', 'ValueRank',
+   * 'ArrayDimensions', 'AccessLevel', 'UserAccessLevel',
+   * 'MinimumSamplingInterval', 'Historizing', 'Executable', 'UserExecutable',
+   * 'DataTypeDefinition', 'RolePermissions', 'UserRolePermissions',
+   * 'AccessRestrictions'
+   */
+  attributeId?: NodeAttribute;
+  /**
+   * @member {string} [indexRange] Index range of attribute operand
+   */
+  indexRange?: string;
+}
+
+/**
+ * @interface
+ * An interface representing FilterOperandApiModel.
+ * Filter operand
+ *
+ */
+export interface FilterOperandApiModel {
+  /**
+   * @member {number} [index] Element reference in the outer list if
+   * operand is an element operand
+   */
+  index?: number;
+  /**
+   * @member {any} [value] Variant value if operand is a literal
+   */
+  value?: any;
+  /**
+   * @member {string} [nodeId] Type definition node id if operand is
+   * simple or full attribute operand.
+   */
+  nodeId?: string;
+  /**
+   * @member {string[]} [browsePath] Browse path of attribute operand
+   */
+  browsePath?: string[];
+  /**
+   * @member {NodeAttribute} [attributeId] Possible values include:
+   * 'NodeClass', 'BrowseName', 'DisplayName', 'Description', 'WriteMask',
+   * 'UserWriteMask', 'IsAbstract', 'Symmetric', 'InverseName',
+   * 'ContainsNoLoops', 'EventNotifier', 'Value', 'DataType', 'ValueRank',
+   * 'ArrayDimensions', 'AccessLevel', 'UserAccessLevel',
+   * 'MinimumSamplingInterval', 'Historizing', 'Executable', 'UserExecutable',
+   * 'DataTypeDefinition', 'RolePermissions', 'UserRolePermissions',
+   * 'AccessRestrictions'
+   */
+  attributeId?: NodeAttribute;
+  /**
+   * @member {string} [indexRange] Index range of attribute operand
+   */
+  indexRange?: string;
+  /**
+   * @member {string} [alias] Optional alias to refer to it makeing it a
+   * full blown attribute operand
+   */
+  alias?: string;
+}
+
+/**
+ * @interface
+ * An interface representing ContentFilterElementApiModel.
+ * An expression element in the filter ast
+ *
+ */
+export interface ContentFilterElementApiModel {
+  /**
+   * @member {FilterOperatorType} [filterOperator] Possible values include:
+   * 'Equals', 'IsNull', 'GreaterThan', 'LessThan', 'GreaterThanOrEqual',
+   * 'LessThanOrEqual', 'Like', 'Not', 'Between', 'InList', 'And', 'Or',
+   * 'Cast', 'InView', 'OfType', 'RelatedTo', 'BitwiseAnd', 'BitwiseOr'
+   */
+  filterOperator?: FilterOperatorType;
+  /**
+   * @member {FilterOperandApiModel[]} [filterOperands] The operands in the
+   * element for the operator
+   */
+  filterOperands?: FilterOperandApiModel[];
+}
+
+/**
+ * @interface
+ * An interface representing ContentFilterApiModel.
+ * Content filter
+ *
+ */
+export interface ContentFilterApiModel {
+  /**
+   * @member {ContentFilterElementApiModel[]} [elements] The flat list of
+   * elements in the filter AST
+   */
+  elements?: ContentFilterElementApiModel[];
+}
+
+/**
+ * @interface
+ * An interface representing EventFilterApiModel.
+ * Event filter
+ *
+ */
+export interface EventFilterApiModel {
+  /**
+   * @member {SimpleAttributeOperandApiModel[]} [selectClauses] Select
+   * statements
+   */
+  selectClauses?: SimpleAttributeOperandApiModel[];
+  /**
+   * @member {ContentFilterApiModel} [whereClause]
+   */
+  whereClause?: ContentFilterApiModel;
 }
 
 /**
@@ -302,13 +668,39 @@ export interface HistoricEventApiModel {
  */
 export interface InsertEventsDetailsApiModel {
   /**
-   * @member {any} [filter] The filter to use to select the events
+   * @member {EventFilterApiModel} [filter]
    */
-  filter?: any;
+  filter?: EventFilterApiModel;
   /**
    * @member {HistoricEventApiModel[]} events The new events to insert
    */
   events: HistoricEventApiModel[];
+}
+
+/**
+ * @interface
+ * An interface representing InsertEventsDetailsApiModelHistoryUpdateRequestApiModel.
+ * Request node history update
+ *
+ */
+export interface InsertEventsDetailsApiModelHistoryUpdateRequestApiModel {
+  /**
+   * @member {string} [nodeId] Node to update
+   */
+  nodeId?: string;
+  /**
+   * @member {string[]} [browsePath] An optional path from NodeId instance to
+   * the actual node.
+   */
+  browsePath?: string[];
+  /**
+   * @member {InsertEventsDetailsApiModel} details
+   */
+  details: InsertEventsDetailsApiModel;
+  /**
+   * @member {RequestHeaderApiModel} [header]
+   */
+  header?: RequestHeaderApiModel;
 }
 
 /**
@@ -331,9 +723,43 @@ export interface ReadEventsDetailsApiModel {
    */
   numEvents?: number;
   /**
-   * @member {any} [filter] The filter to use to select the event fields
+   * @member {EventFilterApiModel} [filter]
    */
-  filter?: any;
+  filter?: EventFilterApiModel;
+}
+
+/**
+ * @interface
+ * An interface representing ReadEventsDetailsApiModelHistoryReadRequestApiModel.
+ * Request node history read
+ *
+ */
+export interface ReadEventsDetailsApiModelHistoryReadRequestApiModel {
+  /**
+   * @member {string} [nodeId] Node to read from (mandatory)
+   */
+  nodeId?: string;
+  /**
+   * @member {string[]} [browsePath] An optional path from NodeId instance to
+   * the actual node.
+   */
+  browsePath?: string[];
+  /**
+   * @member {ReadEventsDetailsApiModel} [details]
+   */
+  details?: ReadEventsDetailsApiModel;
+  /**
+   * @member {string} [indexRange] Index range to read, e.g. 1:2,0:1 for 2
+   * slices
+   * out of a matrix or 0:1 for the first item in
+   * an array, string or bytestring.
+   * See 7.22 of part 4: NumericRange.
+   */
+  indexRange?: string;
+  /**
+   * @member {RequestHeaderApiModel} [header]
+   */
+  header?: RequestHeaderApiModel;
 }
 
 /**
@@ -371,6 +797,40 @@ export interface ReadValuesDetailsApiModel {
 
 /**
  * @interface
+ * An interface representing ReadValuesDetailsApiModelHistoryReadRequestApiModel.
+ * Request node history read
+ *
+ */
+export interface ReadValuesDetailsApiModelHistoryReadRequestApiModel {
+  /**
+   * @member {string} [nodeId] Node to read from (mandatory)
+   */
+  nodeId?: string;
+  /**
+   * @member {string[]} [browsePath] An optional path from NodeId instance to
+   * the actual node.
+   */
+  browsePath?: string[];
+  /**
+   * @member {ReadValuesDetailsApiModel} [details]
+   */
+  details?: ReadValuesDetailsApiModel;
+  /**
+   * @member {string} [indexRange] Index range to read, e.g. 1:2,0:1 for 2
+   * slices
+   * out of a matrix or 0:1 for the first item in
+   * an array, string or bytestring.
+   * See 7.22 of part 4: NumericRange.
+   */
+  indexRange?: string;
+  /**
+   * @member {RequestHeaderApiModel} [header]
+   */
+  header?: RequestHeaderApiModel;
+}
+
+/**
+ * @interface
  * An interface representing ReadValuesAtTimesDetailsApiModel.
  * Read data at specified times
  *
@@ -384,6 +844,40 @@ export interface ReadValuesAtTimesDetailsApiModel {
    * @member {boolean} [useSimpleBounds] Whether to use simple bounds
    */
   useSimpleBounds?: boolean;
+}
+
+/**
+ * @interface
+ * An interface representing ReadValuesAtTimesDetailsApiModelHistoryReadRequestApiModel.
+ * Request node history read
+ *
+ */
+export interface ReadValuesAtTimesDetailsApiModelHistoryReadRequestApiModel {
+  /**
+   * @member {string} [nodeId] Node to read from (mandatory)
+   */
+  nodeId?: string;
+  /**
+   * @member {string[]} [browsePath] An optional path from NodeId instance to
+   * the actual node.
+   */
+  browsePath?: string[];
+  /**
+   * @member {ReadValuesAtTimesDetailsApiModel} [details]
+   */
+  details?: ReadValuesAtTimesDetailsApiModel;
+  /**
+   * @member {string} [indexRange] Index range to read, e.g. 1:2,0:1 for 2
+   * slices
+   * out of a matrix or 0:1 for the first item in
+   * an array, string or bytestring.
+   * See 7.22 of part 4: NumericRange.
+   */
+  indexRange?: string;
+  /**
+   * @member {RequestHeaderApiModel} [header]
+   */
+  header?: RequestHeaderApiModel;
 }
 
 /**
@@ -441,10 +935,43 @@ export interface ReadProcessedValuesDetailsApiModel {
    */
   aggregateTypeId?: string;
   /**
-   * @member {AggregateConfigurationApiModel} [aggregateConfiguration] A
-   * configuration for the aggregate
+   * @member {AggregateConfigurationApiModel} [aggregateConfiguration]
    */
   aggregateConfiguration?: AggregateConfigurationApiModel;
+}
+
+/**
+ * @interface
+ * An interface representing ReadProcessedValuesDetailsApiModelHistoryReadRequestApiModel.
+ * Request node history read
+ *
+ */
+export interface ReadProcessedValuesDetailsApiModelHistoryReadRequestApiModel {
+  /**
+   * @member {string} [nodeId] Node to read from (mandatory)
+   */
+  nodeId?: string;
+  /**
+   * @member {string[]} [browsePath] An optional path from NodeId instance to
+   * the actual node.
+   */
+  browsePath?: string[];
+  /**
+   * @member {ReadProcessedValuesDetailsApiModel} [details]
+   */
+  details?: ReadProcessedValuesDetailsApiModel;
+  /**
+   * @member {string} [indexRange] Index range to read, e.g. 1:2,0:1 for 2
+   * slices
+   * out of a matrix or 0:1 for the first item in
+   * an array, string or bytestring.
+   * See 7.22 of part 4: NumericRange.
+   */
+  indexRange?: string;
+  /**
+   * @member {RequestHeaderApiModel} [header]
+   */
+  header?: RequestHeaderApiModel;
 }
 
 /**
@@ -470,6 +997,40 @@ export interface ReadModifiedValuesDetailsApiModel {
 
 /**
  * @interface
+ * An interface representing ReadModifiedValuesDetailsApiModelHistoryReadRequestApiModel.
+ * Request node history read
+ *
+ */
+export interface ReadModifiedValuesDetailsApiModelHistoryReadRequestApiModel {
+  /**
+   * @member {string} [nodeId] Node to read from (mandatory)
+   */
+  nodeId?: string;
+  /**
+   * @member {string[]} [browsePath] An optional path from NodeId instance to
+   * the actual node.
+   */
+  browsePath?: string[];
+  /**
+   * @member {ReadModifiedValuesDetailsApiModel} [details]
+   */
+  details?: ReadModifiedValuesDetailsApiModel;
+  /**
+   * @member {string} [indexRange] Index range to read, e.g. 1:2,0:1 for 2
+   * slices
+   * out of a matrix or 0:1 for the first item in
+   * an array, string or bytestring.
+   * See 7.22 of part 4: NumericRange.
+   */
+  indexRange?: string;
+  /**
+   * @member {RequestHeaderApiModel} [header]
+   */
+  header?: RequestHeaderApiModel;
+}
+
+/**
+ * @interface
  * An interface representing ReplaceValuesDetailsApiModel.
  * Replace historic data
  *
@@ -483,19 +1044,71 @@ export interface ReplaceValuesDetailsApiModel {
 
 /**
  * @interface
+ * An interface representing ReplaceValuesDetailsApiModelHistoryUpdateRequestApiModel.
+ * Request node history update
+ *
+ */
+export interface ReplaceValuesDetailsApiModelHistoryUpdateRequestApiModel {
+  /**
+   * @member {string} [nodeId] Node to update
+   */
+  nodeId?: string;
+  /**
+   * @member {string[]} [browsePath] An optional path from NodeId instance to
+   * the actual node.
+   */
+  browsePath?: string[];
+  /**
+   * @member {ReplaceValuesDetailsApiModel} details
+   */
+  details: ReplaceValuesDetailsApiModel;
+  /**
+   * @member {RequestHeaderApiModel} [header]
+   */
+  header?: RequestHeaderApiModel;
+}
+
+/**
+ * @interface
  * An interface representing ReplaceEventsDetailsApiModel.
  * Replace historic events
  *
  */
 export interface ReplaceEventsDetailsApiModel {
   /**
-   * @member {any} [filter] The filter to use to select the events
+   * @member {EventFilterApiModel} [filter]
    */
-  filter?: any;
+  filter?: EventFilterApiModel;
   /**
    * @member {HistoricEventApiModel[]} events The events to replace
    */
   events: HistoricEventApiModel[];
+}
+
+/**
+ * @interface
+ * An interface representing ReplaceEventsDetailsApiModelHistoryUpdateRequestApiModel.
+ * Request node history update
+ *
+ */
+export interface ReplaceEventsDetailsApiModelHistoryUpdateRequestApiModel {
+  /**
+   * @member {string} [nodeId] Node to update
+   */
+  nodeId?: string;
+  /**
+   * @member {string[]} [browsePath] An optional path from NodeId instance to
+   * the actual node.
+   */
+  browsePath?: string[];
+  /**
+   * @member {ReplaceEventsDetailsApiModel} details
+   */
+  details: ReplaceEventsDetailsApiModel;
+  /**
+   * @member {RequestHeaderApiModel} [header]
+   */
+  header?: RequestHeaderApiModel;
 }
 
 /**
@@ -555,349 +1168,19 @@ export interface StatusResponseApiModel {
    */
   readonly dependencies?: { [propertyName: string]: string };
   /**
-   * @member {{ [propertyName: string]: string }} [metadata] Optional meta
-   * data.
-   * **NOTE: This property will not be serialized. It can only be populated by
-   * the server.**
+   * @member {{ [propertyName: string]: string }} [metadata] **NOTE: This
+   * property will not be serialized. It can only be populated by the server.**
    */
   readonly metadata?: { [propertyName: string]: string };
 }
 
 /**
  * @interface
- * An interface representing HistoryUpdateRequestApiModelDeleteValuesAtTimesDetailsApiModel.
- * Request node history update
- *
- */
-export interface HistoryUpdateRequestApiModelDeleteValuesAtTimesDetailsApiModel {
-  /**
-   * @member {string} [nodeId] Node to update
-   */
-  nodeId?: string;
-  /**
-   * @member {string[]} [browsePath] An optional path from NodeId instance to
-   * the actual node.
-   */
-  browsePath?: string[];
-  /**
-   * @member {DeleteValuesAtTimesDetailsApiModel} details The
-   * HistoryUpdateDetailsType extension object
-   * encoded as json Variant and containing the tunneled
-   * update request for the Historian server. The value
-   * is updated at edge using above node address.
-   */
-  details: DeleteValuesAtTimesDetailsApiModel;
-  /**
-   * @member {RequestHeaderApiModel} [header] Optional request header
-   */
-  header?: RequestHeaderApiModel;
-}
-
-/**
- * @interface
- * An interface representing HistoryUpdateRequestApiModelDeleteValuesDetailsApiModel.
- * Request node history update
- *
- */
-export interface HistoryUpdateRequestApiModelDeleteValuesDetailsApiModel {
-  /**
-   * @member {string} [nodeId] Node to update
-   */
-  nodeId?: string;
-  /**
-   * @member {string[]} [browsePath] An optional path from NodeId instance to
-   * the actual node.
-   */
-  browsePath?: string[];
-  /**
-   * @member {DeleteValuesDetailsApiModel} details The HistoryUpdateDetailsType
-   * extension object
-   * encoded as json Variant and containing the tunneled
-   * update request for the Historian server. The value
-   * is updated at edge using above node address.
-   */
-  details: DeleteValuesDetailsApiModel;
-  /**
-   * @member {RequestHeaderApiModel} [header] Optional request header
-   */
-  header?: RequestHeaderApiModel;
-}
-
-/**
- * @interface
- * An interface representing HistoryUpdateRequestApiModelDeleteModifiedValuesDetailsApiModel.
- * Request node history update
- *
- */
-export interface HistoryUpdateRequestApiModelDeleteModifiedValuesDetailsApiModel {
-  /**
-   * @member {string} [nodeId] Node to update
-   */
-  nodeId?: string;
-  /**
-   * @member {string[]} [browsePath] An optional path from NodeId instance to
-   * the actual node.
-   */
-  browsePath?: string[];
-  /**
-   * @member {DeleteModifiedValuesDetailsApiModel} details The
-   * HistoryUpdateDetailsType extension object
-   * encoded as json Variant and containing the tunneled
-   * update request for the Historian server. The value
-   * is updated at edge using above node address.
-   */
-  details: DeleteModifiedValuesDetailsApiModel;
-  /**
-   * @member {RequestHeaderApiModel} [header] Optional request header
-   */
-  header?: RequestHeaderApiModel;
-}
-
-/**
- * @interface
- * An interface representing HistoryUpdateRequestApiModelDeleteEventsDetailsApiModel.
- * Request node history update
- *
- */
-export interface HistoryUpdateRequestApiModelDeleteEventsDetailsApiModel {
-  /**
-   * @member {string} [nodeId] Node to update
-   */
-  nodeId?: string;
-  /**
-   * @member {string[]} [browsePath] An optional path from NodeId instance to
-   * the actual node.
-   */
-  browsePath?: string[];
-  /**
-   * @member {DeleteEventsDetailsApiModel} details The HistoryUpdateDetailsType
-   * extension object
-   * encoded as json Variant and containing the tunneled
-   * update request for the Historian server. The value
-   * is updated at edge using above node address.
-   */
-  details: DeleteEventsDetailsApiModel;
-  /**
-   * @member {RequestHeaderApiModel} [header] Optional request header
-   */
-  header?: RequestHeaderApiModel;
-}
-
-/**
- * @interface
- * An interface representing HistoryReadRequestApiModelJToken.
- * Request node history read
- *
- */
-export interface HistoryReadRequestApiModelJToken {
-  /**
-   * @member {string} [nodeId] Node to read from (mandatory)
-   */
-  nodeId?: string;
-  /**
-   * @member {string[]} [browsePath] An optional path from NodeId instance to
-   * the actual node.
-   */
-  browsePath?: string[];
-  /**
-   * @member {any} [details] The HistoryReadDetailsType extension object
-   * encoded in json and containing the tunneled
-   * Historian reader request.
-   */
-  details?: any;
-  /**
-   * @member {string} [indexRange] Index range to read, e.g. 1:2,0:1 for 2
-   * slices
-   * out of a matrix or 0:1 for the first item in
-   * an array, string or bytestring.
-   * See 7.22 of part 4: NumericRange.
-   */
-  indexRange?: string;
-  /**
-   * @member {RequestHeaderApiModel} [header] Optional request header
-   */
-  header?: RequestHeaderApiModel;
-}
-
-/**
- * @interface
- * An interface representing HistoryReadResponseApiModelJToken.
+ * An interface representing HistoricEventApiModelHistoryReadResponseApiModel.
  * History read results
  *
  */
-export interface HistoryReadResponseApiModelJToken {
-  /**
-   * @member {any} [history] History as json encoded extension object
-   */
-  history?: any;
-  /**
-   * @member {string} [continuationToken] Continuation token if more results
-   * pending.
-   */
-  continuationToken?: string;
-  /**
-   * @member {ServiceResultApiModel} [errorInfo] Service result in case of
-   * error
-   */
-  errorInfo?: ServiceResultApiModel;
-}
-
-/**
- * @interface
- * An interface representing HistoryReadNextResponseApiModelJToken.
- * History read continuation result
- *
- */
-export interface HistoryReadNextResponseApiModelJToken {
-  /**
-   * @member {any} [history] History as json encoded extension object
-   */
-  history?: any;
-  /**
-   * @member {string} [continuationToken] Continuation token if more results
-   * pending.
-   */
-  continuationToken?: string;
-  /**
-   * @member {ServiceResultApiModel} [errorInfo] Service result in case of
-   * error
-   */
-  errorInfo?: ServiceResultApiModel;
-}
-
-/**
- * @interface
- * An interface representing HistoryUpdateRequestApiModelJToken.
- * Request node history update
- *
- */
-export interface HistoryUpdateRequestApiModelJToken {
-  /**
-   * @member {string} [nodeId] Node to update
-   */
-  nodeId?: string;
-  /**
-   * @member {string[]} [browsePath] An optional path from NodeId instance to
-   * the actual node.
-   */
-  browsePath?: string[];
-  /**
-   * @member {any} details The HistoryUpdateDetailsType extension object
-   * encoded as json Variant and containing the tunneled
-   * update request for the Historian server. The value
-   * is updated at edge using above node address.
-   */
-  details: any;
-  /**
-   * @member {RequestHeaderApiModel} [header] Optional request header
-   */
-  header?: RequestHeaderApiModel;
-}
-
-/**
- * @interface
- * An interface representing HistoryUpdateRequestApiModelInsertValuesDetailsApiModel.
- * Request node history update
- *
- */
-export interface HistoryUpdateRequestApiModelInsertValuesDetailsApiModel {
-  /**
-   * @member {string} [nodeId] Node to update
-   */
-  nodeId?: string;
-  /**
-   * @member {string[]} [browsePath] An optional path from NodeId instance to
-   * the actual node.
-   */
-  browsePath?: string[];
-  /**
-   * @member {InsertValuesDetailsApiModel} details The HistoryUpdateDetailsType
-   * extension object
-   * encoded as json Variant and containing the tunneled
-   * update request for the Historian server. The value
-   * is updated at edge using above node address.
-   */
-  details: InsertValuesDetailsApiModel;
-  /**
-   * @member {RequestHeaderApiModel} [header] Optional request header
-   */
-  header?: RequestHeaderApiModel;
-}
-
-/**
- * @interface
- * An interface representing HistoryUpdateRequestApiModelInsertEventsDetailsApiModel.
- * Request node history update
- *
- */
-export interface HistoryUpdateRequestApiModelInsertEventsDetailsApiModel {
-  /**
-   * @member {string} [nodeId] Node to update
-   */
-  nodeId?: string;
-  /**
-   * @member {string[]} [browsePath] An optional path from NodeId instance to
-   * the actual node.
-   */
-  browsePath?: string[];
-  /**
-   * @member {InsertEventsDetailsApiModel} details The HistoryUpdateDetailsType
-   * extension object
-   * encoded as json Variant and containing the tunneled
-   * update request for the Historian server. The value
-   * is updated at edge using above node address.
-   */
-  details: InsertEventsDetailsApiModel;
-  /**
-   * @member {RequestHeaderApiModel} [header] Optional request header
-   */
-  header?: RequestHeaderApiModel;
-}
-
-/**
- * @interface
- * An interface representing HistoryReadRequestApiModelReadEventsDetailsApiModel.
- * Request node history read
- *
- */
-export interface HistoryReadRequestApiModelReadEventsDetailsApiModel {
-  /**
-   * @member {string} [nodeId] Node to read from (mandatory)
-   */
-  nodeId?: string;
-  /**
-   * @member {string[]} [browsePath] An optional path from NodeId instance to
-   * the actual node.
-   */
-  browsePath?: string[];
-  /**
-   * @member {ReadEventsDetailsApiModel} [details] The HistoryReadDetailsType
-   * extension object
-   * encoded in json and containing the tunneled
-   * Historian reader request.
-   */
-  details?: ReadEventsDetailsApiModel;
-  /**
-   * @member {string} [indexRange] Index range to read, e.g. 1:2,0:1 for 2
-   * slices
-   * out of a matrix or 0:1 for the first item in
-   * an array, string or bytestring.
-   * See 7.22 of part 4: NumericRange.
-   */
-  indexRange?: string;
-  /**
-   * @member {RequestHeaderApiModel} [header] Optional request header
-   */
-  header?: RequestHeaderApiModel;
-}
-
-/**
- * @interface
- * An interface representing HistoryReadResponseApiModelHistoricEventApiModel.
- * History read results
- *
- */
-export interface HistoryReadResponseApiModelHistoricEventApiModel {
+export interface HistoricEventApiModelHistoryReadResponseApiModel {
   /**
    * @member {HistoricEventApiModel[]} [history] History as json encoded
    * extension object
@@ -909,19 +1192,18 @@ export interface HistoryReadResponseApiModelHistoricEventApiModel {
    */
   continuationToken?: string;
   /**
-   * @member {ServiceResultApiModel} [errorInfo] Service result in case of
-   * error
+   * @member {ServiceResultApiModel} [errorInfo]
    */
   errorInfo?: ServiceResultApiModel;
 }
 
 /**
  * @interface
- * An interface representing HistoryReadNextResponseApiModelHistoricEventApiModel.
+ * An interface representing HistoricEventApiModelHistoryReadNextResponseApiModel.
  * History read continuation result
  *
  */
-export interface HistoryReadNextResponseApiModelHistoricEventApiModel {
+export interface HistoricEventApiModelHistoryReadNextResponseApiModel {
   /**
    * @member {HistoricEventApiModel[]} [history] History as json encoded
    * extension object
@@ -933,56 +1215,18 @@ export interface HistoryReadNextResponseApiModelHistoricEventApiModel {
    */
   continuationToken?: string;
   /**
-   * @member {ServiceResultApiModel} [errorInfo] Service result in case of
-   * error
+   * @member {ServiceResultApiModel} [errorInfo]
    */
   errorInfo?: ServiceResultApiModel;
 }
 
 /**
  * @interface
- * An interface representing HistoryReadRequestApiModelReadValuesDetailsApiModel.
- * Request node history read
- *
- */
-export interface HistoryReadRequestApiModelReadValuesDetailsApiModel {
-  /**
-   * @member {string} [nodeId] Node to read from (mandatory)
-   */
-  nodeId?: string;
-  /**
-   * @member {string[]} [browsePath] An optional path from NodeId instance to
-   * the actual node.
-   */
-  browsePath?: string[];
-  /**
-   * @member {ReadValuesDetailsApiModel} [details] The HistoryReadDetailsType
-   * extension object
-   * encoded in json and containing the tunneled
-   * Historian reader request.
-   */
-  details?: ReadValuesDetailsApiModel;
-  /**
-   * @member {string} [indexRange] Index range to read, e.g. 1:2,0:1 for 2
-   * slices
-   * out of a matrix or 0:1 for the first item in
-   * an array, string or bytestring.
-   * See 7.22 of part 4: NumericRange.
-   */
-  indexRange?: string;
-  /**
-   * @member {RequestHeaderApiModel} [header] Optional request header
-   */
-  header?: RequestHeaderApiModel;
-}
-
-/**
- * @interface
- * An interface representing HistoryReadResponseApiModelHistoricValueApiModel.
+ * An interface representing HistoricValueApiModelHistoryReadResponseApiModel.
  * History read results
  *
  */
-export interface HistoryReadResponseApiModelHistoricValueApiModel {
+export interface HistoricValueApiModelHistoryReadResponseApiModel {
   /**
    * @member {HistoricValueApiModel[]} [history] History as json encoded
    * extension object
@@ -994,130 +1238,18 @@ export interface HistoryReadResponseApiModelHistoricValueApiModel {
    */
   continuationToken?: string;
   /**
-   * @member {ServiceResultApiModel} [errorInfo] Service result in case of
-   * error
+   * @member {ServiceResultApiModel} [errorInfo]
    */
   errorInfo?: ServiceResultApiModel;
 }
 
 /**
  * @interface
- * An interface representing HistoryReadRequestApiModelReadValuesAtTimesDetailsApiModel.
- * Request node history read
- *
- */
-export interface HistoryReadRequestApiModelReadValuesAtTimesDetailsApiModel {
-  /**
-   * @member {string} [nodeId] Node to read from (mandatory)
-   */
-  nodeId?: string;
-  /**
-   * @member {string[]} [browsePath] An optional path from NodeId instance to
-   * the actual node.
-   */
-  browsePath?: string[];
-  /**
-   * @member {ReadValuesAtTimesDetailsApiModel} [details] The
-   * HistoryReadDetailsType extension object
-   * encoded in json and containing the tunneled
-   * Historian reader request.
-   */
-  details?: ReadValuesAtTimesDetailsApiModel;
-  /**
-   * @member {string} [indexRange] Index range to read, e.g. 1:2,0:1 for 2
-   * slices
-   * out of a matrix or 0:1 for the first item in
-   * an array, string or bytestring.
-   * See 7.22 of part 4: NumericRange.
-   */
-  indexRange?: string;
-  /**
-   * @member {RequestHeaderApiModel} [header] Optional request header
-   */
-  header?: RequestHeaderApiModel;
-}
-
-/**
- * @interface
- * An interface representing HistoryReadRequestApiModelReadProcessedValuesDetailsApiModel.
- * Request node history read
- *
- */
-export interface HistoryReadRequestApiModelReadProcessedValuesDetailsApiModel {
-  /**
-   * @member {string} [nodeId] Node to read from (mandatory)
-   */
-  nodeId?: string;
-  /**
-   * @member {string[]} [browsePath] An optional path from NodeId instance to
-   * the actual node.
-   */
-  browsePath?: string[];
-  /**
-   * @member {ReadProcessedValuesDetailsApiModel} [details] The
-   * HistoryReadDetailsType extension object
-   * encoded in json and containing the tunneled
-   * Historian reader request.
-   */
-  details?: ReadProcessedValuesDetailsApiModel;
-  /**
-   * @member {string} [indexRange] Index range to read, e.g. 1:2,0:1 for 2
-   * slices
-   * out of a matrix or 0:1 for the first item in
-   * an array, string or bytestring.
-   * See 7.22 of part 4: NumericRange.
-   */
-  indexRange?: string;
-  /**
-   * @member {RequestHeaderApiModel} [header] Optional request header
-   */
-  header?: RequestHeaderApiModel;
-}
-
-/**
- * @interface
- * An interface representing HistoryReadRequestApiModelReadModifiedValuesDetailsApiModel.
- * Request node history read
- *
- */
-export interface HistoryReadRequestApiModelReadModifiedValuesDetailsApiModel {
-  /**
-   * @member {string} [nodeId] Node to read from (mandatory)
-   */
-  nodeId?: string;
-  /**
-   * @member {string[]} [browsePath] An optional path from NodeId instance to
-   * the actual node.
-   */
-  browsePath?: string[];
-  /**
-   * @member {ReadModifiedValuesDetailsApiModel} [details] The
-   * HistoryReadDetailsType extension object
-   * encoded in json and containing the tunneled
-   * Historian reader request.
-   */
-  details?: ReadModifiedValuesDetailsApiModel;
-  /**
-   * @member {string} [indexRange] Index range to read, e.g. 1:2,0:1 for 2
-   * slices
-   * out of a matrix or 0:1 for the first item in
-   * an array, string or bytestring.
-   * See 7.22 of part 4: NumericRange.
-   */
-  indexRange?: string;
-  /**
-   * @member {RequestHeaderApiModel} [header] Optional request header
-   */
-  header?: RequestHeaderApiModel;
-}
-
-/**
- * @interface
- * An interface representing HistoryReadNextResponseApiModelHistoricValueApiModel.
+ * An interface representing HistoricValueApiModelHistoryReadNextResponseApiModel.
  * History read continuation result
  *
  */
-export interface HistoryReadNextResponseApiModelHistoricValueApiModel {
+export interface HistoricValueApiModelHistoryReadNextResponseApiModel {
   /**
    * @member {HistoricValueApiModel[]} [history] History as json encoded
    * extension object
@@ -1129,70 +1261,9 @@ export interface HistoryReadNextResponseApiModelHistoricValueApiModel {
    */
   continuationToken?: string;
   /**
-   * @member {ServiceResultApiModel} [errorInfo] Service result in case of
-   * error
+   * @member {ServiceResultApiModel} [errorInfo]
    */
   errorInfo?: ServiceResultApiModel;
-}
-
-/**
- * @interface
- * An interface representing HistoryUpdateRequestApiModelReplaceValuesDetailsApiModel.
- * Request node history update
- *
- */
-export interface HistoryUpdateRequestApiModelReplaceValuesDetailsApiModel {
-  /**
-   * @member {string} [nodeId] Node to update
-   */
-  nodeId?: string;
-  /**
-   * @member {string[]} [browsePath] An optional path from NodeId instance to
-   * the actual node.
-   */
-  browsePath?: string[];
-  /**
-   * @member {ReplaceValuesDetailsApiModel} details The
-   * HistoryUpdateDetailsType extension object
-   * encoded as json Variant and containing the tunneled
-   * update request for the Historian server. The value
-   * is updated at edge using above node address.
-   */
-  details: ReplaceValuesDetailsApiModel;
-  /**
-   * @member {RequestHeaderApiModel} [header] Optional request header
-   */
-  header?: RequestHeaderApiModel;
-}
-
-/**
- * @interface
- * An interface representing HistoryUpdateRequestApiModelReplaceEventsDetailsApiModel.
- * Request node history update
- *
- */
-export interface HistoryUpdateRequestApiModelReplaceEventsDetailsApiModel {
-  /**
-   * @member {string} [nodeId] Node to update
-   */
-  nodeId?: string;
-  /**
-   * @member {string[]} [browsePath] An optional path from NodeId instance to
-   * the actual node.
-   */
-  browsePath?: string[];
-  /**
-   * @member {ReplaceEventsDetailsApiModel} details The
-   * HistoryUpdateDetailsType extension object
-   * encoded as json Variant and containing the tunneled
-   * update request for the Historian server. The value
-   * is updated at edge using above node address.
-   */
-  details: ReplaceEventsDetailsApiModel;
-  /**
-   * @member {RequestHeaderApiModel} [header] Optional request header
-   */
-  header?: RequestHeaderApiModel;
 }
 
 /**
@@ -1230,6 +1301,28 @@ export type DiagnosticsLevel = 'None' | 'Status' | 'Operations' | 'Diagnostics' 
  * @enum {string}
  */
 export type HistoryUpdateOperation = 'Insert' | 'Replace' | 'Update' | 'Delete';
+
+/**
+ * Defines values for NodeAttribute.
+ * Possible values include: 'NodeClass', 'BrowseName', 'DisplayName', 'Description', 'WriteMask',
+ * 'UserWriteMask', 'IsAbstract', 'Symmetric', 'InverseName', 'ContainsNoLoops', 'EventNotifier',
+ * 'Value', 'DataType', 'ValueRank', 'ArrayDimensions', 'AccessLevel', 'UserAccessLevel',
+ * 'MinimumSamplingInterval', 'Historizing', 'Executable', 'UserExecutable', 'DataTypeDefinition',
+ * 'RolePermissions', 'UserRolePermissions', 'AccessRestrictions'
+ * @readonly
+ * @enum {string}
+ */
+export type NodeAttribute = 'NodeClass' | 'BrowseName' | 'DisplayName' | 'Description' | 'WriteMask' | 'UserWriteMask' | 'IsAbstract' | 'Symmetric' | 'InverseName' | 'ContainsNoLoops' | 'EventNotifier' | 'Value' | 'DataType' | 'ValueRank' | 'ArrayDimensions' | 'AccessLevel' | 'UserAccessLevel' | 'MinimumSamplingInterval' | 'Historizing' | 'Executable' | 'UserExecutable' | 'DataTypeDefinition' | 'RolePermissions' | 'UserRolePermissions' | 'AccessRestrictions';
+
+/**
+ * Defines values for FilterOperatorType.
+ * Possible values include: 'Equals', 'IsNull', 'GreaterThan', 'LessThan', 'GreaterThanOrEqual',
+ * 'LessThanOrEqual', 'Like', 'Not', 'Between', 'InList', 'And', 'Or', 'Cast', 'InView', 'OfType',
+ * 'RelatedTo', 'BitwiseAnd', 'BitwiseOr'
+ * @readonly
+ * @enum {string}
+ */
+export type FilterOperatorType = 'Equals' | 'IsNull' | 'GreaterThan' | 'LessThan' | 'GreaterThanOrEqual' | 'LessThanOrEqual' | 'Like' | 'Not' | 'Between' | 'InList' | 'And' | 'Or' | 'Cast' | 'InView' | 'OfType' | 'RelatedTo' | 'BitwiseAnd' | 'BitwiseOr';
 
 /**
  * Contains response data for the historyDeleteValuesAtTimes operation.
@@ -1310,7 +1403,7 @@ export type HistoryDeleteEventsResponse = HistoryUpdateResponseApiModel & {
 /**
  * Contains response data for the historyReadRaw operation.
  */
-export type HistoryReadRawResponse = HistoryReadResponseApiModelJToken & {
+export type HistoryReadRawResponse = JTokenHistoryReadResponseApiModel & {
   /**
    * The underlying HTTP response.
    */
@@ -1322,14 +1415,14 @@ export type HistoryReadRawResponse = HistoryReadResponseApiModelJToken & {
       /**
        * The response body as parsed JSON or XML
        */
-      parsedBody: HistoryReadResponseApiModelJToken;
+      parsedBody: JTokenHistoryReadResponseApiModel;
     };
 };
 
 /**
  * Contains response data for the historyReadRawNext operation.
  */
-export type HistoryReadRawNextResponse = HistoryReadNextResponseApiModelJToken & {
+export type HistoryReadRawNextResponse = JTokenHistoryReadNextResponseApiModel & {
   /**
    * The underlying HTTP response.
    */
@@ -1341,7 +1434,7 @@ export type HistoryReadRawNextResponse = HistoryReadNextResponseApiModelJToken &
       /**
        * The response body as parsed JSON or XML
        */
-      parsedBody: HistoryReadNextResponseApiModelJToken;
+      parsedBody: JTokenHistoryReadNextResponseApiModel;
     };
 };
 
@@ -1405,7 +1498,7 @@ export type HistoryInsertEventsResponse = HistoryUpdateResponseApiModel & {
 /**
  * Contains response data for the historyReadEvents operation.
  */
-export type HistoryReadEventsResponse = HistoryReadResponseApiModelHistoricEventApiModel & {
+export type HistoryReadEventsResponse = HistoricEventApiModelHistoryReadResponseApiModel & {
   /**
    * The underlying HTTP response.
    */
@@ -1417,14 +1510,14 @@ export type HistoryReadEventsResponse = HistoryReadResponseApiModelHistoricEvent
       /**
        * The response body as parsed JSON or XML
        */
-      parsedBody: HistoryReadResponseApiModelHistoricEventApiModel;
+      parsedBody: HistoricEventApiModelHistoryReadResponseApiModel;
     };
 };
 
 /**
  * Contains response data for the historyReadEventsNext operation.
  */
-export type HistoryReadEventsNextResponse = HistoryReadNextResponseApiModelHistoricEventApiModel & {
+export type HistoryReadEventsNextResponse = HistoricEventApiModelHistoryReadNextResponseApiModel & {
   /**
    * The underlying HTTP response.
    */
@@ -1436,14 +1529,14 @@ export type HistoryReadEventsNextResponse = HistoryReadNextResponseApiModelHisto
       /**
        * The response body as parsed JSON or XML
        */
-      parsedBody: HistoryReadNextResponseApiModelHistoricEventApiModel;
+      parsedBody: HistoricEventApiModelHistoryReadNextResponseApiModel;
     };
 };
 
 /**
  * Contains response data for the historyReadValues operation.
  */
-export type HistoryReadValuesResponse = HistoryReadResponseApiModelHistoricValueApiModel & {
+export type HistoryReadValuesResponse = HistoricValueApiModelHistoryReadResponseApiModel & {
   /**
    * The underlying HTTP response.
    */
@@ -1455,14 +1548,14 @@ export type HistoryReadValuesResponse = HistoryReadResponseApiModelHistoricValue
       /**
        * The response body as parsed JSON or XML
        */
-      parsedBody: HistoryReadResponseApiModelHistoricValueApiModel;
+      parsedBody: HistoricValueApiModelHistoryReadResponseApiModel;
     };
 };
 
 /**
  * Contains response data for the historyReadValuesAtTimes operation.
  */
-export type HistoryReadValuesAtTimesResponse = HistoryReadResponseApiModelHistoricValueApiModel & {
+export type HistoryReadValuesAtTimesResponse = HistoricValueApiModelHistoryReadResponseApiModel & {
   /**
    * The underlying HTTP response.
    */
@@ -1474,14 +1567,14 @@ export type HistoryReadValuesAtTimesResponse = HistoryReadResponseApiModelHistor
       /**
        * The response body as parsed JSON or XML
        */
-      parsedBody: HistoryReadResponseApiModelHistoricValueApiModel;
+      parsedBody: HistoricValueApiModelHistoryReadResponseApiModel;
     };
 };
 
 /**
  * Contains response data for the historyReadProcessedValues operation.
  */
-export type HistoryReadProcessedValuesResponse = HistoryReadResponseApiModelHistoricValueApiModel & {
+export type HistoryReadProcessedValuesResponse = HistoricValueApiModelHistoryReadResponseApiModel & {
   /**
    * The underlying HTTP response.
    */
@@ -1493,14 +1586,14 @@ export type HistoryReadProcessedValuesResponse = HistoryReadResponseApiModelHist
       /**
        * The response body as parsed JSON or XML
        */
-      parsedBody: HistoryReadResponseApiModelHistoricValueApiModel;
+      parsedBody: HistoricValueApiModelHistoryReadResponseApiModel;
     };
 };
 
 /**
  * Contains response data for the historyReadModifiedValues operation.
  */
-export type HistoryReadModifiedValuesResponse = HistoryReadResponseApiModelHistoricValueApiModel & {
+export type HistoryReadModifiedValuesResponse = HistoricValueApiModelHistoryReadResponseApiModel & {
   /**
    * The underlying HTTP response.
    */
@@ -1512,14 +1605,14 @@ export type HistoryReadModifiedValuesResponse = HistoryReadResponseApiModelHisto
       /**
        * The response body as parsed JSON or XML
        */
-      parsedBody: HistoryReadResponseApiModelHistoricValueApiModel;
+      parsedBody: HistoricValueApiModelHistoryReadResponseApiModel;
     };
 };
 
 /**
  * Contains response data for the historyReadValueNext operation.
  */
-export type HistoryReadValueNextResponse = HistoryReadNextResponseApiModelHistoricValueApiModel & {
+export type HistoryReadValueNextResponse = HistoricValueApiModelHistoryReadNextResponseApiModel & {
   /**
    * The underlying HTTP response.
    */
@@ -1531,7 +1624,7 @@ export type HistoryReadValueNextResponse = HistoryReadNextResponseApiModelHistor
       /**
        * The response body as parsed JSON or XML
        */
-      parsedBody: HistoryReadNextResponseApiModelHistoricValueApiModel;
+      parsedBody: HistoricValueApiModelHistoryReadNextResponseApiModel;
     };
 };
 

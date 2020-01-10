@@ -491,7 +491,7 @@ Read attributes of a node. The endpoint must be activated and connected and the 
 Status checks
 
 
-<a name="v2-status-get"></a>
+<a name="getstatus"></a>
 #### Return the service status in the form of the service status api model.
 ```
 GET /v2/status

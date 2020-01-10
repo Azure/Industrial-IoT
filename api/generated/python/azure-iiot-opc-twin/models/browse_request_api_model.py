@@ -18,11 +18,9 @@ class BrowseRequestApiModel(Model):
     :param node_id: Node to browse.
      (default: RootFolder).
     :type node_id: str
-    :param direction: Direction to browse in
-     (default: forward). Possible values include: 'Forward', 'Backward', 'Both'
+    :param direction: Possible values include: 'Forward', 'Backward', 'Both'
     :type direction: str or ~azure-iiot-opc-twin.models.BrowseDirection
-    :param view: View to browse
-     (default: null = new view = All nodes).
+    :param view:
     :type view: ~azure-iiot-opc-twin.models.BrowseViewApiModel
     :param reference_type_id: Reference types to browse.
      (default: hierarchical).
@@ -46,7 +44,7 @@ class BrowseRequestApiModel(Model):
      nodes.
      (default is false). Default value: False .
     :type read_variable_values: bool
-    :param header: Optional request header
+    :param header:
     :type header: ~azure-iiot-opc-twin.models.RequestHeaderApiModel
     """
 

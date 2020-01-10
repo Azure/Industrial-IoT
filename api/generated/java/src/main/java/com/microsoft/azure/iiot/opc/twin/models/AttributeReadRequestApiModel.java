@@ -23,11 +23,10 @@ public class AttributeReadRequestApiModel {
     private String nodeId;
 
     /**
-     * Attribute to read or write. Possible values include: 'NodeClass',
-     * 'BrowseName', 'DisplayName', 'Description', 'WriteMask',
-     * 'UserWriteMask', 'IsAbstract', 'Symmetric', 'InverseName',
-     * 'ContainsNoLoops', 'EventNotifier', 'Value', 'DataType', 'ValueRank',
-     * 'ArrayDimensions', 'AccessLevel', 'UserAccessLevel',
+     * Possible values include: 'NodeClass', 'BrowseName', 'DisplayName',
+     * 'Description', 'WriteMask', 'UserWriteMask', 'IsAbstract', 'Symmetric',
+     * 'InverseName', 'ContainsNoLoops', 'EventNotifier', 'Value', 'DataType',
+     * 'ValueRank', 'ArrayDimensions', 'AccessLevel', 'UserAccessLevel',
      * 'MinimumSamplingInterval', 'Historizing', 'Executable',
      * 'UserExecutable', 'DataTypeDefinition', 'RolePermissions',
      * 'UserRolePermissions', 'AccessRestrictions'.
@@ -56,7 +55,7 @@ public class AttributeReadRequestApiModel {
     }
 
     /**
-     * Get attribute to read or write. Possible values include: 'NodeClass', 'BrowseName', 'DisplayName', 'Description', 'WriteMask', 'UserWriteMask', 'IsAbstract', 'Symmetric', 'InverseName', 'ContainsNoLoops', 'EventNotifier', 'Value', 'DataType', 'ValueRank', 'ArrayDimensions', 'AccessLevel', 'UserAccessLevel', 'MinimumSamplingInterval', 'Historizing', 'Executable', 'UserExecutable', 'DataTypeDefinition', 'RolePermissions', 'UserRolePermissions', 'AccessRestrictions'.
+     * Get possible values include: 'NodeClass', 'BrowseName', 'DisplayName', 'Description', 'WriteMask', 'UserWriteMask', 'IsAbstract', 'Symmetric', 'InverseName', 'ContainsNoLoops', 'EventNotifier', 'Value', 'DataType', 'ValueRank', 'ArrayDimensions', 'AccessLevel', 'UserAccessLevel', 'MinimumSamplingInterval', 'Historizing', 'Executable', 'UserExecutable', 'DataTypeDefinition', 'RolePermissions', 'UserRolePermissions', 'AccessRestrictions'.
      *
      * @return the attribute value
      */
@@ -65,7 +64,7 @@ public class AttributeReadRequestApiModel {
     }
 
     /**
-     * Set attribute to read or write. Possible values include: 'NodeClass', 'BrowseName', 'DisplayName', 'Description', 'WriteMask', 'UserWriteMask', 'IsAbstract', 'Symmetric', 'InverseName', 'ContainsNoLoops', 'EventNotifier', 'Value', 'DataType', 'ValueRank', 'ArrayDimensions', 'AccessLevel', 'UserAccessLevel', 'MinimumSamplingInterval', 'Historizing', 'Executable', 'UserExecutable', 'DataTypeDefinition', 'RolePermissions', 'UserRolePermissions', 'AccessRestrictions'.
+     * Set possible values include: 'NodeClass', 'BrowseName', 'DisplayName', 'Description', 'WriteMask', 'UserWriteMask', 'IsAbstract', 'Symmetric', 'InverseName', 'ContainsNoLoops', 'EventNotifier', 'Value', 'DataType', 'ValueRank', 'ArrayDimensions', 'AccessLevel', 'UserAccessLevel', 'MinimumSamplingInterval', 'Historizing', 'Executable', 'UserExecutable', 'DataTypeDefinition', 'RolePermissions', 'UserRolePermissions', 'AccessRestrictions'.
      *
      * @param attribute the attribute value to set
      * @return the AttributeReadRequestApiModel object itself.

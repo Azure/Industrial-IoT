@@ -16,7 +16,7 @@ module azure.iiot.opc.publisher
       # @return [String] Node of published item to unpublish
       attr_accessor :node_id
 
-      # @return [RequestHeaderApiModel] Optional request header
+      # @return [RequestHeaderApiModel]
       attr_accessor :header
 
 

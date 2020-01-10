@@ -15,29 +15,38 @@ final class AzureOpcTwinClient
             self::_SWAGGER_OBJECT_DATA,
             ['subscriptionId' => $subscriptionId]
         );
-        $this->_GetSetOfUniqueNodes_operation = $_client->createOperation('GetSetOfUniqueNodes');
         $this->_Browse_operation = $_client->createOperation('Browse');
-        $this->_GetNextSetOfUniqueNodes_operation = $_client->createOperation('GetNextSetOfUniqueNodes');
+        $this->_GetSetOfUniqueNodes_operation = $_client->createOperation('GetSetOfUniqueNodes');
         $this->_BrowseNext_operation = $_client->createOperation('BrowseNext');
+        $this->_GetNextSetOfUniqueNodes_operation = $_client->createOperation('GetNextSetOfUniqueNodes');
         $this->_BrowseUsingPath_operation = $_client->createOperation('BrowseUsingPath');
         $this->_GetCallMetadata_operation = $_client->createOperation('GetCallMetadata');
         $this->_CallMethod_operation = $_client->createOperation('CallMethod');
-        $this->_GetValue_operation = $_client->createOperation('GetValue');
         $this->_ReadValue_operation = $_client->createOperation('ReadValue');
+        $this->_GetValue_operation = $_client->createOperation('GetValue');
         $this->_ReadAttributes_operation = $_client->createOperation('ReadAttributes');
         $this->_GetStatus_operation = $_client->createOperation('GetStatus');
         $this->_WriteValue_operation = $_client->createOperation('WriteValue');
         $this->_WriteAttributes_operation = $_client->createOperation('WriteAttributes');
     }
     /**
-     * Browse the set of unique hierarchically referenced target nodes on the endpoint.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
-The root node id to browse from can be provided as part of the query
-parameters.
-If it is not provided, the RootFolder node is browsed. Note that this
-is the same as the POST method with the model containing the node id
-and the targetNodesOnly flag set to true.
+     * Browse a node on the specified endpoint. The endpoint must be activated and connected and the module client and server must trust each other.
+     * @param string $endpointId
+     * @param array $body
+     * @return array
+     */
+    public function browse(
+        $endpointId,
+        array $body
+    )
+    {
+        return $this->_Browse_operation->call([
+            'endpointId' => $endpointId,
+            'body' => $body
+        ]);
+    }
+    /**
+     * Browse the set of unique hierarchically referenced target nodes on the endpoint. The endpoint must be activated and connected and the module client and server must trust each other. The root node id to browse from can be provided as part of the query parameters. If it is not provided, the RootFolder node is browsed. Note that this is the same as the POST method with the model containing the node id and the targetNodesOnly flag set to true.
      * @param string $endpointId
      * @param string|null $nodeId
      * @return array
@@ -53,30 +62,23 @@ and the targetNodesOnly flag set to true.
         ]);
     }
     /**
-     * Browse a node on the specified endpoint.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+     * Browse next set of references on the endpoint. The endpoint must be activated and connected and the module client and server must trust each other.
      * @param string $endpointId
-     * @param array $request
+     * @param array $body
      * @return array
      */
-    public function browse(
+    public function browseNext(
         $endpointId,
-        array $request
+        array $body
     )
     {
-        return $this->_Browse_operation->call([
+        return $this->_BrowseNext_operation->call([
             'endpointId' => $endpointId,
-            'request' => $request
+            'body' => $body
         ]);
     }
     /**
-     * Browse the next set of unique hierarchically referenced target nodes on the
-endpoint.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
-Note that this is the same as the POST method with the model containing
-the continuation token and the targetNodesOnly flag set to true.
+     * Browse the next set of unique hierarchically referenced target nodes on the endpoint. The endpoint must be activated and connected and the module client and server must trust each other. Note that this is the same as the POST method with the model containing the continuation token and the targetNodesOnly flag set to true.
      * @param string $endpointId
      * @param string $continuationToken
      * @return array
@@ -92,83 +94,71 @@ the continuation token and the targetNodesOnly flag set to true.
         ]);
     }
     /**
-     * Browse next set of references on the endpoint.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+     * Browse using a path from the specified node id. This call uses TranslateBrowsePathsToNodeIds service under the hood. The endpoint must be activated and connected and the module client and server must trust each other.
      * @param string $endpointId
-     * @param array $request
-     * @return array
-     */
-    public function browseNext(
-        $endpointId,
-        array $request
-    )
-    {
-        return $this->_BrowseNext_operation->call([
-            'endpointId' => $endpointId,
-            'request' => $request
-        ]);
-    }
-    /**
-     * Browse using a path from the specified node id.
-This call uses TranslateBrowsePathsToNodeIds service under the hood.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
-     * @param string $endpointId
-     * @param array $request
+     * @param array $body
      * @return array
      */
     public function browseUsingPath(
         $endpointId,
-        array $request
+        array $body
     )
     {
         return $this->_BrowseUsingPath_operation->call([
             'endpointId' => $endpointId,
-            'request' => $request
+            'body' => $body
         ]);
     }
     /**
-     * Return method meta data to support a user interface displaying forms to
-input and output arguments.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+     * Return method meta data to support a user interface displaying forms to input and output arguments. The endpoint must be activated and connected and the module client and server must trust each other.
      * @param string $endpointId
-     * @param array $request
+     * @param array $body
      * @return array
      */
     public function getCallMetadata(
         $endpointId,
-        array $request
+        array $body
     )
     {
         return $this->_GetCallMetadata_operation->call([
             'endpointId' => $endpointId,
-            'request' => $request
+            'body' => $body
         ]);
     }
     /**
-     * Invoke method node with specified input arguments.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+     * Invoke method node with specified input arguments. The endpoint must be activated and connected and the module client and server must trust each other.
      * @param string $endpointId
-     * @param array $request
+     * @param array $body
      * @return array
      */
     public function callMethod(
         $endpointId,
-        array $request
+        array $body
     )
     {
         return $this->_CallMethod_operation->call([
             'endpointId' => $endpointId,
-            'request' => $request
+            'body' => $body
         ]);
     }
     /**
-     * Get a variable node's value using its node id.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+     * Read a variable node's value. The endpoint must be activated and connected and the module client and server must trust each other.
+     * @param string $endpointId
+     * @param array $body
+     * @return array
+     */
+    public function readValue(
+        $endpointId,
+        array $body
+    )
+    {
+        return $this->_ReadValue_operation->call([
+            'endpointId' => $endpointId,
+            'body' => $body
+        ]);
+    }
+    /**
+     * Get a variable node's value using its node id. The endpoint must be activated and connected and the module client and server must trust each other.
      * @param string $endpointId
      * @param string $nodeId
      * @return array
@@ -184,39 +174,19 @@ and server must trust each other.
         ]);
     }
     /**
-     * Read a variable node's value.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+     * Read attributes of a node. The endpoint must be activated and connected and the module client and server must trust each other.
      * @param string $endpointId
-     * @param array $request
-     * @return array
-     */
-    public function readValue(
-        $endpointId,
-        array $request
-    )
-    {
-        return $this->_ReadValue_operation->call([
-            'endpointId' => $endpointId,
-            'request' => $request
-        ]);
-    }
-    /**
-     * Read attributes of a node.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
-     * @param string $endpointId
-     * @param array $request
+     * @param array $body
      * @return array
      */
     public function readAttributes(
         $endpointId,
-        array $request
+        array $body
     )
     {
         return $this->_ReadAttributes_operation->call([
             'endpointId' => $endpointId,
-            'request' => $request
+            'body' => $body
         ]);
     }
     /**
@@ -227,45 +197,37 @@ and server must trust each other.
         return $this->_GetStatus_operation->call([]);
     }
     /**
-     * Write variable node's value.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+     * Write variable node's value. The endpoint must be activated and connected and the module client and server must trust each other.
      * @param string $endpointId
-     * @param array $request
+     * @param array $body
      * @return array
      */
     public function writeValue(
         $endpointId,
-        array $request
+        array $body
     )
     {
         return $this->_WriteValue_operation->call([
             'endpointId' => $endpointId,
-            'request' => $request
+            'body' => $body
         ]);
     }
     /**
-     * Write any attribute of a node.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+     * Write any attribute of a node. The endpoint must be activated and connected and the module client and server must trust each other.
      * @param string $endpointId
-     * @param array $request
+     * @param array $body
      * @return array
      */
     public function writeAttributes(
         $endpointId,
-        array $request
+        array $body
     )
     {
         return $this->_WriteAttributes_operation->call([
             'endpointId' => $endpointId,
-            'request' => $request
+            'body' => $body
         ]);
     }
-    /**
-     * @var \Microsoft\Rest\OperationInterface
-     */
-    private $_GetSetOfUniqueNodes_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
@@ -273,11 +235,15 @@ and server must trust each other.
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
-    private $_GetNextSetOfUniqueNodes_operation;
+    private $_GetSetOfUniqueNodes_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
     private $_BrowseNext_operation;
+    /**
+     * @var \Microsoft\Rest\OperationInterface
+     */
+    private $_GetNextSetOfUniqueNodes_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
@@ -293,11 +259,11 @@ and server must trust each other.
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
-    private $_GetValue_operation;
+    private $_ReadValue_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
-    private $_ReadValue_operation;
+    private $_GetValue_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
@@ -318,6 +284,24 @@ and server must trust each other.
         'host' => 'localhost',
         'paths' => [
             '/v2/browse/{endpointId}' => [
+                'post' => [
+                    'operationId' => 'Browse',
+                    'parameters' => [
+                        [
+                            'name' => 'endpointId',
+                            'in' => 'path',
+                            'required' => TRUE,
+                            'type' => 'string'
+                        ],
+                        [
+                            'name' => 'body',
+                            'in' => 'body',
+                            'required' => TRUE,
+                            'schema' => ['$ref' => '#/definitions/BrowseRequestApiModel']
+                        ]
+                    ],
+                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/BrowseResponseApiModel']]]
+                ],
                 'get' => [
                     'operationId' => 'GetSetOfUniqueNodes',
                     'parameters' => [
@@ -335,9 +319,11 @@ and server must trust each other.
                         ]
                     ],
                     'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/BrowseResponseApiModel']]]
-                ],
+                ]
+            ],
+            '/v2/browse/{endpointId}/next' => [
                 'post' => [
-                    'operationId' => 'Browse',
+                    'operationId' => 'BrowseNext',
                     'parameters' => [
                         [
                             'name' => 'endpointId',
@@ -346,16 +332,14 @@ and server must trust each other.
                             'type' => 'string'
                         ],
                         [
-                            'name' => 'request',
+                            'name' => 'body',
                             'in' => 'body',
                             'required' => TRUE,
-                            'schema' => ['$ref' => '#/definitions/BrowseRequestApiModel']
+                            'schema' => ['$ref' => '#/definitions/BrowseNextRequestApiModel']
                         ]
                     ],
-                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/BrowseResponseApiModel']]]
-                ]
-            ],
-            '/v2/browse/{endpointId}/next' => [
+                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/BrowseNextResponseApiModel']]]
+                ],
                 'get' => [
                     'operationId' => 'GetNextSetOfUniqueNodes',
                     'parameters' => [
@@ -373,24 +357,6 @@ and server must trust each other.
                         ]
                     ],
                     'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/BrowseNextResponseApiModel']]]
-                ],
-                'post' => [
-                    'operationId' => 'BrowseNext',
-                    'parameters' => [
-                        [
-                            'name' => 'endpointId',
-                            'in' => 'path',
-                            'required' => TRUE,
-                            'type' => 'string'
-                        ],
-                        [
-                            'name' => 'request',
-                            'in' => 'body',
-                            'required' => TRUE,
-                            'schema' => ['$ref' => '#/definitions/BrowseNextRequestApiModel']
-                        ]
-                    ],
-                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/BrowseNextResponseApiModel']]]
                 ]
             ],
             '/v2/browse/{endpointId}/path' => ['post' => [
@@ -403,7 +369,7 @@ and server must trust each other.
                         'type' => 'string'
                     ],
                     [
-                        'name' => 'request',
+                        'name' => 'body',
                         'in' => 'body',
                         'required' => TRUE,
                         'schema' => ['$ref' => '#/definitions/BrowsePathRequestApiModel']
@@ -421,7 +387,7 @@ and server must trust each other.
                         'type' => 'string'
                     ],
                     [
-                        'name' => 'request',
+                        'name' => 'body',
                         'in' => 'body',
                         'required' => TRUE,
                         'schema' => ['$ref' => '#/definitions/MethodMetadataRequestApiModel']
@@ -439,7 +405,7 @@ and server must trust each other.
                         'type' => 'string'
                     ],
                     [
-                        'name' => 'request',
+                        'name' => 'body',
                         'in' => 'body',
                         'required' => TRUE,
                         'schema' => ['$ref' => '#/definitions/MethodCallRequestApiModel']
@@ -448,6 +414,24 @@ and server must trust each other.
                 'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/MethodCallResponseApiModel']]]
             ]],
             '/v2/read/{endpointId}' => [
+                'post' => [
+                    'operationId' => 'ReadValue',
+                    'parameters' => [
+                        [
+                            'name' => 'endpointId',
+                            'in' => 'path',
+                            'required' => TRUE,
+                            'type' => 'string'
+                        ],
+                        [
+                            'name' => 'body',
+                            'in' => 'body',
+                            'required' => TRUE,
+                            'schema' => ['$ref' => '#/definitions/ValueReadRequestApiModel']
+                        ]
+                    ],
+                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/ValueReadResponseApiModel']]]
+                ],
                 'get' => [
                     'operationId' => 'GetValue',
                     'parameters' => [
@@ -465,24 +449,6 @@ and server must trust each other.
                         ]
                     ],
                     'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/ValueReadResponseApiModel']]]
-                ],
-                'post' => [
-                    'operationId' => 'ReadValue',
-                    'parameters' => [
-                        [
-                            'name' => 'endpointId',
-                            'in' => 'path',
-                            'required' => TRUE,
-                            'type' => 'string'
-                        ],
-                        [
-                            'name' => 'request',
-                            'in' => 'body',
-                            'required' => TRUE,
-                            'schema' => ['$ref' => '#/definitions/ValueReadRequestApiModel']
-                        ]
-                    ],
-                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/ValueReadResponseApiModel']]]
                 ]
             ],
             '/v2/read/{endpointId}/attributes' => ['post' => [
@@ -495,7 +461,7 @@ and server must trust each other.
                         'type' => 'string'
                     ],
                     [
-                        'name' => 'request',
+                        'name' => 'body',
                         'in' => 'body',
                         'required' => TRUE,
                         'schema' => ['$ref' => '#/definitions/ReadRequestApiModel']
@@ -518,7 +484,7 @@ and server must trust each other.
                         'type' => 'string'
                     ],
                     [
-                        'name' => 'request',
+                        'name' => 'body',
                         'in' => 'body',
                         'required' => TRUE,
                         'schema' => ['$ref' => '#/definitions/ValueWriteRequestApiModel']
@@ -536,7 +502,7 @@ and server must trust each other.
                         'type' => 'string'
                     ],
                     [
-                        'name' => 'request',
+                        'name' => 'body',
                         'in' => 'body',
                         'required' => TRUE,
                         'schema' => ['$ref' => '#/definitions/WriteRequestApiModel']
@@ -746,12 +712,12 @@ and server must trust each other.
                     'valueRank' => [
                         'type' => 'string',
                         'enum' => [
-                            'ScalarOrOneDimension',
-                            'Any',
-                            'Scalar',
                             'OneOrMoreDimensions',
                             'OneDimension',
-                            'TwoDimensions'
+                            'TwoDimensions',
+                            'ScalarOrOneDimension',
+                            'Any',
+                            'Scalar'
                         ]
                     ],
                     'arrayDimensions' => [
@@ -910,12 +876,12 @@ and server must trust each other.
                     'valueRank' => [
                         'type' => 'string',
                         'enum' => [
-                            'ScalarOrOneDimension',
-                            'Any',
-                            'Scalar',
                             'OneOrMoreDimensions',
                             'OneDimension',
-                            'TwoDimensions'
+                            'TwoDimensions',
+                            'ScalarOrOneDimension',
+                            'Any',
+                            'Scalar'
                         ]
                     ],
                     'arrayDimensions' => [

@@ -16,12 +16,13 @@ import (
 
         // BaseClientAPI contains the set of methods on the BaseClient type.
         type BaseClientAPI interface {
-            GetFirstListOfPublishedNodes(ctx context.Context, endpointID string, request azureiiotopcpublisher.PublishedItemListRequestAPIModel) (result azureiiotopcpublisher.PublishedItemListResponseAPIModel, err error)
+            GetFirstListOfPublishedNodes(ctx context.Context, endpointID string, body azureiiotopcpublisher.PublishedItemListRequestAPIModel) (result azureiiotopcpublisher.PublishedItemListResponseAPIModel, err error)
             GetNextListOfPublishedNodes(ctx context.Context, endpointID string, continuationToken string) (result azureiiotopcpublisher.PublishedItemListResponseAPIModelPage, err error)
+                GetNextListOfPublishedNodesComplete(ctx context.Context, endpointID string, continuationToken string) (result azureiiotopcpublisher.PublishedItemListResponseAPIModelIterator, err error)
             GetStatus(ctx context.Context) (result azureiiotopcpublisher.StatusResponseAPIModel, err error)
-            StartPublishingValues(ctx context.Context, endpointID string, request azureiiotopcpublisher.PublishStartRequestAPIModel) (result azureiiotopcpublisher.PublishStartResponseAPIModel, err error)
-            StopPublishingValues(ctx context.Context, endpointID string, request azureiiotopcpublisher.PublishStopRequestAPIModel) (result azureiiotopcpublisher.PublishStopResponseAPIModel, err error)
-            Subscribe(ctx context.Context, endpointID string, userID string) (result autorest.Response, err error)
+            StartPublishingValues(ctx context.Context, endpointID string, body azureiiotopcpublisher.PublishStartRequestAPIModel) (result azureiiotopcpublisher.PublishStartResponseAPIModel, err error)
+            StopPublishingValues(ctx context.Context, endpointID string, body azureiiotopcpublisher.PublishStopRequestAPIModel) (result azureiiotopcpublisher.PublishStopResponseAPIModel, err error)
+            Subscribe(ctx context.Context, endpointID string, body string) (result autorest.Response, err error)
             Unsubscribe(ctx context.Context, endpointID string, userID string) (result autorest.Response, err error)
         }
 

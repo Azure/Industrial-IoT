@@ -18,8 +18,8 @@ class ApplicationRegistrationRequestApiModel {
   /**
    * Create a ApplicationRegistrationRequestApiModel.
    * @property {string} applicationUri Unique application uri
-   * @property {string} [applicationType] Type of application. Possible values
-   * include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
+   * @property {string} [applicationType] Possible values include: 'Server',
+   * 'Client', 'ClientAndServer', 'DiscoveryServer'
    * @property {string} [productUri] Product uri of the application.
    * @property {string} [applicationName] Default name of the server or client.
    * @property {string} [locale] Locale of default name

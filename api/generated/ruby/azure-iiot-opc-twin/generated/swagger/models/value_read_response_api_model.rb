@@ -31,7 +31,7 @@ module azure.iiot.opc.twin
       # @return [DateTime] Timestamp of when value was read at server.
       attr_accessor :server_timestamp
 
-      # @return [ServiceResultApiModel] Service result in case of error
+      # @return [ServiceResultApiModel]
       attr_accessor :error_info
 
 

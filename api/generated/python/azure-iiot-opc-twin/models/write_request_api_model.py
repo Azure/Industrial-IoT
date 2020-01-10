@@ -18,7 +18,7 @@ class WriteRequestApiModel(Model):
     :param attributes: Attributes to update
     :type attributes:
      list[~azure-iiot-opc-twin.models.AttributeWriteRequestApiModel]
-    :param header: Optional request header
+    :param header:
     :type header: ~azure-iiot-opc-twin.models.RequestHeaderApiModel
     """
 

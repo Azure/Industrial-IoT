@@ -13,7 +13,7 @@ module azure.iiot.opc.twin
     # browse response model
     #
     class BrowseResponseApiModel
-      # @return [NodeApiModel] Node info for the currently browsed node
+      # @return [NodeApiModel]
       attr_accessor :node
 
       # @return [Array<NodeReferenceApiModel>] References, if included,
@@ -23,7 +23,7 @@ module azure.iiot.opc.twin
       # @return [String] Continuation token if more results pending.
       attr_accessor :continuation_token
 
-      # @return [ServiceResultApiModel] Service result in case of error
+      # @return [ServiceResultApiModel]
       attr_accessor :error_info
 
 

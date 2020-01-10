@@ -31,7 +31,7 @@ export interface PublishedItemApiModel {
  */
 export interface CredentialApiModel {
   /**
-   * Type of credential. Possible values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * Possible values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
    */
   type?: string;
   /**
@@ -45,9 +45,7 @@ export interface CredentialApiModel {
  */
 export interface DiagnosticsApiModel {
   /**
-   * Requested level of response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations', 'Diagnostics',
-   * 'Verbose'
+   * Possible values include: 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    */
   level?: string;
   /**
@@ -66,150 +64,126 @@ export interface DiagnosticsApiModel {
  * Request header model
  */
 export interface RequestHeaderApiModel {
-  /**
-   * Optional User elevation
-   */
   elevation?: CredentialApiModel;
   /**
    * Optional list of locales in preference order.
-   */
+  */
   locales?: string[];
-  /**
-   * Optional diagnostics configuration
-   */
   diagnostics?: DiagnosticsApiModel;
 }
 
 /**
  * Publish request
- */
+*/
 export interface PublishStartRequestApiModel {
-  /**
-   * Item to publish
-   */
   item: PublishedItemApiModel;
-  /**
-   * Optional request header
-   */
   header?: RequestHeaderApiModel;
 }
 
 /**
  * Service result
- */
+*/
 export interface ServiceResultApiModel {
   /**
    * Error code - if null operation succeeded.
-   */
+  */
   statusCode?: number;
   /**
    * Error message in case of error or null.
-   */
+  */
   errorMessage?: string;
   /**
    * Additional diagnostics information
-   */
+  */
   diagnostics?: any;
 }
 
 /**
  * Result of publish request
- */
+*/
 export interface PublishStartResponseApiModel {
-  /**
-   * Service result in case of error
-   */
   errorInfo?: ServiceResultApiModel;
 }
 
 /**
  * Unpublish request
- */
+*/
 export interface PublishStopRequestApiModel {
   /**
    * Node of published item to unpublish
-   */
+  */
   nodeId: string;
-  /**
-   * Optional request header
-   */
   header?: RequestHeaderApiModel;
 }
 
 /**
  * Result of unpublish request
- */
+*/
 export interface PublishStopResponseApiModel {
-  /**
-   * Service result in case of error
-   */
   errorInfo?: ServiceResultApiModel;
 }
 
 /**
  * Request list of published items
- */
+*/
 export interface PublishedItemListRequestApiModel {
   /**
    * Continuation token or null to start
-   */
+  */
   continuationToken?: string;
 }
 
 /**
  * List of published nodes
- */
+*/
 export interface PublishedItemListResponseApiModel {
   /**
    * Monitored items
-   */
+  */
   items?: PublishedItemApiModel[];
   /**
    * Continuation or null if final
-   */
+  */
   continuationToken?: string;
 }
 
 /**
  * Status response model
- */
+*/
 export interface StatusResponseApiModel {
   /**
    * Name of this service
-   */
+  */
   name?: string;
   /**
    * Operational status
-   */
+  */
   status?: string;
   /**
    * Current time
-   */
+  */
   readonly currentTime?: string;
   /**
    * Start time of service
-   */
+  */
   readonly startTime?: string;
   /**
    * Up time of service
-   */
+  */
   readonly upTime?: number;
   /**
    * Value generated at bootstrap by each instance of the service and
    * used to correlate logs coming from the same instance. The value
    * changes every time the service starts.
-   */
+  */
   readonly uid?: string;
   /**
    * A property bag with details about the service
-   */
+  */
   readonly properties?: { [propertyName: string]: string };
   /**
    * A property bag with details about the internal dependencies
-   */
+  */
   readonly dependencies?: { [propertyName: string]: string };
-  /**
-   * Optional meta data.
-   */
   readonly metadata?: { [propertyName: string]: string };
 }

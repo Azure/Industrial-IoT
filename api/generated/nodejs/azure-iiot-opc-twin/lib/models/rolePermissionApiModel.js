@@ -18,12 +18,11 @@ class RolePermissionApiModel {
   /**
    * Create a RolePermissionApiModel.
    * @property {string} roleId Identifier of the role object.
-   * @property {string} [permissions] Permissions assigned for the role.
-   * Possible values include: 'Browse', 'ReadRolePermissions',
-   * 'WriteAttribute', 'WriteRolePermissions', 'WriteHistorizing', 'Read',
-   * 'Write', 'ReadHistory', 'InsertHistory', 'ModifyHistory', 'DeleteHistory',
-   * 'ReceiveEvents', 'Call', 'AddReference', 'RemoveReference', 'DeleteNode',
-   * 'AddNode'
+   * @property {string} [permissions] Possible values include: 'Browse',
+   * 'ReadRolePermissions', 'WriteAttribute', 'WriteRolePermissions',
+   * 'WriteHistorizing', 'Read', 'Write', 'ReadHistory', 'InsertHistory',
+   * 'ModifyHistory', 'DeleteHistory', 'ReceiveEvents', 'Call', 'AddReference',
+   * 'RemoveReference', 'DeleteNode', 'AddNode'
    */
   constructor() {
   }

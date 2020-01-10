@@ -18,9 +18,9 @@ class DiscoveryRequestApiModel {
   /**
    * Create a DiscoveryRequestApiModel.
    * @property {string} [id] Id of discovery request
-   * @property {string} [discovery] Discovery mode to use. Possible values
-   * include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
-   * @property {object} [configuration] Scan configuration to use
+   * @property {string} [discovery] Possible values include: 'Off', 'Local',
+   * 'Network', 'Fast', 'Scan'
+   * @property {object} [configuration]
    * @property {string} [configuration.addressRangesToScan] Address ranges to
    * scan (null == all wired nics)
    * @property {number} [configuration.networkProbeTimeoutMs] Network probe
@@ -40,8 +40,7 @@ class DiscoveryRequestApiModel {
    * urls to use
    * @property {array} [configuration.locales] List of locales to filter with
    * during discovery
-   * @property {object} [configuration.activationFilter] Activate all twins
-   * with this filter during onboarding.
+   * @property {object} [configuration.activationFilter]
    * @property {array} [configuration.activationFilter.trustLists] Certificate
    * trust list identifiers to use for
    * activation, if null, all certificates are
@@ -50,10 +49,8 @@ class DiscoveryRequestApiModel {
    * @property {array} [configuration.activationFilter.securityPolicies]
    * Endpoint security policies to filter against.
    * If set to null, all policies are in scope.
-   * @property {string} [configuration.activationFilter.securityMode] Security
-   * mode level to activate. If null,
-   * then Microsoft.Azure.IIoT.OpcUa.Core.Models.SecurityMode.Best is assumed.
-   * Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
+   * @property {string} [configuration.activationFilter.securityMode] Possible
+   * values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
    */
   constructor() {
   }

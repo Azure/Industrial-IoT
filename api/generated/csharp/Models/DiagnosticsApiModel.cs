@@ -29,8 +29,7 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
         /// <summary>
         /// Initializes a new instance of the DiagnosticsApiModel class.
         /// </summary>
-        /// <param name="level">Requested level of response diagnostics.
-        /// (default: Status). Possible values include: 'None', 'Status',
+        /// <param name="level">Possible values include: 'None', 'Status',
         /// 'Operations', 'Diagnostics', 'Verbose'</param>
         /// <param name="auditId">Client audit log entry.
         /// (default: client generated)</param>
@@ -50,8 +49,7 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
         partial void CustomInit();
 
         /// <summary>
-        /// Gets or sets requested level of response diagnostics.
-        /// (default: Status). Possible values include: 'None', 'Status',
+        /// Gets or sets possible values include: 'None', 'Status',
         /// 'Operations', 'Diagnostics', 'Verbose'
         /// </summary>
         [JsonProperty(PropertyName = "level")]

@@ -294,7 +294,7 @@ const fqdn = "go/azure-iiot-opc-twin"
             type AttributeReadRequestAPIModel struct {
             // NodeID - Node to read from or write to (mandatory)
             NodeID *string `json:"nodeId,omitempty"`
-            // Attribute - Attribute to read or write. Possible values include: 'NodeAttributeNodeClass', 'NodeAttributeBrowseName', 'NodeAttributeDisplayName', 'NodeAttributeDescription', 'NodeAttributeWriteMask', 'NodeAttributeUserWriteMask', 'NodeAttributeIsAbstract', 'NodeAttributeSymmetric', 'NodeAttributeInverseName', 'NodeAttributeContainsNoLoops', 'NodeAttributeEventNotifier', 'NodeAttributeValue', 'NodeAttributeDataType', 'NodeAttributeValueRank', 'NodeAttributeArrayDimensions', 'NodeAttributeAccessLevel', 'NodeAttributeUserAccessLevel', 'NodeAttributeMinimumSamplingInterval', 'NodeAttributeHistorizing', 'NodeAttributeExecutable', 'NodeAttributeUserExecutable', 'NodeAttributeDataTypeDefinition', 'NodeAttributeRolePermissions', 'NodeAttributeUserRolePermissions', 'NodeAttributeAccessRestrictions'
+            // Attribute - Possible values include: 'NodeAttributeNodeClass', 'NodeAttributeBrowseName', 'NodeAttributeDisplayName', 'NodeAttributeDescription', 'NodeAttributeWriteMask', 'NodeAttributeUserWriteMask', 'NodeAttributeIsAbstract', 'NodeAttributeSymmetric', 'NodeAttributeInverseName', 'NodeAttributeContainsNoLoops', 'NodeAttributeEventNotifier', 'NodeAttributeValue', 'NodeAttributeDataType', 'NodeAttributeValueRank', 'NodeAttributeArrayDimensions', 'NodeAttributeAccessLevel', 'NodeAttributeUserAccessLevel', 'NodeAttributeMinimumSamplingInterval', 'NodeAttributeHistorizing', 'NodeAttributeExecutable', 'NodeAttributeUserExecutable', 'NodeAttributeDataTypeDefinition', 'NodeAttributeRolePermissions', 'NodeAttributeUserRolePermissions', 'NodeAttributeAccessRestrictions'
             Attribute NodeAttribute `json:"attribute,omitempty"`
             }
 
@@ -302,7 +302,6 @@ const fqdn = "go/azure-iiot-opc-twin"
             type AttributeReadResponseAPIModel struct {
             // Value - Attribute value
             Value interface{} `json:"value,omitempty"`
-            // ErrorInfo - Service result in case of error
             ErrorInfo *ServiceResultAPIModel `json:"errorInfo,omitempty"`
             }
 
@@ -310,7 +309,7 @@ const fqdn = "go/azure-iiot-opc-twin"
             type AttributeWriteRequestAPIModel struct {
             // NodeID - Node to write to (mandatory)
             NodeID *string `json:"nodeId,omitempty"`
-            // Attribute - Attribute to write (mandatory). Possible values include: 'NodeAttributeNodeClass', 'NodeAttributeBrowseName', 'NodeAttributeDisplayName', 'NodeAttributeDescription', 'NodeAttributeWriteMask', 'NodeAttributeUserWriteMask', 'NodeAttributeIsAbstract', 'NodeAttributeSymmetric', 'NodeAttributeInverseName', 'NodeAttributeContainsNoLoops', 'NodeAttributeEventNotifier', 'NodeAttributeValue', 'NodeAttributeDataType', 'NodeAttributeValueRank', 'NodeAttributeArrayDimensions', 'NodeAttributeAccessLevel', 'NodeAttributeUserAccessLevel', 'NodeAttributeMinimumSamplingInterval', 'NodeAttributeHistorizing', 'NodeAttributeExecutable', 'NodeAttributeUserExecutable', 'NodeAttributeDataTypeDefinition', 'NodeAttributeRolePermissions', 'NodeAttributeUserRolePermissions', 'NodeAttributeAccessRestrictions'
+            // Attribute - Possible values include: 'NodeAttributeNodeClass', 'NodeAttributeBrowseName', 'NodeAttributeDisplayName', 'NodeAttributeDescription', 'NodeAttributeWriteMask', 'NodeAttributeUserWriteMask', 'NodeAttributeIsAbstract', 'NodeAttributeSymmetric', 'NodeAttributeInverseName', 'NodeAttributeContainsNoLoops', 'NodeAttributeEventNotifier', 'NodeAttributeValue', 'NodeAttributeDataType', 'NodeAttributeValueRank', 'NodeAttributeArrayDimensions', 'NodeAttributeAccessLevel', 'NodeAttributeUserAccessLevel', 'NodeAttributeMinimumSamplingInterval', 'NodeAttributeHistorizing', 'NodeAttributeExecutable', 'NodeAttributeUserExecutable', 'NodeAttributeDataTypeDefinition', 'NodeAttributeRolePermissions', 'NodeAttributeUserRolePermissions', 'NodeAttributeAccessRestrictions'
             Attribute NodeAttribute `json:"attribute,omitempty"`
             // Value - Value to write (mandatory)
             Value interface{} `json:"value,omitempty"`
@@ -318,7 +317,6 @@ const fqdn = "go/azure-iiot-opc-twin"
 
             // AttributeWriteResponseAPIModel attribute write result
             type AttributeWriteResponseAPIModel struct {
-            // ErrorInfo - Service result in case of error
             ErrorInfo *ServiceResultAPIModel `json:"errorInfo,omitempty"`
             }
 
@@ -338,7 +336,6 @@ const fqdn = "go/azure-iiot-opc-twin"
             // ReadVariableValues - Whether to read variable values on target nodes.
             // (default is false)
             ReadVariableValues *bool `json:"readVariableValues,omitempty"`
-            // Header - Optional request header
             Header *RequestHeaderAPIModel `json:"header,omitempty"`
             }
 
@@ -349,7 +346,6 @@ const fqdn = "go/azure-iiot-opc-twin"
             References *[]NodeReferenceAPIModel `json:"references,omitempty"`
             // ContinuationToken - Continuation token if more results pending.
             ContinuationToken *string `json:"continuationToken,omitempty"`
-            // ErrorInfo - Service result in case of error
             ErrorInfo *ServiceResultAPIModel `json:"errorInfo,omitempty"`
             }
 
@@ -494,7 +490,6 @@ const fqdn = "go/azure-iiot-opc-twin"
             // ReadVariableValues - Whether to read variable values on target nodes.
             // (default is false)
             ReadVariableValues *bool `json:"readVariableValues,omitempty"`
-            // Header - Optional request header
             Header *RequestHeaderAPIModel `json:"header,omitempty"`
             }
 
@@ -503,7 +498,6 @@ const fqdn = "go/azure-iiot-opc-twin"
             autorest.Response `json:"-"`
             // Targets - Targets
             Targets *[]NodePathTargetAPIModel `json:"targets,omitempty"`
-            // ErrorInfo - Service result in case of error
             ErrorInfo *ServiceResultAPIModel `json:"errorInfo,omitempty"`
             }
 
@@ -512,11 +506,8 @@ const fqdn = "go/azure-iiot-opc-twin"
             // NodeID - Node to browse.
             // (default: RootFolder).
             NodeID *string `json:"nodeId,omitempty"`
-            // Direction - Direction to browse in
-            // (default: forward). Possible values include: 'Forward', 'Backward', 'Both'
+            // Direction - Possible values include: 'Forward', 'Backward', 'Both'
             Direction BrowseDirection `json:"direction,omitempty"`
-            // View - View to browse
-            // (default: null = new view = All nodes).
             View *BrowseViewAPIModel `json:"view,omitempty"`
             // ReferenceTypeID - Reference types to browse.
             // (default: hierarchical).
@@ -538,20 +529,17 @@ const fqdn = "go/azure-iiot-opc-twin"
             // ReadVariableValues - Whether to read variable values on target nodes.
             // (default is false)
             ReadVariableValues *bool `json:"readVariableValues,omitempty"`
-            // Header - Optional request header
             Header *RequestHeaderAPIModel `json:"header,omitempty"`
             }
 
             // BrowseResponseAPIModel browse response model
             type BrowseResponseAPIModel struct {
             autorest.Response `json:"-"`
-            // Node - Node info for the currently browsed node
             Node *NodeAPIModel `json:"node,omitempty"`
             // References - References, if included, otherwise null.
             References *[]NodeReferenceAPIModel `json:"references,omitempty"`
             // ContinuationToken - Continuation token if more results pending.
             ContinuationToken *string `json:"continuationToken,omitempty"`
-            // ErrorInfo - Service result in case of error
             ErrorInfo *ServiceResultAPIModel `json:"errorInfo,omitempty"`
             }
 
@@ -567,7 +555,7 @@ const fqdn = "go/azure-iiot-opc-twin"
 
             // CredentialAPIModel credential model
             type CredentialAPIModel struct {
-            // Type - Type of credential. Possible values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+            // Type - Possible values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
             Type CredentialType `json:"type,omitempty"`
             // Value - Value to pass to server
             Value interface{} `json:"value,omitempty"`
@@ -575,8 +563,7 @@ const fqdn = "go/azure-iiot-opc-twin"
 
             // DiagnosticsAPIModel diagnostics configuration
             type DiagnosticsAPIModel struct {
-            // Level - Requested level of response diagnostics.
-            // (default: Status). Possible values include: 'DiagnosticsLevelNone', 'DiagnosticsLevelStatus', 'DiagnosticsLevelOperations', 'DiagnosticsLevelDiagnostics', 'DiagnosticsLevelVerbose'
+            // Level - Possible values include: 'DiagnosticsLevelNone', 'DiagnosticsLevelStatus', 'DiagnosticsLevelOperations', 'DiagnosticsLevelDiagnostics', 'DiagnosticsLevelVerbose'
             Level DiagnosticsLevel `json:"level,omitempty"`
             // AuditID - Client audit log entry.
             // (default: client generated)
@@ -611,7 +598,6 @@ const fqdn = "go/azure-iiot-opc-twin"
             // ObjectId to the actual object or objectType node.
             // If ObjectId is null, the root node (i=84) is used.
             ObjectBrowsePath *[]string `json:"objectBrowsePath,omitempty"`
-            // Header - Optional request header
             Header *RequestHeaderAPIModel `json:"header,omitempty"`
             }
 
@@ -620,7 +606,6 @@ const fqdn = "go/azure-iiot-opc-twin"
             autorest.Response `json:"-"`
             // Results - Output results
             Results *[]MethodCallArgumentAPIModel `json:"results,omitempty"`
-            // ErrorInfo - Service result in case of error
             ErrorInfo *ServiceResultAPIModel `json:"errorInfo,omitempty"`
             }
 
@@ -630,11 +615,10 @@ const fqdn = "go/azure-iiot-opc-twin"
             Name *string `json:"name,omitempty"`
             // Description - Optional description
             Description *string `json:"description,omitempty"`
-            // Type - Data type node of the argument
             Type *NodeAPIModel `json:"type,omitempty"`
             // DefaultValue - Default value
             DefaultValue interface{} `json:"defaultValue,omitempty"`
-            // ValueRank - Optional, scalar if not set. Possible values include: 'ScalarOrOneDimension', 'Any', 'Scalar', 'OneOrMoreDimensions', 'OneDimension', 'TwoDimensions'
+            // ValueRank - Possible values include: 'OneOrMoreDimensions', 'OneDimension', 'TwoDimensions', 'ScalarOrOneDimension', 'Any', 'Scalar'
             ValueRank NodeValueRank `json:"valueRank,omitempty"`
             // ArrayDimensions - Optional, array dimension
             ArrayDimensions *[]int32 `json:"arrayDimensions,omitempty"`
@@ -648,7 +632,6 @@ const fqdn = "go/azure-iiot-opc-twin"
             // MethodBrowsePath - An optional component path from the node identified by
             // MethodId to the actual method node.
             MethodBrowsePath *[]string `json:"methodBrowsePath,omitempty"`
-            // Header - Optional request header
             Header *RequestHeaderAPIModel `json:"header,omitempty"`
             }
 
@@ -661,13 +644,12 @@ const fqdn = "go/azure-iiot-opc-twin"
             InputArguments *[]MethodMetadataArgumentAPIModel `json:"inputArguments,omitempty"`
             // OutputArguments - output argument meta data
             OutputArguments *[]MethodMetadataArgumentAPIModel `json:"outputArguments,omitempty"`
-            // ErrorInfo - Service result in case of error
             ErrorInfo *ServiceResultAPIModel `json:"errorInfo,omitempty"`
             }
 
             // NodeAPIModel node model
             type NodeAPIModel struct {
-            // NodeClass - Type of node. Possible values include: 'Object', 'Variable', 'Method', 'ObjectType', 'VariableType', 'ReferenceType', 'DataType', 'View'
+            // NodeClass - Possible values include: 'Object', 'Variable', 'Method', 'ObjectType', 'VariableType', 'ReferenceType', 'DataType', 'View'
             NodeClass NodeClass `json:"nodeClass,omitempty"`
             // DisplayName - Display name
             DisplayName *string `json:"displayName,omitempty"`
@@ -678,8 +660,7 @@ const fqdn = "go/azure-iiot-opc-twin"
             Description *string `json:"description,omitempty"`
             // BrowseName - Browse name
             BrowseName *string `json:"browseName,omitempty"`
-            // AccessRestrictions - Node access restrictions if any.
-            // (default: none). Possible values include: 'SigningRequired', 'EncryptionRequired', 'SessionRequired'
+            // AccessRestrictions - Possible values include: 'SigningRequired', 'EncryptionRequired', 'SessionRequired'
             AccessRestrictions NodeAccessRestrictions `json:"accessRestrictions,omitempty"`
             // WriteMask - Default write mask for the node
             // (default: 0)
@@ -694,9 +675,7 @@ const fqdn = "go/azure-iiot-opc-twin"
             // ContainsNoLoops - Whether a view contains loops. Null if
             // not a view.
             ContainsNoLoops *bool `json:"containsNoLoops,omitempty"`
-            // EventNotifier - If object or view and eventing, event notifier
-            // to subscribe to.
-            // (default: no events supported). Possible values include: 'NodeEventNotifierSubscribeToEvents', 'NodeEventNotifierHistoryRead', 'NodeEventNotifierHistoryWrite'
+            // EventNotifier - Possible values include: 'NodeEventNotifierSubscribeToEvents', 'NodeEventNotifierHistoryRead', 'NodeEventNotifierHistoryWrite'
             EventNotifier NodeEventNotifier `json:"eventNotifier,omitempty"`
             // Executable - If method node class, whether method can
             // be called.
@@ -709,18 +688,14 @@ const fqdn = "go/azure-iiot-opc-twin"
             // data type node and definition is available,
             // otherwise null.
             DataTypeDefinition interface{} `json:"dataTypeDefinition,omitempty"`
-            // AccessLevel - Default access level for variable node.
-            // (default: 0). Possible values include: 'CurrentRead', 'CurrentWrite', 'HistoryRead', 'HistoryWrite', 'SemanticChange', 'StatusWrite', 'TimestampWrite', 'NonatomicRead', 'NonatomicWrite', 'WriteFullArrayOnly'
+            // AccessLevel - Possible values include: 'CurrentRead', 'CurrentWrite', 'HistoryRead', 'HistoryWrite', 'SemanticChange', 'StatusWrite', 'TimestampWrite', 'NonatomicRead', 'NonatomicWrite', 'WriteFullArrayOnly'
             AccessLevel NodeAccessLevel `json:"accessLevel,omitempty"`
-            // UserAccessLevel - User access level for variable node or null.
-            // (default: 0). Possible values include: 'CurrentRead', 'CurrentWrite', 'HistoryRead', 'HistoryWrite', 'SemanticChange', 'StatusWrite', 'TimestampWrite', 'NonatomicRead', 'NonatomicWrite', 'WriteFullArrayOnly'
+            // UserAccessLevel - Possible values include: 'CurrentRead', 'CurrentWrite', 'HistoryRead', 'HistoryWrite', 'SemanticChange', 'StatusWrite', 'TimestampWrite', 'NonatomicRead', 'NonatomicWrite', 'WriteFullArrayOnly'
             UserAccessLevel NodeAccessLevel `json:"userAccessLevel,omitempty"`
             // DataType - If variable the datatype of the variable.
             // (default: null)
             DataType *string `json:"dataType,omitempty"`
-            // ValueRank - Value rank of the variable data of a variable
-            // or variable type, otherwise null.
-            // (default: scalar = -1). Possible values include: 'ScalarOrOneDimension', 'Any', 'Scalar', 'OneOrMoreDimensions', 'OneDimension', 'TwoDimensions'
+            // ValueRank - Possible values include: 'OneOrMoreDimensions', 'OneDimension', 'TwoDimensions', 'ScalarOrOneDimension', 'Any', 'Scalar'
             ValueRank NodeValueRank `json:"valueRank,omitempty"`
             // ArrayDimensions - Array dimensions of variable or variable type.
             // (default: empty array)
@@ -759,7 +734,6 @@ const fqdn = "go/azure-iiot-opc-twin"
             type NodePathTargetAPIModel struct {
             // BrowsePath - The target browse path
             BrowsePath *[]string `json:"browsePath,omitempty"`
-            // Target - Target node
             Target *NodeAPIModel `json:"target,omitempty"`
             // RemainingPathIndex - Remaining index in path
             RemainingPathIndex *int32 `json:"remainingPathIndex,omitempty"`
@@ -769,9 +743,8 @@ const fqdn = "go/azure-iiot-opc-twin"
             type NodeReferenceAPIModel struct {
             // ReferenceTypeID - Reference Type identifier
             ReferenceTypeID *string `json:"referenceTypeId,omitempty"`
-            // Direction - Browse direction of reference. Possible values include: 'Forward', 'Backward', 'Both'
+            // Direction - Possible values include: 'Forward', 'Backward', 'Both'
             Direction BrowseDirection `json:"direction,omitempty"`
-            // Target - Target node
             Target *NodeAPIModel `json:"target,omitempty"`
             }
 
@@ -779,7 +752,6 @@ const fqdn = "go/azure-iiot-opc-twin"
             type ReadRequestAPIModel struct {
             // Attributes - Attributes to read
             Attributes *[]AttributeReadRequestAPIModel `json:"attributes,omitempty"`
-            // Header - Optional request header
             Header *RequestHeaderAPIModel `json:"header,omitempty"`
             }
 
@@ -792,11 +764,9 @@ const fqdn = "go/azure-iiot-opc-twin"
 
             // RequestHeaderAPIModel request header model
             type RequestHeaderAPIModel struct {
-            // Elevation - Optional User elevation
             Elevation *CredentialAPIModel `json:"elevation,omitempty"`
             // Locales - Optional list of locales in preference order.
             Locales *[]string `json:"locales,omitempty"`
-            // Diagnostics - Optional diagnostics configuration
             Diagnostics *DiagnosticsAPIModel `json:"diagnostics,omitempty"`
             }
 
@@ -804,7 +774,7 @@ const fqdn = "go/azure-iiot-opc-twin"
             type RolePermissionAPIModel struct {
             // RoleID - Identifier of the role object.
             RoleID *string `json:"roleId,omitempty"`
-            // Permissions - Permissions assigned for the role. Possible values include: 'Browse', 'ReadRolePermissions', 'WriteAttribute', 'WriteRolePermissions', 'WriteHistorizing', 'Read', 'Write', 'ReadHistory', 'InsertHistory', 'ModifyHistory', 'DeleteHistory', 'ReceiveEvents', 'Call', 'AddReference', 'RemoveReference', 'DeleteNode', 'AddNode'
+            // Permissions - Possible values include: 'Browse', 'ReadRolePermissions', 'WriteAttribute', 'WriteRolePermissions', 'WriteHistorizing', 'Read', 'Write', 'ReadHistory', 'InsertHistory', 'ModifyHistory', 'DeleteHistory', 'ReceiveEvents', 'Call', 'AddReference', 'RemoveReference', 'DeleteNode', 'AddNode'
             Permissions RolePermissions `json:"permissions,omitempty"`
             }
 
@@ -839,7 +809,7 @@ const fqdn = "go/azure-iiot-opc-twin"
             Properties map[string]*string `json:"properties"`
             // Dependencies - READ-ONLY; A property bag with details about the internal dependencies
             Dependencies map[string]*string `json:"dependencies"`
-            // Metadata - READ-ONLY; Optional meta data.
+            // Metadata - READ-ONLY
             Metadata map[string]*string `json:"$metadata"`
             }
 
@@ -868,7 +838,6 @@ const fqdn = "go/azure-iiot-opc-twin"
             // an array, string or bytestring.
             // See 7.22 of part 4: NumericRange.
             IndexRange *string `json:"indexRange,omitempty"`
-            // Header - Optional request header
             Header *RequestHeaderAPIModel `json:"header,omitempty"`
             }
 
@@ -887,7 +856,6 @@ const fqdn = "go/azure-iiot-opc-twin"
             ServerPicoseconds *int32 `json:"serverPicoseconds,omitempty"`
             // ServerTimestamp - Timestamp of when value was read at server.
             ServerTimestamp *date.Time `json:"serverTimestamp,omitempty"`
-            // ErrorInfo - Service result in case of error
             ErrorInfo *ServiceResultAPIModel `json:"errorInfo,omitempty"`
             }
 
@@ -910,14 +878,12 @@ const fqdn = "go/azure-iiot-opc-twin"
             DataType *string `json:"dataType,omitempty"`
             // IndexRange - Index range to write
             IndexRange *string `json:"indexRange,omitempty"`
-            // Header - Optional request header
             Header *RequestHeaderAPIModel `json:"header,omitempty"`
             }
 
             // ValueWriteResponseAPIModel value write response model
             type ValueWriteResponseAPIModel struct {
             autorest.Response `json:"-"`
-            // ErrorInfo - Service result in case of error
             ErrorInfo *ServiceResultAPIModel `json:"errorInfo,omitempty"`
             }
 
@@ -925,7 +891,6 @@ const fqdn = "go/azure-iiot-opc-twin"
             type WriteRequestAPIModel struct {
             // Attributes - Attributes to update
             Attributes *[]AttributeWriteRequestAPIModel `json:"attributes,omitempty"`
-            // Header - Optional request header
             Header *RequestHeaderAPIModel `json:"header,omitempty"`
             }
 

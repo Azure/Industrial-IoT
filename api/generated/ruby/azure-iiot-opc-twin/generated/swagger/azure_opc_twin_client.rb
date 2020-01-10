@@ -29,7 +29,7 @@ module azure.iiot.opc.twin
     #
     def initialize(credentials = nil, base_url = nil, options = nil)
       super(credentials, options)
-      @base_url = base_url || 'http://localhost/twin'
+      @base_url = base_url || 'http://localhost:9080'
 
       fail ArgumentError, 'invalid type of credentials input parameter' unless credentials.is_a?(MsRest::ServiceClientCredentials) unless credentials.nil?
       @credentials = credentials
@@ -95,17 +95,115 @@ module azure.iiot.opc.twin
     end
 
     #
+    # Browse node references
+    #
+    # Browse a node on the specified endpoint. The endpoint must be activated and
+    # connected and the module client and server must trust each other.
+    #
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param body [BrowseRequestApiModel] The browse request
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [BrowseResponseApiModel] operation results.
+    #
+    def browse(endpoint_id, body, custom_headers:nil)
+      response = browse_async(endpoint_id, body, custom_headers:custom_headers).value!
+      response.body unless response.nil?
+    end
+
+    #
+    # Browse node references
+    #
+    # Browse a node on the specified endpoint. The endpoint must be activated and
+    # connected and the module client and server must trust each other.
+    #
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param body [BrowseRequestApiModel] The browse request
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def browse_with_http_info(endpoint_id, body, custom_headers:nil)
+      browse_async(endpoint_id, body, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Browse node references
+    #
+    # Browse a node on the specified endpoint. The endpoint must be activated and
+    # connected and the module client and server must trust each other.
+    #
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param body [BrowseRequestApiModel] The browse request
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def browse_async(endpoint_id, body, custom_headers:nil)
+      fail ArgumentError, 'endpoint_id is nil' if endpoint_id.nil?
+      fail ArgumentError, 'body is nil' if body.nil?
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
+
+      # Serialize Request
+      request_mapper = azure.iiot.opc.twin::Models::BrowseRequestApiModel.mapper()
+      request_content = self.serialize(request_mapper,  body)
+      request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
+
+      path_template = 'v2/browse/{endpointId}'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          path_params: {'endpointId' => endpoint_id},
+          body: request_content,
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:post, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+        # Deserialize Response
+        if status_code == 200
+          begin
+            parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
+            result_mapper = azure.iiot.opc.twin::Models::BrowseResponseApiModel.mapper()
+            result.body = self.deserialize(result_mapper, parsed_response)
+          rescue Exception => e
+            fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
+          end
+        end
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
     # Browse set of unique target nodes
     #
     # Browse the set of unique hierarchically referenced target nodes on the
-    # endpoint.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
-    # The root node id to browse from can be provided as part of the query
-    # parameters.
-    # If it is not provided, the RootFolder node is browsed. Note that this
-    # is the same as the POST method with the model containing the node id
-    # and the targetNodesOnly flag set to true.
+    # endpoint. The endpoint must be activated and connected and the module client
+    # and server must trust each other. The root node id to browse from can be
+    # provided as part of the query parameters. If it is not provided, the
+    # RootFolder node is browsed. Note that this is the same as the POST method
+    # with the model containing the node id and the targetNodesOnly flag set to
+    # true.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
     # @param node_id [String] The node to browse or omit to browse the root node
@@ -124,14 +222,12 @@ module azure.iiot.opc.twin
     # Browse set of unique target nodes
     #
     # Browse the set of unique hierarchically referenced target nodes on the
-    # endpoint.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
-    # The root node id to browse from can be provided as part of the query
-    # parameters.
-    # If it is not provided, the RootFolder node is browsed. Note that this
-    # is the same as the POST method with the model containing the node id
-    # and the targetNodesOnly flag set to true.
+    # endpoint. The endpoint must be activated and connected and the module client
+    # and server must trust each other. The root node id to browse from can be
+    # provided as part of the query parameters. If it is not provided, the
+    # RootFolder node is browsed. Note that this is the same as the POST method
+    # with the model containing the node id and the targetNodesOnly flag set to
+    # true.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
     # @param node_id [String] The node to browse or omit to browse the root node
@@ -149,14 +245,12 @@ module azure.iiot.opc.twin
     # Browse set of unique target nodes
     #
     # Browse the set of unique hierarchically referenced target nodes on the
-    # endpoint.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
-    # The root node id to browse from can be provided as part of the query
-    # parameters.
-    # If it is not provided, the RootFolder node is browsed. Note that this
-    # is the same as the POST method with the model containing the node id
-    # and the targetNodesOnly flag set to true.
+    # endpoint. The endpoint must be activated and connected and the module client
+    # and server must trust each other. The root node id to browse from can be
+    # provided as part of the query parameters. If it is not provided, the
+    # RootFolder node is browsed. Note that this is the same as the POST method
+    # with the model containing the node id and the targetNodesOnly flag set to
+    # true.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
     # @param node_id [String] The node to browse or omit to browse the root node
@@ -212,70 +306,70 @@ module azure.iiot.opc.twin
     end
 
     #
-    # Browse node references
+    # Browse next set of references
     #
-    # Browse a node on the specified endpoint.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Browse next set of references on the endpoint. The endpoint must be activated
+    # and connected and the module client and server must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [BrowseRequestApiModel] The browse request
+    # @param body [BrowseNextRequestApiModel] The request body with continuation
+    # token.
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
-    # @return [BrowseResponseApiModel] operation results.
+    # @return [BrowseNextResponseApiModel] operation results.
     #
-    def browse(endpoint_id, request, custom_headers:nil)
-      response = browse_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def browse_next(endpoint_id, body, custom_headers:nil)
+      response = browse_next_async(endpoint_id, body, custom_headers:custom_headers).value!
       response.body unless response.nil?
     end
 
     #
-    # Browse node references
+    # Browse next set of references
     #
-    # Browse a node on the specified endpoint.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Browse next set of references on the endpoint. The endpoint must be activated
+    # and connected and the module client and server must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [BrowseRequestApiModel] The browse request
+    # @param body [BrowseNextRequestApiModel] The request body with continuation
+    # token.
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [MsRest::HttpOperationResponse] HTTP response information.
     #
-    def browse_with_http_info(endpoint_id, request, custom_headers:nil)
-      browse_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def browse_next_with_http_info(endpoint_id, body, custom_headers:nil)
+      browse_next_async(endpoint_id, body, custom_headers:custom_headers).value!
     end
 
     #
-    # Browse node references
+    # Browse next set of references
     #
-    # Browse a node on the specified endpoint.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Browse next set of references on the endpoint. The endpoint must be activated
+    # and connected and the module client and server must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [BrowseRequestApiModel] The browse request
+    # @param body [BrowseNextRequestApiModel] The request body with continuation
+    # token.
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
     # @return [Concurrent::Promise] Promise object which holds the HTTP response.
     #
-    def browse_async(endpoint_id, request, custom_headers:nil)
+    def browse_next_async(endpoint_id, body, custom_headers:nil)
       fail ArgumentError, 'endpoint_id is nil' if endpoint_id.nil?
-      fail ArgumentError, 'request is nil' if request.nil?
+      fail ArgumentError, 'body is nil' if body.nil?
 
 
       request_headers = {}
       request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
 
       # Serialize Request
-      request_mapper = azure.iiot.opc.twin::Models::BrowseRequestApiModel.mapper()
-      request_content = self.serialize(request_mapper,  request)
+      request_mapper = azure.iiot.opc.twin::Models::BrowseNextRequestApiModel.mapper()
+      request_content = self.serialize(request_mapper,  body)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
-      path_template = 'v2/browse/{endpointId}'
+      path_template = 'v2/browse/{endpointId}/next'
 
       request_url = @base_url || self.base_url
 
@@ -301,7 +395,7 @@ module azure.iiot.opc.twin
         if status_code == 200
           begin
             parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
-            result_mapper = azure.iiot.opc.twin::Models::BrowseResponseApiModel.mapper()
+            result_mapper = azure.iiot.opc.twin::Models::BrowseNextResponseApiModel.mapper()
             result.body = self.deserialize(result_mapper, parsed_response)
           rescue Exception => e
             fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
@@ -318,11 +412,10 @@ module azure.iiot.opc.twin
     # Browse next set of unique target nodes
     #
     # Browse the next set of unique hierarchically referenced target nodes on the
-    # endpoint.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
-    # Note that this is the same as the POST method with the model containing
-    # the continuation token and the targetNodesOnly flag set to true.
+    # endpoint. The endpoint must be activated and connected and the module client
+    # and server must trust each other. Note that this is the same as the POST
+    # method with the model containing the continuation token and the
+    # targetNodesOnly flag set to true.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
     # @param continuation_token [String] Continuation token from
@@ -341,11 +434,10 @@ module azure.iiot.opc.twin
     # Browse next set of unique target nodes
     #
     # Browse the next set of unique hierarchically referenced target nodes on the
-    # endpoint.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
-    # Note that this is the same as the POST method with the model containing
-    # the continuation token and the targetNodesOnly flag set to true.
+    # endpoint. The endpoint must be activated and connected and the module client
+    # and server must trust each other. Note that this is the same as the POST
+    # method with the model containing the continuation token and the
+    # targetNodesOnly flag set to true.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
     # @param continuation_token [String] Continuation token from
@@ -363,11 +455,10 @@ module azure.iiot.opc.twin
     # Browse next set of unique target nodes
     #
     # Browse the next set of unique hierarchically referenced target nodes on the
-    # endpoint.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
-    # Note that this is the same as the POST method with the model containing
-    # the continuation token and the targetNodesOnly flag set to true.
+    # endpoint. The endpoint must be activated and connected and the module client
+    # and server must trust each other. Note that this is the same as the POST
+    # method with the model containing the continuation token and the
+    # targetNodesOnly flag set to true.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
     # @param continuation_token [String] Continuation token from
@@ -424,168 +515,62 @@ module azure.iiot.opc.twin
     end
 
     #
-    # Browse next set of references
-    #
-    # Browse next set of references on the endpoint.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
-    #
-    # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [BrowseNextRequestApiModel] The request body with continuation
-    # token.
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    # @return [BrowseNextResponseApiModel] operation results.
-    #
-    def browse_next(endpoint_id, request, custom_headers:nil)
-      response = browse_next_async(endpoint_id, request, custom_headers:custom_headers).value!
-      response.body unless response.nil?
-    end
-
-    #
-    # Browse next set of references
-    #
-    # Browse next set of references on the endpoint.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
-    #
-    # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [BrowseNextRequestApiModel] The request body with continuation
-    # token.
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    # @return [MsRest::HttpOperationResponse] HTTP response information.
-    #
-    def browse_next_with_http_info(endpoint_id, request, custom_headers:nil)
-      browse_next_async(endpoint_id, request, custom_headers:custom_headers).value!
-    end
-
-    #
-    # Browse next set of references
-    #
-    # Browse next set of references on the endpoint.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
-    #
-    # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [BrowseNextRequestApiModel] The request body with continuation
-    # token.
-    # @param [Hash{String => String}] A hash of custom headers that will be added
-    # to the HTTP request.
-    #
-    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
-    #
-    def browse_next_async(endpoint_id, request, custom_headers:nil)
-      fail ArgumentError, 'endpoint_id is nil' if endpoint_id.nil?
-      fail ArgumentError, 'request is nil' if request.nil?
-
-
-      request_headers = {}
-      request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
-
-      # Serialize Request
-      request_mapper = azure.iiot.opc.twin::Models::BrowseNextRequestApiModel.mapper()
-      request_content = self.serialize(request_mapper,  request)
-      request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
-
-      path_template = 'v2/browse/{endpointId}/next'
-
-      request_url = @base_url || self.base_url
-
-      options = {
-          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
-          path_params: {'endpointId' => endpoint_id},
-          body: request_content,
-          headers: request_headers.merge(custom_headers || {}),
-          base_url: request_url
-      }
-      promise = self.make_request_async(:post, path_template, options)
-
-      promise = promise.then do |result|
-        http_response = result.response
-        status_code = http_response.status
-        response_content = http_response.body
-        unless status_code == 200
-          error_model = JSON.load(response_content)
-          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
-        end
-
-        # Deserialize Response
-        if status_code == 200
-          begin
-            parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
-            result_mapper = azure.iiot.opc.twin::Models::BrowseNextResponseApiModel.mapper()
-            result.body = self.deserialize(result_mapper, parsed_response)
-          rescue Exception => e
-            fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
-          end
-        end
-
-        result
-      end
-
-      promise.execute
-    end
-
-    #
     # Browse using a browse path
     #
-    # Browse using a path from the specified node id.
-    # This call uses TranslateBrowsePathsToNodeIds service under the hood.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Browse using a path from the specified node id. This call uses
+    # TranslateBrowsePathsToNodeIds service under the hood. The endpoint must be
+    # activated and connected and the module client and server must trust each
+    # other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [BrowsePathRequestApiModel] The browse path request
+    # @param body [BrowsePathRequestApiModel] The browse path request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [BrowsePathResponseApiModel] operation results.
     #
-    def browse_using_path(endpoint_id, request, custom_headers:nil)
-      response = browse_using_path_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def browse_using_path(endpoint_id, body, custom_headers:nil)
+      response = browse_using_path_async(endpoint_id, body, custom_headers:custom_headers).value!
       response.body unless response.nil?
     end
 
     #
     # Browse using a browse path
     #
-    # Browse using a path from the specified node id.
-    # This call uses TranslateBrowsePathsToNodeIds service under the hood.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Browse using a path from the specified node id. This call uses
+    # TranslateBrowsePathsToNodeIds service under the hood. The endpoint must be
+    # activated and connected and the module client and server must trust each
+    # other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [BrowsePathRequestApiModel] The browse path request
+    # @param body [BrowsePathRequestApiModel] The browse path request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [MsRest::HttpOperationResponse] HTTP response information.
     #
-    def browse_using_path_with_http_info(endpoint_id, request, custom_headers:nil)
-      browse_using_path_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def browse_using_path_with_http_info(endpoint_id, body, custom_headers:nil)
+      browse_using_path_async(endpoint_id, body, custom_headers:custom_headers).value!
     end
 
     #
     # Browse using a browse path
     #
-    # Browse using a path from the specified node id.
-    # This call uses TranslateBrowsePathsToNodeIds service under the hood.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Browse using a path from the specified node id. This call uses
+    # TranslateBrowsePathsToNodeIds service under the hood. The endpoint must be
+    # activated and connected and the module client and server must trust each
+    # other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [BrowsePathRequestApiModel] The browse path request
+    # @param body [BrowsePathRequestApiModel] The browse path request
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
     # @return [Concurrent::Promise] Promise object which holds the HTTP response.
     #
-    def browse_using_path_async(endpoint_id, request, custom_headers:nil)
+    def browse_using_path_async(endpoint_id, body, custom_headers:nil)
       fail ArgumentError, 'endpoint_id is nil' if endpoint_id.nil?
-      fail ArgumentError, 'request is nil' if request.nil?
+      fail ArgumentError, 'body is nil' if body.nil?
 
 
       request_headers = {}
@@ -593,7 +578,7 @@ module azure.iiot.opc.twin
 
       # Serialize Request
       request_mapper = azure.iiot.opc.twin::Models::BrowsePathRequestApiModel.mapper()
-      request_content = self.serialize(request_mapper,  request)
+      request_content = self.serialize(request_mapper,  body)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
       path_template = 'v2/browse/{endpointId}/path'
@@ -638,60 +623,57 @@ module azure.iiot.opc.twin
     #
     # Get method meta data
     #
-    # Return method meta data to support a user interface displaying forms to
-    # input and output arguments.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Return method meta data to support a user interface displaying forms to input
+    # and output arguments. The endpoint must be activated and connected and the
+    # module client and server must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [MethodMetadataRequestApiModel] The method metadata request
+    # @param body [MethodMetadataRequestApiModel] The method metadata request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [MethodMetadataResponseApiModel] operation results.
     #
-    def get_call_metadata(endpoint_id, request, custom_headers:nil)
-      response = get_call_metadata_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def get_call_metadata(endpoint_id, body, custom_headers:nil)
+      response = get_call_metadata_async(endpoint_id, body, custom_headers:custom_headers).value!
       response.body unless response.nil?
     end
 
     #
     # Get method meta data
     #
-    # Return method meta data to support a user interface displaying forms to
-    # input and output arguments.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Return method meta data to support a user interface displaying forms to input
+    # and output arguments. The endpoint must be activated and connected and the
+    # module client and server must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [MethodMetadataRequestApiModel] The method metadata request
+    # @param body [MethodMetadataRequestApiModel] The method metadata request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [MsRest::HttpOperationResponse] HTTP response information.
     #
-    def get_call_metadata_with_http_info(endpoint_id, request, custom_headers:nil)
-      get_call_metadata_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def get_call_metadata_with_http_info(endpoint_id, body, custom_headers:nil)
+      get_call_metadata_async(endpoint_id, body, custom_headers:custom_headers).value!
     end
 
     #
     # Get method meta data
     #
-    # Return method meta data to support a user interface displaying forms to
-    # input and output arguments.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Return method meta data to support a user interface displaying forms to input
+    # and output arguments. The endpoint must be activated and connected and the
+    # module client and server must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [MethodMetadataRequestApiModel] The method metadata request
+    # @param body [MethodMetadataRequestApiModel] The method metadata request
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
     # @return [Concurrent::Promise] Promise object which holds the HTTP response.
     #
-    def get_call_metadata_async(endpoint_id, request, custom_headers:nil)
+    def get_call_metadata_async(endpoint_id, body, custom_headers:nil)
       fail ArgumentError, 'endpoint_id is nil' if endpoint_id.nil?
-      fail ArgumentError, 'request is nil' if request.nil?
+      fail ArgumentError, 'body is nil' if body.nil?
 
 
       request_headers = {}
@@ -699,7 +681,7 @@ module azure.iiot.opc.twin
 
       # Serialize Request
       request_mapper = azure.iiot.opc.twin::Models::MethodMetadataRequestApiModel.mapper()
-      request_content = self.serialize(request_mapper,  request)
+      request_content = self.serialize(request_mapper,  body)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
       path_template = 'v2/call/{endpointId}/metadata'
@@ -744,57 +726,57 @@ module azure.iiot.opc.twin
     #
     # Call a method
     #
-    # Invoke method node with specified input arguments.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Invoke method node with specified input arguments. The endpoint must be
+    # activated and connected and the module client and server must trust each
+    # other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [MethodCallRequestApiModel] The method call request
+    # @param body [MethodCallRequestApiModel] The method call request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [MethodCallResponseApiModel] operation results.
     #
-    def call_method(endpoint_id, request, custom_headers:nil)
-      response = call_method_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def call_method(endpoint_id, body, custom_headers:nil)
+      response = call_method_async(endpoint_id, body, custom_headers:custom_headers).value!
       response.body unless response.nil?
     end
 
     #
     # Call a method
     #
-    # Invoke method node with specified input arguments.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Invoke method node with specified input arguments. The endpoint must be
+    # activated and connected and the module client and server must trust each
+    # other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [MethodCallRequestApiModel] The method call request
+    # @param body [MethodCallRequestApiModel] The method call request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [MsRest::HttpOperationResponse] HTTP response information.
     #
-    def call_method_with_http_info(endpoint_id, request, custom_headers:nil)
-      call_method_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def call_method_with_http_info(endpoint_id, body, custom_headers:nil)
+      call_method_async(endpoint_id, body, custom_headers:custom_headers).value!
     end
 
     #
     # Call a method
     #
-    # Invoke method node with specified input arguments.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Invoke method node with specified input arguments. The endpoint must be
+    # activated and connected and the module client and server must trust each
+    # other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [MethodCallRequestApiModel] The method call request
+    # @param body [MethodCallRequestApiModel] The method call request
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
     # @return [Concurrent::Promise] Promise object which holds the HTTP response.
     #
-    def call_method_async(endpoint_id, request, custom_headers:nil)
+    def call_method_async(endpoint_id, body, custom_headers:nil)
       fail ArgumentError, 'endpoint_id is nil' if endpoint_id.nil?
-      fail ArgumentError, 'request is nil' if request.nil?
+      fail ArgumentError, 'body is nil' if body.nil?
 
 
       request_headers = {}
@@ -802,7 +784,7 @@ module azure.iiot.opc.twin
 
       # Serialize Request
       request_mapper = azure.iiot.opc.twin::Models::MethodCallRequestApiModel.mapper()
-      request_content = self.serialize(request_mapper,  request)
+      request_content = self.serialize(request_mapper,  body)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
       path_template = 'v2/call/{endpointId}'
@@ -845,11 +827,110 @@ module azure.iiot.opc.twin
     end
 
     #
+    # Read variable value
+    #
+    # Read a variable node's value. The endpoint must be activated and connected
+    # and the module client and server must trust each other.
+    #
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param body [ValueReadRequestApiModel] The read value request
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [ValueReadResponseApiModel] operation results.
+    #
+    def read_value(endpoint_id, body, custom_headers:nil)
+      response = read_value_async(endpoint_id, body, custom_headers:custom_headers).value!
+      response.body unless response.nil?
+    end
+
+    #
+    # Read variable value
+    #
+    # Read a variable node's value. The endpoint must be activated and connected
+    # and the module client and server must trust each other.
+    #
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param body [ValueReadRequestApiModel] The read value request
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def read_value_with_http_info(endpoint_id, body, custom_headers:nil)
+      read_value_async(endpoint_id, body, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Read variable value
+    #
+    # Read a variable node's value. The endpoint must be activated and connected
+    # and the module client and server must trust each other.
+    #
+    # @param endpoint_id [String] The identifier of the activated endpoint.
+    # @param body [ValueReadRequestApiModel] The read value request
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def read_value_async(endpoint_id, body, custom_headers:nil)
+      fail ArgumentError, 'endpoint_id is nil' if endpoint_id.nil?
+      fail ArgumentError, 'body is nil' if body.nil?
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
+
+      # Serialize Request
+      request_mapper = azure.iiot.opc.twin::Models::ValueReadRequestApiModel.mapper()
+      request_content = self.serialize(request_mapper,  body)
+      request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
+
+      path_template = 'v2/read/{endpointId}'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          path_params: {'endpointId' => endpoint_id},
+          body: request_content,
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:post, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+        # Deserialize Response
+        if status_code == 200
+          begin
+            parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
+            result_mapper = azure.iiot.opc.twin::Models::ValueReadResponseApiModel.mapper()
+            result.body = self.deserialize(result_mapper, parsed_response)
+          rescue Exception => e
+            fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
+          end
+        end
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
     # Get variable value
     #
-    # Get a variable node's value using its node id.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Get a variable node's value using its node id. The endpoint must be activated
+    # and connected and the module client and server must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
     # @param node_id [String] The node to read
@@ -866,9 +947,8 @@ module azure.iiot.opc.twin
     #
     # Get variable value
     #
-    # Get a variable node's value using its node id.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Get a variable node's value using its node id. The endpoint must be activated
+    # and connected and the module client and server must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
     # @param node_id [String] The node to read
@@ -884,9 +964,8 @@ module azure.iiot.opc.twin
     #
     # Get variable value
     #
-    # Get a variable node's value using its node id.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Get a variable node's value using its node id. The endpoint must be activated
+    # and connected and the module client and server must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
     # @param node_id [String] The node to read
@@ -942,162 +1021,56 @@ module azure.iiot.opc.twin
     end
 
     #
-    # Read variable value
-    #
-    # Read a variable node's value.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
-    #
-    # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [ValueReadRequestApiModel] The read value request
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    # @return [ValueReadResponseApiModel] operation results.
-    #
-    def read_value(endpoint_id, request, custom_headers:nil)
-      response = read_value_async(endpoint_id, request, custom_headers:custom_headers).value!
-      response.body unless response.nil?
-    end
-
-    #
-    # Read variable value
-    #
-    # Read a variable node's value.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
-    #
-    # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [ValueReadRequestApiModel] The read value request
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    # @return [MsRest::HttpOperationResponse] HTTP response information.
-    #
-    def read_value_with_http_info(endpoint_id, request, custom_headers:nil)
-      read_value_async(endpoint_id, request, custom_headers:custom_headers).value!
-    end
-
-    #
-    # Read variable value
-    #
-    # Read a variable node's value.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
-    #
-    # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [ValueReadRequestApiModel] The read value request
-    # @param [Hash{String => String}] A hash of custom headers that will be added
-    # to the HTTP request.
-    #
-    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
-    #
-    def read_value_async(endpoint_id, request, custom_headers:nil)
-      fail ArgumentError, 'endpoint_id is nil' if endpoint_id.nil?
-      fail ArgumentError, 'request is nil' if request.nil?
-
-
-      request_headers = {}
-      request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
-
-      # Serialize Request
-      request_mapper = azure.iiot.opc.twin::Models::ValueReadRequestApiModel.mapper()
-      request_content = self.serialize(request_mapper,  request)
-      request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
-
-      path_template = 'v2/read/{endpointId}'
-
-      request_url = @base_url || self.base_url
-
-      options = {
-          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
-          path_params: {'endpointId' => endpoint_id},
-          body: request_content,
-          headers: request_headers.merge(custom_headers || {}),
-          base_url: request_url
-      }
-      promise = self.make_request_async(:post, path_template, options)
-
-      promise = promise.then do |result|
-        http_response = result.response
-        status_code = http_response.status
-        response_content = http_response.body
-        unless status_code == 200
-          error_model = JSON.load(response_content)
-          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
-        end
-
-        # Deserialize Response
-        if status_code == 200
-          begin
-            parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
-            result_mapper = azure.iiot.opc.twin::Models::ValueReadResponseApiModel.mapper()
-            result.body = self.deserialize(result_mapper, parsed_response)
-          rescue Exception => e
-            fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
-          end
-        end
-
-        result
-      end
-
-      promise.execute
-    end
-
-    #
     # Read node attributes
     #
-    # Read attributes of a node.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Read attributes of a node. The endpoint must be activated and connected and
+    # the module client and server must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [ReadRequestApiModel] The read request
+    # @param body [ReadRequestApiModel] The read request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [ReadResponseApiModel] operation results.
     #
-    def read_attributes(endpoint_id, request, custom_headers:nil)
-      response = read_attributes_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def read_attributes(endpoint_id, body, custom_headers:nil)
+      response = read_attributes_async(endpoint_id, body, custom_headers:custom_headers).value!
       response.body unless response.nil?
     end
 
     #
     # Read node attributes
     #
-    # Read attributes of a node.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Read attributes of a node. The endpoint must be activated and connected and
+    # the module client and server must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [ReadRequestApiModel] The read request
+    # @param body [ReadRequestApiModel] The read request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [MsRest::HttpOperationResponse] HTTP response information.
     #
-    def read_attributes_with_http_info(endpoint_id, request, custom_headers:nil)
-      read_attributes_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def read_attributes_with_http_info(endpoint_id, body, custom_headers:nil)
+      read_attributes_async(endpoint_id, body, custom_headers:custom_headers).value!
     end
 
     #
     # Read node attributes
     #
-    # Read attributes of a node.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Read attributes of a node. The endpoint must be activated and connected and
+    # the module client and server must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [ReadRequestApiModel] The read request
+    # @param body [ReadRequestApiModel] The read request
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
     # @return [Concurrent::Promise] Promise object which holds the HTTP response.
     #
-    def read_attributes_async(endpoint_id, request, custom_headers:nil)
+    def read_attributes_async(endpoint_id, body, custom_headers:nil)
       fail ArgumentError, 'endpoint_id is nil' if endpoint_id.nil?
-      fail ArgumentError, 'request is nil' if request.nil?
+      fail ArgumentError, 'body is nil' if body.nil?
 
 
       request_headers = {}
@@ -1105,7 +1078,7 @@ module azure.iiot.opc.twin
 
       # Serialize Request
       request_mapper = azure.iiot.opc.twin::Models::ReadRequestApiModel.mapper()
-      request_content = self.serialize(request_mapper,  request)
+      request_content = self.serialize(request_mapper,  body)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
       path_template = 'v2/read/{endpointId}/attributes'
@@ -1228,57 +1201,54 @@ module azure.iiot.opc.twin
     #
     # Write variable value
     #
-    # Write variable node's value.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Write variable node's value. The endpoint must be activated and connected and
+    # the module client and server must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [ValueWriteRequestApiModel] The write value request
+    # @param body [ValueWriteRequestApiModel] The write value request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [ValueWriteResponseApiModel] operation results.
     #
-    def write_value(endpoint_id, request, custom_headers:nil)
-      response = write_value_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def write_value(endpoint_id, body, custom_headers:nil)
+      response = write_value_async(endpoint_id, body, custom_headers:custom_headers).value!
       response.body unless response.nil?
     end
 
     #
     # Write variable value
     #
-    # Write variable node's value.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Write variable node's value. The endpoint must be activated and connected and
+    # the module client and server must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [ValueWriteRequestApiModel] The write value request
+    # @param body [ValueWriteRequestApiModel] The write value request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [MsRest::HttpOperationResponse] HTTP response information.
     #
-    def write_value_with_http_info(endpoint_id, request, custom_headers:nil)
-      write_value_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def write_value_with_http_info(endpoint_id, body, custom_headers:nil)
+      write_value_async(endpoint_id, body, custom_headers:custom_headers).value!
     end
 
     #
     # Write variable value
     #
-    # Write variable node's value.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Write variable node's value. The endpoint must be activated and connected and
+    # the module client and server must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [ValueWriteRequestApiModel] The write value request
+    # @param body [ValueWriteRequestApiModel] The write value request
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
     # @return [Concurrent::Promise] Promise object which holds the HTTP response.
     #
-    def write_value_async(endpoint_id, request, custom_headers:nil)
+    def write_value_async(endpoint_id, body, custom_headers:nil)
       fail ArgumentError, 'endpoint_id is nil' if endpoint_id.nil?
-      fail ArgumentError, 'request is nil' if request.nil?
+      fail ArgumentError, 'body is nil' if body.nil?
 
 
       request_headers = {}
@@ -1286,7 +1256,7 @@ module azure.iiot.opc.twin
 
       # Serialize Request
       request_mapper = azure.iiot.opc.twin::Models::ValueWriteRequestApiModel.mapper()
-      request_content = self.serialize(request_mapper,  request)
+      request_content = self.serialize(request_mapper,  body)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
       path_template = 'v2/write/{endpointId}'
@@ -1331,57 +1301,54 @@ module azure.iiot.opc.twin
     #
     # Write node attributes
     #
-    # Write any attribute of a node.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Write any attribute of a node. The endpoint must be activated and connected
+    # and the module client and server must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [WriteRequestApiModel] The batch write request
+    # @param body [WriteRequestApiModel] The batch write request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [WriteResponseApiModel] operation results.
     #
-    def write_attributes(endpoint_id, request, custom_headers:nil)
-      response = write_attributes_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def write_attributes(endpoint_id, body, custom_headers:nil)
+      response = write_attributes_async(endpoint_id, body, custom_headers:custom_headers).value!
       response.body unless response.nil?
     end
 
     #
     # Write node attributes
     #
-    # Write any attribute of a node.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Write any attribute of a node. The endpoint must be activated and connected
+    # and the module client and server must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [WriteRequestApiModel] The batch write request
+    # @param body [WriteRequestApiModel] The batch write request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [MsRest::HttpOperationResponse] HTTP response information.
     #
-    def write_attributes_with_http_info(endpoint_id, request, custom_headers:nil)
-      write_attributes_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def write_attributes_with_http_info(endpoint_id, body, custom_headers:nil)
+      write_attributes_async(endpoint_id, body, custom_headers:custom_headers).value!
     end
 
     #
     # Write node attributes
     #
-    # Write any attribute of a node.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Write any attribute of a node. The endpoint must be activated and connected
+    # and the module client and server must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [WriteRequestApiModel] The batch write request
+    # @param body [WriteRequestApiModel] The batch write request
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
     # @return [Concurrent::Promise] Promise object which holds the HTTP response.
     #
-    def write_attributes_async(endpoint_id, request, custom_headers:nil)
+    def write_attributes_async(endpoint_id, body, custom_headers:nil)
       fail ArgumentError, 'endpoint_id is nil' if endpoint_id.nil?
-      fail ArgumentError, 'request is nil' if request.nil?
+      fail ArgumentError, 'body is nil' if body.nil?
 
 
       request_headers = {}
@@ -1389,7 +1356,7 @@ module azure.iiot.opc.twin
 
       # Serialize Request
       request_mapper = azure.iiot.opc.twin::Models::WriteRequestApiModel.mapper()
-      request_content = self.serialize(request_mapper,  request)
+      request_content = self.serialize(request_mapper,  body)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
       path_template = 'v2/write/{endpointId}/attributes'

@@ -31,7 +31,6 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         /// Initializes a new instance of the AttributeWriteResponseApiModel
         /// class.
         /// </summary>
-        /// <param name="errorInfo">Service result in case of error</param>
         public AttributeWriteResponseApiModel(ServiceResultApiModel errorInfo = default(ServiceResultApiModel))
         {
             ErrorInfo = errorInfo;
@@ -44,7 +43,6 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         partial void CustomInit();
 
         /// <summary>
-        /// Gets or sets service result in case of error
         /// </summary>
         [JsonProperty(PropertyName = "errorInfo")]
         public ServiceResultApiModel ErrorInfo { get; set; }

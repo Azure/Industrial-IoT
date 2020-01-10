@@ -2255,6 +2255,7 @@
           "Status"
         ],
         "summary": "Return the service status in the form of the service status\r\napi model.",
+        "operationId": "GetStatus",
         "produces": [
           "application/json"
         ],

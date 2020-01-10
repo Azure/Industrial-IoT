@@ -32,9 +32,7 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
         /// <param name="startTime">Start time to read from</param>
         /// <param name="endTime">End time to read to</param>
         /// <param name="numEvents">Number of events to read</param>
-        /// <param name="filter">The filter to use to select the event
-        /// fields</param>
-        public ReadEventsDetailsApiModel(System.DateTime? startTime = default(System.DateTime?), System.DateTime? endTime = default(System.DateTime?), int? numEvents = default(int?), object filter = default(object))
+        public ReadEventsDetailsApiModel(System.DateTime? startTime = default(System.DateTime?), System.DateTime? endTime = default(System.DateTime?), int? numEvents = default(int?), EventFilterApiModel filter = default(EventFilterApiModel))
         {
             StartTime = startTime;
             EndTime = endTime;
@@ -67,10 +65,9 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
         public int? NumEvents { get; set; }
 
         /// <summary>
-        /// Gets or sets the filter to use to select the event fields
         /// </summary>
         [JsonProperty(PropertyName = "filter")]
-        public object Filter { get; set; }
+        public EventFilterApiModel Filter { get; set; }
 
     }
 }

@@ -31,11 +31,8 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         /// </summary>
         /// <param name="nodeId">Node to browse.
         /// (default: RootFolder).</param>
-        /// <param name="direction">Direction to browse in
-        /// (default: forward). Possible values include: 'Forward', 'Backward',
-        /// 'Both'</param>
-        /// <param name="view">View to browse
-        /// (default: null = new view = All nodes).</param>
+        /// <param name="direction">Possible values include: 'Forward',
+        /// 'Backward', 'Both'</param>
         /// <param name="referenceTypeId">Reference types to browse.
         /// (default: hierarchical).</param>
         /// <param name="noSubtypes">Whether to include subtypes of the
@@ -55,7 +52,6 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         /// <param name="readVariableValues">Whether to read variable values on
         /// target nodes.
         /// (default is false)</param>
-        /// <param name="header">Optional request header</param>
         public BrowseRequestApiModel(string nodeId = default(string), BrowseDirection? direction = default(BrowseDirection?), BrowseViewApiModel view = default(BrowseViewApiModel), string referenceTypeId = default(string), bool? noSubtypes = default(bool?), int? maxReferencesToReturn = default(int?), bool? targetNodesOnly = default(bool?), bool? readVariableValues = default(bool?), RequestHeaderApiModel header = default(RequestHeaderApiModel))
         {
             NodeId = nodeId;
@@ -83,16 +79,12 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         public string NodeId { get; set; }
 
         /// <summary>
-        /// Gets or sets direction to browse in
-        /// (default: forward). Possible values include: 'Forward', 'Backward',
-        /// 'Both'
+        /// Gets or sets possible values include: 'Forward', 'Backward', 'Both'
         /// </summary>
         [JsonProperty(PropertyName = "direction")]
         public BrowseDirection? Direction { get; set; }
 
         /// <summary>
-        /// Gets or sets view to browse
-        /// (default: null = new view = All nodes).
         /// </summary>
         [JsonProperty(PropertyName = "view")]
         public BrowseViewApiModel View { get; set; }
@@ -138,7 +130,6 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         public bool? ReadVariableValues { get; set; }
 
         /// <summary>
-        /// Gets or sets optional request header
         /// </summary>
         [JsonProperty(PropertyName = "header")]
         public RequestHeaderApiModel Header { get; set; }

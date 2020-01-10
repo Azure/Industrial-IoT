@@ -31,9 +31,8 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         /// Initializes a new instance of the
         /// ApplicationRegistrationQueryApiModel class.
         /// </summary>
-        /// <param name="applicationType">Type of application. Possible values
-        /// include: 'Server', 'Client', 'ClientAndServer',
-        /// 'DiscoveryServer'</param>
+        /// <param name="applicationType">Possible values include: 'Server',
+        /// 'Client', 'ClientAndServer', 'DiscoveryServer'</param>
         /// <param name="applicationUri">Application uri</param>
         /// <param name="productUri">Product uri</param>
         /// <param name="applicationName">Name of application</param>
@@ -68,8 +67,8 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         partial void CustomInit();
 
         /// <summary>
-        /// Gets or sets type of application. Possible values include:
-        /// 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
+        /// Gets or sets possible values include: 'Server', 'Client',
+        /// 'ClientAndServer', 'DiscoveryServer'
         /// </summary>
         [JsonProperty(PropertyName = "applicationType")]
         public ApplicationType? ApplicationType { get; set; }

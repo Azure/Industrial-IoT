@@ -35,11 +35,10 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         /// </summary>
         /// <param name="name">Argument name</param>
         /// <param name="description">Optional description</param>
-        /// <param name="type">Data type node of the argument</param>
         /// <param name="defaultValue">Default value</param>
-        /// <param name="valueRank">Optional, scalar if not set. Possible
-        /// values include: 'ScalarOrOneDimension', 'Any', 'Scalar',
-        /// 'OneOrMoreDimensions', 'OneDimension', 'TwoDimensions'</param>
+        /// <param name="valueRank">Possible values include:
+        /// 'OneOrMoreDimensions', 'OneDimension', 'TwoDimensions',
+        /// 'ScalarOrOneDimension', 'Any', 'Scalar'</param>
         /// <param name="arrayDimensions">Optional, array dimension</param>
         public MethodMetadataArgumentApiModel(string name = default(string), string description = default(string), NodeApiModel type = default(NodeApiModel), object defaultValue = default(object), NodeValueRank? valueRank = default(NodeValueRank?), IList<int?> arrayDimensions = default(IList<int?>))
         {
@@ -70,7 +69,6 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         public string Description { get; set; }
 
         /// <summary>
-        /// Gets or sets data type node of the argument
         /// </summary>
         [JsonProperty(PropertyName = "type")]
         public NodeApiModel Type { get; set; }
@@ -82,9 +80,9 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         public object DefaultValue { get; set; }
 
         /// <summary>
-        /// Gets or sets optional, scalar if not set. Possible values include:
-        /// 'ScalarOrOneDimension', 'Any', 'Scalar', 'OneOrMoreDimensions',
-        /// 'OneDimension', 'TwoDimensions'
+        /// Gets or sets possible values include: 'OneOrMoreDimensions',
+        /// 'OneDimension', 'TwoDimensions', 'ScalarOrOneDimension', 'Any',
+        /// 'Scalar'
         /// </summary>
         [JsonProperty(PropertyName = "valueRank")]
         public NodeValueRank? ValueRank { get; set; }

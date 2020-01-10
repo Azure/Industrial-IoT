@@ -21,10 +21,10 @@ class PublisherApiModel(Model):
     :type site_id: str
     :param certificate: Publisher public client cert
     :type certificate: bytearray
-    :param log_level: Current log level. Possible values include: 'Error',
-     'Information', 'Debug', 'Verbose'. Default value: "Information" .
+    :param log_level: Possible values include: 'Error', 'Information',
+     'Debug', 'Verbose'
     :type log_level: str or ~azure-iiot-opc-registry.models.TraceLogLevel
-    :param configuration: Publisher agent configuration
+    :param configuration:
     :type configuration:
      ~azure-iiot-opc-registry.models.PublisherConfigApiModel
     :param out_of_sync: Whether the registration is out of sync between
@@ -48,7 +48,7 @@ class PublisherApiModel(Model):
         'connected': {'key': 'connected', 'type': 'bool'},
     }
 
-    def __init__(self, id, site_id=None, certificate=None, log_level="Information", configuration=None, out_of_sync=None, connected=None):
+    def __init__(self, id, site_id=None, certificate=None, log_level=None, configuration=None, out_of_sync=None, connected=None):
         super(PublisherApiModel, self).__init__()
         self.id = id
         self.site_id = site_id

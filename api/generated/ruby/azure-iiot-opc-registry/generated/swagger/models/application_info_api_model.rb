@@ -16,8 +16,8 @@ module azure.iiot.opc.registry
       # @return [String] Unique application id
       attr_accessor :application_id
 
-      # @return [ApplicationType] Type of application. Possible values include:
-      # 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
+      # @return [ApplicationType] Possible values include: 'Server', 'Client',
+      # 'ClientAndServer', 'DiscoveryServer'
       attr_accessor :application_type
 
       # @return [String] Unique application uri
@@ -57,16 +57,16 @@ module azure.iiot.opc.registry
       # @return [String] Site of the application
       attr_accessor :site_id
 
-      # @return [String] Supervisor having registered the application
-      attr_accessor :supervisor_id
+      # @return [String] Discoverer that registered the application
+      attr_accessor :discoverer_id
 
       # @return [DateTime] Last time application was seen
       attr_accessor :not_seen_since
 
-      # @return [RegistryOperationApiModel] Created
+      # @return [RegistryOperationApiModel]
       attr_accessor :created
 
-      # @return [RegistryOperationApiModel] Updated
+      # @return [RegistryOperationApiModel]
       attr_accessor :updated
 
 
@@ -237,10 +237,10 @@ module azure.iiot.opc.registry
                   name: 'String'
                 }
               },
-              supervisor_id: {
+              discoverer_id: {
                 client_side_validation: true,
                 required: false,
-                serialized_name: 'supervisorId',
+                serialized_name: 'discovererId',
                 type: {
                   name: 'String'
                 }

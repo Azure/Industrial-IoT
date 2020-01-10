@@ -38,8 +38,7 @@ class DiscoveryConfigApiModel(Model):
     :type discovery_urls: list[str]
     :param locales: List of locales to filter with during discovery
     :type locales: list[str]
-    :param activation_filter: Activate all twins with this filter during
-     onboarding.
+    :param activation_filter:
     :type activation_filter:
      ~azure-iiot-opc-registry.models.EndpointActivationFilterApiModel
     """

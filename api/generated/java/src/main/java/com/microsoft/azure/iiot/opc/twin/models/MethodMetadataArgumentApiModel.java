@@ -30,7 +30,7 @@ public class MethodMetadataArgumentApiModel {
     private String description;
 
     /**
-     * Data type node of the argument.
+     * The type property.
      */
     @JsonProperty(value = "type")
     private NodeApiModel type;
@@ -42,9 +42,8 @@ public class MethodMetadataArgumentApiModel {
     private Object defaultValue;
 
     /**
-     * Optional, scalar if not set. Possible values include:
-     * 'ScalarOrOneDimension', 'Any', 'Scalar', 'OneOrMoreDimensions',
-     * 'OneDimension', 'TwoDimensions'.
+     * Possible values include: 'OneOrMoreDimensions', 'OneDimension',
+     * 'TwoDimensions', 'ScalarOrOneDimension', 'Any', 'Scalar'.
      */
     @JsonProperty(value = "valueRank")
     private NodeValueRank valueRank;
@@ -96,7 +95,7 @@ public class MethodMetadataArgumentApiModel {
     }
 
     /**
-     * Get data type node of the argument.
+     * Get the type value.
      *
      * @return the type value
      */
@@ -105,7 +104,7 @@ public class MethodMetadataArgumentApiModel {
     }
 
     /**
-     * Set data type node of the argument.
+     * Set the type value.
      *
      * @param type the type value to set
      * @return the MethodMetadataArgumentApiModel object itself.
@@ -136,7 +135,7 @@ public class MethodMetadataArgumentApiModel {
     }
 
     /**
-     * Get optional, scalar if not set. Possible values include: 'ScalarOrOneDimension', 'Any', 'Scalar', 'OneOrMoreDimensions', 'OneDimension', 'TwoDimensions'.
+     * Get possible values include: 'OneOrMoreDimensions', 'OneDimension', 'TwoDimensions', 'ScalarOrOneDimension', 'Any', 'Scalar'.
      *
      * @return the valueRank value
      */
@@ -145,7 +144,7 @@ public class MethodMetadataArgumentApiModel {
     }
 
     /**
-     * Set optional, scalar if not set. Possible values include: 'ScalarOrOneDimension', 'Any', 'Scalar', 'OneOrMoreDimensions', 'OneDimension', 'TwoDimensions'.
+     * Set possible values include: 'OneOrMoreDimensions', 'OneDimension', 'TwoDimensions', 'ScalarOrOneDimension', 'Any', 'Scalar'.
      *
      * @param valueRank the valueRank value to set
      * @return the MethodMetadataArgumentApiModel object itself.

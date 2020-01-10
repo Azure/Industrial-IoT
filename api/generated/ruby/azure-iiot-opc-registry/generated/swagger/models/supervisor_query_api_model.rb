@@ -16,10 +16,6 @@ module azure.iiot.opc.registry
       # @return [String] Site of the supervisor
       attr_accessor :site_id
 
-      # @return [DiscoveryMode] Discovery mode of supervisor. Possible values
-      # include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
-      attr_accessor :discovery
-
       # @return [Boolean] Included connected or disconnected
       attr_accessor :connected
 
@@ -43,15 +39,6 @@ module azure.iiot.opc.registry
                 serialized_name: 'siteId',
                 type: {
                   name: 'String'
-                }
-              },
-              discovery: {
-                client_side_validation: true,
-                required: false,
-                serialized_name: 'discovery',
-                type: {
-                  name: 'Enum',
-                  module: 'DiscoveryMode'
                 }
               },
               connected: {

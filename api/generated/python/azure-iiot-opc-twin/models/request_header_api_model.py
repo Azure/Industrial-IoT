@@ -15,11 +15,11 @@ from msrest.serialization import Model
 class RequestHeaderApiModel(Model):
     """Request header model.
 
-    :param elevation: Optional User elevation
+    :param elevation:
     :type elevation: ~azure-iiot-opc-twin.models.CredentialApiModel
     :param locales: Optional list of locales in preference order.
     :type locales: list[str]
-    :param diagnostics: Optional diagnostics configuration
+    :param diagnostics:
     :type diagnostics: ~azure-iiot-opc-twin.models.DiagnosticsApiModel
     """
 

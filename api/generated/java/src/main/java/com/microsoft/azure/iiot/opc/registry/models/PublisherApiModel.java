@@ -35,14 +35,13 @@ public class PublisherApiModel {
     private byte[] certificate;
 
     /**
-     * Current log level. Possible values include: 'Error', 'Information',
-     * 'Debug', 'Verbose'.
+     * Possible values include: 'Error', 'Information', 'Debug', 'Verbose'.
      */
     @JsonProperty(value = "logLevel")
     private TraceLogLevel logLevel;
 
     /**
-     * Publisher agent configuration.
+     * The configuration property.
      */
     @JsonProperty(value = "configuration")
     private PublisherConfigApiModel configuration;
@@ -121,7 +120,7 @@ public class PublisherApiModel {
     }
 
     /**
-     * Get current log level. Possible values include: 'Error', 'Information', 'Debug', 'Verbose'.
+     * Get possible values include: 'Error', 'Information', 'Debug', 'Verbose'.
      *
      * @return the logLevel value
      */
@@ -130,7 +129,7 @@ public class PublisherApiModel {
     }
 
     /**
-     * Set current log level. Possible values include: 'Error', 'Information', 'Debug', 'Verbose'.
+     * Set possible values include: 'Error', 'Information', 'Debug', 'Verbose'.
      *
      * @param logLevel the logLevel value to set
      * @return the PublisherApiModel object itself.
@@ -141,7 +140,7 @@ public class PublisherApiModel {
     }
 
     /**
-     * Get publisher agent configuration.
+     * Get the configuration value.
      *
      * @return the configuration value
      */
@@ -150,7 +149,7 @@ public class PublisherApiModel {
     }
 
     /**
-     * Set publisher agent configuration.
+     * Set the configuration value.
      *
      * @param configuration the configuration value to set
      * @return the PublisherApiModel object itself.

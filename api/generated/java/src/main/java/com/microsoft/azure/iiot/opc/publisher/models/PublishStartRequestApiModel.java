@@ -17,19 +17,19 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class PublishStartRequestApiModel {
     /**
-     * Item to publish.
+     * The item property.
      */
     @JsonProperty(value = "item", required = true)
     private PublishedItemApiModel item;
 
     /**
-     * Optional request header.
+     * The headerProperty property.
      */
     @JsonProperty(value = "header")
     private RequestHeaderApiModel headerProperty;
 
     /**
-     * Get item to publish.
+     * Get the item value.
      *
      * @return the item value
      */
@@ -38,7 +38,7 @@ public class PublishStartRequestApiModel {
     }
 
     /**
-     * Set item to publish.
+     * Set the item value.
      *
      * @param item the item value to set
      * @return the PublishStartRequestApiModel object itself.
@@ -49,7 +49,7 @@ public class PublishStartRequestApiModel {
     }
 
     /**
-     * Get optional request header.
+     * Get the headerProperty value.
      *
      * @return the headerProperty value
      */
@@ -58,7 +58,7 @@ public class PublishStartRequestApiModel {
     }
 
     /**
-     * Set optional request header.
+     * Set the headerProperty value.
      *
      * @param headerProperty the headerProperty value to set
      * @return the PublishStartRequestApiModel object itself.

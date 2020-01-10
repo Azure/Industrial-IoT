@@ -20,7 +20,7 @@ class HistoryReadNextRequestApiModel(Model):
     :type continuation_token: str
     :param abort: Abort reading after this read. Default value: False .
     :type abort: bool
-    :param header: Optional request header
+    :param header:
     :type header: ~azure-iiot-opc-history.models.RequestHeaderApiModel
     """
 

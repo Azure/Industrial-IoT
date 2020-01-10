@@ -19,8 +19,8 @@ class EndpointRegistrationQueryApiModel(Model):
     :type url: str
     :param certificate: Certificate of the endpoint
     :type certificate: bytearray
-    :param security_mode: Security Mode. Possible values include: 'Best',
-     'Sign', 'SignAndEncrypt', 'None'
+    :param security_mode: Possible values include: 'Best', 'Sign',
+     'SignAndEncrypt', 'None'
     :type security_mode: str or ~azure-iiot-opc-registry.models.SecurityMode
     :param security_policy: Security policy uri
     :type security_policy: str
@@ -28,9 +28,8 @@ class EndpointRegistrationQueryApiModel(Model):
     :type activated: bool
     :param connected: Whether the endpoint is connected on supervisor.
     :type connected: bool
-    :param endpoint_state: The last state of the the activated endpoint.
-     Possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust',
-     'CertificateInvalid', 'Ready', 'Error'
+    :param endpoint_state: Possible values include: 'Connecting',
+     'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
     :type endpoint_state: str or
      ~azure-iiot-opc-registry.models.EndpointConnectivityState
     :param include_not_seen_since: Whether to include endpoints that were soft

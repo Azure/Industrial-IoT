@@ -37,17 +37,203 @@ export default class AzureOpcTwinClient extends ServiceClient {
 
 
   /**
+   * @summary Browse node references
+   *
+   * Browse a node on the specified endpoint. The endpoint must be activated and
+   * connected and the module client and server must trust each other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} body The browse request
+   *
+   * @param {string} [body.nodeId] Node to browse.
+   * (default: RootFolder).
+   *
+   * @param {string} [body.direction] Possible values include: 'Forward',
+   * 'Backward', 'Both'
+   *
+   * @param {object} [body.view]
+   *
+   * @param {string} body.view.viewId Node of the view to browse
+   *
+   * @param {number} [body.view.version] Browses specific version of the view.
+   *
+   * @param {date} [body.view.timestamp] Browses at or before this timestamp.
+   *
+   * @param {string} [body.referenceTypeId] Reference types to browse.
+   * (default: hierarchical).
+   *
+   * @param {boolean} [body.noSubtypes] Whether to include subtypes of the
+   * reference type.
+   * (default is false)
+   *
+   * @param {number} [body.maxReferencesToReturn] Max number of references to
+   * return. There might
+   * be less returned as this is up to the client
+   * restrictions.  Set to 0 to return no references
+   * or target nodes.
+   * (default is decided by client e.g. 60)
+   *
+   * @param {boolean} [body.targetNodesOnly] Whether to collapse all references
+   * into a set of
+   * unique target nodes and not show reference
+   * information.
+   * (default is false)
+   *
+   * @param {boolean} [body.readVariableValues] Whether to read variable values
+   * on target nodes.
+   * (default is false)
+   *
+   * @param {object} [body.header]
+   *
+   * @param {object} [body.header.elevation]
+   *
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [body.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
+   *
+   * @param {object} [body.header.diagnostics]
+   *
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<BrowseResponseApiModel>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  browseWithHttpOperationResponse(endpointId: string, body: models.BrowseRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.BrowseResponseApiModel>>;
+
+  /**
+   * @summary Browse node references
+   *
+   * Browse a node on the specified endpoint. The endpoint must be activated and
+   * connected and the module client and server must trust each other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} body The browse request
+   *
+   * @param {string} [body.nodeId] Node to browse.
+   * (default: RootFolder).
+   *
+   * @param {string} [body.direction] Possible values include: 'Forward',
+   * 'Backward', 'Both'
+   *
+   * @param {object} [body.view]
+   *
+   * @param {string} body.view.viewId Node of the view to browse
+   *
+   * @param {number} [body.view.version] Browses specific version of the view.
+   *
+   * @param {date} [body.view.timestamp] Browses at or before this timestamp.
+   *
+   * @param {string} [body.referenceTypeId] Reference types to browse.
+   * (default: hierarchical).
+   *
+   * @param {boolean} [body.noSubtypes] Whether to include subtypes of the
+   * reference type.
+   * (default is false)
+   *
+   * @param {number} [body.maxReferencesToReturn] Max number of references to
+   * return. There might
+   * be less returned as this is up to the client
+   * restrictions.  Set to 0 to return no references
+   * or target nodes.
+   * (default is decided by client e.g. 60)
+   *
+   * @param {boolean} [body.targetNodesOnly] Whether to collapse all references
+   * into a set of
+   * unique target nodes and not show reference
+   * information.
+   * (default is false)
+   *
+   * @param {boolean} [body.readVariableValues] Whether to read variable values
+   * on target nodes.
+   * (default is false)
+   *
+   * @param {object} [body.header]
+   *
+   * @param {object} [body.header.elevation]
+   *
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [body.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
+   *
+   * @param {object} [body.header.diagnostics]
+   *
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {BrowseResponseApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {BrowseResponseApiModel} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link BrowseResponseApiModel} for more
+   *                      information.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  browse(endpointId: string, body: models.BrowseRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.BrowseResponseApiModel>;
+  browse(endpointId: string, body: models.BrowseRequestApiModel, callback: ServiceCallback<models.BrowseResponseApiModel>): void;
+  browse(endpointId: string, body: models.BrowseRequestApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.BrowseResponseApiModel>): void;
+
+
+  /**
    * @summary Browse set of unique target nodes
    *
    * Browse the set of unique hierarchically referenced target nodes on the
-   * endpoint.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
-   * The root node id to browse from can be provided as part of the query
-   * parameters.
-   * If it is not provided, the RootFolder node is browsed. Note that this
-   * is the same as the POST method with the model containing the node id
-   * and the targetNodesOnly flag set to true.
+   * endpoint. The endpoint must be activated and connected and the module client
+   * and server must trust each other. The root node id to browse from can be
+   * provided as part of the query parameters. If it is not provided, the
+   * RootFolder node is browsed. Note that this is the same as the POST method
+   * with the model containing the node id and the targetNodesOnly flag set to
+   * true.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
@@ -71,14 +257,12 @@ export default class AzureOpcTwinClient extends ServiceClient {
    * @summary Browse set of unique target nodes
    *
    * Browse the set of unique hierarchically referenced target nodes on the
-   * endpoint.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
-   * The root node id to browse from can be provided as part of the query
-   * parameters.
-   * If it is not provided, the RootFolder node is browsed. Note that this
-   * is the same as the POST method with the model containing the node id
-   * and the targetNodesOnly flag set to true.
+   * endpoint. The endpoint must be activated and connected and the module client
+   * and server must trust each other. The root node id to browse from can be
+   * provided as part of the query parameters. If it is not provided, the
+   * RootFolder node is browsed. Note that this is the same as the POST method
+   * with the model containing the node id and the targetNodesOnly flag set to
+   * true.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
@@ -119,79 +303,54 @@ export default class AzureOpcTwinClient extends ServiceClient {
 
 
   /**
-   * @summary Browse node references
+   * @summary Browse next set of references
    *
-   * Browse a node on the specified endpoint.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Browse next set of references on the endpoint. The endpoint must be
+   * activated and connected and the module client and server must trust each
+   * other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The browse request
+   * @param {object} body The request body with continuation token.
    *
-   * @param {string} [request.nodeId] Node to browse.
-   * (default: RootFolder).
+   * @param {string} body.continuationToken Continuation token from previews
+   * browse request.
+   * (mandatory)
    *
-   * @param {string} [request.direction] Direction to browse in
-   * (default: forward). Possible values include: 'Forward', 'Backward', 'Both'
+   * @param {boolean} [body.abort] Whether to abort browse and release.
+   * (default: false)
    *
-   * @param {object} [request.view] View to browse
-   * (default: null = new view = All nodes).
-   *
-   * @param {string} request.view.viewId Node of the view to browse
-   *
-   * @param {number} [request.view.version] Browses specific version of the view.
-   *
-   * @param {date} [request.view.timestamp] Browses at or before this timestamp.
-   *
-   * @param {string} [request.referenceTypeId] Reference types to browse.
-   * (default: hierarchical).
-   *
-   * @param {boolean} [request.noSubtypes] Whether to include subtypes of the
-   * reference type.
-   * (default is false)
-   *
-   * @param {number} [request.maxReferencesToReturn] Max number of references to
-   * return. There might
-   * be less returned as this is up to the client
-   * restrictions.  Set to 0 to return no references
-   * or target nodes.
-   * (default is decided by client e.g. 60)
-   *
-   * @param {boolean} [request.targetNodesOnly] Whether to collapse all
-   * references into a set of
+   * @param {boolean} [body.targetNodesOnly] Whether to collapse all references
+   * into a set of
    * unique target nodes and not show reference
    * information.
    * (default is false)
    *
-   * @param {boolean} [request.readVariableValues] Whether to read variable
-   * values on target nodes.
+   * @param {boolean} [body.readVariableValues] Whether to read variable values
+   * on target nodes.
    * (default is false)
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -201,86 +360,61 @@ export default class AzureOpcTwinClient extends ServiceClient {
    *
    * @returns {Promise} A promise is returned
    *
-   * @resolve {HttpOperationResponse<BrowseResponseApiModel>} - The deserialized result object.
+   * @resolve {HttpOperationResponse<BrowseNextResponseApiModel>} - The deserialized result object.
    *
    * @reject {Error|ServiceError} - The error object.
    */
-  browseWithHttpOperationResponse(endpointId: string, request: models.BrowseRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.BrowseResponseApiModel>>;
+  browseNextWithHttpOperationResponse(endpointId: string, body: models.BrowseNextRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.BrowseNextResponseApiModel>>;
 
   /**
-   * @summary Browse node references
+   * @summary Browse next set of references
    *
-   * Browse a node on the specified endpoint.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Browse next set of references on the endpoint. The endpoint must be
+   * activated and connected and the module client and server must trust each
+   * other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The browse request
+   * @param {object} body The request body with continuation token.
    *
-   * @param {string} [request.nodeId] Node to browse.
-   * (default: RootFolder).
+   * @param {string} body.continuationToken Continuation token from previews
+   * browse request.
+   * (mandatory)
    *
-   * @param {string} [request.direction] Direction to browse in
-   * (default: forward). Possible values include: 'Forward', 'Backward', 'Both'
+   * @param {boolean} [body.abort] Whether to abort browse and release.
+   * (default: false)
    *
-   * @param {object} [request.view] View to browse
-   * (default: null = new view = All nodes).
-   *
-   * @param {string} request.view.viewId Node of the view to browse
-   *
-   * @param {number} [request.view.version] Browses specific version of the view.
-   *
-   * @param {date} [request.view.timestamp] Browses at or before this timestamp.
-   *
-   * @param {string} [request.referenceTypeId] Reference types to browse.
-   * (default: hierarchical).
-   *
-   * @param {boolean} [request.noSubtypes] Whether to include subtypes of the
-   * reference type.
-   * (default is false)
-   *
-   * @param {number} [request.maxReferencesToReturn] Max number of references to
-   * return. There might
-   * be less returned as this is up to the client
-   * restrictions.  Set to 0 to return no references
-   * or target nodes.
-   * (default is decided by client e.g. 60)
-   *
-   * @param {boolean} [request.targetNodesOnly] Whether to collapse all
-   * references into a set of
+   * @param {boolean} [body.targetNodesOnly] Whether to collapse all references
+   * into a set of
    * unique target nodes and not show reference
    * information.
    * (default is false)
    *
-   * @param {boolean} [request.readVariableValues] Whether to read variable
-   * values on target nodes.
+   * @param {boolean} [body.readVariableValues] Whether to read variable values
+   * on target nodes.
    * (default is false)
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -295,7 +429,7 @@ export default class AzureOpcTwinClient extends ServiceClient {
    *
    * {Promise} A promise is returned.
    *
-   *                      @resolve {BrowseResponseApiModel} - The deserialized result object.
+   *                      @resolve {BrowseNextResponseApiModel} - The deserialized result object.
    *
    *                      @reject {Error|ServiceError} - The error object.
    *
@@ -303,28 +437,27 @@ export default class AzureOpcTwinClient extends ServiceClient {
    *
    *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
    *
-   *                      {BrowseResponseApiModel} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link BrowseResponseApiModel} for more
+   *                      {BrowseNextResponseApiModel} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link BrowseNextResponseApiModel} for more
    *                      information.
    *
    *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
    *
    *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
    */
-  browse(endpointId: string, request: models.BrowseRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.BrowseResponseApiModel>;
-  browse(endpointId: string, request: models.BrowseRequestApiModel, callback: ServiceCallback<models.BrowseResponseApiModel>): void;
-  browse(endpointId: string, request: models.BrowseRequestApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.BrowseResponseApiModel>): void;
+  browseNext(endpointId: string, body: models.BrowseNextRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.BrowseNextResponseApiModel>;
+  browseNext(endpointId: string, body: models.BrowseNextRequestApiModel, callback: ServiceCallback<models.BrowseNextResponseApiModel>): void;
+  browseNext(endpointId: string, body: models.BrowseNextRequestApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.BrowseNextResponseApiModel>): void;
 
 
   /**
    * @summary Browse next set of unique target nodes
    *
    * Browse the next set of unique hierarchically referenced target nodes on the
-   * endpoint.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
-   * Note that this is the same as the POST method with the model containing
-   * the continuation token and the targetNodesOnly flag set to true.
+   * endpoint. The endpoint must be activated and connected and the module client
+   * and server must trust each other. Note that this is the same as the POST
+   * method with the model containing the continuation token and the
+   * targetNodesOnly flag set to true.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
@@ -348,11 +481,10 @@ export default class AzureOpcTwinClient extends ServiceClient {
    * @summary Browse next set of unique target nodes
    *
    * Browse the next set of unique hierarchically referenced target nodes on the
-   * endpoint.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
-   * Note that this is the same as the POST method with the model containing
-   * the continuation token and the targetNodesOnly flag set to true.
+   * endpoint. The endpoint must be activated and connected and the module client
+   * and server must trust each other. Note that this is the same as the POST
+   * method with the model containing the continuation token and the
+   * targetNodesOnly flag set to true.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
@@ -393,205 +525,48 @@ export default class AzureOpcTwinClient extends ServiceClient {
 
 
   /**
-   * @summary Browse next set of references
-   *
-   * Browse next set of references on the endpoint.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
-   *
-   * @param {string} endpointId The identifier of the activated endpoint.
-   *
-   * @param {object} request The request body with continuation token.
-   *
-   * @param {string} request.continuationToken Continuation token from previews
-   * browse request.
-   * (mandatory)
-   *
-   * @param {boolean} [request.abort] Whether to abort browse and release.
-   * (default: false)
-   *
-   * @param {boolean} [request.targetNodesOnly] Whether to collapse all
-   * references into a set of
-   * unique target nodes and not show reference
-   * information.
-   * (default is false)
-   *
-   * @param {boolean} [request.readVariableValues] Whether to read variable
-   * values on target nodes.
-   * (default is false)
-   *
-   * @param {object} [request.header] Optional request header
-   *
-   * @param {object} [request.header.elevation] Optional User elevation
-   *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
-   *
-   * @param {object} [request.header.elevation.value] Value to pass to server
-   *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
-   *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
-   *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
-   *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
-   * (default: client generated)
-   *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
-   * (default: client generated)
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<BrowseNextResponseApiModel>} - The deserialized result object.
-   *
-   * @reject {Error|ServiceError} - The error object.
-   */
-  browseNextWithHttpOperationResponse(endpointId: string, request: models.BrowseNextRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.BrowseNextResponseApiModel>>;
-
-  /**
-   * @summary Browse next set of references
-   *
-   * Browse next set of references on the endpoint.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
-   *
-   * @param {string} endpointId The identifier of the activated endpoint.
-   *
-   * @param {object} request The request body with continuation token.
-   *
-   * @param {string} request.continuationToken Continuation token from previews
-   * browse request.
-   * (mandatory)
-   *
-   * @param {boolean} [request.abort] Whether to abort browse and release.
-   * (default: false)
-   *
-   * @param {boolean} [request.targetNodesOnly] Whether to collapse all
-   * references into a set of
-   * unique target nodes and not show reference
-   * information.
-   * (default is false)
-   *
-   * @param {boolean} [request.readVariableValues] Whether to read variable
-   * values on target nodes.
-   * (default is false)
-   *
-   * @param {object} [request.header] Optional request header
-   *
-   * @param {object} [request.header.elevation] Optional User elevation
-   *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
-   *
-   * @param {object} [request.header.elevation.value] Value to pass to server
-   *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
-   *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
-   *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
-   *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
-   * (default: client generated)
-   *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
-   * (default: client generated)
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {ServiceCallback} [optionalCallback] - The optional callback.
-   *
-   * @returns {ServiceCallback|Promise} If a callback was passed as the last
-   * parameter then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned.
-   *
-   *                      @resolve {BrowseNextResponseApiModel} - The deserialized result object.
-   *
-   *                      @reject {Error|ServiceError} - The error object.
-   *
-   * {ServiceCallback} optionalCallback(err, result, request, response)
-   *
-   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {BrowseNextResponseApiModel} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link BrowseNextResponseApiModel} for more
-   *                      information.
-   *
-   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
-   */
-  browseNext(endpointId: string, request: models.BrowseNextRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.BrowseNextResponseApiModel>;
-  browseNext(endpointId: string, request: models.BrowseNextRequestApiModel, callback: ServiceCallback<models.BrowseNextResponseApiModel>): void;
-  browseNext(endpointId: string, request: models.BrowseNextRequestApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.BrowseNextResponseApiModel>): void;
-
-
-  /**
    * @summary Browse using a browse path
    *
-   * Browse using a path from the specified node id.
-   * This call uses TranslateBrowsePathsToNodeIds service under the hood.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Browse using a path from the specified node id. This call uses
+   * TranslateBrowsePathsToNodeIds service under the hood. The endpoint must be
+   * activated and connected and the module client and server must trust each
+   * other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The browse path request
+   * @param {object} body The browse path request
    *
-   * @param {string} [request.nodeId] Node to browse from.
+   * @param {string} [body.nodeId] Node to browse from.
    * (default: RootFolder).
    *
-   * @param {array} request.browsePaths The paths to browse from node.
+   * @param {array} body.browsePaths The paths to browse from node.
    * (mandatory)
    *
-   * @param {boolean} [request.readVariableValues] Whether to read variable
-   * values on target nodes.
+   * @param {boolean} [body.readVariableValues] Whether to read variable values
+   * on target nodes.
    * (default is false)
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -605,54 +580,51 @@ export default class AzureOpcTwinClient extends ServiceClient {
    *
    * @reject {Error|ServiceError} - The error object.
    */
-  browseUsingPathWithHttpOperationResponse(endpointId: string, request: models.BrowsePathRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.BrowsePathResponseApiModel>>;
+  browseUsingPathWithHttpOperationResponse(endpointId: string, body: models.BrowsePathRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.BrowsePathResponseApiModel>>;
 
   /**
    * @summary Browse using a browse path
    *
-   * Browse using a path from the specified node id.
-   * This call uses TranslateBrowsePathsToNodeIds service under the hood.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Browse using a path from the specified node id. This call uses
+   * TranslateBrowsePathsToNodeIds service under the hood. The endpoint must be
+   * activated and connected and the module client and server must trust each
+   * other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The browse path request
+   * @param {object} body The browse path request
    *
-   * @param {string} [request.nodeId] Node to browse from.
+   * @param {string} [body.nodeId] Node to browse from.
    * (default: RootFolder).
    *
-   * @param {array} request.browsePaths The paths to browse from node.
+   * @param {array} body.browsePaths The paths to browse from node.
    * (mandatory)
    *
-   * @param {boolean} [request.readVariableValues] Whether to read variable
-   * values on target nodes.
+   * @param {boolean} [body.readVariableValues] Whether to read variable values
+   * on target nodes.
    * (default is false)
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -683,54 +655,50 @@ export default class AzureOpcTwinClient extends ServiceClient {
    *
    *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
    */
-  browseUsingPath(endpointId: string, request: models.BrowsePathRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.BrowsePathResponseApiModel>;
-  browseUsingPath(endpointId: string, request: models.BrowsePathRequestApiModel, callback: ServiceCallback<models.BrowsePathResponseApiModel>): void;
-  browseUsingPath(endpointId: string, request: models.BrowsePathRequestApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.BrowsePathResponseApiModel>): void;
+  browseUsingPath(endpointId: string, body: models.BrowsePathRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.BrowsePathResponseApiModel>;
+  browseUsingPath(endpointId: string, body: models.BrowsePathRequestApiModel, callback: ServiceCallback<models.BrowsePathResponseApiModel>): void;
+  browseUsingPath(endpointId: string, body: models.BrowsePathRequestApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.BrowsePathResponseApiModel>): void;
 
 
   /**
    * @summary Get method meta data
    *
    * Return method meta data to support a user interface displaying forms to
-   * input and output arguments.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * input and output arguments. The endpoint must be activated and connected and
+   * the module client and server must trust each other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The method metadata request
+   * @param {object} body The method metadata request
    *
-   * @param {string} [request.methodId] Method id of method to call.
+   * @param {string} [body.methodId] Method id of method to call.
    * (Required)
    *
-   * @param {array} [request.methodBrowsePath] An optional component path from
-   * the node identified by
+   * @param {array} [body.methodBrowsePath] An optional component path from the
+   * node identified by
    * MethodId to the actual method node.
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -744,51 +712,47 @@ export default class AzureOpcTwinClient extends ServiceClient {
    *
    * @reject {Error|ServiceError} - The error object.
    */
-  getCallMetadataWithHttpOperationResponse(endpointId: string, request: models.MethodMetadataRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.MethodMetadataResponseApiModel>>;
+  getCallMetadataWithHttpOperationResponse(endpointId: string, body: models.MethodMetadataRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.MethodMetadataResponseApiModel>>;
 
   /**
    * @summary Get method meta data
    *
    * Return method meta data to support a user interface displaying forms to
-   * input and output arguments.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * input and output arguments. The endpoint must be activated and connected and
+   * the module client and server must trust each other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The method metadata request
+   * @param {object} body The method metadata request
    *
-   * @param {string} [request.methodId] Method id of method to call.
+   * @param {string} [body.methodId] Method id of method to call.
    * (Required)
    *
-   * @param {array} [request.methodBrowsePath] An optional component path from
-   * the node identified by
+   * @param {array} [body.methodBrowsePath] An optional component path from the
+   * node identified by
    * MethodId to the actual method node.
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -819,65 +783,62 @@ export default class AzureOpcTwinClient extends ServiceClient {
    *
    *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
    */
-  getCallMetadata(endpointId: string, request: models.MethodMetadataRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.MethodMetadataResponseApiModel>;
-  getCallMetadata(endpointId: string, request: models.MethodMetadataRequestApiModel, callback: ServiceCallback<models.MethodMetadataResponseApiModel>): void;
-  getCallMetadata(endpointId: string, request: models.MethodMetadataRequestApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.MethodMetadataResponseApiModel>): void;
+  getCallMetadata(endpointId: string, body: models.MethodMetadataRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.MethodMetadataResponseApiModel>;
+  getCallMetadata(endpointId: string, body: models.MethodMetadataRequestApiModel, callback: ServiceCallback<models.MethodMetadataResponseApiModel>): void;
+  getCallMetadata(endpointId: string, body: models.MethodMetadataRequestApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.MethodMetadataResponseApiModel>): void;
 
 
   /**
    * @summary Call a method
    *
-   * Invoke method node with specified input arguments.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Invoke method node with specified input arguments. The endpoint must be
+   * activated and connected and the module client and server must trust each
+   * other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The method call request
+   * @param {object} body The method call request
    *
-   * @param {string} [request.methodId] Method id of method to call.
+   * @param {string} [body.methodId] Method id of method to call.
    *
-   * @param {string} [request.objectId] Context of the method, i.e. an object or
+   * @param {string} [body.objectId] Context of the method, i.e. an object or
    * object type
    * node.
    *
-   * @param {array} [request.argumentsProperty] Arguments for the method - null
+   * @param {array} [body.argumentsProperty] Arguments for the method - null
    * means no args
    *
-   * @param {array} [request.methodBrowsePath] An optional component path from
-   * the node identified by
+   * @param {array} [body.methodBrowsePath] An optional component path from the
+   * node identified by
    * MethodId or from a resolved objectId to the actual
    * method node.
    *
-   * @param {array} [request.objectBrowsePath] An optional component path from
-   * the node identified by
+   * @param {array} [body.objectBrowsePath] An optional component path from the
+   * node identified by
    * ObjectId to the actual object or objectType node.
    * If ObjectId is null, the root node (i=84) is used.
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -891,62 +852,59 @@ export default class AzureOpcTwinClient extends ServiceClient {
    *
    * @reject {Error|ServiceError} - The error object.
    */
-  callMethodWithHttpOperationResponse(endpointId: string, request: models.MethodCallRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.MethodCallResponseApiModel>>;
+  callMethodWithHttpOperationResponse(endpointId: string, body: models.MethodCallRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.MethodCallResponseApiModel>>;
 
   /**
    * @summary Call a method
    *
-   * Invoke method node with specified input arguments.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Invoke method node with specified input arguments. The endpoint must be
+   * activated and connected and the module client and server must trust each
+   * other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The method call request
+   * @param {object} body The method call request
    *
-   * @param {string} [request.methodId] Method id of method to call.
+   * @param {string} [body.methodId] Method id of method to call.
    *
-   * @param {string} [request.objectId] Context of the method, i.e. an object or
+   * @param {string} [body.objectId] Context of the method, i.e. an object or
    * object type
    * node.
    *
-   * @param {array} [request.argumentsProperty] Arguments for the method - null
+   * @param {array} [body.argumentsProperty] Arguments for the method - null
    * means no args
    *
-   * @param {array} [request.methodBrowsePath] An optional component path from
-   * the node identified by
+   * @param {array} [body.methodBrowsePath] An optional component path from the
+   * node identified by
    * MethodId or from a resolved objectId to the actual
    * method node.
    *
-   * @param {array} [request.objectBrowsePath] An optional component path from
-   * the node identified by
+   * @param {array} [body.objectBrowsePath] An optional component path from the
+   * node identified by
    * ObjectId to the actual object or objectType node.
    * If ObjectId is null, the root node (i=84) is used.
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -977,17 +935,151 @@ export default class AzureOpcTwinClient extends ServiceClient {
    *
    *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
    */
-  callMethod(endpointId: string, request: models.MethodCallRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.MethodCallResponseApiModel>;
-  callMethod(endpointId: string, request: models.MethodCallRequestApiModel, callback: ServiceCallback<models.MethodCallResponseApiModel>): void;
-  callMethod(endpointId: string, request: models.MethodCallRequestApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.MethodCallResponseApiModel>): void;
+  callMethod(endpointId: string, body: models.MethodCallRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.MethodCallResponseApiModel>;
+  callMethod(endpointId: string, body: models.MethodCallRequestApiModel, callback: ServiceCallback<models.MethodCallResponseApiModel>): void;
+  callMethod(endpointId: string, body: models.MethodCallRequestApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.MethodCallResponseApiModel>): void;
+
+
+  /**
+   * @summary Read variable value
+   *
+   * Read a variable node's value. The endpoint must be activated and connected
+   * and the module client and server must trust each other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} body The read value request
+   *
+   * @param {string} [body.nodeId] Node to read from (mandatory)
+   *
+   * @param {array} [body.browsePath] An optional path from NodeId instance to
+   * the actual node.
+   *
+   * @param {string} [body.indexRange] Index range to read, e.g. 1:2,0:1 for 2
+   * slices
+   * out of a matrix or 0:1 for the first item in
+   * an array, string or bytestring.
+   * See 7.22 of part 4: NumericRange.
+   *
+   * @param {object} [body.header]
+   *
+   * @param {object} [body.header.elevation]
+   *
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [body.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
+   *
+   * @param {object} [body.header.diagnostics]
+   *
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<ValueReadResponseApiModel>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  readValueWithHttpOperationResponse(endpointId: string, body: models.ValueReadRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.ValueReadResponseApiModel>>;
+
+  /**
+   * @summary Read variable value
+   *
+   * Read a variable node's value. The endpoint must be activated and connected
+   * and the module client and server must trust each other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} body The read value request
+   *
+   * @param {string} [body.nodeId] Node to read from (mandatory)
+   *
+   * @param {array} [body.browsePath] An optional path from NodeId instance to
+   * the actual node.
+   *
+   * @param {string} [body.indexRange] Index range to read, e.g. 1:2,0:1 for 2
+   * slices
+   * out of a matrix or 0:1 for the first item in
+   * an array, string or bytestring.
+   * See 7.22 of part 4: NumericRange.
+   *
+   * @param {object} [body.header]
+   *
+   * @param {object} [body.header.elevation]
+   *
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [body.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
+   *
+   * @param {object} [body.header.diagnostics]
+   *
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {ValueReadResponseApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {ValueReadResponseApiModel} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link ValueReadResponseApiModel} for more
+   *                      information.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  readValue(endpointId: string, body: models.ValueReadRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.ValueReadResponseApiModel>;
+  readValue(endpointId: string, body: models.ValueReadRequestApiModel, callback: ServiceCallback<models.ValueReadResponseApiModel>): void;
+  readValue(endpointId: string, body: models.ValueReadRequestApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.ValueReadResponseApiModel>): void;
 
 
   /**
    * @summary Get variable value
    *
-   * Get a variable node's value using its node id.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Get a variable node's value using its node id. The endpoint must be
+   * activated and connected and the module client and server must trust each
+   * other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
@@ -1009,9 +1101,9 @@ export default class AzureOpcTwinClient extends ServiceClient {
   /**
    * @summary Get variable value
    *
-   * Get a variable node's value using its node id.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Get a variable node's value using its node id. The endpoint must be
+   * activated and connected and the module client and server must trust each
+   * other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
@@ -1051,184 +1143,38 @@ export default class AzureOpcTwinClient extends ServiceClient {
 
 
   /**
-   * @summary Read variable value
-   *
-   * Read a variable node's value.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
-   *
-   * @param {string} endpointId The identifier of the activated endpoint.
-   *
-   * @param {object} request The read value request
-   *
-   * @param {string} [request.nodeId] Node to read from (mandatory)
-   *
-   * @param {array} [request.browsePath] An optional path from NodeId instance to
-   * the actual node.
-   *
-   * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
-   * slices
-   * out of a matrix or 0:1 for the first item in
-   * an array, string or bytestring.
-   * See 7.22 of part 4: NumericRange.
-   *
-   * @param {object} [request.header] Optional request header
-   *
-   * @param {object} [request.header.elevation] Optional User elevation
-   *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
-   *
-   * @param {object} [request.header.elevation.value] Value to pass to server
-   *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
-   *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
-   *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
-   *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
-   * (default: client generated)
-   *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
-   * (default: client generated)
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<ValueReadResponseApiModel>} - The deserialized result object.
-   *
-   * @reject {Error|ServiceError} - The error object.
-   */
-  readValueWithHttpOperationResponse(endpointId: string, request: models.ValueReadRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.ValueReadResponseApiModel>>;
-
-  /**
-   * @summary Read variable value
-   *
-   * Read a variable node's value.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
-   *
-   * @param {string} endpointId The identifier of the activated endpoint.
-   *
-   * @param {object} request The read value request
-   *
-   * @param {string} [request.nodeId] Node to read from (mandatory)
-   *
-   * @param {array} [request.browsePath] An optional path from NodeId instance to
-   * the actual node.
-   *
-   * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
-   * slices
-   * out of a matrix or 0:1 for the first item in
-   * an array, string or bytestring.
-   * See 7.22 of part 4: NumericRange.
-   *
-   * @param {object} [request.header] Optional request header
-   *
-   * @param {object} [request.header.elevation] Optional User elevation
-   *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
-   *
-   * @param {object} [request.header.elevation.value] Value to pass to server
-   *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
-   *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
-   *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
-   *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
-   * (default: client generated)
-   *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
-   * (default: client generated)
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {ServiceCallback} [optionalCallback] - The optional callback.
-   *
-   * @returns {ServiceCallback|Promise} If a callback was passed as the last
-   * parameter then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned.
-   *
-   *                      @resolve {ValueReadResponseApiModel} - The deserialized result object.
-   *
-   *                      @reject {Error|ServiceError} - The error object.
-   *
-   * {ServiceCallback} optionalCallback(err, result, request, response)
-   *
-   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {ValueReadResponseApiModel} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link ValueReadResponseApiModel} for more
-   *                      information.
-   *
-   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
-   */
-  readValue(endpointId: string, request: models.ValueReadRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.ValueReadResponseApiModel>;
-  readValue(endpointId: string, request: models.ValueReadRequestApiModel, callback: ServiceCallback<models.ValueReadResponseApiModel>): void;
-  readValue(endpointId: string, request: models.ValueReadRequestApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.ValueReadResponseApiModel>): void;
-
-
-  /**
    * @summary Read node attributes
    *
-   * Read attributes of a node.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Read attributes of a node. The endpoint must be activated and connected and
+   * the module client and server must trust each other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The read request
+   * @param {object} body The read request
    *
-   * @param {array} request.attributes Attributes to read
+   * @param {array} body.attributes Attributes to read
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -1242,45 +1188,41 @@ export default class AzureOpcTwinClient extends ServiceClient {
    *
    * @reject {Error|ServiceError} - The error object.
    */
-  readAttributesWithHttpOperationResponse(endpointId: string, request: models.ReadRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.ReadResponseApiModel>>;
+  readAttributesWithHttpOperationResponse(endpointId: string, body: models.ReadRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.ReadResponseApiModel>>;
 
   /**
    * @summary Read node attributes
    *
-   * Read attributes of a node.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Read attributes of a node. The endpoint must be activated and connected and
+   * the module client and server must trust each other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The read request
+   * @param {object} body The read request
    *
-   * @param {array} request.attributes Attributes to read
+   * @param {array} body.attributes Attributes to read
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -1310,9 +1252,9 @@ export default class AzureOpcTwinClient extends ServiceClient {
    *
    *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
    */
-  readAttributes(endpointId: string, request: models.ReadRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.ReadResponseApiModel>;
-  readAttributes(endpointId: string, request: models.ReadRequestApiModel, callback: ServiceCallback<models.ReadResponseApiModel>): void;
-  readAttributes(endpointId: string, request: models.ReadRequestApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.ReadResponseApiModel>): void;
+  readAttributes(endpointId: string, body: models.ReadRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.ReadResponseApiModel>;
+  readAttributes(endpointId: string, body: models.ReadRequestApiModel, callback: ServiceCallback<models.ReadResponseApiModel>): void;
+  readAttributes(endpointId: string, body: models.ReadRequestApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.ReadResponseApiModel>): void;
 
 
   /**
@@ -1372,56 +1314,51 @@ export default class AzureOpcTwinClient extends ServiceClient {
   /**
    * @summary Write variable value
    *
-   * Write variable node's value.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Write variable node's value. The endpoint must be activated and connected
+   * and the module client and server must trust each other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The write value request
+   * @param {object} body The write value request
    *
-   * @param {string} [request.nodeId] Node id to to write value to.
+   * @param {string} [body.nodeId] Node id to to write value to.
    *
-   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * @param {array} [body.browsePath] An optional path from NodeId instance to
    * the actual node.
    *
-   * @param {object} request.value Value to write. The system tries to convert
+   * @param {object} body.value Value to write. The system tries to convert
    * the value according to the data type value,
    * e.g. convert comma seperated value strings
    * into arrays.  (Mandatory)
    *
-   * @param {string} [request.dataType] A built in datatype for the value. This
-   * can
+   * @param {string} [body.dataType] A built in datatype for the value. This can
    * be a data type from browse, or a built in
    * type.
    * (default: best effort)
    *
-   * @param {string} [request.indexRange] Index range to write
+   * @param {string} [body.indexRange] Index range to write
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -1435,61 +1372,56 @@ export default class AzureOpcTwinClient extends ServiceClient {
    *
    * @reject {Error|ServiceError} - The error object.
    */
-  writeValueWithHttpOperationResponse(endpointId: string, request: models.ValueWriteRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.ValueWriteResponseApiModel>>;
+  writeValueWithHttpOperationResponse(endpointId: string, body: models.ValueWriteRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.ValueWriteResponseApiModel>>;
 
   /**
    * @summary Write variable value
    *
-   * Write variable node's value.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Write variable node's value. The endpoint must be activated and connected
+   * and the module client and server must trust each other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The write value request
+   * @param {object} body The write value request
    *
-   * @param {string} [request.nodeId] Node id to to write value to.
+   * @param {string} [body.nodeId] Node id to to write value to.
    *
-   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * @param {array} [body.browsePath] An optional path from NodeId instance to
    * the actual node.
    *
-   * @param {object} request.value Value to write. The system tries to convert
+   * @param {object} body.value Value to write. The system tries to convert
    * the value according to the data type value,
    * e.g. convert comma seperated value strings
    * into arrays.  (Mandatory)
    *
-   * @param {string} [request.dataType] A built in datatype for the value. This
-   * can
+   * @param {string} [body.dataType] A built in datatype for the value. This can
    * be a data type from browse, or a built in
    * type.
    * (default: best effort)
    *
-   * @param {string} [request.indexRange] Index range to write
+   * @param {string} [body.indexRange] Index range to write
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -1520,48 +1452,44 @@ export default class AzureOpcTwinClient extends ServiceClient {
    *
    *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
    */
-  writeValue(endpointId: string, request: models.ValueWriteRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.ValueWriteResponseApiModel>;
-  writeValue(endpointId: string, request: models.ValueWriteRequestApiModel, callback: ServiceCallback<models.ValueWriteResponseApiModel>): void;
-  writeValue(endpointId: string, request: models.ValueWriteRequestApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.ValueWriteResponseApiModel>): void;
+  writeValue(endpointId: string, body: models.ValueWriteRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.ValueWriteResponseApiModel>;
+  writeValue(endpointId: string, body: models.ValueWriteRequestApiModel, callback: ServiceCallback<models.ValueWriteResponseApiModel>): void;
+  writeValue(endpointId: string, body: models.ValueWriteRequestApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.ValueWriteResponseApiModel>): void;
 
 
   /**
    * @summary Write node attributes
    *
-   * Write any attribute of a node.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Write any attribute of a node. The endpoint must be activated and connected
+   * and the module client and server must trust each other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The batch write request
+   * @param {object} body The batch write request
    *
-   * @param {array} request.attributes Attributes to update
+   * @param {array} body.attributes Attributes to update
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -1575,45 +1503,41 @@ export default class AzureOpcTwinClient extends ServiceClient {
    *
    * @reject {Error|ServiceError} - The error object.
    */
-  writeAttributesWithHttpOperationResponse(endpointId: string, request: models.WriteRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.WriteResponseApiModel>>;
+  writeAttributesWithHttpOperationResponse(endpointId: string, body: models.WriteRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.WriteResponseApiModel>>;
 
   /**
    * @summary Write node attributes
    *
-   * Write any attribute of a node.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Write any attribute of a node. The endpoint must be activated and connected
+   * and the module client and server must trust each other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The batch write request
+   * @param {object} body The batch write request
    *
-   * @param {array} request.attributes Attributes to update
+   * @param {array} body.attributes Attributes to update
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -1643,9 +1567,9 @@ export default class AzureOpcTwinClient extends ServiceClient {
    *
    *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
    */
-  writeAttributes(endpointId: string, request: models.WriteRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.WriteResponseApiModel>;
-  writeAttributes(endpointId: string, request: models.WriteRequestApiModel, callback: ServiceCallback<models.WriteResponseApiModel>): void;
-  writeAttributes(endpointId: string, request: models.WriteRequestApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.WriteResponseApiModel>): void;
+  writeAttributes(endpointId: string, body: models.WriteRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.WriteResponseApiModel>;
+  writeAttributes(endpointId: string, body: models.WriteRequestApiModel, callback: ServiceCallback<models.WriteResponseApiModel>): void;
+  writeAttributes(endpointId: string, body: models.WriteRequestApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.WriteResponseApiModel>): void;
 }
 
 export { AzureOpcTwinClient, models as AzureOpcTwinModels };

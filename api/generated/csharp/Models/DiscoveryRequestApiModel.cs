@@ -30,9 +30,8 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         /// Initializes a new instance of the DiscoveryRequestApiModel class.
         /// </summary>
         /// <param name="id">Id of discovery request</param>
-        /// <param name="discovery">Discovery mode to use. Possible values
-        /// include: 'Off', 'Local', 'Network', 'Fast', 'Scan'</param>
-        /// <param name="configuration">Scan configuration to use</param>
+        /// <param name="discovery">Possible values include: 'Off', 'Local',
+        /// 'Network', 'Fast', 'Scan'</param>
         public DiscoveryRequestApiModel(string id = default(string), DiscoveryMode? discovery = default(DiscoveryMode?), DiscoveryConfigApiModel configuration = default(DiscoveryConfigApiModel))
         {
             Id = id;
@@ -53,14 +52,13 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         public string Id { get; set; }
 
         /// <summary>
-        /// Gets or sets discovery mode to use. Possible values include: 'Off',
-        /// 'Local', 'Network', 'Fast', 'Scan'
+        /// Gets or sets possible values include: 'Off', 'Local', 'Network',
+        /// 'Fast', 'Scan'
         /// </summary>
         [JsonProperty(PropertyName = "discovery")]
         public DiscoveryMode? Discovery { get; set; }
 
         /// <summary>
-        /// Gets or sets scan configuration to use
         /// </summary>
         [JsonProperty(PropertyName = "configuration")]
         public DiscoveryConfigApiModel Configuration { get; set; }

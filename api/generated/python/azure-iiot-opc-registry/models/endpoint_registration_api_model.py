@@ -21,9 +21,11 @@ class EndpointRegistrationApiModel(Model):
     :type endpoint_url: str
     :param site_id: Registered site of the endpoint
     :type site_id: str
-    :param supervisor_id: Supervisor that registered the endpoint.
+    :param supervisor_id: Supervisor that manages the endpoint.
     :type supervisor_id: str
-    :param endpoint: Endpoint information of the registration
+    :param discoverer_id: Discoverer that registered the endpoint
+    :type discoverer_id: str
+    :param endpoint:
     :type endpoint: ~azure-iiot-opc-registry.models.EndpointApiModel
     :param security_level: Security level of the endpoint
     :type security_level: int
@@ -44,17 +46,19 @@ class EndpointRegistrationApiModel(Model):
         'endpoint_url': {'key': 'endpointUrl', 'type': 'str'},
         'site_id': {'key': 'siteId', 'type': 'str'},
         'supervisor_id': {'key': 'supervisorId', 'type': 'str'},
+        'discoverer_id': {'key': 'discovererId', 'type': 'str'},
         'endpoint': {'key': 'endpoint', 'type': 'EndpointApiModel'},
         'security_level': {'key': 'securityLevel', 'type': 'int'},
         'authentication_methods': {'key': 'authenticationMethods', 'type': '[AuthenticationMethodApiModel]'},
     }
 
-    def __init__(self, id, endpoint, endpoint_url=None, site_id=None, supervisor_id=None, security_level=None, authentication_methods=None):
+    def __init__(self, id, endpoint, endpoint_url=None, site_id=None, supervisor_id=None, discoverer_id=None, security_level=None, authentication_methods=None):
         super(EndpointRegistrationApiModel, self).__init__()
         self.id = id
         self.endpoint_url = endpoint_url
         self.site_id = site_id
         self.supervisor_id = supervisor_id
+        self.discoverer_id = discoverer_id
         self.endpoint = endpoint
         self.security_level = security_level
         self.authentication_methods = authentication_methods

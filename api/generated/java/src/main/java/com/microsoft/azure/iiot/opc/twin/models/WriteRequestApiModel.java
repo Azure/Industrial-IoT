@@ -24,7 +24,7 @@ public class WriteRequestApiModel {
     private List<AttributeWriteRequestApiModel> attributes;
 
     /**
-     * Optional request header.
+     * The headerProperty property.
      */
     @JsonProperty(value = "header")
     private RequestHeaderApiModel headerProperty;
@@ -50,7 +50,7 @@ public class WriteRequestApiModel {
     }
 
     /**
-     * Get optional request header.
+     * Get the headerProperty value.
      *
      * @return the headerProperty value
      */
@@ -59,7 +59,7 @@ public class WriteRequestApiModel {
     }
 
     /**
-     * Set optional request header.
+     * Set the headerProperty value.
      *
      * @param headerProperty the headerProperty value to set
      * @return the WriteRequestApiModel object itself.

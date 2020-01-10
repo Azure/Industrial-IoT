@@ -16,7 +16,7 @@ export const activated: msRest.OperationQueryParameter = {
     "activated"
   ],
   mapper: {
-    serializedName: "Activated",
+    serializedName: "activated",
     type: {
       name: "Boolean"
     }
@@ -38,7 +38,7 @@ export const certificate: msRest.OperationQueryParameter = {
     "certificate"
   ],
   mapper: {
-    serializedName: "Certificate",
+    serializedName: "certificate",
     type: {
       name: "ByteArray"
     }
@@ -50,7 +50,7 @@ export const connected: msRest.OperationQueryParameter = {
     "connected"
   ],
   mapper: {
-    serializedName: "Connected",
+    serializedName: "connected",
     type: {
       name: "Boolean"
     }
@@ -68,15 +68,32 @@ export const continuationToken: msRest.OperationQueryParameter = {
     }
   }
 };
+export const discovererId: msRest.OperationURLParameter = {
+  parameterPath: "discovererId",
+  mapper: {
+    required: true,
+    serializedName: "discovererId",
+    type: {
+      name: "String"
+    }
+  }
+};
 export const discovery: msRest.OperationQueryParameter = {
   parameterPath: [
     "options",
     "discovery"
   ],
   mapper: {
-    serializedName: "Discovery",
+    serializedName: "discovery",
     type: {
-      name: "String"
+      name: "Enum",
+      allowedValues: [
+        "Off",
+        "Local",
+        "Network",
+        "Fast",
+        "Scan"
+      ]
     }
   }
 };
@@ -96,7 +113,26 @@ export const endpointState: msRest.OperationQueryParameter = {
     "endpointState"
   ],
   mapper: {
-    serializedName: "EndpointState",
+    serializedName: "endpointState",
+    type: {
+      name: "Enum",
+      allowedValues: [
+        "Connecting",
+        "NotReachable",
+        "Busy",
+        "NoTrust",
+        "CertificateInvalid",
+        "Ready",
+        "Error"
+      ]
+    }
+  }
+};
+export const gatewayId: msRest.OperationURLParameter = {
+  parameterPath: "gatewayId",
+  mapper: {
+    required: true,
+    serializedName: "GatewayId",
     type: {
       name: "String"
     }
@@ -108,7 +144,7 @@ export const includeNotSeenSince: msRest.OperationQueryParameter = {
     "includeNotSeenSince"
   ],
   mapper: {
-    serializedName: "IncludeNotSeenSince",
+    serializedName: "includeNotSeenSince",
     type: {
       name: "Boolean"
     }
@@ -120,7 +156,14 @@ export const mode: msRest.OperationQueryParameter = {
     required: true,
     serializedName: "mode",
     type: {
-      name: "String"
+      name: "Enum",
+      allowedValues: [
+        "Off",
+        "Local",
+        "Network",
+        "Fast",
+        "Scan"
+      ]
     }
   }
 };
@@ -186,9 +229,15 @@ export const securityMode: msRest.OperationQueryParameter = {
     "securityMode"
   ],
   mapper: {
-    serializedName: "SecurityMode",
+    serializedName: "securityMode",
     type: {
-      name: "String"
+      name: "Enum",
+      allowedValues: [
+        "Best",
+        "Sign",
+        "SignAndEncrypt",
+        "None"
+      ]
     }
   }
 };
@@ -198,7 +247,7 @@ export const securityPolicy: msRest.OperationQueryParameter = {
     "securityPolicy"
   ],
   mapper: {
-    serializedName: "SecurityPolicy",
+    serializedName: "securityPolicy",
     type: {
       name: "String"
     }
@@ -210,7 +259,7 @@ export const siteId: msRest.OperationQueryParameter = {
     "siteId"
   ],
   mapper: {
-    serializedName: "SiteId",
+    serializedName: "siteId",
     type: {
       name: "String"
     }
@@ -232,7 +281,7 @@ export const url: msRest.OperationQueryParameter = {
     "url"
   ],
   mapper: {
-    serializedName: "Url",
+    serializedName: "url",
     type: {
       name: "String"
     }

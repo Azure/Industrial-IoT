@@ -20,9 +20,8 @@ class EndpointApiModel(Model):
     :param alternative_urls: Alternative endpoint urls that can be used for
      accessing and validating the server
     :type alternative_urls: list[str]
-    :param security_mode: Security Mode to use for communication
-     default to best. Possible values include: 'Best', 'Sign',
-     'SignAndEncrypt', 'None'. Default value: "Best" .
+    :param security_mode: Possible values include: 'Best', 'Sign',
+     'SignAndEncrypt', 'None'
     :type security_mode: str or ~azure-iiot-opc-registry.models.SecurityMode
     :param security_policy: Security policy uri to use for communication
      default to best.
@@ -44,7 +43,7 @@ class EndpointApiModel(Model):
         'certificate': {'key': 'certificate', 'type': 'bytearray'},
     }
 
-    def __init__(self, url, alternative_urls=None, security_mode="Best", security_policy=None, certificate=None):
+    def __init__(self, url, alternative_urls=None, security_mode=None, security_policy=None, certificate=None):
         super(EndpointApiModel, self).__init__()
         self.url = url
         self.alternative_urls = alternative_urls

@@ -115,17 +115,19 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
         }
 
         /// <inheritdoc/>
-        async Task<IGraphLoader> IGraph.CreateBulkLoader() {
-            var executor = new GraphBulkExecutor(CloneClient(), Container);
-            await executor.InitializeAsync();
-            return new BulkImporter(executor, _serializer, _logger);
+        Task<IGraphLoader> IGraph.CreateBulkLoader() {
+            // var executor = new GraphBulkExecutor(CloneClient(), Container);
+            // await executor.InitializeAsync();
+            // return new BulkImporter(executor, _serializer, _logger);
+            return Task.FromException<IGraphLoader>(new NotSupportedException());
         }
 
         /// <inheritdoc/>
-        async Task<IDocumentLoader> IDocuments.CreateBulkLoader() {
-            var executor = new BulkExecutor(CloneClient(), Container);
-            await executor.InitializeAsync();
-            return new BulkImporter(executor, _serializer, _logger);
+        Task<IDocumentLoader> IDocuments.CreateBulkLoader() {
+           // var executor = new BulkExecutor(CloneClient(), Container);
+           // await executor.InitializeAsync();
+           // return new BulkImporter(executor, _serializer, _logger);
+            return Task.FromException<IDocumentLoader>(new NotSupportedException());
         }
 
         /// <inheritdoc/>

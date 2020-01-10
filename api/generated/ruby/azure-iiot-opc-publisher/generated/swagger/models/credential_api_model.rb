@@ -13,8 +13,8 @@ module azure.iiot.opc.publisher
     # Credential model
     #
     class CredentialApiModel
-      # @return [CredentialType] Type of credential. Possible values include:
-      # 'None', 'UserName', 'X509Certificate', 'JwtToken'
+      # @return [CredentialType] Possible values include: 'None', 'UserName',
+      # 'X509Certificate', 'JwtToken'
       attr_accessor :type
 
       # @return Value to pass to server

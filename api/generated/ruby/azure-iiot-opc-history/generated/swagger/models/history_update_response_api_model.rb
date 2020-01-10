@@ -17,8 +17,7 @@ module azure.iiot.opc.history
       # operation
       attr_accessor :results
 
-      # @return [ServiceResultApiModel] Service result in case of service call
-      # error
+      # @return [ServiceResultApiModel]
       attr_accessor :error_info
 
 

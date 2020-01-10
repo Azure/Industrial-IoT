@@ -13,10 +13,10 @@ module azure.iiot.opc.publisher
     # Publish request
     #
     class PublishStartRequestApiModel
-      # @return [PublishedItemApiModel] Item to publish
+      # @return [PublishedItemApiModel]
       attr_accessor :item
 
-      # @return [RequestHeaderApiModel] Optional request header
+      # @return [RequestHeaderApiModel]
       attr_accessor :header
 
 

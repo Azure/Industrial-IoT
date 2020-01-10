@@ -48,7 +48,6 @@ export const CredentialApiModel: msRest.CompositeMapper = {
     modelProperties: {
       type: {
         serializedName: "type",
-        defaultValue: 'None',
         type: {
           name: "Enum",
           allowedValues: [
@@ -413,12 +412,12 @@ export const NodeApiModel: msRest.CompositeMapper = {
         type: {
           name: "Enum",
           allowedValues: [
-            "ScalarOrOneDimension",
-            "Any",
-            "Scalar",
             "OneOrMoreDimensions",
             "OneDimension",
-            "TwoDimensions"
+            "TwoDimensions",
+            "ScalarOrOneDimension",
+            "Any",
+            "Scalar"
           ]
         }
       },
@@ -868,12 +867,12 @@ export const MethodMetadataArgumentApiModel: msRest.CompositeMapper = {
         type: {
           name: "Enum",
           allowedValues: [
-            "ScalarOrOneDimension",
-            "Any",
-            "Scalar",
             "OneOrMoreDimensions",
             "OneDimension",
-            "TwoDimensions"
+            "TwoDimensions",
+            "ScalarOrOneDimension",
+            "Any",
+            "Scalar"
           ]
         }
       },

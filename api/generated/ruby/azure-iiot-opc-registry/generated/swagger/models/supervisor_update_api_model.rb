@@ -16,16 +16,8 @@ module azure.iiot.opc.registry
       # @return [String] Site of the supervisor
       attr_accessor :site_id
 
-      # @return [DiscoveryMode] Whether the supervisor is in discovery mode.
-      # If null, does not change. Possible values include: 'Off', 'Local',
-      # 'Network', 'Fast', 'Scan'. Default value: 'Off' .
-      attr_accessor :discovery
-
-      # @return [DiscoveryConfigApiModel] Supervisor discovery configuration
-      attr_accessor :discovery_config
-
-      # @return [TraceLogLevel] Current log level. Possible values include:
-      # 'Error', 'Information', 'Debug', 'Verbose'
+      # @return [TraceLogLevel] Possible values include: 'Error',
+      # 'Information', 'Debug', 'Verbose'
       attr_accessor :log_level
 
 
@@ -48,25 +40,6 @@ module azure.iiot.opc.registry
                 serialized_name: 'siteId',
                 type: {
                   name: 'String'
-                }
-              },
-              discovery: {
-                client_side_validation: true,
-                required: false,
-                serialized_name: 'discovery',
-                default_value: 'Off',
-                type: {
-                  name: 'Enum',
-                  module: 'DiscoveryMode'
-                }
-              },
-              discovery_config: {
-                client_side_validation: true,
-                required: false,
-                serialized_name: 'discoveryConfig',
-                type: {
-                  name: 'Composite',
-                  class_name: 'DiscoveryConfigApiModel'
                 }
               },
               log_level: {

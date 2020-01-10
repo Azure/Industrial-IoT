@@ -17,7 +17,7 @@ class AttributeReadResponseApiModel(Model):
 
     :param value: Attribute value
     :type value: object
-    :param error_info: Service result in case of error
+    :param error_info:
     :type error_info: ~azure-iiot-opc-twin.models.ServiceResultApiModel
     """
 

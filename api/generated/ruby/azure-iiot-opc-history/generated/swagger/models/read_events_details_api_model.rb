@@ -22,7 +22,7 @@ module azure.iiot.opc.history
       # @return [Integer] Number of events to read
       attr_accessor :num_events
 
-      # @return The filter to use to select the event fields
+      # @return [EventFilterApiModel]
       attr_accessor :filter
 
 
@@ -68,7 +68,8 @@ module azure.iiot.opc.history
                 required: false,
                 serialized_name: 'filter',
                 type: {
-                  name: 'Object'
+                  name: 'Composite',
+                  class_name: 'EventFilterApiModel'
                 }
               }
             }

@@ -16,11 +16,11 @@ module azure.iiot.opc.registry
       # @return [String] Site of the publisher
       attr_accessor :site_id
 
-      # @return [PublisherConfigApiModel] Publisher discovery configuration
+      # @return [PublisherConfigApiModel]
       attr_accessor :configuration
 
-      # @return [TraceLogLevel] Current log level. Possible values include:
-      # 'Error', 'Information', 'Debug', 'Verbose'
+      # @return [TraceLogLevel] Possible values include: 'Error',
+      # 'Information', 'Debug', 'Verbose'
       attr_accessor :log_level
 
 

@@ -19,8 +19,8 @@ module azure.iiot.opc.registry
       # @return [Array<Integer>] Certificate of the endpoint
       attr_accessor :certificate
 
-      # @return [SecurityMode] Security Mode. Possible values include: 'Best',
-      # 'Sign', 'SignAndEncrypt', 'None'
+      # @return [SecurityMode] Possible values include: 'Best', 'Sign',
+      # 'SignAndEncrypt', 'None'
       attr_accessor :security_mode
 
       # @return [String] Security policy uri
@@ -32,9 +32,9 @@ module azure.iiot.opc.registry
       # @return [Boolean] Whether the endpoint is connected on supervisor.
       attr_accessor :connected
 
-      # @return [EndpointConnectivityState] The last state of the the activated
-      # endpoint. Possible values include: 'Connecting', 'NotReachable',
-      # 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
+      # @return [EndpointConnectivityState] Possible values include:
+      # 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid',
+      # 'Ready', 'Error'
       attr_accessor :endpoint_state
 
       # @return [Boolean] Whether to include endpoints that were soft deleted

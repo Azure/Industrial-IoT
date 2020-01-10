@@ -29,8 +29,7 @@ public class EndpointRegistrationQueryApiModel {
     private byte[] certificate;
 
     /**
-     * Security Mode. Possible values include: 'Best', 'Sign',
-     * 'SignAndEncrypt', 'None'.
+     * Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'.
      */
     @JsonProperty(value = "securityMode")
     private SecurityMode securityMode;
@@ -54,9 +53,8 @@ public class EndpointRegistrationQueryApiModel {
     private Boolean connected;
 
     /**
-     * The last state of the the activated endpoint. Possible values include:
-     * 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid',
-     * 'Ready', 'Error'.
+     * Possible values include: 'Connecting', 'NotReachable', 'Busy',
+     * 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'.
      */
     @JsonProperty(value = "endpointState")
     private EndpointConnectivityState endpointState;
@@ -108,7 +106,7 @@ public class EndpointRegistrationQueryApiModel {
     }
 
     /**
-     * Get security Mode. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'.
+     * Get possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'.
      *
      * @return the securityMode value
      */
@@ -117,7 +115,7 @@ public class EndpointRegistrationQueryApiModel {
     }
 
     /**
-     * Set security Mode. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'.
+     * Set possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'.
      *
      * @param securityMode the securityMode value to set
      * @return the EndpointRegistrationQueryApiModel object itself.
@@ -188,7 +186,7 @@ public class EndpointRegistrationQueryApiModel {
     }
 
     /**
-     * Get the last state of the the activated endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'.
+     * Get possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'.
      *
      * @return the endpointState value
      */
@@ -197,7 +195,7 @@ public class EndpointRegistrationQueryApiModel {
     }
 
     /**
-     * Set the last state of the the activated endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'.
+     * Set possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'.
      *
      * @param endpointState the endpointState value to set
      * @return the EndpointRegistrationQueryApiModel object itself.

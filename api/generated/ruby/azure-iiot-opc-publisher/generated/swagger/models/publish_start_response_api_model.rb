@@ -13,7 +13,7 @@ module azure.iiot.opc.publisher
     # Result of publish request
     #
     class PublishStartResponseApiModel
-      # @return [ServiceResultApiModel] Service result in case of error
+      # @return [ServiceResultApiModel]
       attr_accessor :error_info
 
 

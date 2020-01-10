@@ -15,9 +15,9 @@ from msrest.serialization import Model
 class PublishStartRequestApiModel(Model):
     """Publish request.
 
-    :param item: Item to publish
+    :param item:
     :type item: ~azure-iiot-opc-publisher.models.PublishedItemApiModel
-    :param header: Optional request header
+    :param header:
     :type header: ~azure-iiot-opc-publisher.models.RequestHeaderApiModel
     """
 

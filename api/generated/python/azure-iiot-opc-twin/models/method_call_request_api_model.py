@@ -33,7 +33,7 @@ class MethodCallRequestApiModel(Model):
      ObjectId to the actual object or objectType node.
      If ObjectId is null, the root node (i=84) is used.
     :type object_browse_path: list[str]
-    :param header: Optional request header
+    :param header:
     :type header: ~azure-iiot-opc-twin.models.RequestHeaderApiModel
     """
 

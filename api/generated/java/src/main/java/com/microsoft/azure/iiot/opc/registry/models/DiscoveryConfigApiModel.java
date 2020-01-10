@@ -78,7 +78,7 @@ public class DiscoveryConfigApiModel {
     private List<String> locales;
 
     /**
-     * Activate all twins with this filter during onboarding.
+     * The activationFilter property.
      */
     @JsonProperty(value = "activationFilter")
     private EndpointActivationFilterApiModel activationFilter;
@@ -284,7 +284,7 @@ public class DiscoveryConfigApiModel {
     }
 
     /**
-     * Get activate all twins with this filter during onboarding.
+     * Get the activationFilter value.
      *
      * @return the activationFilter value
      */
@@ -293,7 +293,7 @@ public class DiscoveryConfigApiModel {
     }
 
     /**
-     * Set activate all twins with this filter during onboarding.
+     * Set the activationFilter value.
      *
      * @param activationFilter the activationFilter value to set
      * @return the DiscoveryConfigApiModel object itself.

@@ -23,9 +23,8 @@ class EndpointActivationFilterApiModel(Model):
     :param security_policies: Endpoint security policies to filter against.
      If set to null, all policies are in scope.
     :type security_policies: list[str]
-    :param security_mode: Security mode level to activate. If null,
-     then Microsoft.Azure.IIoT.OpcUa.Core.Models.SecurityMode.Best is assumed.
-     Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
+    :param security_mode: Possible values include: 'Best', 'Sign',
+     'SignAndEncrypt', 'None'
     :type security_mode: str or ~azure-iiot-opc-registry.models.SecurityMode
     """
 

@@ -21,15 +21,15 @@ class ReadEventsDetailsApiModel(Model):
     :type end_time: datetime
     :param num_events: Number of events to read
     :type num_events: int
-    :param filter: The filter to use to select the event fields
-    :type filter: object
+    :param filter:
+    :type filter: ~azure-iiot-opc-history.models.EventFilterApiModel
     """
 
     _attribute_map = {
         'start_time': {'key': 'startTime', 'type': 'iso-8601'},
         'end_time': {'key': 'endTime', 'type': 'iso-8601'},
         'num_events': {'key': 'numEvents', 'type': 'int'},
-        'filter': {'key': 'filter', 'type': 'object'},
+        'filter': {'key': 'filter', 'type': 'EventFilterApiModel'},
     }
 
     def __init__(self, start_time=None, end_time=None, num_events=None, filter=None):

@@ -15,8 +15,8 @@ from msrest.serialization import Model
 class ApplicationRegistrationQueryApiModel(Model):
     """Application information.
 
-    :param application_type: Type of application. Possible values include:
-     'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
+    :param application_type: Possible values include: 'Server', 'Client',
+     'ClientAndServer', 'DiscoveryServer'
     :type application_type: str or
      ~azure-iiot-opc-registry.models.ApplicationType
     :param application_uri: Application uri
