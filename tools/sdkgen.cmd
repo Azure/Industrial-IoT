@@ -43,10 +43,10 @@ if exist %build_root%\api\generated rmdir /s /q %build_root%\api\generated
 mkdir %build_root%\api\generated
 pushd %build_root%\api\generated
 
-rem call :generate_sdk_for_service twin
-rem call :generate_sdk_for_service publisher
-rem call :generate_sdk_for_service registry
-rem call :generate_sdk_for_service history
+call :generate_sdk_for_service twin
+call :generate_sdk_for_service publisher
+call :generate_sdk_for_service registry
+call :generate_sdk_for_service history
 call :generate_sdk_for_service vault
 
 rem call :generate_sdk_for_service jobs

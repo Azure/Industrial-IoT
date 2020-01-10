@@ -1406,8 +1406,7 @@ module azure.iiot.opc.registry
     #
     # Register a client to receive application events through SignalR.
     #
-    # @param body [String] The user that will receive application
-    # events.
+    # @param body [String] The user that will receive application events.
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
@@ -1422,8 +1421,7 @@ module azure.iiot.opc.registry
     #
     # Register a client to receive application events through SignalR.
     #
-    # @param body [String] The user that will receive application
-    # events.
+    # @param body [String] The user that will receive application events.
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
@@ -1438,8 +1436,7 @@ module azure.iiot.opc.registry
     #
     # Register a client to receive application events through SignalR.
     #
-    # @param body [String] The user that will receive application
-    # events.
+    # @param body [String] The user that will receive application events.
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
@@ -2175,8 +2172,7 @@ module azure.iiot.opc.registry
     #
     # Register a user to receive discoverer events through SignalR.
     #
-    # @param body [String] The user id that will receive discoverer
-    # events.
+    # @param body [String] The user id that will receive discoverer events.
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
@@ -2191,8 +2187,7 @@ module azure.iiot.opc.registry
     #
     # Register a user to receive discoverer events through SignalR.
     #
-    # @param body [String] The user id that will receive discoverer
-    # events.
+    # @param body [String] The user id that will receive discoverer events.
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
@@ -2207,8 +2202,7 @@ module azure.iiot.opc.registry
     #
     # Register a user to receive discoverer events through SignalR.
     #
-    # @param body [String] The user id that will receive discoverer
-    # events.
+    # @param body [String] The user id that will receive discoverer events.
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
@@ -2345,8 +2339,7 @@ module azure.iiot.opc.registry
     # particular discoverer.
     #
     # @param discoverer_id [String] The discoverer to subscribe to
-    # @param body [String] The user id that will receive discovery
-    # events.
+    # @param body [String] The user id that will receive discovery events.
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
@@ -2363,8 +2356,7 @@ module azure.iiot.opc.registry
     # particular discoverer.
     #
     # @param discoverer_id [String] The discoverer to subscribe to
-    # @param body [String] The user id that will receive discovery
-    # events.
+    # @param body [String] The user id that will receive discovery events.
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
@@ -2381,8 +2373,7 @@ module azure.iiot.opc.registry
     # particular discoverer.
     #
     # @param discoverer_id [String] The discoverer to subscribe to
-    # @param body [String] The user id that will receive discovery
-    # events.
+    # @param body [String] The user id that will receive discovery events.
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
@@ -2443,8 +2434,7 @@ module azure.iiot.opc.registry
     # particular request.
     #
     # @param request_id [String] The request to monitor
-    # @param body [String] The user id that will receive discovery
-    # events.
+    # @param body [String] The user id that will receive discovery events.
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
@@ -2461,8 +2451,7 @@ module azure.iiot.opc.registry
     # particular request.
     #
     # @param request_id [String] The request to monitor
-    # @param body [String] The user id that will receive discovery
-    # events.
+    # @param body [String] The user id that will receive discovery events.
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
@@ -2479,8 +2468,7 @@ module azure.iiot.opc.registry
     # particular request.
     #
     # @param request_id [String] The request to monitor
-    # @param body [String] The user id that will receive discovery
-    # events.
+    # @param body [String] The user id that will receive discovery events.
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
@@ -3299,8 +3287,7 @@ module azure.iiot.opc.registry
     #
     # Register a user to receive endpoint events through SignalR.
     #
-    # @param body [String] The user id that will receive endpoint
-    # events.
+    # @param body [String] The user id that will receive endpoint events.
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
@@ -3315,8 +3302,7 @@ module azure.iiot.opc.registry
     #
     # Register a user to receive endpoint events through SignalR.
     #
-    # @param body [String] The user id that will receive endpoint
-    # events.
+    # @param body [String] The user id that will receive endpoint events.
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
@@ -3331,8 +3317,7 @@ module azure.iiot.opc.registry
     #
     # Register a user to receive endpoint events through SignalR.
     #
-    # @param body [String] The user id that will receive endpoint
-    # events.
+    # @param body [String] The user id that will receive endpoint events.
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
@@ -3944,8 +3929,7 @@ module azure.iiot.opc.registry
     #
     # Register a user to receive Gateway events through SignalR.
     #
-    # @param body [String] The user id that will receive Gateway
-    # events.
+    # @param body [String] The user id that will receive Gateway events.
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
@@ -3960,8 +3944,7 @@ module azure.iiot.opc.registry
     #
     # Register a user to receive Gateway events through SignalR.
     #
-    # @param body [String] The user id that will receive Gateway
-    # events.
+    # @param body [String] The user id that will receive Gateway events.
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
@@ -3976,8 +3959,7 @@ module azure.iiot.opc.registry
     #
     # Register a user to receive Gateway events through SignalR.
     #
-    # @param body [String] The user id that will receive Gateway
-    # events.
+    # @param body [String] The user id that will receive Gateway events.
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
@@ -4614,8 +4596,7 @@ module azure.iiot.opc.registry
     #
     # Register a user to receive publisher events through SignalR.
     #
-    # @param body [String] The user id that will receive publisher
-    # events.
+    # @param body [String] The user id that will receive publisher events.
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
@@ -4630,8 +4611,7 @@ module azure.iiot.opc.registry
     #
     # Register a user to receive publisher events through SignalR.
     #
-    # @param body [String] The user id that will receive publisher
-    # events.
+    # @param body [String] The user id that will receive publisher events.
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
@@ -4646,8 +4626,7 @@ module azure.iiot.opc.registry
     #
     # Register a user to receive publisher events through SignalR.
     #
-    # @param body [String] The user id that will receive publisher
-    # events.
+    # @param body [String] The user id that will receive publisher events.
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
@@ -5526,8 +5505,7 @@ module azure.iiot.opc.registry
     #
     # Register a user to receive supervisor events through SignalR.
     #
-    # @param body [String] The user id that will receive supervisor
-    # events.
+    # @param body [String] The user id that will receive supervisor events.
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
@@ -5542,8 +5520,7 @@ module azure.iiot.opc.registry
     #
     # Register a user to receive supervisor events through SignalR.
     #
-    # @param body [String] The user id that will receive supervisor
-    # events.
+    # @param body [String] The user id that will receive supervisor events.
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
@@ -5558,8 +5535,7 @@ module azure.iiot.opc.registry
     #
     # Register a user to receive supervisor events through SignalR.
     #
-    # @param body [String] The user id that will receive supervisor
-    # events.
+    # @param body [String] The user id that will receive supervisor events.
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #

@@ -75,8 +75,7 @@ class AzureOpcPublisherClient(object):
 
         :param endpoint_id: The endpoint to subscribe to
         :type endpoint_id: str
-        :param body: The user id that will receive publisher
-         samples.
+        :param body: The user id that will receive publisher samples.
         :type body: str
         :param dict custom_headers: headers that will be added to the request
         :param bool raw: returns the direct response alongside the

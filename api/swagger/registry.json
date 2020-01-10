@@ -624,7 +624,7 @@
           {
             "in": "body",
             "name": "body",
-            "description": "The user that will receive application\r\n            events.",
+            "description": "The user that will receive application events.",
             "schema": {
               "type": "string"
             }
@@ -1021,7 +1021,7 @@
           {
             "in": "body",
             "name": "body",
-            "description": "The user id that will receive discoverer\r\n            events.",
+            "description": "The user id that will receive discoverer events.",
             "schema": {
               "type": "string"
             }
@@ -1097,7 +1097,7 @@
           {
             "in": "body",
             "name": "body",
-            "description": "The user id that will receive discovery\r\n            events.",
+            "description": "The user id that will receive discovery events.",
             "schema": {
               "type": "string"
             }
@@ -1142,7 +1142,7 @@
           {
             "in": "body",
             "name": "body",
-            "description": "The user id that will receive discovery\r\n            events.",
+            "description": "The user id that will receive discovery events.",
             "schema": {
               "type": "string"
             }
@@ -1584,7 +1584,7 @@
           {
             "in": "body",
             "name": "body",
-            "description": "The user id that will receive endpoint\r\n            events.",
+            "description": "The user id that will receive endpoint events.",
             "schema": {
               "type": "string"
             }
@@ -1879,7 +1879,7 @@
           {
             "in": "body",
             "name": "body",
-            "description": "The user id that will receive Gateway\r\n            events.",
+            "description": "The user id that will receive Gateway events.",
             "schema": {
               "type": "string"
             }
@@ -2198,7 +2198,7 @@
           {
             "in": "body",
             "name": "body",
-            "description": "The user id that will receive publisher\r\n            events.",
+            "description": "The user id that will receive publisher events.",
             "schema": {
               "type": "string"
             }
@@ -2605,7 +2605,7 @@
           {
             "in": "body",
             "name": "body",
-            "description": "The user id that will receive supervisor\r\n            events.",
+            "description": "The user id that will receive supervisor events.",
             "schema": {
               "type": "string"
             }

@@ -291,8 +291,7 @@ export interface AzureOpcPublisherClientOptions extends ServiceClientOptions {
  */
 export interface AzureOpcPublisherClientSubscribeOptionalParams extends msRest.RequestOptionsBase {
   /**
-   * @member {string} [body] The user id that will receive publisher
-   * samples.
+   * @member {string} [body] The user id that will receive publisher samples.
    */
   body?: string;
 }

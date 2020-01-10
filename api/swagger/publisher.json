@@ -43,7 +43,7 @@
           {
             "in": "body",
             "name": "body",
-            "description": "The user id that will receive publisher\r\n            samples.",
+            "description": "The user id that will receive publisher samples.",
             "schema": {
               "type": "string"
             }

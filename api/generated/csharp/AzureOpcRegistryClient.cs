@@ -2404,8 +2404,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
         /// Register a client to receive application events through SignalR.
         /// </remarks>
         /// <param name='body'>
-        /// The user that will receive application
-        /// events.
+        /// The user that will receive application events.
         /// </param>
         /// <param name='customHeaders'>
         /// Headers that will be added to request.
@@ -3602,8 +3601,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
         /// Register a user to receive discoverer events through SignalR.
         /// </remarks>
         /// <param name='body'>
-        /// The user id that will receive discoverer
-        /// events.
+        /// The user id that will receive discoverer events.
         /// </param>
         /// <param name='customHeaders'>
         /// Headers that will be added to request.
@@ -3848,8 +3846,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
         /// The discoverer to subscribe to
         /// </param>
         /// <param name='body'>
-        /// The user id that will receive discovery
-        /// events.
+        /// The user id that will receive discovery events.
         /// </param>
         /// <param name='customHeaders'>
         /// Headers that will be added to request.
@@ -3983,8 +3980,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
         /// The request to monitor
         /// </param>
         /// <param name='body'>
-        /// The user id that will receive discovery
-        /// events.
+        /// The user id that will receive discovery events.
         /// </param>
         /// <param name='customHeaders'>
         /// Headers that will be added to request.
@@ -5340,8 +5336,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
         /// Register a user to receive endpoint events through SignalR.
         /// </remarks>
         /// <param name='body'>
-        /// The user id that will receive endpoint
-        /// events.
+        /// The user id that will receive endpoint events.
         /// </param>
         /// <param name='customHeaders'>
         /// Headers that will be added to request.
@@ -6343,8 +6338,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
         /// Register a user to receive Gateway events through SignalR.
         /// </remarks>
         /// <param name='body'>
-        /// The user id that will receive Gateway
-        /// events.
+        /// The user id that will receive Gateway events.
         /// </param>
         /// <param name='customHeaders'>
         /// Headers that will be added to request.
@@ -7387,8 +7381,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
         /// Register a user to receive publisher events through SignalR.
         /// </remarks>
         /// <param name='body'>
-        /// The user id that will receive publisher
-        /// events.
+        /// The user id that will receive publisher events.
         /// </param>
         /// <param name='customHeaders'>
         /// Headers that will be added to request.
@@ -8826,8 +8819,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
         /// Register a user to receive supervisor events through SignalR.
         /// </remarks>
         /// <param name='body'>
-        /// The user id that will receive supervisor
-        /// events.
+        /// The user id that will receive supervisor events.
         /// </param>
         /// <param name='customHeaders'>
         /// Headers that will be added to request.

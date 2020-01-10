@@ -87,8 +87,7 @@ public interface AzureOpcPublisherClient {
      * Register a client to receive publisher samples through SignalR.
      *
      * @param endpointId The endpoint to subscribe to
-     * @param body The user id that will receive publisher
-                 samples.
+     * @param body The user id that will receive publisher samples.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
@@ -100,8 +99,7 @@ public interface AzureOpcPublisherClient {
      * Register a client to receive publisher samples through SignalR.
      *
      * @param endpointId The endpoint to subscribe to
-     * @param body The user id that will receive publisher
-                 samples.
+     * @param body The user id that will receive publisher samples.
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
@@ -113,8 +111,7 @@ public interface AzureOpcPublisherClient {
      * Register a client to receive publisher samples through SignalR.
      *
      * @param endpointId The endpoint to subscribe to
-     * @param body The user id that will receive publisher
-                 samples.
+     * @param body The user id that will receive publisher samples.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
@@ -125,8 +122,7 @@ public interface AzureOpcPublisherClient {
      * Register a client to receive publisher samples through SignalR.
      *
      * @param endpointId The endpoint to subscribe to
-     * @param body The user id that will receive publisher
-                 samples.
+     * @param body The user id that will receive publisher samples.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */

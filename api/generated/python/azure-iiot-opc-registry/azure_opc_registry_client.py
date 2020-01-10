@@ -864,8 +864,7 @@ class AzureOpcRegistryClient(object):
 
         Register a client to receive application events through SignalR.
 
-        :param body: The user that will receive application
-         events.
+        :param body: The user that will receive application events.
         :type body: str
         :param dict custom_headers: headers that will be added to the request
         :param bool raw: returns the direct response alongside the
@@ -1336,8 +1335,7 @@ class AzureOpcRegistryClient(object):
 
         Register a user to receive discoverer events through SignalR.
 
-        :param body: The user id that will receive discoverer
-         events.
+        :param body: The user id that will receive discoverer events.
         :type body: str
         :param dict custom_headers: headers that will be added to the request
         :param bool raw: returns the direct response alongside the
@@ -1436,8 +1434,7 @@ class AzureOpcRegistryClient(object):
 
         :param discoverer_id: The discoverer to subscribe to
         :type discoverer_id: str
-        :param body: The user id that will receive discovery
-         events.
+        :param body: The user id that will receive discovery events.
         :type body: str
         :param dict custom_headers: headers that will be added to the request
         :param bool raw: returns the direct response alongside the
@@ -1493,8 +1490,7 @@ class AzureOpcRegistryClient(object):
 
         :param request_id: The request to monitor
         :type request_id: str
-        :param body: The user id that will receive discovery
-         events.
+        :param body: The user id that will receive discovery events.
         :type body: str
         :param dict custom_headers: headers that will be added to the request
         :param bool raw: returns the direct response alongside the
@@ -2028,8 +2024,7 @@ class AzureOpcRegistryClient(object):
 
         Register a user to receive endpoint events through SignalR.
 
-        :param body: The user id that will receive endpoint
-         events.
+        :param body: The user id that will receive endpoint events.
         :type body: str
         :param dict custom_headers: headers that will be added to the request
         :param bool raw: returns the direct response alongside the
@@ -2415,8 +2410,7 @@ class AzureOpcRegistryClient(object):
 
         Register a user to receive Gateway events through SignalR.
 
-        :param body: The user id that will receive Gateway
-         events.
+        :param body: The user id that will receive Gateway events.
         :type body: str
         :param dict custom_headers: headers that will be added to the request
         :param bool raw: returns the direct response alongside the
@@ -2822,8 +2816,7 @@ class AzureOpcRegistryClient(object):
 
         Register a user to receive publisher events through SignalR.
 
-        :param body: The user id that will receive publisher
-         events.
+        :param body: The user id that will receive publisher events.
         :type body: str
         :param dict custom_headers: headers that will be added to the request
         :param bool raw: returns the direct response alongside the
@@ -3378,8 +3371,7 @@ class AzureOpcRegistryClient(object):
 
         Register a user to receive supervisor events through SignalR.
 
-        :param body: The user id that will receive supervisor
-         events.
+        :param body: The user id that will receive supervisor events.
         :type body: str
         :param dict custom_headers: headers that will be added to the request
         :param bool raw: returns the direct response alongside the

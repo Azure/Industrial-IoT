@@ -1389,8 +1389,7 @@ export interface AzureOpcRegistryClientQueryApplicationsByIdOptionalParams exten
  */
 export interface AzureOpcRegistryClientSubscribeOptionalParams extends msRest.RequestOptionsBase {
   /**
-   * @member {string} [body] The user that will receive application
-   * events.
+   * @member {string} [body] The user that will receive application events.
    */
   body?: string;
 }
@@ -1507,8 +1506,7 @@ export interface AzureOpcRegistryClientGetFilteredListOfDiscoverersOptionalParam
  */
 export interface AzureOpcRegistryClientSubscribe1OptionalParams extends msRest.RequestOptionsBase {
   /**
-   * @member {string} [body] The user id that will receive discoverer
-   * events.
+   * @member {string} [body] The user id that will receive discoverer events.
    */
   body?: string;
 }
@@ -1522,8 +1520,7 @@ export interface AzureOpcRegistryClientSubscribe1OptionalParams extends msRest.R
  */
 export interface AzureOpcRegistryClientSubscribeByDiscovererIdOptionalParams extends msRest.RequestOptionsBase {
   /**
-   * @member {string} [body] The user id that will receive discovery
-   * events.
+   * @member {string} [body] The user id that will receive discovery events.
    */
   body?: string;
 }
@@ -1537,8 +1534,7 @@ export interface AzureOpcRegistryClientSubscribeByDiscovererIdOptionalParams ext
  */
 export interface AzureOpcRegistryClientSubscribeByRequestIdOptionalParams extends msRest.RequestOptionsBase {
   /**
-   * @member {string} [body] The user id that will receive discovery
-   * events.
+   * @member {string} [body] The user id that will receive discovery events.
    */
   body?: string;
 }
@@ -1665,8 +1661,7 @@ export interface AzureOpcRegistryClientGetFilteredListOfEndpointsOptionalParams 
  */
 export interface AzureOpcRegistryClientSubscribe2OptionalParams extends msRest.RequestOptionsBase {
   /**
-   * @member {string} [body] The user id that will receive endpoint
-   * events.
+   * @member {string} [body] The user id that will receive endpoint events.
    */
   body?: string;
 }
@@ -1734,8 +1729,7 @@ export interface AzureOpcRegistryClientGetFilteredListOfGatewayOptionalParams ex
  */
 export interface AzureOpcRegistryClientSubscribe3OptionalParams extends msRest.RequestOptionsBase {
   /**
-   * @member {string} [body] The user id that will receive Gateway
-   * events.
+   * @member {string} [body] The user id that will receive Gateway events.
    */
   body?: string;
 }
@@ -1833,8 +1827,7 @@ export interface AzureOpcRegistryClientGetFilteredListOfPublisherOptionalParams 
  */
 export interface AzureOpcRegistryClientSubscribe4OptionalParams extends msRest.RequestOptionsBase {
   /**
-   * @member {string} [body] The user id that will receive publisher
-   * events.
+   * @member {string} [body] The user id that will receive publisher events.
    */
   body?: string;
 }
@@ -1932,8 +1925,7 @@ export interface AzureOpcRegistryClientGetFilteredListOfSupervisorsOptionalParam
  */
 export interface AzureOpcRegistryClientSubscribe5OptionalParams extends msRest.RequestOptionsBase {
   /**
-   * @member {string} [body] The user id that will receive supervisor
-   * events.
+   * @member {string} [body] The user id that will receive supervisor events.
    */
   body?: string;
 }

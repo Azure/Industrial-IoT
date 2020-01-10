@@ -47,6 +47,14 @@ namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi {
                         });
                 }
             }
+
+            // Fix up produces
+            foreach (var produces in operation.Responses.ToList()) {
+                if (produces.Key != "200") {
+                    operation.Responses.Remove(produces.Key);
+                }
+            }
+
             foreach (var param in operation.Parameters) {
                 param.Description = param.Description.SingleSpacesNoLineBreak();
             }

@@ -999,8 +999,7 @@ public interface AzureOpcRegistryClient {
      * Subscribe for application events.
      * Register a client to receive application events through SignalR.
      *
-     * @param body The user that will receive application
-                 events.
+     * @param body The user that will receive application events.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
@@ -1011,8 +1010,7 @@ public interface AzureOpcRegistryClient {
      * Subscribe for application events.
      * Register a client to receive application events through SignalR.
      *
-     * @param body The user that will receive application
-                 events.
+     * @param body The user that will receive application events.
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
@@ -1023,8 +1021,7 @@ public interface AzureOpcRegistryClient {
      * Subscribe for application events.
      * Register a client to receive application events through SignalR.
      *
-     * @param body The user that will receive application
-                 events.
+     * @param body The user that will receive application events.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
@@ -1034,8 +1031,7 @@ public interface AzureOpcRegistryClient {
      * Subscribe for application events.
      * Register a client to receive application events through SignalR.
      *
-     * @param body The user that will receive application
-                 events.
+     * @param body The user that will receive application events.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
@@ -1633,8 +1629,7 @@ public interface AzureOpcRegistryClient {
      * Subscribe to discoverer registry events.
      * Register a user to receive discoverer events through SignalR.
      *
-     * @param body The user id that will receive discoverer
-                 events.
+     * @param body The user id that will receive discoverer events.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
@@ -1645,8 +1640,7 @@ public interface AzureOpcRegistryClient {
      * Subscribe to discoverer registry events.
      * Register a user to receive discoverer events through SignalR.
      *
-     * @param body The user id that will receive discoverer
-                 events.
+     * @param body The user id that will receive discoverer events.
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
@@ -1657,8 +1651,7 @@ public interface AzureOpcRegistryClient {
      * Subscribe to discoverer registry events.
      * Register a user to receive discoverer events through SignalR.
      *
-     * @param body The user id that will receive discoverer
-                 events.
+     * @param body The user id that will receive discoverer events.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
@@ -1668,8 +1661,7 @@ public interface AzureOpcRegistryClient {
      * Subscribe to discoverer registry events.
      * Register a user to receive discoverer events through SignalR.
      *
-     * @param body The user id that will receive discoverer
-                 events.
+     * @param body The user id that will receive discoverer events.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
@@ -1763,8 +1755,7 @@ public interface AzureOpcRegistryClient {
      * Register a client to receive discovery progress events through SignalR from a particular discoverer.
      *
      * @param discovererId The discoverer to subscribe to
-     * @param body The user id that will receive discovery
-                 events.
+     * @param body The user id that will receive discovery events.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
@@ -1776,8 +1767,7 @@ public interface AzureOpcRegistryClient {
      * Register a client to receive discovery progress events through SignalR from a particular discoverer.
      *
      * @param discovererId The discoverer to subscribe to
-     * @param body The user id that will receive discovery
-                 events.
+     * @param body The user id that will receive discovery events.
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
@@ -1789,8 +1779,7 @@ public interface AzureOpcRegistryClient {
      * Register a client to receive discovery progress events through SignalR from a particular discoverer.
      *
      * @param discovererId The discoverer to subscribe to
-     * @param body The user id that will receive discovery
-                 events.
+     * @param body The user id that will receive discovery events.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
@@ -1801,8 +1790,7 @@ public interface AzureOpcRegistryClient {
      * Register a client to receive discovery progress events through SignalR from a particular discoverer.
      *
      * @param discovererId The discoverer to subscribe to
-     * @param body The user id that will receive discovery
-                 events.
+     * @param body The user id that will receive discovery events.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
@@ -1854,8 +1842,7 @@ public interface AzureOpcRegistryClient {
      * Register a client to receive discovery progress events through SignalR for a particular request.
      *
      * @param requestId The request to monitor
-     * @param body The user id that will receive discovery
-                 events.
+     * @param body The user id that will receive discovery events.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
@@ -1867,8 +1854,7 @@ public interface AzureOpcRegistryClient {
      * Register a client to receive discovery progress events through SignalR for a particular request.
      *
      * @param requestId The request to monitor
-     * @param body The user id that will receive discovery
-                 events.
+     * @param body The user id that will receive discovery events.
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
@@ -1880,8 +1866,7 @@ public interface AzureOpcRegistryClient {
      * Register a client to receive discovery progress events through SignalR for a particular request.
      *
      * @param requestId The request to monitor
-     * @param body The user id that will receive discovery
-                 events.
+     * @param body The user id that will receive discovery events.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
@@ -1892,8 +1877,7 @@ public interface AzureOpcRegistryClient {
      * Register a client to receive discovery progress events through SignalR for a particular request.
      *
      * @param requestId The request to monitor
-     * @param body The user id that will receive discovery
-                 events.
+     * @param body The user id that will receive discovery events.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
@@ -2504,8 +2488,7 @@ public interface AzureOpcRegistryClient {
      * Subscribe for endpoint events.
      * Register a user to receive endpoint events through SignalR.
      *
-     * @param body The user id that will receive endpoint
-                 events.
+     * @param body The user id that will receive endpoint events.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
@@ -2516,8 +2499,7 @@ public interface AzureOpcRegistryClient {
      * Subscribe for endpoint events.
      * Register a user to receive endpoint events through SignalR.
      *
-     * @param body The user id that will receive endpoint
-                 events.
+     * @param body The user id that will receive endpoint events.
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
@@ -2528,8 +2510,7 @@ public interface AzureOpcRegistryClient {
      * Subscribe for endpoint events.
      * Register a user to receive endpoint events through SignalR.
      *
-     * @param body The user id that will receive endpoint
-                 events.
+     * @param body The user id that will receive endpoint events.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
@@ -2539,8 +2520,7 @@ public interface AzureOpcRegistryClient {
      * Subscribe for endpoint events.
      * Register a user to receive endpoint events through SignalR.
      *
-     * @param body The user id that will receive endpoint
-                 events.
+     * @param body The user id that will receive endpoint events.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
@@ -2981,8 +2961,7 @@ public interface AzureOpcRegistryClient {
      * Subscribe to Gateway registry events.
      * Register a user to receive Gateway events through SignalR.
      *
-     * @param body The user id that will receive Gateway
-                 events.
+     * @param body The user id that will receive Gateway events.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
@@ -2993,8 +2972,7 @@ public interface AzureOpcRegistryClient {
      * Subscribe to Gateway registry events.
      * Register a user to receive Gateway events through SignalR.
      *
-     * @param body The user id that will receive Gateway
-                 events.
+     * @param body The user id that will receive Gateway events.
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
@@ -3005,8 +2983,7 @@ public interface AzureOpcRegistryClient {
      * Subscribe to Gateway registry events.
      * Register a user to receive Gateway events through SignalR.
      *
-     * @param body The user id that will receive Gateway
-                 events.
+     * @param body The user id that will receive Gateway events.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
@@ -3016,8 +2993,7 @@ public interface AzureOpcRegistryClient {
      * Subscribe to Gateway registry events.
      * Register a user to receive Gateway events through SignalR.
      *
-     * @param body The user id that will receive Gateway
-                 events.
+     * @param body The user id that will receive Gateway events.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
@@ -3516,8 +3492,7 @@ public interface AzureOpcRegistryClient {
      * Subscribe to publisher registry events.
      * Register a user to receive publisher events through SignalR.
      *
-     * @param body The user id that will receive publisher
-                 events.
+     * @param body The user id that will receive publisher events.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
@@ -3528,8 +3503,7 @@ public interface AzureOpcRegistryClient {
      * Subscribe to publisher registry events.
      * Register a user to receive publisher events through SignalR.
      *
-     * @param body The user id that will receive publisher
-                 events.
+     * @param body The user id that will receive publisher events.
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
@@ -3540,8 +3514,7 @@ public interface AzureOpcRegistryClient {
      * Subscribe to publisher registry events.
      * Register a user to receive publisher events through SignalR.
      *
-     * @param body The user id that will receive publisher
-                 events.
+     * @param body The user id that will receive publisher events.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
@@ -3551,8 +3524,7 @@ public interface AzureOpcRegistryClient {
      * Subscribe to publisher registry events.
      * Register a user to receive publisher events through SignalR.
      *
-     * @param body The user id that will receive publisher
-                 events.
+     * @param body The user id that will receive publisher events.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
@@ -4175,8 +4147,7 @@ public interface AzureOpcRegistryClient {
      * Subscribe to supervisor registry events.
      * Register a user to receive supervisor events through SignalR.
      *
-     * @param body The user id that will receive supervisor
-                 events.
+     * @param body The user id that will receive supervisor events.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
@@ -4187,8 +4158,7 @@ public interface AzureOpcRegistryClient {
      * Subscribe to supervisor registry events.
      * Register a user to receive supervisor events through SignalR.
      *
-     * @param body The user id that will receive supervisor
-                 events.
+     * @param body The user id that will receive supervisor events.
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
@@ -4199,8 +4169,7 @@ public interface AzureOpcRegistryClient {
      * Subscribe to supervisor registry events.
      * Register a user to receive supervisor events through SignalR.
      *
-     * @param body The user id that will receive supervisor
-                 events.
+     * @param body The user id that will receive supervisor events.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
@@ -4210,8 +4179,7 @@ public interface AzureOpcRegistryClient {
      * Subscribe to supervisor registry events.
      * Register a user to receive supervisor events through SignalR.
      *
-     * @param body The user id that will receive supervisor
-                 events.
+     * @param body The user id that will receive supervisor events.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */

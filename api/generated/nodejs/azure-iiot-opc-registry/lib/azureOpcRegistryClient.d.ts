@@ -3423,8 +3423,7 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {object} [options] Optional Parameters.
    *
-   * @param {string} [options.body] The user id that will receive Gateway
-   * events.
+   * @param {string} [options.body] The user id that will receive Gateway events.
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
    * request
@@ -3444,8 +3443,7 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {object} [options] Optional Parameters.
    *
-   * @param {string} [options.body] The user id that will receive Gateway
-   * events.
+   * @param {string} [options.body] The user id that will receive Gateway events.
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
    * request

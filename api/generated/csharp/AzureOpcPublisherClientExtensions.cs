@@ -32,8 +32,7 @@ namespace Microsoft.Azure.IIoT.Opc.Publisher
             /// The endpoint to subscribe to
             /// </param>
             /// <param name='body'>
-            /// The user id that will receive publisher
-            /// samples.
+            /// The user id that will receive publisher samples.
             /// </param>
             public static void Subscribe(this IAzureOpcPublisherClient operations, string endpointId, string body = default(string))
             {
@@ -53,8 +52,7 @@ namespace Microsoft.Azure.IIoT.Opc.Publisher
             /// The endpoint to subscribe to
             /// </param>
             /// <param name='body'>
-            /// The user id that will receive publisher
-            /// samples.
+            /// The user id that will receive publisher samples.
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.

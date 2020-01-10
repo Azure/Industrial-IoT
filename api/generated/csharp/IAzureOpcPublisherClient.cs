@@ -55,8 +55,7 @@ namespace Microsoft.Azure.IIoT.Opc.Publisher
         /// The endpoint to subscribe to
         /// </param>
         /// <param name='body'>
-        /// The user id that will receive publisher
-        /// samples.
+        /// The user id that will receive publisher samples.
         /// </param>
         /// <param name='customHeaders'>
         /// The headers that will be added to request.

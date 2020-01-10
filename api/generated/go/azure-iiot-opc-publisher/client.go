@@ -458,8 +458,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
     // Subscribe register a client to receive publisher samples through SignalR.
         // Parameters:
             // endpointID - the endpoint to subscribe to
-            // body - the user id that will receive publisher
-            // samples.
+            // body - the user id that will receive publisher samples.
     func (client BaseClient) Subscribe(ctx context.Context, endpointID string, body string) (result autorest.Response, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.Subscribe")

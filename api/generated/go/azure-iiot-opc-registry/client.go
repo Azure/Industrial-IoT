@@ -3384,8 +3384,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
 
     // Subscribe register a client to receive application events through SignalR.
         // Parameters:
-            // body - the user that will receive application
-            // events.
+            // body - the user that will receive application events.
     func (client BaseClient) Subscribe(ctx context.Context, body string) (result autorest.Response, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.Subscribe")
@@ -3453,8 +3452,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
 
     // Subscribe1 register a user to receive discoverer events through SignalR.
         // Parameters:
-            // body - the user id that will receive discoverer
-            // events.
+            // body - the user id that will receive discoverer events.
     func (client BaseClient) Subscribe1(ctx context.Context, body string) (result autorest.Response, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.Subscribe1")
@@ -3522,8 +3520,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
 
     // Subscribe2 register a user to receive endpoint events through SignalR.
         // Parameters:
-            // body - the user id that will receive endpoint
-            // events.
+            // body - the user id that will receive endpoint events.
     func (client BaseClient) Subscribe2(ctx context.Context, body string) (result autorest.Response, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.Subscribe2")
@@ -3591,8 +3588,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
 
     // Subscribe3 register a user to receive Gateway events through SignalR.
         // Parameters:
-            // body - the user id that will receive Gateway
-            // events.
+            // body - the user id that will receive Gateway events.
     func (client BaseClient) Subscribe3(ctx context.Context, body string) (result autorest.Response, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.Subscribe3")
@@ -3660,8 +3656,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
 
     // Subscribe4 register a user to receive publisher events through SignalR.
         // Parameters:
-            // body - the user id that will receive publisher
-            // events.
+            // body - the user id that will receive publisher events.
     func (client BaseClient) Subscribe4(ctx context.Context, body string) (result autorest.Response, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.Subscribe4")
@@ -3729,8 +3724,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
 
     // Subscribe5 register a user to receive supervisor events through SignalR.
         // Parameters:
-            // body - the user id that will receive supervisor
-            // events.
+            // body - the user id that will receive supervisor events.
     func (client BaseClient) Subscribe5(ctx context.Context, body string) (result autorest.Response, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.Subscribe5")
@@ -3800,8 +3794,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
     // events through SignalR from a particular discoverer.
         // Parameters:
             // discovererID - the discoverer to subscribe to
-            // body - the user id that will receive discovery
-            // events.
+            // body - the user id that will receive discovery events.
     func (client BaseClient) SubscribeByDiscovererID(ctx context.Context, discovererID string, body string) (result autorest.Response, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.SubscribeByDiscovererID")
@@ -3875,8 +3868,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
     // through SignalR for a particular request.
         // Parameters:
             // requestID - the request to monitor
-            // body - the user id that will receive discovery
-            // events.
+            // body - the user id that will receive discovery events.
     func (client BaseClient) SubscribeByRequestID(ctx context.Context, requestID string, body string) (result autorest.Response, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.SubscribeByRequestID")

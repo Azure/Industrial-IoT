@@ -659,8 +659,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// The operations group for this extension method.
             /// </param>
             /// <param name='body'>
-            /// The user that will receive application
-            /// events.
+            /// The user that will receive application events.
             /// </param>
             public static void Subscribe(this IAzureOpcRegistryClient operations, string body = default(string))
             {
@@ -677,8 +676,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// The operations group for this extension method.
             /// </param>
             /// <param name='body'>
-            /// The user that will receive application
-            /// events.
+            /// The user that will receive application events.
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
@@ -1075,8 +1073,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// The operations group for this extension method.
             /// </param>
             /// <param name='body'>
-            /// The user id that will receive discoverer
-            /// events.
+            /// The user id that will receive discoverer events.
             /// </param>
             public static void Subscribe1(this IAzureOpcRegistryClient operations, string body = default(string))
             {
@@ -1093,8 +1090,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// The operations group for this extension method.
             /// </param>
             /// <param name='body'>
-            /// The user id that will receive discoverer
-            /// events.
+            /// The user id that will receive discoverer events.
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
@@ -1155,8 +1151,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// The discoverer to subscribe to
             /// </param>
             /// <param name='body'>
-            /// The user id that will receive discovery
-            /// events.
+            /// The user id that will receive discovery events.
             /// </param>
             public static void SubscribeByDiscovererId(this IAzureOpcRegistryClient operations, string discovererId, string body = default(string))
             {
@@ -1177,8 +1172,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// The discoverer to subscribe to
             /// </param>
             /// <param name='body'>
-            /// The user id that will receive discovery
-            /// events.
+            /// The user id that will receive discovery events.
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
@@ -1202,8 +1196,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// The request to monitor
             /// </param>
             /// <param name='body'>
-            /// The user id that will receive discovery
-            /// events.
+            /// The user id that will receive discovery events.
             /// </param>
             public static void SubscribeByRequestId(this IAzureOpcRegistryClient operations, string requestId, string body = default(string))
             {
@@ -1224,8 +1217,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// The request to monitor
             /// </param>
             /// <param name='body'>
-            /// The user id that will receive discovery
-            /// events.
+            /// The user id that will receive discovery events.
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
@@ -1683,8 +1675,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// The operations group for this extension method.
             /// </param>
             /// <param name='body'>
-            /// The user id that will receive endpoint
-            /// events.
+            /// The user id that will receive endpoint events.
             /// </param>
             public static void Subscribe2(this IAzureOpcRegistryClient operations, string body = default(string))
             {
@@ -1701,8 +1692,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// The operations group for this extension method.
             /// </param>
             /// <param name='body'>
-            /// The user id that will receive endpoint
-            /// events.
+            /// The user id that will receive endpoint events.
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
@@ -2006,8 +1996,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// The operations group for this extension method.
             /// </param>
             /// <param name='body'>
-            /// The user id that will receive Gateway
-            /// events.
+            /// The user id that will receive Gateway events.
             /// </param>
             public static void Subscribe3(this IAzureOpcRegistryClient operations, string body = default(string))
             {
@@ -2024,8 +2013,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// The operations group for this extension method.
             /// </param>
             /// <param name='body'>
-            /// The user id that will receive Gateway
-            /// events.
+            /// The user id that will receive Gateway events.
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
@@ -2361,8 +2349,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// The operations group for this extension method.
             /// </param>
             /// <param name='body'>
-            /// The user id that will receive publisher
-            /// events.
+            /// The user id that will receive publisher events.
             /// </param>
             public static void Subscribe4(this IAzureOpcRegistryClient operations, string body = default(string))
             {
@@ -2379,8 +2366,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// The operations group for this extension method.
             /// </param>
             /// <param name='body'>
-            /// The user id that will receive publisher
-            /// events.
+            /// The user id that will receive publisher events.
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
@@ -2825,8 +2811,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// The operations group for this extension method.
             /// </param>
             /// <param name='body'>
-            /// The user id that will receive supervisor
-            /// events.
+            /// The user id that will receive supervisor events.
             /// </param>
             public static void Subscribe5(this IAzureOpcRegistryClient operations, string body = default(string))
             {
@@ -2843,8 +2828,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// The operations group for this extension method.
             /// </param>
             /// <param name='body'>
-            /// The user id that will receive supervisor
-            /// events.
+            /// The user id that will receive supervisor events.
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.

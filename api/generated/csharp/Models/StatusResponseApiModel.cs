@@ -8,7 +8,7 @@
 // regenerated.
 // </auto-generated>
 
-namespace Microsoft.Azure.IIoT.Opc.History.Models
+namespace Microsoft.Azure.IIoT.Opc.Vault.Models
 {
     using Newtonsoft.Json;
     using System.Collections;
@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
     using System.Linq;
 
     /// <summary>
-    /// Status response model
+    /// Status model
     /// </summary>
     public partial class StatusResponseApiModel
     {

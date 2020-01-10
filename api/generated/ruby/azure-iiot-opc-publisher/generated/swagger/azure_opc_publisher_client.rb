@@ -100,8 +100,7 @@ module azure.iiot.opc.publisher
     # Register a client to receive publisher samples through SignalR.
     #
     # @param endpoint_id [String] The endpoint to subscribe to
-    # @param body [String] The user id that will receive publisher
-    # samples.
+    # @param body [String] The user id that will receive publisher samples.
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
@@ -117,8 +116,7 @@ module azure.iiot.opc.publisher
     # Register a client to receive publisher samples through SignalR.
     #
     # @param endpoint_id [String] The endpoint to subscribe to
-    # @param body [String] The user id that will receive publisher
-    # samples.
+    # @param body [String] The user id that will receive publisher samples.
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
@@ -134,8 +132,7 @@ module azure.iiot.opc.publisher
     # Register a client to receive publisher samples through SignalR.
     #
     # @param endpoint_id [String] The endpoint to subscribe to
-    # @param body [String] The user id that will receive publisher
-    # samples.
+    # @param body [String] The user id that will receive publisher samples.
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #

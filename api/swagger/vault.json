@@ -119,12 +119,6 @@
               "format": "binary",
               "type": "string"
             }
-          },
-          "404": {
-            "description": "Not Found",
-            "schema": {
-              "$ref": "#/definitions/NotFoundResult"
-            }
           }
         }
       }
@@ -154,12 +148,6 @@
             "schema": {
               "format": "binary",
               "type": "string"
-            }
-          },
-          "404": {
-            "description": "Not Found",
-            "schema": {
-              "$ref": "#/definitions/NotFoundResult"
             }
           }
         }
