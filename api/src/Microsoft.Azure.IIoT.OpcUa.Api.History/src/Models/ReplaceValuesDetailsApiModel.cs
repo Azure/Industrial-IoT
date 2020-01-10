@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
     using Newtonsoft.Json;
     using System.Collections.Generic;
+    using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// Replace historic data
@@ -16,6 +17,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
         /// Values to replace
         /// </summary>
         [JsonProperty(PropertyName = "values")]
+        [Required]
         public List<HistoricValueApiModel> Values { get; set; }
     }
 }

@@ -5,35 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
     using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
     using System.Collections.Generic;
-
-    /// <summary>
-    /// Security mode of endpoint
-    /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
-    public enum SecurityMode {
-
-        /// <summary>
-        /// Best
-        /// </summary>
-        Best,
-
-        /// <summary>
-        /// Sign
-        /// </summary>
-        Sign,
-
-        /// <summary>
-        /// Sign and Encrypt
-        /// </summary>
-        SignAndEncrypt,
-
-        /// <summary>
-        /// No security
-        /// </summary>
-        None
-    }
 
     /// <summary>
     /// Endpoint model

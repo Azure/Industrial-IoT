@@ -118,7 +118,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 Trace.TraceError(errorMessage);
                 pageResult.Results.Add(new ListNode {
                     NodeName = e.Message,
-                    SupervisorId = supervisorId,
+                    DiscovererId = discovererId,
                     ParentName = "Root"
                 });
             }

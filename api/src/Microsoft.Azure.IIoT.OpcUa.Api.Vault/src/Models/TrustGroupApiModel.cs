@@ -5,67 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models {
     using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
     using System;
-
-    /// <summary>
-    /// Signature algorithm
-    /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
-    public enum SignatureAlgorithm {
-
-        /// <summary>
-        /// Rsa 256
-        /// </summary>
-        Rsa256,
-
-        /// <summary>
-        /// Rsa 384
-        /// </summary>
-        Rsa384,
-
-        /// <summary>
-        /// Rsa 512
-        /// </summary>
-        Rsa512,
-
-        /// <summary>
-        /// 256 with padding
-        /// </summary>
-        Rsa256Pss,
-
-        /// <summary>
-        /// 384 with padding
-        /// </summary>
-        Rsa384Pss,
-
-        /// <summary>
-        /// 512 with padding
-        /// </summary>
-        Rsa512Pss,
-    }
-
-    /// <summary>
-    /// Trust group types
-    /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
-    public enum TrustGroupType {
-
-        /// <summary>
-        /// Application certificate
-        /// </summary>
-        ApplicationInstanceCertificate,
-
-        /// <summary>
-        /// Https certificate type
-        /// </summary>
-        HttpsCertificate,
-
-        /// <summary>
-        /// User credential certificate type
-        /// </summary>
-        UserCredentialCertificate
-    }
 
     /// <summary>
     /// Trust group model

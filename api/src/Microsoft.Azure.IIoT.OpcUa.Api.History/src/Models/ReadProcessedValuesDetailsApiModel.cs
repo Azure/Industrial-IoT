@@ -45,6 +45,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
         /// </summary>
         [JsonProperty(PropertyName = "aggregateConfiguration",
             NullValueHandling = NullValueHandling.Ignore)]
-        public AggregateConfigApiModel AggregateConfiguration { get; set; }
+        public AggregateConfigurationApiModel AggregateConfiguration { get; set; }
     }
 }

@@ -14,7 +14,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Models {
     /// <summary>
     /// Event filter
     /// </summary>
-    public class EventFilterApiModel : JObject {
+    public class EventFilterApiModel {
 
         /// <summary>
         /// Default constructor

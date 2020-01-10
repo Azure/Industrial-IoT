@@ -9,7 +9,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
     /// <summary>
     /// Aggregate configuration
     /// </summary>
-    public class AggregateConfigApiModel {
+    public class AggregateConfigurationApiModel {
 
         /// <summary>
         /// Whether to use the default server caps

@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
     using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
     using System;
 
     /// <summary>
@@ -39,6 +38,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
         /// </summary>
         [JsonProperty(PropertyName = "filter",
             NullValueHandling = NullValueHandling.Ignore)]
-        public JToken Filter { get; set; }
+        public EventFilterApiModel Filter { get; set; }
     }
 }

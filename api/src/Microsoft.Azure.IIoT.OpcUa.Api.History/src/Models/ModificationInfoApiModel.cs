@@ -5,35 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
     using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
     using System;
-
-    /// <summary>
-    /// History update type
-    /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
-    public enum HistoryUpdateOperation {
-
-        /// <summary>
-        /// Insert
-        /// </summary>
-        Insert = 1,
-
-        /// <summary>
-        /// Replace
-        /// </summary>
-        Replace,
-
-        /// <summary>
-        /// Update
-        /// </summary>
-        Update,
-
-        /// <summary>
-        /// Delete
-        /// </summary>
-        Delete,
-    }
 
     /// <summary>
     /// Modification information

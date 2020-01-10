@@ -13,28 +13,34 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
     public class ReadValuesDetailsApiModel {
 
         /// <summary>
-        /// The start time to read from
+        /// Beginning of period to read. Set to null
+        /// if no specific start time is specified.
         /// </summary>
         [JsonProperty(PropertyName = "startTime",
             NullValueHandling = NullValueHandling.Ignore)]
         public DateTime? StartTime { get; set; }
 
         /// <summary>
-        /// The end time to read to
+        /// End of period to read. Set to null if no
+        /// specific end time is specified.
         /// </summary>
         [JsonProperty(PropertyName = "endTime",
             NullValueHandling = NullValueHandling.Ignore)]
         public DateTime? EndTime { get; set; }
 
         /// <summary>
-        /// The number of values to read
+        /// The maximum number of values returned for any Node
+        /// over the time range. If only one time is specified,
+        /// the time range shall extend to return this number
+        /// of values. 0 or null indicates that there is no
+        /// maximum.
         /// </summary>
         [JsonProperty(PropertyName = "numValues",
             NullValueHandling = NullValueHandling.Ignore)]
         public uint? NumValues { get; set; }
 
         /// <summary>
-        /// Whether to return the bounds as well.
+        /// Whether to return the bounding values or not.
         /// </summary>
         [JsonProperty(PropertyName = "returnBounds",
             NullValueHandling = NullValueHandling.Ignore)]
