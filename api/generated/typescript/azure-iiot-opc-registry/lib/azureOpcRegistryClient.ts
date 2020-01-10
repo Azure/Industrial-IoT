@@ -1864,7 +1864,7 @@ const disableApplicationOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
   path: "v2/applications/{applicationId}/disable",
   urlParameters: [
-    Parameters.applicationId
+    Parameters.applicationId0
   ],
   responses: {
     200: {},
@@ -1877,7 +1877,7 @@ const enableApplicationOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
   path: "v2/applications/{applicationId}/enable",
   urlParameters: [
-    Parameters.applicationId
+    Parameters.applicationId0
   ],
   responses: {
     200: {},
@@ -1921,7 +1921,7 @@ const getApplicationRegistrationOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
   path: "v2/applications/{applicationId}",
   urlParameters: [
-    Parameters.applicationId
+    Parameters.applicationId0
   ],
   responses: {
     200: {
@@ -1936,7 +1936,7 @@ const updateApplicationRegistrationOperationSpec: msRest.OperationSpec = {
   httpMethod: "PATCH",
   path: "v2/applications/{applicationId}",
   urlParameters: [
-    Parameters.applicationId
+    Parameters.applicationId0
   ],
   requestBody: {
     parameterPath: "body",
@@ -1957,7 +1957,7 @@ const deleteApplicationOperationSpec: msRest.OperationSpec = {
   httpMethod: "DELETE",
   path: "v2/applications/{applicationId}",
   urlParameters: [
-    Parameters.applicationId
+    Parameters.applicationId0
   ],
   responses: {
     200: {},
@@ -2088,7 +2088,7 @@ const getDiscovererOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
   path: "v2/discovery/{discovererId}",
   urlParameters: [
-    Parameters.discovererId
+    Parameters.discovererId0
   ],
   queryParameters: [
     Parameters.onlyServerState
@@ -2106,7 +2106,7 @@ const updateDiscovererOperationSpec: msRest.OperationSpec = {
   httpMethod: "PATCH",
   path: "v2/discovery/{discovererId}",
   urlParameters: [
-    Parameters.discovererId
+    Parameters.discovererId0
   ],
   requestBody: {
     parameterPath: "body",
@@ -2127,7 +2127,7 @@ const setDiscoveryModeOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
   path: "v2/discovery/{discovererId}",
   urlParameters: [
-    Parameters.discovererId
+    Parameters.discovererId0
   ],
   queryParameters: [
     Parameters.mode
@@ -2247,7 +2247,7 @@ const subscribeByDiscovererIdOperationSpec: msRest.OperationSpec = {
   httpMethod: "PUT",
   path: "v2/discovery/{discovererId}/events",
   urlParameters: [
-    Parameters.discovererId
+    Parameters.discovererId0
   ],
   requestBody: {
     parameterPath: [
@@ -2313,7 +2313,7 @@ const unsubscribeByDiscovererIdOperationSpec: msRest.OperationSpec = {
   httpMethod: "DELETE",
   path: "v2/discovery/{discovererId}/events/{userId}",
   urlParameters: [
-    Parameters.discovererId,
+    Parameters.discovererId0,
     Parameters.userId
   ],
   responses: {
@@ -2407,6 +2407,10 @@ const getFilteredListOfEndpointsOperationSpec: msRest.OperationSpec = {
     Parameters.connected,
     Parameters.endpointState,
     Parameters.includeNotSeenSince,
+    Parameters.discovererId1,
+    Parameters.applicationId1,
+    Parameters.supervisorId0,
+    Parameters.siteOrGatewayId,
     Parameters.onlyServerState,
     Parameters.pageSize
   ],
@@ -2746,7 +2750,7 @@ const getSupervisorOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
   path: "v2/supervisors/{supervisorId}",
   urlParameters: [
-    Parameters.supervisorId
+    Parameters.supervisorId1
   ],
   queryParameters: [
     Parameters.onlyServerState
@@ -2764,7 +2768,7 @@ const updateSupervisorOperationSpec: msRest.OperationSpec = {
   httpMethod: "PATCH",
   path: "v2/supervisors/{supervisorId}",
   urlParameters: [
-    Parameters.supervisorId
+    Parameters.supervisorId1
   ],
   requestBody: {
     parameterPath: "body",
@@ -2785,7 +2789,7 @@ const getSupervisorStatusOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
   path: "v2/supervisors/{supervisorId}/status",
   urlParameters: [
-    Parameters.supervisorId
+    Parameters.supervisorId1
   ],
   responses: {
     200: {
@@ -2800,7 +2804,7 @@ const resetSupervisorOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
   path: "v2/supervisors/{supervisorId}/reset",
   urlParameters: [
-    Parameters.supervisorId
+    Parameters.supervisorId1
   ],
   responses: {
     200: {},

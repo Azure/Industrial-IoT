@@ -1076,10 +1076,14 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             // endpointState - the last state of the the activated endpoint
             // includeNotSeenSince - whether to include endpoints that were soft
             // deleted
+            // discovererID - discoverer id to filter with
+            // applicationID - application id to filter
+            // supervisorID - supervisor id to filter with
+            // siteOrGatewayID - site or gateway id to filter with
             // onlyServerState - whether to include only server state, or display
             // current client state of the endpoint if available
             // pageSize - optional number of results to return
-    func (client BaseClient) GetFilteredListOfEndpoints(ctx context.Context, URLParameter string, certificate []byte, securityMode SecurityMode, securityPolicy string, activated *bool, connected *bool, endpointState EndpointConnectivityState, includeNotSeenSince *bool, onlyServerState *bool, pageSize *int32) (result EndpointInfoListAPIModel, err error) {
+    func (client BaseClient) GetFilteredListOfEndpoints(ctx context.Context, URLParameter string, certificate []byte, securityMode SecurityMode, securityPolicy string, activated *bool, connected *bool, endpointState EndpointConnectivityState, includeNotSeenSince *bool, discovererID string, applicationID string, supervisorID string, siteOrGatewayID string, onlyServerState *bool, pageSize *int32) (result EndpointInfoListAPIModel, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.GetFilteredListOfEndpoints")
             defer func() {
@@ -1090,7 +1094,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 tracing.EndSpan(ctx, sc, err)
             }()
         }
-            req, err := client.GetFilteredListOfEndpointsPreparer(ctx, URLParameter, certificate, securityMode, securityPolicy, activated, connected, endpointState, includeNotSeenSince, onlyServerState, pageSize)
+            req, err := client.GetFilteredListOfEndpointsPreparer(ctx, URLParameter, certificate, securityMode, securityPolicy, activated, connected, endpointState, includeNotSeenSince, discovererID, applicationID, supervisorID, siteOrGatewayID, onlyServerState, pageSize)
         if err != nil {
         err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "GetFilteredListOfEndpoints", nil , "Failure preparing request")
         return
@@ -1112,7 +1116,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
         // GetFilteredListOfEndpointsPreparer prepares the GetFilteredListOfEndpoints request.
-        func (client BaseClient) GetFilteredListOfEndpointsPreparer(ctx context.Context, URLParameter string, certificate []byte, securityMode SecurityMode, securityPolicy string, activated *bool, connected *bool, endpointState EndpointConnectivityState, includeNotSeenSince *bool, onlyServerState *bool, pageSize *int32) (*http.Request, error) {
+        func (client BaseClient) GetFilteredListOfEndpointsPreparer(ctx context.Context, URLParameter string, certificate []byte, securityMode SecurityMode, securityPolicy string, activated *bool, connected *bool, endpointState EndpointConnectivityState, includeNotSeenSince *bool, discovererID string, applicationID string, supervisorID string, siteOrGatewayID string, onlyServerState *bool, pageSize *int32) (*http.Request, error) {
                     queryParameters := map[string]interface{} {
             }
                 if len(URLParameter) > 0 {
@@ -1138,6 +1142,18 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 }
                 if includeNotSeenSince != nil {
                 queryParameters["includeNotSeenSince"] = autorest.Encode("query",*includeNotSeenSince)
+                }
+                if len(discovererID) > 0 {
+                queryParameters["discovererId"] = autorest.Encode("query",discovererID)
+                }
+                if len(applicationID) > 0 {
+                queryParameters["applicationId"] = autorest.Encode("query",applicationID)
+                }
+                if len(supervisorID) > 0 {
+                queryParameters["supervisorId"] = autorest.Encode("query",supervisorID)
+                }
+                if len(siteOrGatewayID) > 0 {
+                queryParameters["siteOrGatewayId"] = autorest.Encode("query",siteOrGatewayID)
                 }
                 if onlyServerState != nil {
                 queryParameters["onlyServerState"] = autorest.Encode("query",*onlyServerState)

@@ -42,11 +42,11 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         /// with</param>
         /// <param name="discoveryProfileUri">Discovery profile uri</param>
         /// <param name="gatewayServerUri">Gateway server uri</param>
-        /// <param name="siteOrSupervisorId">Supervisor or site the application
+        /// <param name="siteOrGatewayId">Supervisor or site the application
         /// belongs to.</param>
         /// <param name="includeNotSeenSince">Whether to include apps that were
         /// soft deleted</param>
-        public ApplicationRegistrationQueryApiModel(ApplicationType? applicationType = default(ApplicationType?), string applicationUri = default(string), string productUri = default(string), string applicationName = default(string), string locale = default(string), string capability = default(string), string discoveryProfileUri = default(string), string gatewayServerUri = default(string), string siteOrSupervisorId = default(string), bool? includeNotSeenSince = default(bool?))
+        public ApplicationRegistrationQueryApiModel(ApplicationType? applicationType = default(ApplicationType?), string applicationUri = default(string), string productUri = default(string), string applicationName = default(string), string locale = default(string), string capability = default(string), string discoveryProfileUri = default(string), string gatewayServerUri = default(string), string siteOrGatewayId = default(string), bool? includeNotSeenSince = default(bool?))
         {
             ApplicationType = applicationType;
             ApplicationUri = applicationUri;
@@ -56,7 +56,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
             Capability = capability;
             DiscoveryProfileUri = discoveryProfileUri;
             GatewayServerUri = gatewayServerUri;
-            SiteOrSupervisorId = siteOrSupervisorId;
+            SiteOrGatewayId = siteOrGatewayId;
             IncludeNotSeenSince = includeNotSeenSince;
             CustomInit();
         }
@@ -118,8 +118,8 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         /// <summary>
         /// Gets or sets supervisor or site the application belongs to.
         /// </summary>
-        [JsonProperty(PropertyName = "siteOrSupervisorId")]
-        public string SiteOrSupervisorId { get; set; }
+        [JsonProperty(PropertyName = "siteOrGatewayId")]
+        public string SiteOrGatewayId { get; set; }
 
         /// <summary>
         /// Gets or sets whether to include apps that were soft deleted

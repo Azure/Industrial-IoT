@@ -2338,6 +2338,10 @@ public interface AzureOpcRegistryClient {
      * @param connected Whether the endpoint is connected on supervisor.
      * @param endpointState The last state of the the activated endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
      * @param includeNotSeenSince Whether to include endpoints that were soft deleted
+     * @param discovererId Discoverer id to filter with
+     * @param applicationId Application id to filter
+     * @param supervisorId Supervisor id to filter with
+     * @param siteOrGatewayId Site or gateway id to filter with
      * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @param pageSize Optional number of results to return
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -2345,7 +2349,7 @@ public interface AzureOpcRegistryClient {
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
      * @return the EndpointInfoListApiModel object if successful.
      */
-    EndpointInfoListApiModel getFilteredListOfEndpoints(String url, byte[] certificate, SecurityMode securityMode, String securityPolicy, Boolean activated, Boolean connected, EndpointConnectivityState endpointState, Boolean includeNotSeenSince, Boolean onlyServerState, Integer pageSize);
+    EndpointInfoListApiModel getFilteredListOfEndpoints(String url, byte[] certificate, SecurityMode securityMode, String securityPolicy, Boolean activated, Boolean connected, EndpointConnectivityState endpointState, Boolean includeNotSeenSince, String discovererId, String applicationId, String supervisorId, String siteOrGatewayId, Boolean onlyServerState, Integer pageSize);
 
     /**
      * Get filtered list of endpoints.
@@ -2359,13 +2363,17 @@ public interface AzureOpcRegistryClient {
      * @param connected Whether the endpoint is connected on supervisor.
      * @param endpointState The last state of the the activated endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
      * @param includeNotSeenSince Whether to include endpoints that were soft deleted
+     * @param discovererId Discoverer id to filter with
+     * @param applicationId Application id to filter
+     * @param supervisorId Supervisor id to filter with
+     * @param siteOrGatewayId Site or gateway id to filter with
      * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @param pageSize Optional number of results to return
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    ServiceFuture<EndpointInfoListApiModel> getFilteredListOfEndpointsAsync(String url, byte[] certificate, SecurityMode securityMode, String securityPolicy, Boolean activated, Boolean connected, EndpointConnectivityState endpointState, Boolean includeNotSeenSince, Boolean onlyServerState, Integer pageSize, final ServiceCallback<EndpointInfoListApiModel> serviceCallback);
+    ServiceFuture<EndpointInfoListApiModel> getFilteredListOfEndpointsAsync(String url, byte[] certificate, SecurityMode securityMode, String securityPolicy, Boolean activated, Boolean connected, EndpointConnectivityState endpointState, Boolean includeNotSeenSince, String discovererId, String applicationId, String supervisorId, String siteOrGatewayId, Boolean onlyServerState, Integer pageSize, final ServiceCallback<EndpointInfoListApiModel> serviceCallback);
 
     /**
      * Get filtered list of endpoints.
@@ -2379,12 +2387,16 @@ public interface AzureOpcRegistryClient {
      * @param connected Whether the endpoint is connected on supervisor.
      * @param endpointState The last state of the the activated endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
      * @param includeNotSeenSince Whether to include endpoints that were soft deleted
+     * @param discovererId Discoverer id to filter with
+     * @param applicationId Application id to filter
+     * @param supervisorId Supervisor id to filter with
+     * @param siteOrGatewayId Site or gateway id to filter with
      * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @param pageSize Optional number of results to return
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the EndpointInfoListApiModel object
      */
-    Observable<EndpointInfoListApiModel> getFilteredListOfEndpointsAsync(String url, byte[] certificate, SecurityMode securityMode, String securityPolicy, Boolean activated, Boolean connected, EndpointConnectivityState endpointState, Boolean includeNotSeenSince, Boolean onlyServerState, Integer pageSize);
+    Observable<EndpointInfoListApiModel> getFilteredListOfEndpointsAsync(String url, byte[] certificate, SecurityMode securityMode, String securityPolicy, Boolean activated, Boolean connected, EndpointConnectivityState endpointState, Boolean includeNotSeenSince, String discovererId, String applicationId, String supervisorId, String siteOrGatewayId, Boolean onlyServerState, Integer pageSize);
 
     /**
      * Get filtered list of endpoints.
@@ -2398,12 +2410,16 @@ public interface AzureOpcRegistryClient {
      * @param connected Whether the endpoint is connected on supervisor.
      * @param endpointState The last state of the the activated endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
      * @param includeNotSeenSince Whether to include endpoints that were soft deleted
+     * @param discovererId Discoverer id to filter with
+     * @param applicationId Application id to filter
+     * @param supervisorId Supervisor id to filter with
+     * @param siteOrGatewayId Site or gateway id to filter with
      * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @param pageSize Optional number of results to return
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the EndpointInfoListApiModel object
      */
-    Observable<ServiceResponse<EndpointInfoListApiModel>> getFilteredListOfEndpointsWithServiceResponseAsync(String url, byte[] certificate, SecurityMode securityMode, String securityPolicy, Boolean activated, Boolean connected, EndpointConnectivityState endpointState, Boolean includeNotSeenSince, Boolean onlyServerState, Integer pageSize);
+    Observable<ServiceResponse<EndpointInfoListApiModel>> getFilteredListOfEndpointsWithServiceResponseAsync(String url, byte[] certificate, SecurityMode securityMode, String securityPolicy, Boolean activated, Boolean connected, EndpointConnectivityState endpointState, Boolean includeNotSeenSince, String discovererId, String applicationId, String supervisorId, String siteOrGatewayId, Boolean onlyServerState, Integer pageSize);
 
     /**
      * Deactivate endpoint.

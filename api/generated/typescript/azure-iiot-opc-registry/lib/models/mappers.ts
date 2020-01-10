@@ -912,8 +912,8 @@ export const ApplicationRegistrationQueryApiModel: msRest.CompositeMapper = {
           name: "String"
         }
       },
-      siteOrSupervisorId: {
-        serializedName: "siteOrSupervisorId",
+      siteOrGatewayId: {
+        serializedName: "siteOrGatewayId",
         type: {
           name: "String"
         }
@@ -1388,6 +1388,30 @@ export const EndpointRegistrationQueryApiModel: msRest.CompositeMapper = {
         serializedName: "includeNotSeenSince",
         type: {
           name: "Boolean"
+        }
+      },
+      discovererId: {
+        serializedName: "discovererId",
+        type: {
+          name: "String"
+        }
+      },
+      applicationId: {
+        serializedName: "applicationId",
+        type: {
+          name: "String"
+        }
+      },
+      supervisorId: {
+        serializedName: "supervisorId",
+        type: {
+          name: "String"
+        }
+      },
+      siteOrGatewayId: {
+        serializedName: "siteOrGatewayId",
+        type: {
+          name: "String"
         }
       }
     }

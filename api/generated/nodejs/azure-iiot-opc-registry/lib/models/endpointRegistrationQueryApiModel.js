@@ -29,6 +29,10 @@ class EndpointRegistrationQueryApiModel {
    * 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
    * @property {boolean} [includeNotSeenSince] Whether to include endpoints
    * that were soft deleted
+   * @property {string} [discovererId] Discoverer id to filter with
+   * @property {string} [applicationId] Application id to filter
+   * @property {string} [supervisorId] Supervisor id to filter with
+   * @property {string} [siteOrGatewayId] Site or gateway id to filter with
    */
   constructor() {
   }
@@ -103,6 +107,34 @@ class EndpointRegistrationQueryApiModel {
             serializedName: 'includeNotSeenSince',
             type: {
               name: 'Boolean'
+            }
+          },
+          discovererId: {
+            required: false,
+            serializedName: 'discovererId',
+            type: {
+              name: 'String'
+            }
+          },
+          applicationId: {
+            required: false,
+            serializedName: 'applicationId',
+            type: {
+              name: 'String'
+            }
+          },
+          supervisorId: {
+            required: false,
+            serializedName: 'supervisorId',
+            type: {
+              name: 'String'
+            }
+          },
+          siteOrGatewayId: {
+            required: false,
+            serializedName: 'siteOrGatewayId',
+            type: {
+              name: 'String'
             }
           }
         }

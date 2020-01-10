@@ -40,6 +40,18 @@ module azure.iiot.opc.registry
       # @return [Boolean] Whether to include endpoints that were soft deleted
       attr_accessor :include_not_seen_since
 
+      # @return [String] Discoverer id to filter with
+      attr_accessor :discoverer_id
+
+      # @return [String] Application id to filter
+      attr_accessor :application_id
+
+      # @return [String] Supervisor id to filter with
+      attr_accessor :supervisor_id
+
+      # @return [String] Site or gateway id to filter with
+      attr_accessor :site_or_gateway_id
+
 
       #
       # Mapper for EndpointRegistrationQueryApiModel class as Ruby Hash.
@@ -118,6 +130,38 @@ module azure.iiot.opc.registry
                 serialized_name: 'includeNotSeenSince',
                 type: {
                   name: 'Boolean'
+                }
+              },
+              discoverer_id: {
+                client_side_validation: true,
+                required: false,
+                serialized_name: 'discovererId',
+                type: {
+                  name: 'String'
+                }
+              },
+              application_id: {
+                client_side_validation: true,
+                required: false,
+                serialized_name: 'applicationId',
+                type: {
+                  name: 'String'
+                }
+              },
+              supervisor_id: {
+                client_side_validation: true,
+                required: false,
+                serialized_name: 'supervisorId',
+                type: {
+                  name: 'String'
+                }
+              },
+              site_or_gateway_id: {
+                client_side_validation: true,
+                required: false,
+                serialized_name: 'siteOrGatewayId',
+                type: {
+                  name: 'String'
                 }
               }
             }

@@ -3091,6 +3091,10 @@ module azure.iiot.opc.registry
     # 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
     # @param include_not_seen_since [Boolean] Whether to include endpoints that
     # were soft deleted
+    # @param discoverer_id [String] Discoverer id to filter with
+    # @param application_id [String] Application id to filter
+    # @param supervisor_id [String] Supervisor id to filter with
+    # @param site_or_gateway_id [String] Site or gateway id to filter with
     # @param only_server_state [Boolean] Whether to include only server state, or
     # display current client state of the endpoint if available
     # @param page_size [Integer] Optional number of results to return
@@ -3099,8 +3103,8 @@ module azure.iiot.opc.registry
     #
     # @return [EndpointInfoListApiModel] operation results.
     #
-    def get_filtered_list_of_endpoints(url:nil, certificate:nil, security_mode:nil, security_policy:nil, activated:nil, connected:nil, endpoint_state:nil, include_not_seen_since:nil, only_server_state:nil, page_size:nil, custom_headers:nil)
-      response = get_filtered_list_of_endpoints_async(url:url, certificate:certificate, security_mode:security_mode, security_policy:security_policy, activated:activated, connected:connected, endpoint_state:endpoint_state, include_not_seen_since:include_not_seen_since, only_server_state:only_server_state, page_size:page_size, custom_headers:custom_headers).value!
+    def get_filtered_list_of_endpoints(url:nil, certificate:nil, security_mode:nil, security_policy:nil, activated:nil, connected:nil, endpoint_state:nil, include_not_seen_since:nil, discoverer_id:nil, application_id:nil, supervisor_id:nil, site_or_gateway_id:nil, only_server_state:nil, page_size:nil, custom_headers:nil)
+      response = get_filtered_list_of_endpoints_async(url:url, certificate:certificate, security_mode:security_mode, security_policy:security_policy, activated:activated, connected:connected, endpoint_state:endpoint_state, include_not_seen_since:include_not_seen_since, discoverer_id:discoverer_id, application_id:application_id, supervisor_id:supervisor_id, site_or_gateway_id:site_or_gateway_id, only_server_state:only_server_state, page_size:page_size, custom_headers:custom_headers).value!
       response.body unless response.nil?
     end
 
@@ -3124,6 +3128,10 @@ module azure.iiot.opc.registry
     # 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
     # @param include_not_seen_since [Boolean] Whether to include endpoints that
     # were soft deleted
+    # @param discoverer_id [String] Discoverer id to filter with
+    # @param application_id [String] Application id to filter
+    # @param supervisor_id [String] Supervisor id to filter with
+    # @param site_or_gateway_id [String] Site or gateway id to filter with
     # @param only_server_state [Boolean] Whether to include only server state, or
     # display current client state of the endpoint if available
     # @param page_size [Integer] Optional number of results to return
@@ -3132,8 +3140,8 @@ module azure.iiot.opc.registry
     #
     # @return [MsRest::HttpOperationResponse] HTTP response information.
     #
-    def get_filtered_list_of_endpoints_with_http_info(url:nil, certificate:nil, security_mode:nil, security_policy:nil, activated:nil, connected:nil, endpoint_state:nil, include_not_seen_since:nil, only_server_state:nil, page_size:nil, custom_headers:nil)
-      get_filtered_list_of_endpoints_async(url:url, certificate:certificate, security_mode:security_mode, security_policy:security_policy, activated:activated, connected:connected, endpoint_state:endpoint_state, include_not_seen_since:include_not_seen_since, only_server_state:only_server_state, page_size:page_size, custom_headers:custom_headers).value!
+    def get_filtered_list_of_endpoints_with_http_info(url:nil, certificate:nil, security_mode:nil, security_policy:nil, activated:nil, connected:nil, endpoint_state:nil, include_not_seen_since:nil, discoverer_id:nil, application_id:nil, supervisor_id:nil, site_or_gateway_id:nil, only_server_state:nil, page_size:nil, custom_headers:nil)
+      get_filtered_list_of_endpoints_async(url:url, certificate:certificate, security_mode:security_mode, security_policy:security_policy, activated:activated, connected:connected, endpoint_state:endpoint_state, include_not_seen_since:include_not_seen_since, discoverer_id:discoverer_id, application_id:application_id, supervisor_id:supervisor_id, site_or_gateway_id:site_or_gateway_id, only_server_state:only_server_state, page_size:page_size, custom_headers:custom_headers).value!
     end
 
     #
@@ -3156,6 +3164,10 @@ module azure.iiot.opc.registry
     # 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
     # @param include_not_seen_since [Boolean] Whether to include endpoints that
     # were soft deleted
+    # @param discoverer_id [String] Discoverer id to filter with
+    # @param application_id [String] Application id to filter
+    # @param supervisor_id [String] Supervisor id to filter with
+    # @param site_or_gateway_id [String] Site or gateway id to filter with
     # @param only_server_state [Boolean] Whether to include only server state, or
     # display current client state of the endpoint if available
     # @param page_size [Integer] Optional number of results to return
@@ -3164,7 +3176,7 @@ module azure.iiot.opc.registry
     #
     # @return [Concurrent::Promise] Promise object which holds the HTTP response.
     #
-    def get_filtered_list_of_endpoints_async(url:nil, certificate:nil, security_mode:nil, security_policy:nil, activated:nil, connected:nil, endpoint_state:nil, include_not_seen_since:nil, only_server_state:nil, page_size:nil, custom_headers:nil)
+    def get_filtered_list_of_endpoints_async(url:nil, certificate:nil, security_mode:nil, security_policy:nil, activated:nil, connected:nil, endpoint_state:nil, include_not_seen_since:nil, discoverer_id:nil, application_id:nil, supervisor_id:nil, site_or_gateway_id:nil, only_server_state:nil, page_size:nil, custom_headers:nil)
 
 
       request_headers = {}
@@ -3175,7 +3187,7 @@ module azure.iiot.opc.registry
 
       options = {
           middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
-          query_params: {'url' => url,'certificate' => certificate,'securityMode' => security_mode,'securityPolicy' => security_policy,'activated' => activated,'connected' => connected,'endpointState' => endpoint_state,'includeNotSeenSince' => include_not_seen_since,'onlyServerState' => only_server_state,'pageSize' => page_size},
+          query_params: {'url' => url,'certificate' => certificate,'securityMode' => security_mode,'securityPolicy' => security_policy,'activated' => activated,'connected' => connected,'endpointState' => endpoint_state,'includeNotSeenSince' => include_not_seen_since,'discovererId' => discoverer_id,'applicationId' => application_id,'supervisorId' => supervisor_id,'siteOrGatewayId' => site_or_gateway_id,'onlyServerState' => only_server_state,'pageSize' => page_size},
           headers: request_headers.merge(custom_headers || {}),
           base_url: request_url
       }

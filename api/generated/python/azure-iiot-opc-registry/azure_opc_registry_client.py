@@ -1875,7 +1875,7 @@ class AzureOpcRegistryClient(object):
     query_endpoints.metadata = {'url': '/v2/endpoints/query'}
 
     def get_filtered_list_of_endpoints(
-            self, url=None, certificate=None, security_mode=None, security_policy=None, activated=None, connected=None, endpoint_state=None, include_not_seen_since=None, only_server_state=None, page_size=None, custom_headers=None, raw=False, **operation_config):
+            self, url=None, certificate=None, security_mode=None, security_policy=None, activated=None, connected=None, endpoint_state=None, include_not_seen_since=None, discoverer_id=None, application_id=None, supervisor_id=None, site_or_gateway_id=None, only_server_state=None, page_size=None, custom_headers=None, raw=False, **operation_config):
         """Get filtered list of endpoints.
 
         Get a list of endpoints filtered using the specified query parameters.
@@ -1905,6 +1905,14 @@ class AzureOpcRegistryClient(object):
         :param include_not_seen_since: Whether to include endpoints that were
          soft deleted
         :type include_not_seen_since: bool
+        :param discoverer_id: Discoverer id to filter with
+        :type discoverer_id: str
+        :param application_id: Application id to filter
+        :type application_id: str
+        :param supervisor_id: Supervisor id to filter with
+        :type supervisor_id: str
+        :param site_or_gateway_id: Site or gateway id to filter with
+        :type site_or_gateway_id: str
         :param only_server_state: Whether to include only server state, or
          display current client state of the endpoint if available
         :type only_server_state: bool
@@ -1942,6 +1950,14 @@ class AzureOpcRegistryClient(object):
             query_parameters['endpointState'] = self._serialize.query("endpoint_state", endpoint_state, 'EndpointConnectivityState')
         if include_not_seen_since is not None:
             query_parameters['includeNotSeenSince'] = self._serialize.query("include_not_seen_since", include_not_seen_since, 'bool')
+        if discoverer_id is not None:
+            query_parameters['discovererId'] = self._serialize.query("discoverer_id", discoverer_id, 'str')
+        if application_id is not None:
+            query_parameters['applicationId'] = self._serialize.query("application_id", application_id, 'str')
+        if supervisor_id is not None:
+            query_parameters['supervisorId'] = self._serialize.query("supervisor_id", supervisor_id, 'str')
+        if site_or_gateway_id is not None:
+            query_parameters['siteOrGatewayId'] = self._serialize.query("site_or_gateway_id", site_or_gateway_id, 'str')
         if only_server_state is not None:
             query_parameters['onlyServerState'] = self._serialize.query("only_server_state", only_server_state, 'bool')
         if page_size is not None:

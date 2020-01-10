@@ -68,8 +68,8 @@ public class ApplicationRegistrationQueryApiModel {
     /**
      * Supervisor or site the application belongs to.
      */
-    @JsonProperty(value = "siteOrSupervisorId")
-    private String siteOrSupervisorId;
+    @JsonProperty(value = "siteOrGatewayId")
+    private String siteOrGatewayId;
 
     /**
      * Whether to include apps that were soft deleted.
@@ -240,20 +240,20 @@ public class ApplicationRegistrationQueryApiModel {
     /**
      * Get supervisor or site the application belongs to.
      *
-     * @return the siteOrSupervisorId value
+     * @return the siteOrGatewayId value
      */
-    public String siteOrSupervisorId() {
-        return this.siteOrSupervisorId;
+    public String siteOrGatewayId() {
+        return this.siteOrGatewayId;
     }
 
     /**
      * Set supervisor or site the application belongs to.
      *
-     * @param siteOrSupervisorId the siteOrSupervisorId value to set
+     * @param siteOrGatewayId the siteOrGatewayId value to set
      * @return the ApplicationRegistrationQueryApiModel object itself.
      */
-    public ApplicationRegistrationQueryApiModel withSiteOrSupervisorId(String siteOrSupervisorId) {
-        this.siteOrSupervisorId = siteOrSupervisorId;
+    public ApplicationRegistrationQueryApiModel withSiteOrGatewayId(String siteOrGatewayId) {
+        this.siteOrGatewayId = siteOrGatewayId;
         return this;
     }
 

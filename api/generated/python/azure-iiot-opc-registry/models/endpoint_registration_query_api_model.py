@@ -35,6 +35,14 @@ class EndpointRegistrationQueryApiModel(Model):
     :param include_not_seen_since: Whether to include endpoints that were soft
      deleted
     :type include_not_seen_since: bool
+    :param discoverer_id: Discoverer id to filter with
+    :type discoverer_id: str
+    :param application_id: Application id to filter
+    :type application_id: str
+    :param supervisor_id: Supervisor id to filter with
+    :type supervisor_id: str
+    :param site_or_gateway_id: Site or gateway id to filter with
+    :type site_or_gateway_id: str
     """
 
     _attribute_map = {
@@ -46,9 +54,13 @@ class EndpointRegistrationQueryApiModel(Model):
         'connected': {'key': 'connected', 'type': 'bool'},
         'endpoint_state': {'key': 'endpointState', 'type': 'EndpointConnectivityState'},
         'include_not_seen_since': {'key': 'includeNotSeenSince', 'type': 'bool'},
+        'discoverer_id': {'key': 'discovererId', 'type': 'str'},
+        'application_id': {'key': 'applicationId', 'type': 'str'},
+        'supervisor_id': {'key': 'supervisorId', 'type': 'str'},
+        'site_or_gateway_id': {'key': 'siteOrGatewayId', 'type': 'str'},
     }
 
-    def __init__(self, url=None, certificate=None, security_mode=None, security_policy=None, activated=None, connected=None, endpoint_state=None, include_not_seen_since=None):
+    def __init__(self, url=None, certificate=None, security_mode=None, security_policy=None, activated=None, connected=None, endpoint_state=None, include_not_seen_since=None, discoverer_id=None, application_id=None, supervisor_id=None, site_or_gateway_id=None):
         super(EndpointRegistrationQueryApiModel, self).__init__()
         self.url = url
         self.certificate = certificate
@@ -58,3 +70,7 @@ class EndpointRegistrationQueryApiModel(Model):
         self.connected = connected
         self.endpoint_state = endpoint_state
         self.include_not_seen_since = include_not_seen_since
+        self.discoverer_id = discoverer_id
+        self.application_id = application_id
+        self.supervisor_id = supervisor_id
+        self.site_or_gateway_id = site_or_gateway_id

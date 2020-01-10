@@ -5021,6 +5021,18 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
         /// <param name='includeNotSeenSince'>
         /// Whether to include endpoints that were soft deleted
         /// </param>
+        /// <param name='discovererId'>
+        /// Discoverer id to filter with
+        /// </param>
+        /// <param name='applicationId'>
+        /// Application id to filter
+        /// </param>
+        /// <param name='supervisorId'>
+        /// Supervisor id to filter with
+        /// </param>
+        /// <param name='siteOrGatewayId'>
+        /// Site or gateway id to filter with
+        /// </param>
         /// <param name='onlyServerState'>
         /// Whether to include only server state, or display current client state of
         /// the endpoint if available
@@ -5043,7 +5055,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<EndpointInfoListApiModel>> GetFilteredListOfEndpointsWithHttpMessagesAsync(string url = default(string), byte[] certificate = default(byte[]), SecurityMode? securityMode = default(SecurityMode?), string securityPolicy = default(string), bool? activated = default(bool?), bool? connected = default(bool?), EndpointConnectivityState? endpointState = default(EndpointConnectivityState?), bool? includeNotSeenSince = default(bool?), bool? onlyServerState = default(bool?), int? pageSize = default(int?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<EndpointInfoListApiModel>> GetFilteredListOfEndpointsWithHttpMessagesAsync(string url = default(string), byte[] certificate = default(byte[]), SecurityMode? securityMode = default(SecurityMode?), string securityPolicy = default(string), bool? activated = default(bool?), bool? connected = default(bool?), EndpointConnectivityState? endpointState = default(EndpointConnectivityState?), bool? includeNotSeenSince = default(bool?), string discovererId = default(string), string applicationId = default(string), string supervisorId = default(string), string siteOrGatewayId = default(string), bool? onlyServerState = default(bool?), int? pageSize = default(int?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -5060,6 +5072,10 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
                 tracingParameters.Add("connected", connected);
                 tracingParameters.Add("endpointState", endpointState);
                 tracingParameters.Add("includeNotSeenSince", includeNotSeenSince);
+                tracingParameters.Add("discovererId", discovererId);
+                tracingParameters.Add("applicationId", applicationId);
+                tracingParameters.Add("supervisorId", supervisorId);
+                tracingParameters.Add("siteOrGatewayId", siteOrGatewayId);
                 tracingParameters.Add("onlyServerState", onlyServerState);
                 tracingParameters.Add("pageSize", pageSize);
                 tracingParameters.Add("cancellationToken", cancellationToken);
@@ -5100,6 +5116,22 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             if (includeNotSeenSince != null)
             {
                 _queryParameters.Add(string.Format("includeNotSeenSince={0}", System.Uri.EscapeDataString(SafeJsonConvert.SerializeObject(includeNotSeenSince, SerializationSettings).Trim('"'))));
+            }
+            if (discovererId != null)
+            {
+                _queryParameters.Add(string.Format("discovererId={0}", System.Uri.EscapeDataString(discovererId)));
+            }
+            if (applicationId != null)
+            {
+                _queryParameters.Add(string.Format("applicationId={0}", System.Uri.EscapeDataString(applicationId)));
+            }
+            if (supervisorId != null)
+            {
+                _queryParameters.Add(string.Format("supervisorId={0}", System.Uri.EscapeDataString(supervisorId)));
+            }
+            if (siteOrGatewayId != null)
+            {
+                _queryParameters.Add(string.Format("siteOrGatewayId={0}", System.Uri.EscapeDataString(siteOrGatewayId)));
             }
             if (onlyServerState != null)
             {

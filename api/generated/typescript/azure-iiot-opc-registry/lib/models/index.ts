@@ -565,10 +565,10 @@ export interface ApplicationRegistrationQueryApiModel {
    */
   gatewayServerUri?: string;
   /**
-   * @member {string} [siteOrSupervisorId] Supervisor or site the application
+   * @member {string} [siteOrGatewayId] Supervisor or site the application
    * belongs to.
    */
-  siteOrSupervisorId?: string;
+  siteOrGatewayId?: string;
   /**
    * @member {boolean} [includeNotSeenSince] Whether to include apps that were
    * soft deleted
@@ -858,6 +858,22 @@ export interface EndpointRegistrationQueryApiModel {
    * were soft deleted
    */
   includeNotSeenSince?: boolean;
+  /**
+   * @member {string} [discovererId] Discoverer id to filter with
+   */
+  discovererId?: string;
+  /**
+   * @member {string} [applicationId] Application id to filter
+   */
+  applicationId?: string;
+  /**
+   * @member {string} [supervisorId] Supervisor id to filter with
+   */
+  supervisorId?: string;
+  /**
+   * @member {string} [siteOrGatewayId] Site or gateway id to filter with
+   */
+  siteOrGatewayId?: string;
 }
 
 /**
@@ -1641,6 +1657,22 @@ export interface AzureOpcRegistryClientGetFilteredListOfEndpointsOptionalParams 
    * were soft deleted
    */
   includeNotSeenSince?: boolean;
+  /**
+   * @member {string} [discovererId] Discoverer id to filter with
+   */
+  discovererId?: string;
+  /**
+   * @member {string} [applicationId] Application id to filter
+   */
+  applicationId?: string;
+  /**
+   * @member {string} [supervisorId] Supervisor id to filter with
+   */
+  supervisorId?: string;
+  /**
+   * @member {string} [siteOrGatewayId] Site or gateway id to filter with
+   */
+  siteOrGatewayId?: string;
   /**
    * @member {boolean} [onlyServerState] Whether to include only server state,
    * or display current client state of the endpoint if available

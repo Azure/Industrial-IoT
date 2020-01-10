@@ -476,8 +476,8 @@ const fqdn = "go/azure-iiot-opc-registry"
             DiscoveryProfileURI *string `json:"discoveryProfileUri,omitempty"`
             // GatewayServerURI - Gateway server uri
             GatewayServerURI *string `json:"gatewayServerUri,omitempty"`
-            // SiteOrSupervisorID - Supervisor or site the application belongs to.
-            SiteOrSupervisorID *string `json:"siteOrSupervisorId,omitempty"`
+            // SiteOrGatewayID - Supervisor or site the application belongs to.
+            SiteOrGatewayID *string `json:"siteOrGatewayId,omitempty"`
             // IncludeNotSeenSince - Whether to include apps that were soft deleted
             IncludeNotSeenSince *bool `json:"includeNotSeenSince,omitempty"`
             }
@@ -1209,6 +1209,14 @@ const fqdn = "go/azure-iiot-opc-registry"
             EndpointState EndpointConnectivityState `json:"endpointState,omitempty"`
             // IncludeNotSeenSince - Whether to include endpoints that were soft deleted
             IncludeNotSeenSince *bool `json:"includeNotSeenSince,omitempty"`
+            // DiscovererID - Discoverer id to filter with
+            DiscovererID *string `json:"discovererId,omitempty"`
+            // ApplicationID - Application id to filter
+            ApplicationID *string `json:"applicationId,omitempty"`
+            // SupervisorID - Supervisor id to filter with
+            SupervisorID *string `json:"supervisorId,omitempty"`
+            // SiteOrGatewayID - Site or gateway id to filter with
+            SiteOrGatewayID *string `json:"siteOrGatewayId,omitempty"`
             }
 
             // GatewayAPIModel gateway registration model

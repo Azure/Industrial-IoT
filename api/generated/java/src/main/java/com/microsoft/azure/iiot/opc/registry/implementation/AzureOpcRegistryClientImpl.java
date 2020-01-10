@@ -279,7 +279,7 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
 
         @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient getFilteredListOfEndpoints" })
         @GET("v2/endpoints/query")
-        Observable<Response<ResponseBody>> getFilteredListOfEndpoints(@Query("url") String url, @Query("certificate") String certificate, @Query("securityMode") SecurityMode securityMode, @Query("securityPolicy") String securityPolicy, @Query("activated") Boolean activated, @Query("connected") Boolean connected, @Query("endpointState") EndpointConnectivityState endpointState, @Query("includeNotSeenSince") Boolean includeNotSeenSince, @Query("onlyServerState") Boolean onlyServerState, @Query("pageSize") Integer pageSize);
+        Observable<Response<ResponseBody>> getFilteredListOfEndpoints(@Query("url") String url, @Query("certificate") String certificate, @Query("securityMode") SecurityMode securityMode, @Query("securityPolicy") String securityPolicy, @Query("activated") Boolean activated, @Query("connected") Boolean connected, @Query("endpointState") EndpointConnectivityState endpointState, @Query("includeNotSeenSince") Boolean includeNotSeenSince, @Query("discovererId") String discovererId, @Query("applicationId") String applicationId, @Query("supervisorId") String supervisorId, @Query("siteOrGatewayId") String siteOrGatewayId, @Query("onlyServerState") Boolean onlyServerState, @Query("pageSize") Integer pageSize);
 
         @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient deactivateEndpoint" })
         @POST("v2/endpoints/{endpointId}/deactivate")
@@ -4268,10 +4268,14 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
         final Boolean connected = null;
         final EndpointConnectivityState endpointState = null;
         final Boolean includeNotSeenSince = null;
+        final String discovererId = null;
+        final String applicationId = null;
+        final String supervisorId = null;
+        final String siteOrGatewayId = null;
         final Boolean onlyServerState = null;
         final Integer pageSize = null;
         String certificateConverted = Base64.encodeBase64String(certificate);
-        return service.getFilteredListOfEndpoints(url, certificateConverted, securityMode, securityPolicy, activated, connected, endpointState, includeNotSeenSince, onlyServerState, pageSize)
+        return service.getFilteredListOfEndpoints(url, certificateConverted, securityMode, securityPolicy, activated, connected, endpointState, includeNotSeenSince, discovererId, applicationId, supervisorId, siteOrGatewayId, onlyServerState, pageSize)
             .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<EndpointInfoListApiModel>>>() {
                 @Override
                 public Observable<ServiceResponse<EndpointInfoListApiModel>> call(Response<ResponseBody> response) {
@@ -4297,6 +4301,10 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
      * @param connected Whether the endpoint is connected on supervisor.
      * @param endpointState The last state of the the activated endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
      * @param includeNotSeenSince Whether to include endpoints that were soft deleted
+     * @param discovererId Discoverer id to filter with
+     * @param applicationId Application id to filter
+     * @param supervisorId Supervisor id to filter with
+     * @param siteOrGatewayId Site or gateway id to filter with
      * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @param pageSize Optional number of results to return
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -4304,8 +4312,8 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
      * @return the EndpointInfoListApiModel object if successful.
      */
-    public EndpointInfoListApiModel getFilteredListOfEndpoints(String url, byte[] certificate, SecurityMode securityMode, String securityPolicy, Boolean activated, Boolean connected, EndpointConnectivityState endpointState, Boolean includeNotSeenSince, Boolean onlyServerState, Integer pageSize) {
-        return getFilteredListOfEndpointsWithServiceResponseAsync(url, certificate, securityMode, securityPolicy, activated, connected, endpointState, includeNotSeenSince, onlyServerState, pageSize).toBlocking().single().body();
+    public EndpointInfoListApiModel getFilteredListOfEndpoints(String url, byte[] certificate, SecurityMode securityMode, String securityPolicy, Boolean activated, Boolean connected, EndpointConnectivityState endpointState, Boolean includeNotSeenSince, String discovererId, String applicationId, String supervisorId, String siteOrGatewayId, Boolean onlyServerState, Integer pageSize) {
+        return getFilteredListOfEndpointsWithServiceResponseAsync(url, certificate, securityMode, securityPolicy, activated, connected, endpointState, includeNotSeenSince, discovererId, applicationId, supervisorId, siteOrGatewayId, onlyServerState, pageSize).toBlocking().single().body();
     }
 
     /**
@@ -4320,14 +4328,18 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
      * @param connected Whether the endpoint is connected on supervisor.
      * @param endpointState The last state of the the activated endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
      * @param includeNotSeenSince Whether to include endpoints that were soft deleted
+     * @param discovererId Discoverer id to filter with
+     * @param applicationId Application id to filter
+     * @param supervisorId Supervisor id to filter with
+     * @param siteOrGatewayId Site or gateway id to filter with
      * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @param pageSize Optional number of results to return
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    public ServiceFuture<EndpointInfoListApiModel> getFilteredListOfEndpointsAsync(String url, byte[] certificate, SecurityMode securityMode, String securityPolicy, Boolean activated, Boolean connected, EndpointConnectivityState endpointState, Boolean includeNotSeenSince, Boolean onlyServerState, Integer pageSize, final ServiceCallback<EndpointInfoListApiModel> serviceCallback) {
-        return ServiceFuture.fromResponse(getFilteredListOfEndpointsWithServiceResponseAsync(url, certificate, securityMode, securityPolicy, activated, connected, endpointState, includeNotSeenSince, onlyServerState, pageSize), serviceCallback);
+    public ServiceFuture<EndpointInfoListApiModel> getFilteredListOfEndpointsAsync(String url, byte[] certificate, SecurityMode securityMode, String securityPolicy, Boolean activated, Boolean connected, EndpointConnectivityState endpointState, Boolean includeNotSeenSince, String discovererId, String applicationId, String supervisorId, String siteOrGatewayId, Boolean onlyServerState, Integer pageSize, final ServiceCallback<EndpointInfoListApiModel> serviceCallback) {
+        return ServiceFuture.fromResponse(getFilteredListOfEndpointsWithServiceResponseAsync(url, certificate, securityMode, securityPolicy, activated, connected, endpointState, includeNotSeenSince, discovererId, applicationId, supervisorId, siteOrGatewayId, onlyServerState, pageSize), serviceCallback);
     }
 
     /**
@@ -4342,13 +4354,17 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
      * @param connected Whether the endpoint is connected on supervisor.
      * @param endpointState The last state of the the activated endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
      * @param includeNotSeenSince Whether to include endpoints that were soft deleted
+     * @param discovererId Discoverer id to filter with
+     * @param applicationId Application id to filter
+     * @param supervisorId Supervisor id to filter with
+     * @param siteOrGatewayId Site or gateway id to filter with
      * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @param pageSize Optional number of results to return
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the EndpointInfoListApiModel object
      */
-    public Observable<EndpointInfoListApiModel> getFilteredListOfEndpointsAsync(String url, byte[] certificate, SecurityMode securityMode, String securityPolicy, Boolean activated, Boolean connected, EndpointConnectivityState endpointState, Boolean includeNotSeenSince, Boolean onlyServerState, Integer pageSize) {
-        return getFilteredListOfEndpointsWithServiceResponseAsync(url, certificate, securityMode, securityPolicy, activated, connected, endpointState, includeNotSeenSince, onlyServerState, pageSize).map(new Func1<ServiceResponse<EndpointInfoListApiModel>, EndpointInfoListApiModel>() {
+    public Observable<EndpointInfoListApiModel> getFilteredListOfEndpointsAsync(String url, byte[] certificate, SecurityMode securityMode, String securityPolicy, Boolean activated, Boolean connected, EndpointConnectivityState endpointState, Boolean includeNotSeenSince, String discovererId, String applicationId, String supervisorId, String siteOrGatewayId, Boolean onlyServerState, Integer pageSize) {
+        return getFilteredListOfEndpointsWithServiceResponseAsync(url, certificate, securityMode, securityPolicy, activated, connected, endpointState, includeNotSeenSince, discovererId, applicationId, supervisorId, siteOrGatewayId, onlyServerState, pageSize).map(new Func1<ServiceResponse<EndpointInfoListApiModel>, EndpointInfoListApiModel>() {
             @Override
             public EndpointInfoListApiModel call(ServiceResponse<EndpointInfoListApiModel> response) {
                 return response.body();
@@ -4368,14 +4384,18 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
      * @param connected Whether the endpoint is connected on supervisor.
      * @param endpointState The last state of the the activated endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
      * @param includeNotSeenSince Whether to include endpoints that were soft deleted
+     * @param discovererId Discoverer id to filter with
+     * @param applicationId Application id to filter
+     * @param supervisorId Supervisor id to filter with
+     * @param siteOrGatewayId Site or gateway id to filter with
      * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @param pageSize Optional number of results to return
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the EndpointInfoListApiModel object
      */
-    public Observable<ServiceResponse<EndpointInfoListApiModel>> getFilteredListOfEndpointsWithServiceResponseAsync(String url, byte[] certificate, SecurityMode securityMode, String securityPolicy, Boolean activated, Boolean connected, EndpointConnectivityState endpointState, Boolean includeNotSeenSince, Boolean onlyServerState, Integer pageSize) {
+    public Observable<ServiceResponse<EndpointInfoListApiModel>> getFilteredListOfEndpointsWithServiceResponseAsync(String url, byte[] certificate, SecurityMode securityMode, String securityPolicy, Boolean activated, Boolean connected, EndpointConnectivityState endpointState, Boolean includeNotSeenSince, String discovererId, String applicationId, String supervisorId, String siteOrGatewayId, Boolean onlyServerState, Integer pageSize) {
         String certificateConverted = Base64.encodeBase64String(certificate);
-        return service.getFilteredListOfEndpoints(url, certificateConverted, securityMode, securityPolicy, activated, connected, endpointState, includeNotSeenSince, onlyServerState, pageSize)
+        return service.getFilteredListOfEndpoints(url, certificateConverted, securityMode, securityPolicy, activated, connected, endpointState, includeNotSeenSince, discovererId, applicationId, supervisorId, siteOrGatewayId, onlyServerState, pageSize)
             .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<EndpointInfoListApiModel>>>() {
                 @Override
                 public Observable<ServiceResponse<EndpointInfoListApiModel>> call(Response<ResponseBody> response) {

@@ -1531,7 +1531,7 @@ function _getListOfSites(options, callback) {
  *
  * @param {string} [body.gatewayServerUri] Gateway server uri
  *
- * @param {string} [body.siteOrSupervisorId] Supervisor or site the application
+ * @param {string} [body.siteOrGatewayId] Supervisor or site the application
  * belongs to.
  *
  * @param {boolean} [body.includeNotSeenSince] Whether to include apps that
@@ -1701,7 +1701,7 @@ function _queryApplications(body, options, callback) {
  *
  * @param {string} [body.gatewayServerUri] Gateway server uri
  *
- * @param {string} [body.siteOrSupervisorId] Supervisor or site the application
+ * @param {string} [body.siteOrGatewayId] Supervisor or site the application
  * belongs to.
  *
  * @param {boolean} [body.includeNotSeenSince] Whether to include apps that
@@ -4256,6 +4256,14 @@ function _getListOfEndpoints(options, callback) {
  * @param {boolean} [body.includeNotSeenSince] Whether to include endpoints
  * that were soft deleted
  *
+ * @param {string} [body.discovererId] Discoverer id to filter with
+ *
+ * @param {string} [body.applicationId] Application id to filter
+ *
+ * @param {string} [body.supervisorId] Supervisor id to filter with
+ *
+ * @param {string} [body.siteOrGatewayId] Site or gateway id to filter with
+ *
  * @param {object} [options] Optional Parameters.
  *
  * @param {boolean} [options.onlyServerState] Whether to include only server
@@ -4434,6 +4442,14 @@ function _queryEndpoints(body, options, callback) {
  * @param {boolean} [options.includeNotSeenSince] Whether to include endpoints
  * that were soft deleted
  *
+ * @param {string} [options.discovererId] Discoverer id to filter with
+ *
+ * @param {string} [options.applicationId] Application id to filter
+ *
+ * @param {string} [options.supervisorId] Supervisor id to filter with
+ *
+ * @param {string} [options.siteOrGatewayId] Site or gateway id to filter with
+ *
  * @param {boolean} [options.onlyServerState] Whether to include only server
  * state, or display current client state of the endpoint if available
  *
@@ -4474,6 +4490,10 @@ function _getFilteredListOfEndpoints(options, callback) {
   let connected = (options && options.connected !== undefined) ? options.connected : undefined;
   let endpointState = (options && options.endpointState !== undefined) ? options.endpointState : undefined;
   let includeNotSeenSince = (options && options.includeNotSeenSince !== undefined) ? options.includeNotSeenSince : undefined;
+  let discovererId = (options && options.discovererId !== undefined) ? options.discovererId : undefined;
+  let applicationId = (options && options.applicationId !== undefined) ? options.applicationId : undefined;
+  let supervisorId = (options && options.supervisorId !== undefined) ? options.supervisorId : undefined;
+  let siteOrGatewayId = (options && options.siteOrGatewayId !== undefined) ? options.siteOrGatewayId : undefined;
   let onlyServerState = (options && options.onlyServerState !== undefined) ? options.onlyServerState : undefined;
   let pageSize = (options && options.pageSize !== undefined) ? options.pageSize : undefined;
   // Validate
@@ -4507,6 +4527,18 @@ function _getFilteredListOfEndpoints(options, callback) {
     }
     if (includeNotSeenSince !== null && includeNotSeenSince !== undefined && typeof includeNotSeenSince !== 'boolean') {
       throw new Error('includeNotSeenSince must be of type boolean.');
+    }
+    if (discovererId !== null && discovererId !== undefined && typeof discovererId.valueOf() !== 'string') {
+      throw new Error('discovererId must be of type string.');
+    }
+    if (applicationId !== null && applicationId !== undefined && typeof applicationId.valueOf() !== 'string') {
+      throw new Error('applicationId must be of type string.');
+    }
+    if (supervisorId !== null && supervisorId !== undefined && typeof supervisorId.valueOf() !== 'string') {
+      throw new Error('supervisorId must be of type string.');
+    }
+    if (siteOrGatewayId !== null && siteOrGatewayId !== undefined && typeof siteOrGatewayId.valueOf() !== 'string') {
+      throw new Error('siteOrGatewayId must be of type string.');
     }
     if (onlyServerState !== null && onlyServerState !== undefined && typeof onlyServerState !== 'boolean') {
       throw new Error('onlyServerState must be of type boolean.');
@@ -4545,6 +4577,18 @@ function _getFilteredListOfEndpoints(options, callback) {
   }
   if (includeNotSeenSince !== null && includeNotSeenSince !== undefined) {
     queryParameters.push('includeNotSeenSince=' + encodeURIComponent(includeNotSeenSince.toString()));
+  }
+  if (discovererId !== null && discovererId !== undefined) {
+    queryParameters.push('discovererId=' + encodeURIComponent(discovererId));
+  }
+  if (applicationId !== null && applicationId !== undefined) {
+    queryParameters.push('applicationId=' + encodeURIComponent(applicationId));
+  }
+  if (supervisorId !== null && supervisorId !== undefined) {
+    queryParameters.push('supervisorId=' + encodeURIComponent(supervisorId));
+  }
+  if (siteOrGatewayId !== null && siteOrGatewayId !== undefined) {
+    queryParameters.push('siteOrGatewayId=' + encodeURIComponent(siteOrGatewayId));
   }
   if (onlyServerState !== null && onlyServerState !== undefined) {
     queryParameters.push('onlyServerState=' + encodeURIComponent(onlyServerState.toString()));
@@ -9449,7 +9493,7 @@ class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {string} [body.gatewayServerUri] Gateway server uri
    *
-   * @param {string} [body.siteOrSupervisorId] Supervisor or site the application
+   * @param {string} [body.siteOrGatewayId] Supervisor or site the application
    * belongs to.
    *
    * @param {boolean} [body.includeNotSeenSince] Whether to include apps that
@@ -9508,7 +9552,7 @@ class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {string} [body.gatewayServerUri] Gateway server uri
    *
-   * @param {string} [body.siteOrSupervisorId] Supervisor or site the application
+   * @param {string} [body.siteOrGatewayId] Supervisor or site the application
    * belongs to.
    *
    * @param {boolean} [body.includeNotSeenSince] Whether to include apps that
@@ -9591,7 +9635,7 @@ class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {string} [body.gatewayServerUri] Gateway server uri
    *
-   * @param {string} [body.siteOrSupervisorId] Supervisor or site the application
+   * @param {string} [body.siteOrGatewayId] Supervisor or site the application
    * belongs to.
    *
    * @param {boolean} [body.includeNotSeenSince] Whether to include apps that
@@ -9651,7 +9695,7 @@ class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {string} [body.gatewayServerUri] Gateway server uri
    *
-   * @param {string} [body.siteOrSupervisorId] Supervisor or site the application
+   * @param {string} [body.siteOrGatewayId] Supervisor or site the application
    * belongs to.
    *
    * @param {boolean} [body.includeNotSeenSince] Whether to include apps that
@@ -11658,6 +11702,14 @@ class AzureOpcRegistryClient extends ServiceClient {
    * @param {boolean} [body.includeNotSeenSince] Whether to include endpoints
    * that were soft deleted
    *
+   * @param {string} [body.discovererId] Discoverer id to filter with
+   *
+   * @param {string} [body.applicationId] Application id to filter
+   *
+   * @param {string} [body.supervisorId] Supervisor id to filter with
+   *
+   * @param {string} [body.siteOrGatewayId] Site or gateway id to filter with
+   *
    * @param {object} [options] Optional Parameters.
    *
    * @param {boolean} [options.onlyServerState] Whether to include only server
@@ -11716,6 +11768,14 @@ class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {boolean} [body.includeNotSeenSince] Whether to include endpoints
    * that were soft deleted
+   *
+   * @param {string} [body.discovererId] Discoverer id to filter with
+   *
+   * @param {string} [body.applicationId] Application id to filter
+   *
+   * @param {string} [body.supervisorId] Supervisor id to filter with
+   *
+   * @param {string} [body.siteOrGatewayId] Site or gateway id to filter with
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -11801,6 +11861,14 @@ class AzureOpcRegistryClient extends ServiceClient {
    * @param {boolean} [options.includeNotSeenSince] Whether to include endpoints
    * that were soft deleted
    *
+   * @param {string} [options.discovererId] Discoverer id to filter with
+   *
+   * @param {string} [options.applicationId] Application id to filter
+   *
+   * @param {string} [options.supervisorId] Supervisor id to filter with
+   *
+   * @param {string} [options.siteOrGatewayId] Site or gateway id to filter with
+   *
    * @param {boolean} [options.onlyServerState] Whether to include only server
    * state, or display current client state of the endpoint if available
    *
@@ -11859,6 +11927,14 @@ class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {boolean} [options.includeNotSeenSince] Whether to include endpoints
    * that were soft deleted
+   *
+   * @param {string} [options.discovererId] Discoverer id to filter with
+   *
+   * @param {string} [options.applicationId] Application id to filter
+   *
+   * @param {string} [options.supervisorId] Supervisor id to filter with
+   *
+   * @param {string} [options.siteOrGatewayId] Site or gateway id to filter with
    *
    * @param {boolean} [options.onlyServerState] Whether to include only server
    * state, or display current client state of the endpoint if available

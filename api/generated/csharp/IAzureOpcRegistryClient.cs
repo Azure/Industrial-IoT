@@ -766,6 +766,18 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
         /// <param name='includeNotSeenSince'>
         /// Whether to include endpoints that were soft deleted
         /// </param>
+        /// <param name='discovererId'>
+        /// Discoverer id to filter with
+        /// </param>
+        /// <param name='applicationId'>
+        /// Application id to filter
+        /// </param>
+        /// <param name='supervisorId'>
+        /// Supervisor id to filter with
+        /// </param>
+        /// <param name='siteOrGatewayId'>
+        /// Site or gateway id to filter with
+        /// </param>
         /// <param name='onlyServerState'>
         /// Whether to include only server state, or display current client
         /// state of the endpoint if available
@@ -779,7 +791,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
         /// <param name='cancellationToken'>
         /// The cancellation token.
         /// </param>
-        Task<HttpOperationResponse<EndpointInfoListApiModel>> GetFilteredListOfEndpointsWithHttpMessagesAsync(string url = default(string), byte[] certificate = default(byte[]), SecurityMode? securityMode = default(SecurityMode?), string securityPolicy = default(string), bool? activated = default(bool?), bool? connected = default(bool?), EndpointConnectivityState? endpointState = default(EndpointConnectivityState?), bool? includeNotSeenSince = default(bool?), bool? onlyServerState = default(bool?), int? pageSize = default(int?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+        Task<HttpOperationResponse<EndpointInfoListApiModel>> GetFilteredListOfEndpointsWithHttpMessagesAsync(string url = default(string), byte[] certificate = default(byte[]), SecurityMode? securityMode = default(SecurityMode?), string securityPolicy = default(string), bool? activated = default(bool?), bool? connected = default(bool?), EndpointConnectivityState? endpointState = default(EndpointConnectivityState?), bool? includeNotSeenSince = default(bool?), string discovererId = default(string), string applicationId = default(string), string supervisorId = default(string), string siteOrGatewayId = default(string), bool? onlyServerState = default(bool?), int? pageSize = default(int?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Deactivate endpoint

@@ -1559,6 +1559,18 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// <param name='includeNotSeenSince'>
             /// Whether to include endpoints that were soft deleted
             /// </param>
+            /// <param name='discovererId'>
+            /// Discoverer id to filter with
+            /// </param>
+            /// <param name='applicationId'>
+            /// Application id to filter
+            /// </param>
+            /// <param name='supervisorId'>
+            /// Supervisor id to filter with
+            /// </param>
+            /// <param name='siteOrGatewayId'>
+            /// Site or gateway id to filter with
+            /// </param>
             /// <param name='onlyServerState'>
             /// Whether to include only server state, or display current client state of
             /// the endpoint if available
@@ -1566,9 +1578,9 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// <param name='pageSize'>
             /// Optional number of results to return
             /// </param>
-            public static EndpointInfoListApiModel GetFilteredListOfEndpoints(this IAzureOpcRegistryClient operations, string url = default(string), byte[] certificate = default(byte[]), SecurityMode? securityMode = default(SecurityMode?), string securityPolicy = default(string), bool? activated = default(bool?), bool? connected = default(bool?), EndpointConnectivityState? endpointState = default(EndpointConnectivityState?), bool? includeNotSeenSince = default(bool?), bool? onlyServerState = default(bool?), int? pageSize = default(int?))
+            public static EndpointInfoListApiModel GetFilteredListOfEndpoints(this IAzureOpcRegistryClient operations, string url = default(string), byte[] certificate = default(byte[]), SecurityMode? securityMode = default(SecurityMode?), string securityPolicy = default(string), bool? activated = default(bool?), bool? connected = default(bool?), EndpointConnectivityState? endpointState = default(EndpointConnectivityState?), bool? includeNotSeenSince = default(bool?), string discovererId = default(string), string applicationId = default(string), string supervisorId = default(string), string siteOrGatewayId = default(string), bool? onlyServerState = default(bool?), int? pageSize = default(int?))
             {
-                return operations.GetFilteredListOfEndpointsAsync(url, certificate, securityMode, securityPolicy, activated, connected, endpointState, includeNotSeenSince, onlyServerState, pageSize).GetAwaiter().GetResult();
+                return operations.GetFilteredListOfEndpointsAsync(url, certificate, securityMode, securityPolicy, activated, connected, endpointState, includeNotSeenSince, discovererId, applicationId, supervisorId, siteOrGatewayId, onlyServerState, pageSize).GetAwaiter().GetResult();
             }
 
             /// <summary>
@@ -1610,6 +1622,18 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// <param name='includeNotSeenSince'>
             /// Whether to include endpoints that were soft deleted
             /// </param>
+            /// <param name='discovererId'>
+            /// Discoverer id to filter with
+            /// </param>
+            /// <param name='applicationId'>
+            /// Application id to filter
+            /// </param>
+            /// <param name='supervisorId'>
+            /// Supervisor id to filter with
+            /// </param>
+            /// <param name='siteOrGatewayId'>
+            /// Site or gateway id to filter with
+            /// </param>
             /// <param name='onlyServerState'>
             /// Whether to include only server state, or display current client state of
             /// the endpoint if available
@@ -1620,9 +1644,9 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task<EndpointInfoListApiModel> GetFilteredListOfEndpointsAsync(this IAzureOpcRegistryClient operations, string url = default(string), byte[] certificate = default(byte[]), SecurityMode? securityMode = default(SecurityMode?), string securityPolicy = default(string), bool? activated = default(bool?), bool? connected = default(bool?), EndpointConnectivityState? endpointState = default(EndpointConnectivityState?), bool? includeNotSeenSince = default(bool?), bool? onlyServerState = default(bool?), int? pageSize = default(int?), CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task<EndpointInfoListApiModel> GetFilteredListOfEndpointsAsync(this IAzureOpcRegistryClient operations, string url = default(string), byte[] certificate = default(byte[]), SecurityMode? securityMode = default(SecurityMode?), string securityPolicy = default(string), bool? activated = default(bool?), bool? connected = default(bool?), EndpointConnectivityState? endpointState = default(EndpointConnectivityState?), bool? includeNotSeenSince = default(bool?), string discovererId = default(string), string applicationId = default(string), string supervisorId = default(string), string siteOrGatewayId = default(string), bool? onlyServerState = default(bool?), int? pageSize = default(int?), CancellationToken cancellationToken = default(CancellationToken))
             {
-                using (var _result = await operations.GetFilteredListOfEndpointsWithHttpMessagesAsync(url, certificate, securityMode, securityPolicy, activated, connected, endpointState, includeNotSeenSince, onlyServerState, pageSize, null, cancellationToken).ConfigureAwait(false))
+                using (var _result = await operations.GetFilteredListOfEndpointsWithHttpMessagesAsync(url, certificate, securityMode, securityPolicy, activated, connected, endpointState, includeNotSeenSince, discovererId, applicationId, supervisorId, siteOrGatewayId, onlyServerState, pageSize, null, cancellationToken).ConfigureAwait(false))
                 {
                     return _result.Body;
                 }

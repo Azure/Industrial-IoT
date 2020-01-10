@@ -514,6 +514,10 @@ final class AzureOpcRegistryClient
      * @param boolean|null $connected
      * @param string|null $endpointState
      * @param boolean|null $includeNotSeenSince
+     * @param string|null $discovererId
+     * @param string|null $applicationId
+     * @param string|null $supervisorId
+     * @param string|null $siteOrGatewayId
      * @param boolean|null $onlyServerState
      * @param integer|null $pageSize
      * @return array
@@ -527,6 +531,10 @@ final class AzureOpcRegistryClient
         $connected = null,
         $endpointState = null,
         $includeNotSeenSince = null,
+        $discovererId = null,
+        $applicationId = null,
+        $supervisorId = null,
+        $siteOrGatewayId = null,
         $onlyServerState = null,
         $pageSize = null
     )
@@ -540,6 +548,10 @@ final class AzureOpcRegistryClient
             'connected' => $connected,
             'endpointState' => $endpointState,
             'includeNotSeenSince' => $includeNotSeenSince,
+            'discovererId' => $discovererId,
+            'applicationId' => $applicationId,
+            'supervisorId' => $supervisorId,
+            'siteOrGatewayId' => $siteOrGatewayId,
             'onlyServerState' => $onlyServerState,
             'pageSize' => $pageSize
         ]);
@@ -1768,6 +1780,30 @@ final class AzureOpcRegistryClient
                             'type' => 'boolean'
                         ],
                         [
+                            'name' => 'discovererId',
+                            'in' => 'query',
+                            'required' => FALSE,
+                            'type' => 'string'
+                        ],
+                        [
+                            'name' => 'applicationId',
+                            'in' => 'query',
+                            'required' => FALSE,
+                            'type' => 'string'
+                        ],
+                        [
+                            'name' => 'supervisorId',
+                            'in' => 'query',
+                            'required' => FALSE,
+                            'type' => 'string'
+                        ],
+                        [
+                            'name' => 'siteOrGatewayId',
+                            'in' => 'query',
+                            'required' => FALSE,
+                            'type' => 'string'
+                        ],
+                        [
                             'name' => 'onlyServerState',
                             'in' => 'query',
                             'required' => FALSE,
@@ -2585,7 +2621,7 @@ final class AzureOpcRegistryClient
                     'capability' => ['type' => 'string'],
                     'discoveryProfileUri' => ['type' => 'string'],
                     'gatewayServerUri' => ['type' => 'string'],
-                    'siteOrSupervisorId' => ['type' => 'string'],
+                    'siteOrGatewayId' => ['type' => 'string'],
                     'includeNotSeenSince' => ['type' => 'boolean']
                 ],
                 'additionalProperties' => FALSE,
@@ -2820,7 +2856,11 @@ final class AzureOpcRegistryClient
                             'Error'
                         ]
                     ],
-                    'includeNotSeenSince' => ['type' => 'boolean']
+                    'includeNotSeenSince' => ['type' => 'boolean'],
+                    'discovererId' => ['type' => 'string'],
+                    'applicationId' => ['type' => 'string'],
+                    'supervisorId' => ['type' => 'string'],
+                    'siteOrGatewayId' => ['type' => 'string']
                 ],
                 'additionalProperties' => FALSE,
                 'required' => []

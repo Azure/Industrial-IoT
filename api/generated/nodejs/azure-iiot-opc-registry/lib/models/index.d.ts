@@ -464,7 +464,7 @@ export interface ApplicationRegistrationQueryApiModel {
   /**
    * Supervisor or site the application belongs to.
   */
-  siteOrSupervisorId?: string;
+  siteOrGatewayId?: string;
   /**
    * Whether to include apps that were soft deleted
   */
@@ -696,6 +696,22 @@ export interface EndpointRegistrationQueryApiModel {
    * Whether to include endpoints that were soft deleted
   */
   includeNotSeenSince?: boolean;
+  /**
+   * Discoverer id to filter with
+  */
+  discovererId?: string;
+  /**
+   * Application id to filter
+  */
+  applicationId?: string;
+  /**
+   * Supervisor id to filter with
+  */
+  supervisorId?: string;
+  /**
+   * Site or gateway id to filter with
+  */
+  siteOrGatewayId?: string;
 }
 
 /**

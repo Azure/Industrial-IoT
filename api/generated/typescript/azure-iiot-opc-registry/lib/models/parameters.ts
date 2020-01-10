@@ -22,10 +22,22 @@ export const activated: msRest.OperationQueryParameter = {
     }
   }
 };
-export const applicationId: msRest.OperationURLParameter = {
+export const applicationId0: msRest.OperationURLParameter = {
   parameterPath: "applicationId",
   mapper: {
     required: true,
+    serializedName: "applicationId",
+    type: {
+      name: "String"
+    }
+  }
+};
+export const applicationId1: msRest.OperationQueryParameter = {
+  parameterPath: [
+    "options",
+    "applicationId"
+  ],
+  mapper: {
     serializedName: "applicationId",
     type: {
       name: "String"
@@ -68,10 +80,22 @@ export const continuationToken: msRest.OperationQueryParameter = {
     }
   }
 };
-export const discovererId: msRest.OperationURLParameter = {
+export const discovererId0: msRest.OperationURLParameter = {
   parameterPath: "discovererId",
   mapper: {
     required: true,
+    serializedName: "discovererId",
+    type: {
+      name: "String"
+    }
+  }
+};
+export const discovererId1: msRest.OperationQueryParameter = {
+  parameterPath: [
+    "options",
+    "discovererId"
+  ],
+  mapper: {
     serializedName: "discovererId",
     type: {
       name: "String"
@@ -265,7 +289,31 @@ export const siteId: msRest.OperationQueryParameter = {
     }
   }
 };
-export const supervisorId: msRest.OperationURLParameter = {
+export const siteOrGatewayId: msRest.OperationQueryParameter = {
+  parameterPath: [
+    "options",
+    "siteOrGatewayId"
+  ],
+  mapper: {
+    serializedName: "siteOrGatewayId",
+    type: {
+      name: "String"
+    }
+  }
+};
+export const supervisorId0: msRest.OperationQueryParameter = {
+  parameterPath: [
+    "options",
+    "supervisorId"
+  ],
+  mapper: {
+    serializedName: "supervisorId",
+    type: {
+      name: "String"
+    }
+  }
+};
+export const supervisorId1: msRest.OperationURLParameter = {
   parameterPath: "supervisorId",
   mapper: {
     required: true,

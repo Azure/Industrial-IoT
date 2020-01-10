@@ -39,7 +39,7 @@ module azure.iiot.opc.registry
       attr_accessor :gateway_server_uri
 
       # @return [String] Supervisor or site the application belongs to.
-      attr_accessor :site_or_supervisor_id
+      attr_accessor :site_or_gateway_id
 
       # @return [Boolean] Whether to include apps that were soft deleted
       attr_accessor :include_not_seen_since
@@ -123,10 +123,10 @@ module azure.iiot.opc.registry
                   name: 'String'
                 }
               },
-              site_or_supervisor_id: {
+              site_or_gateway_id: {
                 client_side_validation: true,
                 required: false,
-                serialized_name: 'siteOrSupervisorId',
+                serialized_name: 'siteOrGatewayId',
                 type: {
                   name: 'String'
                 }

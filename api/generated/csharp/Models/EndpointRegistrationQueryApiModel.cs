@@ -44,7 +44,12 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         /// 'Error'</param>
         /// <param name="includeNotSeenSince">Whether to include endpoints that
         /// were soft deleted</param>
-        public EndpointRegistrationQueryApiModel(string url = default(string), byte[] certificate = default(byte[]), SecurityMode? securityMode = default(SecurityMode?), string securityPolicy = default(string), bool? activated = default(bool?), bool? connected = default(bool?), EndpointConnectivityState? endpointState = default(EndpointConnectivityState?), bool? includeNotSeenSince = default(bool?))
+        /// <param name="discovererId">Discoverer id to filter with</param>
+        /// <param name="applicationId">Application id to filter</param>
+        /// <param name="supervisorId">Supervisor id to filter with</param>
+        /// <param name="siteOrGatewayId">Site or gateway id to filter
+        /// with</param>
+        public EndpointRegistrationQueryApiModel(string url = default(string), byte[] certificate = default(byte[]), SecurityMode? securityMode = default(SecurityMode?), string securityPolicy = default(string), bool? activated = default(bool?), bool? connected = default(bool?), EndpointConnectivityState? endpointState = default(EndpointConnectivityState?), bool? includeNotSeenSince = default(bool?), string discovererId = default(string), string applicationId = default(string), string supervisorId = default(string), string siteOrGatewayId = default(string))
         {
             Url = url;
             Certificate = certificate;
@@ -54,6 +59,10 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
             Connected = connected;
             EndpointState = endpointState;
             IncludeNotSeenSince = includeNotSeenSince;
+            DiscovererId = discovererId;
+            ApplicationId = applicationId;
+            SupervisorId = supervisorId;
+            SiteOrGatewayId = siteOrGatewayId;
             CustomInit();
         }
 
@@ -111,6 +120,30 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         /// </summary>
         [JsonProperty(PropertyName = "includeNotSeenSince")]
         public bool? IncludeNotSeenSince { get; set; }
+
+        /// <summary>
+        /// Gets or sets discoverer id to filter with
+        /// </summary>
+        [JsonProperty(PropertyName = "discovererId")]
+        public string DiscovererId { get; set; }
+
+        /// <summary>
+        /// Gets or sets application id to filter
+        /// </summary>
+        [JsonProperty(PropertyName = "applicationId")]
+        public string ApplicationId { get; set; }
+
+        /// <summary>
+        /// Gets or sets supervisor id to filter with
+        /// </summary>
+        [JsonProperty(PropertyName = "supervisorId")]
+        public string SupervisorId { get; set; }
+
+        /// <summary>
+        /// Gets or sets site or gateway id to filter with
+        /// </summary>
+        [JsonProperty(PropertyName = "siteOrGatewayId")]
+        public string SiteOrGatewayId { get; set; }
 
     }
 }

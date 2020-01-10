@@ -1024,7 +1024,7 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {string} [body.gatewayServerUri] Gateway server uri
    *
-   * @param {string} [body.siteOrSupervisorId] Supervisor or site the application
+   * @param {string} [body.siteOrGatewayId] Supervisor or site the application
    * belongs to.
    *
    * @param {boolean} [body.includeNotSeenSince] Whether to include apps that
@@ -1071,7 +1071,7 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {string} [body.gatewayServerUri] Gateway server uri
    *
-   * @param {string} [body.siteOrSupervisorId] Supervisor or site the application
+   * @param {string} [body.siteOrGatewayId] Supervisor or site the application
    * belongs to.
    *
    * @param {boolean} [body.includeNotSeenSince] Whether to include apps that
@@ -1139,7 +1139,7 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {string} [body.gatewayServerUri] Gateway server uri
    *
-   * @param {string} [body.siteOrSupervisorId] Supervisor or site the application
+   * @param {string} [body.siteOrGatewayId] Supervisor or site the application
    * belongs to.
    *
    * @param {boolean} [body.includeNotSeenSince] Whether to include apps that
@@ -1187,7 +1187,7 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {string} [body.gatewayServerUri] Gateway server uri
    *
-   * @param {string} [body.siteOrSupervisorId] Supervisor or site the application
+   * @param {string} [body.siteOrGatewayId] Supervisor or site the application
    * belongs to.
    *
    * @param {boolean} [body.includeNotSeenSince] Whether to include apps that
@@ -2693,6 +2693,14 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    * @param {boolean} [body.includeNotSeenSince] Whether to include endpoints
    * that were soft deleted
    *
+   * @param {string} [body.discovererId] Discoverer id to filter with
+   *
+   * @param {string} [body.applicationId] Application id to filter
+   *
+   * @param {string} [body.supervisorId] Supervisor id to filter with
+   *
+   * @param {string} [body.siteOrGatewayId] Site or gateway id to filter with
+   *
    * @param {object} [options] Optional Parameters.
    *
    * @param {boolean} [options.onlyServerState] Whether to include only server
@@ -2739,6 +2747,14 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {boolean} [body.includeNotSeenSince] Whether to include endpoints
    * that were soft deleted
+   *
+   * @param {string} [body.discovererId] Discoverer id to filter with
+   *
+   * @param {string} [body.applicationId] Application id to filter
+   *
+   * @param {string} [body.supervisorId] Supervisor id to filter with
+   *
+   * @param {string} [body.siteOrGatewayId] Site or gateway id to filter with
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -2809,6 +2825,14 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    * @param {boolean} [options.includeNotSeenSince] Whether to include endpoints
    * that were soft deleted
    *
+   * @param {string} [options.discovererId] Discoverer id to filter with
+   *
+   * @param {string} [options.applicationId] Application id to filter
+   *
+   * @param {string} [options.supervisorId] Supervisor id to filter with
+   *
+   * @param {string} [options.siteOrGatewayId] Site or gateway id to filter with
+   *
    * @param {boolean} [options.onlyServerState] Whether to include only server
    * state, or display current client state of the endpoint if available
    *
@@ -2823,7 +2847,7 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    * @reject {Error|ServiceError} - The error object.
    */
-  getFilteredListOfEndpointsWithHttpOperationResponse(options?: { url? : string, certificate? : Buffer, securityMode? : string, securityPolicy? : string, activated? : boolean, connected? : boolean, endpointState? : string, includeNotSeenSince? : boolean, onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.EndpointInfoListApiModel>>;
+  getFilteredListOfEndpointsWithHttpOperationResponse(options?: { url? : string, certificate? : Buffer, securityMode? : string, securityPolicy? : string, activated? : boolean, connected? : boolean, endpointState? : string, includeNotSeenSince? : boolean, discovererId? : string, applicationId? : string, supervisorId? : string, siteOrGatewayId? : string, onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.EndpointInfoListApiModel>>;
 
   /**
    * @summary Get filtered list of endpoints
@@ -2856,6 +2880,14 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    * @param {boolean} [options.includeNotSeenSince] Whether to include endpoints
    * that were soft deleted
    *
+   * @param {string} [options.discovererId] Discoverer id to filter with
+   *
+   * @param {string} [options.applicationId] Application id to filter
+   *
+   * @param {string} [options.supervisorId] Supervisor id to filter with
+   *
+   * @param {string} [options.siteOrGatewayId] Site or gateway id to filter with
+   *
    * @param {boolean} [options.onlyServerState] Whether to include only server
    * state, or display current client state of the endpoint if available
    *
@@ -2887,9 +2919,9 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
    */
-  getFilteredListOfEndpoints(options?: { url? : string, certificate? : Buffer, securityMode? : string, securityPolicy? : string, activated? : boolean, connected? : boolean, endpointState? : string, includeNotSeenSince? : boolean, onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<models.EndpointInfoListApiModel>;
+  getFilteredListOfEndpoints(options?: { url? : string, certificate? : Buffer, securityMode? : string, securityPolicy? : string, activated? : boolean, connected? : boolean, endpointState? : string, includeNotSeenSince? : boolean, discovererId? : string, applicationId? : string, supervisorId? : string, siteOrGatewayId? : string, onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<models.EndpointInfoListApiModel>;
   getFilteredListOfEndpoints(callback: ServiceCallback<models.EndpointInfoListApiModel>): void;
-  getFilteredListOfEndpoints(options: { url? : string, certificate? : Buffer, securityMode? : string, securityPolicy? : string, activated? : boolean, connected? : boolean, endpointState? : string, includeNotSeenSince? : boolean, onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.EndpointInfoListApiModel>): void;
+  getFilteredListOfEndpoints(options: { url? : string, certificate? : Buffer, securityMode? : string, securityPolicy? : string, activated? : boolean, connected? : boolean, endpointState? : string, includeNotSeenSince? : boolean, discovererId? : string, applicationId? : string, supervisorId? : string, siteOrGatewayId? : string, onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.EndpointInfoListApiModel>): void;
 
 
   /**
