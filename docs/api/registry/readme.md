@@ -284,7 +284,7 @@ Register a client to receive application events through SignalR.
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The user that will receive application<br>            events.|string|
+|**Body**|**body**  <br>*optional*|The user that will receive application events.|string|
 
 
 ##### Responses
@@ -745,7 +745,7 @@ Register a user to receive discoverer events through SignalR.
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The user id that will receive discoverer<br>            events.|string|
+|**Body**|**body**  <br>*optional*|The user id that will receive discoverer events.|string|
 
 
 ##### Responses
@@ -906,7 +906,7 @@ Register a client to receive discovery progress events through SignalR for a par
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**requestId**  <br>*required*|The request to monitor|string|
-|**Body**|**body**  <br>*optional*|The user id that will receive discovery<br>            events.|string|
+|**Body**|**body**  <br>*optional*|The user id that will receive discovery events.|string|
 
 
 ##### Responses
@@ -1101,7 +1101,7 @@ Register a client to receive discovery progress events through SignalR from a pa
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**discovererId**  <br>*required*|The discoverer to subscribe to|string|
-|**Body**|**body**  <br>*optional*|The user id that will receive discovery<br>            events.|string|
+|**Body**|**body**  <br>*optional*|The user id that will receive discovery events.|string|
 
 
 ##### Responses
@@ -1218,7 +1218,7 @@ Register a user to receive endpoint events through SignalR.
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The user id that will receive endpoint<br>            events.|string|
+|**Body**|**body**  <br>*optional*|The user id that will receive endpoint events.|string|
 
 
 ##### Responses
@@ -1528,7 +1528,7 @@ Register a user to receive Gateway events through SignalR.
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The user id that will receive Gateway<br>            events.|string|
+|**Body**|**body**  <br>*optional*|The user id that will receive Gateway events.|string|
 
 
 ##### Responses
@@ -1807,7 +1807,7 @@ Register a user to receive publisher events through SignalR.
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The user id that will receive publisher<br>            events.|string|
+|**Body**|**body**  <br>*optional*|The user id that will receive publisher events.|string|
 
 
 ##### Responses
@@ -2113,7 +2113,7 @@ Register a user to receive supervisor events through SignalR.
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The user id that will receive supervisor<br>            events.|string|
+|**Body**|**body**  <br>*optional*|The user id that will receive supervisor events.|string|
 
 
 ##### Responses

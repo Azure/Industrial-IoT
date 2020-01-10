@@ -135,7 +135,6 @@ GET /v2/crl/{serialNumber}
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|string (binary)|
-|**404**|Not Found|[NotFoundResult](definitions.md#notfoundresult)|
 
 
 ##### Produces
@@ -162,7 +161,6 @@ GET /v2/issuer/{serialNumber}
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|string (binary)|
-|**404**|Not Found|[NotFoundResult](definitions.md#notfoundresult)|
 
 
 ##### Produces

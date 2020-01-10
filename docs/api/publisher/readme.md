@@ -54,7 +54,7 @@ Register a client to receive publisher samples through SignalR.
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**endpointId**  <br>*required*|The endpoint to subscribe to|string|
-|**Body**|**body**  <br>*optional*|The user id that will receive publisher<br>            samples.|string|
+|**Body**|**body**  <br>*optional*|The user id that will receive publisher samples.|string|
 
 
 ##### Responses
