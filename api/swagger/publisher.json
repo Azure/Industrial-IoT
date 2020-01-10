@@ -12,7 +12,7 @@
     },
     "version": "v2"
   },
-  "host": "manipc1:9080",
+  "host": "localhost:9080",
   "schemes": [
     "http",
     "https"
@@ -82,7 +82,7 @@
           {
             "in": "path",
             "name": "userId",
-            "description": "The user id that will not receive\r\n            any more published samples",
+            "description": "The user id that will not receive any more published samples",
             "required": true,
             "type": "string"
           }
@@ -107,7 +107,7 @@
           "Publish"
         ],
         "summary": "Start publishing node values",
-        "description": "Start publishing variable node values to IoT Hub.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Start publishing variable node values to IoT Hub. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "StartPublishingValues",
         "consumes": [
           "application/json-patch+json",
@@ -159,7 +159,7 @@
           "Publish"
         ],
         "summary": "Stop publishing node values",
-        "description": "Stop publishing variable node values to IoT Hub.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Stop publishing variable node values to IoT Hub. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "StopPublishingValues",
         "consumes": [
           "application/json-patch+json",
@@ -211,7 +211,7 @@
           "Publish"
         ],
         "summary": "Get currently published nodes",
-        "description": "Returns currently published node ids for an endpoint.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Returns currently published node ids for an endpoint. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "GetFirstListOfPublishedNodes",
         "consumes": [
           "application/json-patch+json",
@@ -261,7 +261,7 @@
           "Publish"
         ],
         "summary": "Get next set of published nodes",
-        "description": "Returns next set of currently published node ids for an endpoint.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Returns next set of currently published node ids for an endpoint. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "GetNextListOfPublishedNodes",
         "produces": [
           "application/json"

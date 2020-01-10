@@ -48,6 +48,10 @@ namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi {
                         });
                 }
             }
+            foreach (var param in operation.Parameters) {
+                param.Description = param.Description.SingleSpacesNoLineBreak();
+            }
+            operation.Description = operation.Description.SingleSpacesNoLineBreak();
         }
     }
 }

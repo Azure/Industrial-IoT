@@ -12,7 +12,7 @@
     },
     "version": "v2"
   },
-  "host": "manipc1:9080",
+  "host": "localhost:9080",
   "schemes": [
     "http",
     "https"
@@ -24,7 +24,7 @@
           "Applications"
         ],
         "summary": "Register new server",
-        "description": "Registers a server solely using a discovery url. Requires that\r\nthe onboarding agent service is running and the server can be\r\nlocated by a supervisor in its network using the discovery url.",
+        "description": "Registers a server solely using a discovery url. Requires that the onboarding agent service is running and the server can be located by a supervisor in its network using the discovery url.",
         "operationId": "RegisterServer",
         "consumes": [
           "application/json-patch+json",
@@ -61,7 +61,7 @@
           "Applications"
         ],
         "summary": "Create new application",
-        "description": "The application is registered using the provided information, but it\r\nis not associated with a supervisor.  This is useful for when you need\r\nto register clients or you want to register a server that is located\r\nin a network not reachable through a Twin module.",
+        "description": "The application is registered using the provided information, but it is not associated with a supervisor. This is useful for when you need to register clients or you want to register a server that is located in a network not reachable through a Twin module.",
         "operationId": "CreateApplication",
         "consumes": [
           "application/json-patch+json",
@@ -133,7 +133,7 @@
           "Applications"
         ],
         "summary": "Get list of applications",
-        "description": "Get all registered applications in paged form.\r\nThe returned model can contain a continuation token if more results are\r\navailable.\r\nCall this operation again using the token to retrieve more results.",
+        "description": "Get all registered applications in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.",
         "operationId": "GetListOfApplications",
         "produces": [
           "application/json"
@@ -142,13 +142,13 @@
           {
             "in": "query",
             "name": "continuationToken",
-            "description": "Optional Continuation\r\n            token",
+            "description": "Optional Continuation token",
             "type": "string"
           },
           {
             "in": "query",
             "name": "pageSize",
-            "description": "Optional number of results to\r\n            return",
+            "description": "Optional number of results to return",
             "type": "integer",
             "format": "int32"
           }
@@ -241,7 +241,7 @@
           "Applications"
         ],
         "summary": "Discover servers",
-        "description": "Registers servers by running a discovery scan in a supervisor's\r\nnetwork. Requires that the onboarding agent service is running.",
+        "description": "Registers servers by running a discovery scan in a supervisor's network. Requires that the onboarding agent service is running.",
         "operationId": "DiscoverServer",
         "consumes": [
           "application/json-patch+json",
@@ -345,7 +345,7 @@
           "Applications"
         ],
         "summary": "Update application registration",
-        "description": "The application information is updated with new properties.  Note that\r\nthis information might be overridden if the application is re-discovered\r\nduring a discovery run (recurring or one-time).",
+        "description": "The application information is updated with new properties. Note that this information might be overridden if the application is re-discovered during a discovery run (recurring or one-time).",
         "operationId": "UpdateApplicationRegistration",
         "consumes": [
           "application/json-patch+json",
@@ -429,13 +429,13 @@
           {
             "in": "query",
             "name": "continuationToken",
-            "description": "Optional Continuation\r\n            token",
+            "description": "Optional Continuation token",
             "type": "string"
           },
           {
             "in": "query",
             "name": "pageSize",
-            "description": "Optional number of results to\r\n            return",
+            "description": "Optional number of results to return",
             "type": "integer",
             "format": "int32"
           }
@@ -466,7 +466,7 @@
           "Applications"
         ],
         "summary": "Query applications",
-        "description": "List applications that match a query model.\r\nThe returned model can contain a continuation token if more results are\r\navailable.\r\nCall the GetListOfApplications operation using the token to retrieve\r\nmore results.",
+        "description": "List applications that match a query model. The returned model can contain a continuation token if more results are available. Call the GetListOfApplications operation using the token to retrieve more results.",
         "operationId": "QueryApplications",
         "consumes": [
           "application/json-patch+json",
@@ -481,7 +481,7 @@
           {
             "in": "query",
             "name": "pageSize",
-            "description": "Optional number of results to\r\n            return",
+            "description": "Optional number of results to return",
             "type": "integer",
             "format": "int32"
           },
@@ -516,7 +516,7 @@
           "Applications"
         ],
         "summary": "Get filtered list of applications",
-        "description": "Get a list of applications filtered using the specified query parameters.\r\nThe returned model can contain a continuation token if more results are\r\navailable.\r\nCall the GetListOfApplications operation using the token to retrieve\r\nmore results.",
+        "description": "Get a list of applications filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfApplications operation using the token to retrieve more results.",
         "operationId": "GetFilteredListOfApplications",
         "consumes": [
           "application/json-patch+json",
@@ -656,7 +656,7 @@
           {
             "in": "path",
             "name": "userId",
-            "description": "The user id that will not receive\r\n            any more events",
+            "description": "The user id that will not receive any more events",
             "required": true,
             "type": "string"
           }
@@ -681,7 +681,7 @@
           "Discoverers"
         ],
         "summary": "Get discoverer registration information",
-        "description": "Returns a discoverer's registration and connectivity information.\r\nA discoverer id corresponds to the twin modules module identity.",
+        "description": "Returns a discoverer's registration and connectivity information. A discoverer id corresponds to the twin modules module identity.",
         "operationId": "GetDiscoverer",
         "produces": [
           "application/json"
@@ -697,7 +697,7 @@
           {
             "in": "query",
             "name": "onlyServerState",
-            "description": "Whether to include only server\r\n            state, or display current client state of the endpoint if\r\n            available",
+            "description": "Whether to include only server state, or display current client state of the endpoint if available",
             "type": "boolean"
           }
         ],
@@ -722,7 +722,7 @@
           "Discoverers"
         ],
         "summary": "Update discoverer information",
-        "description": "Allows a caller to configure recurring discovery runs on the twin module\r\nidentified by the discoverer id or update site information.",
+        "description": "Allows a caller to configure recurring discovery runs on the twin module identified by the discoverer id or update site information.",
         "operationId": "UpdateDiscoverer",
         "consumes": [
           "application/json-patch+json",
@@ -766,7 +766,7 @@
           "Discoverers"
         ],
         "summary": "Enable server discovery",
-        "description": "Allows a caller to configure recurring discovery runs on the\r\ndiscovery module identified by the module id.",
+        "description": "Allows a caller to configure recurring discovery runs on the discovery module identified by the module id.",
         "operationId": "SetDiscoveryMode",
         "consumes": [
           "application/json-patch+json",
@@ -786,7 +786,19 @@
             "in": "query",
             "name": "mode",
             "description": "Discovery mode",
-            "required": true
+            "required": true,
+            "type": "string",
+            "enum": [
+              "Off",
+              "Local",
+              "Network",
+              "Fast",
+              "Scan"
+            ],
+            "x-ms-enum": {
+              "name": "DiscoveryMode",
+              "modelAsString": false
+            }
           },
           {
             "in": "body",
@@ -817,7 +829,7 @@
           "Discoverers"
         ],
         "summary": "Get list of discoverers",
-        "description": "Get all registered discoverers and therefore twin modules in paged form.\r\nThe returned model can contain a continuation token if more results are\r\navailable.\r\nCall this operation again using the token to retrieve more results.",
+        "description": "Get all registered discoverers and therefore twin modules in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.",
         "operationId": "GetListOfDiscoverers",
         "produces": [
           "application/json"
@@ -826,7 +838,7 @@
           {
             "in": "query",
             "name": "onlyServerState",
-            "description": "Whether to include only server\r\n            state, or display current client state of the endpoint if available",
+            "description": "Whether to include only server state, or display current client state of the endpoint if available",
             "type": "boolean"
           },
           {
@@ -869,7 +881,7 @@
           "Discoverers"
         ],
         "summary": "Query discoverers",
-        "description": "Get all discoverers that match a specified query.\r\nThe returned model can contain a continuation token if more results are\r\navailable.\r\nCall the GetListOfDiscoverers operation using the token to retrieve\r\nmore results.",
+        "description": "Get all discoverers that match a specified query. The returned model can contain a continuation token if more results are available. Call the GetListOfDiscoverers operation using the token to retrieve more results.",
         "operationId": "QueryDiscoverers",
         "consumes": [
           "application/json-patch+json",
@@ -884,7 +896,7 @@
           {
             "in": "query",
             "name": "onlyServerState",
-            "description": "Whether to include only server\r\n            state, or display current client state of the endpoint if\r\n            available",
+            "description": "Whether to include only server state, or display current client state of the endpoint if available",
             "type": "boolean"
           },
           {
@@ -925,7 +937,7 @@
           "Discoverers"
         ],
         "summary": "Get filtered list of discoverers",
-        "description": "Get a list of discoverers filtered using the specified query parameters.\r\nThe returned model can contain a continuation token if more results are\r\navailable.\r\nCall the GetListOfDiscoverers operation using the token to retrieve\r\nmore results.",
+        "description": "Get a list of discoverers filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfDiscoverers operation using the token to retrieve more results.",
         "operationId": "GetFilteredListOfDiscoverers",
         "produces": [
           "application/json"
@@ -933,28 +945,37 @@
         "parameters": [
           {
             "in": "query",
-            "name": "SiteId",
+            "name": "siteId",
             "description": "Site of the discoverer",
-            "required": true,
             "type": "string"
           },
           {
             "in": "query",
-            "name": "Discovery",
+            "name": "discovery",
             "description": "Discovery mode of discoverer",
-            "required": true
+            "type": "string",
+            "enum": [
+              "Off",
+              "Local",
+              "Network",
+              "Fast",
+              "Scan"
+            ],
+            "x-ms-enum": {
+              "name": "DiscoveryMode",
+              "modelAsString": false
+            }
           },
           {
             "in": "query",
-            "name": "Connected",
+            "name": "connected",
             "description": "Included connected or disconnected",
-            "required": true,
             "type": "boolean"
           },
           {
             "in": "query",
             "name": "onlyServerState",
-            "description": "Whether to include only server\r\n            state, or display current client state of the endpoint if\r\n            available",
+            "description": "Whether to include only server state, or display current client state of the endpoint if available",
             "type": "boolean"
           },
           {
@@ -1032,7 +1053,7 @@
           {
             "in": "path",
             "name": "userId",
-            "description": "The user id that will not receive\r\n            any more discoverer events",
+            "description": "The user id that will not receive any more discoverer events",
             "required": true,
             "type": "string"
           }
@@ -1057,7 +1078,7 @@
           "Discoverers"
         ],
         "summary": "Subscribe to discovery progress from discoverer",
-        "description": "Register a client to receive discovery progress events\r\nthrough SignalR from a particular discoverer.",
+        "description": "Register a client to receive discovery progress events through SignalR from a particular discoverer.",
         "operationId": "SubscribeByDiscovererId",
         "consumes": [
           "application/json-patch+json",
@@ -1102,7 +1123,7 @@
           "Discoverers"
         ],
         "summary": "Subscribe to discovery progress for a request",
-        "description": "Register a client to receive discovery progress events\r\nthrough SignalR for a particular request.",
+        "description": "Register a client to receive discovery progress events through SignalR for a particular request.",
         "operationId": "SubscribeByRequestId",
         "consumes": [
           "application/json-patch+json",
@@ -1147,7 +1168,7 @@
           "Discoverers"
         ],
         "summary": "Unsubscribe from discovery progress for a request.",
-        "description": "Unregister a client and stop it from receiving discovery\r\nevents for a particular request.",
+        "description": "Unregister a client and stop it from receiving discovery events for a particular request.",
         "operationId": "UnsubscribeByRequestId",
         "parameters": [
           {
@@ -1160,7 +1181,7 @@
           {
             "in": "path",
             "name": "userId",
-            "description": "The user id that will not receive\r\n            any more discovery progress",
+            "description": "The user id that will not receive any more discovery progress",
             "required": true,
             "type": "string"
           }
@@ -1198,7 +1219,7 @@
           {
             "in": "path",
             "name": "userId",
-            "description": "The user id that will not receive\r\n            any more discovery progress",
+            "description": "The user id that will not receive any more discovery progress",
             "required": true,
             "type": "string"
           }
@@ -1223,7 +1244,7 @@
           "Endpoints"
         ],
         "summary": "Activate endpoint",
-        "description": "Activates an endpoint for subsequent use in twin service.\r\nAll endpoints must be activated using this API or through a\r\nactivation filter during application registration or discovery.",
+        "description": "Activates an endpoint for subsequent use in twin service. All endpoints must be activated using this API or through a activation filter during application registration or discovery.",
         "operationId": "ActivateEndpoint",
         "parameters": [
           {
@@ -1270,7 +1291,7 @@
           {
             "in": "query",
             "name": "onlyServerState",
-            "description": "Whether to include only server\r\n            state, or display current client state of the endpoint if\r\n            available",
+            "description": "Whether to include only server state, or display current client state of the endpoint if available",
             "type": "boolean"
           }
         ],
@@ -1297,7 +1318,7 @@
           "Endpoints"
         ],
         "summary": "Get list of endpoints",
-        "description": "Get all registered endpoints in paged form.\r\nThe returned model can contain a continuation token if more results are\r\navailable.\r\nCall this operation again using the token to retrieve more results.",
+        "description": "Get all registered endpoints in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.",
         "operationId": "GetListOfEndpoints",
         "produces": [
           "application/json"
@@ -1306,7 +1327,7 @@
           {
             "in": "query",
             "name": "onlyServerState",
-            "description": "Whether to include only server\r\n            state, or display current client state of the endpoint if available",
+            "description": "Whether to include only server state, or display current client state of the endpoint if available",
             "type": "boolean"
           },
           {
@@ -1349,7 +1370,7 @@
           "Endpoints"
         ],
         "summary": "Query endpoints",
-        "description": "Return endpoints that match the specified query.\r\nThe returned model can contain a continuation token if more results are\r\navailable.\r\nCall the GetListOfEndpoints operation using the token to retrieve\r\nmore results.",
+        "description": "Return endpoints that match the specified query. The returned model can contain a continuation token if more results are available. Call the GetListOfEndpoints operation using the token to retrieve more results.",
         "operationId": "QueryEndpoints",
         "consumes": [
           "application/json-patch+json",
@@ -1364,7 +1385,7 @@
           {
             "in": "query",
             "name": "onlyServerState",
-            "description": "Whether to include only server\r\n            state, or display current client state of the endpoint if available",
+            "description": "Whether to include only server state, or display current client state of the endpoint if available",
             "type": "boolean"
           },
           {
@@ -1405,7 +1426,7 @@
           "Endpoints"
         ],
         "summary": "Get filtered list of endpoints",
-        "description": "Get a list of endpoints filtered using the specified query parameters.\r\nThe returned model can contain a continuation token if more results are\r\navailable.\r\nCall the GetListOfEndpoints operation using the token to retrieve\r\nmore results.",
+        "description": "Get a list of endpoints filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfEndpoints operation using the token to retrieve more results.",
         "operationId": "GetFilteredListOfEndpoints",
         "produces": [
           "application/json"
@@ -1413,69 +1434,86 @@
         "parameters": [
           {
             "in": "query",
-            "name": "Url",
+            "name": "url",
             "description": "Endoint url for direct server access",
-            "required": true,
             "type": "string"
           },
           {
             "in": "query",
-            "name": "Certificate",
+            "name": "certificate",
             "description": "Certificate of the endpoint",
-            "required": true,
             "type": "string",
             "format": "byte"
           },
           {
             "in": "query",
-            "name": "SecurityMode",
+            "name": "securityMode",
             "description": "Security Mode",
-            "required": true
+            "type": "string",
+            "enum": [
+              "Best",
+              "Sign",
+              "SignAndEncrypt",
+              "None"
+            ],
+            "x-ms-enum": {
+              "name": "SecurityMode",
+              "modelAsString": false
+            }
           },
           {
             "in": "query",
-            "name": "SecurityPolicy",
+            "name": "securityPolicy",
             "description": "Security policy uri",
-            "required": true,
             "type": "string"
           },
           {
             "in": "query",
-            "name": "Activated",
+            "name": "activated",
             "description": "Whether the endpoint was activated",
-            "required": true,
             "type": "boolean"
           },
           {
             "in": "query",
-            "name": "Connected",
+            "name": "connected",
             "description": "Whether the endpoint is connected on supervisor.",
-            "required": true,
             "type": "boolean"
           },
           {
             "in": "query",
-            "name": "EndpointState",
+            "name": "endpointState",
             "description": "The last state of the the activated endpoint",
-            "required": true
+            "type": "string",
+            "enum": [
+              "Connecting",
+              "NotReachable",
+              "Busy",
+              "NoTrust",
+              "CertificateInvalid",
+              "Ready",
+              "Error"
+            ],
+            "x-ms-enum": {
+              "name": "EndpointConnectivityState",
+              "modelAsString": false
+            }
           },
           {
             "in": "query",
-            "name": "IncludeNotSeenSince",
+            "name": "includeNotSeenSince",
             "description": "Whether to include endpoints that were soft deleted",
-            "required": true,
             "type": "boolean"
           },
           {
             "in": "query",
             "name": "onlyServerState",
-            "description": "Whether to include only server state, or display\r\n            current client state of the endpoint if available",
+            "description": "Whether to include only server state, or display current client state of the endpoint if available",
             "type": "boolean"
           },
           {
             "in": "query",
             "name": "pageSize",
-            "description": "Optional number of results to\r\n            return",
+            "description": "Optional number of results to return",
             "type": "integer",
             "format": "int32"
           }
@@ -1578,7 +1616,7 @@
           {
             "in": "path",
             "name": "userId",
-            "description": "The user id that will not receive\r\n            any more endpoint events",
+            "description": "The user id that will not receive any more endpoint events",
             "required": true,
             "type": "string"
           }
@@ -1603,7 +1641,7 @@
           "Gateways"
         ],
         "summary": "Get Gateway registration information",
-        "description": "Returns a Gateway's registration and connectivity information.\r\nA Gateway id corresponds to the twin modules module identity.",
+        "description": "Returns a Gateway's registration and connectivity information. A Gateway id corresponds to the twin modules module identity.",
         "operationId": "GetGateway",
         "produces": [
           "application/json"
@@ -1638,7 +1676,7 @@
           "Gateways"
         ],
         "summary": "Update Gateway configuration",
-        "description": "Allows a caller to configure operations on the Gateway module\r\nidentified by the Gateway id.",
+        "description": "Allows a caller to configure operations on the Gateway module identified by the Gateway id.",
         "operationId": "UpdateGateway",
         "consumes": [
           "application/json-patch+json",
@@ -1684,7 +1722,7 @@
           "Gateways"
         ],
         "summary": "Get list of Gateways",
-        "description": "Get all registered Gateways and therefore twin modules in paged form.\r\nThe returned model can contain a continuation token if more results are\r\navailable.\r\nCall this operation again using the token to retrieve more results.",
+        "description": "Get all registered Gateways and therefore twin modules in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.",
         "operationId": "GetListOfGateway",
         "produces": [
           "application/json"
@@ -1730,7 +1768,7 @@
           "Gateways"
         ],
         "summary": "Query Gateways",
-        "description": "Get all Gateways that match a specified query.\r\nThe returned model can contain a continuation token if more results are\r\navailable.\r\nCall the GetListOfGateway operation using the token to retrieve\r\nmore results.",
+        "description": "Get all Gateways that match a specified query. The returned model can contain a continuation token if more results are available. Call the GetListOfGateway operation using the token to retrieve more results.",
         "operationId": "QueryGateway",
         "consumes": [
           "application/json-patch+json",
@@ -1780,7 +1818,7 @@
           "Gateways"
         ],
         "summary": "Get filtered list of Gateways",
-        "description": "Get a list of Gateways filtered using the specified query parameters.\r\nThe returned model can contain a continuation token if more results are\r\navailable.\r\nCall the GetListOfGateway operation using the token to retrieve\r\nmore results.",
+        "description": "Get a list of Gateways filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfGateway operation using the token to retrieve more results.",
         "operationId": "GetFilteredListOfGateway",
         "produces": [
           "application/json"
@@ -1788,16 +1826,14 @@
         "parameters": [
           {
             "in": "query",
-            "name": "SiteId",
+            "name": "siteId",
             "description": "Site of the Gateway",
-            "required": true,
             "type": "string"
           },
           {
             "in": "query",
-            "name": "Connected",
+            "name": "connected",
             "description": "Included connected or disconnected",
-            "required": true,
             "type": "boolean"
           },
           {
@@ -1875,7 +1911,7 @@
           {
             "in": "path",
             "name": "userId",
-            "description": "The user id that will not receive\r\n            any more Gateway events",
+            "description": "The user id that will not receive any more Gateway events",
             "required": true,
             "type": "string"
           }
@@ -1900,7 +1936,7 @@
           "Publishers"
         ],
         "summary": "Get publisher registration information",
-        "description": "Returns a publisher's registration and connectivity information.\r\nA publisher id corresponds to the twin modules module identity.",
+        "description": "Returns a publisher's registration and connectivity information. A publisher id corresponds to the twin modules module identity.",
         "operationId": "GetPublisher",
         "produces": [
           "application/json"
@@ -1916,7 +1952,7 @@
           {
             "in": "query",
             "name": "onlyServerState",
-            "description": "Whether to include only server\r\n            state, or display current client state of the endpoint if\r\n            available",
+            "description": "Whether to include only server state, or display current client state of the endpoint if available",
             "type": "boolean"
           }
         ],
@@ -1941,7 +1977,7 @@
           "Publishers"
         ],
         "summary": "Update publisher configuration",
-        "description": "Allows a caller to configure operations on the publisher module\r\nidentified by the publisher id.",
+        "description": "Allows a caller to configure operations on the publisher module identified by the publisher id.",
         "operationId": "UpdatePublisher",
         "consumes": [
           "application/json-patch+json",
@@ -1987,7 +2023,7 @@
           "Publishers"
         ],
         "summary": "Get list of publishers",
-        "description": "Get all registered publishers and therefore twin modules in paged form.\r\nThe returned model can contain a continuation token if more results are\r\navailable.\r\nCall this operation again using the token to retrieve more results.",
+        "description": "Get all registered publishers and therefore twin modules in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.",
         "operationId": "GetListOfPublisher",
         "produces": [
           "application/json"
@@ -1996,7 +2032,7 @@
           {
             "in": "query",
             "name": "onlyServerState",
-            "description": "Whether to include only server\r\n            state, or display current client state of the endpoint if available",
+            "description": "Whether to include only server state, or display current client state of the endpoint if available",
             "type": "boolean"
           },
           {
@@ -2039,7 +2075,7 @@
           "Publishers"
         ],
         "summary": "Query publishers",
-        "description": "Get all publishers that match a specified query.\r\nThe returned model can contain a continuation token if more results are\r\navailable.\r\nCall the GetListOfPublisher operation using the token to retrieve\r\nmore results.",
+        "description": "Get all publishers that match a specified query. The returned model can contain a continuation token if more results are available. Call the GetListOfPublisher operation using the token to retrieve more results.",
         "operationId": "QueryPublisher",
         "consumes": [
           "application/json-patch+json",
@@ -2054,7 +2090,7 @@
           {
             "in": "query",
             "name": "onlyServerState",
-            "description": "Whether to include only server\r\n            state, or display current client state of the endpoint if\r\n            available",
+            "description": "Whether to include only server state, or display current client state of the endpoint if available",
             "type": "boolean"
           },
           {
@@ -2095,7 +2131,7 @@
           "Publishers"
         ],
         "summary": "Get filtered list of publishers",
-        "description": "Get a list of publishers filtered using the specified query parameters.\r\nThe returned model can contain a continuation token if more results are\r\navailable.\r\nCall the GetListOfPublisher operation using the token to retrieve\r\nmore results.",
+        "description": "Get a list of publishers filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfPublisher operation using the token to retrieve more results.",
         "operationId": "GetFilteredListOfPublisher",
         "produces": [
           "application/json"
@@ -2103,22 +2139,20 @@
         "parameters": [
           {
             "in": "query",
-            "name": "SiteId",
+            "name": "siteId",
             "description": "Site of the publisher",
-            "required": true,
             "type": "string"
           },
           {
             "in": "query",
-            "name": "Connected",
+            "name": "connected",
             "description": "Included connected or disconnected",
-            "required": true,
             "type": "boolean"
           },
           {
             "in": "query",
             "name": "onlyServerState",
-            "description": "Whether to include only server\r\n            state, or display current client state of the endpoint if\r\n            available",
+            "description": "Whether to include only server state, or display current client state of the endpoint if available",
             "type": "boolean"
           },
           {
@@ -2196,7 +2230,7 @@
           {
             "in": "path",
             "name": "userId",
-            "description": "The user id that will not receive\r\n            any more publisher events",
+            "description": "The user id that will not receive any more publisher events",
             "required": true,
             "type": "string"
           }
@@ -2240,7 +2274,7 @@
           "Supervisors"
         ],
         "summary": "Get supervisor registration information",
-        "description": "Returns a supervisor's registration and connectivity information.\r\nA supervisor id corresponds to the twin modules module identity.",
+        "description": "Returns a supervisor's registration and connectivity information. A supervisor id corresponds to the twin modules module identity.",
         "operationId": "GetSupervisor",
         "produces": [
           "application/json"
@@ -2256,7 +2290,7 @@
           {
             "in": "query",
             "name": "onlyServerState",
-            "description": "Whether to include only server\r\n            state, or display current client state of the endpoint if\r\n            available",
+            "description": "Whether to include only server state, or display current client state of the endpoint if available",
             "type": "boolean"
           }
         ],
@@ -2281,7 +2315,7 @@
           "Supervisors"
         ],
         "summary": "Update supervisor information",
-        "description": "Allows a caller to configure recurring discovery runs on the twin module\r\nidentified by the supervisor id or update site information.",
+        "description": "Allows a caller to configure recurring discovery runs on the twin module identified by the supervisor id or update site information.",
         "operationId": "UpdateSupervisor",
         "consumes": [
           "application/json-patch+json",
@@ -2364,7 +2398,7 @@
           "Supervisors"
         ],
         "summary": "Reset supervisor",
-        "description": "Allows a caller to reset the twin module using its supervisor\r\nidentity identifier.",
+        "description": "Allows a caller to reset the twin module using its supervisor identity identifier.",
         "operationId": "ResetSupervisor",
         "parameters": [
           {
@@ -2395,7 +2429,7 @@
           "Supervisors"
         ],
         "summary": "Get list of supervisors",
-        "description": "Get all registered supervisors and therefore twin modules in paged form.\r\nThe returned model can contain a continuation token if more results are\r\navailable.\r\nCall this operation again using the token to retrieve more results.",
+        "description": "Get all registered supervisors and therefore twin modules in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.",
         "operationId": "GetListOfSupervisors",
         "produces": [
           "application/json"
@@ -2404,7 +2438,7 @@
           {
             "in": "query",
             "name": "onlyServerState",
-            "description": "Whether to include only server\r\n            state, or display current client state of the endpoint if available",
+            "description": "Whether to include only server state, or display current client state of the endpoint if available",
             "type": "boolean"
           },
           {
@@ -2447,7 +2481,7 @@
           "Supervisors"
         ],
         "summary": "Query supervisors",
-        "description": "Get all supervisors that match a specified query.\r\nThe returned model can contain a continuation token if more results are\r\navailable.\r\nCall the GetListOfSupervisors operation using the token to retrieve\r\nmore results.",
+        "description": "Get all supervisors that match a specified query. The returned model can contain a continuation token if more results are available. Call the GetListOfSupervisors operation using the token to retrieve more results.",
         "operationId": "QuerySupervisors",
         "consumes": [
           "application/json-patch+json",
@@ -2462,7 +2496,7 @@
           {
             "in": "query",
             "name": "onlyServerState",
-            "description": "Whether to include only server\r\n            state, or display current client state of the endpoint if\r\n            available",
+            "description": "Whether to include only server state, or display current client state of the endpoint if available",
             "type": "boolean"
           },
           {
@@ -2503,7 +2537,7 @@
           "Supervisors"
         ],
         "summary": "Get filtered list of supervisors",
-        "description": "Get a list of supervisors filtered using the specified query parameters.\r\nThe returned model can contain a continuation token if more results are\r\navailable.\r\nCall the GetListOfSupervisors operation using the token to retrieve\r\nmore results.",
+        "description": "Get a list of supervisors filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfSupervisors operation using the token to retrieve more results.",
         "operationId": "GetFilteredListOfSupervisors",
         "produces": [
           "application/json"
@@ -2511,22 +2545,20 @@
         "parameters": [
           {
             "in": "query",
-            "name": "SiteId",
+            "name": "siteId",
             "description": "Site of the supervisor",
-            "required": true,
             "type": "string"
           },
           {
             "in": "query",
-            "name": "Connected",
+            "name": "connected",
             "description": "Included connected or disconnected",
-            "required": true,
             "type": "boolean"
           },
           {
             "in": "query",
             "name": "onlyServerState",
-            "description": "Whether to include only server\r\n            state, or display current client state of the endpoint if\r\n            available",
+            "description": "Whether to include only server state, or display current client state of the endpoint if available",
             "type": "boolean"
           },
           {
@@ -2604,7 +2636,7 @@
           {
             "in": "path",
             "name": "userId",
-            "description": "The user id that will not receive\r\n            any more supervisor events",
+            "description": "The user id that will not receive any more supervisor events",
             "required": true,
             "type": "string"
           }

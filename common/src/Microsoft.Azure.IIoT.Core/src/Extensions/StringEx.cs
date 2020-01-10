@@ -247,5 +247,30 @@ namespace System {
             }
             return value;
         }
+
+        /// <summary>
+        /// Removes all whitespace and replaces it with single space.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static string SingleSpacesNoLineBreak(this string value) {
+            if (string.IsNullOrEmpty(value)) {
+                return value;
+            }
+            var builder = new StringBuilder();
+            var lastCharWasWs = false;
+            foreach (var c in value) {
+                if (char.IsWhiteSpace(c)) {
+                    lastCharWasWs = true;
+                    continue;
+                }
+                if (lastCharWasWs) {
+                    builder.Append(' ');
+                    lastCharWasWs = false;
+                }
+                builder.Append(c);
+            }
+            return builder.ToString();
+        }
     }
 }

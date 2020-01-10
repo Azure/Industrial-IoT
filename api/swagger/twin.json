@@ -12,7 +12,7 @@
     },
     "version": "v2"
   },
-  "host": "manipc1:9080",
+  "host": "localhost:9080",
   "schemes": [
     "http",
     "https"
@@ -24,7 +24,7 @@
           "Browse"
         ],
         "summary": "Browse node references",
-        "description": "Browse a node on the specified endpoint.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Browse a node on the specified endpoint. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "Browse",
         "consumes": [
           "application/json-patch+json",
@@ -74,7 +74,7 @@
           "Browse"
         ],
         "summary": "Browse set of unique target nodes",
-        "description": "Browse the set of unique hierarchically referenced target nodes on the endpoint.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.\r\nThe root node id to browse from can be provided as part of the query\r\nparameters.\r\nIf it is not provided, the RootFolder node is browsed. Note that this\r\nis the same as the POST method with the model containing the node id\r\nand the targetNodesOnly flag set to true.",
+        "description": "Browse the set of unique hierarchically referenced target nodes on the endpoint. The endpoint must be activated and connected and the module client and server must trust each other. The root node id to browse from can be provided as part of the query parameters. If it is not provided, the RootFolder node is browsed. Note that this is the same as the POST method with the model containing the node id and the targetNodesOnly flag set to true.",
         "operationId": "GetSetOfUniqueNodes",
         "produces": [
           "application/json"
@@ -117,7 +117,7 @@
           "Browse"
         ],
         "summary": "Browse next set of references",
-        "description": "Browse next set of references on the endpoint.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Browse next set of references on the endpoint. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "BrowseNext",
         "consumes": [
           "application/json-patch+json",
@@ -167,7 +167,7 @@
           "Browse"
         ],
         "summary": "Browse next set of unique target nodes",
-        "description": "Browse the next set of unique hierarchically referenced target nodes on the\r\nendpoint.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.\r\nNote that this is the same as the POST method with the model containing\r\nthe continuation token and the targetNodesOnly flag set to true.",
+        "description": "Browse the next set of unique hierarchically referenced target nodes on the endpoint. The endpoint must be activated and connected and the module client and server must trust each other. Note that this is the same as the POST method with the model containing the continuation token and the targetNodesOnly flag set to true.",
         "operationId": "GetNextSetOfUniqueNodes",
         "produces": [
           "application/json"
@@ -214,7 +214,7 @@
           "Browse"
         ],
         "summary": "Browse using a browse path",
-        "description": "Browse using a path from the specified node id.\r\nThis call uses TranslateBrowsePathsToNodeIds service under the hood.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Browse using a path from the specified node id. This call uses TranslateBrowsePathsToNodeIds service under the hood. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "BrowseUsingPath",
         "consumes": [
           "application/json-patch+json",
@@ -266,7 +266,7 @@
           "Call"
         ],
         "summary": "Get method meta data",
-        "description": "Return method meta data to support a user interface displaying forms to\r\ninput and output arguments.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Return method meta data to support a user interface displaying forms to input and output arguments. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "GetCallMetadata",
         "consumes": [
           "application/json-patch+json",
@@ -318,7 +318,7 @@
           "Call"
         ],
         "summary": "Call a method",
-        "description": "Invoke method node with specified input arguments.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Invoke method node with specified input arguments. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "CallMethod",
         "consumes": [
           "application/json-patch+json",
@@ -370,7 +370,7 @@
           "Read"
         ],
         "summary": "Read variable value",
-        "description": "Read a variable node's value.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Read a variable node's value. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "ReadValue",
         "consumes": [
           "application/json-patch+json",
@@ -420,7 +420,7 @@
           "Read"
         ],
         "summary": "Get variable value",
-        "description": "Get a variable node's value using its node id.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Get a variable node's value using its node id. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "GetValue",
         "produces": [
           "application/json"
@@ -464,7 +464,7 @@
           "Read"
         ],
         "summary": "Read node attributes",
-        "description": "Read attributes of a node.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Read attributes of a node. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "ReadAttributes",
         "consumes": [
           "application/json-patch+json",
@@ -535,7 +535,7 @@
           "Write"
         ],
         "summary": "Write variable value",
-        "description": "Write variable node's value.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Write variable node's value. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "WriteValue",
         "consumes": [
           "application/json-patch+json",
@@ -587,7 +587,7 @@
           "Write"
         ],
         "summary": "Write node attributes",
-        "description": "Write any attribute of a node.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Write any attribute of a node. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "WriteAttributes",
         "consumes": [
           "application/json-patch+json",
@@ -852,12 +852,12 @@
     },
     "NodeValueRankNullable": {
       "enum": [
-        "ScalarOrOneDimension",
-        "Any",
-        "Scalar",
         "OneOrMoreDimensions",
         "OneDimension",
-        "TwoDimensions"
+        "TwoDimensions",
+        "ScalarOrOneDimension",
+        "Any",
+        "Scalar"
       ],
       "type": "string",
       "x-ms-enum": {

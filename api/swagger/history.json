@@ -12,7 +12,7 @@
     },
     "version": "v2"
   },
-  "host": "manipc1:9080",
+  "host": "localhost:9080",
   "schemes": [
     "http",
     "https"
@@ -24,7 +24,7 @@
           "Delete"
         ],
         "summary": "Delete value history at specified times",
-        "description": "Delete value history using historic access.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Delete value history using historic access. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "HistoryDeleteValuesAtTimes",
         "consumes": [
           "application/json-patch+json",
@@ -76,7 +76,7 @@
           "Delete"
         ],
         "summary": "Delete historic values",
-        "description": "Delete historic values using historic access.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Delete historic values using historic access. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "HistoryDeleteValues",
         "consumes": [
           "application/json-patch+json",
@@ -128,7 +128,7 @@
           "Delete"
         ],
         "summary": "Delete historic values",
-        "description": "Delete historic values using historic access.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Delete historic values using historic access. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "HistoryDeleteModifiedValues",
         "consumes": [
           "application/json-patch+json",
@@ -180,7 +180,7 @@
           "Delete"
         ],
         "summary": "Delete historic events",
-        "description": "Delete historic events using historic access.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Delete historic events using historic access. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "HistoryDeleteEvents",
         "consumes": [
           "application/json-patch+json",
@@ -232,7 +232,7 @@
           "History"
         ],
         "summary": "Read history using json details",
-        "description": "Read node history if available using historic access.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Read node history if available using historic access. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "HistoryReadRaw",
         "consumes": [
           "application/json-patch+json",
@@ -284,7 +284,7 @@
           "History"
         ],
         "summary": "Read next batch of history as json",
-        "description": "Read next batch of node history values using historic access.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Read next batch of node history values using historic access. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "HistoryReadRawNext",
         "consumes": [
           "application/json-patch+json",
@@ -336,7 +336,7 @@
           "History"
         ],
         "summary": "Update node history using raw json",
-        "description": "Update node history using historic access.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Update node history using historic access. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "HistoryUpdateRaw",
         "consumes": [
           "application/json-patch+json",
@@ -388,7 +388,7 @@
           "Insert"
         ],
         "summary": "Insert historic values",
-        "description": "Insert historic values using historic access.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Insert historic values using historic access. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "HistoryInsertValues",
         "consumes": [
           "application/json-patch+json",
@@ -440,7 +440,7 @@
           "Insert"
         ],
         "summary": "Insert historic events",
-        "description": "Insert historic events using historic access.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Insert historic events using historic access. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "HistoryInsertEvents",
         "consumes": [
           "application/json-patch+json",
@@ -492,7 +492,7 @@
           "Read"
         ],
         "summary": "Read historic events",
-        "description": "Read historic events of a node if available using historic access.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Read historic events of a node if available using historic access. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "HistoryReadEvents",
         "consumes": [
           "application/json-patch+json",
@@ -544,7 +544,7 @@
           "Read"
         ],
         "summary": "Read next batch of historic events",
-        "description": "Read next batch of historic events of a node using historic access.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Read next batch of historic events of a node using historic access. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "HistoryReadEventsNext",
         "consumes": [
           "application/json-patch+json",
@@ -596,7 +596,7 @@
           "Read"
         ],
         "summary": "Read historic processed values at specified times",
-        "description": "Read processed history values of a node if available using historic access.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Read processed history values of a node if available using historic access. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "HistoryReadValues",
         "consumes": [
           "application/json-patch+json",
@@ -648,7 +648,7 @@
           "Read"
         ],
         "summary": "Read historic values at specified times",
-        "description": "Read historic values of a node if available using historic access.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Read historic values of a node if available using historic access. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "HistoryReadValuesAtTimes",
         "consumes": [
           "application/json-patch+json",
@@ -700,7 +700,7 @@
           "Read"
         ],
         "summary": "Read historic processed values at specified times",
-        "description": "Read processed history values of a node if available using historic access.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Read processed history values of a node if available using historic access. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "HistoryReadProcessedValues",
         "consumes": [
           "application/json-patch+json",
@@ -752,7 +752,7 @@
           "Read"
         ],
         "summary": "Read historic modified values at specified times",
-        "description": "Read processed history values of a node if available using historic access.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Read processed history values of a node if available using historic access. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "HistoryReadModifiedValues",
         "consumes": [
           "application/json-patch+json",
@@ -804,7 +804,7 @@
           "Read"
         ],
         "summary": "Read next batch of historic values",
-        "description": "Read next batch of historic values of a node using historic access.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Read next batch of historic values of a node using historic access. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "HistoryReadValueNext",
         "consumes": [
           "application/json-patch+json",
@@ -856,7 +856,7 @@
           "Replace"
         ],
         "summary": "Replace historic values",
-        "description": "Replace historic values using historic access.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Replace historic values using historic access. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "HistoryReplaceValues",
         "consumes": [
           "application/json-patch+json",
@@ -908,7 +908,7 @@
           "Replace"
         ],
         "summary": "Replace historic events",
-        "description": "Replace historic events using historic access.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Replace historic events using historic access. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "HistoryReplaceEvents",
         "consumes": [
           "application/json-patch+json",
