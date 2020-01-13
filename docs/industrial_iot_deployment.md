@@ -19,8 +19,6 @@
 * [Missing And Planned Features](#missing-and-planned-features)
   * [Configuring Azure Resources](#configuring-azure-resources)
   * [User Interface](#user-interface)
-* [Known Issues](#known-issues)
-  * [CosmosDB Scale](#cosmosdb-scale)
 * [Resources](#resources)
 
 `Microsoft.Azure.IIoT.Deployment` is a command line application for deploying Industrial IoT solution.
@@ -341,10 +339,6 @@ You will still need to run the application once before granting the consent and 
     [14:36:30 INF] Done.
     ```
 
-    One last thing left to do is to manually lower the scale of created CosmosDB containers. This is not a
-    functional issue, but the default size of created containers will cost ~60$ per day. Check
-    [CosmosDB Scale](#cosmosdb-scale) to learn more and lower the cost.
-
 ### Granting Admin Consent
 
 To grant admin consent you have to be **admin** in the Azure account. Here are the steps to do this:
@@ -562,35 +556,6 @@ resources.
 
 We plan to add an interactive UI experience for `Microsoft.Azure.IIoT.Deployment` that will guide you
 through deployment steps. This will be available only on Windows.
-
-## Known Issues
-
-### CosmosDB Scale
-
-`Microsoft.Azure.IIoT.Deployment` deploys version `2.5.1` of Industrial IoT platform which includes
-deployment of CosmosDB databases and containers within it. The solution creates 2 CosmosDB databases
-with 3 containers which are used by microservices:
-
-* `iiot_opc` database, which contains the following containers:
-  * `iiot_opc-indices`
-  * `iiot_opc-requests`
-* `OpcVault` database, which contains the following container:
-  * `AppsAndCertRequests`
-
-By default, the containers are created with
-[throughput allocation of 10000 RU/s](https://docs.microsoft.com/azure/cosmos-db/request-units) which each
-costs around 20$ daily. The next version of the platform will create containers with lower throughput
-allocation, but currently you have to manually lower the cost of throughput allocation. To do that follow
-these steps:
-
-1. Go to Azure Portal.
-2. Go to **Resource Groups**.
-3. Find the Resource Groups that has been selected during the deployment and select it.
-4. Within the Resource Group, find and select instance of CosmosDB that has been deployed. Deployment logs
-    will contain the name of CosmosBD, which will be something like `cosmosdb-98554`. Last 5 characters will
-    be different for each deployment.
-5. On the left side find **Scale** under **Containers** group and select it.
-6. Then for each container listed above change the value of **Throughput** from 10000 to 400 and Save it.
 
 ## Resources
 
