@@ -567,7 +567,7 @@ through deployment steps. This will be available only on Windows.
 
 ### CosmosDB Scale
 
-`Microsoft.Azure.IIoT.Deployment` deploys version `2.5.1` of Industrial IoT platform which includes
+`Microsoft.Azure.IIoT.Deployment` deploys version `2.5.2` of Industrial IoT platform which includes
 deployment of CosmosDB databases and containers within it. The solution creates 2 CosmosDB databases
 with 3 containers which are used by microservices:
 
