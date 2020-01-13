@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History {
         /// Returns status of the service
         /// </summary>
         /// <returns></returns>
-        Task<StatusResponseApiModel> GetServiceStatusAsync(CancellationToken ct = default);
+        Task<string> GetServiceStatusAsync(CancellationToken ct = default);
 
         /// <summary>
         /// Read raw historic values

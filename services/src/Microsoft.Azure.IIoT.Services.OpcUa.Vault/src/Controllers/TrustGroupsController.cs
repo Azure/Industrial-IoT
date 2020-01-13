@@ -3,10 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Controllers {
-    using Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Auth;
-    using Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Filters;
-    using Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Models;
+namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Controllers {
+    using Microsoft.Azure.IIoT.Services.OpcUa.Vault.Auth;
+    using Microsoft.Azure.IIoT.Services.OpcUa.Vault.Filters;
+    using Microsoft.Azure.IIoT.Services.OpcUa.Vault.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models;
     using Microsoft.Azure.IIoT.OpcUa.Vault;
     using Microsoft.Azure.IIoT.Http;
     using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
@@ -65,7 +66,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Controllers {
             // Use service principal
             HttpContext.User = null; // TODO Set sp
             var config = await _groups.ListGroupsAsync(nextPageLink, pageSize);
-            return new TrustGroupRegistrationListApiModel(config);
+            return config.ToApiModel();
         }
 
         /// <summary>
@@ -83,7 +84,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Controllers {
         public async Task<TrustGroupRegistrationApiModel> GetGroupAsync(
             string groupId) {
             var group = await _groups.GetGroupAsync(groupId);
-            return new TrustGroupRegistrationApiModel(group);
+            return group.ToApiModel();
         }
 
         /// <summary>
@@ -123,7 +124,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Controllers {
                 throw new ArgumentNullException(nameof(request));
             }
             var result = await _groups.CreateRootAsync(request.ToServiceModel());
-            return new TrustGroupRegistrationResponseApiModel(result);
+            return result.ToApiModel();
         }
 
         /// <summary>
@@ -142,7 +143,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Controllers {
                 throw new ArgumentNullException(nameof(request));
             }
             var result = await _groups.CreateGroupAsync(request.ToServiceModel());
-            return new TrustGroupRegistrationResponseApiModel(result);
+            return result.ToApiModel();
         }
 
         /// <summary>

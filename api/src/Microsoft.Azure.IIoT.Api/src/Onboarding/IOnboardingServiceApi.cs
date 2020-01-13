@@ -17,8 +17,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Onboarding {
         /// Returns status of the service
         /// </summary>
         /// <returns></returns>
-        Task<StatusResponseApiModel> GetServiceStatusAsync(
-            CancellationToken ct = default);
+        Task<string> GetServiceStatusAsync(CancellationToken ct = default);
 
         /// <summary>
         /// Processes discovery events and onboards new entities

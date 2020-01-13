@@ -3,10 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Controllers {
-    using Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Auth;
-    using Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Filters;
-    using Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Models;
+namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Controllers {
+    using Microsoft.Azure.IIoT.Services.OpcUa.Vault.Auth;
+    using Microsoft.Azure.IIoT.Services.OpcUa.Vault.Filters;
+    using Microsoft.Azure.IIoT.Services.OpcUa.Vault.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models;
     using Microsoft.Azure.IIoT.OpcUa.Vault;
     using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
     using Microsoft.Azure.IIoT.Http;
@@ -79,7 +80,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Controllers {
 
             var result = await _services.ListTrustedCertificatesAsync(entityId, nextPageLink,
                 pageSize);
-            return new X509CertificateListApiModel(result);
+            return result.ToApiModel();
         }
 
         /// <summary>

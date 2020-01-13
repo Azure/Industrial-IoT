@@ -3,10 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Controllers {
-    using Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Auth;
-    using Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Filters;
-    using Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Models;
+namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Controllers {
+    using Microsoft.Azure.IIoT.Services.OpcUa.Vault.Auth;
+    using Microsoft.Azure.IIoT.Services.OpcUa.Vault.Filters;
+    using Microsoft.Azure.IIoT.Services.OpcUa.Vault.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models;
     using Microsoft.Azure.IIoT.OpcUa.Vault;
     using Microsoft.Azure.IIoT.OpcUa.Vault.Models;
     using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
@@ -64,7 +65,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Controllers {
                     AuthorityId = User.Identity.Name,
                     Time = DateTime.UtcNow
                 });
-            return new StartSigningRequestResponseApiModel(result);
+            return result.ToApiModel();
         }
 
         /// <summary>
@@ -90,7 +91,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Controllers {
                     AuthorityId = User.Identity.Name,
                     Time = DateTime.UtcNow
                 });
-            return new FinishSigningRequestResponseApiModel(result);
+            return result.ToApiModel();
         }
 
         /// <summary>
@@ -117,7 +118,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Controllers {
                     AuthorityId = User.Identity.Name,
                     Time = DateTime.UtcNow
                 });
-            return new StartNewKeyPairRequestResponseApiModel(result);
+            return result.ToApiModel();
         }
 
         /// <summary>
@@ -144,7 +145,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Controllers {
                     AuthorityId = User.Identity.Name,
                     Time = DateTime.UtcNow
                 });
-            return new FinishNewKeyPairRequestResponseApiModel(result);
+            return result.ToApiModel();
         }
 
         /// <summary>
@@ -243,7 +244,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Controllers {
             string requestId) {
             HttpContext.User = null; // TODO: Set service principal
             var result = await _management.GetRequestAsync(requestId);
-            return new CertificateRequestRecordApiModel(result);
+            return result.ToApiModel();
         }
 
         /// <summary>
@@ -270,7 +271,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Controllers {
             HttpContext.User = null; // TODO: Set service principal
             var result = await _management.QueryRequestsAsync(query?.ToServiceModel(),
                 pageSize);
-            return new CertificateRequestQueryResponseApiModel(result);
+            return result.ToApiModel();
         }
 
         /// <summary>
@@ -302,7 +303,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Controllers {
             HttpContext.User = null; // TODO: Set service principal
             var result = await _management.ListRequestsAsync(
                 nextPageLink, pageSize);
-            return new CertificateRequestQueryResponseApiModel(result);
+            return result.ToApiModel();
         }
 
         private readonly ISigningRequestProcessor _signing;

@@ -3,8 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Controllers {
-    using Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Filters;
+namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Controllers {
+    using Microsoft.Azure.IIoT.Services.OpcUa.Vault.Filters;
     using Microsoft.Azure.IIoT.OpcUa.Vault;
     using Microsoft.Azure.IIoT.OpcUa.Vault.Models;
     using Microsoft.Azure.IIoT.Exceptions;

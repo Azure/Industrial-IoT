@@ -3,10 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Controllers {
-    using Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Auth;
-    using Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Filters;
-    using Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Models;
+namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Controllers {
+    using Microsoft.Azure.IIoT.Services.OpcUa.Vault.Auth;
+    using Microsoft.Azure.IIoT.Services.OpcUa.Vault.Filters;
+    using Microsoft.Azure.IIoT.Services.OpcUa.Vault.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models;
     using Microsoft.Azure.IIoT.OpcUa.Vault;
     using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
     using Microsoft.AspNetCore.Authorization;
@@ -49,7 +50,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Controllers {
             // Use service principal
             HttpContext.User = null; // TODO Set sp
             var result = await _services.GetIssuerCertificateChainAsync(serialNumber);
-            return new X509CertificateChainApiModel(result);
+            return result.ToApiModel();
         }
 
         /// <summary>
@@ -67,7 +68,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Controllers {
             // Use service principal
             HttpContext.User = null; // TODO Set sp
             var result = await _services.GetIssuerCrlChainAsync(serialNumber);
-            return new X509CrlChainApiModel(result);
+            return result.ToApiModel();
         }
 
         private readonly ICertificateAuthority _services;

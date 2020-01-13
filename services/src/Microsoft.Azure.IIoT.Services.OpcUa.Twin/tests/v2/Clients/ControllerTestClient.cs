@@ -117,8 +117,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.v2.Controllers.Test {
         }
 
         /// <inheritdoc/>
-        public Task<StatusResponseApiModel> GetServiceStatusAsync(CancellationToken ct) {
-            return Task.FromException<StatusResponseApiModel>(new NotImplementedException());
+        public Task<string> GetServiceStatusAsync(CancellationToken ct) {
+            return Task.FromException<string>(new NotImplementedException());
         }
 
         /// <inheritdoc/>
