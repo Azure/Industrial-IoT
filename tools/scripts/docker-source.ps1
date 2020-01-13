@@ -169,7 +169,7 @@ ENV PATH="${PATH}:/root/vsdbg/vsdbg"
             $entryPoint = "[`"dotnet`", `"$($assemblyName).dll`"]"
         }
 
-        $environmentVars = ""
+        $environmentVars = "DOTNET_RUNNING_IN_CONTAINER=true "
         $exposes = ""
         if ($metadata.exposes -ne $null) {
             $metadata.exposes | ForEach-Object {
